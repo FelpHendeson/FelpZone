@@ -1,0 +1,31 @@
+# Segredos e configurações locais
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependências e ambientes virtuais
+node_modules/
+.venv/
+venv/
+__pycache__/
+
+# Builds, cobertura e caches
+dist/
+build/
+coverage/
+.cache/
+.pytest_cache/
+.next/
+
+# Editores e sistema operacional
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Logs e arquivos temporários
+*.log
+*.tmp
+*.temp

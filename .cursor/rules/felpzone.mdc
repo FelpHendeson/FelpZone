@@ -1,0 +1,18 @@
+---
+description: Princípios gerais para desenvolver experimentos no FelpZone
+alwaysApply: true
+---
+
+# FelpZone
+
+- Trate este repositório como um laboratório de projetos pessoais independentes.
+- Coloque cada nova ideia em uma pasta própria, com nome em `kebab-case`.
+- Antes de implementar, procure instruções e código existentes no escopo da ideia.
+- Comece pela menor solução que valide a hipótese; evite abstrações prematuras.
+- Preserve mudanças existentes e não altere outros experimentos sem necessidade.
+- Adicione ou atualize o README da ideia com objetivo, execução e estado atual.
+- Explique decisões e suposições relevantes em linguagem direta.
+- Execute verificações proporcionais à mudança e informe o que foi validado.
+- Nunca versione segredos, credenciais, dados pessoais ou conteúdo corporativo.
+- Use `.env.example` somente com valores fictícios quando variáveis forem necessárias.
+- Antes de sugerir um commit, confira o escopo para evitar arquivos gerados ou sensíveis.
