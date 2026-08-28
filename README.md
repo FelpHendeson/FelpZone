@@ -81,4 +81,10 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Estrutura inicial do laboratório. Novas ideias serão adicionadas como projetos independentes.
+Estrutura inicial do laboratório com o primeiro conceito em planejamento.
+
+## Ideias
+
+| Projeto | Estado | Descrição |
+| --- | --- | --- |
+| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Conceito | RPG mobile-first de escolhas, campanha estruturada e narrativa apoiada por IA. |
