@@ -16,20 +16,21 @@ O jogador cria o nome e o sobrenome de um jovem que acabara de atingir a maiorid
 
 Leia nesta ordem:
 
-1. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
-2. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
-3. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
-4. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
-5. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
-6. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
-7. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
-8. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): eventos de período e dia derivados do relógio, já implementado.
-9. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
-10. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
-11. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
-12. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas e transformação de materiais.
-13. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
-14. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+1. [Continuação em outro computador](docs/HANDOFF-HOME.md): estado atual e prompt pronto para contextualizar um novo chat.
+2. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
+3. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
+4. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
+5. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
+6. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
+7. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
+8. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
+9. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): eventos de período e dia derivados do relógio, já implementado.
+10. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
+11. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
+12. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
+13. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas e transformação de materiais.
+14. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
+15. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
