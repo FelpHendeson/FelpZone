@@ -64,7 +64,10 @@ function stateSignature(state: GameState): string {
     status: state.status,
     currentEventId: state.currentEventId,
     flags: state.flags,
+    attributes: state.attributes,
     inventory: state.inventory,
+    relationships: state.relationships,
+    world: state.world,
     abilities: state.progression.abilityIds,
     titles: state.progression.titleIds,
   });

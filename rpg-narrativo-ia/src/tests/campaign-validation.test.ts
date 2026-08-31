@@ -1,9 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
 import { ITEM_FRUIT, ITEM_WATER } from '../campaigns/first-day/ids';
-import { validateCampaign, walkCampaignTrajectories } from '../core/engine';
+import { applyChoice, getAvailableChoices, startGame, validateCampaign, walkCampaignTrajectories } from '../core/engine';
 import type { Campaign, StoryEvent } from '../core/events';
-import { stubCampaign } from './helpers';
+import { now, stubCampaign } from './helpers';
 
 describe('validação de campanha', () => {
   it('aceita a campanha atual na validação ampliada', () => {
@@ -149,4 +149,155 @@ describe('validação de campanha', () => {
     expect(walk.completedPaths).toBeGreaterThan(0);
     expect(walk.reachedEventIds.sort()).toEqual([...eventIds].sort());
   });
+
+  it('distingue dois estados no mesmo evento quando atributos ou relações mudam as escolhas', () => {
+    const campaign = branchingAttributeCampaign();
+    const started = startGame({ firstName: 'Ana', lastName: 'Cruz' }, campaign, now);
+    const skipped = applyChoice(started, campaign, 'skip', now);
+    const trained = applyChoice(started, campaign, 'train', now);
+
+    expect(skipped.currentEventId).toBe('hub');
+    expect(trained.currentEventId).toBe('hub');
+    expect(skipped.flags).toEqual(trained.flags);
+    expect(skipped.inventory).toEqual(trained.inventory);
+    expect(skipped.attributes.cautela).not.toBe(trained.attributes.cautela);
+    expect(getAvailableChoices(skipped, campaign).some((choice) => choice.id === 'secret')).toBe(false);
+    expect(getAvailableChoices(trained, campaign).some((choice) => choice.id === 'secret')).toBe(true);
+
+    const walk = walkCampaignTrajectories(campaign);
+    expect(walk.errors).toEqual([]);
+    expect(walk.reachedEventIds).toContain('secret');
+  });
+
+  it('não considera semanticamente alcançável um evento só porque aparece numa transição', () => {
+    const campaign = structurallyConnectedButGatedCampaign();
+    const diagnostics = validateCampaign(campaign);
+    const walk = walkCampaignTrajectories(campaign);
+
+    expect(walk.reachedEventIds).not.toContain('gated');
+    expect(walk.reachedEventIds).toContain('ending');
+    expect(diagnostics.some((line) => line.includes('gated') && /semanticamente/i.test(line))).toBe(true);
+    expect(diagnostics.some((line) => line.includes('gated') && /estruturalmente/i.test(line))).toBe(false);
+  });
 });
+
+function branchingAttributeCampaign(): Campaign {
+  return stubCampaign({
+    events: [
+      {
+        id: 'start',
+        title: 'Início',
+        body: 'Dois jeitos de chegar ao mesmo lugar.',
+        image: { kind: 'scene', label: 'Início' },
+        choices: [
+          {
+            id: 'loop',
+            label: 'Esperar no lugar',
+            effects: [],
+            transition: { type: 'event', eventId: 'start' },
+          },
+          {
+            id: 'skip',
+            label: 'Seguir direto',
+            effects: [],
+            transition: { type: 'event', eventId: 'hub' },
+          },
+          {
+            id: 'train',
+            label: 'Treinar o olhar',
+            effects: [{ type: 'attribute.change', attribute: 'cautela', amount: 20 }],
+            transition: { type: 'event', eventId: 'hub' },
+          },
+        ],
+      },
+      {
+        id: 'hub',
+        title: 'Clareira',
+        body: 'O mesmo sítio, outra disposição.',
+        image: { kind: 'scene', label: 'Hub' },
+        choices: [
+          {
+            id: 'finish',
+            label: 'Encerrar',
+            effects: [{ type: 'game.complete' }],
+            transition: { type: 'complete' },
+          },
+          {
+            id: 'secret',
+            label: 'Notar o atalho',
+            conditions: [{ type: 'attribute.min', attribute: 'cautela', amount: 50 }],
+            effects: [],
+            transition: { type: 'event', eventId: 'secret' },
+          },
+        ],
+      },
+      {
+        id: 'secret',
+        title: 'Atalho',
+        body: 'Só quem treinou percebe.',
+        image: { kind: 'scene', label: 'Segredo' },
+        isEnding: true,
+        choices: [
+          {
+            id: 'secret-end',
+            label: 'Encerrar',
+            effects: [{ type: 'game.complete' }],
+            transition: { type: 'complete' },
+          },
+        ],
+      },
+    ],
+  });
+}
+
+function structurallyConnectedButGatedCampaign(): Campaign {
+  return stubCampaign({
+    events: [
+      {
+        id: 'start',
+        title: 'Início',
+        body: 'Há uma porta trancada no caminho.',
+        image: { kind: 'scene', label: 'Início' },
+        choices: [
+          {
+            id: 'proceed',
+            label: 'Avançar',
+            effects: [],
+            transition: { type: 'firstMatch', eventIds: ['gated', 'ending'] },
+          },
+        ],
+      },
+      {
+        id: 'gated',
+        title: 'Sala trancada',
+        body: 'Ninguém abre isto neste estado.',
+        image: { kind: 'scene', label: 'Trancada' },
+        conditions: [{ type: 'flag.is', flag: 'never-open', value: true }],
+        isEnding: true,
+        choices: [
+          {
+            id: 'gated-end',
+            label: 'Encerrar',
+            effects: [{ type: 'game.complete' }],
+            transition: { type: 'complete' },
+          },
+        ],
+      },
+      {
+        id: 'ending',
+        title: 'Saída',
+        body: 'O caminho possível.',
+        image: { kind: 'scene', label: 'Fim' },
+        isEnding: true,
+        choices: [
+          {
+            id: 'real-end',
+            label: 'Encerrar',
+            effects: [{ type: 'game.complete' }],
+            transition: { type: 'complete' },
+          },
+        ],
+      },
+    ],
+  });
+}

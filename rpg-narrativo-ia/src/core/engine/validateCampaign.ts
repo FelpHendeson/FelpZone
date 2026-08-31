@@ -7,6 +7,7 @@ import type {
   GameEffect,
   StoryChoice,
 } from '../events';
+import { walkCampaignTrajectories } from './walkTrajectories';
 
 const PLACEHOLDER = /\{\{(\w+)\}\}/g;
 
@@ -262,28 +263,36 @@ function validateText(eventId: string, field: string, text: string): string[] {
 
 function validateReachability(campaign: Campaign, eventIds: Set<string>): string[] {
   const errors: string[] = [];
-  const reachable = reachableEvents(campaign);
   const firstExists = eventIds.has(campaign.firstEventId);
+  if (!firstExists) {
+    return errors;
+  }
+
+  const structural = structurallyReachableEvents(campaign);
+  const walk = walkCampaignTrajectories(campaign);
+  const semantic = new Set(walk.reachedEventIds);
 
   for (const event of campaign.events) {
-    if (firstExists && !reachable.has(event.id)) {
-      errors.push(`O evento ${event.id} é inalcançável a partir do início.`);
+    if (!structural.has(event.id)) {
+      errors.push(`O evento ${event.id} não está conectado estruturalmente ao início.`);
+      continue;
+    }
+
+    if (!semantic.has(event.id)) {
+      errors.push(
+        `O evento ${event.id} não é semanticamente alcançável pelas condições e efeitos da campanha.`,
+      );
     }
   }
 
-  const hasEnding = [...reachable].some((eventId) => {
-    const event = campaign.events.find((entry) => entry.id === eventId);
-    return event?.choices.some((choice) => endsCampaign(choice));
-  });
-
-  if (firstExists && !hasEnding) {
+  if (walk.completedPaths === 0) {
     errors.push('A campanha não possui um encerramento alcançável.');
   }
 
   return errors;
 }
 
-function reachableEvents(campaign: Campaign): Set<string> {
+function structurallyReachableEvents(campaign: Campaign): Set<string> {
   const byId = new Map(campaign.events.map((event) => [event.id, event]));
   const seen = new Set<string>();
   const queue = [campaign.firstEventId];
@@ -318,8 +327,4 @@ function transitionTargets(transition: EventTransition): string[] {
   }
 
   return [];
-}
-
-function endsCampaign(choice: StoryChoice): boolean {
-  return choice.transition.type === 'complete' || choice.effects.some((effect) => effect.type === 'game.complete');
 }

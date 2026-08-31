@@ -89,7 +89,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 50 testes, incluindo o defeito de save incompleto, ciclo de vida, consumo de itens, validação ampliada e todas as trajetórias da campanha.
+- `npm test`: 56 testes, incluindo o defeito de save incompleto, ciclo de vida, consumo de itens, validação ampliada, vínculo do evento salvo à campanha e todas as trajetórias da campanha.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Verificação visual em viewport móvel e desktop para confirmar que a experiência do MVP permanece equivalente.

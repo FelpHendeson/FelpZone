@@ -82,7 +82,9 @@ O estado salvo deve conter no mínimo:
 - histórico;
 - data da última atualização.
 
-A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Uma versão diferente retorna `status: 'incompatible'`. O parser não lança exceção e a interface só recebe `GameState` depois da inspeção.
+A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Uma versão diferente retorna `status: 'incompatible'`. O parser não lança exceção.
+
+Antes de o estado chegar à interface, `bindSavedState` confere o `currentEventId` contra a campanha: o evento precisa existir e cumprir as próprias condições. Falhas viram `corrupt` e a UI não tenta renderizar o evento.
 
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`.
 
@@ -95,8 +97,9 @@ Use uma interface de persistência para permitir trocar `localStorage` por Index
 - `inventory.remove` falha de forma controlada se a quantidade for insuficiente; o estado anterior permanece intacto.
 - Quantidades de item são inteiros positivos; variações numéricas precisam ser finitas.
 - Relações, capacidades e títulos não são duplicados.
-- `validateCampaign` devolve diagnósticos semânticos (IDs, referências, transições, interpolação, consumo protegido, alcançabilidade e encerramento).
-- `walkCampaignTrajectories` percorre a árvore de escolhas válidas para testes.
+- `validateCampaign` devolve diagnósticos semânticos (IDs, referências, transições, interpolação, consumo protegido, conectividade estrutural e alcançabilidade semântica).
+- Conectividade estrutural segue as transições; alcançabilidade semântica considera condições e efeitos.
+- `walkCampaignTrajectories` percorre a árvore de escolhas válidas e identifica estados pelo evento, flags, inventário, atributos, relações, mundo e progressão.
 
 O retorno de uma escolha continua sendo o novo `GameState`. Um `ChoiceOutcome` com estado anterior e efeitos aplicados não foi introduzido: a interface só precisa do estado seguinte, e o extra seria abstração prematura.
 
@@ -111,4 +114,6 @@ O retorno de uma escolha continua sendo o novo `GameState`. Um `ChoiceOutcome` c
 - salvar e carregar preserva o estado;
 - cada estrutura interna malformada retorna `corrupt`;
 - partidas com versão incompatível falham de forma controlada;
-- a campanha atual passa na validação ampliada e todas as trajetórias válidas terminam.
+- a campanha atual passa na validação ampliada e todas as trajetórias válidas terminam;
+- eventos só são semanticamente alcançáveis quando condições e efeitos permitem;
+- o evento salvo é conferido contra a campanha antes de chegar à UI.

@@ -1,5 +1,5 @@
 import { firstDayCampaign } from '../campaigns/first-day';
-import { applyChoice, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
+import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
@@ -14,6 +14,19 @@ type Screen = 'start' | 'create' | 'game' | 'summary';
 type ConfirmKind = 'none' | 'new-game' | 'delete' | 'restart';
 
 const campaign = firstDayCampaign;
+
+function bindLoadResult(result: LoadResult): LoadResult {
+  if (result.status !== 'ok') {
+    return result;
+  }
+
+  const bound = bindSavedState(result.state, campaign);
+  if (!bound.ok) {
+    return { status: 'corrupt', reason: bound.reason };
+  }
+
+  return { status: 'ok', state: bound.state };
+}
 
 function createBrowserPersistence(): GamePersistence {
   try {
@@ -37,7 +50,7 @@ function createBrowserPersistence(): GamePersistence {
 
 export function App() {
   const persistence = useMemo(() => createBrowserPersistence(), []);
-  const [loadResult, setLoadResult] = useState<LoadResult>(() => persistence.load());
+  const [loadResult, setLoadResult] = useState<LoadResult>(() => bindLoadResult(persistence.load()));
   const [screen, setScreen] = useState<Screen>('start');
   const [state, setState] = useState<GameState | null>(null);
   const [confirm, setConfirm] = useState<ConfirmKind>('none');
@@ -46,7 +59,7 @@ export function App() {
   const savedState = loadResult.status === 'ok' ? loadResult.state : null;
 
   function refreshLoad() {
-    setLoadResult(persistence.load());
+    setLoadResult(bindLoadResult(persistence.load()));
   }
 
   function persist(next: GameState) {
