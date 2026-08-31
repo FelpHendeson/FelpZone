@@ -247,9 +247,9 @@ interface ZoneCompletion {
 }
 ```
 
-Cada local possui progresso inteiro independente entre `0` e `100`. Locais ainda não explorados podem não ter entrada. A conclusão da zona é derivada: soma `completionWeight` do local e de todos os descendentes, incluindo conteúdo secreto e condicionado, e usa `Math.round((completedPoints / totalPoints) * 100)`. Progresso local não substitui essa métrica agregada.
+Cada local possui progresso inteiro independente entre `0` e `100`. Locais ainda não explorados podem não ter entrada. Uma descoberta persistida só é válida se o progresso for maior ou igual ao seu `revealAt`. A conclusão da zona é derivada: soma `completionWeight` do local e de todos os descendentes, incluindo conteúdo secreto e condicionado, rejeita total acima de `Number.MAX_SAFE_INTEGER` na indexação e usa `Math.round((completedPoints / totalPoints) * 100)`. Progresso local não substitui essa métrica agregada.
 
-Descobertas são reveladas uma vez, na ordem da definição, quando o progresso atinge `revealAt` e as `GameCondition` forem satisfeitas. `reevaluateDiscoveries` libera descobertas condicionais pendentes sem consumir tempo. `subarea` e `passage` reutilizam `discoverLocation` e, se `unlockTarget` for verdadeiro, `unlockLocation`, sem alterar a posição atual.
+Descobertas são reveladas uma vez, na ordem da definição, quando o progresso atinge `revealAt` e as `GameCondition` forem satisfeitas. O avaliador recebe uma cópia defensiva das condições. `reevaluateDiscoveries` libera descobertas condicionais pendentes sem consumir tempo. `subarea` e `passage` reutilizam `discoverLocation` e, se `unlockTarget` for verdadeiro, `unlockLocation`, sem alterar a posição atual.
 
 A Caverna Oculta é revelada por uma descoberta em `dense-woods` perto de `90%`. O conteúdo inicial cobre Clareira do Despertar, Grande Árvore, Nascente e Pequeno Lago e Mata Densa.
 

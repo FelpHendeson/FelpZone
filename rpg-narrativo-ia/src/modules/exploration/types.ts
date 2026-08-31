@@ -75,7 +75,7 @@ export interface IndexedExploration {
   readonly locationByDiscovery: ReadonlyMap<string, string>;
 }
 
-export type DiscoveryConditionEvaluator = (conditions: GameCondition[] | undefined) => boolean;
+export type DiscoveryConditionEvaluator = (conditions: readonly GameCondition[] | undefined) => boolean;
 
 export type ExplorationConditionSource = DiscoveryConditionEvaluator | GameState;
 

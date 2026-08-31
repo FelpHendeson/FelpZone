@@ -38,6 +38,7 @@ interface ExplorationState {
 - progresso é inteiro entre `0` e `100` e nunca diminui nem ultrapassa `100`;
 - `explorationCount` é inteiro seguro não negativo;
 - descobertas reveladas não se repetem no estado;
+- uma descoberta revelada só é válida se o progresso do local for maior ou igual ao seu `revealAt`;
 - IDs de locais e descobertas precisam existir nas definições;
 - a mesma localização não aparece duas vezes em `ExplorationState`;
 - locais ainda não explorados podem não possuir entrada;
@@ -85,7 +86,7 @@ O conteúdo inicial vive em `src/modules/exploration/initial-exploration.ts`:
 - Nascente e Pequeno Lago: marco da nascente e ponto futuro de água;
 - Mata Densa: vegetação densa, habitat de coelhos chifrudos e a Caverna Oculta.
 
-`revealAt` é inteiro entre `0` e `100`. `completionWeight` e `progressPerAction` são inteiros seguros positivos. `timeCost` reutiliza `inspectTimeCost`. IDs de descoberta são únicos globalmente. Nesta etapa, toda descoberta precisa de `once: true`; `once: false` é rejeitado porque redescobertas repetíveis ainda não possuem semântica definida.
+`revealAt` é inteiro entre `0` e `100`. `completionWeight` e `progressPerAction` são inteiros seguros positivos. A soma de todos os `completionWeight` precisa permanecer um inteiro seguro; se ultrapassar `Number.MAX_SAFE_INTEGER`, a indexação é rejeitada antes de qualquer cálculo de zona. `timeCost` reutiliza `inspectTimeCost`. IDs de descoberta são únicos globalmente. Nesta etapa, toda descoberta precisa de `once: true`; `once: false` é rejeitado porque redescobertas repetíveis ainda não possuem semântica definida.
 
 Definições e estados restaurados são entradas não confiáveis.
 
@@ -137,7 +138,7 @@ Isso permite liberar uma descoberta depois que uma flag, item, atributo ou rela�
 
 ## Condições
 
-O módulo reutiliza `GameCondition` e `evaluateConditions`. A composição recebe `GameState` ou uma função avaliadora injetada via `createDiscoveryEvaluator`.
+O módulo reutiliza `GameCondition` e `evaluateConditions`. A composição recebe `GameState` ou uma função avaliadora injetada via `createDiscoveryEvaluator`. O contrato do avaliador recebe `readonly GameCondition[]`. Antes da avaliação, o módulo entrega uma cópia defensiva do array e dos objetos de condição, suficiente para os formatos atuais; os dados internos de `IndexedExploration` não são expostos.
 
 Uma descoberta só é revelada quando o progresso atingiu `revealAt`, suas condições foram satisfeitas e ela ainda não foi registrada. Se o limiar for atingido antes da condição, a descoberta permanece pendente e sua identidade não aparece na API comum.
 
@@ -181,6 +182,7 @@ A conclusão da zona é derivada por `calculateZoneCompletion` e não é armazen
 - considera definições do próprio local e de todos os descendentes;
 - `totalPoints` soma todos os `completionWeight`, inclusive conteúdo secreto e condicionado;
 - `completedPoints` soma somente descobertas já reveladas;
+- `completedPoints` e `totalPoints` são inteiros seguros;
 - o resumo público não inclui nomes ou IDs secretos;
 - a porcentagem é `Math.round((completedPoints / totalPoints) * 100)`, limitada a `0..100`;
 - se `totalPoints` for zero, a zona é considerada `100%` concluída.
@@ -200,7 +202,7 @@ Capacidades do personagem ainda não modificam o ganho. Não há aleatoriedade, 
 
 ## Validações
 
-Rejeite de forma controlada localização inexistente, definição duplicada, ID de descoberta vazio ou duplicado, tipo desconhecido, limiar fora de `0..100`, peso ou ganho inválidos, custo de tempo inválido ou acima de `MAX_ADVANCE_PERIODS`, condição malformada, `subarea`/`passage` sem alvo válido, alvo igual ao local atual, `unlockTarget` malformado, `once` diferente de `true`, estado com localização duplicada, progresso ou contador inválidos, descoberta inexistente, descoberta no local errado e revelações duplicadas.
+Rejeite de forma controlada localização inexistente, definição duplicada, ID de descoberta vazio ou duplicado, tipo desconhecido, limiar fora de `0..100`, peso ou ganho inválidos, soma de pesos acima de `Number.MAX_SAFE_INTEGER`, custo de tempo inválido ou acima de `MAX_ADVANCE_PERIODS`, condição malformada, `subarea`/`passage` sem alvo válido, alvo igual ao local atual, `unlockTarget` malformado, `once` diferente de `true`, estado com localização duplicada, progresso ou contador inválidos, descoberta inexistente, descoberta no local errado, descoberta revelada com progresso abaixo do limiar e revelações duplicadas.
 
 ## Integração inicial
 

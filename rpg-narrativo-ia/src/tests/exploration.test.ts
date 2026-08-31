@@ -17,6 +17,7 @@ import {
   inspectExplorationDefinitions,
   inspectExplorationState,
   reevaluateDiscoveries,
+  type DiscoveryConditionEvaluator,
   type DiscoveryDefinition,
   type ExplorationState,
   type IndexedExploration,
@@ -843,6 +844,47 @@ describe('exploração e descobertas', () => {
       reason: 'A descoberta precisa ser única (once: true).',
     });
     expect(() => indexExplorationDefinitions([definition({ locationId: 'missing' })], map)).toThrow(ExplorationError);
+    expect(
+      inspectExplorationDefinitions(
+        [
+          definition({
+            discoveries: [
+              discovery({ id: 'huge-a', completionWeight: Number.MAX_SAFE_INTEGER }),
+              discovery({ id: 'huge-b', completionWeight: 1 }),
+            ],
+          }),
+        ],
+        map,
+      ),
+    ).toMatchObject({
+      ok: false,
+      reason: 'A soma dos pesos de conclusão ultrapassa o inteiro seguro.',
+    });
+    expect(
+      inspectExplorationDefinitions(
+        [definition({ discoveries: [discovery({ id: 'max-safe', completionWeight: Number.MAX_SAFE_INTEGER })] })],
+        map,
+      ).ok,
+    ).toBe(true);
+    expect(() =>
+      indexExplorationDefinitions(
+        [
+          {
+            locationId: START,
+            progressPerAction: 10,
+            timeCost: { periods: 1 },
+            discoveries: [discovery({ id: 'overflow-a', completionWeight: Number.MAX_SAFE_INTEGER })],
+          },
+          {
+            locationId: 'great-tree',
+            progressPerAction: 10,
+            timeCost: { periods: 1 },
+            discoveries: [discovery({ id: 'overflow-b', completionWeight: 1 })],
+          },
+        ],
+        map,
+      ),
+    ).toThrow(ExplorationError);
   });
 
   it('rejeita estado inválido', () => {
@@ -943,6 +985,61 @@ describe('exploração e descobertas', () => {
         locations: [{ locationId: START, progress: 10.5, revealedDiscoveryIds: [], explorationCount: 1 }],
       }),
     ).toThrow(ExplorationError);
+  });
+
+  it('rejeita descoberta persistida abaixo do limiar e aceita no limiar ou acima', () => {
+    const map = worldMap();
+    const definitions = worldDefinitions(map);
+
+    const woods = (progress: number, revealedDiscoveryIds: string[]) => ({
+      locations: [
+        {
+          locationId: 'dense-woods',
+          progress,
+          revealedDiscoveryIds,
+          explorationCount: 1,
+        },
+      ],
+    });
+
+    expect(inspectExplorationState(woods(0, ['hidden-cave']), definitions, map)).toMatchObject({
+      ok: false,
+      reason: 'A descoberta foi registrada antes do limiar de revelação.',
+    });
+    expect(inspectExplorationState(woods(89, ['hidden-cave']), definitions, map)).toMatchObject({
+      ok: false,
+      reason: 'A descoberta foi registrada antes do limiar de revelação.',
+    });
+    expect(inspectExplorationState(woods(90, ['hidden-cave']), definitions, map).ok).toBe(true);
+    expect(inspectExplorationState(woods(100, ['hidden-cave']), definitions, map).ok).toBe(true);
+    expect(
+      inspectExplorationState(
+        {
+          locations: [
+            {
+              locationId: START,
+              progress: 10,
+              revealedDiscoveryIds: ['awakening-site'],
+              explorationCount: 1,
+            },
+          ],
+        },
+        definitions,
+        map,
+      ).ok,
+    ).toBe(true);
+    expect(
+      inspectExplorationState(woods(90, ['hidden-cave', 'great-tree-trunk']), definitions, map),
+    ).toMatchObject({
+      ok: false,
+      reason: 'A descoberta foi registrada no local errado.',
+    });
+    expect(
+      inspectExplorationState(woods(90, ['hidden-cave', 'hidden-cave']), definitions, map),
+    ).toMatchObject({
+      ok: false,
+      reason: 'O estado de exploração possui descobertas duplicadas.',
+    });
   });
 
   it('preserva o estado no roundtrip JSON e rejeita restauração inválida', () => {
@@ -1137,8 +1234,71 @@ describe('exploração e descobertas', () => {
     expect(applied.visitedLocationIds).not.toContain('hidden-cave');
     expect(() =>
       exploreCurrentLocation(map, createInitialNavigation(), worldDefinitions(map), createInitialExploration(), (conditions) =>
-        evaluateConditions(conditions, freshState()),
+        evaluateConditions(conditions ? [...conditions] : undefined, freshState()),
       ),
     ).not.toThrow();
+  });
+
+  it('não deixa o avaliador mutar as condições indexadas', () => {
+    const map = worldMap();
+    const definitions = defs(
+      map,
+      definition({
+        progressPerAction: 50,
+        discoveries: [
+          discovery({
+            id: 'gated',
+            revealAt: 10,
+            conditions: [
+              { type: 'flag.is', flag: 'ready', value: true },
+              { type: 'attribute.min', attribute: 'cautela', amount: 1 },
+              { type: 'inventory.has', itemId: 'chave', quantity: 1 },
+              { type: 'relationship.min', characterId: 'mira-vale', amount: 0 },
+            ],
+          }),
+        ],
+      }),
+    );
+    const indexedConditions = definitions.byLocation.get(START)?.discoveries[0]?.conditions;
+    const snapshot = structuredClone(indexedConditions);
+    const adversarial: DiscoveryConditionEvaluator = (conditions) => {
+      if (!conditions) {
+        return false;
+      }
+
+      const mutable = conditions as GameCondition[];
+      mutable.push({ type: 'flag.is', flag: 'hacked', value: true });
+      const first = mutable[0];
+      if (first?.type === 'flag.is') {
+        first.flag = 'mutated';
+        first.value = false;
+      }
+
+      return false;
+    };
+
+    const blocked = exploreCurrentLocation(
+      map,
+      createInitialNavigation(),
+      definitions,
+      createInitialExploration(),
+      adversarial,
+    );
+    const open = createDiscoveryEvaluator({
+      ...freshState(),
+      flags: { ready: true },
+      inventory: [{ itemId: 'chave', quantity: 1 }],
+    });
+    const released = reevaluateDiscoveries(map, createInitialNavigation(), definitions, blocked.current, open);
+
+    expect(indexedConditions).toEqual(snapshot);
+    expect(definitions.byLocation.get(START)?.discoveries[0]?.conditions).toEqual([
+      { type: 'flag.is', flag: 'ready', value: true },
+      { type: 'attribute.min', attribute: 'cautela', amount: 1 },
+      { type: 'inventory.has', itemId: 'chave', quantity: 1 },
+      { type: 'relationship.min', characterId: 'mira-vale', amount: 0 },
+    ]);
+    expect(blocked.discoveries).toEqual([]);
+    expect(released.discoveries.map((item) => item.id)).toEqual(['gated']);
   });
 });

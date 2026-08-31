@@ -68,6 +68,11 @@ export function inspectExplorationDefinitions(
     definitions.push(definition);
   }
 
+  const totalWeight = sumCompletionWeights(definitions);
+  if (!totalWeight.ok) {
+    return totalWeight;
+  }
+
   return {
     ok: true,
     value: {
@@ -333,9 +338,9 @@ export function calculateZoneCompletion(
 
     const revealed = revealedByLocation.get(locationId) ?? new Set<string>();
     for (const discovery of definition.discoveries) {
-      totalPoints += discovery.completionWeight;
+      totalPoints = addCompletionWeight(totalPoints, discovery.completionWeight);
       if (revealed.has(discovery.id)) {
-        completedPoints += discovery.completionWeight;
+        completedPoints = addCompletionWeight(completedPoints, discovery.completionWeight);
       }
     }
   }
@@ -375,7 +380,7 @@ export function applyDiscoveryNavigationEffects(
 }
 
 export function createDiscoveryEvaluator(state: GameState): DiscoveryConditionEvaluator {
-  return (conditions) => evaluateConditions(conditions, state);
+  return (conditions) => evaluateConditions(conditions ? copyConditions(conditions) : undefined, state);
 }
 
 export { INITIAL_EXPLORATION_DEFINITIONS };
@@ -594,6 +599,11 @@ function inspectLocationState(
       return fail('A descoberta foi registrada no local errado.');
     }
 
+    const discovery = definitions.byDiscovery.get(entry);
+    if (!discovery || value.progress < discovery.revealAt) {
+      return fail('A descoberta foi registrada antes do limiar de revelação.');
+    }
+
     revealed.add(entry);
     revealedDiscoveryIds.push(entry);
   }
@@ -801,7 +811,7 @@ function copyDiscovery(discovery: DiscoveryDefinition): DiscoveryDefinition {
   };
 
   if (discovery.conditions) {
-    copied.conditions = discovery.conditions.map((condition) => ({ ...condition }));
+    copied.conditions = copyConditions(discovery.conditions);
   }
 
   if (discovery.targetId !== undefined) {
@@ -825,7 +835,7 @@ function copyNavigation(state: NavigationState): NavigationState {
 }
 
 function areConditionsSatisfied(
-  conditions: GameCondition[] | undefined,
+  conditions: readonly GameCondition[] | undefined,
   evaluate: DiscoveryConditionEvaluator | undefined,
 ): boolean {
   if (!conditions || conditions.length === 0) {
@@ -836,7 +846,65 @@ function areConditionsSatisfied(
     return false;
   }
 
-  return evaluate(conditions);
+  return evaluate(copyConditions(conditions));
+}
+
+function copyConditions(conditions: readonly GameCondition[]): GameCondition[] {
+  return conditions.map(copyCondition);
+}
+
+function copyCondition(condition: GameCondition): GameCondition {
+  switch (condition.type) {
+    case 'flag.is':
+      return { type: 'flag.is', flag: condition.flag, value: condition.value };
+    case 'attribute.min':
+    case 'attribute.max':
+      return { type: condition.type, attribute: condition.attribute, amount: condition.amount };
+    case 'inventory.has':
+      return condition.quantity === undefined
+        ? { type: 'inventory.has', itemId: condition.itemId }
+        : { type: 'inventory.has', itemId: condition.itemId, quantity: condition.quantity };
+    case 'relationship.min':
+      return { type: 'relationship.min', characterId: condition.characterId, amount: condition.amount };
+  }
+}
+
+function sumCompletionWeights(
+  definitions: readonly LocationExplorationDefinition[],
+): ExplorationInspection<number> {
+  let total = 0;
+  for (const definition of definitions) {
+    for (const discovery of definition.discoveries) {
+      const added = tryAddCompletionWeight(total, discovery.completionWeight);
+      if (!added.ok) {
+        return added;
+      }
+      total = added.value;
+    }
+  }
+
+  return { ok: true, value: total };
+}
+
+function addCompletionWeight(total: number, weight: number): number {
+  const added = tryAddCompletionWeight(total, weight);
+  if (!added.ok) {
+    throw new ExplorationError(added.reason);
+  }
+
+  return added.value;
+}
+
+function tryAddCompletionWeight(total: number, weight: number): ExplorationInspection<number> {
+  if (!isPositiveSafeInteger(weight) || !isNonNegativeSafeInteger(total)) {
+    return fail('A soma dos pesos de conclusão ultrapassa o inteiro seguro.');
+  }
+
+  if (weight > Number.MAX_SAFE_INTEGER - total) {
+    return fail('A soma dos pesos de conclusão ultrapassa o inteiro seguro.');
+  }
+
+  return { ok: true, value: total + weight };
 }
 
 function resolveEvaluator(source: ExplorationConditionSource | undefined): DiscoveryConditionEvaluator | undefined {
