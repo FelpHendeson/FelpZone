@@ -1,147 +1,38 @@
-# RPG Narrativo com IA
+# Reset — RPG Narrativo Modular
 
-Um RPG de texto mobile-first no qual campanhas estruturadas ganham narrativa, diálogos e variações com apoio de IA.
+Protótipo de um RPG narrativo mobile-first sobre uma humanidade obrigada a recomeçar depois que a própria existência passou por um Reset.
 
-O projeto combina a leitura rápida e a linha do tempo de simuladores de vida com atributos, inventário, relações, escolhas e consequências de um RPG. A interface será própria e usará imagens estáticas, sem depender de um motor gráfico.
+O jogo será uma aplicação web estática, modular e expansível. A IA participa somente da criação do projeto: ajuda a definir o mundo, escrever conteúdo e implementar o código. O jogo publicado não chama APIs de IA, não exige chave e não possui custo operacional inicial.
 
-## Hipótese
+## Premissa
 
-É possível criar uma experiência de RPG envolvente para celular usando uma aplicação web leve, desde que:
+Durante o Reset, os planetas aumentaram drasticamente, a geografia foi refeita e todos os vestígios materiais da civilização desapareceram. Os humanos mantiveram suas memórias, mas foram espalhados pelo novo mundo e receberam poderes, capacidades mágicas e acesso individual a um Sistema.
 
-- as escolhas tenham consequências perceptíveis;
-- o estado da história permaneça coerente;
-- a interface torne leitura e decisão rápidas;
-- a IA expanda a narrativa sem controlar sozinha as regras do jogo.
+Sem governos ou infraestrutura, a humanidade passa a viver sob a lei do mais forte. Assentamentos, facções e novos modelos de sociedade surgem enquanto cada pessoa tenta sobreviver e compreender o que aconteceu.
 
-## Experiência desejada
+O jogador cria o nome e o sobrenome de um jovem que acabara de atingir a maioridade. Ele desperta sozinho, sem parentes ou aliados, e constrói sua identidade por meio das próprias escolhas.
 
-O jogador acompanha uma linha do tempo de acontecimentos, observa o estado do personagem e toma decisões por botões grandes. Cada escolha pode alterar atributos, relações, inventário, eventos futuros e finais disponíveis.
+## Documentação para implementação
 
-```text
-Campanha estruturada
-        ↓
-Estado atual do jogador
-        ↓
-Evento e escolhas permitidas
-        ↓
-Narração da cena
-        ↓
-Escolha do jogador
-        ↓
-Consequências aplicadas pelo jogo
-        ↓
-Novo estado
-```
+Leia nesta ordem:
 
-## Princípio central
+1. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
+2. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
+3. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
+4. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
+5. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
-A IA não deve ser a única fonte de verdade.
+## Decisões já tomadas
 
-O código mantém o estado, valida regras e aplica consequências. A IA pode ajudar a criar campanhas e, futuramente, variar descrições, diálogos e reações dentro do contexto permitido.
-
-Essa separação evita que personagens, itens e decisões importantes sejam esquecidos durante a partida.
-
-## Primeira campanha
-
-Título provisório: **A Noite Esquecida**.
-
-Uma pessoa chega a uma vila de fantasia sombria cujos habitantes perderam as memórias da mesma noite. Ao investigar o ocorrido, o jogador forma alianças, encontra versões contraditórias e decide se certas lembranças deveriam realmente voltar.
-
-A campanha inicial deve durar entre 10 e 15 minutos e conter:
-
-- um personagem jogável;
-- uma vila e poucos locais importantes;
-- três personagens relevantes;
-- entre cinco e dez eventos;
-- duas ou três escolhas por evento;
-- atributos afetados pelas decisões;
-- pelo menos dois finais.
-
-## MVP
-
-A menor versão jogável não utilizará uma API de IA durante a partida. A campanha será escrita com ajuda de IA, revisada e armazenada localmente como dados estruturados.
-
-O MVP deve ter:
-
-- interface vertical responsiva;
-- linha do tempo de acontecimentos;
-- retrato e resumo do personagem;
-- atributos como vida, reputação e sanidade;
-- eventos com texto, imagem e escolhas;
-- consequências determinísticas;
-- inventário e relações simples;
-- salvamento local;
-- funcionamento como PWA instalável;
-- uma campanha curta completa.
-
-## Interface inicial
-
-```text
-┌─────────────────────────────┐
-│ Retrato   Nome — Capítulo 2 │
-│ Vida  ♥♥♥  Reputação  ●●○   │
-├─────────────────────────────┤
-│                             │
-│      Imagem da cena         │
-│                             │
-├─────────────────────────────┤
-│ A chuva apaga as pegadas... │
-│                             │
-│ [Seguir até a floresta]     │
-│ [Questionar a curandeira]   │
-│ [Voltar para a hospedaria]  │
-├─────────────────────────────┤
-│ História  Pessoa  Itens     │
-└─────────────────────────────┘
-```
-
-O desenho é apenas uma referência funcional. A identidade visual será definida durante o protótipo e não copiará elementos protegidos de outros jogos.
-
-## Tecnologia proposta
-
-- TypeScript;
-- React com Vite;
-- CSS responsivo, priorizando telas de celular;
-- estado local simples, adicionando uma biblioteca apenas se necessário;
-- `localStorage` ou IndexedDB para partidas;
-- manifesto e service worker para PWA;
-- campanhas armazenadas inicialmente em JSON.
-
-PHP e SQL ficam reservados para uma etapa futura com contas, sincronização, campanhas compartilhadas ou editor online.
-
-## Evolução da IA
-
-1. A IA ajuda o autor a estruturar uma campanha durante o desenvolvimento.
-2. A IA varia descrições e diálogos sem alterar o estado por conta própria.
-3. A IA interpreta respostas abertas do jogador dentro de escolhas válidas.
-4. A IA gera campanhas seguindo um esquema verificável.
-5. Autores criam, testam e compartilham campanhas pelo próprio aplicativo.
-
-## Uso no celular
-
-A aplicação será publicada como site responsivo. No início, qualquer celular poderá acessá-la pelo navegador. Como PWA, poderá ser adicionada à tela inicial e funcionar em tela cheia; suporte offline será incluído no desenvolvimento.
-
-O desenvolvimento principal será mais confortável no computador. Pelo celular será possível testar, revisar conteúdo e, dependendo das ferramentas disponíveis, fazer pequenas alterações pelo GitHub. Editar toda a aplicação pelo telefone é possível, mas não será o fluxo principal.
-
-## Critérios de sucesso do protótipo
-
-- a campanha pode ser concluída no celular sem problemas de interface;
-- uma escolha anterior altera pelo menos um evento posterior;
-- fechar e reabrir o jogo preserva a partida;
-- o jogador entende atributos e consequências sem tutorial longo;
-- a experiência gera vontade de iniciar outra campanha.
-
-## Próximos passos
-
-- [ ] Definir o tom e o personagem inicial de **A Noite Esquecida**.
-- [ ] Modelar campanha, eventos, escolhas e consequências em TypeScript/JSON.
-- [ ] Criar o wireframe navegável para celular.
-- [ ] Implementar o motor narrativo determinístico.
-- [ ] Escrever a campanha curta.
-- [ ] Adicionar salvamento local e instalação como PWA.
-- [ ] Testar a experiência em um celular real.
-- [ ] Avaliar onde a IA melhora o jogo sem prejudicar a coerência.
+- React, TypeScript e Vite.
+- Aplicação responsiva, priorizando celular.
+- Motor determinístico e conteúdo estruturado localmente.
+- Sem backend, autenticação, banco remoto ou API de IA no MVP.
+- Salvamento local no navegador.
+- PWA instalável e preparada para funcionar offline.
+- Imagens substituídas inicialmente por placeholders identificáveis.
+- Módulos independentes dentro de um único aplicativo.
 
 ## Estado atual
 
-**Conceito registrado.** Ainda não há aplicação ou dependências instaladas.
+**Especificação do MVP.** A aplicação ainda não foi inicializada e nenhuma dependência foi instalada.

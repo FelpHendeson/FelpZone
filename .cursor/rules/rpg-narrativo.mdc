@@ -1,0 +1,19 @@
+---
+description: Arquitetura e limites do RPG narrativo modular
+globs: rpg-narrativo-ia/**
+alwaysApply: false
+---
+
+# RPG Narrativo Modular
+
+- Leia `rpg-narrativo-ia/AGENTS.md` e os documentos em `docs/` antes de implementar.
+- A IA auxilia o desenvolvimento, mas não faz parte da aplicação publicada.
+- Não adicione APIs de IA, backend, autenticação ou serviços pagos no MVP.
+- Use React, TypeScript e Vite com abordagem mobile-first.
+- Mantenha motor, conteúdo, persistência e interface separados.
+- Componentes React exibem estado e disparam ações; regras ficam em TypeScript puro.
+- Campanhas são dados estruturados, nunca JSX ou lógica embutida em telas.
+- Módulos se comunicam por tipos e funções públicas, sem acessar detalhes internos.
+- Use placeholders locais e identificados para cenas, retratos e ícones.
+- Implemente somente os sistemas necessários ao primeiro dia jogável.
+- Teste condições, efeitos, transições e persistência.
