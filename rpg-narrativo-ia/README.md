@@ -24,7 +24,7 @@ Leia nesta ordem:
 6. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
 7. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
 8. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): eventos de período e dia derivados do relógio, já implementado.
-9. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): terceiro sistema planejado.
+9. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
 10. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por área e conteúdo revelável.
 11. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento.
 12. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas e transformação de materiais.
@@ -46,7 +46,7 @@ A aplicação sobe em `http://localhost:5173`. No celular da mesma rede, use o e
 Outros comandos:
 
 ```bash
-npm test        # testes do motor, condições, efeitos, transições, persistência, horário e ciclo diário
+npm test        # testes do motor, condições, efeitos, transições, persistência, horário, ciclo diário e navegação
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de produção com PWA
@@ -60,7 +60,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # telas mobile-first e ImagePlaceholder
@@ -71,7 +71,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** As etapas 1 e 2 da evolução sandbox — horário e data, e ciclo diário — estão implementadas como módulos determinísticos independentes. Navegação e as etapas seguintes permanecem apenas especificadas.
+**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 3 da evolução sandbox — horário e data, ciclo diário e navegação hierárquica — estão implementadas como módulos determinísticos independentes. Exploração e as etapas seguintes permanecem apenas especificadas.
 
 ## Decisões já tomadas
 
@@ -92,11 +92,11 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
-- A evolução sandbox tem horário, data e ciclo diário implementados; navegação, exploração, recursos e crafting ainda não.
+- A evolução sandbox tem horário, data, ciclo diário e navegação hierárquica implementados; exploração, recursos e crafting ainda não.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 91 testes, incluindo o ciclo diário (transições, virada de dia, avanços longos, fases visuais, imutabilidade e erros do relógio) e os 77 testes anteriores do motor e do horário.
+- `npm test`: 123 testes, incluindo a navegação hierárquica (indexação, movimento adjacente, rejeição de saltos, descoberta, bloqueios, custos, persistência isolada e imutabilidade) e os 91 testes anteriores do motor, do horário e do ciclo diário.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- O cabeçalho do MVP permanece `Dia N · Período`; a fase visual fica disponível no módulo, sem alterar o tema nem a interface nesta etapa.
+- O fluxo visual do MVP permanece intacto; a API de navegação fica disponível no módulo, sem tela de mapa nesta etapa.

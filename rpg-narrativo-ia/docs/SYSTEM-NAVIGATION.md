@@ -2,44 +2,25 @@
 
 ## Dependências
 
-Só iniciar depois de horário/data e ciclo diário estarem implementados, testados e consolidados.
+Horário/data e ciclo diário já estão implementados, testados e consolidados.
 
 ## Objetivo
 
-Permitir que o jogador ocupe, descubra e percorra locais definidos em um mapa JSON aninhado. A navegação padrão ocorre somente entre pai, filhos diretos e irmãos.
+Permitir que o jogador ocupe, descubra e percorra locais definidos em um mapa JSON aninhado. A navegação padrão ocorre somente entre pai, filhos diretos e irmãos. O módulo é determinístico, independente e ainda não altera o save principal nem a interface.
 
 ## Modelo de autoria
 
-O arquivo de conteúdo mantém a hierarquia visível:
+O arquivo de conteúdo mantém a hierarquia visível. O mapa inicial vive em `src/modules/navigation/initial-map.ts` e descreve o Novo Mundo:
 
-```json
-{
-  "id": "new-world",
-  "name": "Novo Mundo",
-  "children": [
-    {
-      "id": "initial-valley",
-      "name": "Vale Inicial",
-      "children": [
-        {
-          "id": "clearing",
-          "name": "Clareira",
-          "children": [
-            {
-              "id": "root-shelter",
-              "name": "Abrigo entre as raízes"
-            }
-          ]
-        },
-        { "id": "stream", "name": "Riacho" },
-        { "id": "stone-hill", "name": "Morro de Pedra" }
-      ]
-    }
-  ]
-}
-```
+- `new-world` — Novo Mundo
+  - `horned-rabbit-forest` — Floresta dos Coelhos Chifrudos
+    - `awakening-clearing` — Clareira do Despertar (localização inicial)
+    - `great-tree` — Grande Árvore
+    - `spring-lake` — Nascente e Pequeno Lago
+    - `dense-woods` — Mata Densa
+      - `hidden-cave` — Caverna Oculta (`visibility: "hidden"`)
 
-Na carga, o mapa pode ser normalizado em índices internos de `id → local` e `id → pai`. O formato de autoria continua aninhado.
+Na carga, o mapa é indexado internamente em `id → local`, `id → pai` e `id → filhos`. O JSON original não é mutado. O formato de autoria continua aninhado.
 
 ## Regras de movimento
 
@@ -51,9 +32,9 @@ Do local atual, o destino padrão é válido quando for:
 
 Não é permitido saltar para outro ramo da árvore. Atalhos, portais, estradas especiais e viagem rápida ficam para outra etapa.
 
-Mover-se poderá consumir períodos, mas a integração do custo deve usar o sistema de tempo já consolidado. Consultar o mapa não consome tempo.
+Mover devolve o custo da viagem sem aplicá-lo. Consultar o mapa, caminhos ou destinos não consome tempo.
 
-## Estado conceitual
+## Estado
 
 ```ts
 interface NavigationState {
@@ -65,11 +46,23 @@ interface NavigationState {
 ```
 
 - `discovered`: o jogador sabe que existe;
-- `unlocked`: a entrada é permitida;
+- `unlocked`: a entrada foi liberada no estado;
 - `visited`: o jogador já esteve no local;
 - `current`: posição atual.
 
-Um local pode estar descoberto e bloqueado. Local desconhecido não deve aparecer como destino comum.
+Invariantes:
+
+- o local atual precisa existir, estar descoberto, desbloqueado e visitado;
+- listas não contêm duplicatas;
+- todos os IDs armazenados existem no mapa;
+- um local visitado precisa estar descoberto e desbloqueado;
+- um local pode estar descoberto e bloqueado;
+- um local pode estar desbloqueado antes de ser descoberto;
+- desbloquear não revela automaticamente;
+- descobrir não desbloqueia automaticamente;
+- descoberta e desbloqueio são idempotentes.
+
+`NavigationState` é serializável por `JSON.stringify`/`JSON.parse` e validado isoladamente. Ainda não entra em `GameState`.
 
 ## Definição de local
 
@@ -81,79 +74,106 @@ interface LocationNode {
   image?: ImageReference;
   travelCost?: { periods: number };
   unlockConditions?: GameCondition[];
+  lockedReason?: string;
   visibility?: 'known' | 'hidden';
   children?: LocationNode[];
 }
 ```
 
-O contrato final pode separar dados de apresentação, mas deve preservar o significado.
+Subáreas bônus, como a caverna, continuam definidas como filhos no JSON, mas podem começar com `visibility: 'hidden'`. Elas não aparecem na lista de destinos até o ID ser descoberto. Depois disso, seguem as mesmas regras de pai, filhos e irmãos.
 
-Subáreas bônus, como cavernas, continuam definidas como filhos no JSON, mas podem começar com `visibility: 'hidden'`. Elas não aparecem na navegação até que o sistema de exploração revele seu ID. Ao serem descobertas, passam a seguir as mesmas regras de pai, filhos e irmãos.
+Navegação controla onde é possível ir. Percentual de exploração, descobertas internas e pontos de coleta pertencem aos sistemas posteriores.
 
-Navegação controla onde é possível ir. Percentual de exploração, descobertas internas e pontos de coleta pertencem aos sistemas posteriores e não devem ser implementados dentro do módulo de navegação.
+## Destinos visíveis
+
+```ts
+interface NavigationDestination {
+  location: LocationNode;
+  relation: 'parent' | 'child' | 'sibling';
+  accessible: boolean;
+  blockedReason?: string;
+  travelCost: { periods: number };
+}
+```
+
+Ao listar destinos a partir da localização atual:
+
+- considere somente pai, filhos diretos e irmãos;
+- não inclua a própria localização;
+- não inclua locais desconhecidos;
+- locais descobertos e desbloqueados aparecem como acessíveis quando as condições também passam;
+- locais descobertos e bloqueados aparecem com motivo;
+- locais `hidden` não aparecem enquanto não estiverem descobertos.
+
+## Condições e bloqueios
+
+O módulo reutiliza `GameCondition` e `evaluateConditions`. A composição recebe `GameState` ou uma função avaliadora injetada via `createUnlockEvaluator`.
+
+Um destino só é acessível quando:
+
+1. está descoberto;
+2. seu ID está em `unlockedLocationIds`;
+3. `unlockConditions`, se existirem, são satisfeitas.
+
+Se as condições não forem satisfeitas, o destino permanece bloqueado mesmo que o ID esteja em `unlockedLocationIds`. O motivo usa `lockedReason` do conteúdo ou a mensagem estável `Este local está bloqueado.`
+
+## Custos de viagem
+
+O custo pertence ao destino e reutiliza `inspectTimeCost` do módulo de horário. Ausência equivale a `{ periods: 0 }`. Custo inválido ou acima de `MAX_ADVANCE_PERIODS` invalida o mapa. `moveToLocation` devolve o custo e não chama `advanceTime` nem `advanceDayCycle`.
 
 ## Operações públicas
 
-- validar e indexar mapa;
-- obter local por ID;
-- obter pai, filhos, irmãos e caminho hierárquico;
-- listar destinos válidos no estado atual;
-- explicar por que um local está bloqueado;
-- descobrir e desbloquear local;
-- mover de forma imutável;
-- marcar destino como visitado;
-- calcular custo da viagem sem aplicá-lo diretamente.
+- `inspectNavigationMap`: valida e indexa o JSON aninhado sem exceção;
+- `indexNavigationMap`: indexa ou lança `NavigationError`;
+- `createInitialNavigation`: posiciona o jogador na Clareira do Despertar, descoberta, desbloqueada e visitada;
+- `inspectNavigationState`: valida estado persistido isoladamente;
+- `getLocation`, `getCurrentLocation`, `getParentLocation`, `getChildLocations`, `getSiblingLocations`, `getLocationPath`;
+- `getLocationRelation`: classifica origem e destino como `parent`, `child`, `sibling` ou ausência de adjacência;
+- `listVisibleDestinations`: lista destinos visíveis a partir do local atual;
+- `inspectLocationAccess`: consulta acessibilidade, motivo e custo;
+- `discoverLocation` e `unlockLocation`: operações imutáveis e idempotentes;
+- `moveToLocation`: movimento imutável com custo exposto;
+- `getTravelCost`: consulta o custo do destino;
+- `createUnlockEvaluator`: adapta `GameState` à avaliação de `GameCondition`.
 
 ## Validação do mapa
 
-- raiz única e válida;
-- IDs únicos, não vazios e estáveis;
-- ausência de ciclos ou referência duplicada de nó;
-- filhos não duplicados;
-- localização inicial existente;
-- condições e custos válidos;
-- estado salvo referencia IDs existentes;
-- local atual está desbloqueado e visitado;
-- conjuntos de descoberta, desbloqueio e visita não contêm duplicatas;
-- todo local, exceto a raiz, possui um único pai.
+Rejeite de forma controlada:
 
-## Comportamento mobile
+- raiz ausente ou inválida;
+- mais de uma raiz no contrato recebido;
+- ID ou nome vazio;
+- IDs duplicados;
+- mesmo objeto de nó inserido em mais de um ponto;
+- ciclos em estruturas recebidas em memória;
+- filhos duplicados;
+- visibilidade desconhecida;
+- custo inválido;
+- condições malformadas;
+- localização inicial inexistente;
+- imagem malformada.
 
-A primeira UI pode usar cartões ou lista:
+Trate o JSON e estados restaurados como entradas não confiáveis.
 
-- localização atual e breadcrumb;
-- placeholder da área;
-- botão para voltar ao pai;
-- destinos irmãos;
-- locais filhos que podem ser acessados;
-- locais descobertos bloqueados com motivo;
-- indicação de custo de viagem.
+## Integração inicial
 
-Não é necessário desenhar um mapa gráfico.
-
-## Testes obrigatórios
-
-- indexação do JSON aninhado;
-- consulta de pai, filhos, irmãos e caminho;
-- movimento válido para pai, filho e irmão;
-- rejeição de salto entre ramos;
-- descoberta, desbloqueio e primeira visita;
-- subárea oculta não aparece antes de ser descoberta;
-- bloqueio por condição;
-- custo retornado corretamente;
-- mapa e estado malformados rejeitados;
-- imutabilidade;
-- persistência da localização e progresso de mapa.
+- o fluxo narrativo atual permanece intacto;
+- não há tela de mapa ou exploração em produção;
+- o custo ainda não é aplicado ao relógio;
+- a API já fornece localização atual, breadcrumb, pai, filhos, irmãos, destinos bloqueados e custo para a UI futura.
 
 ## Fora da etapa
 
 - NPCs e criaturas posicionados no mapa;
 - gatilhos narrativos completos;
+- percentual de exploração e ação de explorar;
+- recursos, coleta, crafting ou cozinha;
 - atalhos e viagem rápida;
 - fog of war gráfico;
 - minimapa ilustrado;
 - geração procedural;
-- movimentação em tempo real.
+- movimentação em tempo real;
+- alteração de `schemaVersion` ou do save principal.
 
 ## Critérios de aceite
 
@@ -161,6 +181,6 @@ Não é necessário desenhar um mapa gráfico.
 - regras pai, filho e irmão aplicadas pelo motor;
 - navegação não depende da UI;
 - bloqueios possuem motivo consultável;
-- estado é persistível e validado;
+- estado é persistível e validado isoladamente;
 - testes, lint, tipos e build passam;
 - fluxo narrativo atual permanece funcional até a etapa de integração.

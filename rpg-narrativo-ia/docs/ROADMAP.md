@@ -26,7 +26,7 @@ Fonte: `SYSTEM-DAY-CYCLE.md`.
 
 ### Etapa 3 — Navegação hierárquica
 
-Carregar mapas aninhados, controlar localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos.
+**Implementado.** O módulo `modules/navigation` carrega o mapa JSON aninhado, controla localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos. Ainda não aplica custo ao relógio, não altera o save principal e não introduz tela de mapa.
 
 Fonte: `SYSTEM-NAVIGATION.md`.
 

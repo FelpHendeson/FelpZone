@@ -58,7 +58,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/` e `modules/day-cycle/` estão implementados. `navigation/` continua apenas planejado.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/` e `modules/navigation/` estão implementados.
 
 ## Responsabilidades
 
@@ -70,7 +70,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `world`: estado persistido do mundo, incluindo dia e período; delega o relógio a `time`.
 - `time`: relógio determinístico por períodos, avanço de data e validação do horário.
 - `day-cycle`: interpreta o avanço do relógio e produz eventos de ciclo e fase visual.
-- `navigation`: mapa hierárquico, posição, descoberta e deslocamento (ainda não implementado).
+- `navigation`: mapa hierárquico, posição, descoberta e deslocamento entre pai, filhos diretos e irmãos.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -184,6 +184,43 @@ Custo zero produz lista vazia de eventos. Cada fronteira atravessada aparece uma
 
 Agenda de NPC, clima, encontros, sobrevivência, bloqueios por horário e tema visual da interface ficam fora deste contrato.
 
+## Contrato de navegação hierárquica
+
+O módulo `modules/navigation` carrega um mapa JSON aninhado, indexa pais e filhos internamente e controla posição, descoberta, desbloqueio e movimento. Não altera `GameState`, `schemaVersion` nem a interface nesta etapa.
+
+O formato de autoria permanece aninhado. A indexação constrói `id → local`, `id → pai` e `id → filhos` sem mutar o JSON original. O mapa inicial descreve o Novo Mundo, com a Clareira do Despertar como ponto de partida e uma caverna oculta sob a Mata Densa.
+
+```ts
+interface NavigationState {
+  currentLocationId: string;
+  discoveredLocationIds: string[];
+  unlockedLocationIds: string[];
+  visitedLocationIds: string[];
+}
+
+interface NavigationDestination {
+  location: LocationNode;
+  relation: 'parent' | 'child' | 'sibling';
+  accessible: boolean;
+  blockedReason?: string;
+  travelCost: { periods: number };
+}
+```
+
+Movimento válido ocorre somente para pai direto, filho direto ou irmão. Saltos entre ramos são rejeitados. Descobrir e desbloquear são operações independentes e idempotentes. Locais `hidden` só entram na lista de destinos depois de descobertos.
+
+O módulo reutiliza `GameCondition` e `inspectTimeCost`. Condições de desbloqueio não satisfeitas bloqueiam o destino mesmo se o ID estiver em `unlockedLocationIds`. O movimento devolve o custo em períodos e não chama `advanceTime`.
+
+Operações públicas:
+
+- `inspectNavigationMap` e `indexNavigationMap`;
+- `createInitialNavigation` e `inspectNavigationState`;
+- consulta de local, pai, filhos, irmãos, caminho e relação;
+- `listVisibleDestinations` e `inspectLocationAccess`;
+- `discoverLocation`, `unlockLocation`, `moveToLocation` e `getTravelCost`.
+
+Exploração percentual, recursos, crafting, NPCs, viagem rápida e a tela de mapa ficam fora deste contrato.
+
 ## Contratos do motor
 
 - `applyChoice` só age com `status: 'playing'`.
@@ -229,4 +266,5 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - o relógio inicia no dia 1 ao alvorecer e avança de forma imutável por períodos;
 - virada de dia, custo zero, configuração inválida e estado persistido inválido são rejeitados ou calculados de forma determinística;
 - dia e custo fora de `Number.isSafeInteger`, custo acima de `MAX_ADVANCE_PERIODS` e overflow de dia são rejeitados antes do loop;
-- o ciclo diário deriva eventos do avanço do relógio, respeita a virada de dia e rejeita configuração de fase inválida.
+- o ciclo diário deriva eventos do avanço do relógio, respeita a virada de dia e rejeita configuração de fase inválida;
+- o mapa hierárquico é indexado sem mutação, o movimento só ocorre entre pai, filhos e irmãos, e o estado de navegação persiste isoladamente.
