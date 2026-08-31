@@ -32,7 +32,7 @@ Fonte: `SYSTEM-NAVIGATION.md`.
 
 ### Etapa 4 — Exploração e descobertas
 
-Adicionar percentual por local, ações de exploração e revelação determinística de marcos, passagens, subáreas, pontos de recurso, NPCs e criaturas.
+**Implementado.** O módulo `modules/exploration` aumenta o percentual de conhecimento de cada local, revela conteúdo dirigido por dados e deriva a conclusão da zona. Ainda não coleta recursos, não aplica o custo ao relógio, não altera o save principal e não introduz botão de explorar.
 
 Fonte: `SYSTEM-EXPLORATION.md`.
 

@@ -46,6 +46,7 @@ src/
 │   ├── time/
 │   ├── day-cycle/
 │   ├── navigation/
+│   ├── exploration/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -58,7 +59,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/` e `modules/navigation/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/` e `modules/exploration/` estão implementados.
 
 ## Responsabilidades
 
@@ -71,6 +72,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `time`: relógio determinístico por períodos, avanço de data e validação do horário.
 - `day-cycle`: interpreta o avanço do relógio e produz eventos de ciclo e fase visual.
 - `navigation`: mapa hierárquico, posição, descoberta e deslocamento entre pai, filhos diretos e irmãos.
+- `exploration`: progresso percentual por local, revelação determinística de conteúdo e conclusão derivada de zona.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -221,6 +223,47 @@ Operações públicas:
 
 Exploração percentual, recursos, crafting, NPCs, viagem rápida e a tela de mapa ficam fora deste contrato.
 
+## Contrato de exploração e descobertas
+
+O módulo `modules/exploration` aumenta o conhecimento do local atual e revela conteúdo dirigido por dados. Não altera `GameState`, `schemaVersion` nem a interface nesta etapa. Explorar não move o jogador, não coleta recursos, não adiciona itens ao inventário e não aplica o custo no relógio.
+
+```ts
+interface LocationExplorationState {
+  locationId: string;
+  progress: number;
+  revealedDiscoveryIds: string[];
+  explorationCount: number;
+}
+
+interface ExplorationState {
+  locations: LocationExplorationState[];
+}
+
+interface ZoneCompletion {
+  zoneId: string;
+  completedPoints: number;
+  totalPoints: number;
+  percentage: number;
+}
+```
+
+Cada local possui progresso inteiro independente entre `0` e `100`. Locais ainda não explorados podem não ter entrada. A conclusão da zona é derivada: soma `completionWeight` do local e de todos os descendentes, incluindo conteúdo secreto e condicionado, e usa `Math.round((completedPoints / totalPoints) * 100)`. Progresso local não substitui essa métrica agregada.
+
+Descobertas são reveladas uma vez, na ordem da definição, quando o progresso atinge `revealAt` e as `GameCondition` forem satisfeitas. `reevaluateDiscoveries` libera descobertas condicionais pendentes sem consumir tempo. `subarea` e `passage` reutilizam `discoverLocation` e, se `unlockTarget` for verdadeiro, `unlockLocation`, sem alterar a posição atual.
+
+A Caverna Oculta é revelada por uma descoberta em `dense-woods` perto de `90%`. O conteúdo inicial cobre Clareira do Despertar, Grande Árvore, Nascente e Pequeno Lago e Mata Densa.
+
+Operações públicas:
+
+- `inspectExplorationDefinitions` e `indexExplorationDefinitions`;
+- `createInitialExploration` e `inspectExplorationState`;
+- `getLocationExploration` e `canExploreLocation`;
+- `exploreCurrentLocation` e `reevaluateDiscoveries`;
+- `getRevealedDiscoveries` e `calculateZoneCompletion`;
+- `applyDiscoveryNavigationEffects` e `createDiscoveryEvaluator`.
+
+Coleta, crafting, encontros, aplicação do custo no relógio, save principal e UI de exploração ficam fora deste contrato.
+
 ## Contratos do motor
 
 - `applyChoice` só age com `status: 'playing'`.
@@ -247,7 +290,7 @@ interface NarrativeSession {
 }
 ```
 
-A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. Isso será decidido na etapa de integração, não antecipado nos três sistemas isolados.
+A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. Isso será decidido na etapa de integração, não antecipado nos sistemas isolados.
 
 ## Testes prioritários
 
@@ -267,4 +310,5 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - virada de dia, custo zero, configuração inválida e estado persistido inválido são rejeitados ou calculados de forma determinística;
 - dia e custo fora de `Number.isSafeInteger`, custo acima de `MAX_ADVANCE_PERIODS` e overflow de dia são rejeitados antes do loop;
 - o ciclo diário deriva eventos do avanço do relógio, respeita a virada de dia e rejeita configuração de fase inválida;
-- o mapa hierárquico é indexado sem mutação, o movimento só ocorre entre pai, filhos e irmãos, e o estado de navegação persiste isoladamente.
+- o mapa hierárquico é indexado sem mutação, o movimento só ocorre entre pai, filhos e irmãos, e o estado de navegação persiste isoladamente;
+- explorar aumenta o progresso local sem mutação, revela descobertas no limiar, reavalia condições pendentes e deriva a conclusão da zona sem armazená-la.

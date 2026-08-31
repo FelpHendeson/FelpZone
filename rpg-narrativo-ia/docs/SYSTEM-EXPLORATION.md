@@ -2,17 +2,24 @@
 
 ## Dependências
 
-Só iniciar depois de horário/data, ciclo diário e navegação hierárquica estarem implementados, testados e consolidados.
+Horário/data, ciclo diário e navegação hierárquica já estão implementados, testados e consolidados.
 
 ## Objetivo
 
 Permitir que o jogador conheça gradualmente cada ambiente. Explorar aumenta um percentual local e revela conteúdo previamente definido: itens encontrados, marcos, passagens, subáreas bônus, pontos de recurso, NPCs, criaturas e eventos.
 
-Explorar não é o mesmo que navegar ou coletar. Navegação muda a posição; exploração revela o que existe ali; coleta utiliza um ponto de recurso já descoberto.
+O módulo `modules/exploration` é determinístico, independente e ainda não altera o save principal nem a interface. Explorar revela o que existe no local; não move o jogador, não coleta recursos, não adiciona itens ao inventário, não inicia encontros, não executa eventos narrativos, não instancia NPCs ou criaturas e não aplica o custo no relógio.
 
-## Progresso por local
+## Separação de responsabilidades
 
-Cada local explorável possui progresso próprio entre `0` e `100`.
+- **navegação:** onde o jogador está e quais locais conhece;
+- **exploração:** aumenta o conhecimento do local atual;
+- **descoberta:** registra que algum conteúdo foi encontrado;
+- **coleta futura:** utilizará pontos de recurso já descobertos;
+- **crafting futuro:** utilizará materiais obtidos pela coleta;
+- **narrativa futura:** poderá reagir às descobertas retornadas.
+
+## Estado
 
 ```ts
 interface LocationExplorationState {
@@ -21,46 +28,25 @@ interface LocationExplorationState {
   revealedDiscoveryIds: string[];
   explorationCount: number;
 }
-```
 
-- progresso é inteiro e limitado a `0..100`;
-- ações nunca reduzem o percentual;
-- chegar a `100` significa que todas as descobertas contabilizadas daquele local foram resolvidas;
-- continuar no local após `100` pode permitir coleta e interação, mas não gera exploração infinita.
-
-## Progresso local e conclusão de zona
-
-Não armazenar a porcentagem do pai como cópia da média dos filhos.
-
-- **progresso local:** pertence a um ambiente específico e pode aumentar por ações nele;
-- **conclusão da zona:** métrica derivada dos objetivos de exploração do pai e de seus descendentes.
-
-Cada descoberta recebe um peso de conclusão. Conteúdo secreto também participa do total desde o início, embora sua identidade permaneça oculta. Assim, `100%` representa conclusão real, não apenas tudo o que já era conhecido.
-
-```ts
-interface ZoneCompletion {
-  zoneId: string;
-  completedPoints: number;
-  totalPoints: number;
-  percentage: number;
+interface ExplorationState {
+  locations: LocationExplorationState[];
 }
 ```
 
-## Ação de explorar
+- cada local possui progresso independente;
+- progresso é inteiro entre `0` e `100` e nunca diminui nem ultrapassa `100`;
+- `explorationCount` é inteiro seguro não negativo;
+- descobertas reveladas não se repetem no estado;
+- IDs de locais e descobertas precisam existir nas definições;
+- a mesma localização não aparece duas vezes em `ExplorationState`;
+- locais ainda não explorados podem não possuir entrada;
+- a primeira exploração de um local cria seu estado inicial;
+- estado e definições nunca são mutados.
 
-Uma ação de exploração:
+`ExplorationState` é serializável por `JSON.stringify`/`JSON.parse` e validado isoladamente. Ainda não entra em `GameState`.
 
-1. valida se o local pode ser explorado;
-2. informa custo de tempo e, futuramente, energia;
-3. calcula ganho de progresso;
-4. limita o resultado a `100`;
-5. resolve descobertas cujos requisitos foram atingidos;
-6. devolve novo estado e lista de revelações;
-7. permite que a camada de integração acione narrativas.
-
-No primeiro contrato, descobertas devem ser determinísticas por limiar. Aleatoriedade só poderá entrar futuramente com semente reproduzível.
-
-## Tipos de descoberta
+## Definições
 
 ```ts
 type DiscoveryKind =
@@ -80,80 +66,163 @@ interface DiscoveryDefinition {
   completionWeight: number;
   conditions?: GameCondition[];
   targetId?: string;
-  once: boolean;
+  unlockTarget?: boolean;
+  once: true;
+}
+
+interface LocationExplorationDefinition {
+  locationId: string;
+  progressPerAction: number;
+  timeCost: TimeCost;
+  discoveries: DiscoveryDefinition[];
 }
 ```
 
-Uma descoberta condicionada só é revelada quando o percentual e suas condições forem satisfeitos. Se o percentual já tiver passado do limiar, ela deve ser reavaliada quando o estado relevante mudar.
+O conteúdo inicial vive em `src/modules/exploration/initial-exploration.ts`:
 
-## Subáreas bônus
+- Clareira do Despertar: marco do despertar, ponto futuro de gravetos e um item encontrado;
+- Grande Árvore: marco da árvore e marcações ambientais;
+- Nascente e Pequeno Lago: marco da nascente e ponto futuro de água;
+- Mata Densa: vegetação densa, habitat de coelhos chifrudos e a Caverna Oculta.
 
-Uma caverna secreta ou passagem oculta já existe como filho no mapa JSON, mas começa invisível. Uma descoberta `subarea` ou `passage` revela e, se apropriado, desbloqueia o local.
+`revealAt` é inteiro entre `0` e `100`. `completionWeight` e `progressPerAction` são inteiros seguros positivos. `timeCost` reutiliza `inspectTimeCost`. IDs de descoberta são únicos globalmente. Nesta etapa, toda descoberta precisa de `once: true`; `once: false` é rejeitado porque redescobertas repetíveis ainda não possuem semântica definida.
 
-O jogador não é teletransportado ao descobrir. Ele recebe informação e decide se deseja navegar até lá.
+Definições e estados restaurados são entradas não confiáveis.
 
-## Exemplo: Floresta dos Coelhos Chifrudos
+## Ação de explorar
 
-```json
-{
-  "id": "horned-rabbit-forest",
-  "name": "Floresta dos Coelhos Chifrudos",
-  "children": [
-    {
-      "id": "forest-clearing",
-      "name": "Clareira",
-      "exploration": {
-        "discoveries": [
-          { "id": "fallen-branches", "kind": "resourceNode", "revealAt": 20, "completionWeight": 1, "once": true },
-          { "id": "rabbit-tracks", "kind": "creatureHabitat", "revealAt": 45, "completionWeight": 1, "once": true },
-          { "id": "hidden-cave", "kind": "subarea", "revealAt": 90, "completionWeight": 2, "targetId": "hidden-cave", "once": true }
-        ]
-      },
-      "children": [
-        { "id": "hidden-cave", "name": "Caverna Oculta", "visibility": "hidden" }
-      ]
-    },
-    { "id": "great-tree", "name": "Grande Árvore" },
-    { "id": "spring-lake", "name": "Nascente e Pequeno Lago" }
-  ]
+`exploreCurrentLocation` usa somente `NavigationState.currentLocationId`. Não aceita explorar um local diferente da posição atual.
+
+Fluxo:
+
+1. validar mapa, navegação, definições e estado;
+2. confirmar que existe definição de exploração para o local atual;
+3. calcular o ganho e limitar o progresso a `100`;
+4. incrementar `explorationCount` somente quando a ação ocorre;
+5. localizar descobertas cujo limiar foi alcançado;
+6. avaliar condições com `GameCondition` / `evaluateConditions`;
+7. registrar descobertas novas exatamente uma vez, na ordem da definição;
+8. aplicar somente efeitos de navegação autorizados (`subarea` e `passage`);
+9. devolver o custo de tempo sem aplicá-lo.
+
+```ts
+interface ExplorationResult {
+  previous: ExplorationState;
+  current: ExplorationState;
+  location: {
+    previous: LocationExplorationState;
+    current: LocationExplorationState;
+  };
+  progressGained: number;
+  discoveries: DiscoveryDefinition[];
+  timeCost: TimeCost;
+  navigation: {
+    previous: NavigationState;
+    current: NavigationState;
+  };
 }
 ```
 
-Os nomes e percentuais são exemplos de contrato, não balanceamento definitivo.
+## Local em 100%
 
-## Capacidades e modificadores
+Quando o progresso local já está em `100`:
 
-Capacidades podem modificar ganho, informação ou condições sem duplicar o sistema:
+- nova exploração não aumenta o progresso;
+- não incrementa `explorationCount`;
+- não gera novamente descobertas já reveladas;
+- o ganho é zero e o custo de tempo não é aplicado;
+- descobertas condicionais pendentes continuam reavaliáveis por `reevaluateDiscoveries`, sem consumir tempo.
 
-- percepção revela uma pista antes do limiar completo;
-- conhecimento identifica melhor um recurso;
-- rastreamento facilita encontrar habitat;
-- cautela reduz risco durante a ação.
+Isso permite liberar uma descoberta depois que uma flag, item, atributo ou relação mudar, mesmo quando o progresso já passou do limiar.
 
-O modificador deve ser explícito e testável. Nenhuma capacidade pode alterar diretamente componentes React.
+## Condições
 
-## Testes obrigatórios
+O módulo reutiliza `GameCondition` e `evaluateConditions`. A composição recebe `GameState` ou uma função avaliadora injetada via `createDiscoveryEvaluator`.
 
-- progresso começa e termina nos limites corretos;
-- explorar produz novo estado sem mutação;
-- descobertas surgem no limiar correto e apenas uma vez;
-- condições impedem e posteriormente liberam descoberta;
-- subárea oculta passa a descoberta sem mover o jogador;
-- progresso local não sobrescreve conclusão agregada;
-- conclusão da zona considera pesos e conteúdo secreto;
-- local a `100%` não gera progresso adicional;
-- definições e estados inválidos são rejeitados;
-- persistência preserva percentuais e descobertas.
+Uma descoberta só é revelada quando o progresso atingiu `revealAt`, suas condições foram satisfeitas e ela ainda não foi registrada. Se o limiar for atingido antes da condição, a descoberta permanece pendente e sua identidade não aparece na API comum.
+
+## Integração com navegação
+
+Descobertas comuns apenas retornam seus dados. Para `subarea` e `passage`:
+
+- `targetId` é obrigatório e precisa existir no mapa;
+- o alvo é revelado com `discoverLocation`;
+- se `unlockTarget: true`, também é usado `unlockLocation`;
+- `currentLocationId` não muda;
+- o alvo não é marcado como visitado;
+- o jogador não é teletransportado.
+
+A operação pública `applyDiscoveryNavigationEffects` reutiliza as funções do Sistema 3. Não há manipulação manual das listas de navegação.
+
+## Caverna oculta
+
+A descoberta `hidden-cave` pertence a `dense-woods`, com limiar inicial próximo de `90%` e `unlockTarget: true`. Esse percentual não é balanceamento definitivo.
+
+- antes do limiar, `hidden-cave` não aparece nos destinos;
+- ao atingir o limiar, o ID entra em `discoveredLocationIds` e `unlockedLocationIds`;
+- a posição atual permanece `dense-woods`;
+- `visitedLocationIds` não recebe a caverna;
+- a caverna passa a aparecer como filha navegável;
+- entrar nela continua sendo responsabilidade do Sistema 3.
+
+## Progresso local e conclusão da zona
+
+```ts
+interface ZoneCompletion {
+  zoneId: string;
+  completedPoints: number;
+  totalPoints: number;
+  percentage: number;
+}
+```
+
+A conclusão da zona é derivada por `calculateZoneCompletion` e não é armazenada no estado.
+
+- considera definições do próprio local e de todos os descendentes;
+- `totalPoints` soma todos os `completionWeight`, inclusive conteúdo secreto e condicionado;
+- `completedPoints` soma somente descobertas já reveladas;
+- o resumo público não inclui nomes ou IDs secretos;
+- a porcentagem é `Math.round((completedPoints / totalPoints) * 100)`, limitada a `0..100`;
+- se `totalPoints` for zero, a zona é considerada `100%` concluída.
+
+Progresso local mede a cobertura de exploração de um ambiente (`0..100` das ações naquele local). Conclusão de zona mede pesos de descoberta agregados. Um local pode ter `100%` de cobertura enquanto a conclusão agregada permanece abaixo de `100%` por causa de uma descoberta condicionada pendente ou de descendentes ainda não resolvidos.
+
+## Operações públicas
+
+- `inspectExplorationDefinitions` e `indexExplorationDefinitions`;
+- `createInitialExploration` e `inspectExplorationState`;
+- `getLocationExploration` e `canExploreLocation`;
+- `exploreCurrentLocation` e `reevaluateDiscoveries`;
+- `getRevealedDiscoveries` e `calculateZoneCompletion`;
+- `applyDiscoveryNavigationEffects` e `createDiscoveryEvaluator`.
+
+Capacidades do personagem ainda não modificam o ganho. Não há aleatoriedade, testes de perícia, risco, energia ou lógica em componentes React.
+
+## Validações
+
+Rejeite de forma controlada localização inexistente, definição duplicada, ID de descoberta vazio ou duplicado, tipo desconhecido, limiar fora de `0..100`, peso ou ganho inválidos, custo de tempo inválido ou acima de `MAX_ADVANCE_PERIODS`, condição malformada, `subarea`/`passage` sem alvo válido, alvo igual ao local atual, `unlockTarget` malformado, `once` diferente de `true`, estado com localização duplicada, progresso ou contador inválidos, descoberta inexistente, descoberta no local errado e revelações duplicadas.
+
+## Integração inicial
+
+- o fluxo narrativo atual permanece intacto;
+- não há botão de explorar, barra visual, tela de mapa, popup de descoberta nem inventário novo;
+- o custo ainda não é aplicado ao relógio;
+- a demonstração do fluxo fica nos testes.
 
 ## Fora da etapa
 
 - coleta e renovação de recursos;
 - caça e população animal;
-- crafting;
-- minijogos;
-- geração procedural;
-- aleatoriedade não determinística;
-- conclusão global do mundo.
+- itens adicionados ao inventário;
+- crafting, cozinha e fogueira;
+- agenda de NPC, criaturas ativas e encontros;
+- eventos narrativos automáticos;
+- aplicação do custo no relógio;
+- energia, fome ou risco;
+- aleatoriedade e geração procedural;
+- conclusão global do mundo;
+- alteração de `schemaVersion` ou do save principal;
+- mudanças visuais.
 
 ## Critérios de aceite
 

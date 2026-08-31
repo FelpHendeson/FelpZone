@@ -1,0 +1,104 @@
+import type { LocationExplorationDefinition } from './types';
+
+export const INITIAL_EXPLORATION_DEFINITIONS: readonly LocationExplorationDefinition[] = [
+  {
+    locationId: 'awakening-clearing',
+    progressPerAction: 10,
+    timeCost: { periods: 1 },
+    discoveries: [
+      {
+        id: 'awakening-site',
+        kind: 'landmark',
+        revealAt: 10,
+        completionWeight: 1,
+        once: true,
+      },
+      {
+        id: 'fallen-sticks',
+        kind: 'resourceNode',
+        revealAt: 25,
+        completionWeight: 1,
+        once: true,
+      },
+      {
+        id: 'torn-cloth',
+        kind: 'item',
+        revealAt: 50,
+        completionWeight: 1,
+        once: true,
+      },
+    ],
+  },
+  {
+    locationId: 'great-tree',
+    progressPerAction: 10,
+    timeCost: { periods: 1 },
+    discoveries: [
+      {
+        id: 'great-tree-trunk',
+        kind: 'landmark',
+        revealAt: 15,
+        completionWeight: 1,
+        once: true,
+      },
+      {
+        id: 'bark-markings',
+        kind: 'landmark',
+        revealAt: 40,
+        completionWeight: 1,
+        once: true,
+      },
+    ],
+  },
+  {
+    locationId: 'spring-lake',
+    progressPerAction: 10,
+    timeCost: { periods: 1 },
+    discoveries: [
+      {
+        id: 'spring-source',
+        kind: 'landmark',
+        revealAt: 10,
+        completionWeight: 1,
+        once: true,
+      },
+      {
+        id: 'spring-water',
+        kind: 'resourceNode',
+        revealAt: 30,
+        completionWeight: 1,
+        once: true,
+      },
+    ],
+  },
+  {
+    locationId: 'dense-woods',
+    progressPerAction: 10,
+    timeCost: { periods: 1 },
+    discoveries: [
+      {
+        id: 'dense-undergrowth',
+        kind: 'landmark',
+        revealAt: 20,
+        completionWeight: 1,
+        once: true,
+      },
+      {
+        id: 'horned-rabbit-tracks',
+        kind: 'creatureHabitat',
+        revealAt: 40,
+        completionWeight: 1,
+        once: true,
+      },
+      {
+        id: 'hidden-cave',
+        kind: 'subarea',
+        revealAt: 90,
+        completionWeight: 2,
+        targetId: 'hidden-cave',
+        unlockTarget: true,
+        once: true,
+      },
+    ],
+  },
+];

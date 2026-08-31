@@ -25,7 +25,7 @@ Leia nesta ordem:
 7. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
 8. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): eventos de período e dia derivados do relógio, já implementado.
 9. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
-10. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por área e conteúdo revelável.
+10. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
 11. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento.
 12. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas e transformação de materiais.
 13. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
@@ -46,7 +46,7 @@ A aplicação sobe em `http://localhost:5173`. No celular da mesma rede, use o e
 Outros comandos:
 
 ```bash
-npm test        # testes do motor, condições, efeitos, transições, persistência, horário, ciclo diário e navegação
+npm test        # testes do motor, condições, efeitos, transições, persistência, horário, ciclo diário, navegação e exploração
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de produção com PWA
@@ -60,7 +60,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # telas mobile-first e ImagePlaceholder
@@ -71,7 +71,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 3 da evolução sandbox — horário e data, ciclo diário e navegação hierárquica — estão implementadas como módulos determinísticos independentes. Exploração e as etapas seguintes permanecem apenas especificadas.
+**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 4 da evolução sandbox — horário e data, ciclo diário, navegação hierárquica e exploração e descobertas — estão implementadas como módulos determinísticos independentes. Recursos, crafting e a integração explorável permanecem apenas especificados.
 
 ## Decisões já tomadas
 
@@ -92,11 +92,11 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
-- A evolução sandbox tem horário, data, ciclo diário e navegação hierárquica implementados; exploração, recursos e crafting ainda não.
+- A evolução sandbox tem horário, data, ciclo diário, navegação hierárquica e exploração implementados; recursos, crafting e a integração à interface ainda não.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 123 testes, incluindo a navegação hierárquica (indexação, movimento adjacente, rejeição de saltos, descoberta, bloqueios, custos, persistência isolada e imutabilidade) e os 91 testes anteriores do motor, do horário e do ciclo diário.
+- `npm test`: 160 testes, incluindo a exploração (progresso por local, descobertas, caverna oculta, reavaliação condicional, conclusão de zona, persistência isolada e imutabilidade) e os 123 testes anteriores do motor, do horário, do ciclo diário e da navegação.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- O fluxo visual do MVP permanece intacto; a API de navegação fica disponível no módulo, sem tela de mapa nesta etapa.
+- O fluxo visual do MVP permanece intacto; as APIs de navegação e exploração ficam disponíveis nos módulos, sem tela de mapa nem botão de explorar nesta etapa.
