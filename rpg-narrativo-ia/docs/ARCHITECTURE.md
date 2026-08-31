@@ -47,6 +47,7 @@ src/
 │   ├── day-cycle/
 │   ├── navigation/
 │   ├── exploration/
+│   ├── resources/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -59,7 +60,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/` e `modules/exploration/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/` e `modules/resources/` estão implementados.
 
 ## Responsabilidades
 
@@ -73,6 +74,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `day-cycle`: interpreta o avanço do relógio e produz eventos de ciclo e fase visual.
 - `navigation`: mapa hierárquico, posição, descoberta e deslocamento entre pai, filhos diretos e irmãos.
 - `exploration`: progresso percentual por local, revelação determinística de conteúdo e conclusão derivada de zona.
+- `resources`: pontos de coleta com capacidade limitada, renovação e populações ecológicas.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -264,6 +266,48 @@ Operações públicas:
 
 Coleta, crafting, encontros, aplicação do custo no relógio, save principal e UI de exploração ficam fora deste contrato.
 
+## Contrato de recursos e ecologia
+
+O módulo `modules/resources` modela pontos de coleta já revelados pela exploração. Não altera `GameState`, `schemaVersion` nem a interface nesta etapa. Coletar não explora, não move o jogador e não aplica o custo no relógio.
+
+```ts
+type RenewalPolicy =
+  | { type: 'none' }
+  | { type: 'short'; periods: number }
+  | { type: 'long'; days: number }
+  | { type: 'population'; populationId: string };
+
+interface ResourcesState {
+  nodes: ResourceNodeState[];
+  populations: PopulationState[];
+}
+
+type PopulationStatus =
+  | 'abundant'
+  | 'stable'
+  | 'declining'
+  | 'threatened'
+  | 'exhausted';
+```
+
+Um ponto só pode ser usado no `locationId` atual e depois que `discoveryId` tiver sido revelado. O tipo da descoberta precisa ser `resourceNode` ou `creatureHabitat`. A coleta é atômica: valida localização, descoberta, condições, disponibilidade, quantidade, limites populacionais, yields e overflow do inventário antes de alterar qualquer estado. O inventário recebido é um array independente; o save principal não é tocado.
+
+Renovação curta e longa usam o relógio do jogo. `synchronizeResourceRenewal` restaura a capacidade completa somente quando o horário informado alcança ou ultrapassa `nextRenewalAt`. Políticas `none` e `population` não agendam essa data. Populações recuperam apenas em `day.started`, com `lastRecoveredDay` garantindo idempotência. População localmente extinta não se recupera espontaneamente.
+
+O conteúdo inicial cobre gravetos na Clareira do Despertar, água bruta na Nascente e a toca de coelhos chifrudos na Mata Densa. Os valores de capacidade e recuperação são provisórios.
+
+Operações públicas:
+
+- `inspectResourceDefinitions` e `indexResourceDefinitions`;
+- `createInitialResources` e `inspectResourcesState`;
+- `getResourceNode`, `getPopulation`, `getEffectiveAvailability` e `getMaxCollectable`;
+- `inspectResourceAccess` e `canCollectResource`;
+- `getPopulationStatus` e `derivePopulationStatus`;
+- `collectResource`, `synchronizeResourceRenewal` e `applyPopulationDayCycle`;
+- `getResourceYields`, `getCollectionCost` e `createResourceEvaluator`.
+
+Crafting, cozinha, combate, ferramentas, aplicação do custo no relógio, save principal e UI de coleta ficam fora deste contrato.
+
 ## Contratos do motor
 
 - `applyChoice` só age com `status: 'playing'`.
@@ -311,4 +355,6 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - dia e custo fora de `Number.isSafeInteger`, custo acima de `MAX_ADVANCE_PERIODS` e overflow de dia são rejeitados antes do loop;
 - o ciclo diário deriva eventos do avanço do relógio, respeita a virada de dia e rejeita configuração de fase inválida;
 - o mapa hierárquico é indexado sem mutação, o movimento só ocorre entre pai, filhos e irmãos, e o estado de navegação persiste isoladamente;
-- explorar aumenta o progresso local sem mutação, revela descobertas no limiar, reavalia condições pendentes e deriva a conclusão da zona sem armazená-la.
+- explorar aumenta o progresso local sem mutação, revela descobertas no limiar, reavalia condições pendentes e deriva a conclusão da zona sem armazená-la;
+- pontos de recurso têm capacidade limitada, coleta atômica e renovação pelo relógio do jogo;
+- populações compartilham estoque, emitem estado qualitativo e podem ser extintas localmente sem recuperação espontânea.

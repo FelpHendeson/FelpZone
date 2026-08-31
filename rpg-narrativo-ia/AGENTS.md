@@ -4,7 +4,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 ## Objetivo atual
 
-A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 4 da evolução sandbox — horário e data, ciclo diário, navegação hierárquica e exploração e descobertas — estão implementadas. Não implementar recursos, crafting ou outros itens do [roadmap](docs/ROADMAP.md) sem autorização explícita para a etapa correspondente.
+A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 5 da evolução sandbox — horário e data, ciclo diário, navegação hierárquica, exploração e descobertas, e pontos de recurso e ecologia — estão implementadas. Não implementar crafting ou outros itens do [roadmap](docs/ROADMAP.md) sem autorização explícita para a etapa correspondente.
 
 ## Regras obrigatórias
 

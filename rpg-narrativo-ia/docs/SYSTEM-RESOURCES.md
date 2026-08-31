@@ -2,17 +2,32 @@
 
 ## Dependências
 
-Só iniciar depois de exploração e descobertas estarem implementadas, testadas e consolidadas.
+Horário/data, ciclo diário, navegação hierárquica e exploração e descobertas já estão implementados, testados e consolidados.
 
 ## Objetivo
 
-Representar fontes locais de materiais com capacidade limitada, coleta explícita e recuperação baseada no tempo. O jogador precisa escolher quando e quanto extrair, pois alguns recursos retornam rapidamente, outros levam dias e populações podem ser esgotadas.
+Representar fontes locais de materiais com capacidade limitada, coleta explícita e recuperação baseada no tempo do jogo. O jogador precisa escolher quando e quanto extrair: alguns recursos voltam em poucos períodos, outros levam dias e populações podem ser esgotadas.
 
-## Ponto de recurso
+O módulo `modules/resources` é determinístico, independente e ainda não altera o save principal nem a interface. Coletar utiliza um ponto já revelado; não explora, não move o jogador, não cozinha, não inicia combate e não aplica o custo no relógio.
 
-Um ponto só pode ser utilizado depois de descoberto.
+## Separação de responsabilidades
+
+- **navegação:** onde o jogador está;
+- **exploração:** revela o ponto de recurso;
+- **recursos:** disponibilidade, coleta, renovação e populações;
+- **inventário:** array independente recebido e devolvido pela coleta;
+- **crafting futuro:** transformará os materiais brutos.
+
+Nenhum ponto fornece recursos infinitos.
+
+## Definições
 
 ```ts
+interface ResourceYield {
+  itemId: string;
+  quantityPerUnit: number;
+}
+
 type RenewalPolicy =
   | { type: 'none' }
   | { type: 'short'; periods: number }
@@ -21,15 +36,26 @@ type RenewalPolicy =
 
 interface ResourceNodeDefinition {
   id: string;
+  discoveryId: string;
   locationId: string;
   name: string;
   capacity: number;
-  collectionCost: { periods: number };
+  maxCollectionPerAction?: number;
+  collectionCost: TimeCost;
   renewal: RenewalPolicy;
   yields: ResourceYield[];
   conditions?: GameCondition[];
+  blockedReason?: string;
 }
+```
 
+`discoveryId` liga o ponto à descoberta do Sistema 4. O tipo precisa ser `resourceNode` ou `creatureHabitat`. O ponto só pode ser usado depois que essa descoberta tiver sido revelada no local correspondente.
+
+IDs de pontos são únicos. Capacidade, quantidade por unidade e limite por ação são inteiros seguros positivos. Yields não podem estar vazios nem repetir o mesmo `itemId`. O custo reutiliza `inspectTimeCost`. Definições são entradas não confiáveis e são copiadas defensivamente.
+
+## Estado
+
+```ts
 interface ResourceNodeState {
   nodeId: string;
   availableUnits: number;
@@ -37,31 +63,7 @@ interface ResourceNodeState {
   nextRenewalAt?: TimeState;
   exhausted: boolean;
 }
-```
 
-Quantidade, disponibilidade e datas devem ser validadas e persistidas. Coletar não pode produzir mais unidades do que as disponíveis.
-
-## Classes de renovação
-
-### Não renovável
-
-Quando esgotado, não retorna pelo ciclo normal. Exemplo: depósito pequeno de mineral ou item único.
-
-### Curto prazo
-
-Recupera em poucos períodos ou na próxima virada diária. Exemplo: gravetos caídos, água acumulada ou frutos muito comuns.
-
-### Longo prazo
-
-Leva vários dias e pode depender de condições futuras. Exemplo: plantas raras, árvores e colônias de fungos.
-
-### População ecológica
-
-A disponibilidade depende de uma população viva compartilhada por habitats e encontros. Exemplo: toca de coelhos chifrudos.
-
-## Populações
-
-```ts
 interface PopulationDefinition {
   id: string;
   speciesId: string;
@@ -76,92 +78,127 @@ interface PopulationState {
   current: number;
   pressure: number;
   locallyExtinct: boolean;
+  lastRecoveredDay: number;
+}
+
+interface ResourcesState {
+  nodes: ResourceNodeState[];
+  populations: PopulationState[];
 }
 ```
 
-A fórmula final será balanceada na implementação, mas deve preservar:
+O estado inicial contém todos os pontos e populações definidos. `availableUnits` fica entre zero e a capacidade. `exhausted` é coerente com a disponibilidade efetiva, incluindo extinção da população vinculada. Políticas `none` e `population` não usam `nextRenewalAt`. Estados restaurados precisam conter cada definição exatamente uma vez, sem IDs duplicados, inexistentes ou omitidos.
 
-- coleta ou caça reduz população;
-- abaixo do limite de alerta, rendimento e frequência caem;
-- abaixo do limite crítico, recuperação desacelera ou exige proteção;
-- zerar pode causar extinção local e consequências narrativas;
-- recuperação acontece na virada de dias, nunca por recarregar a página;
-- o jogador recebe sinais qualitativos antes de causar dano irreversível.
-
-## Toca de coelhos chifrudos
-
-A toca é um ponto de habitat ligado a uma população. Uma ação de caça ou captura pode produzir uma carcaça ou materiais brutos:
-
-- carne crua;
-- pele;
-- chifres;
-- ossos ou outros materiais futuros.
-
-Não entregar automaticamente alimento pronto. Cozinha transforma carne crua em comida segura. A quantidade retirada pressiona a população local; repetir a ação sem recuperação reduz disponibilidade e pode esgotar o habitat.
-
-O sistema de criaturas futuro poderá reutilizar o mesmo `populationId`, evitando uma população para coleta e outra desconectada para encontros.
-
-## Gravetes, nascente e outros exemplos
-
-- gravetos: renovação curta, usados como combustível e material;
-- nascente: fonte renovável de água, limitada por ação e recipiente futuro;
-- plantas: renovação curta ou longa conforme espécie;
-- pedra solta: capacidade local com recuperação lenta ou inexistente;
-- animais: renovação populacional.
+`ResourcesState` é serializável por `JSON.stringify`/`JSON.parse` e validado isoladamente. Ainda não entra em `GameState`.
 
 ## Coleta
 
-Uma coleta:
+`collectResource` valida todas as entradas antes de alterar qualquer coisa:
 
-1. exige ponto descoberto e acessível no local atual;
-2. valida condições, ferramentas futuras e disponibilidade;
-3. informa custo de tempo;
-4. determina quantidade retirada dentro do limite;
-5. adiciona materiais ao inventário;
-6. atualiza ponto e, se aplicável, população;
-7. agenda renovação;
-8. devolve sinais para narrativa e interface.
+1. mapa, navegação, exploração, definições, estado, inventário e horário;
+2. jogador no `locationId` do ponto;
+3. `discoveryId` revelado naquele local;
+4. condições;
+5. disponibilidade;
+6. quantidade solicitada, inteiro seguro positivo;
+7. limites populacionais;
+8. yields e overflow do inventário;
+9. só então produz os novos estados.
 
-## Feedback ao jogador
+A operação é atômica. A quantidade coletada respeita o pedido, a capacidade, `availableUnits`, `maxCollectionPerAction` e a população compartilhada. O resultado devolve `collectionCost` sem chamar `advanceTime`. O instante `collectedAt` representa o fim da coleta e é informado pelo integrador.
 
-Não é obrigatório mostrar números exatos de população. Estados qualitativos são suficientes inicialmente:
+Materiais entram em um array de `InventoryItem` independente. Multiplicações e somas rejeitam valores acima de `Number.MAX_SAFE_INTEGER`.
 
-- abundante;
-- estável;
-- diminuindo;
-- ameaçada;
-- esgotada.
+## Renovação
 
-O jogador deve conseguir entender que insistir tem consequência.
+`synchronizeResourceRenewal` atualiza somente pontos cuja data venceu. A comparação usa dia e índice de período do relógio existente. Não usa `Date`, `setTimeout` nem timestamp do sistema.
 
-## Testes obrigatórios
+- `none`: disponibilidade removida não retorna; ao zerar, permanece esgotado;
+- `short`: `periods` é inteiro seguro positivo e respeita `MAX_ADVANCE_PERIODS`; ao vencer, restaura a capacidade completa e limpa `nextRenewalAt`;
+- `long`: agenda o mesmo período após a quantidade de dias, com proteção de overflow de `day`;
+- `population`: não agenda `nextRenewalAt`; a disponibilidade depende do ponto e da população.
 
-- ponto indisponível não pode ser coletado;
-- coleta respeita capacidade e inventário;
-- renovação curta e longa usa o relógio do jogo;
-- fechar e abrir o jogo não acelera renovação;
-- coleta populacional reduz a população correta;
-- limites alteram estado qualitativo;
-- extinção local impede nova coleta;
-- virada diária recupera sem ultrapassar capacidade;
-- operações são imutáveis e determinísticas;
-- estado inválido é rejeitado e persistência é preservada.
+Sincronizar de novo no mesmo horário é idempotente. Recarregar a página não acelera a renovação.
+
+## Populações
+
+A ordem do estado qualitativo é:
+
+1. `exhausted` — extinta ou atual igual a zero;
+2. `threatened` — atual menor ou igual ao limite crítico;
+3. `declining` — atual menor ou igual ao limite de alerta;
+4. `abundant` — atual igual à capacidade;
+5. `stable` — demais casos.
+
+A API permite mostrar esse aviso sem números exatos na interface futura.
+
+Disponibilidade efetiva de um ponto populacional nunca ultrapassa `availableUnits` nem `population.current`. Se o status for `declining` ou `threatened`, a coleta cai para no máximo uma unidade por ação. Ainda é possível zerar uma população ameaçada por insistência. Chegar a zero marca extinção local e bloqueia todos os pontos vinculados ao mesmo `populationId`.
+
+`applyPopulationDayCycle` só recupera em `day.started`. Eventos repetidos não recuperam duas vezes. `lastRecoveredDay` garante idempotência. Salto de dias recupera os dias faltantes. A fórmula inicial, ainda provisória:
+
+- acima do limite crítico: `recoveryPerDay`;
+- no limite crítico ou abaixo: metade, arredondada para baixo, com mínimo de 1 quando `recoveryPerDay > 0`;
+- população zero torna-se `locallyExtinct` e não recebe recuperação;
+- a recuperação nunca ultrapassa `carryingCapacity`;
+- a pressão diminui pelo total efetivamente recuperado, sem ficar negativa.
+
+Ao recuperar, os pontos vinculados recebem gradualmente a quantidade recuperada, sem ultrapassar a capacidade de cada ponto. O mesmo `populationId` poderá ser reutilizado por criaturas futuras.
+
+## Conteúdo inicial
+
+Valores de capacidade, recuperação e limiares são provisórios.
+
+População `horned-rabbits`, espécie `horned-rabbit`, capacidade `8`, recuperação `2`, alerta `4`, crítico `2`.
+
+Pontos:
+
+- `fallen-sticks` na Clareira do Despertar, descoberta `fallen-sticks`, renovação curta de 2 períodos, produz `fallen-branch`;
+- `spring` na Nascente e Pequeno Lago, descoberta `spring-water`, renovação curta de 1 período, produz `raw-water`;
+- `horned-rabbit-warren` na Mata Densa, descoberta `horned-rabbit-tracks`, política `population`, coleta máxima normal `2`, produz carne crua, pele, chifre e ossos.
+
+A coleta da toca é uma captura abstrata, não um combate. Não produz carne cozida, refeição nem bônus de fome. Políticas `none` e `long` são demonstradas em definições de teste, sem alterar o conteúdo do Sistema 4.
+
+## Condições
+
+O módulo reutiliza `GameCondition` e `evaluateConditions`. O avaliador recebe `readonly GameCondition[]` e uma cópia defensiva. O callback não modifica as definições indexadas. O motivo de bloqueio usa `blockedReason` ou a mensagem estável `Este ponto de recurso está bloqueado.`
+
+## Operações públicas
+
+- `inspectResourceDefinitions` e `indexResourceDefinitions`;
+- `createInitialResources` e `inspectResourcesState`;
+- `getResourceNode` e `getPopulation`;
+- `getEffectiveAvailability`, `getMaxCollectable`, `inspectResourceAccess` e `canCollectResource`;
+- `getPopulationStatus` e `derivePopulationStatus`;
+- `collectResource`;
+- `synchronizeResourceRenewal`;
+- `applyPopulationDayCycle`;
+- `getResourceYields` e `getCollectionCost`;
+- `createResourceEvaluator`.
+
+## Integração inicial
+
+- o fluxo narrativo atual permanece intacto;
+- não há botão de coleta, painel ecológico, inventário visual novo nem combate;
+- o custo ainda não é aplicado ao relógio;
+- a demonstração do fluxo fica nos testes.
 
 ## Fora da etapa
 
-- combate contra criaturas;
+- crafting, cozinha e fogueira;
 - ferramentas e durabilidade;
-- estações ou receitas;
-- mercado;
-- ecossistema completo entre predador e presa;
-- estações do ano;
-- geração procedural de recursos.
+- combate, criaturas ativas e encontros;
+- agenda de NPC e mercado;
+- estações do ano e ecossistema predador-presa;
+- geração procedural;
+- aplicação automática do custo no relógio;
+- integração ao save principal;
+- mudanças visuais.
 
 ## Critérios de aceite
 
 - nenhum ponto fornece recursos infinitos;
-- curto, longo e populacional possuem comportamentos distintos;
-- a toca de coelhos demonstra risco de sobre-exploração;
+- curto, longo, nenhum e populacional possuem comportamentos distintos;
+- a toca de coelhos demonstra risco de sobre-exploração e extinção local;
 - renovação depende exclusivamente do tempo do jogo;
 - coleta permanece separada de exploração e crafting;
 - testes, lint, tipos e build passam.

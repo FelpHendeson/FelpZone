@@ -38,7 +38,7 @@ Fonte: `SYSTEM-EXPLORATION.md`.
 
 ### Etapa 5 — Recursos e ecologia
 
-Adicionar pontos de coleta com capacidade, renovação curta ou longa e populações que podem ser pressionadas ou esgotadas.
+**Implementado.** O módulo `modules/resources` modela pontos de coleta com capacidade limitada, coleta atômica, renovação curta ou longa e populações que podem ser pressionadas ou extintas localmente. Ainda não aplica o custo ao relógio, não altera o save principal e não introduz interface de coleta.
 
 Fonte: `SYSTEM-RESOURCES.md`.
 
