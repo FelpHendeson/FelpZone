@@ -25,8 +25,11 @@ Leia nesta ordem:
 7. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): primeiro sistema planejado.
 8. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): segundo sistema planejado.
 9. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): terceiro sistema planejado.
-10. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
-11. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+10. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por área e conteúdo revelável.
+11. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento.
+12. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas e transformação de materiais.
+13. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
+14. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -68,7 +71,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** A próxima evolução está especificada, mas ainda não autorizada para implementação: horário/data, ciclo diário e navegação hierárquica, nesta ordem.
+**MVP narrativo e consolidação do motor concluídos.** A evolução sandbox está especificada em etapas: horário/data, ciclo diário, navegação, exploração, recursos/ecologia e crafting. Somente a etapa explicitamente autorizada pode ser implementada.
 
 ## Decisões já tomadas
 

@@ -23,6 +23,9 @@ A Fase 2 — consolidação do motor — está concluída. A evolução sandbox 
 - Toda nova garantia do motor deve possuir teste automatizado que falhe sem a correção.
 - O motor narrativo será uma camada acionada pelo mundo; não deve permanecer como único loop de jogo.
 - Preserve autoria de mapas em JSON hierárquico e navegação somente entre pai, filhos diretos e irmãos.
+- Mantenha exploração, coleta e crafting como sistemas distintos, conectados por contratos.
+- Cada local explorável possui progresso próprio; conclusão de zona é uma métrica agregada separada.
+- Recursos renováveis possuem estado e tempo de recuperação; coleta nunca cria materiais infinitos.
 
 ## Entrega esperada
 

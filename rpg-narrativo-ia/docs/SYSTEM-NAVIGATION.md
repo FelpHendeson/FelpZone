@@ -81,11 +81,16 @@ interface LocationNode {
   image?: ImageReference;
   travelCost?: { periods: number };
   unlockConditions?: GameCondition[];
+  visibility?: 'known' | 'hidden';
   children?: LocationNode[];
 }
 ```
 
 O contrato final pode separar dados de apresentação, mas deve preservar o significado.
+
+Subáreas bônus, como cavernas, continuam definidas como filhos no JSON, mas podem começar com `visibility: 'hidden'`. Elas não aparecem na navegação até que o sistema de exploração revele seu ID. Ao serem descobertas, passam a seguir as mesmas regras de pai, filhos e irmãos.
+
+Navegação controla onde é possível ir. Percentual de exploração, descobertas internas e pontos de coleta pertencem aos sistemas posteriores e não devem ser implementados dentro do módulo de navegação.
 
 ## Operações públicas
 
@@ -133,6 +138,7 @@ Não é necessário desenhar um mapa gráfico.
 - movimento válido para pai, filho e irmão;
 - rejeição de salto entre ramos;
 - descoberta, desbloqueio e primeira visita;
+- subárea oculta não aparece antes de ser descoberta;
 - bloqueio por condição;
 - custo retornado corretamente;
 - mapa e estado malformados rejeitados;

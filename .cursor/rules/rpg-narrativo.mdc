@@ -19,6 +19,9 @@ alwaysApply: false
 - Implemente somente uma etapa autorizada: horário/data, depois ciclo diário, depois navegação.
 - O motor narrativo é acionado pelo mundo e deve devolver o controle à exploração.
 - Mapas são autorados como JSON hierárquico; movimento padrão ocorre entre pai, filhos e irmãos.
+- Exploração revela conteúdo; coleta consome pontos descobertos; crafting transforma materiais.
+- Percentual pertence ao local e conclusão da zona é agregada sem substituir o progresso local.
+- Recursos têm capacidade, renovação ou esgotamento explícitos; não crie coleta infinita.
 - Valide profundamente saves e campanhas nas fronteiras do motor.
 - Não consuma recursos inexistentes nem aceite ações após o fim da partida.
 - Teste condições, efeitos, transições e persistência.

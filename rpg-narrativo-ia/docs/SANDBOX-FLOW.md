@@ -110,11 +110,23 @@ Em uma tela mobile, mostrar:
 
 O mapa inicial pode ser textual ou composto por cartões. Não exige ilustração final.
 
+## Exploração, coleta e criação
+
+Essas ações possuem responsabilidades diferentes:
+
+- **explorar** aumenta o conhecimento do local e revela conteúdo;
+- **coletar** utiliza um ponto de recurso já descoberto e altera sua disponibilidade;
+- **criar** transforma materiais conhecidos por meio de uma receita e, quando necessário, uma estrutura.
+
+Uma área pode estar 100% explorada e ainda possuir recursos em recuperação. Da mesma forma, descobrir um ponto de coleta não concede automaticamente seus materiais.
+
+Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habitats de criaturas, eventos e pontos de recurso. Cada descoberta entra no estado do mundo e pode desbloquear novas ações.
+
 ## Limites atuais
 
 - nenhum minijogo está definido;
 - NPCs não possuem agenda ainda;
 - criaturas não possuem comportamento ainda;
-- sobrevivência não será acoplada antes dos três sistemas básicos;
+- sobrevivência não será acoplada antes dos sistemas básicos de tempo, navegação, exploração e recursos;
 - gatilhos completos pertencem à etapa de integração;
 - não há viagem rápida nem conexões especiais no primeiro mapa.
