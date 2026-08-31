@@ -82,13 +82,33 @@ O estado salvo deve conter no mínimo:
 - histórico;
 - data da última atualização.
 
+A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Uma versão diferente retorna `status: 'incompatible'`. O parser não lança exceção e a interface só recebe `GameState` depois da inspeção.
+
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`.
+
+`schemaVersion` permanece `1`: o formato persistido não mudou; só a validação ficou estrita. Saves válidos da versão atual continuam carregando.
+
+## Contratos do motor
+
+- `applyChoice` só age com `status: 'playing'`.
+- O evento atual e a escolha precisam existir e cumprir suas condições.
+- `inventory.remove` falha de forma controlada se a quantidade for insuficiente; o estado anterior permanece intacto.
+- Quantidades de item são inteiros positivos; variações numéricas precisam ser finitas.
+- Relações, capacidades e títulos não são duplicados.
+- `validateCampaign` devolve diagnósticos semânticos (IDs, referências, transições, interpolação, consumo protegido, alcançabilidade e encerramento).
+- `walkCampaignTrajectories` percorre a árvore de escolhas válidas para testes.
+
+O retorno de uma escolha continua sendo o novo `GameState`. Um `ChoiceOutcome` com estado anterior e efeitos aplicados não foi introduzido: a interface só precisa do estado seguinte, e o extra seria abstração prematura.
 
 ## Testes prioritários
 
 - condições habilitam e bloqueiam eventos corretamente;
 - efeitos produzem um novo estado sem mutar o anterior;
 - recursos não ficam negativos quando isso for proibido;
+- remoção insuficiente de item falha sem alterar o estado;
 - escolhas levam ao próximo evento correto;
+- partida concluída rejeita novas escolhas;
 - salvar e carregar preserva o estado;
-- partidas com versão incompatível falham de forma controlada.
+- cada estrutura interna malformada retorna `corrupt`;
+- partidas com versão incompatível falham de forma controlada;
+- a campanha atual passa na validação ampliada e todas as trajetórias válidas terminam.

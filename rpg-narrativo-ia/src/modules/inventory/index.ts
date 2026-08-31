@@ -38,3 +38,7 @@ export function removeItem(items: InventoryItem[], itemId: string, quantity: num
 export function itemQuantity(items: InventoryItem[], itemId: string): number {
   return items.find((item) => item.itemId === itemId)?.quantity ?? 0;
 }
+
+export function canRemoveItem(items: InventoryItem[], itemId: string, quantity: number): boolean {
+  return Number.isInteger(quantity) && quantity > 0 && itemQuantity(items, itemId) >= quantity;
+}

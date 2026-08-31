@@ -7,8 +7,92 @@ import {
   parseGameState,
   serializeGameState,
 } from '../infrastructure/persistence';
+import { freshState, now, serializedState } from './helpers';
 
-const now = () => '2026-08-31T12:00:00.000Z';
+function parseMutated(mutate: (raw: Record<string, unknown>) => void) {
+  const raw = serializedState();
+  mutate(raw);
+  return parseGameState(JSON.stringify(raw));
+}
+
+const malformedCases: Array<[string, (raw: Record<string, unknown>) => void]> = [
+  ['atributo ausente', (raw) => {
+    const attributes = raw.attributes as Record<string, unknown>;
+    delete attributes.saude;
+  }],
+  ['atributo não numérico', (raw) => {
+    const attributes = raw.attributes as Record<string, unknown>;
+    attributes.saude = '80';
+  }],
+  ['atributo fora do intervalo', (raw) => {
+    const attributes = raw.attributes as Record<string, unknown>;
+    attributes.energia = 140;
+  }],
+  ['identidade incompleta', (raw) => {
+    raw.character = { firstName: 'Ana' };
+  }],
+  ['nome vazio', (raw) => {
+    const character = raw.character as Record<string, unknown>;
+    character.lastName = '';
+  }],
+  ['status inválido', (raw) => {
+    raw.status = 'paused';
+  }],
+  ['evento atual vazio', (raw) => {
+    raw.currentEventId = '';
+  }],
+  ['item sem quantidade', (raw) => {
+    raw.inventory = [{ itemId: 'agua-limpa' }];
+  }],
+  ['item com quantidade zero', (raw) => {
+    raw.inventory = [{ itemId: 'agua-limpa', quantity: 0 }];
+  }],
+  ['item com quantidade fracionária', (raw) => {
+    raw.inventory = [{ itemId: 'agua-limpa', quantity: 1.5 }];
+  }],
+  ['itens duplicados', (raw) => {
+    raw.inventory = [
+      { itemId: 'agua-limpa', quantity: 1 },
+      { itemId: 'agua-limpa', quantity: 2 },
+    ];
+  }],
+  ['relação com confiança inválida', (raw) => {
+    raw.relationships = [{ characterId: 'mira-vale', trust: 'alta' }];
+  }],
+  ['relações duplicadas', (raw) => {
+    raw.relationships = [
+      { characterId: 'mira-vale', trust: 10 },
+      { characterId: 'mira-vale', trust: 20 },
+    ];
+  }],
+  ['flag não booleana', (raw) => {
+    raw.flags = { 'ability.olhar-atento': 1 };
+  }],
+  ['histórico incompleto', (raw) => {
+    raw.history = [{ eventId: 'awakening' }];
+  }],
+  ['período inválido', (raw) => {
+    const world = raw.world as Record<string, unknown>;
+    world.period = 'madrugada';
+  }],
+  ['dia inválido', (raw) => {
+    const world = raw.world as Record<string, unknown>;
+    world.day = 0;
+  }],
+  ['capacidades duplicadas', (raw) => {
+    const progression = raw.progression as Record<string, unknown>;
+    progression.abilityIds = ['olhar-atento', 'olhar-atento'];
+    progression.titleIds = [];
+  }],
+  ['títulos duplicados', (raw) => {
+    const progression = raw.progression as Record<string, unknown>;
+    progression.abilityIds = [];
+    progression.titleIds = ['despertar', 'despertar'];
+  }],
+  ['data de atualização inválida', (raw) => {
+    raw.updatedAt = 'ontem';
+  }],
+];
 
 describe('persistência', () => {
   it('salva e carrega o mesmo estado, incluindo schemaVersion', () => {
@@ -46,5 +130,64 @@ describe('persistência', () => {
     storage.clear();
 
     expect(storage.load()).toEqual({ status: 'empty' });
+  });
+
+  it('rejeita como corrupt um save com schema atual e campos internos incompletos', () => {
+    const incomplete = {
+      schemaVersion: SCHEMA_VERSION,
+      status: 'playing',
+      character: { firstName: 'Ana', lastName: 'Cruz' },
+      currentEventId: 'awakening',
+      attributes: {},
+      inventory: [],
+      relationships: [],
+      flags: {},
+      history: [],
+      world: {},
+      progression: {},
+      updatedAt: now(),
+    };
+
+    const parsed = parseGameState(JSON.stringify(incomplete));
+    expect(parsed.status).toBe('corrupt');
+    if (parsed.status === 'corrupt') {
+      expect(parsed.reason.length).toBeGreaterThan(0);
+    }
+  });
+
+  it('não lança erro ao ler JSON malformado ou tipos inesperados', () => {
+    expect(() => parseGameState('null')).not.toThrow();
+    expect(() => parseGameState('[]')).not.toThrow();
+    expect(() => parseGameState('true')).not.toThrow();
+    expect(parseGameState('null').status).toBe('corrupt');
+    expect(parseGameState('[]').status).toBe('corrupt');
+    expect(parseGameState('true').status).toBe('corrupt');
+  });
+
+  it.each(malformedCases)('retorna corrupt quando %s', (_label, mutate) => {
+    const parsed = parseMutated(mutate);
+    expect(parsed.status).toBe('corrupt');
+  });
+
+  it('preserva um estado jogável válido com inventário, relação e histórico', () => {
+    const state = freshState();
+    const rich: typeof state = {
+      ...state,
+      inventory: [{ itemId: 'agua-limpa', quantity: 1 }],
+      relationships: [{ characterId: 'mira-vale', trust: 12 }],
+      flags: { 'sought.water': true },
+      history: [
+        {
+          eventId: 'awakening',
+          eventTitle: 'Despertar',
+          choiceId: 'awake-calm',
+          choiceLabel: 'Levantar com calma e observar',
+          notable: true,
+        },
+      ],
+      progression: { abilityIds: ['olhar-atento'], titleIds: [] },
+    };
+
+    expect(parseGameState(serializeGameState(rich))).toEqual({ status: 'ok', state: rich });
   });
 });

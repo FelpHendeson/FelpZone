@@ -1,4 +1,4 @@
-import { SCHEMA_VERSION, type GameState } from '../../core/state';
+import { SCHEMA_VERSION, inspectGameState, type GameState } from '../../core/state';
 
 export const SAVE_KEY = 'reset.mvp.save';
 
@@ -31,19 +31,24 @@ export function parseGameState(raw: string): LoadResult {
     return { status: 'corrupt', reason: 'O salvamento não pôde ser lido.' };
   }
 
-  if (!isRecord(parsed)) {
-    return { status: 'corrupt', reason: 'O salvamento não contém um objeto válido.' };
-  }
+  try {
+    if (!isRecord(parsed)) {
+      return { status: 'corrupt', reason: 'O salvamento não contém um objeto válido.' };
+    }
 
-  if (parsed.schemaVersion !== SCHEMA_VERSION) {
-    return { status: 'incompatible', foundVersion: parsed.schemaVersion };
-  }
+    if (parsed.schemaVersion !== SCHEMA_VERSION) {
+      return { status: 'incompatible', foundVersion: parsed.schemaVersion };
+    }
 
-  if (!isGameState(parsed)) {
-    return { status: 'corrupt', reason: 'O salvamento está incompleto.' };
-  }
+    const inspected = inspectGameState(parsed);
+    if (!inspected.ok) {
+      return { status: 'corrupt', reason: inspected.reason };
+    }
 
-  return { status: 'ok', state: parsed };
+    return { status: 'ok', state: inspected.state };
+  } catch {
+    return { status: 'corrupt', reason: 'O salvamento está corrompido.' };
+  }
 }
 
 export function createPersistence(storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>): GamePersistence {
@@ -83,27 +88,5 @@ export function createMemoryPersistence(initial?: string): GamePersistence {
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null;
-}
-
-function isGameState(value: unknown): value is GameState {
-  if (!isRecord(value) || !isRecord(value.character)) {
-    return false;
-  }
-
-  return (
-    value.schemaVersion === SCHEMA_VERSION &&
-    (value.status === 'playing' || value.status === 'completed') &&
-    typeof value.character.firstName === 'string' &&
-    typeof value.character.lastName === 'string' &&
-    typeof value.currentEventId === 'string' &&
-    isRecord(value.attributes) &&
-    Array.isArray(value.inventory) &&
-    Array.isArray(value.relationships) &&
-    isRecord(value.flags) &&
-    Array.isArray(value.history) &&
-    isRecord(value.world) &&
-    isRecord(value.progression) &&
-    typeof value.updatedAt === 'string'
-  );
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }

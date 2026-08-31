@@ -347,6 +347,7 @@ export const events: StoryEvent[] = [
         label: 'Dividir o fruto com Mira',
         hint: 'Você perde o fruto. Confiança e humanidade aumentam.',
         notable: true,
+        conditions: [{ type: 'inventory.has', itemId: ITEM_FRUIT, quantity: 1 }],
         effects: [
           { type: 'flag.set', flag: FLAG_SHARED_RESOURCE, value: true },
           { type: 'inventory.remove', itemId: ITEM_FRUIT, quantity: 1 },
@@ -362,7 +363,10 @@ export const events: StoryEvent[] = [
         label: 'Dividir o fruto e a água',
         hint: 'Exige água no inventário. A confiança sobe bastante.',
         notable: true,
-        conditions: [{ type: 'inventory.has', itemId: ITEM_WATER, quantity: 1 }],
+        conditions: [
+          { type: 'inventory.has', itemId: ITEM_WATER, quantity: 1 },
+          { type: 'inventory.has', itemId: ITEM_FRUIT, quantity: 1 },
+        ],
         effects: [
           { type: 'flag.set', flag: FLAG_SHARED_RESOURCE, value: true },
           { type: 'flag.set', flag: FLAG_SHARED_WATER, value: true },
@@ -460,6 +464,7 @@ export const events: StoryEvent[] = [
         id: 'stay-apart',
         label: 'Permanecer no mesmo vale, à distância',
         notable: true,
+        conditions: [{ type: 'inventory.has', itemId: ITEM_FRUIT, quantity: 1 }],
         effects: [
           { type: 'flag.set', flag: FLAG_CAMPED_ALONE, value: true },
           { type: 'attribute.change', attribute: 'energia', amount: 8 },
@@ -475,6 +480,7 @@ export const events: StoryEvent[] = [
         id: 'walk-away',
         label: 'Afastar-se e passar a noite sozinho',
         notable: true,
+        conditions: [{ type: 'inventory.has', itemId: ITEM_FRUIT, quantity: 1 }],
         effects: [
           { type: 'flag.set', flag: FLAG_CAMPED_ALONE, value: true },
           { type: 'attribute.change', attribute: 'cautela', amount: 10 },

@@ -4,7 +4,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 ## Objetivo atual
 
-Consolidar o motor narrativo e de escolhas conforme `docs/PHASE-2-ENGINE.md`. O MVP jogável já existe. Não iniciar novas mecânicas antes de concluir os critérios dessa fase.
+A Fase 2 — consolidação do motor — está concluída. Preserve os contratos em `docs/ARCHITECTURE.md`. Não iniciar sobrevivência, exploração, combate ou outros itens do [roadmap](docs/ROADMAP.md) sem autorização explícita.
 
 ## Regras obrigatórias
 

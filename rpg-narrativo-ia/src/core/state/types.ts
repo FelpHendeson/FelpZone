@@ -2,7 +2,21 @@ export const SCHEMA_VERSION = 1 as const;
 
 export type GameStatus = 'playing' | 'completed';
 
-export type AttributeId = 'saude' | 'energia' | 'fome' | 'humanidade' | 'cautela';
+export const ATTRIBUTE_IDS = ['saude', 'energia', 'fome', 'humanidade', 'cautela'] as const;
+
+export const DAY_PERIODS = ['alvorecer', 'manha', 'meio-dia', 'tarde', 'entardecer', 'noite'] as const;
+
+export type AttributeId = (typeof ATTRIBUTE_IDS)[number];
+
+export type DayPeriod = (typeof DAY_PERIODS)[number];
+
+export function isAttributeId(value: unknown): value is AttributeId {
+  return (ATTRIBUTE_IDS as readonly string[]).includes(value as string);
+}
+
+export function isDayPeriod(value: unknown): value is DayPeriod {
+  return (DAY_PERIODS as readonly string[]).includes(value as string);
+}
 
 export interface Attributes {
   saude: number;
@@ -26,8 +40,6 @@ export interface Relationship {
   characterId: string;
   trust: number;
 }
-
-export type DayPeriod = 'alvorecer' | 'manha' | 'meio-dia' | 'tarde' | 'entardecer' | 'noite';
 
 export interface WorldState {
   day: number;

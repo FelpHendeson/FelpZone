@@ -2,8 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
 import { applyChoice, getAvailableChoices, startGame, validateCampaign } from '../core/engine';
 import type { GameState } from '../core/state';
-
-const now = () => '2026-08-31T12:00:00.000Z';
+import { now } from './helpers';
 
 function play(choiceIds: string[]): GameState {
   return choiceIds.reduce(

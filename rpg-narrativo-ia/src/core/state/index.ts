@@ -26,6 +26,13 @@ export function defaultNow(): string {
 }
 
 export { SCHEMA_VERSION } from './types';
+export { inspectGameState } from './validateGameState';
+export {
+  ATTRIBUTE_IDS,
+  DAY_PERIODS,
+  isAttributeId,
+  isDayPeriod,
+} from './types';
 export type {
   AttributeId,
   Attributes,

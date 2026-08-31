@@ -23,6 +23,10 @@ export function resolveTransition(
 
 function moveToEvent(state: GameState, campaign: Campaign, eventId: string): GameState {
   const event = requireEvent(campaign, eventId);
+  if (!evaluateConditions(event.conditions, state)) {
+    throw new EngineError(`O evento ${eventId} não cumpre suas condições.`);
+  }
+
   return {
     ...state,
     currentEventId: event.id,

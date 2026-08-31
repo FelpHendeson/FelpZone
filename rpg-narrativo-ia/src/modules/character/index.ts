@@ -44,6 +44,8 @@ export function fullName(character: CharacterIdentity): string {
   return `${character.firstName} ${character.lastName}`.trim();
 }
 
+export const STORY_VAR_KEYS = ['nome', 'sobrenome', 'nomeCompleto'] as const;
+
 export function storyVars(character: CharacterIdentity): Record<string, string> {
   return {
     nome: character.firstName,

@@ -64,7 +64,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP jogável do primeiro dia concluído.** A fase atual é consolidar o motor narrativo e de escolhas antes de adicionar novas mecânicas. Consulte [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md).
+**Fase 2 concluída: motor narrativo consolidado.** O MVP do primeiro dia permanece jogável. Salvamentos são inspecionados campo a campo, escolhas respeitam o ciclo de vida da partida, consumo insuficiente de itens falha sem mutar o estado, e a campanha atual passa na validação ampliada com verificação de todas as trajetórias válidas.
 
 ## Decisões já tomadas
 
@@ -82,14 +82,14 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível.
-- A validação atual do salvamento ainda precisa rejeitar integralmente estruturas internas incompletas ou malformadas.
+- O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
+- A próxima expansão prevista é sobrevivência e passagem de tempo, descrita no [roadmap](docs/ROADMAP.md), ainda não implementada.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 16 testes em condições, efeitos, transições e persistência.
+- `npm test`: 50 testes, incluindo o defeito de save incompleto, ciclo de vida, consumo de itens, validação ampliada e todas as trajetórias da campanha.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- Verificação visual em viewport 360×800 e 1280×800: criação de personagem, primeiro evento, painel de personagem, manifesto PWA ligado, coluna limitada no desktop e sem rolagem horizontal.
+- Verificação visual em viewport móvel e desktop para confirmar que a experiência do MVP permanece equivalente.
