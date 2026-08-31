@@ -1,21 +1,23 @@
+import { DEFAULT_PERIODS } from '../../modules/time';
+
 export const SCHEMA_VERSION = 1 as const;
 
 export type GameStatus = 'playing' | 'completed';
 
 export const ATTRIBUTE_IDS = ['saude', 'energia', 'fome', 'humanidade', 'cautela'] as const;
 
-export const DAY_PERIODS = ['alvorecer', 'manha', 'meio-dia', 'tarde', 'entardecer', 'noite'] as const;
-
 export type AttributeId = (typeof ATTRIBUTE_IDS)[number];
 
-export type DayPeriod = (typeof DAY_PERIODS)[number];
+export type DayPeriod = (typeof DEFAULT_PERIODS)[number]['id'];
+
+export const DAY_PERIODS: readonly DayPeriod[] = DEFAULT_PERIODS.map((period) => period.id);
 
 export function isAttributeId(value: unknown): value is AttributeId {
   return (ATTRIBUTE_IDS as readonly string[]).includes(value as string);
 }
 
 export function isDayPeriod(value: unknown): value is DayPeriod {
-  return (DAY_PERIODS as readonly string[]).includes(value as string);
+  return typeof value === 'string' && (DAY_PERIODS as readonly string[]).includes(value);
 }
 
 export interface Attributes {

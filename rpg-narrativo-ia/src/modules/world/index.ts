@@ -1,20 +1,17 @@
+import { createInitialTime, formatTime, DEFAULT_PERIODS } from '../time';
 import type { DayPeriod, WorldState } from '../../core/state/types';
 
 export type { DayPeriod, WorldState };
 
-export const PERIOD_LABELS: Record<DayPeriod, string> = {
-  alvorecer: 'Alvorecer',
-  manha: 'Manhã',
-  'meio-dia': 'Meio-dia',
-  tarde: 'Tarde',
-  entardecer: 'Entardecer',
-  noite: 'Noite',
-};
+export const PERIOD_LABELS: Record<DayPeriod, string> = Object.fromEntries(
+  DEFAULT_PERIODS.map((period) => [period.id, period.label]),
+) as Record<DayPeriod, string>;
 
 export function createInitialWorld(): WorldState {
+  const time = createInitialTime();
   return {
-    day: 1,
-    period: 'alvorecer',
+    day: time.day,
+    period: time.periodId as DayPeriod,
   };
 }
 
@@ -26,5 +23,8 @@ export function setPeriod(world: WorldState, period: DayPeriod): WorldState {
 }
 
 export function describeWorld(world: WorldState): string {
-  return `Dia ${world.day} · ${PERIOD_LABELS[world.period]}`;
+  return formatTime({
+    day: world.day,
+    periodId: world.period,
+  });
 }

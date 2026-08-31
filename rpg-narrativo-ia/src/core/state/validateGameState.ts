@@ -1,4 +1,5 @@
-import { ATTRIBUTE_IDS, DAY_PERIODS, SCHEMA_VERSION, type GameState } from './types';
+import { inspectTimeState } from '../../modules/time';
+import { ATTRIBUTE_IDS, SCHEMA_VERSION, isDayPeriod, type GameState } from './types';
 
 export type GameStateInspection =
   | { ok: true; state: GameState }
@@ -228,17 +229,22 @@ function readHistory(value: unknown): GameState['history'] | undefined {
 }
 
 function readWorld(value: unknown): GameState['world'] | undefined {
-  if (!isRecord(value) || !isPositiveInteger(value.day)) {
+  if (!isRecord(value)) {
     return undefined;
   }
 
-  if (!(DAY_PERIODS as readonly string[]).includes(value.period as string)) {
+  const inspected = inspectTimeState({
+    day: value.day,
+    periodId: value.period,
+  });
+
+  if (!inspected.ok || !isDayPeriod(inspected.value.periodId)) {
     return undefined;
   }
 
   return {
-    day: value.day,
-    period: value.period as GameState['world']['period'],
+    day: inspected.value.day,
+    period: inspected.value.periodId,
   };
 }
 

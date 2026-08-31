@@ -58,7 +58,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/` está implementado. `day-cycle/` e `navigation/` continuam apenas planejados.
 
 ## Responsabilidades
 
@@ -67,10 +67,10 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias.
 - `progression`: capacidades, recompensas e títulos.
 - `inventory`: itens, recursos e consumo.
 - `relationships`: confiança e estado de vínculos.
-- `world`: dia, período e variáveis globais.
-- `time`: relógio por períodos e avanço de data.
-- `day-cycle`: reações do mundo à mudança de período e dia.
-- `navigation`: mapa hierárquico, posição, descoberta e deslocamento.
+- `world`: estado persistido do mundo, incluindo dia e período; delega o relógio a `time`.
+- `time`: relógio determinístico por períodos, avanço de data e validação do horário.
+- `day-cycle`: reações do mundo à mudança de período e dia (ainda não implementado).
+- `navigation`: mapa hierárquico, posição, descoberta e deslocamento (ainda não implementado).
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -112,7 +112,38 @@ Antes de o estado chegar à interface, `bindSavedState` confere o `currentEventI
 
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`.
 
-`schemaVersion` permanece `1`: o formato persistido não mudou; só a validação ficou estrita. Saves válidos da versão atual continuam carregando.
+`schemaVersion` permanece `1`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Saves válidos da versão atual continuam carregando.
+
+## Contrato de horário e data
+
+O módulo `modules/time` é a única fonte de verdade para ordem, rótulos e avanço de períodos. O tempo não corre em tempo real: só avança quando uma operação recebe um custo em períodos.
+
+O estado de domínio é:
+
+```ts
+interface TimeState {
+  day: number;
+  periodId: string;
+}
+```
+
+O estado persistido em `WorldState` permanece `{ day, period }` para não quebrar saves. `period` guarda o mesmo identificador que `periodId`. O índice do período nunca é armazenado; a posição é resolvida pela configuração ordenada.
+
+A lista padrão, com IDs preservados do MVP, vive em `modules/time/periods.ts` e está separada da lógica:
+
+`alvorecer`, `manha`, `meio-dia`, `tarde`, `entardecer`, `noite`.
+
+Operações públicas:
+
+- `createInitialTime`: dia 1 no primeiro período da configuração;
+- `getPeriod`: consulta o período atual;
+- `formatTime`: `Dia N · Rótulo` em português, igual ao cabeçalho atual do MVP;
+- `advanceTime`: avanço imutável por zero ou mais períodos, devolvendo estado anterior, estado atual, períodos atravessados e dias avançados;
+- `inspectTimeConfig`, `inspectTimeState` e `inspectTimeCost`: validação sem exceção.
+
+Dias são inteiros positivos. Custos são inteiros não negativos. Configuração vazia, IDs repetidos ou vazios, período inexistente e custos fracionários ou não finitos são rejeitados.
+
+O efeito de campanha `world.period` continua definindo o período sem avançar o dia. Condições e efeitos `time.*`, ciclo diário, temas visuais e sobrevivência não fazem parte deste contrato.
 
 ## Contratos do motor
 
@@ -155,4 +186,6 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - partidas com versão incompatível falham de forma controlada;
 - a campanha atual passa na validação ampliada e todas as trajetórias válidas terminam;
 - eventos só são semanticamente alcançáveis quando condições e efeitos permitem;
-- o evento salvo é conferido contra a campanha antes de chegar à UI.
+- o evento salvo é conferido contra a campanha antes de chegar à UI;
+- o relógio inicia no dia 1 ao alvorecer e avança de forma imutável por períodos;
+- virada de dia, custo zero, configuração inválida e estado persistido inválido são rejeitados ou calculados de forma determinística.
