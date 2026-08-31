@@ -1,101 +1,73 @@
-# Roadmap de mecânicas
+# Roadmap de evolução sandbox
 
-## Direção
+## Princípio
 
-Escolhas narrativas continuam sendo o eixo do jogo, mas não serão sua única interação. Mecânicas devem criar tensão, planejamento e expressão do personagem; depois, a narrativa interpreta suas consequências.
-
-Cada sistema novo entra como um módulo pequeno, reutiliza contratos do motor e precisa participar de uma sequência jogável. Não construir vários sistemas completos em paralelo sem uma integração vertical.
+O motor narrativo consolidado será mantido como camada de eventos e diálogos. A exploração será construída por sistemas independentes, um de cada vez, sempre seguindo o ciclo:
 
 ```text
-Situação narrativa
-       ↓
-Mecânica ou decisão sistêmica
-       ↓
-Alteração do estado
-       ↓
-Consequência narrativa
-       ↓
-Nova oportunidade mecânica
+especificar → implementar → testar → revisar → corrigir → consolidar → próxima etapa
 ```
 
-## Ordem proposta
+Não iniciar duas etapas simultaneamente. Cada sistema deve estar estável antes de servir de dependência para o seguinte.
 
-### 1. Sobrevivência e tempo
+## Sequência aprovada
 
-Primeira expansão recomendada por aproveitar atributos já existentes.
+### Etapa 1 — Horário e data
 
-- ações consomem períodos do dia;
-- fome e energia criam prioridades;
-- descanso e alimento possuem efeitos concretos;
-- chegar à noite despreparado altera eventos.
+Implementar um relógio determinístico por períodos e avanço de dias, sem ainda aplicar rotinas, sobrevivência ou navegação.
 
-Objetivo: fazer a escolha de água, abrigo ou localização ser também planejamento, não apenas diálogo.
+Fonte: `SYSTEM-TIME-AND-DATE.md`.
 
-### 2. Exploração por regiões
+### Etapa 2 — Ciclo diário
 
-- poucos locais conectados;
-- ações de observar, vasculhar, avançar e retornar;
-- riscos e recursos conhecidos parcialmente;
-- capacidade inicial modifica informações e opções.
+Fazer o mundo reagir à passagem do tempo: mudança de dia, início e encerramento de períodos, gatilhos e apresentação visual do ciclo.
 
-Objetivo: permitir descoberta ativa sem criar mapa aberto.
+Fonte: `SYSTEM-DAY-CYCLE.md`.
 
-### 3. Testes de capacidade e risco
+### Etapa 3 — Navegação hierárquica
 
-- resultado baseado em atributos, habilidade, preparação e contexto;
-- chances sempre explicáveis ao jogador;
-- falha gera consequência interessante, não apenas bloqueio;
-- aleatoriedade reproduzível por semente caso seja adotada.
+Carregar mapas aninhados, controlar localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos.
 
-Objetivo: acrescentar incerteza sem transformar o jogo em tentativa cega.
+Fonte: `SYSTEM-NAVIGATION.md`.
 
-### 4. Inventário e criação simples
+### Etapa 4 — Integração explorável
 
-- limite ou custo de transporte;
-- itens com usos narrativos e sistêmicos;
-- poucas receitas descobertas organicamente;
-- nenhuma grade extensa de crafting no início.
+Após consolidar os três sistemas:
 
-Objetivo: recursos adquirirem valor entre eventos.
+- manter a introdução narrativa atual;
+- devolver o jogador à exploração depois da capacidade inicial;
+- permitir caminhar pela primeira região;
+- fazer movimento consumir tempo;
+- descobrir e mapear locais;
+- acionar eventos por entrada, interação ou período;
+- retornar à exploração após narrativas e diálogos.
 
-### 5. Relações e grupo
+O marco termina quando o jogador desperta, escolhe uma capacidade, explora livremente e encontra pelo menos um NPC ou criatura por meio das próprias ações.
 
-- confiança, medo, respeito e necessidades;
-- companheiros opinam sobre decisões;
-- vínculos desbloqueiam ajuda, conflito ou abandono;
-- efeitos persistem entre capítulos.
+## Etapas posteriores, ainda não especificadas
 
-Objetivo: pessoas funcionarem como agentes do mundo, não barras decorativas.
+1. Interações com itens e elementos do cenário.
+2. Agenda, presença e progressão de NPCs.
+3. Criaturas e encontros por habitat e período.
+4. Sobrevivência: fome, energia, água, descanso e abrigo.
+5. Testes de capacidade, risco e consequências.
+6. Inventário e criação simples.
+7. Relações e grupo.
+8. Conflitos e combate.
+9. Assentamentos e facções.
+10. Progresso de região, rotas e conclusão de 100%.
 
-### 6. Conflitos e combate
+Esses itens não autorizam implementação. Cada um será discutido e especificado quando sua etapa chegar.
 
-- primeiro resolver conflitos como encontros com postura, recursos e risco;
-- introduzir combate apenas quando houver decisões relevantes além de atacar;
-- ferimentos e fuga devem continuar importantes depois da cena.
+## Regra de entrada de um sistema
 
-Objetivo: combate servir à narrativa e à sobrevivência, sem virar um minijogo desconectado.
+Antes de implementar, definir:
 
-### 7. Assentamentos e facções
-
-- recursos coletivos, segurança, população e regras;
-- modelos de liderança e sociedade;
-- reputação e conflitos entre grupos;
-- possibilidade futura de fundar ou governar um assentamento.
-
-Objetivo: levar decisões pessoais à reconstrução da humanidade.
-
-## Regra de entrada de uma mecânica
-
-Antes de iniciar qualquer item do roadmap, definir:
-
-1. qual problema de diversão ou imersão ele resolve;
-2. qual estado lê e altera;
-3. como aparece na interface mobile;
-4. como afeta eventos posteriores;
-5. qual é sua menor sequência jogável;
-6. quais testes garantem suas regras;
-7. o que ficará explicitamente para depois.
-
-## Próximo marco após a consolidação
-
-Implementar uma fatia vertical de **sobrevivência e passagem do tempo** dentro do primeiro dia existente. A campanha deve permanecer curta, mas água, alimento, energia, abrigo e horário precisarão interagir de maneira perceptível.
+1. problema de diversão ou imersão resolvido;
+2. estado lido e alterado;
+3. contratos públicos;
+4. apresentação mobile;
+5. relação com tempo, navegação e narrativa;
+6. menor sequência jogável;
+7. testes e critérios de aceite;
+8. itens explicitamente fora da etapa.

@@ -15,7 +15,10 @@ alwaysApply: false
 - Campanhas são dados estruturados, nunca JSX ou lógica embutida em telas.
 - Módulos se comunicam por tipos e funções públicas, sem acessar detalhes internos.
 - Use placeholders locais e identificados para cenas, retratos e ícones.
-- A fase atual é `docs/PHASE-2-ENGINE.md`; não antecipe mecânicas do roadmap.
+- A evolução sandbox está especificada, mas não autorizada para implementação automática.
+- Implemente somente uma etapa autorizada: horário/data, depois ciclo diário, depois navegação.
+- O motor narrativo é acionado pelo mundo e deve devolver o controle à exploração.
+- Mapas são autorados como JSON hierárquico; movimento padrão ocorre entre pai, filhos e irmãos.
 - Valide profundamente saves e campanhas nas fronteiras do motor.
 - Não consuma recursos inexistentes nem aceite ações após o fim da partida.
 - Teste condições, efeitos, transições e persistência.

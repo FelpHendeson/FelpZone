@@ -2,9 +2,17 @@
 
 ## Proposta
 
-Criar um RPG de texto no qual o jogador acompanha uma linha do tempo, toma decisões e constrói sua vida em uma nova civilização. A apresentação usa texto, ícones e imagens estáticas; não há necessidade de motor gráfico.
+Criar um RPG narrativo sandbox no qual o jogador administra seu tempo, percorre locais, interage com o cenário e desencadeia histórias por suas ações. A apresentação usa texto, ícones, mapas funcionais e imagens estáticas; não há necessidade de motor gráfico.
 
 O projeto deve poder receber novas campanhas, módulos e sistemas sem reescrever o núcleo.
+
+## Estrutura da experiência
+
+O início é dirigido: criação do personagem, despertar, apresentação do Reset, introdução ao Sistema e escolha da capacidade inicial. Depois disso, o jogador recebe liberdade para explorar.
+
+O fluxo principal deixa de ser uma sequência contínua de eventos. O jogador escolhe ações e destinos; o mundo avança; encontros acionam temporariamente narrativa e diálogos; ao final, o controle retorna à exploração.
+
+O jogador poderá avançar a trama principal, desenvolver NPCs, descobrir locais, encontrar conteúdo opcional ou buscar a conclusão de uma região.
 
 ## Universo
 
@@ -54,3 +62,6 @@ A aplicação final não gera narrativa por IA, não chama modelos e não solici
 - Textos devem ser confortáveis para sessões curtas no celular.
 - O jogador deve sentir que constrói uma trajetória, não que adivinha uma resposta correta.
 - Conteúdo e motor devem permanecer separados.
+- Exploração deve existir entre cenas narrativas.
+- Horário e localização precisam afetar o que pode ser encontrado.
+- O mundo deve reagir às ações sem obrigar o jogador a seguir imediatamente a rota principal.

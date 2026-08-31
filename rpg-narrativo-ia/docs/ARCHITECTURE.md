@@ -10,6 +10,24 @@ React apresenta o estado e envia ações. O motor em TypeScript decide regras e 
 Interface → ação → motor → módulos/regras → novo estado → persistência → interface
 ```
 
+Na evolução sandbox, a aplicação alternará entre modos explícitos:
+
+```ts
+type GameMode =
+  | 'introduction'
+  | 'exploration'
+  | 'narrative'
+  | 'dialogue'
+  | 'interaction'
+  | 'summary';
+```
+
+O motor narrativo deixa de ser o loop externo da aplicação. Exploração passa a ser o modo padrão após a introdução. Eventos e diálogos são sessões temporárias iniciadas por gatilhos do mundo e normalmente terminam devolvendo o controle à exploração.
+
+```text
+Exploração → ação → tempo/navegação → gatilhos → narrativa/diálogo → efeitos → exploração
+```
+
 ## Estrutura sugerida
 
 ```text
@@ -25,6 +43,9 @@ src/
 │   ├── inventory/
 │   ├── relationships/
 │   ├── world/
+│   ├── time/
+│   ├── day-cycle/
+│   ├── navigation/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -47,6 +68,9 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias.
 - `inventory`: itens, recursos e consumo.
 - `relationships`: confiança e estado de vínculos.
 - `world`: dia, período e variáveis globais.
+- `time`: relógio por períodos e avanço de data.
+- `day-cycle`: reações do mundo à mudança de período e dia.
+- `navigation`: mapa hierárquico, posição, descoberta e deslocamento.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -102,6 +126,21 @@ Use uma interface de persistência para permitir trocar `localStorage` por Index
 - `walkCampaignTrajectories` percorre a árvore de escolhas válidas e identifica estados pelo evento, flags, inventário, atributos, relações, mundo e progressão.
 
 O retorno de uma escolha continua sendo o novo `GameState`. Um `ChoiceOutcome` com estado anterior e efeitos aplicados não foi introduzido: a interface só precisa do estado seguinte, e o extra seria abstração prematura.
+
+## Evolução do estado narrativo
+
+O MVP exige `currentEventId` porque sempre está dentro de uma cena. No sandbox, o estado precisará distinguir uma sessão narrativa ativa da posição normal no mundo. O formato final deve permitir ausência de evento ativo durante exploração, sem usar IDs fictícios.
+
+Uma direção conceitual é:
+
+```ts
+interface NarrativeSession {
+  eventId: string;
+  returnMode: 'exploration' | 'interaction';
+}
+```
+
+A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. Isso será decidido na etapa de integração, não antecipado nos três sistemas isolados.
 
 ## Testes prioritários
 

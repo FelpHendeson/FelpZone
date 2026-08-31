@@ -106,3 +106,18 @@ Quando a arte final existir, o mesmo espaço deverá aceitar uma referência loc
 - pelo menos dois encerramentos do primeiro dia.
 
 Os textos definitivos serão escritos depois que o motor aceitar uma campanha mínima de teste.
+
+## Evolução sandbox
+
+Após a introdução, a tela principal deixará de mostrar obrigatoriamente um evento. O modo de exploração deverá apresentar:
+
+- dia e período atuais;
+- localização e caminho hierárquico;
+- placeholder da área;
+- destinos permitidos;
+- interações disponíveis no local;
+- acesso a personagem, inventário, mapa, histórico e objetivos.
+
+Quando um gatilho iniciar uma narrativa ou diálogo, a interface reutiliza os componentes atuais. Ao terminar a sessão, retorna ao mesmo contexto de exploração, já com tempo, estado e mundo atualizados.
+
+Consulte `SANDBOX-FLOW.md` e as especificações dos três sistemas antes de alterar telas.
