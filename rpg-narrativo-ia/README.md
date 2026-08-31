@@ -1,8 +1,8 @@
 # Reset — RPG Narrativo Modular
 
-Protótipo de um RPG narrativo mobile-first sobre uma humanidade obrigada a recomeçar depois que a própria existência passou por um Reset.
+Protótipo jogável de um RPG narrativo mobile-first sobre uma humanidade obrigada a recomeçar depois que a própria existência passou por um Reset.
 
-O jogo será uma aplicação web estática, modular e expansível. A IA participa somente da criação do projeto: ajuda a definir o mundo, escrever conteúdo e implementar o código. O jogo publicado não chama APIs de IA, não exige chave e não possui custo operacional inicial.
+O jogo é uma aplicação web estática, modular e expansível. A IA participa somente da criação do projeto: ajuda a definir o mundo, escrever conteúdo e implementar o código. O jogo publicado não chama APIs de IA, não exige chave e não possui custo operacional inicial.
 
 ## Premissa
 
@@ -22,6 +22,48 @@ Leia nesta ordem:
 4. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
 5. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
+## Como executar
+
+Requisitos: Node.js 20 ou superior.
+
+```bash
+cd rpg-narrativo-ia
+npm install
+npm run dev
+```
+
+A aplicação sobe em `http://localhost:5173`. No celular da mesma rede, use o endereço local que o Vite mostrar.
+
+Outros comandos:
+
+```bash
+npm test        # testes do motor, condições, efeitos, transições e persistência
+npm run lint    # ESLint
+npm run typecheck
+npm run build   # build de produção com PWA
+npm run preview # serve o conteúdo de dist/
+```
+
+A partida fica em `localStorage` neste navegador. Não há login, backend nem chave.
+
+## Estrutura implementada
+
+```text
+src/
+├── core/             # estado, condições, efeitos e motor imutável
+├── modules/          # personagem, progressão, inventário, relações, mundo, narrativa
+├── campaigns/        # dados da campanha do primeiro dia
+├── infrastructure/   # persistência com schemaVersion
+├── ui/               # telas mobile-first e ImagePlaceholder
+└── tests/            # testes automatizados do núcleo
+```
+
+O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo estado. Campanhas são dados, não JSX.
+
+## Estado atual
+
+**MVP jogável do primeiro dia.** A campanha cobre despertar, Sistema, três capacidades, exploração, um perigo, a sobrevivente Mira Vale, uma decisão moral com consequência posterior, dois encerramentos e resumo. Há salvar, continuar e apagar no navegador. A build gera PWA instalável com funcionamento offline.
+
 ## Decisões já tomadas
 
 - React, TypeScript e Vite.
@@ -33,6 +75,18 @@ Leia nesta ordem:
 - Imagens substituídas inicialmente por placeholders identificáveis.
 - Módulos independentes dentro de um único aplicativo.
 
-## Estado atual
+## Limitações atuais
 
-**Especificação do MVP.** A aplicação ainda não foi inicializada e nenhuma dependência foi instalada.
+- Textos e nomes ainda são provisórios.
+- Cenas, retratos e ícones são placeholders locais, sem arte final.
+- Só existe a campanha do primeiro dia.
+- O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível.
+- Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
+- A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
+
+## O que foi validado nesta entrega
+
+- `npm test`: 16 testes em condições, efeitos, transições e persistência.
+- `npm run lint` e `npm run typecheck`.
+- `npm run build`: bundle estático com `sw.js` e manifesto.
+- Verificação visual em viewport 360×800 e 1280×800: criação de personagem, primeiro evento, painel de personagem, manifesto PWA ligado, coluna limitada no desktop e sem rolagem horizontal.

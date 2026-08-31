@@ -87,4 +87,4 @@ Estrutura inicial do laboratório com o primeiro conceito em planejamento.
 
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
-| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Conceito | RPG mobile-first de escolhas, campanha estruturada e narrativa apoiada por IA. |
+| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | MVP jogável | RPG mobile-first de escolhas, campanha do primeiro dia e salvamento local. |
