@@ -1,5 +1,7 @@
 import { DEFAULT_PERIODS, type PeriodDefinition } from './periods';
 
+export const MAX_ADVANCE_PERIODS = 10_000;
+
 export class TimeError extends Error {
   constructor(message: string) {
     super(message);
@@ -60,27 +62,34 @@ export function advanceTime(
   const periods = requireConfig(config);
   const previous = requireState(state, periods);
   const steps = requireCost(cost);
+  const index = periodIndex(periods, previous.periodId);
+  const daysAdvanced = Math.floor((index + steps) / periods.length);
+
+  if (daysAdvanced > Number.MAX_SAFE_INTEGER - previous.day) {
+    throw new TimeError('O avanço ultrapassa o dia máximo permitido.');
+  }
+
   const crossedPeriods: string[] = [];
   let day = previous.day;
-  let index = periodIndex(periods, previous.periodId);
+  let nextIndex = index;
 
   for (let step = 0; step < steps; step += 1) {
-    index += 1;
-    if (index >= periods.length) {
-      index = 0;
+    nextIndex += 1;
+    if (nextIndex >= periods.length) {
+      nextIndex = 0;
       day += 1;
     }
-    crossedPeriods.push(periods[index].id);
+    crossedPeriods.push(periods[nextIndex].id);
   }
 
   return {
     previous,
     current: {
       day,
-      periodId: periods[index].id,
+      periodId: periods[nextIndex].id,
     },
     crossedPeriods,
-    daysAdvanced: day - previous.day,
+    daysAdvanced,
   };
 }
 
@@ -125,7 +134,7 @@ export function inspectTimeState(
     return fail('O estado de horário é inválido.');
   }
 
-  if (!isPositiveInteger(state.day)) {
+  if (!isPositiveSafeInteger(state.day)) {
     return fail('O dia precisa ser um inteiro positivo.');
   }
 
@@ -147,8 +156,12 @@ export function inspectTimeState(
 }
 
 export function inspectTimeCost(cost: unknown): TimeInspection<TimeCost> {
-  if (!isRecord(cost) || !isNonNegativeInteger(cost.periods)) {
+  if (!isRecord(cost) || !isNonNegativeSafeInteger(cost.periods)) {
     return fail('O custo de tempo precisa ser um inteiro não negativo.');
+  }
+
+  if (cost.periods > MAX_ADVANCE_PERIODS) {
+    return fail(`O custo de tempo excede o limite operacional de ${MAX_ADVANCE_PERIODS} períodos.`);
   }
 
   return {
@@ -205,12 +218,12 @@ function periodIndex(config: readonly PeriodDefinition[], periodId: string): num
   return index;
 }
 
-function isPositiveInteger(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+function isPositiveSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
 
-function isNonNegativeInteger(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && value >= 0;
+function isNonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

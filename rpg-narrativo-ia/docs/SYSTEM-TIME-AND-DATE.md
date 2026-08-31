@@ -12,6 +12,8 @@ Criar um relógio determinístico, dirigido por ações, que represente dias ap�
 - A unidade mínima é um período, não minutos.
 - A data inicial é `Dia 1 após o Reset`.
 - A lista de períodos é configurável e ordenada.
+- Dias e custos aceitam somente inteiros seguros de JavaScript (`Number.isSafeInteger`).
+- Uma chamada de `advanceTime` avança no máximo `10_000` períodos (`MAX_ADVANCE_PERIODS`).
 
 Períodos iniciais:
 
@@ -81,12 +83,15 @@ Não adicionar alteração arbitrária de data como efeito comum. Ajustes admini
 
 ## Validações
 
-- dias são inteiros positivos;
+- dias são inteiros positivos seguros (`Number.isSafeInteger`);
 - períodos possuem IDs únicos e não vazios;
 - configuração possui ao menos um período;
 - estado referencia um período existente;
-- custos são inteiros não negativos;
-- avanço grande atravessa dias corretamente;
+- custos são inteiros não negativos seguros (`Number.isSafeInteger`);
+- uma chamada de `advanceTime` aceita no máximo `MAX_ADVANCE_PERIODS` períodos (`10_000`);
+- o dia resultante não pode ultrapassar `Number.MAX_SAFE_INTEGER`;
+- rejeições de custo ou overflow ocorrem antes do loop e antes de criar `crossedPeriods`;
+- avanço grande, dentro do limite operacional, atravessa dias corretamente;
 - operações não mutam o estado anterior.
 
 ## Testes obrigatórios
@@ -96,6 +101,10 @@ Não adicionar alteração arbitrária de data como efeito comum. Ajustes admini
 - avanço da noite para o próximo dia;
 - avanço por múltiplos períodos e dias;
 - custo zero não altera o estado;
+- dia ou custo fora da faixa de inteiro seguro é rejeitado;
+- custo acima de `MAX_ADVANCE_PERIODS` é rejeitado antes do loop;
+- custo exatamente em `MAX_ADVANCE_PERIODS` é calculado corretamente;
+- avanço que faria o dia ultrapassar `Number.MAX_SAFE_INTEGER` é rejeitado;
 - configuração inválida é rejeitada;
 - estado persistido inválido é rejeitado;
 - formatação em português;

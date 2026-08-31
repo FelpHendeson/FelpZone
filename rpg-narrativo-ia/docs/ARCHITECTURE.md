@@ -141,7 +141,9 @@ Operações públicas:
 - `advanceTime`: avanço imutável por zero ou mais períodos, devolvendo estado anterior, estado atual, períodos atravessados e dias avançados;
 - `inspectTimeConfig`, `inspectTimeState` e `inspectTimeCost`: validação sem exceção.
 
-Dias são inteiros positivos. Custos são inteiros não negativos. Configuração vazia, IDs repetidos ou vazios, período inexistente e custos fracionários ou não finitos são rejeitados.
+Dias são inteiros positivos seguros (`Number.isSafeInteger`). Custos são inteiros não negativos seguros. Uma chamada de `advanceTime` aceita no máximo `MAX_ADVANCE_PERIODS` (`10_000`) períodos; acima disso, `inspectTimeCost` rejeita o valor antes de qualquer loop ou alocação proporcional ao custo. O dia resultante também não pode ultrapassar `Number.MAX_SAFE_INTEGER`.
+
+Configuração vazia, IDs repetidos ou vazios, período inexistente e custos fracionários ou não finitos são rejeitados.
 
 O efeito de campanha `world.period` continua definindo o período sem avançar o dia. Condições e efeitos `time.*`, ciclo diário, temas visuais e sobrevivência não fazem parte deste contrato.
 
@@ -188,4 +190,5 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - eventos só são semanticamente alcançáveis quando condições e efeitos permitem;
 - o evento salvo é conferido contra a campanha antes de chegar à UI;
 - o relógio inicia no dia 1 ao alvorecer e avança de forma imutável por períodos;
-- virada de dia, custo zero, configuração inválida e estado persistido inválido são rejeitados ou calculados de forma determinística.
+- virada de dia, custo zero, configuração inválida e estado persistido inválido são rejeitados ou calculados de forma determinística;
+- dia e custo fora de `Number.isSafeInteger`, custo acima de `MAX_ADVANCE_PERIODS` e overflow de dia são rejeitados antes do loop.

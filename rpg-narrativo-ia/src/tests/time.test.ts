@@ -12,6 +12,7 @@ import {
   inspectTimeCost,
   inspectTimeState,
   DEFAULT_PERIODS,
+  MAX_ADVANCE_PERIODS,
   type PeriodDefinition,
   type TimeState,
 } from '../modules/time';
@@ -212,5 +213,85 @@ describe('horário e data', () => {
     expect(state.world).toEqual({ day: 1, period: 'alvorecer' });
     expect(next.world).toEqual({ day: 1, period: 'noite' });
     expect(next.world).not.toBe(state.world);
+  });
+
+  it('rejeita dia maior que Number.MAX_SAFE_INTEGER', () => {
+    expect(inspectTimeState({ day: Number.MAX_SAFE_INTEGER, periodId: 'alvorecer' }).ok).toBe(true);
+    expect(inspectTimeState({ day: Number.MAX_SAFE_INTEGER + 1, periodId: 'alvorecer' }).ok).toBe(false);
+  });
+
+  it('rejeita custo maior que Number.MAX_SAFE_INTEGER', () => {
+    expect(inspectTimeCost({ periods: Number.MAX_SAFE_INTEGER }).ok).toBe(false);
+    expect(inspectTimeCost({ periods: Number.MAX_SAFE_INTEGER + 1 }).ok).toBe(false);
+    expect(() => advanceTime(createInitialTime(), { periods: Number.MAX_SAFE_INTEGER })).toThrow(TimeError);
+    expect(() => advanceTime(createInitialTime(), { periods: Number.MAX_SAFE_INTEGER + 1 })).toThrow(TimeError);
+  });
+
+  it('rejeita custo superior ao limite operacional', () => {
+    const inspected = inspectTimeCost({ periods: MAX_ADVANCE_PERIODS + 1 });
+
+    expect(MAX_ADVANCE_PERIODS).toBe(10_000);
+    expect(inspected.ok).toBe(false);
+    expect(() => advanceTime(createInitialTime(), { periods: MAX_ADVANCE_PERIODS + 1 })).toThrow(TimeError);
+  });
+
+  it('aceita e calcula o custo exatamente no limite operacional', () => {
+    const start = createInitialTime();
+    const snapshot = structuredClone(start);
+    const result = advanceTime(start, { periods: MAX_ADVANCE_PERIODS });
+
+    expect(inspectTimeCost({ periods: MAX_ADVANCE_PERIODS }).ok).toBe(true);
+    expect(start).toEqual(snapshot);
+    expect(result.crossedPeriods).toHaveLength(MAX_ADVANCE_PERIODS);
+    expect(result.current).toEqual({ day: 1667, periodId: 'entardecer' });
+    expect(result.daysAdvanced).toBe(1666);
+    expect(result.crossedPeriods[0]).toBe('manha');
+    expect(result.crossedPeriods.at(-1)).toBe('entardecer');
+  });
+
+  it('lança TimeError se o dia resultante ultrapassar Number.MAX_SAFE_INTEGER', () => {
+    const lastPeriod = DEFAULT_PERIODS[DEFAULT_PERIODS.length - 1];
+    const atLastPeriod: TimeState = {
+      day: Number.MAX_SAFE_INTEGER,
+      periodId: lastPeriod.id,
+    };
+    const snapshot = structuredClone(atLastPeriod);
+
+    expect(() => advanceTime(atLastPeriod, { periods: 1 })).toThrow(TimeError);
+    expect(atLastPeriod).toEqual(snapshot);
+
+    const sameDay = advanceTime({ day: Number.MAX_SAFE_INTEGER, periodId: 'alvorecer' }, { periods: 1 });
+    expect(sameDay.current).toEqual({ day: Number.MAX_SAFE_INTEGER, periodId: 'manha' });
+    expect(sameDay.daysAdvanced).toBe(0);
+  });
+
+  it('valida custos enormes antes de um loop potencialmente enorme', () => {
+    const time = freezeState(createInitialTime());
+    const hugeCost = Object.freeze({ periods: Number.MAX_SAFE_INTEGER });
+
+    expect(inspectTimeCost(hugeCost).ok).toBe(false);
+    expect(() => advanceTime(time, hugeCost)).toThrow(TimeError);
+    expect(time).toEqual(createInitialTime());
+  });
+
+  it('mantém persistência compatível e rejeita dia inseguro no save', () => {
+    const game = createInitialState(
+      { firstName: 'Ana', lastName: 'Cruz' },
+      'awakening',
+      () => '2026-08-31T12:00:00.000Z',
+    );
+    const raw = JSON.parse(serializeGameState(game)) as { schemaVersion: number; world: Record<string, unknown> };
+
+    expect(raw.schemaVersion).toBe(1);
+    expect(raw.world).toEqual({ day: 1, period: 'alvorecer' });
+    expect(parseGameState(serializeGameState(game))).toEqual({ status: 'ok', state: game });
+    expect(
+      parseGameState(
+        JSON.stringify({
+          ...raw,
+          world: { day: Number.MAX_SAFE_INTEGER + 1, period: 'alvorecer' },
+        }),
+      ).status,
+    ).toBe('corrupt');
   });
 });
