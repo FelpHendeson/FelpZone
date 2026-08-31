@@ -15,5 +15,7 @@ alwaysApply: false
 - Campanhas são dados estruturados, nunca JSX ou lógica embutida em telas.
 - Módulos se comunicam por tipos e funções públicas, sem acessar detalhes internos.
 - Use placeholders locais e identificados para cenas, retratos e ícones.
-- Implemente somente os sistemas necessários ao primeiro dia jogável.
+- A fase atual é `docs/PHASE-2-ENGINE.md`; não antecipe mecânicas do roadmap.
+- Valide profundamente saves e campanhas nas fronteiras do motor.
+- Não consuma recursos inexistentes nem aceite ações após o fim da partida.
 - Teste condições, efeitos, transições e persistência.

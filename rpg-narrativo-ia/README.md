@@ -20,7 +20,9 @@ Leia nesta ordem:
 2. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
 3. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
 4. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
-5. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+5. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): trabalho autorizado para a próxima entrega.
+6. [Roadmap de mecânicas](docs/ROADMAP.md): evolução planejada depois da consolidação.
+7. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -62,7 +64,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP jogável do primeiro dia.** A campanha cobre despertar, Sistema, três capacidades, exploração, um perigo, a sobrevivente Mira Vale, uma decisão moral com consequência posterior, dois encerramentos e resumo. Há salvar, continuar e apagar no navegador. A build gera PWA instalável com funcionamento offline.
+**MVP jogável do primeiro dia concluído.** A fase atual é consolidar o motor narrativo e de escolhas antes de adicionar novas mecânicas. Consulte [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md).
 
 ## Decisões já tomadas
 
@@ -81,6 +83,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
 - O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível.
+- A validação atual do salvamento ainda precisa rejeitar integralmente estruturas internas incompletas ou malformadas.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 

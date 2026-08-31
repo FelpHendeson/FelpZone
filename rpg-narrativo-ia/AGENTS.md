@@ -2,9 +2,9 @@
 
 Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
-## Objetivo
+## Objetivo atual
 
-Entregar um MVP jogável do primeiro dia após o Reset, validando criação de personagem, eventos, escolhas, consequências e salvamento local.
+Consolidar o motor narrativo e de escolhas conforme `docs/PHASE-2-ENGINE.md`. O MVP jogável já existe. Não iniciar novas mecânicas antes de concluir os critérios dessa fase.
 
 ## Regras obrigatórias
 
@@ -19,14 +19,15 @@ Entregar um MVP jogável do primeiro dia após o Reset, validando criação de p
 - Salve uma versão do esquema junto com a partida para permitir migrações futuras.
 - Inclua testes para regras e efeitos centrais.
 - Não expanda facções, assentamentos, combate complexo ou geração procedural além do exigido pelo MVP.
+- Trate dados persistidos e conteúdo de campanha como entradas não confiáveis e valide-os nas fronteiras.
+- Toda nova garantia do motor deve possuir teste automatizado que falhe sem a correção.
 
 ## Entrega esperada
 
-- aplicação executável com comandos documentados;
-- campanha curta completa;
-- testes automatizados do motor;
-- PWA instalável;
-- README atualizado com execução, validação e limitações;
+- motor consolidado sem alterar desnecessariamente a experiência do MVP;
+- validação profunda do salvamento e das campanhas;
+- testes automatizados cobrindo falhas e trajetórias válidas;
+- documentação atualizada com contratos efetivamente implementados;
 - nenhuma chave, segredo ou dependência de rede durante a partida.
 
 Quando houver ambiguidade, preserve a modularidade e escolha a menor solução capaz de validar a experiência.
