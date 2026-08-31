@@ -74,7 +74,7 @@ Exemplo conceitual:
     "locationId": "riacho"
   },
   "conditions": [
-    { "type": "time.period.in", "periodIds": ["morning", "noon"] },
+    { "type": "time.period.in", "periodIds": ["manha", "meio-dia"] },
     { "type": "flag.is", "flag": "met.mira", "value": false }
   ],
   "repeat": { "type": "once" }

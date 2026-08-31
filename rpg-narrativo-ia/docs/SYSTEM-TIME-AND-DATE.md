@@ -17,12 +17,12 @@ Períodos iniciais:
 
 ```json
 [
-  { "id": "dawn", "label": "Alvorecer" },
-  { "id": "morning", "label": "Manhã" },
-  { "id": "noon", "label": "Meio-dia" },
-  { "id": "afternoon", "label": "Tarde" },
-  { "id": "evening", "label": "Entardecer" },
-  { "id": "night", "label": "Noite" }
+  { "id": "alvorecer", "label": "Alvorecer" },
+  { "id": "manha", "label": "Manhã" },
+  { "id": "meio-dia", "label": "Meio-dia" },
+  { "id": "tarde", "label": "Tarde" },
+  { "id": "entardecer", "label": "Entardecer" },
+  { "id": "noite", "label": "Noite" }
 ]
 ```
 
@@ -40,6 +40,8 @@ interface TimeCost {
 ```
 
 O estado não deve armazenar simultaneamente índice e ID se isso permitir divergência. A configuração resolve a posição do ID na sequência.
+
+Os IDs acima preservam o contrato persistido pelo MVP. Não os renomear apenas por preferência de idioma.
 
 ## Operações públicas
 
