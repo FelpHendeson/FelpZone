@@ -58,7 +58,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/` está implementado. `day-cycle/` e `navigation/` continuam apenas planejados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/` e `modules/day-cycle/` estão implementados. `navigation/` continua apenas planejado.
 
 ## Responsabilidades
 
@@ -69,7 +69,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `relationships`: confiança e estado de vínculos.
 - `world`: estado persistido do mundo, incluindo dia e período; delega o relógio a `time`.
 - `time`: relógio determinístico por períodos, avanço de data e validação do horário.
-- `day-cycle`: reações do mundo à mudança de período e dia (ainda não implementado).
+- `day-cycle`: interpreta o avanço do relógio e produz eventos de ciclo e fase visual.
 - `navigation`: mapa hierárquico, posição, descoberta e deslocamento (ainda não implementado).
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
@@ -145,7 +145,44 @@ Dias são inteiros positivos seguros (`Number.isSafeInteger`). Custos são intei
 
 Configuração vazia, IDs repetidos ou vazios, período inexistente e custos fracionários ou não finitos são rejeitados.
 
-O efeito de campanha `world.period` continua definindo o período sem avançar o dia. Condições e efeitos `time.*`, ciclo diário, temas visuais e sobrevivência não fazem parte deste contrato.
+O efeito de campanha `world.period` continua definindo o período sem avançar o dia. Condições e efeitos `time.*`, temas visuais e sobrevivência não fazem parte deste contrato.
+
+## Contrato de ciclo diário
+
+O módulo `modules/day-cycle` não é um segundo relógio. Ele interpreta um `TimeAdvanceResult` e produz sinais cronológicos para o mundo. A ordem dos períodos, a validação do horário e o cálculo do avanço permanecem em `time`.
+
+O estado persistido não ganha fase visual. `DaylightPhase` é derivada do período final e fica disponível para a UI futura, sem ser armazenada em `GameState`.
+
+```ts
+type DayCycleEvent =
+  | { type: 'period.ended'; day: number; periodId: string }
+  | { type: 'period.started'; day: number; periodId: string }
+  | { type: 'day.ended'; day: number }
+  | { type: 'day.started'; day: number };
+
+type DaylightPhase = 'daylight' | 'twilight' | 'night';
+
+interface DayCycleResult {
+  time: TimeAdvanceResult;
+  events: DayCycleEvent[];
+  phase: DaylightPhase;
+}
+```
+
+A associação período → fase vive em `modules/day-cycle/phases.ts`, separada da lógica:
+
+`alvorecer` → `twilight`; `manha` → `daylight`; `meio-dia` → `daylight`; `tarde` → `daylight`; `entardecer` → `twilight`; `noite` → `night`.
+
+Operações públicas:
+
+- `advanceDayCycle`: chama `advanceTime` e interpreta o resultado;
+- `interpretDayCycle`: deriva eventos exclusivamente de um `TimeAdvanceResult`;
+- `getDaylightPhase`: consulta a fase visual de um período;
+- `inspectDaylightPhaseConfig`: validação sem exceção.
+
+Custo zero produz lista vazia de eventos. Cada fronteira atravessada aparece uma vez, em ordem cronológica. Na virada do último período, a ordem é `period.ended`, `day.ended`, `period.started`, `day.started`. Erros de `advanceTime` são relançados como `DayCycleError`, com a mensagem original e a causa preservada. O limite operacional continua sendo `MAX_ADVANCE_PERIODS` do relógio.
+
+Agenda de NPC, clima, encontros, sobrevivência, bloqueios por horário e tema visual da interface ficam fora deste contrato.
 
 ## Contratos do motor
 
@@ -191,4 +228,5 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - o evento salvo é conferido contra a campanha antes de chegar à UI;
 - o relógio inicia no dia 1 ao alvorecer e avança de forma imutável por períodos;
 - virada de dia, custo zero, configuração inválida e estado persistido inválido são rejeitados ou calculados de forma determinística;
-- dia e custo fora de `Number.isSafeInteger`, custo acima de `MAX_ADVANCE_PERIODS` e overflow de dia são rejeitados antes do loop.
+- dia e custo fora de `Number.isSafeInteger`, custo acima de `MAX_ADVANCE_PERIODS` e overflow de dia são rejeitados antes do loop;
+- o ciclo diário deriva eventos do avanço do relógio, respeita a virada de dia e rejeita configuração de fase inválida.

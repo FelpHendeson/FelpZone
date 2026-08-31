@@ -20,7 +20,7 @@ Fonte: `SYSTEM-TIME-AND-DATE.md`.
 
 ### Etapa 2 — Ciclo diário
 
-Fazer o mundo reagir à passagem do tempo: mudança de dia, início e encerramento de períodos, gatilhos e apresentação visual do ciclo.
+**Implementado.** O módulo `modules/day-cycle` interpreta o avanço do relógio e produz eventos de início e encerramento de períodos e dias, além da fase visual derivada. Ainda não aplica sobrevivência, agenda, clima, gatilhos de mundo nem tema na interface.
 
 Fonte: `SYSTEM-DAY-CYCLE.md`.
 
