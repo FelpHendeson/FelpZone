@@ -1,6 +1,8 @@
+import type { SandboxState } from '../../modules/sandbox/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
-export const SCHEMA_VERSION = 1 as const;
+export const SCHEMA_VERSION_V1 = 1 as const;
+export const SCHEMA_VERSION = 2 as const;
 
 export type GameStatus = 'playing' | 'completed';
 
@@ -61,8 +63,7 @@ export interface HistoryEntry {
   notable: boolean;
 }
 
-export interface GameState {
-  schemaVersion: typeof SCHEMA_VERSION;
+interface NarrativeState {
   status: GameStatus;
   character: CharacterIdentity;
   currentEventId: string;
@@ -74,4 +75,13 @@ export interface GameState {
   world: WorldState;
   progression: ProgressionState;
   updatedAt: string;
+}
+
+export interface GameStateV1 extends NarrativeState {
+  schemaVersion: typeof SCHEMA_VERSION_V1;
+}
+
+export interface GameState extends NarrativeState {
+  schemaVersion: typeof SCHEMA_VERSION;
+  sandbox: SandboxState;
 }

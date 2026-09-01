@@ -50,21 +50,25 @@ Fonte: `SYSTEM-CRAFTING.md`.
 
 ### Etapa 7 — Integração explorável
 
-Após consolidar os seis sistemas:
+Fonte: `SYSTEM-INTEGRATION.md`.
 
-- manter a introdução narrativa atual;
-- devolver o jogador à exploração depois da capacidade inicial;
-- permitir caminhar pela primeira região;
-- fazer movimento consumir tempo;
-- descobrir e mapear locais;
-- aumentar o percentual de exploração de cada ambiente;
-- revelar ao menos uma subárea bônus e pontos de coleta;
-- coletar recursos limitados e observar sua disponibilidade;
-- construir uma fogueira e preparar alimento;
-- acionar eventos por entrada, interação ou período;
-- retornar à exploração após narrativas e diálogos.
+#### Fatia 7.1 — Estado integrado e persistência principal
 
-O marco termina quando o jogador desperta, escolhe uma capacidade, explora livremente e encontra pelo menos um NPC ou criatura por meio das próprias ações.
+**Implementada.** `GameState` inclui `sandbox`, o save usa `schemaVersion: 2` e partidas v1 válidas são migradas na leitura. A interface narrativa não mudou.
+
+#### Fatia 7.2 — Orquestrador de ações e tempo
+
+Ainda não implementada. Aplicar custos temporais uma vez e coordenar movimento, exploração, coleta e crafting.
+
+#### Fatia 7.3 — Da introdução à exploração livre
+
+Ainda não implementada. Devolver o jogador ao mundo depois da capacidade inicial, sem manter o motor narrativo como loop exclusivo.
+
+#### Fatia 7.4 — Superfície mobile
+
+Ainda não implementada. Expor destinos, explorar, coletar e fabricar na interface.
+
+O marco do Sistema 7 só termina quando o jogador desperta, escolhe uma capacidade, explora livremente e encontra pelo menos um NPC ou criatura por meio das próprias ações. Esse marco ainda não foi atingido.
 
 ## Etapas posteriores, ainda não especificadas
 

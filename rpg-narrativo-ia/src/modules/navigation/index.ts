@@ -1,5 +1,5 @@
 import { evaluateConditions, type GameCondition, type ImageReference } from '../../core/events';
-import { isAttributeId, type GameState } from '../../core/state';
+import { isAttributeId, type GameState } from '../../core/state/types';
 import { inspectTimeCost, type TimeCost } from '../time';
 import { DEFAULT_STARTING_LOCATION_ID, INITIAL_WORLD_MAP } from './initial-map';
 import type {

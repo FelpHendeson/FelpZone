@@ -29,8 +29,9 @@ Leia nesta ordem:
 11. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
 12. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
 13. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
-14. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
-15. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+14. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto e persistência principal (Fatia 7.1), em andamento.
+15. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
+16. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -47,7 +48,7 @@ A aplicação sobe em `http://localhost:5173`. No celular da mesma rede, use o e
 Outros comandos:
 
 ```bash
-npm test        # testes do motor, condições, efeitos, transições, persistência, horário, ciclo diário, navegação, exploração, recursos e crafting
+npm test        # testes do motor, persistência, horário, ciclo diário, navegação, exploração, recursos, crafting e sandbox integrado
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de produção com PWA
@@ -61,7 +62,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # telas mobile-first e ImagePlaceholder
@@ -72,7 +73,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox — horário e data, ciclo diário, navegação hierárquica, exploração e descobertas, pontos de recurso e ecologia, e crafting com estruturas locais e cozinha — estão implementadas como módulos determinísticos independentes. A integração explorável (Sistema 7) permanece apenas especificada.
+**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox estão implementadas. A Fatia 7.1 — estado integrado e persistência principal (`schemaVersion: 2`) — está implementada. As Fatias 7.2 a 7.4 (orquestrador, exploração livre e interface) ainda não.
 
 ## Decisões já tomadas
 
@@ -90,14 +91,14 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível ou se a estrutura interna estiver malformada.
+- O salvamento local usa `schemaVersion: 2`, valida o sandbox integrado e migra saves v1 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
-- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos e crafting implementados; a integração à interface, ao save global e ao loop completo ainda não.
+- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting e o estado integrado persistido; orquestrador, exploração livre e menus dos novos sistemas ainda não.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 237 testes, incluindo crafting (receitas atômicas, fogueira local, cozinha, descoberta por flags, persistência isolada e imutabilidade) e os 191 testes anteriores do motor, do horário, do ciclo diário, da navegação, da exploração e dos recursos.
+- `npm test`: 249 testes, incluindo o estado integrado e a persistência `schemaVersion: 2` (migração v1 → v2, validação profunda e imutabilidade) e os 237 testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- O fluxo visual do MVP permanece intacto; as APIs de navegação, exploração, recursos e crafting ficam disponíveis nos módulos, sem tela de mapa, botão de explorar, coleta ou menu de crafting nesta etapa.
+- O fluxo visual do MVP permanece intacto: criação de personagem, escolhas, resumo, continuar e apagar save. Não há tela de mapa, botão de explorar, coleta nem menu de crafting nesta fatia.

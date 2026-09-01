@@ -1,5 +1,5 @@
 import type { GameCondition } from '../../core/events';
-import type { GameState } from '../../core/state';
+import type { GameState } from '../../core/state/types';
 import type { NavigationState } from '../navigation';
 import type { TimeCost } from '../time';
 

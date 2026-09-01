@@ -195,7 +195,7 @@ describe('horário e data', () => {
     const raw = JSON.parse(serializeGameState(game)) as { schemaVersion: number; world: unknown };
 
     expect(game.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(raw.schemaVersion).toBe(1);
+    expect(raw.schemaVersion).toBe(SCHEMA_VERSION);
     expect(raw.world).toEqual({ day: 1, period: 'alvorecer' });
     expect(parseGameState(serializeGameState(game))).toEqual({ status: 'ok', state: game });
 
@@ -282,7 +282,7 @@ describe('horário e data', () => {
     );
     const raw = JSON.parse(serializeGameState(game)) as { schemaVersion: number; world: Record<string, unknown> };
 
-    expect(raw.schemaVersion).toBe(1);
+    expect(raw.schemaVersion).toBe(SCHEMA_VERSION);
     expect(raw.world).toEqual({ day: 1, period: 'alvorecer' });
     expect(parseGameState(serializeGameState(game))).toEqual({ status: 'ok', state: game });
     expect(

@@ -1,5 +1,5 @@
 import type { GameCondition } from '../../core/events';
-import type { GameState, InventoryItem } from '../../core/state';
+import type { GameState, InventoryItem } from '../../core/state/types';
 import type { TimeCost, TimeState } from '../time';
 
 export class ResourceError extends Error {

@@ -49,6 +49,7 @@ src/
 │   ├── exploration/
 │   ├── resources/
 │   ├── crafting/
+│   ├── sandbox/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -61,7 +62,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/` e `modules/crafting/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/` e `modules/sandbox/` estão implementados.
 
 ## Responsabilidades
 
@@ -77,6 +78,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `exploration`: progresso percentual por local, revelação determinística de conteúdo e conclusão derivada de zona.
 - `resources`: pontos de coleta com capacidade limitada, renovação e populações ecológicas.
 - `crafting`: receitas, consumo atômico, estruturas locais e cozinha.
+- `sandbox`: composição do estado integrado e validação conjunta dos sistemas 3 a 6.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -110,15 +112,18 @@ O estado salvo deve conter no mínimo:
 - relações;
 - flags narrativas;
 - histórico;
+- mundo (`day` e `period`);
+- progressão;
+- sandbox (navegação, exploração, recursos e crafting);
 - data da última atualização.
 
-A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Uma versão diferente retorna `status: 'incompatible'`. O parser não lança exceção.
+A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1` e `2` retornam `status: 'incompatible'`. Saves v1 válidos são migrados para v2 na leitura. O parser não lança exceção.
 
 Antes de o estado chegar à interface, `bindSavedState` confere o `currentEventId` contra a campanha: o evento precisa existir e cumprir as próprias condições. Falhas viram `corrupt` e a UI não tenta renderizar o evento.
 
-Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`.
+Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`. A chave `reset.mvp.save` permanece.
 
-`schemaVersion` permanece `1`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Saves válidos da versão atual continuam carregando.
+`schemaVersion` é `2`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa e definições não são persistidos. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`.
 
 ## Contrato de horário e data
 
@@ -345,7 +350,29 @@ Operações públicas:
 - `craftRecipe` e `synchronizeKnownRecipes`;
 - `getRecipe`, `getStructureDefinition` e `createCraftingEvaluator`.
 
-Interface, save principal, aplicação do custo no relógio e o loop completo do jogo ficam fora deste contrato e pertencem ao Sistema 7.
+Interface, aplicação do custo no relógio e o loop completo do jogo ficam fora do contrato isolado de crafting. A Fatia 7.1 passou a persistir o `CraftingState` dentro de `GameState.sandbox.crafting`.
+
+## Contrato de estado integrado
+
+O módulo `modules/sandbox` reúne mapa e definições iniciais, cria o `SandboxState` e valida o conjunto. Não altera a interface nesta fatia e não aplica tempo.
+
+```ts
+interface SandboxState {
+  navigation: NavigationState;
+  exploration: ExplorationState;
+  resources: ResourcesState;
+  crafting: CraftingState;
+}
+```
+
+Fontes canônicas: `world` para o relógio, `inventory` para itens, `flags` para flags, `sandbox.*` para os quatro sistemas de mundo. Adaptadores `worldToTimeState` e `timeStateToWorld` convertem o relógio persistido sem mutação.
+
+Operações públicas:
+
+- `createSandboxContext` e `createInitialSandboxState`;
+- `inspectSandboxState`.
+
+A persistência serializa somente o schema 2 validado. `inspectGameState` delega aos validadores dos Sistemas 3 a 6. Orquestrador de ações, exploração livre e menus visuais pertencem às Fatias 7.2 a 7.4.
 
 ## Contratos do motor
 
@@ -373,7 +400,7 @@ interface NarrativeSession {
 }
 ```
 
-A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. Isso será decidido na etapa de integração, não antecipado nos sistemas isolados.
+A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. A Fatia 7.1 introduziu o schema 2 com sandbox persistido, mas manteve `currentEventId` obrigatório para não quebrar a interface atual. A sessão narrativa opcional fica para as Fatias 7.2/7.3.
 
 ## Testes prioritários
 
@@ -397,4 +424,5 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - explorar aumenta o progresso local sem mutação, revela descobertas no limiar, reavalia condições pendentes e deriva a conclusão da zona sem armazená-la;
 - pontos de recurso têm capacidade limitada, coleta atômica e renovação pelo relógio do jogo;
 - populações compartilham estoque, emitem estado qualitativo e podem ser extintas localmente sem recuperação espontânea;
-- crafting consome materiais atomicamente, constrói estruturas no local atual e apenas devolve o custo temporal.
+- crafting consome materiais atomicamente, constrói estruturas no local atual e apenas devolve o custo temporal;
+- o save principal no schema 2 persiste o sandbox integrado e migra partidas v1 válidas sem executar gameplay.

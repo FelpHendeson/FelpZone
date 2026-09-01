@@ -1,6 +1,20 @@
-import { SCHEMA_VERSION, inspectGameState, type GameState } from '../../core/state';
+import {
+  SCHEMA_VERSION,
+  SCHEMA_VERSION_V1,
+  inspectGameState,
+  inspectGameStateV1,
+  migrateGameStateV1,
+  type GameState,
+} from '../../core/state';
 
 export const SAVE_KEY = 'reset.mvp.save';
+
+export class PersistenceError extends Error {
+  constructor(message: string, options?: ErrorOptions) {
+    super(message, options);
+    this.name = 'PersistenceError';
+  }
+}
 
 export type LoadResult =
   | { status: 'empty' }
@@ -15,7 +29,12 @@ export interface GamePersistence {
 }
 
 export function serializeGameState(state: GameState): string {
-  return JSON.stringify(state);
+  const inspected = inspectGameState(state);
+  if (!inspected.ok) {
+    throw new PersistenceError(inspected.reason);
+  }
+
+  return JSON.stringify(inspected.state);
 }
 
 export function parseGameState(raw: string): LoadResult {
@@ -34,6 +53,20 @@ export function parseGameState(raw: string): LoadResult {
   try {
     if (!isRecord(parsed)) {
       return { status: 'corrupt', reason: 'O salvamento não contém um objeto válido.' };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V1) {
+      const previous = inspectGameStateV1(parsed);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+
+      const migrated = inspectGameState(migrateGameStateV1(previous.state));
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+
+      return { status: 'ok', state: migrated.state };
     }
 
     if (parsed.schemaVersion !== SCHEMA_VERSION) {

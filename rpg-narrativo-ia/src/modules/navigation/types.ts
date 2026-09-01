@@ -1,5 +1,5 @@
 import type { GameCondition, ImageReference } from '../../core/events';
-import type { GameState } from '../../core/state';
+import type { GameState } from '../../core/state/types';
 import type { TimeCost } from '../time';
 
 export type LocationVisibility = 'known' | 'hidden';

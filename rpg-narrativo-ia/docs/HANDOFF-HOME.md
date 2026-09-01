@@ -6,14 +6,16 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 
 - Repositório: `https://github.com/FelpHendeson/FelpZone.git`
 - Branch: `main`
-- Sistemas 1 a 5 foram implementados, revisados e consolidados:
+- Sistemas 1 a 6 estão implementados, testados e consolidados:
   - horário e data;
   - ciclo diário;
   - navegação hierárquica;
   - exploração e descobertas;
-  - pontos de recurso e ecologia.
-- O Sistema 6 — crafting, estruturas locais e cozinha — está implementado de forma isolada. Não integrar ainda à interface, ao save global ou ao loop completo do jogo.
-- O Sistema 7 — integração explorável — ainda não foi implementado.
+  - pontos de recurso e ecologia;
+  - crafting, estruturas locais e cozinha.
+- A Fatia 7.1 — estado integrado e persistência principal — está implementada: `schemaVersion: 2`, `GameState.sandbox` e migração v1 → v2.
+- As Fatias 7.2, 7.3 e 7.4 ainda não foram implementadas. O Sistema 7 não está concluído.
+- A interface narrativa do MVP permanece a mesma.
 
 ## Como preparar a máquina
 
@@ -65,17 +67,17 @@ Antes de agir, leia integralmente:
 
 - AGENTS.md
 - README.md
-- todos os arquivos em docs/, começando por PRODUCT.md, ARCHITECTURE.md, SANDBOX-FLOW.md e ROADMAP.md;
+- todos os arquivos em docs/, começando por PRODUCT.md, ARCHITECTURE.md, SANDBOX-FLOW.md, ROADMAP.md e SYSTEM-INTEGRATION.md;
 - os módulos e testes relacionados à tarefa atual.
 
 Estado conhecido:
 
-- Sistemas 1 a 5 estão consolidados: horário/data, ciclo diário, navegação, exploração e recursos;
-- o Sistema 6 — crafting, estruturas locais e cozinha — está implementado de forma isolada;
-- crafting ainda não entra na interface, no save global nem no loop completo do jogo;
-- o Sistema 7 ainda não foi implementado.
+- Sistemas 1 a 6 estão consolidados;
+- a Fatia 7.1 persistiu o sandbox no GameState com schemaVersion 2 e migração v1 → v2;
+- ainda não há orquestrador de ações, aplicação de custos, exploração livre nem menus dos novos sistemas;
+- o Sistema 7 não está concluído.
 
-Sua primeira tarefa é validar e revisar o Sistema 6 contra docs/SYSTEM-CRAFTING.md.
+Sua primeira tarefa é validar e revisar a Fatia 7.1 contra docs/SYSTEM-INTEGRATION.md.
 
 Execute:
 
@@ -86,16 +88,15 @@ npm run build
 
 Revise especialmente:
 
-- receitas conhecidas e descoberta por flags, sem avançar o tempo;
-- execução atômica: falha não consome, não produz e não cria estrutura parcial;
-- fogueira única por local, ativa ao construir, sem consumo de combustível nesta etapa;
-- cozinha exigindo tag cooking e estação ativa no currentLocationId;
-- consulta de disponibilidade sem mutação;
-- persistência isolada do CraftingState;
-- imutabilidade de estado, inventário, navegação, GameState e definições;
-- ausência de UI, save principal, advanceTime e integração ao schema global.
+- fontes canônicas de world, inventory e flags;
+- ausência de segundo relógio, mapas e definições no JSON;
+- validação profunda delegada aos Sistemas 3 a 6;
+- migração v1 → v2 sem gameplay e sem mutar o save antigo;
+- leitura que não regrava o localStorage;
+- currentEventId ainda obrigatório e compatível com a UI atual;
+- imutabilidade e ausência de ciclos de importação via barrel de core/state.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado ao Sistema 6. Se não houver problemas, declare o Sistema 6 consolidado e então prepare, somente quando eu pedir, o prompt do Sistema 7 — integração explorável.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.1. Se não houver problemas, declare a Fatia 7.1 consolidada e então prepare, somente quando eu pedir, o prompt da Fatia 7.2 — orquestrador de ações e tempo.
 
 Preserve o ciclo de trabalho:
 
@@ -106,4 +107,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão depois da revisão
 
-Se o Sistema 6 passar sem achados, a próxima etapa autorizável é o Sistema 7 — integração explorável, definida em `docs/ROADMAP.md`. Essa etapa deve conectar tempo, navegação, exploração, recursos, crafting, persistência e interface em um fluxo jogável. O Sistema 7 ainda não está implementado.
+Se a Fatia 7.1 passar sem achados, a próxima etapa autorizável é a Fatia 7.2 — orquestrador de ações e tempo, descrita em `docs/SYSTEM-INTEGRATION.md` e `docs/ROADMAP.md`. As Fatias 7.3 e 7.4 continuam depois. O Sistema 7 ainda não está implementado por completo.

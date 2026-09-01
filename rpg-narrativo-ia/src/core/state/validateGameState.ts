@@ -1,19 +1,67 @@
 import { inspectTimeState } from '../../modules/time';
-import { ATTRIBUTE_IDS, SCHEMA_VERSION, isDayPeriod, type GameState } from './types';
+import {
+  createInitialSandboxState,
+  inspectSandboxState,
+  type SandboxContext,
+} from '../../modules/sandbox';
+import {
+  ATTRIBUTE_IDS,
+  SCHEMA_VERSION,
+  SCHEMA_VERSION_V1,
+  isDayPeriod,
+  type GameState,
+  type GameStateV1,
+} from './types';
 
 export type GameStateInspection =
   | { ok: true; state: GameState }
   | { ok: false; reason: string };
 
-export function inspectGameState(value: unknown): GameStateInspection {
+export type GameStateV1Inspection =
+  | { ok: true; state: GameStateV1 }
+  | { ok: false; reason: string };
+
+export function inspectGameState(value: unknown, context?: SandboxContext): GameStateInspection {
   try {
-    return inspect(value);
+    return inspectCurrent(value, context);
   } catch {
     return { ok: false, reason: 'O salvamento está corrompido.' };
   }
 }
 
-function inspect(value: unknown): GameStateInspection {
+export function inspectGameStateV1(value: unknown): GameStateV1Inspection {
+  try {
+    return inspectV1(value);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function migrateGameStateV1(state: GameStateV1, context?: SandboxContext): GameState {
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    status: state.status,
+    character: { firstName: state.character.firstName, lastName: state.character.lastName },
+    currentEventId: state.currentEventId,
+    attributes: { ...state.attributes },
+    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    relationships: state.relationships.map((entry) => ({
+      characterId: entry.characterId,
+      trust: entry.trust,
+    })),
+    flags: { ...state.flags },
+    history: state.history.map((entry) => ({ ...entry })),
+    world: { day: state.world.day, period: state.world.period },
+    progression: {
+      abilityIds: [...state.progression.abilityIds],
+      titleIds: [...state.progression.titleIds],
+    },
+    sandbox: createInitialSandboxState(context),
+    updatedAt: state.updatedAt,
+  };
+}
+
+function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInspection {
   if (!isRecord(value)) {
     return fail('O salvamento não contém um objeto válido.');
   }
@@ -22,6 +70,54 @@ function inspect(value: unknown): GameStateInspection {
     return fail('O salvamento está incompleto.');
   }
 
+  const narrative = readNarrative(value);
+  if (!narrative.ok) {
+    return narrative;
+  }
+
+  const sandbox = inspectSandboxState(value.sandbox, context);
+  if (!sandbox.ok) {
+    return fail(sandbox.reason);
+  }
+
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION,
+      ...narrative.value,
+      sandbox: sandbox.value,
+    },
+  };
+}
+
+function inspectV1(value: unknown): GameStateV1Inspection {
+  if (!isRecord(value)) {
+    return fail('O salvamento não contém um objeto válido.');
+  }
+
+  if (value.schemaVersion !== SCHEMA_VERSION_V1) {
+    return fail('O salvamento está incompleto.');
+  }
+
+  const narrative = readNarrative(value);
+  if (!narrative.ok) {
+    return narrative;
+  }
+
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION_V1,
+      ...narrative.value,
+    },
+  };
+}
+
+type NarrativeFields = Omit<GameState, 'schemaVersion' | 'sandbox'>;
+
+type NarrativeInspection = { ok: true; value: NarrativeFields } | { ok: false; reason: string };
+
+function readNarrative(value: Record<string, unknown>): NarrativeInspection {
   if (value.status !== 'playing' && value.status !== 'completed') {
     return fail('O estado da partida é inválido.');
   }
@@ -76,8 +172,7 @@ function inspect(value: unknown): GameStateInspection {
 
   return {
     ok: true,
-    state: {
-      schemaVersion: SCHEMA_VERSION,
+    value: {
       status: value.status,
       character,
       currentEventId: value.currentEventId,
@@ -142,7 +237,7 @@ function readInventory(value: unknown): GameState['inventory'] | undefined {
       return undefined;
     }
 
-    if (!isPositiveInteger(entry.quantity) || seen.has(entry.itemId)) {
+    if (!isPositiveSafeInteger(entry.quantity) || seen.has(entry.itemId)) {
       return undefined;
     }
 
@@ -284,14 +379,14 @@ function isBoundedNumber(value: unknown, min: number, max: number): value is num
   return typeof value === 'number' && Number.isFinite(value) && value >= min && value <= max;
 }
 
-function isPositiveInteger(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && value > 0;
+function isPositiveSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
-function fail(reason: string): GameStateInspection {
+function fail(reason: string): { ok: false; reason: string } {
   return { ok: false, reason };
 }

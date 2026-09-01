@@ -50,6 +50,9 @@ const malformedCases: Array<[string, (raw: Record<string, unknown>) => void]> = 
   ['item com quantidade fracionária', (raw) => {
     raw.inventory = [{ itemId: 'agua-limpa', quantity: 1.5 }];
   }],
+  ['item com quantidade insegura', (raw) => {
+    raw.inventory = [{ itemId: 'agua-limpa', quantity: Number.MAX_SAFE_INTEGER + 1 }];
+  }],
   ['itens duplicados', (raw) => {
     raw.inventory = [
       { itemId: 'agua-limpa', quantity: 1 },
@@ -189,5 +192,21 @@ describe('persistência', () => {
     };
 
     expect(parseGameState(serializeGameState(rich))).toEqual({ status: 'ok', state: rich });
+  });
+
+  it('rejeita a serialização de um estado atual inválido', () => {
+    const state = freshState();
+    const invalid = {
+      ...state,
+      sandbox: {
+        ...state.sandbox,
+        navigation: {
+          ...state.sandbox.navigation,
+          currentLocationId: 'lugar-inexistente',
+        },
+      },
+    };
+
+    expect(() => serializeGameState(invalid)).toThrow('A localização atual precisa estar descoberta, desbloqueada e visitada.');
   });
 });

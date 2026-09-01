@@ -1,5 +1,5 @@
 import { evaluateConditions, type GameCondition } from '../../core/events';
-import { isAttributeId, type GameState } from '../../core/state';
+import { isAttributeId, type GameState } from '../../core/state/types';
 import {
   NavigationError,
   discoverLocation,
