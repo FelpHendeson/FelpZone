@@ -6,6 +6,7 @@ import {
   migrateGameStateV1,
   type GameState,
 } from '../../core/state';
+import type { SandboxContext } from '../../modules/sandbox';
 
 export const SAVE_KEY = 'reset.mvp.save';
 
@@ -28,8 +29,8 @@ export interface GamePersistence {
   clear(): void;
 }
 
-export function serializeGameState(state: GameState): string {
-  const inspected = inspectGameState(state);
+export function serializeGameState(state: GameState, context?: SandboxContext): string {
+  const inspected = inspectGameState(state, context);
   if (!inspected.ok) {
     throw new PersistenceError(inspected.reason);
   }
@@ -37,7 +38,7 @@ export function serializeGameState(state: GameState): string {
   return JSON.stringify(inspected.state);
 }
 
-export function parseGameState(raw: string): LoadResult {
+export function parseGameState(raw: string, context?: SandboxContext): LoadResult {
   if (!raw || raw.trim() === '') {
     return { status: 'empty' };
   }
@@ -61,7 +62,7 @@ export function parseGameState(raw: string): LoadResult {
         return { status: 'corrupt', reason: previous.reason };
       }
 
-      const migrated = inspectGameState(migrateGameStateV1(previous.state));
+      const migrated = inspectGameState(migrateGameStateV1(previous.state, context), context);
       if (!migrated.ok) {
         return { status: 'corrupt', reason: migrated.reason };
       }
@@ -73,7 +74,7 @@ export function parseGameState(raw: string): LoadResult {
       return { status: 'incompatible', foundVersion: parsed.schemaVersion };
     }
 
-    const inspected = inspectGameState(parsed);
+    const inspected = inspectGameState(parsed, context);
     if (!inspected.ok) {
       return { status: 'corrupt', reason: inspected.reason };
     }
@@ -84,7 +85,10 @@ export function parseGameState(raw: string): LoadResult {
   }
 }
 
-export function createPersistence(storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>): GamePersistence {
+export function createPersistence(
+  storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>,
+  context?: SandboxContext,
+): GamePersistence {
   return {
     load() {
       const raw = storage.getItem(SAVE_KEY);
@@ -92,10 +96,10 @@ export function createPersistence(storage: Pick<Storage, 'getItem' | 'setItem' |
         return { status: 'empty' };
       }
 
-      return parseGameState(raw);
+      return parseGameState(raw, context);
     },
     save(state) {
-      storage.setItem(SAVE_KEY, serializeGameState(state));
+      storage.setItem(SAVE_KEY, serializeGameState(state, context));
     },
     clear() {
       storage.removeItem(SAVE_KEY);
@@ -103,21 +107,24 @@ export function createPersistence(storage: Pick<Storage, 'getItem' | 'setItem' |
   };
 }
 
-export function createMemoryPersistence(initial?: string): GamePersistence {
+export function createMemoryPersistence(initial?: string, context?: SandboxContext): GamePersistence {
   const memory = new Map<string, string>();
   if (initial) {
     memory.set(SAVE_KEY, initial);
   }
 
-  return createPersistence({
-    getItem: (key) => memory.get(key) ?? null,
-    setItem: (key, value) => {
-      memory.set(key, value);
+  return createPersistence(
+    {
+      getItem: (key) => memory.get(key) ?? null,
+      setItem: (key, value) => {
+        memory.set(key, value);
+      },
+      removeItem: (key) => {
+        memory.delete(key);
+      },
     },
-    removeItem: (key) => {
-      memory.delete(key);
-    },
-  });
+    context,
+  );
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

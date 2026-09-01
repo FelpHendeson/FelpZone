@@ -123,7 +123,7 @@ Antes de o estado chegar à interface, `bindSavedState` confere o `currentEventI
 
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`. A chave `reset.mvp.save` permanece.
 
-`schemaVersion` é `2`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa e definições não são persistidos. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`.
+`schemaVersion` é `2`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão.
 
 ## Contrato de horário e data
 
@@ -357,6 +357,14 @@ Interface, aplicação do custo no relógio e o loop completo do jogo ficam fora
 O módulo `modules/sandbox` reúne mapa e definições iniciais, cria o `SandboxState` e valida o conjunto. Não altera a interface nesta fatia e não aplica tempo.
 
 ```ts
+interface SandboxContext {
+  startingLocationId: string;
+  map: IndexedMap;
+  exploration: IndexedExploration;
+  resources: IndexedResources;
+  crafting: IndexedCrafting;
+}
+
 interface SandboxState {
   navigation: NavigationState;
   exploration: ExplorationState;
@@ -365,14 +373,14 @@ interface SandboxState {
 }
 ```
 
-Fontes canônicas: `world` para o relógio, `inventory` para itens, `flags` para flags, `sandbox.*` para os quatro sistemas de mundo. Adaptadores `worldToTimeState` e `timeStateToWorld` convertem o relógio persistido sem mutação.
+Fontes canônicas: `world` para o relógio, `inventory` para itens, `flags` para flags, `sandbox.*` para os quatro sistemas de mundo. Adaptadores `worldToTimeState` e `timeStateToWorld` convertem o relógio persistido sem mutação. O local inicial vive no contexto, não no save.
 
 Operações públicas:
 
 - `createSandboxContext` e `createInitialSandboxState`;
-- `inspectSandboxState`.
+- `inspectSandboxContext` e `inspectSandboxState`.
 
-A persistência serializa somente o schema 2 validado. `inspectGameState` delega aos validadores dos Sistemas 3 a 6. Orquestrador de ações, exploração livre e menus visuais pertencem às Fatias 7.2 a 7.4.
+A persistência serializa somente o schema 2 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. `inspectGameState` delega aos validadores dos Sistemas 3 a 6. Orquestrador de ações, exploração livre e menus visuais pertencem às Fatias 7.2 a 7.4.
 
 ## Contratos do motor
 

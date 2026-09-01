@@ -13,7 +13,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
   - exploração e descobertas;
   - pontos de recurso e ecologia;
   - crafting, estruturas locais e cozinha.
-- A Fatia 7.1 — estado integrado e persistência principal — está implementada: `schemaVersion: 2`, `GameState.sandbox` e migração v1 → v2.
+- A Fatia 7.1 — estado integrado e persistência principal — está implementada: `schemaVersion: 2`, `GameState.sandbox` e migração v1 → v2. O `SandboxContext` inclui o local inicial e pode ser passado à persistência; a aplicação continua no contexto padrão.
 - As Fatias 7.2, 7.3 e 7.4 ainda não foram implementadas. O Sistema 7 não está concluído.
 - A interface narrativa do MVP permanece a mesma.
 

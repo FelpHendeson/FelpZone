@@ -12,18 +12,30 @@ import {
 import {
   PersistenceError,
   SAVE_KEY,
+  createMemoryPersistence,
   createPersistence,
   parseGameState,
   serializeGameState,
 } from '../infrastructure/persistence';
-import { createInitialCrafting, INITIAL_RECIPES, INITIAL_STRUCTURES } from '../modules/crafting';
-import { createInitialExploration } from '../modules/exploration';
-import { DEFAULT_STARTING_LOCATION_ID, createInitialNavigation } from '../modules/navigation';
-import { createInitialResources, INITIAL_POPULATIONS, INITIAL_RESOURCE_NODES } from '../modules/resources';
+import { createInitialCrafting, INITIAL_RECIPES, INITIAL_STRUCTURES, indexCraftingDefinitions } from '../modules/crafting';
+import type { RecipeDefinition, StructureDefinition } from '../modules/crafting';
+import { createInitialExploration, indexExplorationDefinitions } from '../modules/exploration';
+import type { LocationExplorationDefinition } from '../modules/exploration';
 import {
+  DEFAULT_STARTING_LOCATION_ID,
+  createInitialNavigation,
+  indexNavigationMap,
+} from '../modules/navigation';
+import type { LocationNode } from '../modules/navigation';
+import { createInitialResources, INITIAL_POPULATIONS, INITIAL_RESOURCE_NODES, indexResourceDefinitions } from '../modules/resources';
+import type { ResourceNodeDefinition } from '../modules/resources';
+import {
+  SandboxError,
   createInitialSandboxState,
   createSandboxContext,
+  inspectSandboxContext,
   inspectSandboxState,
+  type SandboxContext,
 } from '../modules/sandbox';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../modules/world';
 import { createInitialTime } from '../modules/time';
@@ -289,3 +301,256 @@ describe('estado integrado e persistência principal', () => {
     );
   });
 });
+
+const CUSTOM_START = 'test-camp';
+
+const CUSTOM_MAP: LocationNode = {
+  id: 'test-region',
+  name: 'Região de teste',
+  children: [
+    {
+      id: CUSTOM_START,
+      name: 'Acampamento de teste',
+    },
+  ],
+};
+
+const CUSTOM_EXPLORATION: LocationExplorationDefinition[] = [
+  {
+    locationId: CUSTOM_START,
+    progressPerAction: 10,
+    timeCost: { periods: 1 },
+    discoveries: [
+      {
+        id: 'test-herbs',
+        kind: 'resourceNode',
+        revealAt: 10,
+        completionWeight: 1,
+        once: true,
+      },
+    ],
+  },
+];
+
+const CUSTOM_NODES: ResourceNodeDefinition[] = [
+  {
+    id: 'test-herbs',
+    discoveryId: 'test-herbs',
+    locationId: CUSTOM_START,
+    name: 'Ervas de teste',
+    capacity: 2,
+    collectionCost: { periods: 1 },
+    renewal: { type: 'none' },
+    yields: [{ itemId: 'test-leaf', quantityPerUnit: 1 }],
+  },
+];
+
+const CUSTOM_STRUCTURES: StructureDefinition[] = [
+  {
+    id: 'test-bench',
+    name: 'Bancada de teste',
+    tags: ['work'],
+    uniquePerLocation: true,
+    activeByDefault: true,
+  },
+];
+
+const CUSTOM_RECIPES: RecipeDefinition[] = [
+  {
+    id: 'craft-test-cord',
+    name: 'Corda de teste',
+    kind: 'item',
+    inputs: [{ itemId: 'test-leaf', quantity: 1 }],
+    outputs: [{ itemId: 'test-cord', quantity: 1 }],
+    timeCost: { periods: 1 },
+    discovery: { type: 'known' },
+  },
+];
+
+function customContext(): SandboxContext {
+  const map = indexNavigationMap(CUSTOM_MAP, CUSTOM_START);
+  const exploration = indexExplorationDefinitions(CUSTOM_EXPLORATION, map);
+  const resources = indexResourceDefinitions(CUSTOM_NODES, [], map, exploration);
+  const crafting = indexCraftingDefinitions(CUSTOM_RECIPES, CUSTOM_STRUCTURES);
+  return {
+    startingLocationId: CUSTOM_START,
+    map,
+    exploration,
+    resources,
+    crafting,
+  };
+}
+
+function freezeContext(context: SandboxContext): SandboxContext {
+  return Object.freeze({
+    startingLocationId: context.startingLocationId,
+    map: context.map,
+    exploration: context.exploration,
+    resources: context.resources,
+    crafting: context.crafting,
+  });
+}
+
+describe('contexto do sandbox na criação e persistência', () => {
+  it('o contexto padrão mantém awakening-clearing', () => {
+    const context = createSandboxContext();
+    const state = createInitialSandboxState(context);
+
+    expect(context.startingLocationId).toBe('awakening-clearing');
+    expect(context.startingLocationId).toBe(DEFAULT_STARTING_LOCATION_ID);
+    expect(state.navigation.currentLocationId).toBe('awakening-clearing');
+  });
+
+  it('createSandboxContext expõe o local inicial padrão', () => {
+    expect(createSandboxContext().startingLocationId).toBe(DEFAULT_STARTING_LOCATION_ID);
+    expect(createSandboxContext().map.locations.has(DEFAULT_STARTING_LOCATION_ID)).toBe(true);
+  });
+
+  it('createInitialSandboxState usa context.startingLocationId', () => {
+    const context = freezeContext(customContext());
+    const sandbox = createInitialSandboxState(context);
+
+    expect(sandbox.navigation.currentLocationId).toBe(context.startingLocationId);
+    expect(sandbox.navigation.currentLocationId).not.toBe(DEFAULT_STARTING_LOCATION_ID);
+  });
+
+  it('contexto com outro local inicial cria navegação nesse local', () => {
+    const sandbox = createInitialSandboxState(customContext());
+    expect(sandbox.navigation.currentLocationId).toBe(CUSTOM_START);
+  });
+
+  it('o novo local começa descoberto', () => {
+    expect(createInitialSandboxState(customContext()).navigation.discoveredLocationIds).toEqual([CUSTOM_START]);
+  });
+
+  it('o novo local começa desbloqueado', () => {
+    expect(createInitialSandboxState(customContext()).navigation.unlockedLocationIds).toEqual([CUSTOM_START]);
+  });
+
+  it('o novo local começa visitado', () => {
+    expect(createInitialSandboxState(customContext()).navigation.visitedLocationIds).toEqual([CUSTOM_START]);
+  });
+
+  it('local inicial inexistente é rejeitado', () => {
+    expect(() => createSandboxContext('lugar-fantasma')).toThrow(SandboxError);
+    expect(() => createSandboxContext('')).toThrow('A localização inicial não existe.');
+
+    const context = customContext();
+    const invalid = { ...context, startingLocationId: 'lugar-fantasma' };
+    expect(inspectSandboxContext(invalid).ok).toBe(false);
+    expect(() => createInitialSandboxState(invalid)).toThrow('A localização inicial não existe.');
+  });
+
+  it('estado customizado serializa, restaura e preserva o roundtrip com o mesmo contexto', () => {
+    const context = freezeContext(customContext());
+    const snapshot = {
+      startingLocationId: context.startingLocationId,
+      locations: [...context.map.locations.keys()],
+      recipes: [...context.crafting.byRecipe.keys()],
+    };
+    const state = createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, 'awakening', now, context);
+    const serialized = serializeGameState(state, context);
+    const parsed = parseGameState(serialized, context);
+
+    expect(parsed).toEqual({ status: 'ok', state });
+    if (parsed.status !== 'ok') {
+      return;
+    }
+
+    expect(parsed.state.sandbox.navigation.currentLocationId).toBe(CUSTOM_START);
+    expect(parsed.state.sandbox.resources.nodes.map((entry) => entry.nodeId)).toEqual(['test-herbs']);
+    expect(parsed.state.sandbox.crafting.knownRecipeIds).toEqual(['craft-test-cord']);
+    expect(JSON.parse(serialized)).not.toHaveProperty('startingLocationId');
+    expect((JSON.parse(serialized) as { sandbox: Record<string, unknown> }).sandbox).not.toHaveProperty('startingLocationId');
+    expect((JSON.parse(serialized) as { sandbox: Record<string, unknown> }).sandbox).not.toHaveProperty('map');
+    expect(JSON.stringify(JSON.parse(serialized))).not.toContain('"byRecipe"');
+    expect(context.startingLocationId).toBe(snapshot.startingLocationId);
+    expect([...context.map.locations.keys()]).toEqual(snapshot.locations);
+    expect([...context.crafting.byRecipe.keys()]).toEqual(snapshot.recipes);
+  });
+
+  it('createPersistence usa o mesmo contexto em save e load', () => {
+    const context = customContext();
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now, context);
+    const memory = new Map<string, string>();
+    const persistence = createPersistence(
+      {
+        getItem: (key) => memory.get(key) ?? null,
+        setItem: (key, value) => {
+          memory.set(key, value);
+        },
+        removeItem: (key) => {
+          memory.delete(key);
+        },
+      },
+      context,
+    );
+
+    persistence.save(state);
+    expect(persistence.load()).toEqual({ status: 'ok', state });
+    expect(parseGameState(memory.get(SAVE_KEY) ?? '', context)).toEqual({ status: 'ok', state });
+  });
+
+  it('createMemoryPersistence encaminha o contexto', () => {
+    const context = customContext();
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now, context);
+    const persistence = createMemoryPersistence(undefined, context);
+
+    persistence.save(state);
+    expect(persistence.load()).toEqual({ status: 'ok', state });
+  });
+
+  it('save customizado carregado com contexto padrão é rejeitado', () => {
+    const context = customContext();
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now, context);
+    const serialized = serializeGameState(state, context);
+
+    expect(parseGameState(serialized).status).toBe('corrupt');
+    expect(parseGameState(serialized, createSandboxContext()).status).toBe('corrupt');
+  });
+
+  it('save padrão carregado com contexto incompatível é rejeitado', () => {
+    const serialized = serializeGameState(freshState());
+    expect(parseGameState(serialized, customContext()).status).toBe('corrupt');
+  });
+
+  it('migração v1 com contexto customizado cria o sandbox customizado sem alterar dados narrativos', () => {
+    const current = {
+      ...freshState(),
+      inventory: [{ itemId: 'agua-limpa', quantity: 2 }],
+      flags: { 'ability.olhar-atento': true },
+      world: { day: 3, period: 'noite' as const },
+      updatedAt: '2026-08-31T12:00:00.000Z',
+    };
+    const v1 = Object.freeze(asV1(current));
+    const snapshot = structuredClone(v1);
+    const context = freezeContext(customContext());
+    const parsed = parseGameState(JSON.stringify(v1), context);
+
+    expect(parsed.status).toBe('ok');
+    if (parsed.status !== 'ok') {
+      return;
+    }
+
+    expect(parsed.state.character).toEqual(current.character);
+    expect(parsed.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 2 }]);
+    expect(parsed.state.flags).toEqual({ 'ability.olhar-atento': true });
+    expect(parsed.state.world).toEqual({ day: 3, period: 'noite' });
+    expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
+    expect(parsed.state.sandbox).toEqual(createInitialSandboxState(context));
+    expect(parsed.state.sandbox.navigation.currentLocationId).toBe(CUSTOM_START);
+    expect(parsed.state.sandbox.crafting.knownRecipeIds).toEqual(['craft-test-cord']);
+    expect(v1).toEqual(snapshot);
+  });
+
+  it('chamadas antigas sem contexto continuam funcionando', () => {
+    const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
+    const persistence = createMemoryPersistence();
+
+    persistence.save(state);
+    expect(persistence.load()).toEqual({ status: 'ok', state });
+    expect(parseGameState(serializeGameState(state))).toEqual({ status: 'ok', state });
+    expect(createSandboxContext().startingLocationId).toBe(START);
+  });
+});
+
