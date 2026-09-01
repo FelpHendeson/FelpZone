@@ -22,6 +22,7 @@ import {
   createInitialResources,
   indexResourceDefinitions,
 } from '../resources';
+import { inspectSandboxContext } from './context-validation';
 import { SandboxError, type SandboxContext, type SandboxState } from './types';
 
 export function createSandboxContext(
@@ -54,23 +55,16 @@ export function createSandboxContext(
 }
 
 export function createInitialSandboxState(context: SandboxContext = createSandboxContext()): SandboxState {
-  const startingLocationId = requireStartingLocationId(context);
+  const inspected = inspectSandboxContext(context);
+  if (!inspected.ok) {
+    throw new SandboxError(inspected.reason);
+  }
+
+  const current = inspected.value;
   return {
-    navigation: createInitialNavigation(context.map.root, startingLocationId),
+    navigation: createInitialNavigation(current.map.root, current.startingLocationId),
     exploration: createInitialExploration(),
-    resources: createInitialResources(context.resources),
-    crafting: createInitialCrafting(context.crafting),
+    resources: createInitialResources(current.resources),
+    crafting: createInitialCrafting(current.crafting),
   };
-}
-
-function requireStartingLocationId(context: SandboxContext): string {
-  if (typeof context.startingLocationId !== 'string' || context.startingLocationId.trim() === '') {
-    throw new SandboxError('A localização inicial não existe.');
-  }
-
-  if (!(context.map?.locations instanceof Map) || !context.map.locations.has(context.startingLocationId)) {
-    throw new SandboxError('A localização inicial não existe.');
-  }
-
-  return context.startingLocationId;
 }

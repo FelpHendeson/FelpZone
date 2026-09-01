@@ -554,3 +554,362 @@ describe('contexto do sandbox na criação e persistência', () => {
   });
 });
 
+function copyContext(context: SandboxContext): SandboxContext {
+  return {
+    startingLocationId: context.startingLocationId,
+    map: {
+      root: context.map.root,
+      locations: new Map(context.map.locations),
+      parents: new Map(context.map.parents),
+      children: new Map(context.map.children),
+    },
+    exploration: {
+      definitions: context.exploration.definitions,
+      byLocation: new Map(context.exploration.byLocation),
+      byDiscovery: new Map(context.exploration.byDiscovery),
+      locationByDiscovery: new Map(context.exploration.locationByDiscovery),
+    },
+    resources: {
+      nodes: context.resources.nodes,
+      populations: context.resources.populations,
+      byNode: new Map(context.resources.byNode),
+      byPopulation: new Map(context.resources.byPopulation),
+      nodesByPopulation: new Map(context.resources.nodesByPopulation),
+    },
+    crafting: {
+      recipes: context.crafting.recipes,
+      structures: context.crafting.structures,
+      byRecipe: new Map(context.crafting.byRecipe),
+      byStructure: new Map(context.crafting.byStructure),
+    },
+  };
+}
+
+function mutableMap<K, V>(value: ReadonlyMap<K, V>): Map<K, V> {
+  return value as Map<K, V>;
+}
+
+function expectInspected(value: unknown): SandboxContext {
+  const inspected = inspectSandboxContext(value);
+  expect(inspected.ok).toBe(true);
+  if (!inspected.ok) {
+    throw new Error(inspected.reason);
+  }
+
+  return inspected.value;
+}
+
+describe('reconstrução e normalização do SandboxContext', () => {
+  it('o contexto padrão continua válido', () => {
+    const context = createSandboxContext();
+    const inspected = expectInspected(context);
+
+    expect(inspectSandboxContext(context).ok).toBe(true);
+    expect(inspected.startingLocationId).toBe(DEFAULT_STARTING_LOCATION_ID);
+    expect(inspectSandboxState(createInitialSandboxState()).ok).toBe(true);
+  });
+
+  it('contexto customizado válido continua funcionando', () => {
+    const context = freezeContext(customContext());
+    const inspected = expectInspected(context);
+    const sandbox = createInitialSandboxState(context);
+
+    expect(inspected.startingLocationId).toBe(CUSTOM_START);
+    expect(sandbox.navigation.currentLocationId).toBe(CUSTOM_START);
+    expect(inspectSandboxState(sandbox, context).ok).toBe(true);
+  });
+
+  it('inspectSandboxContext devolve índices reconstruídos e preserva o local inicial', () => {
+    const context = customContext();
+    const inspected = expectInspected(context);
+
+    expect(inspected.startingLocationId).toBe(context.startingLocationId);
+    expect(inspected.map).not.toBe(context.map);
+    expect(inspected.map.locations).not.toBe(context.map.locations);
+    expect(inspected.map.parents).not.toBe(context.map.parents);
+    expect(inspected.map.children).not.toBe(context.map.children);
+    expect(inspected.exploration).not.toBe(context.exploration);
+    expect(inspected.exploration.byLocation).not.toBe(context.exploration.byLocation);
+    expect(inspected.resources).not.toBe(context.resources);
+    expect(inspected.resources.byNode).not.toBe(context.resources.byNode);
+    expect(inspected.crafting).not.toBe(context.crafting);
+    expect(inspected.crafting.byRecipe).not.toBe(context.crafting.byRecipe);
+    expect(inspected.map.locations.has(CUSTOM_START)).toBe(true);
+    expect(inspected.exploration.byLocation.has(CUSTOM_START)).toBe(true);
+    expect(inspected.resources.byNode.has('test-herbs')).toBe(true);
+    expect(inspected.crafting.byRecipe.has('craft-test-cord')).toBe(true);
+  });
+
+  it('Map locations adulterado é reconstruído a partir da raiz', () => {
+    const source = customContext();
+    const adversarial = copyContext(source);
+    mutableMap(adversarial.map.locations).clear();
+    mutableMap(adversarial.map.locations).set('hacked', adversarial.map.root);
+
+    const inspected = expectInspected(adversarial);
+    expect(inspected.map).not.toBe(adversarial.map);
+    expect(inspected.map.locations).not.toBe(adversarial.map.locations);
+    expect(inspected.map.locations.has(CUSTOM_START)).toBe(true);
+    expect(inspected.map.locations.has('test-region')).toBe(true);
+    expect(inspected.map.locations.has('hacked')).toBe(false);
+  });
+
+  it('Maps parents e children adulterados não contaminam o resultado', () => {
+    const adversarial = copyContext(customContext());
+    mutableMap(adversarial.map.parents).clear();
+    mutableMap(adversarial.map.parents).set('hacked', 'hacked-parent');
+    mutableMap(adversarial.map.children).clear();
+    mutableMap(adversarial.map.children).set('hacked', Object.freeze(['hacked-child']));
+
+    const inspected = expectInspected(adversarial);
+    expect(inspected.map.parents.has('hacked')).toBe(false);
+    expect(inspected.map.children.has('hacked')).toBe(false);
+    expect(inspected.map.parents.get(CUSTOM_START)).toBe('test-region');
+    expect(inspected.map.children.get('test-region')).toEqual([CUSTOM_START]);
+  });
+
+  it('índices de exploração adulterados não contaminam o resultado', () => {
+    const source = customContext();
+    const adversarial = copyContext(source);
+    const fakeExploration = source.exploration.byLocation.get(CUSTOM_START);
+    if (!fakeExploration) {
+      throw new Error('A fixture customizada precisa da exploração de teste.');
+    }
+
+    mutableMap(adversarial.exploration.byLocation).clear();
+    mutableMap(adversarial.exploration.byLocation).set('hacked', fakeExploration);
+    mutableMap(adversarial.exploration.byDiscovery).clear();
+    mutableMap(adversarial.exploration.byDiscovery).set('hacked', fakeExploration.discoveries[0]);
+    mutableMap(adversarial.exploration.locationByDiscovery).clear();
+    mutableMap(adversarial.exploration.locationByDiscovery).set('hacked', 'hacked');
+
+    const inspected = expectInspected(adversarial);
+    expect(inspected.exploration).not.toBe(adversarial.exploration);
+    expect(inspected.exploration.byLocation.has('hacked')).toBe(false);
+    expect(inspected.exploration.byDiscovery.has('hacked')).toBe(false);
+    expect(inspected.exploration.locationByDiscovery.has('hacked')).toBe(false);
+    expect(inspected.exploration.byLocation.has(CUSTOM_START)).toBe(true);
+    expect(inspected.exploration.byDiscovery.has('test-herbs')).toBe(true);
+    expect(inspected.exploration.locationByDiscovery.get('test-herbs')).toBe(CUSTOM_START);
+  });
+
+  it('índices de recursos adulterados não contaminam o resultado', () => {
+    const source = customContext();
+    const adversarial = copyContext(source);
+    const fakeNode = source.resources.byNode.get('test-herbs');
+    if (!fakeNode) {
+      throw new Error('A fixture customizada precisa do recurso de teste.');
+    }
+
+    mutableMap(adversarial.resources.byNode).clear();
+    mutableMap(adversarial.resources.byNode).set('hacked', fakeNode);
+    mutableMap(adversarial.resources.byPopulation).clear();
+    mutableMap(adversarial.resources.byPopulation).set('hacked', {
+      id: 'hacked',
+      speciesId: 'hacked',
+      carryingCapacity: 1,
+      recoveryPerDay: 1,
+      warningThreshold: 1,
+      criticalThreshold: 1,
+    });
+    mutableMap(adversarial.resources.nodesByPopulation).clear();
+    mutableMap(adversarial.resources.nodesByPopulation).set('hacked', Object.freeze(['hacked']));
+
+    const inspected = expectInspected(adversarial);
+    expect(inspected.resources).not.toBe(adversarial.resources);
+    expect(inspected.resources.byNode.has('hacked')).toBe(false);
+    expect(inspected.resources.byPopulation.has('hacked')).toBe(false);
+    expect(inspected.resources.nodesByPopulation.has('hacked')).toBe(false);
+    expect(inspected.resources.byNode.has('test-herbs')).toBe(true);
+  });
+
+  it('índices de crafting adulterados não contaminam o resultado', () => {
+    const source = customContext();
+    const adversarial = copyContext(source);
+    const fakeRecipe = source.crafting.byRecipe.get('craft-test-cord');
+    const fakeStructure = source.crafting.byStructure.get('test-bench');
+    if (!fakeRecipe || !fakeStructure) {
+      throw new Error('A fixture customizada precisa das definições de crafting de teste.');
+    }
+
+    mutableMap(adversarial.crafting.byRecipe).clear();
+    mutableMap(adversarial.crafting.byRecipe).set('hacked', fakeRecipe);
+    mutableMap(adversarial.crafting.byStructure).clear();
+    mutableMap(adversarial.crafting.byStructure).set('hacked', fakeStructure);
+
+    const inspected = expectInspected(adversarial);
+    expect(inspected.crafting).not.toBe(adversarial.crafting);
+    expect(inspected.crafting.byRecipe.has('hacked')).toBe(false);
+    expect(inspected.crafting.byStructure.has('hacked')).toBe(false);
+    expect(inspected.crafting.byRecipe.has('craft-test-cord')).toBe(true);
+    expect(inspected.crafting.byStructure.has('test-bench')).toBe(true);
+  });
+
+  it('recursos são reconstruídos contra a exploração normalizada', () => {
+    const adversarial = copyContext(customContext());
+    mutableMap(adversarial.exploration.byDiscovery).clear();
+    mutableMap(adversarial.exploration.locationByDiscovery).clear();
+
+    const inspected = expectInspected(adversarial);
+    expect(inspected.resources.byNode.has('test-herbs')).toBe(true);
+    expect(inspected.exploration.byDiscovery.has('test-herbs')).toBe(true);
+  });
+
+  it('contexto com recurso incompatível com a exploração é rejeitado', () => {
+    const source = customContext();
+    const invalid: SandboxContext = {
+      ...source,
+      resources: {
+        ...source.resources,
+        nodes: [{ ...CUSTOM_NODES[0], discoveryId: 'descoberta-ausente' }],
+      },
+    };
+
+    const inspected = inspectSandboxContext(invalid);
+    expect(inspected).toEqual({ ok: false, reason: 'A descoberta não existe.' });
+  });
+
+  it('contexto com exploração incompatível com o mapa é rejeitado', () => {
+    const source = customContext();
+    const invalid: SandboxContext = {
+      ...source,
+      exploration: {
+        ...source.exploration,
+        definitions: [{ ...CUSTOM_EXPLORATION[0], locationId: 'lugar-inexistente' }],
+      },
+    };
+
+    const inspected = inspectSandboxContext(invalid);
+    expect(inspected).toEqual({ ok: false, reason: 'A localização não existe.' });
+  });
+
+  it('contexto com local inicial ausente na raiz é rejeitado', () => {
+    const source = customContext();
+    const invalid: SandboxContext = {
+      ...source,
+      startingLocationId: 'lugar-fantasma',
+      map: {
+        ...source.map,
+        locations: new Map([...source.map.locations, ['lugar-fantasma', source.map.root]]),
+      },
+    };
+
+    const inspected = inspectSandboxContext(invalid);
+    expect(inspected.ok).toBe(false);
+    if (inspected.ok) {
+      return;
+    }
+
+    expect(inspected.reason).toBe('A localização inicial não existe.');
+  });
+
+  it('createInitialSandboxState rejeita contexto integralmente inválido', () => {
+    const source = customContext();
+    const invalid: SandboxContext = {
+      ...source,
+      exploration: {
+        ...source.exploration,
+        definitions: [{ ...CUSTOM_EXPLORATION[0], locationId: 'lugar-inexistente' }],
+      },
+    };
+
+    expect(() => createInitialSandboxState(invalid)).toThrow(SandboxError);
+    expect(() => createInitialSandboxState(invalid)).toThrow('A localização não existe.');
+    expect(() => serializeGameState(freshState(), invalid)).toThrow(PersistenceError);
+    expect(parseGameState(serializeGameState(freshState()), invalid).status).toBe('corrupt');
+  });
+
+  it('createInitialSandboxState usa o contexto normalizado', () => {
+    const adversarial = copyContext(customContext());
+    mutableMap(adversarial.map.locations).clear();
+    mutableMap(adversarial.crafting.byRecipe).clear();
+
+    const sandbox = createInitialSandboxState(adversarial);
+    expect(sandbox.navigation.currentLocationId).toBe(CUSTOM_START);
+    expect(sandbox.crafting.knownRecipeIds).toEqual(['craft-test-cord']);
+    expect(sandbox.resources.nodes.map((entry) => entry.nodeId)).toEqual(['test-herbs']);
+    expect(inspectSandboxState(sandbox, adversarial).ok).toBe(true);
+  });
+
+  it('estado criado com contexto válido serializa no mesmo contexto e não nasce inválido', () => {
+    const context = freezeContext(customContext());
+    const state = createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, 'awakening', now, context);
+
+    expect(inspectSandboxState(state.sandbox, context).ok).toBe(true);
+    expect(inspectGameState(state, context).ok).toBe(true);
+    expect(parseGameState(serializeGameState(state, context), context)).toEqual({ status: 'ok', state });
+  });
+
+  it('alterar os Maps originais depois da inspeção não altera o contexto normalizado', () => {
+    const source = customContext();
+    const inspected = expectInspected(source);
+
+    mutableMap(source.map.locations).set('hacked', source.map.root);
+    mutableMap(source.map.parents).set('hacked', 'hacked-parent');
+    mutableMap(source.map.children).set('hacked', Object.freeze(['hacked-child']));
+    mutableMap(source.exploration.byLocation).set('hacked', CUSTOM_EXPLORATION[0]);
+    mutableMap(source.exploration.byDiscovery).set('hacked', CUSTOM_EXPLORATION[0].discoveries[0]);
+    mutableMap(source.exploration.locationByDiscovery).set('hacked', 'hacked');
+    mutableMap(source.resources.byNode).set('hacked', CUSTOM_NODES[0]);
+    mutableMap(source.crafting.byRecipe).set('hacked', CUSTOM_RECIPES[0]);
+    mutableMap(source.crafting.byStructure).set('hacked', CUSTOM_STRUCTURES[0]);
+
+    expect(inspected.map.locations.has('hacked')).toBe(false);
+    expect(inspected.map.parents.has('hacked')).toBe(false);
+    expect(inspected.map.children.has('hacked')).toBe(false);
+    expect(inspected.exploration.byLocation.has('hacked')).toBe(false);
+    expect(inspected.exploration.byDiscovery.has('hacked')).toBe(false);
+    expect(inspected.exploration.locationByDiscovery.has('hacked')).toBe(false);
+    expect(inspected.resources.byNode.has('hacked')).toBe(false);
+    expect(inspected.crafting.byRecipe.has('hacked')).toBe(false);
+    expect(inspected.crafting.byStructure.has('hacked')).toBe(false);
+  });
+
+  it('contextos e definições originais permanecem imutáveis', () => {
+    const context = freezeContext(customContext());
+    const snapshot = {
+      startingLocationId: context.startingLocationId,
+      root: context.map.root,
+      locations: [...context.map.locations.keys()],
+      parents: [...context.map.parents.entries()],
+      children: [...context.map.children.entries()],
+      exploration: context.exploration.definitions,
+      resources: context.resources.nodes,
+      populations: context.resources.populations,
+      recipes: context.crafting.recipes,
+      structures: context.crafting.structures,
+      byLocation: [...context.exploration.byLocation.keys()],
+      byRecipe: [...context.crafting.byRecipe.keys()],
+    };
+
+    expectInspected(context);
+    createInitialSandboxState(context);
+
+    expect(context.startingLocationId).toBe(snapshot.startingLocationId);
+    expect(context.map.root).toBe(snapshot.root);
+    expect([...context.map.locations.keys()]).toEqual(snapshot.locations);
+    expect([...context.map.parents.entries()]).toEqual(snapshot.parents);
+    expect([...context.map.children.entries()]).toEqual(snapshot.children);
+    expect(context.exploration.definitions).toBe(snapshot.exploration);
+    expect(context.resources.nodes).toBe(snapshot.resources);
+    expect(context.resources.populations).toBe(snapshot.populations);
+    expect(context.crafting.recipes).toBe(snapshot.recipes);
+    expect(context.crafting.structures).toBe(snapshot.structures);
+    expect([...context.exploration.byLocation.keys()]).toEqual(snapshot.byLocation);
+    expect([...context.crafting.byRecipe.keys()]).toEqual(snapshot.byRecipe);
+  });
+
+  it('chamadas sem contexto continuam funcionando', () => {
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now);
+    const persistence = createMemoryPersistence();
+
+    expect(inspectSandboxContext(createSandboxContext()).ok).toBe(true);
+    expect(inspectSandboxState(state.sandbox).ok).toBe(true);
+    expect(inspectGameState(state).ok).toBe(true);
+    expect(() => serializeGameState(state)).not.toThrow();
+    expect(parseGameState(serializeGameState(state))).toEqual({ status: 'ok', state });
+    persistence.save(state);
+    expect(persistence.load()).toEqual({ status: 'ok', state });
+  });
+});
+

@@ -53,7 +53,7 @@ interface GameState {
 }
 ```
 
-O módulo `modules/sandbox` indexa o mapa e as definições iniciais, cria o estado integrado e valida o conjunto. O `SandboxContext` inclui `startingLocationId`, mapa e índices. Persistência e migração podem receber esse contexto; omitido, a aplicação usa o contexto padrão. As definições, o mapa, o local inicial do contexto e os índices (`Map`) não entram no JSON. Um save é validado contra o contexto usado para carregá-lo.
+O módulo `modules/sandbox` indexa o mapa e as definições iniciais, cria o estado integrado e valida o conjunto. O `SandboxContext` inclui `startingLocationId`, mapa e índices. Antes de qualquer uso, `inspectSandboxContext` reconstrói o contexto na ordem mapa → exploração → recursos → crafting a partir das definições declarativas; os Maps recebidos nunca são devolvidos. Persistência e migração podem receber esse contexto; omitido, a aplicação usa o contexto padrão. As definições, o mapa, o local inicial do contexto e os índices (`Map`) não entram no JSON. Um save é validado contra o contexto normalizado usado para carregá-lo.
 
 ## Fontes canônicas
 
@@ -89,7 +89,7 @@ Carregar não aplica tempo, não renova recursos e não recupera populações.
 
 ## Validação
 
-`inspectGameState` valida o schema 2 e delega a `inspectNavigationState`, `inspectExplorationState`, `inspectResourcesState` e `inspectCraftingState`. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
+`inspectSandboxContext` é a fronteira do contexto: falha com `{ ok: false, reason }` se o conjunto for incoerente. `createInitialSandboxState` inspeciona o contexto por completo e só então cria o estado com os índices normalizados; contexto inválido lança `SandboxError`. `inspectGameState` valida o schema 2, normaliza o contexto e delega a `inspectNavigationState`, `inspectExplorationState`, `inspectResourcesState` e `inspectCraftingState`. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
 
 `serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` opcional. `save` e `load` da mesma persistência usam o mesmo contexto. Sem argumento, o contexto padrão da Clareira do Despertar continua em vigor.
 

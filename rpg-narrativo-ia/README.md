@@ -91,14 +91,14 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 2`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- O salvamento local usa `schemaVersion: 2`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting e o estado integrado persistido; orquestrador, exploração livre e menus dos novos sistemas ainda não.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 264 testes, incluindo a correção do `SandboxContext` na persistência e os 249 testes anteriores da Fatia 7.1.
+- `npm test`: 282 testes, incluindo o endurecimento da normalização do `SandboxContext` e os 264 testes anteriores da Fatia 7.1.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - O fluxo visual do MVP permanece intacto: criação de personagem, escolhas, resumo, continuar e apagar save. Não há tela de mapa, botão de explorar, coleta nem menu de crafting nesta fatia.
