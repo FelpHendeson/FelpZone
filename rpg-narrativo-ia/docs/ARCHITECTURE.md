@@ -354,7 +354,7 @@ Interface, aplicação do custo no relógio e o loop completo do jogo ficam fora
 
 ## Contrato de estado integrado
 
-O módulo `modules/sandbox` reúne mapa e definições iniciais, cria o `SandboxState` e valida o conjunto. Não altera a interface nesta fatia e não aplica tempo.
+O módulo `modules/sandbox` reúne mapa e definições iniciais, cria o `SandboxState` e valida o conjunto. O orquestrador em `modules/sandbox-actions` aplica ações e tempo sobre o `GameState` integrado, sem alterar a interface.
 
 ```ts
 interface SandboxContext {
@@ -375,12 +375,18 @@ interface SandboxState {
 
 Fontes canônicas: `world` para o relógio, `inventory` para itens, `flags` para flags, `sandbox.*` para os quatro sistemas de mundo. Adaptadores `worldToTimeState` e `timeStateToWorld` convertem o relógio persistido sem mutação. O local inicial vive no contexto, não no save. Todo `SandboxContext` consumido pela aplicação é reconstruído e normalizado antes do uso; os Maps originais não sobrevivem à inspeção.
 
-Operações públicas:
+Operações públicas do sandbox:
 
 - `createSandboxContext` e `createInitialSandboxState`;
 - `inspectSandboxContext` e `inspectSandboxState`.
 
-A persistência serializa somente o schema 2 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6. Orquestrador de ações, exploração livre e menus visuais pertencem às Fatias 7.2 a 7.4.
+Operação pública do orquestrador:
+
+- `executeSandboxAction`.
+
+A persistência serializa somente o schema 2 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6.
+
+O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Não persiste e não altera a interface. Exploração livre e menus visuais pertencem às Fatias 7.3 e 7.4.
 
 ## Contratos do motor
 
@@ -408,7 +414,7 @@ interface NarrativeSession {
 }
 ```
 
-A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. A Fatia 7.1 introduziu o schema 2 com sandbox persistido, mas manteve `currentEventId` obrigatório para não quebrar a interface atual. A sessão narrativa opcional fica para as Fatias 7.2/7.3.
+A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. A Fatia 7.1 introduziu o schema 2 com sandbox persistido, mas manteve `currentEventId` obrigatório para não quebrar a interface atual. A sessão narrativa opcional fica para a Fatia 7.3.
 
 ## Testes prioritários
 

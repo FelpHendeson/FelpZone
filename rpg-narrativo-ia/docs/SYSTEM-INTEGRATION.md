@@ -4,11 +4,11 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.1 — Estado integrado e persistência principal
 
-**Implementada.** O `GameState` passa a carregar um `SandboxState` e o save usa `schemaVersion: 2`. A interface narrativa do MVP permanece a mesma: não há orquestrador de ações, menus novos nem aplicação de custos.
+**Implementada.** O `GameState` passa a carregar um `SandboxState` e o save usa `schemaVersion: 2`. A interface narrativa do MVP permanece a mesma.
 
 ## Fatia 7.2 — Orquestrador de ações e tempo
 
-Ainda não implementada. Deve aplicar custos temporais exatamente uma vez, renovar recursos quando o relógio avançar e coordenar movimento, exploração, coleta e crafting sem duplicar regras.
+**Implementada.** `executeSandboxAction` executa exatamente uma ação primária sobre o `GameState`, aplica o `TimeCost` uma única vez via `advanceDayCycle`, recupera populações, sincroniza renovação, reavalia descobertas e receitas sem custo extra e devolve um estado novo. Não persiste e não altera a interface.
 
 ## Fatia 7.3 — Da introdução à exploração livre
 
@@ -93,11 +93,47 @@ Carregar não aplica tempo, não renova recursos e não recupera populações.
 
 `serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` opcional. `save` e `load` da mesma persistência usam o mesmo contexto. Sem argumento, o contexto padrão da Clareira do Despertar continua em vigor.
 
+## Orquestrador de ações
+
+O módulo `modules/sandbox-actions` é a fronteira pura da Fatia 7.2. Ele não vive em componentes React nem na persistência.
+
+```ts
+type SandboxAction =
+  | { type: 'navigation.move'; locationId: string }
+  | { type: 'exploration.explore' }
+  | { type: 'resource.collect'; nodeId: string; units: number }
+  | { type: 'crafting.craft'; recipeId: string };
+
+function executeSandboxAction(
+  state: GameState,
+  action: SandboxAction,
+  options?: { context?: SandboxContext; now?: () => string },
+): SandboxActionResult;
+```
+
+`now` só preenche `updatedAt`. Não é o relógio do jogo. Sem contexto, usa o contexto padrão. A ação só corre com `status: 'playing'`. `currentEventId` não muda.
+
+Antes de executar, o orquestrador normaliza o contexto, valida o `GameState` contra ele e rejeita ação malformada. Falhas lançam `SandboxActionError`, preservam a mensagem do módulo e o `cause` quando encapsulam erros de domínio, e não entregam estado parcial.
+
+### Ordem da transação
+
+1. ação primária (movimento, exploração, coleta ou crafting);
+2. `advanceDayCycle` com o `TimeCost` devolvido — nunca `advanceTime` direto;
+3. se o custo for maior que zero: `applyPopulationDayCycle` só com os eventos dessa ação;
+4. se o custo for maior que zero: `synchronizeResourceRenewal` com o horário final;
+5. `reevaluateDiscoveries` no local atual, sem custo;
+6. `synchronizeKnownRecipes`, sem custo;
+7. montar e validar o `GameState` final.
+
+Custo zero mantém o relógio, não emite eventos de ciclo, não recupera população e não renova recursos. As reavaliações gratuitas ainda podem ocorrer. Recuperação só em `day.started`. Renovação temporal só quando o relógio avançou.
+
+A operação é atômica: se qualquer etapa falhar, o `GameState` recebido permanece intacto. O orquestrador não chama `serializeGameState`, `save` nem `localStorage`.
+
 ## Fora desta fatia
 
 - botões de navegação, explorar, coletar e fabricar;
-- aplicação de custos temporais;
+- mapa visual, menu de crafting ou inventário visual novo;
 - renovação ou recuperação no carregamento;
-- orquestrador de ações;
 - troca automática da narrativa pelo sandbox;
+- `currentEventId` opcional;
 - encontros, NPCs, combate, sobrevivência, clima, agenda, ferramentas, combustível, backend e IA em runtime.

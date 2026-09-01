@@ -58,7 +58,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.2 — Orquestrador de ações e tempo
 
-Ainda não implementada. Aplicar custos temporais uma vez e coordenar movimento, exploração, coleta e crafting.
+**Implementada.** `executeSandboxAction` aplica o custo uma vez, recupera populações, sincroniza renovação e reavalia descobertas e receitas sem alterar a interface.
 
 #### Fatia 7.3 — Da introdução à exploração livre
 

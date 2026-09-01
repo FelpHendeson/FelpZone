@@ -14,7 +14,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
   - pontos de recurso e ecologia;
   - crafting, estruturas locais e cozinha.
 - A Fatia 7.1 — estado integrado e persistência principal — está implementada: `schemaVersion: 2`, `GameState.sandbox` e migração v1 → v2. O `SandboxContext` inclui o local inicial, é reconstruído/normalizado antes do uso e pode ser passado à persistência; a aplicação continua no contexto padrão.
-- As Fatias 7.2, 7.3 e 7.4 ainda não foram implementadas. O Sistema 7 não está concluído.
+- A Fatia 7.2 — orquestrador de ações e tempo — está implementada: `executeSandboxAction` aplica movimento, exploração, coleta e crafting sobre o `GameState`, com custo único, recuperação, renovação e reavaliações gratuitas. Não persiste e não altera a interface.
+- As Fatias 7.3 e 7.4 ainda não foram implementadas. O Sistema 7 não está concluído.
 - A interface narrativa do MVP permanece a mesma.
 
 ## Como preparar a máquina
@@ -74,10 +75,12 @@ Estado conhecido:
 
 - Sistemas 1 a 6 estão consolidados;
 - a Fatia 7.1 persistiu o sandbox no GameState com schemaVersion 2 e migração v1 → v2;
-- ainda não há orquestrador de ações, aplicação de custos, exploração livre nem menus dos novos sistemas;
+- a Fatia 7.2 orquestra movimento, exploração, coleta e crafting com aplicação única do tempo;
+- ainda não há exploração livre nem menus dos novos sistemas;
+- currentEventId continua obrigatório;
 - o Sistema 7 não está concluído.
 
-Sua primeira tarefa é validar e revisar a Fatia 7.1 contra docs/SYSTEM-INTEGRATION.md.
+Sua primeira tarefa é validar e revisar a Fatia 7.2 contra docs/SYSTEM-INTEGRATION.md.
 
 Execute:
 
@@ -88,15 +91,14 @@ npm run build
 
 Revise especialmente:
 
+- aplicação única do TimeCost via advanceDayCycle;
+- ordem recuperação → renovação somente quando o relógio avança;
+- reavaliações gratuitas de descobertas e receitas;
 - fontes canônicas de world, inventory e flags;
-- ausência de segundo relógio, mapas e definições no JSON;
-- validação profunda delegada aos Sistemas 3 a 6;
-- migração v1 → v2 sem gameplay e sem mutar o save antigo;
-- leitura que não regrava o localStorage;
-- currentEventId ainda obrigatório e compatível com a UI atual;
-- imutabilidade e ausência de ciclos de importação via barrel de core/state.
+- atomicidade do GameState e ausência de persistência automática;
+- currentEventId ainda obrigatório e interface narrativa intacta.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.1. Se não houver problemas, declare a Fatia 7.1 consolidada e então prepare, somente quando eu pedir, o prompt da Fatia 7.2 — orquestrador de ações e tempo.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.2. Se não houver problemas, declare a Fatia 7.2 consolidada e então prepare, somente quando eu pedir, o prompt da Fatia 7.3 — da introdução à exploração livre.
 
 Preserve o ciclo de trabalho:
 
@@ -107,4 +109,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão depois da revisão
 
-Se a Fatia 7.1 passar sem achados, a próxima etapa autorizável é a Fatia 7.2 — orquestrador de ações e tempo, descrita em `docs/SYSTEM-INTEGRATION.md` e `docs/ROADMAP.md`. As Fatias 7.3 e 7.4 continuam depois. O Sistema 7 ainda não está implementado por completo.
+Se a Fatia 7.2 passar sem achados, a próxima etapa autorizável é a Fatia 7.3 — da introdução à exploração livre, descrita em `docs/SYSTEM-INTEGRATION.md` e `docs/ROADMAP.md`. A Fatia 7.4 continua depois. O Sistema 7 ainda não está implementado por completo.
