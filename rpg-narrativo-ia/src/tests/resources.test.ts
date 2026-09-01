@@ -20,6 +20,7 @@ import {
   type NavigationState,
 } from '../modules/navigation';
 import {
+  COLLECTION_IN_THE_PAST_REASON,
   DEFAULT_RESOURCE_BLOCKED_REASON,
   EXHAUSTED_RESOURCE_REASON,
   EXTINCT_POPULATION_REASON,
@@ -52,7 +53,7 @@ import {
   type ResourceNodeDefinition,
   type ResourcesState,
 } from '../modules/resources';
-import { MAX_ADVANCE_PERIODS, advanceTime, createInitialTime } from '../modules/time';
+import { DEFAULT_PERIODS, MAX_ADVANCE_PERIODS, advanceTime, createInitialTime } from '../modules/time';
 import { freshState } from './helpers';
 
 const START = DEFAULT_STARTING_LOCATION_ID;
@@ -147,6 +148,18 @@ function freezeState(state: ResourcesState): ResourcesState {
     populations: Object.freeze(state.populations.map((entry) => Object.freeze({ ...entry }))) as ResourcesState['populations'],
   });
 }
+
+function patchNode(state: ResourcesState, nodeId: string, patch: Partial<ResourcesState['nodes'][number]>): ResourcesState {
+  return {
+    ...state,
+    nodes: state.nodes.map((entry) => (entry.nodeId === nodeId ? { ...entry, ...patch } : entry)),
+  };
+}
+
+const CUSTOM_PERIODS = [
+  ...DEFAULT_PERIODS,
+  { id: 'madrugada', label: 'Madrugada' },
+];
 
 describe('recursos e ecologia', () => {
   it('indexa as definições iniciais', () => {
@@ -1225,5 +1238,314 @@ describe('recursos e ecologia', () => {
     expect(first).toEqual(second);
     expect(state.nodes[0]?.availableUnits).toBe(4);
     expect(getResourceYields(definitions, 'spring')).toEqual([{ itemId: 'raw-water', quantityPerUnit: 1 }]);
+  });
+
+  it('rejeita ponto parcial sem lastCollectedAt ou nextRenewalAt', () => {
+    const definitions = worldResources();
+    const valid = createInitialResources(definitions);
+    const lastCollectedAt = createInitialTime();
+    const nextRenewalAt = advanceTime(lastCollectedAt, { periods: 2 }).current;
+
+    expect(
+      inspectResourcesState(
+        patchNode(valid, 'fallen-sticks', { availableUnits: 2, nextRenewalAt, exhausted: false }),
+        definitions,
+      ),
+    ).toMatchObject({ ok: false, reason: 'A data do ponto é inválida.' });
+    expect(
+      inspectResourcesState(
+        patchNode(valid, 'fallen-sticks', { availableUnits: 2, lastCollectedAt, exhausted: false }),
+        definitions,
+      ),
+    ).toMatchObject({ ok: false, reason: 'A renovação agendada é inválida.' });
+  });
+
+  it('só aceita o prazo de renovação exatamente calculado na política curta e longa', () => {
+    const map = worldMap();
+    const exploration = worldExploration(map);
+    const shortDefinitions = worldResources(map, exploration);
+    const shortValid = createInitialResources(shortDefinitions);
+    const shortCollectedAt = createInitialTime();
+    const shortExact = advanceTime(shortCollectedAt, { periods: 2 }).current;
+    const shortBefore = advanceTime(shortCollectedAt, { periods: 1 }).current;
+    const shortAfter = advanceTime(shortCollectedAt, { periods: 3 }).current;
+
+    expect(
+      inspectResourcesState(
+        patchNode(shortValid, 'fallen-sticks', {
+          availableUnits: 2,
+          lastCollectedAt: shortCollectedAt,
+          nextRenewalAt: shortBefore,
+          exhausted: false,
+        }),
+        shortDefinitions,
+      ),
+    ).toMatchObject({ ok: false, reason: 'A renovação agendada é inválida.' });
+    expect(
+      inspectResourcesState(
+        patchNode(shortValid, 'fallen-sticks', {
+          availableUnits: 2,
+          lastCollectedAt: shortCollectedAt,
+          nextRenewalAt: shortAfter,
+          exhausted: false,
+        }),
+        shortDefinitions,
+      ),
+    ).toMatchObject({ ok: false, reason: 'A renovação agendada é inválida.' });
+    expect(
+      inspectResourcesState(
+        patchNode(shortValid, 'fallen-sticks', {
+          availableUnits: 2,
+          lastCollectedAt: shortCollectedAt,
+          nextRenewalAt: shortExact,
+          exhausted: false,
+        }),
+        shortDefinitions,
+      ).ok,
+    ).toBe(true);
+
+    const longDefinitions = indexResourceDefinitions(
+      [
+        node({
+          id: 'rare-fungus',
+          discoveryId: 'spring-water',
+          locationId: 'spring-lake',
+          capacity: 2,
+          maxCollectionPerAction: 2,
+          renewal: { type: 'long', days: 3 },
+          yields: [{ itemId: 'rare-fungus', quantityPerUnit: 1 }],
+        }),
+      ],
+      [],
+      map,
+      exploration,
+    );
+    const longValid = createInitialResources(longDefinitions);
+    const longCollectedAt = { day: 1, periodId: 'manha' };
+    const longExact = { day: 4, periodId: 'manha' };
+
+    expect(
+      inspectResourcesState(
+        patchNode(longValid, 'rare-fungus', {
+          availableUnits: 1,
+          lastCollectedAt: longCollectedAt,
+          nextRenewalAt: { day: 1, periodId: 'alvorecer' },
+          exhausted: false,
+        }),
+        longDefinitions,
+      ),
+    ).toMatchObject({ ok: false, reason: 'A renovação agendada é inválida.' });
+    expect(
+      inspectResourcesState(
+        patchNode(longValid, 'rare-fungus', {
+          availableUnits: 1,
+          lastCollectedAt: longCollectedAt,
+          nextRenewalAt: { day: 5, periodId: 'manha' },
+          exhausted: false,
+        }),
+        longDefinitions,
+      ),
+    ).toMatchObject({ ok: false, reason: 'A renovação agendada é inválida.' });
+    expect(
+      inspectResourcesState(
+        patchNode(longValid, 'rare-fungus', {
+          availableUnits: 1,
+          lastCollectedAt: longCollectedAt,
+          nextRenewalAt: longExact,
+          exhausted: false,
+        }),
+        longDefinitions,
+      ).ok,
+    ).toBe(true);
+  });
+
+  it('rejeita coleta no passado de forma atômica e permite o mesmo horário', () => {
+    const map = worldMap();
+    const exploration = worldExploration(map);
+    const definitions = worldResources(map, exploration);
+    const explorationState = revealed(START, ['fallen-sticks'], 25);
+    const first = collectResource(
+      map,
+      createInitialNavigation(),
+      exploration,
+      explorationState,
+      definitions,
+      createInitialResources(definitions),
+      [],
+      'fallen-sticks',
+      1,
+      { day: 1, periodId: 'manha' },
+    );
+    const frozen = freezeState(first.current);
+    const inventory = Object.freeze(first.inventory.current.map((item) => ({ ...item })));
+
+    expect(() =>
+      collectResource(
+        map,
+        createInitialNavigation(),
+        exploration,
+        explorationState,
+        definitions,
+        frozen,
+        inventory,
+        'fallen-sticks',
+        1,
+        { day: 1, periodId: 'alvorecer' },
+      ),
+    ).toThrow(COLLECTION_IN_THE_PAST_REASON);
+    expect(frozen).toEqual(first.current);
+    expect(inventory).toEqual(first.inventory.current);
+
+    const sameTime = collectResource(
+      map,
+      createInitialNavigation(),
+      exploration,
+      explorationState,
+      definitions,
+      first.current,
+      first.inventory.current,
+      'fallen-sticks',
+      1,
+      { day: 1, periodId: 'manha' },
+    );
+    expect(sameTime.collectedUnits).toBe(1);
+    expect(sameTime.node.current.lastCollectedAt).toEqual({ day: 1, periodId: 'manha' });
+    expect(sameTime.node.current.nextRenewalAt).toEqual(advanceTime({ day: 1, periodId: 'manha' }, { periods: 2 }).current);
+  });
+
+  it('recalcula o prazo na nova coleta e não acelera renovação no roundtrip', () => {
+    const map = worldMap();
+    const exploration = worldExploration(map);
+    const definitions = worldResources(map, exploration);
+    const explorationState = revealed(START, ['fallen-sticks'], 25);
+    const first = collectResource(
+      map,
+      createInitialNavigation(),
+      exploration,
+      explorationState,
+      definitions,
+      createInitialResources(definitions),
+      [],
+      'fallen-sticks',
+      1,
+      createInitialTime(),
+    );
+    const second = collectResource(
+      map,
+      createInitialNavigation(),
+      exploration,
+      explorationState,
+      definitions,
+      first.current,
+      first.inventory.current,
+      'fallen-sticks',
+      1,
+      { day: 1, periodId: 'manha' },
+    );
+    const restored = inspectResourcesState(JSON.parse(JSON.stringify(second.current)) as ResourcesState, definitions);
+
+    expect(first.node.current.nextRenewalAt).toEqual(advanceTime(createInitialTime(), { periods: 2 }).current);
+    expect(second.node.current.lastCollectedAt).toEqual({ day: 1, periodId: 'manha' });
+    expect(second.node.current.nextRenewalAt).toEqual(advanceTime({ day: 1, periodId: 'manha' }, { periods: 2 }).current);
+    expect(second.node.current.nextRenewalAt).not.toEqual(first.node.current.nextRenewalAt);
+    expect(restored.ok).toBe(true);
+    if (!restored.ok) {
+      return;
+    }
+
+    expect(restored.value).toEqual(second.current);
+    expect(getResourceNode(synchronizeResourceRenewal(definitions, restored.value, { day: 1, periodId: 'manha' }), 'fallen-sticks').availableUnits).toBe(2);
+    expect(getResourceNode(synchronizeResourceRenewal(definitions, restored.value, { day: 1, periodId: 'manha' }), 'fallen-sticks').nextRenewalAt).toEqual(
+      second.node.current.nextRenewalAt,
+    );
+  });
+
+  it('propaga timeConfig personalizado na coleta, consulta e sincronização', () => {
+    const map = worldMap();
+    const exploration = worldExploration(map);
+    const definitions = worldResources(map, exploration);
+    const explorationState = revealed(START, ['fallen-sticks'], 25);
+    const collectedAt = { day: 1, periodId: 'madrugada' };
+    const first = collectResource(
+      map,
+      createInitialNavigation(),
+      exploration,
+      explorationState,
+      definitions,
+      createInitialResources(definitions),
+      [],
+      'fallen-sticks',
+      1,
+      collectedAt,
+      undefined,
+      CUSTOM_PERIODS,
+    );
+    const due = advanceTime(collectedAt, { periods: 2 }, CUSTOM_PERIODS).current;
+
+    expect(first.node.current.lastCollectedAt).toEqual(collectedAt);
+    expect(first.node.current.nextRenewalAt).toEqual(due);
+    expect(
+      inspectResourceAccess(
+        map,
+        createInitialNavigation(),
+        exploration,
+        explorationState,
+        definitions,
+        first.current,
+        'fallen-sticks',
+        undefined,
+        CUSTOM_PERIODS,
+      ).collectable,
+    ).toBe(true);
+    expect(
+      canCollectResource(
+        map,
+        createInitialNavigation(),
+        exploration,
+        explorationState,
+        definitions,
+        first.current,
+        'fallen-sticks',
+        undefined,
+        CUSTOM_PERIODS,
+      ),
+    ).toBe(true);
+
+    const second = collectResource(
+      map,
+      createInitialNavigation(),
+      exploration,
+      explorationState,
+      definitions,
+      first.current,
+      first.inventory.current,
+      'fallen-sticks',
+      1,
+      collectedAt,
+      undefined,
+      CUSTOM_PERIODS,
+    );
+    expect(second.collectedUnits).toBe(1);
+    expect(second.node.current.nextRenewalAt).toEqual(due);
+
+    const synced = synchronizeResourceRenewal(definitions, second.current, due, CUSTOM_PERIODS);
+    expect(getResourceNode(synced, 'fallen-sticks')).toMatchObject({
+      availableUnits: 4,
+      exhausted: false,
+    });
+    expect(getResourceNode(synced, 'fallen-sticks').nextRenewalAt).toBeUndefined();
+    expect(inspectResourcesState(first.current, definitions, CUSTOM_PERIODS).ok).toBe(true);
+    expect(inspectResourcesState(first.current, definitions).ok).toBe(false);
+    expect(() =>
+      inspectResourceAccess(
+        map,
+        createInitialNavigation(),
+        exploration,
+        explorationState,
+        definitions,
+        first.current,
+        'fallen-sticks',
+      ),
+    ).toThrow(ResourceError);
   });
 });

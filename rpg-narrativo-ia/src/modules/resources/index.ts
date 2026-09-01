@@ -23,7 +23,14 @@ import {
 import type { DayCycleEvent } from '../day-cycle';
 import { INITIAL_POPULATIONS, INITIAL_RESOURCE_NODES } from './initial-resources';
 import { derivePopulationStatus, recoverPopulation } from './population';
-import { copyNodeState, copyTime, restoreNodeIfDue, scheduleRenewal } from './renewal';
+import {
+  compareGameTime,
+  copyNodeState,
+  copyTime,
+  isSameGameTime,
+  restoreNodeIfDue,
+  scheduleRenewal,
+} from './renewal';
 import {
   ResourceError,
   type IndexedResources,
@@ -50,6 +57,7 @@ export const WRONG_LOCATION_REASON = 'O ponto de recurso não está no local atu
 export const EXHAUSTED_RESOURCE_REASON = 'Este ponto está esgotado.';
 export const EXTINCT_POPULATION_REASON = 'A população local está esgotada.';
 export const UNAVAILABLE_RESOURCE_REASON = 'Não há unidades disponíveis.';
+export const COLLECTION_IN_THE_PAST_REASON = 'A coleta não pode ocorrer antes da última coleta.';
 export const RESOURCE_NODE_KINDS = ['resourceNode', 'creatureHabitat'] as const;
 
 const RESOURCE_ERROR = ResourceError;
@@ -278,6 +286,7 @@ export function inspectResourceAccess(
   state: ResourcesState,
   nodeId: string,
   conditions?: ResourceConditionSource,
+  timeConfig: readonly PeriodDefinition[] = DEFAULT_PERIODS,
 ): ResourceAccess {
   const context = requireCollectionContext(
     map,
@@ -286,6 +295,7 @@ export function inspectResourceAccess(
     explorationState,
     definitions,
     state,
+    timeConfig,
   );
   const definition = context.definitions.byNode.get(nodeId);
   if (!definition) {
@@ -328,6 +338,7 @@ export function canCollectResource(
   state: ResourcesState,
   nodeId: string,
   conditions?: ResourceConditionSource,
+  timeConfig: readonly PeriodDefinition[] = DEFAULT_PERIODS,
 ): boolean {
   return inspectResourceAccess(
     map,
@@ -338,6 +349,7 @@ export function canCollectResource(
     state,
     nodeId,
     conditions,
+    timeConfig,
   ).collectable;
 }
 
@@ -371,6 +383,7 @@ export function collectResource(
     explorationState,
     definitions,
     state,
+    timeConfig,
   );
   const definition = requireNodeDefinition(context.definitions, nodeId);
   const previousNode = getResourceNode(context.state, nodeId);
@@ -380,6 +393,13 @@ export function collectResource(
 
   if (!isPositiveSafeInteger(requestedUnits)) {
     throw new RESOURCE_ERROR('A quantidade solicitada precisa ser um inteiro positivo.');
+  }
+
+  if (
+    previousNode.lastCollectedAt &&
+    compareGameTime(now, previousNode.lastCollectedAt, timeConfig) < 0
+  ) {
+    throw new RESOURCE_ERROR(COLLECTION_IN_THE_PAST_REASON);
   }
 
   const blockedReason = collectionBlockReason(
@@ -899,8 +919,34 @@ function inspectNodeState(
     if (nextRenewalAt.value) {
       return fail('A renovação agendada é inválida.');
     }
-  } else if (!nextRenewalAt.value) {
-    return fail('A renovação agendada é inválida.');
+  } else {
+    if (!lastCollectedAt.value) {
+      return fail('A data do ponto é inválida.');
+    }
+
+    if (!nextRenewalAt.value) {
+      return fail('A renovação agendada é inválida.');
+    }
+
+    let expected: TimeState;
+    try {
+      const scheduled = scheduleRenewal(lastCollectedAt.value, definition.renewal, timeConfig);
+      if (!scheduled) {
+        return fail('A renovação agendada é inválida.');
+      }
+
+      expected = scheduled;
+    } catch (error) {
+      if (error instanceof ResourceError) {
+        return fail('A renovação agendada é inválida.');
+      }
+
+      throw error;
+    }
+
+    if (!isSameGameTime(nextRenewalAt.value, expected)) {
+      return fail('A renovação agendada é inválida.');
+    }
   }
 
   const node: ResourceNodeState = {
@@ -1241,9 +1287,12 @@ function applyNodeCollection(
   };
 
   if (definition.renewal.type === 'short' || definition.renewal.type === 'long') {
-    next.nextRenewalAt = previous.nextRenewalAt
-      ? copyTime(previous.nextRenewalAt)
-      : scheduleRenewal(collectedAt, definition.renewal, timeConfig);
+    const scheduled = scheduleRenewal(collectedAt, definition.renewal, timeConfig);
+    if (!scheduled) {
+      throw new RESOURCE_ERROR('A renovação agendada é inválida.');
+    }
+
+    next.nextRenewalAt = scheduled;
   }
 
   return next;
@@ -1373,6 +1422,7 @@ function requireCollectionContext(
   explorationState: ExplorationState,
   definitions: IndexedResources,
   state: ResourcesState,
+  timeConfig: readonly PeriodDefinition[] = DEFAULT_PERIODS,
 ): {
   map: IndexedMap;
   navigation: NavigationState;
@@ -1386,7 +1436,7 @@ function requireCollectionContext(
   const indexedExploration = requireIndexedExploration(exploration);
   const currentExploration = requireExplorationState(explorationState, indexedExploration, indexedMap);
   const indexedDefinitions = requireIndexedDefinitions(definitions);
-  const currentState = requireState(state, indexedDefinitions);
+  const currentState = requireState(state, indexedDefinitions, timeConfig);
 
   return {
     map: indexedMap,

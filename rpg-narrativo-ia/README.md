@@ -97,7 +97,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 186 testes, incluindo recursos e ecologia (coleta atômica, renovação, populações, extinção local, persistência isolada e imutabilidade) e os 162 testes anteriores do motor, do horário, do ciclo diário, da navegação e da exploração.
+- `npm test`: 191 testes, incluindo recursos e ecologia (coleta atômica, renovação, populações, extinção local, persistência isolada e imutabilidade) e os 162 testes anteriores do motor, do horário, do ciclo diário, da navegação e da exploração.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - O fluxo visual do MVP permanece intacto; as APIs de navegação, exploração e recursos ficam disponíveis nos módulos, sem tela de mapa, botão de explorar ou coleta nesta etapa.

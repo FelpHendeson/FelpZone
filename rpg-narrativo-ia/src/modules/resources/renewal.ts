@@ -21,6 +21,10 @@ export function compareGameTime(
   return leftIndex - rightIndex;
 }
 
+export function isSameGameTime(left: TimeState, right: TimeState): boolean {
+  return left.day === right.day && left.periodId === right.periodId;
+}
+
 export function isRenewalDue(
   now: TimeState,
   nextRenewalAt: TimeState,

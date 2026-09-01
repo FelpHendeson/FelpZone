@@ -120,6 +120,16 @@ Materiais entram em um array de `InventoryItem` independente. Multiplicações e
 
 Sincronizar de novo no mesmo horário é idempotente. Recarregar a página não acelera a renovação.
 
+Para políticas `short` e `long`, o estado restaurado precisa ser coerente com o prazo calculado:
+
+- se `availableUnits < capacity`, `lastCollectedAt` e `nextRenewalAt` são obrigatórios, e `nextRenewalAt` deve ser exatamente o prazo derivado de `lastCollectedAt` e da política;
+- prazo ausente, adulterado, anterior à coleta ou incompatível com a política invalida o estado;
+- se `availableUnits === capacity`, `nextRenewalAt` deve estar ausente; `lastCollectedAt` pode permanecer só como histórico.
+
+Cada nova coleta atualiza `lastCollectedAt` e recalcula `nextRenewalAt`. Um `collectedAt` anterior à última coleta é rejeitado de forma atômica; o mesmo horário continua permitido. A comparação usa a configuração de períodos recebida pela operação.
+
+`collectResource`, `inspectResourceAccess` e `canCollectResource` aceitam `timeConfig` opcional e o encaminham à validação do estado. O padrão continua sendo `DEFAULT_PERIODS`.
+
 ## Populações
 
 A ordem do estado qualitativo é:
