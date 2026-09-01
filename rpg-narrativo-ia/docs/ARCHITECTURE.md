@@ -50,6 +50,7 @@ src/
 │   ├── resources/
 │   ├── crafting/
 │   ├── sandbox/
+│   ├── world-events/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -62,7 +63,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/` e `modules/sandbox/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/` e `modules/world-events/` estão implementados.
 
 ## Responsabilidades
 
@@ -79,6 +80,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `resources`: pontos de coleta com capacidade limitada, renovação e populações ecológicas.
 - `crafting`: receitas, consumo atômico, estruturas locais e cozinha.
 - `sandbox`: composição do estado integrado e validação conjunta dos sistemas 3 a 6.
+- `world-events`: catálogo de gatilhos declarativos que associam descobertas reveladas a sessões narrativas.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -384,13 +386,22 @@ Operação pública do orquestrador:
 
 - `executeSandboxAction`.
 
+Operações públicas dos gatilhos de mundo:
+
+- `inspectWorldTriggerCatalog` e `indexWorldTriggerCatalog`;
+- `resolveEligibleWorldTrigger`;
+- `applyWorldNarrativeTrigger`.
+
 A persistência serializa somente o schema 3 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6.
 
-O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste. A Fatia 7.4 liga a superfície mobile a esse orquestrador: um `SandboxContext` compartilhado alimenta persistência, leitura da interface e `executeSandboxAction`; só `result.current` é gravado. NPCs, criaturas e gatilhos narrativos pelo mundo ainda não.
+O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste.
+
+A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, resolve no máximo um gatilho elegível sobre `result.current` (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession` e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
 
 ## Contratos do motor
 
 - `applyChoice` só age com `status: 'playing'` e sessão narrativa ativa da mesma campanha.
+- `startNarrativeSession` só age com `status: 'playing'`, `narrativeSession === null` e um evento com `canStartSession: true` cujas condições estão satisfeitas. Não avança o relógio, não altera sandbox, inventário, atributos, histórico nem `updatedAt`.
 - Exploração livre (`narrativeSession === null`) não aceita `applyChoice`; `getAvailableChoices` devolve `[]` e `getCurrentEvent` lança.
 - O evento da sessão e a escolha precisam existir e cumprir suas condições.
 - `inventory.remove` falha de forma controlada se a quantidade for insuficiente; o estado anterior permanece intacto.
@@ -398,7 +409,7 @@ O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameStat
 - Relações, capacidades e títulos não são duplicados.
 - `validateCampaign` devolve diagnósticos semânticos (IDs, referências, transições, interpolação, consumo protegido, conectividade estrutural e alcançabilidade semântica).
 - Conectividade estrutural parte de `campaign.firstEventId` e dos eventos com `canStartSession: true`.
-- Alcançabilidade semântica completa percorre só o fluxo inicial. Entradas acionáveis pelo mundo recebem validação estrutural nesta etapa, porque ainda não há contexto de gatilho.
+- Alcançabilidade semântica completa percorre só o fluxo inicial. Entradas acionáveis pelo mundo recebem validação estrutural no walker da introdução; o catálogo de gatilhos valida a associação descoberta → evento.
 - O fluxo inicial é válido se alguma trajetória retorna à exploração ou conclui a partida.
 - `walkCampaignTrajectories` percorre a árvore de escolhas válidas, identifica estados pela sessão narrativa, flags, inventário, atributos, relações, mundo e progressão, e conta retornos à exploração sem classificá-los como dead end.
 
@@ -428,7 +439,7 @@ A presença da sessão é a fonte canônica:
 - `status: 'playing'` e `narrativeSession === null`: exploração livre;
 - `status: 'completed'`: encerramento definitivo, com sessão nula.
 
-Não há `currentEventId`, `mode` nem `isExploring` no schema atual. Depois da capacidade inicial, a transição `returnToExploration` encerra a sessão sem concluir a partida. Eventos posteriores a `choose-ability` permanecem no conteúdo; `first-priority` é uma entrada adicional (`canStartSession: true`) para gatilhos futuros do mundo.
+Não há `currentEventId`, `mode` nem `isExploring` no schema atual. Depois da capacidade inicial, a transição `returnToExploration` encerra a sessão sem concluir a partida. `first-priority` é uma entrada com `canStartSession: true`, aberta pelo gatilho de descoberta `first-priority-event`. `night-together` e `night-alone` também devolvem à exploração. Saves `completed` legados continuam válidos.
 
 ## Testes prioritários
 

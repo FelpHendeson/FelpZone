@@ -1,6 +1,6 @@
 # Sistema 7 — Integração explorável
 
-O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos e crafting ao estado principal, à persistência e, depois, à interface. Ele é fatiado. **Esta pasta documenta o andamento; o sistema inteiro ainda não está concluído.**
+O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos e crafting ao estado principal, à persistência e, depois, à interface. Ele é fatiado. **O marco mínimo foi atingido na Fatia 7.5:** o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox. NPCs persistentes, agendas, comportamento de criaturas e combate continuam pendentes.
 
 ## Fatia 7.1 — Estado integrado e persistência principal
 
@@ -16,7 +16,11 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.4 — Superfície mobile
 
-**Implementada.** A tela de exploração é um loop jogável mobile-first: destinos visíveis, explorar, coletar e fabricar. Toda mutação passa por `executeSandboxAction`; a interface persiste somente `result.current` com o mesmo `SandboxContext` da persistência. O marco de encontros do Sistema 7 ainda não foi atingido.
+**Implementada.** A tela de exploração é um loop jogável mobile-first: destinos visíveis, explorar, coletar e fabricar. Toda mutação passa por `executeSandboxAction`; a interface persiste somente `result.current` com o mesmo `SandboxContext` da persistência.
+
+## Fatia 7.5 — Gatilho de mundo e primeiro encontro
+
+**Implementada.** Explorar a Clareira do Despertar revela a descoberta `first-priority-event` (`kind: 'event'`, `revealAt: 10`). Um catálogo declarativo em `modules/world-events` associa essa descoberta a `first-day` / `first-priority`. A superfície executa a ação sandbox, resolve no máximo um gatilho elegível na ordem do catálogo, marca `world.trigger.<id>.consumed` em `GameState.flags`, abre a sessão e persiste uma única vez o estado composto. A cadeia noturna devolve o jogador à exploração. O marco mínimo do Sistema 7 foi atingido. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
 
 ## Estado integrado
 
@@ -146,13 +150,35 @@ A operação é atômica: se qualquer etapa falhar, o `GameState` recebido perma
 
 `startGame` abre `narrativeSession: { campaignId, eventId: campaign.firstEventId }`. Depois de `choose-ability`, as três capacidades usam `{ type: 'returnToExploration' }`: o jogador permanece `playing`, a sessão vira `null` e os efeitos da capacidade ficam no estado.
 
-`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` para ser acionado no futuro por descoberta, encontro, NPC ou evento de mundo. Esta fatia não cria esse gatilho.
+`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` e é aberto pelo gatilho de descoberta `first-priority-event`.
 
-A interface deriva a tela do estado: narrativa com sessão, exploração sem sessão, resumo quando `completed`. Um único `SandboxContext` alimenta persistência, leitura da interface e `executeSandboxAction`. A tela de exploração mostra local, progresso, destinos descobertos, pontos de coleta revelados, receitas conhecidas e um inventário compacto. Explorar a Clareira do Despertar revela e desbloqueia progressivamente passagens para a Grande Árvore, a Nascente e a Mata Densa. `hidden-cave` permanece descoberta tardia da Mata Densa. Nomes de itens na interface usam uma camada de apresentação; os IDs do domínio não mudam.
+A interface deriva a tela do estado: narrativa com sessão, exploração sem sessão, resumo quando `completed`. Um único `SandboxContext` alimenta persistência, leitura da interface e `executeSandboxAction`. Depois de uma ação sandbox, a integração resolve gatilhos elegíveis sobre `result.current`, abre no máximo uma sessão, consome só o gatilho escolhido e grava uma vez o estado final. Carregar um save não dispara narrativa nem regrava o armazenamento.
+
+Explorar a Clareira do Despertar revela e desbloqueia progressivamente passagens para a Grande Árvore, a Nascente e a Mata Densa. `hidden-cave` permanece descoberta tardia da Mata Densa. Nomes de itens na interface usam uma camada de apresentação; os IDs do domínio não mudam.
+
+`night-together` e `night-alone` usam `returnToExploration`. Saves antigos com `status: 'completed'` continuam abrindo o resumo.
+
+### Catálogo e consumo
+
+```ts
+interface WorldNarrativeTriggerDefinition {
+  id: string;
+  source: { type: 'discovery.revealed'; discoveryId: string };
+  campaignId: string;
+  eventId: string;
+}
+
+function startNarrativeSession(state: GameState, campaign: Campaign, eventId: string): GameState;
+```
+
+A abertura da sessão não avança o relógio, não altera sandbox, inventário, atributos, histórico nem `updatedAt`. O consumo fica em `flags['world.trigger.<triggerId>.consumed']`. Se a descoberta já estiver revelada e a flag ainda não existir, a próxima ação sandbox válida dispara o gatilho. Falha no gatilho ou na sessão não persiste estado parcial.
+
+Prioridade: ordem declarada do catálogo.
 
 ## Fora desta fatia
 
 - mapa visual complexo ou minijogos;
 - renovação ou recuperação no carregamento;
-- gatilho automático de `first-priority`;
-- encontros, NPCs no mapa, criaturas, combate, sobrevivência, clima, agenda, ferramentas, combustível, schema 4, backend e IA em runtime.
+- NPC persistido no mapa, agenda ou deslocamento;
+- diálogo livre, IA de criatura, combate, caça, sobrevivência automática, clima, facções, assentamentos;
+- schema 4, backend e IA em runtime.

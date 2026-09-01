@@ -37,7 +37,7 @@ Retornar à exploração
 5. Receber uma introdução curta a horário e navegação.
 6. Entrar no modo de exploração.
 
-A introdução reutiliza o conteúdo atual até a capacidade inicial. Depois dela, o motor não seleciona automaticamente `first-priority` nem a cadeia posterior. Esses eventos permanecem no conteúdo para gatilhos futuros do mundo.
+A introdução reutiliza o conteúdo atual até a capacidade inicial. Depois dela, o motor não seleciona automaticamente `first-priority`. A cadeia é aberta pelo gatilho de mundo associado à descoberta `first-priority-event`, revelada ao explorar a Clareira do Despertar. Ao terminar a noite, a sessão devolve o jogador à exploração.
 
 ## Modos
 
@@ -81,7 +81,7 @@ Exemplo conceitual:
 }
 ```
 
-O formato definitivo de gatilhos será especificado somente na integração dos três sistemas.
+O primeiro gatilho implementado é declarativo: `source.type: 'discovery.revealed'` associa uma descoberta a `campaignId` / `eventId`. O catálogo vive em `modules/world-events` e na campanha `first-day`. Consumo único fica em `GameState.flags`. Outros tipos (entrada em local, presença de NPC, período) continuam para etapas futuras.
 
 ## Trama principal e conteúdo opcional
 
@@ -125,9 +125,10 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 ## Limites atuais
 
 - a superfície mobile de exploração (Fatia 7.4) já expõe navegar, explorar, coletar e fabricar;
+- o primeiro encontro (Fatia 7.5) abre `first-priority` a partir da descoberta `first-priority-event` e devolve o jogador ao sandbox;
 - nenhum minijogo está definido;
-- NPCs não possuem agenda ainda;
-- criaturas não possuem comportamento ainda;
+- NPCs não estão persistidos no mapa e não possuem agenda ainda;
+- criaturas não possuem comportamento nem combate ainda;
 - sobrevivência não será acoplada antes dos sistemas básicos de tempo, navegação, exploração e recursos;
-- gatilhos completos de encontros narrativos ainda não existem;
+- outros tipos de gatilho (entrada em local, presença, período) ainda não existem;
 - não há viagem rápida nem conexões especiais no primeiro mapa.

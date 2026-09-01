@@ -1,5 +1,6 @@
 export { applyChoice, getAvailableChoices, getCurrentEvent, startGame } from './applyChoice';
 export { bindSavedState } from './bindSavedState';
+export { startNarrativeSession } from './startNarrativeSession';
 export type { SavedStateBinding } from './bindSavedState';
 export { EngineError } from './errors';
 export { resolveTransition } from './resolveTransition';

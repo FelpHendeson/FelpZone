@@ -504,9 +504,9 @@ export const events: StoryEvent[] = [
     choices: [
       {
         id: 'together-summary',
-        label: 'Ver o que o primeiro dia deixou',
-        effects: [{ type: 'game.complete' }],
-        transition: { type: 'complete' },
+        label: 'Continuar no mundo',
+        effects: [],
+        transition: { type: 'returnToExploration' },
       },
     ],
   },
@@ -519,9 +519,9 @@ export const events: StoryEvent[] = [
     choices: [
       {
         id: 'alone-summary',
-        label: 'Ver o que o primeiro dia deixou',
-        effects: [{ type: 'game.complete' }],
-        transition: { type: 'complete' },
+        label: 'Continuar no mundo',
+        effects: [],
+        transition: { type: 'returnToExploration' },
       },
     ],
   },

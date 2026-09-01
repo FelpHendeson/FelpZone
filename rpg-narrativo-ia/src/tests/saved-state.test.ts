@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
 import { bindSavedState } from '../core/engine';
 import { parseGameState, serializeGameState } from '../infrastructure/persistence';
-import { continueAfterIntro, freshState, reopenNarrativeSession } from './helpers';
+import { freshState, playFirstDay, reopenNarrativeSession } from './helpers';
 
 describe('vínculo do salvamento com a campanha', () => {
   it('aceita um save cujo evento atual existe e é compatível', () => {
@@ -44,10 +44,12 @@ describe('vínculo do salvamento com a campanha', () => {
   });
 
   it('aceita uma partida concluída sem sessão narrativa', () => {
-    const ended = continueAfterIntro(
-      ['awake-calm', 'system-touch', 'ability-perception'],
-      ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
-    );
+    const exploring = playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
+    const ended = {
+      ...exploring,
+      status: 'completed' as const,
+      narrativeSession: null,
+    };
 
     expect(ended.status).toBe('completed');
     expect(ended.narrativeSession).toBeNull();

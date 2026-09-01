@@ -4,7 +4,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 ## Objetivo atual
 
-A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox estão implementadas. As Fatias 7.1, 7.2, 7.3 e 7.4 estão implementadas. O Sistema 7 ainda não atingiu o marco completo de encontros: NPCs, criaturas e gatilhos narrativos pelo mundo continuam para uma etapa futura. Não implementar outras etapas do [roadmap](docs/ROADMAP.md) sem autorização explícita.
+A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras. Não implementar outros itens do [roadmap](docs/ROADMAP.md) sem autorização explícita.
 
 ## Regras obrigatórias
 

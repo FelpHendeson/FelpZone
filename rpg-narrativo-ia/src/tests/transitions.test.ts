@@ -36,7 +36,7 @@ describe('transições', () => {
     );
 
     expect(ended.narrativeSession).toBeNull();
-    expect(ended.status).toBe('completed');
+    expect(ended.status).toBe('playing');
     expect(ended.flags['camp.together']).toBe(true);
     expect(ended.history.some((entry) => entry.choiceId === 'share-fruit' && entry.notable)).toBe(true);
   });

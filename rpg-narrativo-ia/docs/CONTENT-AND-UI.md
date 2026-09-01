@@ -109,8 +109,8 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 ## Evolução sandbox
 
-A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. Não há mapa gráfico complexo nem inventário novo; a tela lê o `GameState` e dispara `executeSandboxAction`. NPCs, criaturas e gatilhos narrativos pelo mundo continuam fora desta fatia.
+A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. Não há mapa gráfico complexo nem inventário novo; a tela lê o `GameState` e dispara `executeSandboxAction`.
 
-Quando um gatilho iniciar uma narrativa ou diálogo, a interface reutiliza os componentes atuais. Ao terminar a sessão, retorna ao mesmo contexto de exploração, já com tempo, estado e mundo atualizados.
+A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta. A interface reutiliza `GameScreen` e o motor existente; não há uma segunda tela de diálogo. O feedback da ação pode avisar que algo exige atenção. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
 
 Consulte `SANDBOX-FLOW.md` e as especificações dos sistemas antes de alterar telas.

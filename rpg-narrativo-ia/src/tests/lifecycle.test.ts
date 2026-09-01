@@ -6,10 +6,12 @@ import { continueAfterIntro, now, playFirstDay, reopenNarrativeSession } from '.
 
 describe('ciclo de vida do motor', () => {
   it('rejeita escolhas depois que a partida está concluída', () => {
-    const ended = continueAfterIntro(
-      ['awake-calm', 'system-touch', 'ability-perception'],
-      ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
-    );
+    const exploring = playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
+    const ended: GameState = {
+      ...exploring,
+      status: 'completed',
+      narrativeSession: null,
+    };
     const snapshot = structuredClone(ended);
 
     expect(ended.status).toBe('completed');
@@ -17,6 +19,18 @@ describe('ciclo de vida do motor', () => {
     expect(getAvailableChoices(ended, firstDayCampaign)).toEqual([]);
     expect(() => applyChoice(ended, firstDayCampaign, 'together-summary', now)).toThrow(EngineError);
     expect(ended).toEqual(snapshot);
+  });
+
+  it('devolve o jogador à exploração depois da primeira noite', () => {
+    const returned = continueAfterIntro(
+      ['awake-calm', 'system-touch', 'ability-perception'],
+      ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
+    );
+
+    expect(returned.status).toBe('playing');
+    expect(returned.narrativeSession).toBeNull();
+    expect(getAvailableChoices(returned, firstDayCampaign)).toEqual([]);
+    expect(() => applyChoice(returned, firstDayCampaign, 'together-summary', now)).toThrow(/sessão narrativa ativa/);
   });
 
   it('não apresenta nem aplica um evento condicionado quando a condição falha', () => {

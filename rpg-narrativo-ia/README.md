@@ -29,7 +29,7 @@ Leia nesta ordem:
 11. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
 12. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
 13. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
-14. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência principal (Fatia 7.1), orquestrador de ações (Fatia 7.2), retorno à exploração (Fatia 7.3) e superfície mobile (Fatia 7.4). O marco de encontros do Sistema 7 ainda não.
+14. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência principal (Fatia 7.1), orquestrador de ações (Fatia 7.2), retorno à exploração (Fatia 7.3), superfície mobile (Fatia 7.4) e gatilho de mundo com o primeiro encontro (Fatia 7.5).
 15. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
 16. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -48,7 +48,7 @@ A aplicação sobe em `http://localhost:5173`. No celular da mesma rede, use o e
 Outros comandos:
 
 ```bash
-npm test        # testes do motor, persistência, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox integrado, orquestrador, sessão narrativa e superfície mobile
+npm test        # testes do motor, persistência, sandbox, superfície mobile e gatilhos de mundo
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de produção com PWA
@@ -62,7 +62,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações do sandbox, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações do sandbox, gatilhos de mundo, narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # telas mobile-first e ImagePlaceholder
@@ -73,7 +73,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox estão implementadas. As Fatias 7.1, 7.2, 7.3 e 7.4 estão implementadas: o jogador explora, navega, coleta e fabrica na superfície mobile. O Sistema 7 ainda não está concluído; NPCs, criaturas e gatilhos narrativos pelo mundo continuam pendentes.
+**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: explorar o mundo dispara o primeiro encontro (criatura e Mira) e a sessão devolve o jogador ao sandbox. NPCs persistentes, agendas, comportamento de criaturas e combate continuam pendentes.
 
 ## Decisões já tomadas
 
@@ -94,11 +94,11 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - O salvamento local usa `schemaVersion: 3`, persiste `narrativeSession` (nula na exploração livre), valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1 e v2 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
-- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, retorno da introdução à exploração e uma superfície mobile para navegar, explorar, coletar e fabricar. NPCs, criaturas e gatilhos narrativos pelo mundo ainda não.
+- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o primeiro encontro acionado por gatilho de mundo. NPCs persistentes, agendas, IA de criatura e combate ainda não.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo superfície mobile, schema 3, sessão narrativa e os testes anteriores.
+- `npm test`: suíte completa, incluindo gatilhos de mundo, encontro inicial, superfície mobile e os testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- Depois da capacidade inicial a interface mostra a exploração jogável: destinos, explorar, coleta e crafting passam por `executeSandboxAction`. Encontros, NPCs e criaturas continuam fora desta fatia.
+- Explorar a Clareira do Despertar revela o gatilho `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite. NPCs persistentes, agendas e combate continuam fora desta fatia.

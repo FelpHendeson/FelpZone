@@ -66,7 +66,11 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.4 — Superfície mobile
 
-**Implementada.** Destinos, explorar, coletar e fabricar estão na interface mobile. O marco do Sistema 7 só termina quando o jogador desperta, escolhe uma capacidade, explora livremente e encontra pelo menos um NPC ou criatura por meio das próprias ações. Esse marco ainda não foi atingido.
+**Implementada.** Destinos, explorar, coletar e fabricar estão na interface mobile.
+
+#### Fatia 7.5 — Gatilho de mundo e primeiro encontro
+
+**Implementada.** O jogador desperta, escolhe uma capacidade, explora a Clareira e encontra a criatura e Mira por consequência da descoberta `first-priority-event`. Depois da noite, retorna ao sandbox. O marco mínimo do Sistema 7 foi atingido. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
 
 ## Etapas posteriores, ainda não especificadas
 

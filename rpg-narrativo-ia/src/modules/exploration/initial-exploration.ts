@@ -14,6 +14,13 @@ export const INITIAL_EXPLORATION_DEFINITIONS: readonly LocationExplorationDefini
         once: true,
       },
       {
+        id: 'first-priority-event',
+        kind: 'event',
+        revealAt: 10,
+        completionWeight: 1,
+        once: true,
+      },
+      {
         id: 'path-great-tree',
         kind: 'passage',
         revealAt: 20,

@@ -933,14 +933,14 @@ describe('orquestrador de ações do sandbox', () => {
       expect(result.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'awakening' });
       expect(result.current.schemaVersion).toBe(SCHEMA_VERSION);
 
-      const ended = continueAfterIntro(
+      const returned = continueAfterIntro(
         ['awake-calm', 'system-touch', 'ability-perception'],
         ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
       );
 
-      expect(ended.status).toBe('completed');
-      expect(bindSavedState(ended, firstDayCampaign).ok).toBe(true);
-      expect(ended.sandbox.navigation.currentLocationId).toBe(START);
+      expect(returned.status).toBe('playing');
+      expect(bindSavedState(returned, firstDayCampaign).ok).toBe(true);
+      expect(returned.sandbox.navigation.currentLocationId).toBe(START);
       expect(inspectSandboxContext(createSandboxContext()).ok).toBe(true);
     });
   });

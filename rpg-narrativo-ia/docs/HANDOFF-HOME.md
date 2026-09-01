@@ -17,7 +17,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 7.2 — orquestrador de ações e tempo — está implementada: `executeSandboxAction` aplica movimento, exploração, coleta e crafting sobre o `GameState`, com custo único, recuperação, renovação e reavaliações gratuitas. Não persiste.
 - A Fatia 7.3 — da introdução à exploração livre — está implementada: `schemaVersion: 3`, `narrativeSession` opcional e retorno à exploração depois da capacidade inicial.
 - A Fatia 7.4 — superfície mobile — está implementada: destinos, explorar, coletar e fabricar na tela de exploração, via `executeSandboxAction` e o mesmo `SandboxContext` da persistência.
-- O Sistema 7 ainda não está concluído. NPCs, criaturas e gatilhos narrativos pelo mundo continuam para uma etapa futura.
+- A Fatia 7.5 — gatilho de mundo e primeiro encontro — está implementada: explorar a Clareira revela `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite. O consumo fica em `GameState.flags`.
+- O marco mínimo do Sistema 7 foi atingido. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
 
 ## Como preparar a máquina
 
@@ -79,9 +80,10 @@ Estado conhecido:
 - a Fatia 7.2 orquestra movimento, exploração, coleta e crafting com aplicação única do tempo;
 - a Fatia 7.3 devolve o jogador à exploração depois da capacidade inicial, com schema 3 e sessão narrativa opcional;
 - a Fatia 7.4 expõe destinos, explorar, coletar e fabricar na superfície mobile;
-- o Sistema 7 ainda não está concluído: NPCs, criaturas e gatilhos narrativos pelo mundo continuam pendentes.
+- a Fatia 7.5 abre o primeiro encontro pelo gatilho de descoberta `first-priority-event` e devolve o jogador ao sandbox;
+- o marco mínimo do Sistema 7 foi atingido; NPCs persistentes, agendas, comportamento de criaturas e combate continuam pendentes.
 
-Sua primeira tarefa é validar e revisar a Fatia 7.4 contra docs/SYSTEM-INTEGRATION.md.
+Sua primeira tarefa é validar e revisar a Fatia 7.5 contra docs/SYSTEM-INTEGRATION.md.
 
 Execute:
 
@@ -92,14 +94,14 @@ npm run build
 
 Revise especialmente:
 
-- um único SandboxContext compartilhado entre persistência, UI e executeSandboxAction;
-- persistência somente de result.current;
-- destinos via listVisibleDestinations, sem revelar locais ocultos;
-- exploração, coleta e crafting sem duplicar regras no JSX;
-- passagens declarativas da clareira para great-tree, spring-lake e dense-woods;
-- preservação da campanha narrativa, saves v1/v2/v3 e da tela de resumo.
+- descoberta `event` declarativa, sem hardcode de limiar na UI;
+- catálogo de gatilhos validado (IDs únicos, descoberta e evento existentes, `canStartSession`, sem ambiguidade);
+- `startNarrativeSession` puro: sem avanço de tempo, sem mutar sandbox/inventário/`updatedAt`;
+- consumo em `world.trigger.<id>.consumed` e composição atômica ação → gatilho → uma persistência;
+- retorno de `night-together` / `night-alone` à exploração, com saves `completed` legados preservados;
+- o encontro não se repete; saves da Fatia 7.4 com descoberta revelada disparam na próxima ação válida.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.4. Se não houver problemas, declare a Fatia 7.4 consolidada e então prepare, somente quando eu pedir, o próximo recorte do Sistema 7.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.5. Se não houver problemas, declare a Fatia 7.5 consolidada e então prepare, somente quando eu pedir, o próximo recorte.
 
 Preserve o ciclo de trabalho:
 
@@ -110,4 +112,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão depois da revisão
 
-Se a Fatia 7.4 passar sem achados, a próxima etapa autorizável continua no Sistema 7: encontros, NPCs, criaturas e gatilhos narrativos pelo mundo, descritos em `docs/SYSTEM-INTEGRATION.md` e `docs/ROADMAP.md`. O Sistema 7 ainda não está implementado por completo.
+Se a Fatia 7.5 passar sem achados, a próxima etapa autorizável continua nas etapas posteriores do Sistema 7 descritas em `docs/ROADMAP.md`: NPCs persistentes, agendas, comportamento de criaturas e combate. O marco mínimo já foi atingido; esses itens ainda não estão implementados.

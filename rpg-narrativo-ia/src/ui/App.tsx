@@ -1,4 +1,5 @@
 import { firstDayCampaign } from '../campaigns/first-day';
+import { FIRST_DAY_WORLD_TRIGGERS } from '../campaigns/first-day/world-triggers';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
@@ -138,7 +139,11 @@ export function App() {
       return;
     }
 
-    const attempt = commitSandboxAction(state, action, sandboxContext, persist);
+    const attempt = commitSandboxAction(state, action, sandboxContext, {
+      campaign,
+      catalog: FIRST_DAY_WORLD_TRIGGERS,
+      persist,
+    });
     if (!attempt.ok) {
       setError(attempt.error);
       return;

@@ -218,18 +218,22 @@ describe('estado integrado e persistência principal', () => {
     expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
     expect(frozen).toEqual(snapshot);
 
-    const ended = continueAfterIntro(
+    const returned = continueAfterIntro(
       ['awake-calm', 'system-touch', 'ability-perception'],
       ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
     );
-    const completedV2 = asV2(ended);
+    const completed = {
+      ...returned,
+      status: 'completed' as const,
+    };
+    const completedV2 = asV2(completed);
     completedV2.currentEventId = 'night-together';
     const completedParsed = parseGameState(JSON.stringify(completedV2));
     expect(completedParsed.status).toBe('ok');
     if (completedParsed.status === 'ok') {
       expect(completedParsed.state.status).toBe('completed');
       expect(completedParsed.state.narrativeSession).toBeNull();
-      expect(completedParsed.state.sandbox).toEqual(ended.sandbox);
+      expect(completedParsed.state.sandbox).toEqual(completed.sandbox);
     }
   });
 
@@ -317,15 +321,22 @@ describe('estado integrado e persistência principal', () => {
   });
 
   it('preserva o fluxo narrativo até a exploração e o save concluído quando a sessão posterior é reaberta', () => {
-    const ended = continueAfterIntro(
+    const returned = continueAfterIntro(
       ['awake-calm', 'system-touch', 'ability-perception'],
       ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
     );
 
-    expect(ended.status).toBe('completed');
-    expect(ended.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(ended.sandbox.navigation.currentLocationId).toBe(START);
-    expect(ended.narrativeSession).toBeNull();
+    expect(returned.status).toBe('playing');
+    expect(returned.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(returned.sandbox.navigation.currentLocationId).toBe(START);
+    expect(returned.narrativeSession).toBeNull();
+    expect(bindSavedState(returned, firstDayCampaign).ok).toBe(true);
+    expect(parseGameState(serializeGameState(returned))).toEqual({ status: 'ok', state: returned });
+
+    const ended = {
+      ...returned,
+      status: 'completed' as const,
+    };
     expect(bindSavedState(ended, firstDayCampaign).ok).toBe(true);
     expect(parseGameState(serializeGameState(ended))).toEqual({ status: 'ok', state: ended });
     expect(() => serializeGameState(ended)).not.toThrow(PersistenceError);

@@ -8,5 +8,5 @@ export type {
   RecipeView,
   ResourceView,
 } from './model';
-export { attemptSandboxAction, commitSandboxAction } from './run-action';
-export type { SandboxActionAttempt } from './run-action';
+export { attemptSandboxAction, commitSandboxAction, WORLD_TRIGGER_ATTENTION } from './run-action';
+export type { CommitSandboxActionOptions, SandboxActionAttempt } from './run-action';

@@ -208,7 +208,7 @@ describe('exploração e descobertas', () => {
       {
         locationId: START,
         progress: 10,
-        revealedDiscoveryIds: ['awakening-site'],
+        revealedDiscoveryIds: ['awakening-site', 'first-priority-event'],
         explorationCount: 1,
       },
     ]);
@@ -300,6 +300,7 @@ describe('exploração e descobertas', () => {
     expect(raw).toEqual(snapshot);
     expect(definitions.byLocation.get(START)?.discoveries.map((item) => item.id)).toEqual([
       'awakening-site',
+      'first-priority-event',
       'path-great-tree',
       'fallen-sticks',
       'path-spring-lake',
@@ -1061,6 +1062,7 @@ describe('exploração e descobertas', () => {
       expect(inspected.value.locations[0]?.progress).toBe(20);
       expect(inspected.value.locations[0]?.revealedDiscoveryIds).toEqual([
         'awakening-site',
+        'first-priority-event',
         'path-great-tree',
       ]);
       expect(inspected.value.locations[0]?.explorationCount).toBe(2);
@@ -1110,10 +1112,10 @@ describe('exploração e descobertas', () => {
     const clearing = calculateZoneCompletion(map, definitions, start.current, START);
 
     expect(forest.zoneId).toBe('horned-rabbit-forest');
-    expect(forest.totalPoints).toBe(14);
-    expect(forest.completedPoints).toBe(1);
-    expect(clearing.totalPoints).toBe(6);
-    expect(clearing.completedPoints).toBe(1);
+    expect(forest.totalPoints).toBe(15);
+    expect(forest.completedPoints).toBe(2);
+    expect(clearing.totalPoints).toBe(7);
+    expect(clearing.completedPoints).toBe(2);
     expect(forest).not.toHaveProperty('discoveryIds');
   });
 
@@ -1150,7 +1152,7 @@ describe('exploração e descobertas', () => {
       totalPoints: 4,
       percentage: 0,
     });
-    expect(forest.totalPoints).toBe(14);
+    expect(forest.totalPoints).toBe(15);
     expect(JSON.stringify(empty)).not.toContain('hidden-cave');
     expect(empty).not.toHaveProperty('revealedDiscoveryIds');
   });

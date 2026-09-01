@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
+import { FIRST_DAY_WORLD_TRIGGERS } from '../campaigns/first-day/world-triggers';
 import { bindSavedState } from '../core/engine';
 import { MISSING_MATERIALS_REASON } from '../modules/crafting';
 import { itemQuantity } from '../modules/inventory';
 import { getResourceNode } from '../modules/resources';
 import { createSandboxContext } from '../modules/sandbox';
-import type { SandboxAction } from '../modules/sandbox-actions';
+import { executeSandboxAction, type SandboxAction } from '../modules/sandbox-actions';
+import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { createMemoryPersistence } from '../infrastructure/persistence';
 import { buildExplorationView, commitSandboxAction, sandboxItemName } from '../ui/sandbox';
 import { hasActiveNarrativeSession, resolvePlayScreen, toAppScreen } from '../ui/routing';
@@ -29,12 +31,24 @@ function resourceIds(state: ReturnType<typeof enterExploration>) {
   return viewOf(state).resources.map((resource) => resource.nodeId);
 }
 
+function commit(
+  state: ReturnType<typeof enterExploration>,
+  action: SandboxAction,
+  persist?: (next: ReturnType<typeof enterExploration>) => void,
+) {
+  return commitSandboxAction(state, action, context, {
+    campaign: firstDayCampaign,
+    catalog: FIRST_DAY_WORLD_TRIGGERS,
+    persist: persist ?? (() => undefined),
+  });
+}
+
 function mustCommit(
   state: ReturnType<typeof enterExploration>,
   action: SandboxAction,
   persist?: (next: ReturnType<typeof enterExploration>) => void,
 ) {
-  const attempt = commitSandboxAction(state, action, context, persist ?? (() => undefined));
+  const attempt = commit(state, action, persist);
   expect(attempt.ok).toBe(true);
   if (!attempt.ok) {
     throw new Error(attempt.error);
@@ -46,7 +60,7 @@ function mustCommit(
 function exploreTimes(state: ReturnType<typeof enterExploration>, times: number) {
   let current = state;
   for (let index = 0; index < times; index += 1) {
-    current = mustCommit(current, { type: 'exploration.explore' }).current;
+    current = executeSandboxAction(current, { type: 'exploration.explore' }, { context }).current;
   }
 
   return current;
@@ -88,7 +102,7 @@ describe('superfície mobile do sandbox', () => {
     expect(destinationIds(woods)).not.toContain('hidden-cave');
   });
 
-  it('persiste somente result.current após uma ação da integração', () => {
+  it('persiste o estado composto da ação, incluindo gatilho quando houver', () => {
     const exploring = enterExploration();
     const persistence = createMemoryPersistence(undefined, context);
     persistence.save(exploring);
@@ -96,9 +110,27 @@ describe('superfície mobile do sandbox', () => {
     const attempt = mustCommit(exploring, { type: 'exploration.explore' }, (next) => persistence.save(next));
     const loaded = persistence.load();
 
-    expect(attempt.current).toBe(attempt.result.current);
-    expect(loaded).toEqual({ status: 'ok', state: attempt.result.current });
+    expect(attempt.current.sandbox).toEqual(attempt.result.current.sandbox);
+    expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
+    expect(loaded).toEqual({ status: 'ok', state: attempt.current });
     expect(loaded.status === 'ok' && loaded.state).not.toEqual(exploring);
+  });
+
+  it('persiste somente result.current quando o gatilho já foi consumido', () => {
+    const exploring = {
+      ...enterExploration(),
+      flags: {
+        ...enterExploration().flags,
+        [worldTriggerConsumedFlag('first-priority')]: true,
+      },
+    };
+    const persistence = createMemoryPersistence(undefined, context);
+    const attempt = mustCommit(exploring, { type: 'exploration.explore' }, (next) => persistence.save(next));
+    const loaded = persistence.load();
+
+    expect(attempt.current).toBe(attempt.result.current);
+    expect(attempt.openedTrigger).toBeUndefined();
+    expect(loaded).toEqual({ status: 'ok', state: attempt.result.current });
   });
 
   it('navega alterando local e relógio somente uma vez', () => {
@@ -170,10 +202,9 @@ describe('superfície mobile do sandbox', () => {
   it('informa bloqueio de crafting indisponível e não executa', () => {
     const exploring = enterExploration();
     const campfire = viewOf(exploring).recipes.find((recipe) => recipe.recipeId === 'build-campfire');
-    const attempt = commitSandboxAction(
+    const attempt = commit(
       exploring,
       { type: 'crafting.craft', recipeId: 'build-campfire' },
-      context,
       () => {
         throw new Error('não deveria persistir');
       },
@@ -221,10 +252,9 @@ describe('superfície mobile do sandbox', () => {
     persistence.save(exploring);
     const before = persistence.load();
 
-    const attempt = commitSandboxAction(
+    const attempt = commit(
       exploring,
       { type: 'navigation.move', locationId: 'hidden-cave' },
-      context,
       (next) => persistence.save(next),
     );
 
@@ -234,7 +264,14 @@ describe('superfície mobile do sandbox', () => {
   });
 
   it('continuar um save em exploração reabre a superfície mobile', () => {
-    const progressed = mustCommit(exploreTimes(enterExploration(), 3), {
+    const exploring = {
+      ...enterExploration(),
+      flags: {
+        ...enterExploration().flags,
+        [worldTriggerConsumedFlag('first-priority')]: true,
+      },
+    };
+    const progressed = mustCommit(exploreTimes(exploring, 3), {
       type: 'resource.collect',
       nodeId: 'fallen-sticks',
       units: 1,
