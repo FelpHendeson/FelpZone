@@ -1,4 +1,10 @@
-import { defaultNow, inspectGameState, type GameState, type InventoryItem } from '../../core/state';
+import {
+  defaultNow,
+  inspectGameState,
+  type GameState,
+  type InventoryItem,
+  type NarrativeSession,
+} from '../../core/state';
 import { craftRecipe, CraftingError, synchronizeKnownRecipes, type CraftingState } from '../crafting';
 import { advanceDayCycle, DayCycleError, type DayCycleResult } from '../day-cycle';
 import {
@@ -324,7 +330,7 @@ function buildGameState(
     schemaVersion: base.schemaVersion,
     status: base.status,
     character: { firstName: base.character.firstName, lastName: base.character.lastName },
-    currentEventId: base.currentEventId,
+    narrativeSession: copyNarrativeSession(base.narrativeSession),
     attributes: { ...base.attributes },
     inventory: copyInventory(patch.inventory),
     relationships: base.relationships.map((entry) => ({
@@ -417,6 +423,17 @@ function copyCrafting(state: CraftingState): CraftingState {
 
 function copyInventory(items: readonly InventoryItem[]): InventoryItem[] {
   return items.map((item) => ({ itemId: item.itemId, quantity: item.quantity }));
+}
+
+function copyNarrativeSession(session: NarrativeSession | null): NarrativeSession | null {
+  if (!session) {
+    return null;
+  }
+
+  return {
+    campaignId: session.campaignId,
+    eventId: session.eventId,
+  };
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

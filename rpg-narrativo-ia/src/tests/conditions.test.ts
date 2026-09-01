@@ -4,6 +4,7 @@ import { applyChoice, startGame } from '../core/engine';
 import { evaluateCondition, evaluateConditions } from '../core/events';
 import type { GameState } from '../core/state';
 import { FLAG_ABILITY_PERCEPTION, ITEM_WATER, NPC_MIRA } from '../campaigns/first-day/ids';
+import { reopenNarrativeSession } from './helpers';
 
 function createState(): GameState {
   return startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, () => '2026-08-31T12:00:00.000Z');
@@ -39,7 +40,12 @@ describe('condições', () => {
       'ability-perception',
       () => 't',
     );
-    const afterWater = applyChoice(withWater, firstDayCampaign, 'seek-water', () => 't');
+    const afterWater = applyChoice(
+      reopenNarrativeSession(withWater, 'first-priority'),
+      firstDayCampaign,
+      'seek-water',
+      () => 't',
+    );
 
     expect(evaluateCondition({ type: 'inventory.has', itemId: ITEM_WATER, quantity: 1 }, withWater)).toBe(false);
     expect(evaluateCondition({ type: 'inventory.has', itemId: ITEM_WATER, quantity: 1 }, afterWater)).toBe(true);

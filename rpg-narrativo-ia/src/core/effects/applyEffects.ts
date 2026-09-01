@@ -70,6 +70,7 @@ export function applyEffect(state: GameState, effect: GameEffect): GameState {
       return {
         ...state,
         status: 'completed',
+        narrativeSession: null,
       };
   }
 }

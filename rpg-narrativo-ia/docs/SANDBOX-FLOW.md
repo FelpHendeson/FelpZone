@@ -37,7 +37,7 @@ Retornar à exploração
 5. Receber uma introdução curta a horário e navegação.
 6. Entrar no modo de exploração.
 
-A introdução pode reutilizar o conteúdo atual. Depois dela, o motor não deve selecionar automaticamente uma longa cadeia de eventos.
+A introdução reutiliza o conteúdo atual até a capacidade inicial. Depois dela, o motor não seleciona automaticamente `first-priority` nem a cadeia posterior. Esses eventos permanecem no conteúdo para gatilhos futuros do mundo.
 
 ## Modos
 

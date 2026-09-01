@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { firstDayCampaign } from '../campaigns/first-day';
 import { applyEffects } from '../core/effects';
 import { SCHEMA_VERSION, createInitialState } from '../core/state';
 import { parseGameState, serializeGameState } from '../infrastructure/persistence';
@@ -189,7 +190,7 @@ describe('horário e data', () => {
 
     const game = createInitialState(
       { firstName: 'Ana', lastName: 'Cruz' },
-      'awakening',
+      firstDayCampaign,
       () => '2026-08-31T12:00:00.000Z',
     );
     const raw = JSON.parse(serializeGameState(game)) as { schemaVersion: number; world: unknown };
@@ -206,7 +207,7 @@ describe('horário e data', () => {
   });
 
   it('reaproveita o mundo persistido sem avançar o dia no efeito administrativo atual', () => {
-    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', () => 't0');
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, () => 't0');
     const next = applyEffects(state, [{ type: 'world.period', period: 'noite' }]);
 
     expect(createInitialWorld()).toEqual({ day: 1, period: 'alvorecer' });
@@ -277,7 +278,7 @@ describe('horário e data', () => {
   it('mantém persistência compatível e rejeita dia inseguro no save', () => {
     const game = createInitialState(
       { firstName: 'Ana', lastName: 'Cruz' },
-      'awakening',
+      firstDayCampaign,
       () => '2026-08-31T12:00:00.000Z',
     );
     const raw = JSON.parse(serializeGameState(game)) as { schemaVersion: number; world: Record<string, unknown> };

@@ -2,7 +2,10 @@ import type { SandboxState } from '../../modules/sandbox/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
 export const SCHEMA_VERSION_V1 = 1 as const;
-export const SCHEMA_VERSION = 2 as const;
+export const SCHEMA_VERSION_V2 = 2 as const;
+export const SCHEMA_VERSION = 3 as const;
+
+export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
 export type GameStatus = 'playing' | 'completed';
 
@@ -63,10 +66,14 @@ export interface HistoryEntry {
   notable: boolean;
 }
 
-interface NarrativeState {
+export interface NarrativeSession {
+  campaignId: string;
+  eventId: string;
+}
+
+interface SharedState {
   status: GameStatus;
   character: CharacterIdentity;
-  currentEventId: string;
   attributes: Attributes;
   inventory: InventoryItem[];
   relationships: Relationship[];
@@ -77,11 +84,19 @@ interface NarrativeState {
   updatedAt: string;
 }
 
-export interface GameStateV1 extends NarrativeState {
+export interface GameStateV1 extends SharedState {
   schemaVersion: typeof SCHEMA_VERSION_V1;
+  currentEventId: string;
 }
 
-export interface GameState extends NarrativeState {
+export interface GameStateV2 extends SharedState {
+  schemaVersion: typeof SCHEMA_VERSION_V2;
+  currentEventId: string;
+  sandbox: SandboxState;
+}
+
+export interface GameState extends SharedState {
   schemaVersion: typeof SCHEMA_VERSION;
+  narrativeSession: NarrativeSession | null;
   sandbox: SandboxState;
 }

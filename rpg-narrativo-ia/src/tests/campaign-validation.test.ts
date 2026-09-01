@@ -140,14 +140,96 @@ describe('validação de campanha', () => {
     expect(diagnostics.some((line) => /encerr/i.test(line) || /complete/i.test(line) || /fim/i.test(line))).toBe(true);
   });
 
-  it('percorre todas as trajetórias válidas da campanha atual sem evento morto', () => {
+  it('percorre as trajetórias da introdução até o retorno à exploração', () => {
     const walk = walkCampaignTrajectories(firstDayCampaign);
-    const eventIds = firstDayCampaign.events.map((event) => event.id);
+    const laterEvents = [
+      'first-priority',
+      'danger-alert',
+      'danger-sudden',
+      'survivor-meet',
+      'moral-choice',
+      'dusk-trusted',
+      'dusk-wary',
+      'night-together',
+      'night-alone',
+    ];
 
     expect(walk.errors).toEqual([]);
     expect(walk.deadEnds).toEqual([]);
-    expect(walk.completedPaths).toBeGreaterThan(0);
-    expect(walk.reachedEventIds.sort()).toEqual([...eventIds].sort());
+    expect(walk.completedPaths).toBe(0);
+    expect(walk.returnedToExplorationPaths).toBeGreaterThan(0);
+    expect(walk.reachedEventIds.sort()).toEqual(['awakening', 'choose-ability', 'system-awakens']);
+    expect(laterEvents.every((eventId) => firstDayCampaign.events.some((event) => event.id === eventId))).toBe(true);
+    expect(firstDayCampaign.events.find((event) => event.id === 'first-priority')?.canStartSession).toBe(true);
+    expect(walk.reachedEventIds).not.toContain('first-priority');
+  });
+
+  it('aceita uma campanha cujo fluxo inicial retorna à exploração', () => {
+    const campaign = stubCampaign({
+      events: [
+        {
+          id: 'start',
+          title: 'Começo',
+          body: 'Saída.',
+          image: { kind: 'scene', label: 'Início' },
+          choices: [
+            {
+              id: 'leave',
+              label: 'Sair',
+              effects: [],
+              transition: { type: 'returnToExploration' },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(validateCampaign(campaign)).toEqual([]);
+    const walk = walkCampaignTrajectories(campaign);
+    expect(walk.returnedToExplorationPaths).toBe(1);
+    expect(walk.deadEnds).toEqual([]);
+    expect(walk.completedPaths).toBe(0);
+  });
+
+  it('valida estruturalmente uma entrada adicional sem percorrê-la no fluxo inicial', () => {
+    const campaign = stubCampaign({
+      events: [
+        {
+          id: 'start',
+          title: 'Começo',
+          body: 'Saída.',
+          image: { kind: 'scene', label: 'Início' },
+          choices: [
+            {
+              id: 'leave',
+              label: 'Sair',
+              effects: [],
+              transition: { type: 'returnToExploration' },
+            },
+          ],
+        },
+        {
+          id: 'world-root',
+          title: 'Mundo',
+          body: 'Depois.',
+          image: { kind: 'scene', label: 'Mundo' },
+          canStartSession: true,
+          isEnding: true,
+          choices: [
+            {
+              id: 'world-end',
+              label: 'Encerrar',
+              effects: [{ type: 'game.complete' }],
+              transition: { type: 'complete' },
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(validateCampaign(campaign)).toEqual([]);
+    const walk = walkCampaignTrajectories(campaign);
+    expect(walk.reachedEventIds).not.toContain('world-root');
   });
 
   it('distingue dois estados no mesmo evento quando atributos ou relações mudam as escolhas', () => {
@@ -156,8 +238,8 @@ describe('validação de campanha', () => {
     const skipped = applyChoice(started, campaign, 'skip', now);
     const trained = applyChoice(started, campaign, 'train', now);
 
-    expect(skipped.currentEventId).toBe('hub');
-    expect(trained.currentEventId).toBe('hub');
+    expect(skipped.narrativeSession?.eventId).toBe('hub');
+    expect(trained.narrativeSession?.eventId).toBe('hub');
     expect(skipped.flags).toEqual(trained.flags);
     expect(skipped.inventory).toEqual(trained.inventory);
     expect(skipped.attributes.cautela).not.toBe(trained.attributes.cautela);

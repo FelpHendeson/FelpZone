@@ -62,7 +62,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.3 — Da introdução à exploração livre
 
-Ainda não implementada. Devolver o jogador ao mundo depois da capacidade inicial, sem manter o motor narrativo como loop exclusivo.
+**Implementada.** Depois da capacidade inicial o jogador permanece `playing` sem sessão narrativa, na Clareira do Despertar. A interface mostra só uma tela mínima. Os menus reais ficam na Fatia 7.4.
 
 #### Fatia 7.4 — Superfície mobile
 

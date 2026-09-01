@@ -1,12 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
-import { applyChoice, bindSavedState, startGame } from '../core/engine';
+import { bindSavedState, startGame } from '../core/engine';
 import {
   SCHEMA_VERSION,
-  SCHEMA_VERSION_V1,
   createInitialState,
   inspectGameState,
   inspectGameStateV1,
+  inspectGameStateV2,
   type GameState,
 } from '../core/state';
 import {
@@ -39,27 +39,20 @@ import {
 } from '../modules/sandbox';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../modules/world';
 import { createInitialTime } from '../modules/time';
-import { freshState, now } from './helpers';
+import { continueAfterIntro, asV1, asV2, freshState, now } from './helpers';
 
 const START = DEFAULT_STARTING_LOCATION_ID;
-
-function asV1(state: GameState): Record<string, unknown> {
-  const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
-  delete raw.sandbox;
-  raw.schemaVersion = SCHEMA_VERSION_V1;
-  return raw;
-}
 
 function parsedJson(state: GameState): Record<string, unknown> {
   return JSON.parse(serializeGameState(state)) as Record<string, unknown>;
 }
 
 describe('estado integrado e persistência principal', () => {
-  it('inicia uma nova partida no schema 2 com sandbox completo', () => {
+  it('inicia uma nova partida no schema 3 com sandbox completo', () => {
     const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const context = createSandboxContext();
 
-    expect(state.schemaVersion).toBe(2);
+    expect(state.schemaVersion).toBe(3);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(inspectGameState(state).ok).toBe(true);
     expect(state.sandbox).toEqual(createInitialSandboxState(context));
@@ -109,7 +102,7 @@ describe('estado integrado e persistência principal', () => {
     expect(state.world).toEqual(timeStateToWorld(createInitialTime()));
   });
 
-  it('realiza roundtrip exato de um save v2 válido', () => {
+  it('realiza roundtrip exato de um save v3 válido', () => {
     const state = freshState();
     const parsed = parseGameState(serializeGameState(state));
 
@@ -117,7 +110,7 @@ describe('estado integrado e persistência principal', () => {
     expect(inspectSandboxState(state.sandbox).ok).toBe(true);
   });
 
-  it('trata save v2 sem sandbox ou com sistemas inválidos como corrupt', () => {
+  it('trata save v3 sem sandbox ou com sistemas inválidos como corrupt', () => {
     const raw = parsedJson(freshState());
     const withoutSandbox = structuredClone(raw);
     delete withoutSandbox.sandbox;
@@ -149,7 +142,7 @@ describe('estado integrado e persistência principal', () => {
     expect(parseGameState(JSON.stringify(invalidCrafting)).status).toBe('corrupt');
   });
 
-  it('migra um save v1 válido para v2 sem alterar o objeto recebido nem o relógio', () => {
+  it('migra um save v1 válido para v3 sem alterar o objeto recebido nem o relógio', () => {
     const current = freshState();
     const v1 = asV1({
       ...current,
@@ -181,7 +174,7 @@ describe('estado integrado e persistência principal', () => {
     expect(parsed.state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(parsed.state.character).toEqual(current.character);
     expect(parsed.state.status).toBe('playing');
-    expect(parsed.state.currentEventId).toBe(current.currentEventId);
+    expect(parsed.state.narrativeSession).toEqual(current.narrativeSession);
     expect(parsed.state.attributes).toEqual(current.attributes);
     expect(parsed.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 2 }]);
     expect(parsed.state.flags).toEqual({ 'ability.olhar-atento': true });
@@ -195,6 +188,49 @@ describe('estado integrado e persistência principal', () => {
     expect(parsed.state.inventory).toHaveLength(1);
     expect(frozen).toEqual(snapshot);
     expect(inspectGameStateV1(frozen).ok).toBe(true);
+  });
+
+  it('migra um save v2 ativo preservando o evento em sessão e um v2 concluído com sessão nula', () => {
+    const current = freshState();
+    const v2 = asV2({
+      ...current,
+      inventory: [{ itemId: 'agua-limpa', quantity: 2 }],
+      flags: { 'ability.olhar-atento': true },
+      world: { day: 3, period: 'noite' },
+      updatedAt: '2026-08-31T12:00:00.000Z',
+    });
+    const frozen = Object.freeze(structuredClone(v2));
+    const snapshot = structuredClone(frozen);
+
+    const parsed = parseGameState(JSON.stringify(frozen));
+    expect(parsed.status).toBe('ok');
+    if (parsed.status !== 'ok') {
+      return;
+    }
+
+    expect(parsed.state.schemaVersion).toBe(SCHEMA_VERSION);
+    expect(parsed.state.narrativeSession).toEqual({
+      campaignId: 'first-day',
+      eventId: current.narrativeSession?.eventId,
+    });
+    expect(parsed.state.sandbox).toEqual(current.sandbox);
+    expect(parsed.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 2 }]);
+    expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
+    expect(frozen).toEqual(snapshot);
+
+    const ended = continueAfterIntro(
+      ['awake-calm', 'system-touch', 'ability-perception'],
+      ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
+    );
+    const completedV2 = asV2(ended);
+    completedV2.currentEventId = 'night-together';
+    const completedParsed = parseGameState(JSON.stringify(completedV2));
+    expect(completedParsed.status).toBe('ok');
+    if (completedParsed.status === 'ok') {
+      expect(completedParsed.state.status).toBe('completed');
+      expect(completedParsed.state.narrativeSession).toBeNull();
+      expect(completedParsed.state.sandbox).toEqual(ended.sandbox);
+    }
   });
 
   it('não regrava o localStorage durante a leitura de um save v1', () => {
@@ -217,17 +253,24 @@ describe('estado integrado e persistência principal', () => {
     expect(memory.get(SAVE_KEY)).toBe(v1);
   });
 
-  it('rejeita save v1 malformado, v2 malformado, versão desconhecida, JSON inválido e string vazia', () => {
+  it('rejeita save v1 malformado, v2 malformado, v3 malformado, versão desconhecida, JSON inválido e string vazia', () => {
     const v1Broken = asV1(freshState());
     v1Broken.character = { firstName: 'Ana' };
     expect(parseGameState(JSON.stringify(v1Broken)).status).toBe('corrupt');
     expect(inspectGameStateV1(v1Broken).ok).toBe(false);
 
-    const v2Broken = parsedJson(freshState());
+    const v2Broken = asV2(freshState());
     (v2Broken.sandbox as { crafting: { structures: unknown[] } }).crafting.structures = [
       { structureId: 'campfire', locationId: 'nope', active: true },
     ];
     expect(parseGameState(JSON.stringify(v2Broken)).status).toBe('corrupt');
+    expect(inspectGameStateV2(v2Broken).ok).toBe(false);
+
+    const v3Broken = parsedJson(freshState());
+    (v3Broken.sandbox as { crafting: { structures: unknown[] } }).crafting.structures = [
+      { structureId: 'campfire', locationId: 'nope', active: true },
+    ];
+    expect(parseGameState(JSON.stringify(v3Broken)).status).toBe('corrupt');
 
     expect(parseGameState(JSON.stringify({ schemaVersion: 99 })).status).toBe('incompatible');
     expect(parseGameState('{')).toEqual({ status: 'corrupt', reason: 'O salvamento não pôde ser lido.' });
@@ -273,32 +316,25 @@ describe('estado integrado e persistência principal', () => {
     expect(() => timeStateToWorld(Object.freeze({ day: 1, periodId: 'madrugada' }))).toThrow(WorldError);
   });
 
-  it('preserva o fluxo narrativo completo e o contrato visual do evento atual', () => {
-    const ended = [
-      'awake-calm',
-      'system-touch',
-      'ability-perception',
-      'seek-water',
-      'alert-hide',
-      'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
-    ].reduce(
-      (state, choiceId) => applyChoice(state, firstDayCampaign, choiceId, now),
-      startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now),
+  it('preserva o fluxo narrativo até a exploração e o save concluído quando a sessão posterior é reaberta', () => {
+    const ended = continueAfterIntro(
+      ['awake-calm', 'system-touch', 'ability-perception'],
+      ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
     );
 
     expect(ended.status).toBe('completed');
     expect(ended.schemaVersion).toBe(SCHEMA_VERSION);
     expect(ended.sandbox.navigation.currentLocationId).toBe(START);
-    expect(ended.currentEventId).toBeTruthy();
+    expect(ended.narrativeSession).toBeNull();
     expect(bindSavedState(ended, firstDayCampaign).ok).toBe(true);
     expect(parseGameState(serializeGameState(ended))).toEqual({ status: 'ok', state: ended });
     expect(() => serializeGameState(ended)).not.toThrow(PersistenceError);
-    expect(createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign.firstEventId, now).currentEventId).toBe(
-      firstDayCampaign.firstEventId,
-    );
+    expect(
+      createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now).narrativeSession,
+    ).toEqual({
+      campaignId: firstDayCampaign.id,
+      eventId: firstDayCampaign.firstEventId,
+    });
   });
 });
 
@@ -448,7 +484,7 @@ describe('contexto do sandbox na criação e persistência', () => {
       locations: [...context.map.locations.keys()],
       recipes: [...context.crafting.byRecipe.keys()],
     };
-    const state = createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, 'awakening', now, context);
+    const state = createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, firstDayCampaign, now, context);
     const serialized = serializeGameState(state, context);
     const parsed = parseGameState(serialized, context);
 
@@ -471,7 +507,7 @@ describe('contexto do sandbox na criação e persistência', () => {
 
   it('createPersistence usa o mesmo contexto em save e load', () => {
     const context = customContext();
-    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now, context);
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now, context);
     const memory = new Map<string, string>();
     const persistence = createPersistence(
       {
@@ -493,7 +529,7 @@ describe('contexto do sandbox na criação e persistência', () => {
 
   it('createMemoryPersistence encaminha o contexto', () => {
     const context = customContext();
-    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now, context);
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now, context);
     const persistence = createMemoryPersistence(undefined, context);
 
     persistence.save(state);
@@ -502,7 +538,7 @@ describe('contexto do sandbox na criação e persistência', () => {
 
   it('save customizado carregado com contexto padrão é rejeitado', () => {
     const context = customContext();
-    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now, context);
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now, context);
     const serialized = serializeGameState(state, context);
 
     expect(parseGameState(serialized).status).toBe('corrupt');
@@ -833,7 +869,7 @@ describe('reconstrução e normalização do SandboxContext', () => {
 
   it('estado criado com contexto válido serializa no mesmo contexto e não nasce inválido', () => {
     const context = freezeContext(customContext());
-    const state = createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, 'awakening', now, context);
+    const state = createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, firstDayCampaign, now, context);
 
     expect(inspectSandboxState(state.sandbox, context).ok).toBe(true);
     expect(inspectGameState(state, context).ok).toBe(true);
@@ -900,7 +936,7 @@ describe('reconstrução e normalização do SandboxContext', () => {
   });
 
   it('chamadas sem contexto continuam funcionando', () => {
-    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', now);
+    const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const persistence = createMemoryPersistence();
 
     expect(inspectSandboxContext(createSandboxContext()).ok).toBe(true);

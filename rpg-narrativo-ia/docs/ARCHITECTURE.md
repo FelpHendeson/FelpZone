@@ -106,7 +106,7 @@ O estado salvo deve conter no mínimo:
 
 - `schemaVersion`;
 - personagem;
-- evento atual;
+- sessão narrativa (`narrativeSession`, obrigatória no JSON e nula durante exploração);
 - atributos;
 - inventário;
 - relações;
@@ -117,13 +117,13 @@ O estado salvo deve conter no mínimo:
 - sandbox (navegação, exploração, recursos e crafting);
 - data da última atualização.
 
-A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1` e `2` retornam `status: 'incompatible'`. Saves v1 válidos são migrados para v2 na leitura. O parser não lança exceção.
+A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1`, `2` e `3` retornam `status: 'incompatible'`. Saves v1 e v2 válidos são migrados para v3 na leitura. O parser não lança exceção.
 
-Antes de o estado chegar à interface, `bindSavedState` confere o `currentEventId` contra a campanha: o evento precisa existir e cumprir as próprias condições. Falhas viram `corrupt` e a UI não tenta renderizar o evento.
+Antes de o estado chegar à interface, `bindSavedState` confere a sessão narrativa, quando ela existe, contra a campanha: o evento precisa existir e cumprir as próprias condições. Partidas em exploração (`narrativeSession === null`) e partidas concluídas com sessão nula são aceitas. Falhas viram `corrupt` e a UI não tenta renderizar um evento inexistente.
 
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`. A chave `reset.mvp.save` permanece.
 
-`schemaVersion` é `2`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. Contextos recebidos são reconstruídos e normalizados antes da validação. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão.
+`schemaVersion` é `3`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. Contextos recebidos são reconstruídos e normalizados antes da validação. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão. O schema 3 não persiste `currentEventId`.
 
 ## Contrato de horário e data
 
@@ -384,37 +384,51 @@ Operação pública do orquestrador:
 
 - `executeSandboxAction`.
 
-A persistência serializa somente o schema 2 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6.
+A persistência serializa somente o schema 3 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6.
 
-O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Não persiste e não altera a interface. Exploração livre e menus visuais pertencem às Fatias 7.3 e 7.4.
+O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste e não altera a interface. A Fatia 7.3 devolve o jogador à exploração depois da capacidade inicial, com uma tela mínima. Os menus reais de navegação, explorar, coletar e fabricar pertencem à Fatia 7.4.
 
 ## Contratos do motor
 
-- `applyChoice` só age com `status: 'playing'`.
-- O evento atual e a escolha precisam existir e cumprir suas condições.
+- `applyChoice` só age com `status: 'playing'` e sessão narrativa ativa da mesma campanha.
+- Exploração livre (`narrativeSession === null`) não aceita `applyChoice`; `getAvailableChoices` devolve `[]` e `getCurrentEvent` lança.
+- O evento da sessão e a escolha precisam existir e cumprir suas condições.
 - `inventory.remove` falha de forma controlada se a quantidade for insuficiente; o estado anterior permanece intacto.
 - Quantidades de item são inteiros positivos; variações numéricas precisam ser finitas.
 - Relações, capacidades e títulos não são duplicados.
 - `validateCampaign` devolve diagnósticos semânticos (IDs, referências, transições, interpolação, consumo protegido, conectividade estrutural e alcançabilidade semântica).
-- Conectividade estrutural segue as transições; alcançabilidade semântica considera condições e efeitos.
-- `walkCampaignTrajectories` percorre a árvore de escolhas válidas e identifica estados pelo evento, flags, inventário, atributos, relações, mundo e progressão.
+- Conectividade estrutural parte de `campaign.firstEventId` e dos eventos com `canStartSession: true`.
+- Alcançabilidade semântica completa percorre só o fluxo inicial. Entradas acionáveis pelo mundo recebem validação estrutural nesta etapa, porque ainda não há contexto de gatilho.
+- O fluxo inicial é válido se alguma trajetória retorna à exploração ou conclui a partida.
+- `walkCampaignTrajectories` percorre a árvore de escolhas válidas, identifica estados pela sessão narrativa, flags, inventário, atributos, relações, mundo e progressão, e conta retornos à exploração sem classificá-los como dead end.
 
 O retorno de uma escolha continua sendo o novo `GameState`. Um `ChoiceOutcome` com estado anterior e efeitos aplicados não foi introduzido: a interface só precisa do estado seguinte, e o extra seria abstração prematura.
 
 ## Evolução do estado narrativo
 
-O MVP exige `currentEventId` porque sempre está dentro de uma cena. No sandbox, o estado precisará distinguir uma sessão narrativa ativa da posição normal no mundo. O formato final deve permitir ausência de evento ativo durante exploração, sem usar IDs fictícios.
-
-Uma direção conceitual é:
+A narrativa deixou de ser o loop permanente. O schema 3 persiste uma sessão opcional:
 
 ```ts
 interface NarrativeSession {
+  campaignId: string;
   eventId: string;
-  returnMode: 'exploration' | 'interaction';
+}
+
+interface GameState {
+  schemaVersion: 3;
+  status: GameStatus;
+  narrativeSession: NarrativeSession | null;
+  // demais campos
 }
 ```
 
-A mudança provavelmente exigirá nova versão do schema e migração ou rejeição controlada de saves. A Fatia 7.1 introduziu o schema 2 com sandbox persistido, mas manteve `currentEventId` obrigatório para não quebrar a interface atual. A sessão narrativa opcional fica para a Fatia 7.3.
+A presença da sessão é a fonte canônica:
+
+- `status: 'playing'` e `narrativeSession !== null`: narrativa ativa;
+- `status: 'playing'` e `narrativeSession === null`: exploração livre;
+- `status: 'completed'`: encerramento definitivo, com sessão nula.
+
+Não há `currentEventId`, `mode` nem `isExploring` no schema atual. Depois da capacidade inicial, a transição `returnToExploration` encerra a sessão sem concluir a partida. Eventos posteriores a `choose-ability` permanecem no conteúdo; `first-priority` é uma entrada adicional (`canStartSession: true`) para gatilhos futuros do mundo.
 
 ## Testes prioritários
 

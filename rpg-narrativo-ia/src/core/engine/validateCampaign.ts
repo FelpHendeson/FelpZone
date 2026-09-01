@@ -261,6 +261,12 @@ function validateText(eventId: string, field: string, text: string): string[] {
   );
 }
 
+function additionalSessionRoots(campaign: Campaign): string[] {
+  return campaign.events
+    .filter((event) => event.canStartSession === true && event.id !== campaign.firstEventId)
+    .map((event) => event.id);
+}
+
 function validateReachability(campaign: Campaign, eventIds: Set<string>): string[] {
   const errors: string[] = [];
   const firstExists = eventIds.has(campaign.firstEventId);
@@ -268,13 +274,22 @@ function validateReachability(campaign: Campaign, eventIds: Set<string>): string
     return errors;
   }
 
-  const structural = structurallyReachableEvents(campaign);
+  const introStructural = structurallyReachableEvents(campaign, [campaign.firstEventId]);
+  const worldRoots = additionalSessionRoots(campaign);
+  const worldStructural = structurallyReachableEvents(campaign, worldRoots);
+  const structural = new Set([...introStructural, ...worldStructural]);
   const walk = walkCampaignTrajectories(campaign);
   const semantic = new Set(walk.reachedEventIds);
 
   for (const event of campaign.events) {
     if (!structural.has(event.id)) {
-      errors.push(`O evento ${event.id} não está conectado estruturalmente ao início.`);
+      errors.push(`O evento ${event.id} não está conectado estruturalmente a nenhuma entrada narrativa.`);
+      continue;
+    }
+
+    // Entradas acionáveis pelo mundo recebem só validação estrutural nesta etapa:
+    // ainda não há contexto de gatilho para percorrê-las semanticamente.
+    if (!introStructural.has(event.id)) {
       continue;
     }
 
@@ -285,17 +300,17 @@ function validateReachability(campaign: Campaign, eventIds: Set<string>): string
     }
   }
 
-  if (walk.completedPaths === 0) {
-    errors.push('A campanha não possui um encerramento alcançável.');
+  if (walk.completedPaths === 0 && walk.returnedToExplorationPaths === 0) {
+    errors.push('A campanha não possui um encerramento alcançável nem um retorno à exploração.');
   }
 
   return errors;
 }
 
-function structurallyReachableEvents(campaign: Campaign): Set<string> {
+function structurallyReachableEvents(campaign: Campaign, roots: string[]): Set<string> {
   const byId = new Map(campaign.events.map((event) => [event.id, event]));
   const seen = new Set<string>();
-  const queue = [campaign.firstEventId];
+  const queue = [...roots];
 
   while (queue.length > 0) {
     const eventId = queue.pop();

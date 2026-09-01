@@ -1,11 +1,12 @@
 import { describe, expect, it } from 'vitest';
+import { firstDayCampaign } from '../campaigns/first-day';
 import { applyEffects } from '../core/effects';
 import { EngineError } from '../core/engine';
 import { createInitialState } from '../core/state';
 import { ITEM_FRUIT, NPC_MIRA } from '../campaigns/first-day/ids';
 
 function baseState() {
-  return createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, 'awakening', () => 't0');
+  return createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, () => 't0');
 }
 
 describe('efeitos', () => {
@@ -85,6 +86,7 @@ describe('efeitos', () => {
     expect(next.relationships[0]).toMatchObject({ characterId: NPC_MIRA, trust: 15 });
     expect(next.progression.abilityIds).toEqual(['olhar-atento']);
     expect(next.status).toBe('completed');
+    expect(next.narrativeSession).toBeNull();
     expect(state.status).toBe('playing');
   });
 

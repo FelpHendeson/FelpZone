@@ -12,7 +12,7 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.3 — Da introdução à exploração livre
 
-Ainda não implementada. Depois da capacidade inicial, o jogador deve sair do loop exclusivo de eventos e ocupar o mundo. `currentEventId` obrigatório será revisto nessa fatia, com migração se necessário.
+**Implementada.** Depois da capacidade inicial, a partida permanece `playing` com `narrativeSession: null`. O jogador está na Clareira do Despertar, o estado aceita `executeSandboxAction` e a interface mostra só uma tela mínima de transição. Os menus reais pertencem à Fatia 7.4.
 
 ## Fatia 7.4 — Superfície mobile
 
@@ -37,10 +37,10 @@ interface SandboxState {
 }
 
 interface GameState {
-  schemaVersion: 2;
+  schemaVersion: 3;
   status: GameStatus;
   character: CharacterIdentity;
-  currentEventId: string;
+  narrativeSession: NarrativeSession | null;
   attributes: Attributes;
   inventory: InventoryItem[];
   relationships: Relationship[];
@@ -50,6 +50,11 @@ interface GameState {
   progression: ProgressionState;
   sandbox: SandboxState;
   updatedAt: string;
+}
+
+interface NarrativeSession {
+  campaignId: string;
+  eventId: string;
 }
 ```
 
@@ -71,17 +76,25 @@ Não existe `sandbox.time`, segundo inventário, flags duplicadas nem `DaylightP
 
 ## Schema e migração
 
-`SCHEMA_VERSION` passou de `1` para `2`. O schema 2 exige `sandbox`.
+`SCHEMA_VERSION` é `3`. O schema 3 exige `narrativeSession` (o valor pode ser `null`) e `sandbox`. Não persiste `currentEventId`.
 
-Um save v1 válido é inspecionado por `inspectGameStateV1`, copiado campo a campo e recebe o sandbox inicial das definições do contexto informado (ou do contexto padrão). A migração:
+Um save v2 válido é inspecionado por `inspectGameStateV2` e copiado campo a campo. Partidas `playing` recebem:
 
-- preserva personagem, status, evento, atributos, inventário, relações, flags, histórico, dia, período, progressão e `updatedAt`;
+```ts
+narrativeSession: { campaignId: 'first-day', eventId: old.currentEventId }
+```
+
+Partidas `completed` recebem `narrativeSession: null`. A migração não transforma automaticamente um save no meio da campanha em exploração.
+
+Um save v1 válido percorre a cadeia segura `v1 → v2 → v3`: recebe o sandbox inicial do contexto e depois a sessão narrativa. Em ambos os casos a migração:
+
+- preserva personagem, status, atributos, inventário, relações, flags, histórico, dia, período, progressão, sandbox (quando já existia) e `updatedAt`;
 - não é uma ação de jogo;
 - não avança o relógio;
 - não adiciona itens, estruturas nem progresso de exploração;
 - não muta o objeto antigo.
 
-Saves v1 malformados e v2 malformados retornam `corrupt`. Versões diferentes de 1 e 2 retornam `incompatible`. JSON inválido continua `corrupt`; string vazia continua `empty`.
+Saves v1, v2 e v3 malformados retornam `corrupt`. Versões diferentes de 1, 2 e 3 retornam `incompatible`. JSON inválido continua `corrupt`; string vazia continua `empty`.
 
 A leitura **não** regrava o `localStorage`. O estado migrado só é persistido na próxima chamada de `save`. A chave `reset.mvp.save` foi preservada.
 
@@ -89,7 +102,7 @@ Carregar não aplica tempo, não renova recursos e não recupera populações.
 
 ## Validação
 
-`inspectSandboxContext` é a fronteira do contexto: falha com `{ ok: false, reason }` se o conjunto for incoerente. `createInitialSandboxState` inspeciona o contexto por completo e só então cria o estado com os índices normalizados; contexto inválido lança `SandboxError`. `inspectGameState` valida o schema 2, normaliza o contexto e delega a `inspectNavigationState`, `inspectExplorationState`, `inspectResourcesState` e `inspectCraftingState`. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
+`inspectSandboxContext` é a fronteira do contexto: falha com `{ ok: false, reason }` se o conjunto for incoerente. `createInitialSandboxState` inspeciona o contexto por completo e só então cria o estado com os índices normalizados; contexto inválido lança `SandboxError`. `inspectGameState` valida o schema 3, exige `narrativeSession`, rejeita `currentEventId` e delega a `inspectNavigationState`, `inspectExplorationState`, `inspectResourcesState` e `inspectCraftingState`. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
 
 `serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` opcional. `save` e `load` da mesma persistência usam o mesmo contexto. Sem argumento, o contexto padrão da Clareira do Despertar continua em vigor.
 
@@ -111,7 +124,7 @@ function executeSandboxAction(
 ): SandboxActionResult;
 ```
 
-`now` só preenche `updatedAt`. Não é o relógio do jogo. Sem contexto, usa o contexto padrão. A ação só corre com `status: 'playing'`. `currentEventId` não muda.
+`now` só preenche `updatedAt`. Não é o relógio do jogo. Sem contexto, usa o contexto padrão. A ação só corre com `status: 'playing'`. `narrativeSession` é copiada e não é recriada.
 
 Antes de executar, o orquestrador normaliza o contexto, valida o `GameState` contra ele e rejeita ação malformada. Falhas lançam `SandboxActionError`, preservam a mensagem do módulo e o `cause` quando encapsulam erros de domínio, e não entregam estado parcial.
 
@@ -129,11 +142,18 @@ Custo zero mantém o relógio, não emite eventos de ciclo, não recupera popula
 
 A operação é atômica: se qualquer etapa falhar, o `GameState` recebido permanece intacto. O orquestrador não chama `serializeGameState`, `save` nem `localStorage`.
 
+## Sessão narrativa e retorno ao mundo
+
+`startGame` abre `narrativeSession: { campaignId, eventId: campaign.firstEventId }`. Depois de `choose-ability`, as três capacidades usam `{ type: 'returnToExploration' }`: o jogador permanece `playing`, a sessão vira `null` e os efeitos da capacidade ficam no estado.
+
+`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` para ser acionado no futuro por descoberta, encontro, NPC ou evento de mundo. Esta fatia não cria esse gatilho.
+
+A interface deriva a tela do estado: narrativa com sessão, exploração mínima sem sessão, resumo quando `completed`. A tela mínima mostra nome, local, dia/período, capacidade e uma frase curta; o único botão extra é voltar ao início.
+
 ## Fora desta fatia
 
 - botões de navegação, explorar, coletar e fabricar;
 - mapa visual, menu de crafting ou inventário visual novo;
 - renovação ou recuperação no carregamento;
-- troca automática da narrativa pelo sandbox;
-- `currentEventId` opcional;
-- encontros, NPCs, combate, sobrevivência, clima, agenda, ferramentas, combustível, backend e IA em runtime.
+- gatilho automático de `first-priority`;
+- encontros, NPCs no mapa, combate, sobrevivência, clima, agenda, ferramentas, combustível, schema 4, backend e IA em runtime.

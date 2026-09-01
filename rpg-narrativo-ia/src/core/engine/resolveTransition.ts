@@ -1,7 +1,7 @@
 import type { Campaign, EventTransition, StoryEvent } from '../events/types';
 import { evaluateConditions, getEventById } from '../events';
 import { EngineError } from './errors';
-import type { GameState } from '../state/types';
+import type { GameState, NarrativeSession } from '../state/types';
 
 export function resolveTransition(
   state: GameState,
@@ -13,6 +13,13 @@ export function resolveTransition(
       return {
         ...state,
         status: 'completed',
+        narrativeSession: null,
+      };
+    case 'returnToExploration':
+      return {
+        ...state,
+        status: 'playing',
+        narrativeSession: null,
       };
     case 'event':
       return moveToEvent(state, campaign, transition.eventId);
@@ -22,6 +29,7 @@ export function resolveTransition(
 }
 
 function moveToEvent(state: GameState, campaign: Campaign, eventId: string): GameState {
+  const session = requireActiveSession(state);
   const event = requireEvent(campaign, eventId);
   if (!evaluateConditions(event.conditions, state)) {
     throw new EngineError(`O evento ${eventId} não cumpre suas condições.`);
@@ -29,11 +37,12 @@ function moveToEvent(state: GameState, campaign: Campaign, eventId: string): Gam
 
   return {
     ...state,
-    currentEventId: event.id,
+    narrativeSession: copySession(session, event.id),
   };
 }
 
 function moveToFirstMatch(state: GameState, campaign: Campaign, eventIds: string[]): GameState {
+  const session = requireActiveSession(state);
   const match = eventIds
     .map((eventId) => requireEvent(campaign, eventId))
     .find((event) => evaluateConditions(event.conditions, state));
@@ -44,7 +53,22 @@ function moveToFirstMatch(state: GameState, campaign: Campaign, eventIds: string
 
   return {
     ...state,
-    currentEventId: match.id,
+    narrativeSession: copySession(session, match.id),
+  };
+}
+
+function requireActiveSession(state: GameState): NarrativeSession {
+  if (!state.narrativeSession) {
+    throw new EngineError('Não há uma sessão narrativa ativa.');
+  }
+
+  return state.narrativeSession;
+}
+
+function copySession(session: NarrativeSession, eventId: string): NarrativeSession {
+  return {
+    campaignId: session.campaignId,
+    eventId,
   };
 }
 

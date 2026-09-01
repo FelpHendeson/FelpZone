@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
-import { applyChoice, bindSavedState, startGame } from '../core/engine';
+import { bindSavedState } from '../core/engine';
 import { parseGameState, serializeGameState } from '../infrastructure/persistence';
-import { freshState, now } from './helpers';
+import { continueAfterIntro, freshState, reopenNarrativeSession } from './helpers';
 
 describe('vínculo do salvamento com a campanha', () => {
   it('aceita um save cujo evento atual existe e é compatível', () => {
@@ -12,8 +12,17 @@ describe('vínculo do salvamento com a campanha', () => {
     expect(bound).toEqual({ ok: true, state });
   });
 
+  it('aceita uma partida em exploração livre sem evento ativo', () => {
+    const exploring = {
+      ...freshState(),
+      narrativeSession: null,
+    };
+
+    expect(bindSavedState(exploring, firstDayCampaign)).toEqual({ ok: true, state: exploring });
+  });
+
   it('rejeita de forma controlada um evento inexistente na campanha', () => {
-    const state = { ...freshState(), currentEventId: 'evento-fantasma' };
+    const state = reopenNarrativeSession(freshState(), 'evento-fantasma');
     const parsed = parseGameState(serializeGameState(state));
     const bound = bindSavedState(state, firstDayCampaign);
 
@@ -25,7 +34,7 @@ describe('vínculo do salvamento com a campanha', () => {
   });
 
   it('rejeita um evento existente cujas condições não combinam com o estado', () => {
-    const state = { ...freshState(), currentEventId: 'danger-alert' };
+    const state = reopenNarrativeSession(freshState(), 'danger-alert');
     const bound = bindSavedState(state, firstDayCampaign);
 
     expect(bound.ok).toBe(false);
@@ -34,23 +43,14 @@ describe('vínculo do salvamento com a campanha', () => {
     }
   });
 
-  it('aceita uma partida concluída no evento de encerramento', () => {
-    const ended = [
-      'awake-calm',
-      'system-touch',
-      'ability-perception',
-      'seek-water',
-      'alert-hide',
-      'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
-    ].reduce(
-      (state, choiceId) => applyChoice(state, firstDayCampaign, choiceId, now),
-      startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now),
+  it('aceita uma partida concluída sem sessão narrativa', () => {
+    const ended = continueAfterIntro(
+      ['awake-calm', 'system-touch', 'ability-perception'],
+      ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
     );
 
     expect(ended.status).toBe('completed');
+    expect(ended.narrativeSession).toBeNull();
     expect(bindSavedState(ended, firstDayCampaign).ok).toBe(true);
   });
 });

@@ -13,10 +13,10 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
   - exploração e descobertas;
   - pontos de recurso e ecologia;
   - crafting, estruturas locais e cozinha.
-- A Fatia 7.1 — estado integrado e persistência principal — está implementada: `schemaVersion: 2`, `GameState.sandbox` e migração v1 → v2. O `SandboxContext` inclui o local inicial, é reconstruído/normalizado antes do uso e pode ser passado à persistência; a aplicação continua no contexto padrão.
+- A Fatia 7.1 — estado integrado e persistência principal — está implementada: `GameState.sandbox` e migração de saves antigos.
 - A Fatia 7.2 — orquestrador de ações e tempo — está implementada: `executeSandboxAction` aplica movimento, exploração, coleta e crafting sobre o `GameState`, com custo único, recuperação, renovação e reavaliações gratuitas. Não persiste e não altera a interface.
-- As Fatias 7.3 e 7.4 ainda não foram implementadas. O Sistema 7 não está concluído.
-- A interface narrativa do MVP permanece a mesma.
+- A Fatia 7.3 — da introdução à exploração livre — está implementada: `schemaVersion: 3`, `narrativeSession` opcional, retorno à exploração depois da capacidade inicial e tela mínima. Os menus reais do sandbox ainda não.
+- A Fatia 7.4 ainda não foi implementada. O Sistema 7 não está concluído.
 
 ## Como preparar a máquina
 
@@ -34,7 +34,7 @@ Se o repositório já existir:
 
 ```bash
 git pull --ff-only
-cd rpg-narrativo-ia
+cd FelpZone/rpg-narrativo-ia
 npm install
 ```
 
@@ -74,13 +74,13 @@ Antes de agir, leia integralmente:
 Estado conhecido:
 
 - Sistemas 1 a 6 estão consolidados;
-- a Fatia 7.1 persistiu o sandbox no GameState com schemaVersion 2 e migração v1 → v2;
+- a Fatia 7.1 persistiu o sandbox no GameState;
 - a Fatia 7.2 orquestra movimento, exploração, coleta e crafting com aplicação única do tempo;
-- ainda não há exploração livre nem menus dos novos sistemas;
-- currentEventId continua obrigatório;
+- a Fatia 7.3 devolve o jogador à exploração depois da capacidade inicial, com schema 3 e sessão narrativa opcional;
+- a tela atual de exploração é mínima: sem destinos, explorar, coleta ou crafting;
 - o Sistema 7 não está concluído.
 
-Sua primeira tarefa é validar e revisar a Fatia 7.2 contra docs/SYSTEM-INTEGRATION.md.
+Sua primeira tarefa é validar e revisar a Fatia 7.3 contra docs/SYSTEM-INTEGRATION.md.
 
 Execute:
 
@@ -91,14 +91,15 @@ npm run build
 
 Revise especialmente:
 
-- aplicação única do TimeCost via advanceDayCycle;
-- ordem recuperação → renovação somente quando o relógio avança;
-- reavaliações gratuitas de descobertas e receitas;
-- fontes canônicas de world, inventory e flags;
-- atomicidade do GameState e ausência de persistência automática;
-- currentEventId ainda obrigatório e interface narrativa intacta.
+- schema 3 e NarrativeSession;
+- migração v1/v2 → v3 sem gameplay e sem mutar o save antigo;
+- retorno à exploração após choose-ability;
+- preservação dos eventos posteriores e de first-priority como entrada adicional;
+- bindSavedState aceitando exploração livre;
+- compatibilidade com executeSandboxAction sem reabrir narrativa;
+- tela mínima sem chamar o orquestrador.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.2. Se não houver problemas, declare a Fatia 7.2 consolidada e então prepare, somente quando eu pedir, o prompt da Fatia 7.3 — da introdução à exploração livre.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.3. Se não houver problemas, declare a Fatia 7.3 consolidada e então prepare, somente quando eu pedir, o prompt da Fatia 7.4 — superfície mobile.
 
 Preserve o ciclo de trabalho:
 
@@ -109,4 +110,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão depois da revisão
 
-Se a Fatia 7.2 passar sem achados, a próxima etapa autorizável é a Fatia 7.3 — da introdução à exploração livre, descrita em `docs/SYSTEM-INTEGRATION.md` e `docs/ROADMAP.md`. A Fatia 7.4 continua depois. O Sistema 7 ainda não está implementado por completo.
+Se a Fatia 7.3 passar sem achados, a próxima etapa autorizável é a Fatia 7.4 — superfície mobile, descrita em `docs/SYSTEM-INTEGRATION.md` e `docs/ROADMAP.md`. O Sistema 7 ainda não está implementado por completo.

@@ -7,7 +7,7 @@ import { createInitialWorld } from '../../modules/world';
 
 export function createInitialState(
   character: CharacterIdentity,
-  firstEventId: string,
+  campaign: { id: string; firstEventId: string },
   now = defaultNow,
   sandboxContext?: SandboxContext,
 ): GameState {
@@ -15,7 +15,10 @@ export function createInitialState(
     schemaVersion: SCHEMA_VERSION,
     status: 'playing',
     character,
-    currentEventId: firstEventId,
+    narrativeSession: {
+      campaignId: campaign.id,
+      eventId: campaign.firstEventId,
+    },
     attributes: createInitialAttributes(),
     inventory: [],
     relationships: [],
@@ -32,8 +35,19 @@ export function defaultNow(): string {
   return new Date().toISOString();
 }
 
-export { SCHEMA_VERSION, SCHEMA_VERSION_V1 } from './types';
-export { inspectGameState, inspectGameStateV1, migrateGameStateV1 } from './validateGameState';
+export { SCHEMA_VERSION, SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, MIGRATED_CAMPAIGN_ID } from './types';
+export {
+  inspectGameState,
+  inspectGameStateV1,
+  inspectGameStateV2,
+  migrateGameStateV1,
+  migrateGameStateV2,
+} from './validateGameState';
+export type {
+  GameStateInspection,
+  GameStateV1Inspection,
+  GameStateV2Inspection,
+} from './validateGameState';
 export {
   ATTRIBUTE_IDS,
   DAY_PERIODS,
@@ -47,9 +61,11 @@ export type {
   DayPeriod,
   GameState,
   GameStateV1,
+  GameStateV2,
   GameStatus,
   HistoryEntry,
   InventoryItem,
+  NarrativeSession,
   ProgressionState,
   Relationship,
   WorldState,

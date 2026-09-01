@@ -30,6 +30,7 @@ export interface ImageReference {
 export type EventTransition =
   | { type: 'event'; eventId: string }
   | { type: 'firstMatch'; eventIds: string[] }
+  | { type: 'returnToExploration' }
   | { type: 'complete' };
 
 export interface StoryChoice {
@@ -51,6 +52,7 @@ export interface StoryEvent {
   conditions?: GameCondition[];
   choices: StoryChoice[];
   isEnding?: boolean;
+  canStartSession?: boolean;
 }
 
 export interface ItemDefinition {

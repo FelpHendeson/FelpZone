@@ -100,7 +100,7 @@ export const events: StoryEvent[] = [
           { type: 'flag.set', flag: FLAG_ABILITY_PERCEPTION, value: true },
           { type: 'attribute.change', attribute: 'cautela', amount: 15 },
         ],
-        transition: { type: 'event', eventId: 'first-priority' },
+        transition: { type: 'returnToExploration' },
       },
       {
         id: 'ability-resilience',
@@ -113,7 +113,7 @@ export const events: StoryEvent[] = [
           { type: 'attribute.change', attribute: 'saude', amount: 15 },
           { type: 'attribute.change', attribute: 'energia', amount: 10 },
         ],
-        transition: { type: 'event', eventId: 'first-priority' },
+        transition: { type: 'returnToExploration' },
       },
       {
         id: 'ability-empathy',
@@ -125,13 +125,14 @@ export const events: StoryEvent[] = [
           { type: 'flag.set', flag: FLAG_ABILITY_EMPATHY, value: true },
           { type: 'attribute.change', attribute: 'humanidade', amount: 15 },
         ],
-        transition: { type: 'event', eventId: 'first-priority' },
+        transition: { type: 'returnToExploration' },
       },
     ],
   },
   {
     id: 'first-priority',
     title: 'O que vem primeiro',
+    canStartSession: true,
     body: 'A fome já cobra. A garganta pede água. O vento atravessa o vale sem nenhum teto para parar.\n\nAo longe, uma linha de pedras. À direita, um recorte de vegetação baixa. À esquerda, um morro de onde talvez se veja o tamanho disto.\n\nNão dá para fazer as três coisas agora.',
     image: { kind: 'scene', label: 'Vale recém-formado' },
     choices: [

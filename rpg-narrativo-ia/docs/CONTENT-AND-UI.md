@@ -109,15 +109,8 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 ## Evolução sandbox
 
-Após a introdução, a tela principal deixará de mostrar obrigatoriamente um evento. O modo de exploração deverá apresentar:
-
-- dia e período atuais;
-- localização e caminho hierárquico;
-- placeholder da área;
-- destinos permitidos;
-- interações disponíveis no local;
-- acesso a personagem, inventário, mapa, histórico e objetivos.
+A Fatia 7.3 introduz uma tela mínima de exploração depois da capacidade inicial. Ela mostra nome, local, dia/período, capacidade escolhida e uma frase curta; o único botão extra é voltar ao início. Destinos, explorar, coleta, crafting, mapa visual e inventário novo continuam na Fatia 7.4.
 
 Quando um gatilho iniciar uma narrativa ou diálogo, a interface reutiliza os componentes atuais. Ao terminar a sessão, retorna ao mesmo contexto de exploração, já com tempo, estado e mundo atualizados.
 
-Consulte `SANDBOX-FLOW.md` e as especificações dos três sistemas antes de alterar telas.
+Consulte `SANDBOX-FLOW.md` e as especificações dos sistemas antes de alterar telas.

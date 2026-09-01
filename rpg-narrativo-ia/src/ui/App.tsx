@@ -5,12 +5,14 @@ import { createPersistence, type GamePersistence, type LoadResult } from '../inf
 import { normalizeIdentity } from '../modules/character';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { CreateCharacterScreen } from './screens/CreateCharacterScreen';
+import { ExplorationScreen } from './screens/ExplorationScreen';
 import { GameScreen } from './screens/GameScreen';
 import { StartScreen } from './screens/StartScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
+import { hasActiveNarrativeSession, toAppScreen } from './routing';
 import { useMemo, useState } from 'react';
 
-type Screen = 'start' | 'create' | 'game' | 'summary';
+type Screen = 'start' | 'create' | 'game' | 'exploration' | 'summary';
 type ConfirmKind = 'none' | 'new-game' | 'delete' | 'restart';
 
 const campaign = firstDayCampaign;
@@ -70,7 +72,7 @@ export function App() {
 
   function goToSavedGame(next: GameState) {
     setState(next);
-    setScreen(next.status === 'completed' ? 'summary' : 'game');
+    setScreen(toAppScreen(next));
   }
 
   function requestNewGame() {
@@ -109,9 +111,7 @@ export function App() {
       const next = applyChoice(state, campaign, choiceId);
       persist(next);
       setError(null);
-      if (next.status === 'completed') {
-        setScreen('summary');
-      }
+      setScreen(toAppScreen(next));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível aplicar a escolha.');
     }
@@ -152,7 +152,7 @@ export function App() {
         <CreateCharacterScreen onBack={() => setScreen('start')} onConfirm={handleCreate} />
       ) : null}
 
-      {screen === 'game' && state ? (
+      {screen === 'game' && state && hasActiveNarrativeSession(state) ? (
         <GameScreen
           state={state}
           campaign={campaign}
@@ -161,6 +161,10 @@ export function App() {
           onChoose={handleChoice}
           onExit={() => setScreen('start')}
         />
+      ) : null}
+
+      {screen === 'exploration' && state ? (
+        <ExplorationScreen state={state} campaign={campaign} onExit={() => setScreen('start')} />
       ) : null}
 
       {screen === 'summary' && state ? (

@@ -8,19 +8,24 @@ import { EngineError } from './errors';
 import { requireEvent, resolveTransition } from './resolveTransition';
 
 export function startGame(character: CharacterIdentity, campaign: Campaign, now = defaultNow): GameState {
-  return createInitialState(character, campaign.firstEventId, now);
+  return createInitialState(character, campaign, now);
 }
 
 export function getCurrentEvent(state: GameState, campaign: Campaign): StoryEvent {
-  return requireEvent(campaign, state.currentEventId);
+  const session = requireNarrativeSession(state, campaign);
+  return requireEvent(campaign, session.eventId);
 }
 
 export function getAvailableChoices(state: GameState, campaign: Campaign): StoryChoice[] {
-  if (state.status !== 'playing') {
+  if (state.status !== 'playing' || !state.narrativeSession) {
     return [];
   }
 
-  const event = getEventById(campaign, state.currentEventId);
+  if (state.narrativeSession.campaignId !== campaign.id) {
+    return [];
+  }
+
+  const event = getEventById(campaign, state.narrativeSession.eventId);
   if (!event || !evaluateConditions(event.conditions, state)) {
     return [];
   }
@@ -38,7 +43,8 @@ export function applyChoice(
     throw new EngineError('A partida já foi concluída e não aceita novas escolhas.');
   }
 
-  const event = getCurrentEvent(state, campaign);
+  const session = requireNarrativeSession(state, campaign);
+  const event = requireEvent(campaign, session.eventId);
   if (!evaluateConditions(event.conditions, state)) {
     throw new EngineError(`O evento ${event.id} não está disponível neste estado.`);
   }
@@ -67,4 +73,16 @@ export function applyChoice(
   };
 
   return resolveTransition(withHistory, campaign, choice.transition);
+}
+
+function requireNarrativeSession(state: GameState, campaign: Campaign) {
+  if (!state.narrativeSession) {
+    throw new EngineError('Não há uma sessão narrativa ativa.');
+  }
+
+  if (state.narrativeSession.campaignId !== campaign.id) {
+    throw new EngineError('A campanha da sessão não corresponde à campanha atual.');
+  }
+
+  return state.narrativeSession;
 }

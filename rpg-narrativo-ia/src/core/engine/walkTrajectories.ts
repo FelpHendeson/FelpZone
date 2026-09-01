@@ -5,6 +5,7 @@ import type { GameState } from '../state/types';
 export interface TrajectoryWalk {
   reachedEventIds: string[];
   completedPaths: number;
+  returnedToExplorationPaths: number;
   deadEnds: Array<{ eventId: string; path: string[] }>;
   errors: string[];
 }
@@ -18,23 +19,29 @@ export function walkCampaignTrajectories(
   const deadEnds: TrajectoryWalk['deadEnds'] = [];
   const errors: string[] = [];
   let completedPaths = 0;
+  let returnedToExplorationPaths = 0;
 
   function visit(state: GameState, path: string[]): void {
-    reached.add(state.currentEventId);
+    if (state.status === 'completed') {
+      completedPaths += 1;
+      return;
+    }
+
+    if (state.narrativeSession === null) {
+      returnedToExplorationPaths += 1;
+      return;
+    }
+
+    reached.add(state.narrativeSession.eventId);
     const signature = stateSignature(state);
     if (seen.has(signature)) {
       return;
     }
     seen.add(signature);
 
-    if (state.status === 'completed') {
-      completedPaths += 1;
-      return;
-    }
-
     const choices = getAvailableChoices(state, campaign);
     if (choices.length === 0) {
-      deadEnds.push({ eventId: state.currentEventId, path });
+      deadEnds.push({ eventId: state.narrativeSession.eventId, path });
       return;
     }
 
@@ -54,6 +61,7 @@ export function walkCampaignTrajectories(
   return {
     reachedEventIds: [...reached],
     completedPaths,
+    returnedToExplorationPaths,
     deadEnds,
     errors,
   };
@@ -62,7 +70,7 @@ export function walkCampaignTrajectories(
 function stateSignature(state: GameState): string {
   return JSON.stringify({
     status: state.status,
-    currentEventId: state.currentEventId,
+    narrativeSession: state.narrativeSession,
     flags: state.flags,
     attributes: state.attributes,
     inventory: state.inventory,

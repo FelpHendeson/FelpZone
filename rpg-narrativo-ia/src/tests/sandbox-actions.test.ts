@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
-import { applyChoice, bindSavedState, startGame } from '../core/engine';
+import { bindSavedState } from '../core/engine';
 import {
   createInitialState,
   inspectGameState,
@@ -31,7 +31,7 @@ import {
   SandboxActionError,
   type SandboxAction,
 } from '../modules/sandbox-actions';
-import { freshState, now } from './helpers';
+import { continueAfterIntro, freshState } from './helpers';
 
 const CAMP = 'test-camp';
 const REGION = 'test-region';
@@ -248,7 +248,7 @@ function customContext(): SandboxContext {
 }
 
 function playing(context: SandboxContext = customContext(), clock = () => STAMP): GameState {
-  return createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, 'awakening', clock, context);
+  return createInitialState({ firstName: 'Lia', lastName: 'Nunes' }, firstDayCampaign, clock, context);
 }
 
 function inspectOrThrow(state: GameState, context?: SandboxContext): GameState {
@@ -823,7 +823,7 @@ describe('orquestrador de ações do sandbox', () => {
 
     it('estado concluído, ação malformada, quantidade inválida e IDs vazios são rejeitados', () => {
       const state = playing(context);
-      const completed = withState(state, { status: 'completed' }, context);
+      const completed = withState(state, { status: 'completed', narrativeSession: null }, context);
       const before = snapshot(state);
 
       expect(() => executeSandboxAction(completed, { type: 'exploration.explore' }, { context })).toThrow(
@@ -930,22 +930,12 @@ describe('orquestrador de ações do sandbox', () => {
         status: 'ok',
         state: result.current,
       });
-      expect(result.current.currentEventId).toBe('awakening');
+      expect(result.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'awakening' });
       expect(result.current.schemaVersion).toBe(SCHEMA_VERSION);
 
-      const ended = [
-        'awake-calm',
-        'system-touch',
-        'ability-perception',
-        'seek-water',
-        'alert-hide',
-        'meet-open',
-        'share-fruit',
-        'accept-shelter',
-        'together-summary',
-      ].reduce(
-        (current, choiceId) => applyChoice(current, firstDayCampaign, choiceId, now),
-        startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now),
+      const ended = continueAfterIntro(
+        ['awake-calm', 'system-touch', 'ability-perception'],
+        ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
       );
 
       expect(ended.status).toBe('completed');

@@ -6,11 +6,16 @@ import {
 } from '../../modules/sandbox';
 import {
   ATTRIBUTE_IDS,
+  MIGRATED_CAMPAIGN_ID,
   SCHEMA_VERSION,
   SCHEMA_VERSION_V1,
+  SCHEMA_VERSION_V2,
   isDayPeriod,
   type GameState,
   type GameStateV1,
+  type GameStateV2,
+  type GameStatus,
+  type NarrativeSession,
 } from './types';
 
 export type GameStateInspection =
@@ -19,6 +24,10 @@ export type GameStateInspection =
 
 export type GameStateV1Inspection =
   | { ok: true; state: GameStateV1 }
+  | { ok: false; reason: string };
+
+export type GameStateV2Inspection =
+  | { ok: true; state: GameStateV2 }
   | { ok: false; reason: string };
 
 export function inspectGameState(value: unknown, context?: SandboxContext): GameStateInspection {
@@ -37,9 +46,50 @@ export function inspectGameStateV1(value: unknown): GameStateV1Inspection {
   }
 }
 
+export function inspectGameStateV2(value: unknown, context?: SandboxContext): GameStateV2Inspection {
+  try {
+    return inspectV2(value, context);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
 export function migrateGameStateV1(state: GameStateV1, context?: SandboxContext): GameState {
+  return migrateGameStateV2(migrateGameStateV1ToV2(state, context), context);
+}
+
+export function migrateGameStateV2(state: GameStateV2, context?: SandboxContext): GameState {
+  const sandbox = inspectSandboxState(state.sandbox, context);
+  if (!sandbox.ok) {
+    throw new Error(sandbox.reason);
+  }
+
   return {
     schemaVersion: SCHEMA_VERSION,
+    status: state.status,
+    character: { firstName: state.character.firstName, lastName: state.character.lastName },
+    narrativeSession: copySessionFromLegacy(state.status, state.currentEventId),
+    attributes: { ...state.attributes },
+    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    relationships: state.relationships.map((entry) => ({
+      characterId: entry.characterId,
+      trust: entry.trust,
+    })),
+    flags: { ...state.flags },
+    history: state.history.map((entry) => ({ ...entry })),
+    world: { day: state.world.day, period: state.world.period },
+    progression: {
+      abilityIds: [...state.progression.abilityIds],
+      titleIds: [...state.progression.titleIds],
+    },
+    sandbox: sandbox.value,
+    updatedAt: state.updatedAt,
+  };
+}
+
+function migrateGameStateV1ToV2(state: GameStateV1, context?: SandboxContext): GameStateV2 {
+  return {
+    schemaVersion: SCHEMA_VERSION_V2,
     status: state.status,
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     currentEventId: state.currentEventId,
@@ -61,6 +111,17 @@ export function migrateGameStateV1(state: GameStateV1, context?: SandboxContext)
   };
 }
 
+function copySessionFromLegacy(status: GameStatus, currentEventId: string): NarrativeSession | null {
+  if (status === 'completed') {
+    return null;
+  }
+
+  return {
+    campaignId: MIGRATED_CAMPAIGN_ID,
+    eventId: currentEventId,
+  };
+}
+
 function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInspection {
   if (!isRecord(value)) {
     return fail('O salvamento não contém um objeto válido.');
@@ -70,9 +131,18 @@ function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInsp
     return fail('O salvamento está incompleto.');
   }
 
-  const narrative = readNarrative(value);
-  if (!narrative.ok) {
-    return narrative;
+  const shared = readShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+
+  if ('currentEventId' in value) {
+    return fail('O salvamento usa o contrato antigo de evento atual.');
+  }
+
+  const session = readNarrativeSession(value, shared.value.status);
+  if (!session.ok) {
+    return session;
   }
 
   const sandbox = inspectSandboxState(value.sandbox, context);
@@ -84,7 +154,8 @@ function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInsp
     ok: true,
     state: {
       schemaVersion: SCHEMA_VERSION,
-      ...narrative.value,
+      ...shared.value,
+      narrativeSession: session.value,
       sandbox: sandbox.value,
     },
   };
@@ -99,31 +170,70 @@ function inspectV1(value: unknown): GameStateV1Inspection {
     return fail('O salvamento está incompleto.');
   }
 
-  const narrative = readNarrative(value);
-  if (!narrative.ok) {
-    return narrative;
+  const shared = readShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+
+  const currentEventId = readCurrentEventId(value);
+  if (!currentEventId) {
+    return fail('O evento atual é inválido.');
   }
 
   return {
     ok: true,
     state: {
       schemaVersion: SCHEMA_VERSION_V1,
-      ...narrative.value,
+      ...shared.value,
+      currentEventId,
     },
   };
 }
 
-type NarrativeFields = Omit<GameState, 'schemaVersion' | 'sandbox'>;
-
-type NarrativeInspection = { ok: true; value: NarrativeFields } | { ok: false; reason: string };
-
-function readNarrative(value: Record<string, unknown>): NarrativeInspection {
-  if (value.status !== 'playing' && value.status !== 'completed') {
-    return fail('O estado da partida é inválido.');
+function inspectV2(value: unknown, context?: SandboxContext): GameStateV2Inspection {
+  if (!isRecord(value)) {
+    return fail('O salvamento não contém um objeto válido.');
   }
 
-  if (typeof value.currentEventId !== 'string' || value.currentEventId.trim() === '') {
+  if (value.schemaVersion !== SCHEMA_VERSION_V2) {
+    return fail('O salvamento está incompleto.');
+  }
+
+  const shared = readShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+
+  const currentEventId = readCurrentEventId(value);
+  if (!currentEventId) {
     return fail('O evento atual é inválido.');
+  }
+
+  const sandbox = inspectSandboxState(value.sandbox, context);
+  if (!sandbox.ok) {
+    return fail(sandbox.reason);
+  }
+
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION_V2,
+      ...shared.value,
+      currentEventId,
+      sandbox: sandbox.value,
+    },
+  };
+}
+
+type SharedFields = Omit<GameState, 'schemaVersion' | 'sandbox' | 'narrativeSession'>;
+
+type SharedInspection = { ok: true; value: SharedFields } | { ok: false; reason: string };
+
+type SessionInspection = { ok: true; value: NarrativeSession | null } | { ok: false; reason: string };
+
+function readShared(value: Record<string, unknown>): SharedInspection {
+  if (value.status !== 'playing' && value.status !== 'completed') {
+    return fail('O estado da partida é inválido.');
   }
 
   if (typeof value.updatedAt !== 'string' || Number.isNaN(Date.parse(value.updatedAt))) {
@@ -175,7 +285,6 @@ function readNarrative(value: Record<string, unknown>): NarrativeInspection {
     value: {
       status: value.status,
       character,
-      currentEventId: value.currentEventId,
       attributes,
       inventory,
       relationships,
@@ -184,6 +293,51 @@ function readNarrative(value: Record<string, unknown>): NarrativeInspection {
       world,
       progression,
       updatedAt: value.updatedAt,
+    },
+  };
+}
+
+function readCurrentEventId(value: Record<string, unknown>): string | undefined {
+  if (typeof value.currentEventId !== 'string' || value.currentEventId.trim() === '') {
+    return undefined;
+  }
+
+  return value.currentEventId;
+}
+
+function readNarrativeSession(value: Record<string, unknown>, status: GameStatus): SessionInspection {
+  if (!('narrativeSession' in value)) {
+    return fail('A sessão narrativa está ausente.');
+  }
+
+  if (value.narrativeSession === null) {
+    return { ok: true, value: null };
+  }
+
+  if (!isRecord(value.narrativeSession)) {
+    return fail('A sessão narrativa é inválida.');
+  }
+
+  const campaignId = value.narrativeSession.campaignId;
+  const eventId = value.narrativeSession.eventId;
+
+  if (typeof campaignId !== 'string' || campaignId.trim() === '') {
+    return fail('A campanha da sessão narrativa é inválida.');
+  }
+
+  if (typeof eventId !== 'string' || eventId.trim() === '') {
+    return fail('O evento da sessão narrativa é inválido.');
+  }
+
+  if (status === 'completed') {
+    return fail('Uma partida concluída não pode ter sessão narrativa ativa.');
+  }
+
+  return {
+    ok: true,
+    value: {
+      campaignId,
+      eventId,
     },
   };
 }

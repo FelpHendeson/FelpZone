@@ -38,8 +38,14 @@ const malformedCases: Array<[string, (raw: Record<string, unknown>) => void]> = 
   ['status inválido', (raw) => {
     raw.status = 'paused';
   }],
-  ['evento atual vazio', (raw) => {
-    raw.currentEventId = '';
+  ['sessão com evento vazio', (raw) => {
+    raw.narrativeSession = { campaignId: 'first-day', eventId: '' };
+  }],
+  ['sessão narrativa ausente', (raw) => {
+    delete raw.narrativeSession;
+  }],
+  ['campanha da sessão vazia', (raw) => {
+    raw.narrativeSession = { campaignId: '', eventId: 'awakening' };
   }],
   ['item sem quantidade', (raw) => {
     raw.inventory = [{ itemId: 'agua-limpa' }];
@@ -140,7 +146,7 @@ describe('persistência', () => {
       schemaVersion: SCHEMA_VERSION,
       status: 'playing',
       character: { firstName: 'Ana', lastName: 'Cruz' },
-      currentEventId: 'awakening',
+      narrativeSession: { campaignId: 'first-day', eventId: 'awakening' },
       attributes: {},
       inventory: [],
       relationships: [],
