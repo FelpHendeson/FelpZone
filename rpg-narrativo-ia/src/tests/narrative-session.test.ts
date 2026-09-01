@@ -28,7 +28,7 @@ import { parseGameState, serializeGameState } from '../infrastructure/persistenc
 import { executeSandboxAction } from '../modules/sandbox-actions';
 import { DEFAULT_STARTING_LOCATION_ID } from '../modules/navigation';
 import { asV1, asV2, freshState, now, playFirstDay, reopenNarrativeSession, stubCampaign } from './helpers';
-import { EXPLORATION_INTRO, EXPLORATION_SANDBOX_ACTIONS } from '../ui/screens/exploration-copy';
+import { EXPLORATION_INTRO } from '../ui/screens/exploration-copy';
 import { hasActiveNarrativeSession, resolvePlayScreen, toAppScreen } from '../ui/routing';
 
 function chooseAbility(choiceId: string): GameState {
@@ -232,8 +232,8 @@ describe('campanha e walker depois da introdução', () => {
   });
 });
 
-describe('roteamento e tela mínima', () => {
-  it('deriva a tela do estado e não chama o orquestrador na superfície mínima', () => {
+describe('roteamento da campanha', () => {
+  it('deriva a tela do estado para narrativa, exploração e resumo', () => {
     const narrative = freshState();
     const exploring = chooseAbility('ability-perception');
     const completed = {
@@ -249,7 +249,6 @@ describe('roteamento e tela mínima', () => {
     expect(resolvePlayScreen(completed)).toBe('summary');
     expect(toAppScreen(completed)).toBe('summary');
     expect(EXPLORATION_INTRO).toMatch(/Clareira do Despertar/);
-    expect(EXPLORATION_SANDBOX_ACTIONS).toEqual([]);
     expect(hasActiveNarrativeSession(narrative)).toBe(true);
     expect(hasActiveNarrativeSession(exploring)).toBe(false);
     expect(hasActiveNarrativeSession(completed)).toBe(false);

@@ -3,6 +3,8 @@ import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, star
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
+import { createSandboxContext, type SandboxContext } from '../modules/sandbox';
+import type { SandboxAction } from '../modules/sandbox-actions';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { CreateCharacterScreen } from './screens/CreateCharacterScreen';
 import { ExplorationScreen } from './screens/ExplorationScreen';
@@ -10,6 +12,7 @@ import { GameScreen } from './screens/GameScreen';
 import { StartScreen } from './screens/StartScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { hasActiveNarrativeSession, toAppScreen } from './routing';
+import { commitSandboxAction } from './sandbox';
 import { useMemo, useState } from 'react';
 
 type Screen = 'start' | 'create' | 'game' | 'exploration' | 'summary';
@@ -30,33 +33,38 @@ function bindLoadResult(result: LoadResult): LoadResult {
   return { status: 'ok', state: bound.state };
 }
 
-function createBrowserPersistence(): GamePersistence {
+function createBrowserPersistence(context: SandboxContext): GamePersistence {
   try {
     const probe = '__reset_probe__';
     window.localStorage.setItem(probe, '1');
     window.localStorage.removeItem(probe);
-    return createPersistence(window.localStorage);
+    return createPersistence(window.localStorage, context);
   } catch {
     const memory = new Map<string, string>();
-    return createPersistence({
-      getItem: (key) => memory.get(key) ?? null,
-      setItem: (key, value) => {
-        memory.set(key, value);
+    return createPersistence(
+      {
+        getItem: (key) => memory.get(key) ?? null,
+        setItem: (key, value) => {
+          memory.set(key, value);
+        },
+        removeItem: (key) => {
+          memory.delete(key);
+        },
       },
-      removeItem: (key) => {
-        memory.delete(key);
-      },
-    });
+      context,
+    );
   }
 }
 
 export function App() {
-  const persistence = useMemo(() => createBrowserPersistence(), []);
+  const sandboxContext = useMemo(() => createSandboxContext(), []);
+  const persistence = useMemo(() => createBrowserPersistence(sandboxContext), [sandboxContext]);
   const [loadResult, setLoadResult] = useState<LoadResult>(() => bindLoadResult(persistence.load()));
   const [screen, setScreen] = useState<Screen>('start');
   const [state, setState] = useState<GameState | null>(null);
   const [confirm, setConfirm] = useState<ConfirmKind>('none');
   const [error, setError] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const savedState = loadResult.status === 'ok' ? loadResult.state : null;
 
@@ -72,6 +80,8 @@ export function App() {
 
   function goToSavedGame(next: GameState) {
     setState(next);
+    setError(null);
+    setFeedback(null);
     setScreen(toAppScreen(next));
   }
 
@@ -84,6 +94,8 @@ export function App() {
     persistence.clear();
     refreshLoad();
     setState(null);
+    setError(null);
+    setFeedback(null);
     setScreen('create');
   }
 
@@ -92,6 +104,8 @@ export function App() {
     refreshLoad();
     setState(null);
     setConfirm('none');
+    setError(null);
+    setFeedback(null);
     setScreen('create');
   }
 
@@ -99,6 +113,7 @@ export function App() {
     const next = startGame(normalizeIdentity(firstName, lastName), campaign);
     persist(next);
     setError(null);
+    setFeedback(null);
     setScreen('game');
   }
 
@@ -111,10 +126,27 @@ export function App() {
       const next = applyChoice(state, campaign, choiceId);
       persist(next);
       setError(null);
+      setFeedback(null);
       setScreen(toAppScreen(next));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível aplicar a escolha.');
     }
+  }
+
+  function handleSandboxAction(action: SandboxAction) {
+    if (!state) {
+      return;
+    }
+
+    const attempt = commitSandboxAction(state, action, sandboxContext, persist);
+    if (!attempt.ok) {
+      setError(attempt.error);
+      return;
+    }
+
+    setError(null);
+    setFeedback(attempt.feedback);
+    setScreen(toAppScreen(attempt.current));
   }
 
   function handleDelete() {
@@ -122,6 +154,8 @@ export function App() {
     refreshLoad();
     setState(null);
     setConfirm('none');
+    setError(null);
+    setFeedback(null);
     setScreen('start');
   }
 
@@ -164,7 +198,17 @@ export function App() {
       ) : null}
 
       {screen === 'exploration' && state ? (
-        <ExplorationScreen state={state} campaign={campaign} onExit={() => setScreen('start')} />
+        <ExplorationScreen
+          state={state}
+          campaign={campaign}
+          context={sandboxContext}
+          feedback={feedback}
+          onAction={handleSandboxAction}
+          onExit={() => {
+            setFeedback(null);
+            setScreen('start');
+          }}
+        />
       ) : null}
 
       {screen === 'summary' && state ? (

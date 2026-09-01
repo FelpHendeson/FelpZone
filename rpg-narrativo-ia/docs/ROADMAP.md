@@ -62,13 +62,11 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.3 — Da introdução à exploração livre
 
-**Implementada.** Depois da capacidade inicial o jogador permanece `playing` sem sessão narrativa, na Clareira do Despertar. A interface mostra só uma tela mínima. Os menus reais ficam na Fatia 7.4.
+**Implementada.** Depois da capacidade inicial o jogador permanece `playing` sem sessão narrativa, na Clareira do Despertar.
 
 #### Fatia 7.4 — Superfície mobile
 
-Ainda não implementada. Expor destinos, explorar, coletar e fabricar na interface.
-
-O marco do Sistema 7 só termina quando o jogador desperta, escolhe uma capacidade, explora livremente e encontra pelo menos um NPC ou criatura por meio das próprias ações. Esse marco ainda não foi atingido.
+**Implementada.** Destinos, explorar, coletar e fabricar estão na interface mobile. O marco do Sistema 7 só termina quando o jogador desperta, escolhe uma capacidade, explora livremente e encontra pelo menos um NPC ou criatura por meio das próprias ações. Esse marco ainda não foi atingido.
 
 ## Etapas posteriores, ainda não especificadas
 

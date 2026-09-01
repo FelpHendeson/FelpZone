@@ -124,9 +124,10 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 
 ## Limites atuais
 
+- a superfície mobile de exploração (Fatia 7.4) já expõe navegar, explorar, coletar e fabricar;
 - nenhum minijogo está definido;
 - NPCs não possuem agenda ainda;
 - criaturas não possuem comportamento ainda;
 - sobrevivência não será acoplada antes dos sistemas básicos de tempo, navegação, exploração e recursos;
-- gatilhos completos pertencem à etapa de integração;
+- gatilhos completos de encontros narrativos ainda não existem;
 - não há viagem rápida nem conexões especiais no primeiro mapa.

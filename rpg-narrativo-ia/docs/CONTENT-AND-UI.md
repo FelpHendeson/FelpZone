@@ -109,7 +109,7 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 ## Evolução sandbox
 
-A Fatia 7.3 introduz uma tela mínima de exploração depois da capacidade inicial. Ela mostra nome, local, dia/período, capacidade escolhida e uma frase curta; o único botão extra é voltar ao início. Destinos, explorar, coleta, crafting, mapa visual e inventário novo continuam na Fatia 7.4.
+A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. Não há mapa gráfico complexo nem inventário novo; a tela lê o `GameState` e dispara `executeSandboxAction`. NPCs, criaturas e gatilhos narrativos pelo mundo continuam fora desta fatia.
 
 Quando um gatilho iniciar uma narrativa ou diálogo, a interface reutiliza os componentes atuais. Ao terminar a sessão, retorna ao mesmo contexto de exploração, já com tempo, estado e mundo atualizados.
 

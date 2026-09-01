@@ -12,11 +12,11 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.3 — Da introdução à exploração livre
 
-**Implementada.** Depois da capacidade inicial, a partida permanece `playing` com `narrativeSession: null`. O jogador está na Clareira do Despertar, o estado aceita `executeSandboxAction` e a interface mostra só uma tela mínima de transição. Os menus reais pertencem à Fatia 7.4.
+**Implementada.** Depois da capacidade inicial, a partida permanece `playing` com `narrativeSession: null`. O jogador está na Clareira do Despertar, o estado aceita `executeSandboxAction` e a interface deriva a tela de exploração.
 
 ## Fatia 7.4 — Superfície mobile
 
-Ainda não implementada. Destinos, explorar, coletar e fabricar entram na interface sem minijogos nem mapa complexo.
+**Implementada.** A tela de exploração é um loop jogável mobile-first: destinos visíveis, explorar, coletar e fabricar. Toda mutação passa por `executeSandboxAction`; a interface persiste somente `result.current` com o mesmo `SandboxContext` da persistência. O marco de encontros do Sistema 7 ainda não foi atingido.
 
 ## Estado integrado
 
@@ -148,12 +148,11 @@ A operação é atômica: se qualquer etapa falhar, o `GameState` recebido perma
 
 `first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` para ser acionado no futuro por descoberta, encontro, NPC ou evento de mundo. Esta fatia não cria esse gatilho.
 
-A interface deriva a tela do estado: narrativa com sessão, exploração mínima sem sessão, resumo quando `completed`. A tela mínima mostra nome, local, dia/período, capacidade e uma frase curta; o único botão extra é voltar ao início.
+A interface deriva a tela do estado: narrativa com sessão, exploração sem sessão, resumo quando `completed`. Um único `SandboxContext` alimenta persistência, leitura da interface e `executeSandboxAction`. A tela de exploração mostra local, progresso, destinos descobertos, pontos de coleta revelados, receitas conhecidas e um inventário compacto. Explorar a Clareira do Despertar revela e desbloqueia progressivamente passagens para a Grande Árvore, a Nascente e a Mata Densa. `hidden-cave` permanece descoberta tardia da Mata Densa. Nomes de itens na interface usam uma camada de apresentação; os IDs do domínio não mudam.
 
 ## Fora desta fatia
 
-- botões de navegação, explorar, coletar e fabricar;
-- mapa visual, menu de crafting ou inventário visual novo;
+- mapa visual complexo ou minijogos;
 - renovação ou recuperação no carregamento;
 - gatilho automático de `first-priority`;
-- encontros, NPCs no mapa, combate, sobrevivência, clima, agenda, ferramentas, combustível, schema 4, backend e IA em runtime.
+- encontros, NPCs no mapa, criaturas, combate, sobrevivência, clima, agenda, ferramentas, combustível, schema 4, backend e IA em runtime.

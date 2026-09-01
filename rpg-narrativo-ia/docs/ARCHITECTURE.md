@@ -386,7 +386,7 @@ Operação pública do orquestrador:
 
 A persistência serializa somente o schema 3 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6.
 
-O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste e não altera a interface. A Fatia 7.3 devolve o jogador à exploração depois da capacidade inicial, com uma tela mínima. Os menus reais de navegação, explorar, coletar e fabricar pertencem à Fatia 7.4.
+O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste. A Fatia 7.4 liga a superfície mobile a esse orquestrador: um `SandboxContext` compartilhado alimenta persistência, leitura da interface e `executeSandboxAction`; só `result.current` é gravado. NPCs, criaturas e gatilhos narrativos pelo mundo ainda não.
 
 ## Contratos do motor
 

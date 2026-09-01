@@ -136,6 +136,11 @@ button:disabled {
   color: #f0d78c;
 }
 
+.banner--info {
+  background: #18262b;
+  color: var(--accent);
+}
+
 .button-stack,
 .button-row,
 .form,
@@ -305,7 +310,8 @@ button:disabled {
   font-variant-numeric: tabular-nums;
 }
 
-.attribute-list__bar {
+.attribute-list__bar,
+.progress-bar {
   grid-column: 1 / -1;
   height: 6px;
   border-radius: 999px;
@@ -313,10 +319,40 @@ button:disabled {
   overflow: hidden;
 }
 
-.attribute-list__bar span {
+.progress-bar {
+  height: 8px;
+}
+
+.attribute-list__bar span,
+.progress-bar span {
   display: block;
   height: 100%;
   background: var(--accent);
+}
+
+.sandbox-section,
+.sandbox-inventory {
+  display: grid;
+  gap: 12px;
+}
+
+.sandbox-subtitle {
+  margin: 8px 0 0;
+  font-size: 1.05rem;
+}
+
+.sandbox-hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.sandbox-inventory summary {
+  cursor: pointer;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
 }
 
 .choice-list,
