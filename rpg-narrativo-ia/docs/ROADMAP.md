@@ -44,7 +44,7 @@ Fonte: `SYSTEM-RESOURCES.md`.
 
 ### Etapa 6 — Crafting e cozinha
 
-Transformar materiais por receitas e estruturas, começando por fogueira e preparo de alimento.
+**Implementado.** O módulo `modules/crafting` declara receitas, consome materiais atomicamente, constrói estruturas no local atual e cozinha quando há estação ativa. Ainda não aplica o custo ao relógio, não altera o save principal e não introduz interface de crafting.
 
 Fonte: `SYSTEM-CRAFTING.md`.
 

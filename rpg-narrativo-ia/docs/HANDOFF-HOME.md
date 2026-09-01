@@ -6,14 +6,14 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 
 - Repositório: `https://github.com/FelpHendeson/FelpZone.git`
 - Branch: `main`
-- Último commit observado: `77d83fe feat: add deterministic resource nodes and ecology`
-- Sistemas 1 a 4 foram implementados, revisados e consolidados:
+- Sistemas 1 a 5 foram implementados, revisados e consolidados:
   - horário e data;
   - ciclo diário;
   - navegação hierárquica;
-  - exploração e descobertas.
-- O Sistema 5 — pontos de recurso e ecologia — está implementado e commitado, mas ainda precisa passar pela revisão independente do novo chat antes de ser considerado consolidado.
-- O Sistema 6 — crafting e cozinha — está apenas especificado. Não começar sua implementação antes de validar e, se necessário, corrigir o Sistema 5.
+  - exploração e descobertas;
+  - pontos de recurso e ecologia.
+- O Sistema 6 — crafting, estruturas locais e cozinha — está implementado de forma isolada. Não integrar ainda à interface, ao save global ou ao loop completo do jogo.
+- O Sistema 7 — integração explorável — ainda não foi implementado.
 
 ## Como preparar a máquina
 
@@ -70,14 +70,14 @@ Antes de agir, leia integralmente:
 
 Estado conhecido:
 
-- Sistemas 1 a 4 estão consolidados: horário/data, ciclo diário, navegação e exploração;
-- o Sistema 5 — pontos de recurso e ecologia — foi implementado no commit 77d83fe;
-- a implementação relata 186 testes, mas ainda não passou pela revisão independente deste novo chat;
-- crafting, cozinha e integração visual ainda não devem ser implementados.
+- Sistemas 1 a 5 estão consolidados: horário/data, ciclo diário, navegação, exploração e recursos;
+- o Sistema 6 — crafting, estruturas locais e cozinha — está implementado de forma isolada;
+- crafting ainda não entra na interface, no save global nem no loop completo do jogo;
+- o Sistema 7 ainda não foi implementado.
 
-Sua primeira tarefa é validar e revisar o Sistema 5 contra docs/SYSTEM-RESOURCES.md.
+Sua primeira tarefa é validar e revisar o Sistema 6 contra docs/SYSTEM-CRAFTING.md.
 
-Use o Bugbot para revisar as alterações do Sistema 5 e execute:
+Execute:
 
 npm test
 npm run lint
@@ -86,22 +86,16 @@ npm run build
 
 Revise especialmente:
 
-- coleta atômica e segurança das quantidades do inventário;
-- exigência da descoberta correta e da localização atual;
-- renovação none, short e long baseada somente no relógio do jogo;
-- idempotência ao restaurar ou sincronizar no mesmo horário;
-- recuperação populacional exclusivamente por day.started;
-- replay de eventos sem recuperação duplicada;
-- saltos de vários dias;
-- thresholds e estados abundant, stable, declining, threatened e exhausted;
-- pressão populacional e extinção local;
-- pontos diferentes compartilhando a mesma população;
-- imutabilidade de estado, definições, condições e inventário;
-- proteção contra overflow de inteiros;
-- roundtrip JSON;
-- ausência de crafting, combate, ferramentas, UI e integração ao save principal.
+- receitas conhecidas e descoberta por flags, sem avançar o tempo;
+- execução atômica: falha não consome, não produz e não cria estrutura parcial;
+- fogueira única por local, ativa ao construir, sem consumo de combustível nesta etapa;
+- cozinha exigindo tag cooking e estação ativa no currentLocationId;
+- consulta de disponibilidade sem mutação;
+- persistência isolada do CraftingState;
+- imutabilidade de estado, inventário, navegação, GameState e definições;
+- ausência de UI, save principal, advanceTime e integração ao schema global.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado ao Sistema 5. Se não houver problemas, declare o Sistema 5 consolidado e então prepare, somente quando eu pedir, o prompt do Sistema 6 — crafting e cozinha.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado ao Sistema 6. Se não houver problemas, declare o Sistema 6 consolidado e então prepare, somente quando eu pedir, o prompt do Sistema 7 — integração explorável.
 
 Preserve o ciclo de trabalho:
 
@@ -112,4 +106,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão depois da revisão
 
-Se o Sistema 5 passar sem achados, a próxima etapa autorizável é o Sistema 6 — crafting e cozinha, definido em `docs/SYSTEM-CRAFTING.md`. Depois dele ainda haverá uma etapa separada para integrar tempo, navegação, exploração, recursos, crafting, persistência e interface em um fluxo jogável.
+Se o Sistema 6 passar sem achados, a próxima etapa autorizável é o Sistema 7 — integração explorável, definida em `docs/ROADMAP.md`. Essa etapa deve conectar tempo, navegação, exploração, recursos, crafting, persistência e interface em um fluxo jogável. O Sistema 7 ainda não está implementado.

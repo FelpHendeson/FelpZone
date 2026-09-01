@@ -48,6 +48,7 @@ src/
 │   ├── navigation/
 │   ├── exploration/
 │   ├── resources/
+│   ├── crafting/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -60,7 +61,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/` e `modules/resources/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/` e `modules/crafting/` estão implementados.
 
 ## Responsabilidades
 
@@ -75,6 +76,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `navigation`: mapa hierárquico, posição, descoberta e deslocamento entre pai, filhos diretos e irmãos.
 - `exploration`: progresso percentual por local, revelação determinística de conteúdo e conclusão derivada de zona.
 - `resources`: pontos de coleta com capacidade limitada, renovação e populações ecológicas.
+- `crafting`: receitas, consumo atômico, estruturas locais e cozinha.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -308,6 +310,43 @@ Operações públicas:
 
 Crafting, cozinha, combate, ferramentas, aplicação do custo no relógio, save principal e UI de coleta ficam fora deste contrato.
 
+## Contrato de crafting, estruturas e cozinha
+
+O módulo `modules/crafting` declara receitas, consome materiais atomicamente e constrói estruturas no local atual. Não altera `GameState`, `schemaVersion` nem a interface nesta etapa. Crafting não explora, não move o jogador, não coleta recursos e não aplica o custo no relógio.
+
+```ts
+type RecipeKind = 'item' | 'structure' | 'cooking';
+
+interface CraftingState {
+  knownRecipeIds: string[];
+  structures: WorldStructureState[];
+}
+
+interface WorldStructureState {
+  structureId: string;
+  locationId: string;
+  active: boolean;
+  fuel?: number;
+}
+```
+
+Receitas `known` entram no estado inicial. Receitas por `flag` só entram via `synchronizeKnownRecipes` quando a flag está ativa. A execução valida inventário, conhecimento, condições, estações do `currentLocationId`, materiais e overflow antes de gerar um estado novo. Falha não consome, não produz e não cria estrutura. Estações vêm só de estruturas ativas no local atual. `uniquePerLocation` bloqueia duplicata no mesmo sítio antes do consumo. O módulo devolve `TimeCost` validado e não chama `advanceTime`.
+
+Combustível é campo opcional validado. Nesta etapa a fogueira permanece ativa após a construção: não há consumo, extinção nem reabastecimento. Cozinha exige a tag `cooking`; a fogueira declara `heat` e `cooking`.
+
+O conteúdo inicial cobre `campfire`, `build-campfire` (3 `fallen-branch`) e `cook-horned-rabbit-meat`. Receitas extras existem só em testes.
+
+Operações públicas:
+
+- `inspectCraftingDefinitions` e `indexCraftingDefinitions`;
+- `createInitialCrafting` e `inspectCraftingState`;
+- `serializeCraftingState` e `restoreCraftingState`;
+- `inspectRecipeAccess` e `canCraftRecipe`;
+- `craftRecipe` e `synchronizeKnownRecipes`;
+- `getRecipe`, `getStructureDefinition` e `createCraftingEvaluator`.
+
+Interface, save principal, aplicação do custo no relógio e o loop completo do jogo ficam fora deste contrato e pertencem ao Sistema 7.
+
 ## Contratos do motor
 
 - `applyChoice` só age com `status: 'playing'`.
@@ -357,4 +396,5 @@ A mudança provavelmente exigirá nova versão do schema e migração ou rejeiç
 - o mapa hierárquico é indexado sem mutação, o movimento só ocorre entre pai, filhos e irmãos, e o estado de navegação persiste isoladamente;
 - explorar aumenta o progresso local sem mutação, revela descobertas no limiar, reavalia condições pendentes e deriva a conclusão da zona sem armazená-la;
 - pontos de recurso têm capacidade limitada, coleta atômica e renovação pelo relógio do jogo;
-- populações compartilham estoque, emitem estado qualitativo e podem ser extintas localmente sem recuperação espontânea.
+- populações compartilham estoque, emitem estado qualitativo e podem ser extintas localmente sem recuperação espontânea;
+- crafting consome materiais atomicamente, constrói estruturas no local atual e apenas devolve o custo temporal.

@@ -28,7 +28,7 @@ Leia nesta ordem:
 10. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
 11. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
 12. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
-13. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas e transformação de materiais.
+13. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
 14. [Roadmap de mecânicas](docs/ROADMAP.md): ordem de implementação e integrações futuras.
 15. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -47,7 +47,7 @@ A aplicação sobe em `http://localhost:5173`. No celular da mesma rede, use o e
 Outros comandos:
 
 ```bash
-npm test        # testes do motor, condições, efeitos, transições, persistência, horário, ciclo diário, navegação, exploração e recursos
+npm test        # testes do motor, condições, efeitos, transições, persistência, horário, ciclo diário, navegação, exploração, recursos e crafting
 npm run lint    # ESLint
 npm run typecheck
 npm run build   # build de produção com PWA
@@ -61,7 +61,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # telas mobile-first e ImagePlaceholder
@@ -72,7 +72,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 5 da evolução sandbox — horário e data, ciclo diário, navegação hierárquica, exploração e descobertas, e pontos de recurso e ecologia — estão implementadas como módulos determinísticos independentes. Crafting e a integração explorável permanecem apenas especificados.
+**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox — horário e data, ciclo diário, navegação hierárquica, exploração e descobertas, pontos de recurso e ecologia, e crafting com estruturas locais e cozinha — estão implementadas como módulos determinísticos independentes. A integração explorável (Sistema 7) permanece apenas especificada.
 
 ## Decisões já tomadas
 
@@ -93,11 +93,11 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 - O salvamento não sincroniza entre dispositivos e falha de forma controlada se `schemaVersion` for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
-- A evolução sandbox tem horário, data, ciclo diário, navegação hierárquica, exploração e recursos implementados; crafting e a integração à interface ainda não.
+- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos e crafting implementados; a integração à interface, ao save global e ao loop completo ainda não.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 191 testes, incluindo recursos e ecologia (coleta atômica, renovação, populações, extinção local, persistência isolada e imutabilidade) e os 162 testes anteriores do motor, do horário, do ciclo diário, da navegação e da exploração.
+- `npm test`: 237 testes, incluindo crafting (receitas atômicas, fogueira local, cozinha, descoberta por flags, persistência isolada e imutabilidade) e os 191 testes anteriores do motor, do horário, do ciclo diário, da navegação, da exploração e dos recursos.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- O fluxo visual do MVP permanece intacto; as APIs de navegação, exploração e recursos ficam disponíveis nos módulos, sem tela de mapa, botão de explorar ou coleta nesta etapa.
+- O fluxo visual do MVP permanece intacto; as APIs de navegação, exploração, recursos e crafting ficam disponíveis nos módulos, sem tela de mapa, botão de explorar, coleta ou menu de crafting nesta etapa.
