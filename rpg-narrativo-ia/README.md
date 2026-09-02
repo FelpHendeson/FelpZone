@@ -31,8 +31,9 @@ Leia nesta ordem:
 13. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
 14. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
 15. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
-16. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e temas ainda sem etapa aprovada.
-17. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado; Fatia 8.1 implementada isoladamente.
+17. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, próxima fatia e temas ainda sem etapa aprovada.
+18. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -63,10 +64,10 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações do sandbox, gatilhos de mundo, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações do sandbox, gatilhos de mundo, presenças, narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
-├── ui/               # telas mobile-first e ImagePlaceholder
+├── ui/               # HUD, telas mobile-first, navegação inferior e placeholders
 └── tests/            # testes automatizados do núcleo
 ```
 
@@ -76,7 +77,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 **MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: explorar o mundo dispara o primeiro encontro (criatura e Mira) e a sessão devolve o jogador ao sandbox.
 
-Não há Sistema 8 aprovado. Encontrar e interagir com NPCs e criaturas é uma direção definida pelo autor; persistência própria, agendas, comportamento autônomo e combate ainda não foram discutidos nem confirmados como implementação. Consulte [Estado, metas e horizonte](docs/PROJECT-STATUS.md).
+O Sistema 8 — Presenças e interações no mundo — está aprovado. A Fatia 8.1 está implementada: catálogo e estado isolado, ainda sem save, UI, relógio ou narrativa. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam fora da etapa.
 
 ## Decisões já tomadas
 
@@ -98,11 +99,11 @@ Não há Sistema 8 aprovado. Encontrar e interagir com NPCs e criaturas é uma d
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o primeiro encontro acionado por gatilho de mundo.
-- A próxima etapa ainda não foi escolhida. Presença/interação com NPCs e criaturas é uma meta confirmada; as soluções técnicas sugeridas até agora permanecem sem decisão.
+- O Sistema 8 está aprovado. A Fatia 8.1 existe como módulo isolado; sincronização, interações, save e interface continuam para fatias posteriores.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo gatilhos de mundo, encontro inicial, superfície mobile e os testes anteriores.
+- `npm test`: suíte completa, incluindo o módulo isolado de presenças e os testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela o gatilho `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite.

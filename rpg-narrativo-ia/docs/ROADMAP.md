@@ -26,7 +26,7 @@ Fonte: `SYSTEM-DAY-CYCLE.md`.
 
 ### Etapa 3 — Navegação hierárquica
 
-**Implementada e integrada.** O módulo `modules/navigation` carrega o mapa JSON aninhado e controla localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos. O Sistema 7 persiste o estado, aplica custo e expõe destinos na superfície mobile. Não existe tela de mapa gráfico.
+**Implementada e integrada.** O módulo `modules/navigation` carrega o mapa JSON aninhado e controla localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos. O Sistema 7 persiste o estado, aplica custo e expõe destinos na superfície mobile. A UI possui uma primeira representação visual dos arredores adjacentes, sem mapa global.
 
 Fonte: `SYSTEM-NAVIGATION.md`.
 
@@ -70,16 +70,43 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.5 — Gatilho de mundo e primeiro encontro
 
-**Implementada.** O jogador desperta, escolhe uma capacidade, explora a Clareira e encontra a criatura e Mira por consequência da descoberta `first-priority-event`. Depois da noite, retorna ao sandbox. O marco mínimo do Sistema 7 foi atingido. Não existe etapa posterior aprovada.
+**Implementada.** O jogador desperta, escolhe uma capacidade, explora a Clareira e encontra a criatura e Mira por consequência da descoberta `first-priority-event`. Depois da noite, retorna ao sandbox. O marco mínimo do Sistema 7 foi atingido.
 
-## Depois do Sistema 7
+### Etapa 8 — Presenças e interações no mundo
 
-Não existe Sistema 8 aprovado nem uma ordem fechada de implementação. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
+**Aprovada e especificada.** A Fatia 8.1 está implementada isoladamente. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
-### Direções definidas pelo autor, ainda sem especificação
+#### Fatia 8.1 — Catálogo e estado isolado
 
-- encontrar e interagir com NPCs, animais e criaturas por ações no mundo;
-- interagir com elementos do cenário além de coleta e crafting;
+**Implementada.** `modules/presences` valida entidades e presenças, mantém estado mínimo serializável e deriva status. Não altera `GameState`, schema, persistência, UI, tempo ou narrativa.
+
+#### Fatia 8.2 — Sincronização com descobertas
+
+**Aprovada, aguardando revisão e autorização após a Fatia 8.1.** Sincronizar descobertas reveladas com presenças e derivar disponibilidade por localização e condições.
+
+#### Fatia 8.3 — Interações
+
+**Aprovada, aguardando a Fatia 8.2.** Modelar observar, investigar, aproximar, conversar e evitar como ações dirigidas por dados, ainda sem aplicar o custo no relógio.
+
+#### Fatia 8.4 — Estado integrado e orquestração
+
+**Aprovada, aguardando a Fatia 8.3.** Integrar o estado mínimo ao save, criar migração e executar interações atomicamente com custo temporal único.
+
+#### Fatia 8.5 — Interface mobile
+
+**Aprovada, aguardando a Fatia 8.4.** Mostrar presenças conhecidas no local e permitir ações contextuais na UI existente.
+
+#### Fatia 8.6 — Conteúdo protótipo
+
+**Aprovada, aguardando a Fatia 8.5.** Validar uma presença social e uma de criatura usando Mira e coelhos chifrudos.
+
+## Depois do Sistema 8
+
+Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
+
+### Direções definidas pelo autor, ainda sem próxima especificação
+
+- interagir com elementos do cenário além de coleta, crafting e presenças;
 - ampliar exploração, passagens, áreas bônus, recursos, crafting e cozinha;
 - permitir trama principal, conteúdo opcional e alguma forma futura de conclusão de áreas ou rotas;
 - desenvolver assentamentos, facções e modelos de sociedade como partes do universo narrativo.
@@ -87,7 +114,7 @@ Não existe Sistema 8 aprovado nem uma ordem fechada de implementação. A class
 ### Em discussão
 
 - minijogos;
-- interface de mapa mais visual;
+- expansão do mapa visual para visão regional ou global;
 - objetivos e notificações mais amplos do Sistema;
 - progressão extensa de NPCs;
 - formato de rotas e de conclusão global.
@@ -104,7 +131,7 @@ Não existe Sistema 8 aprovado nem uma ordem fechada de implementação. A class
 - administração jogável de assentamentos ou facções;
 - geração procedural, backend, sincronização, monetização e editor.
 
-Nenhum item desta seção autoriza implementação. A próxima etapa só recebe número depois de ser discutida, especificada e aprovada pelo autor.
+Nenhum item desta seção autoriza implementação. Depois da Fatia 8.1, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
 
 ## Regra de entrada de um sistema
 

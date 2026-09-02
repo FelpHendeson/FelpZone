@@ -53,6 +53,7 @@ src/
 │   ├── crafting/
 │   ├── sandbox/
 │   ├── world-events/
+│   ├── presences/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -65,7 +66,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/` e `modules/world-events/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/`, `modules/world-events/` e `modules/presences/` estão implementados.
 
 ## Responsabilidades
 
@@ -83,6 +84,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `crafting`: receitas, consumo atômico, estruturas locais e cozinha.
 - `sandbox`: composição do estado integrado e validação conjunta dos sistemas 3 a 6.
 - `world-events`: catálogo de gatilhos declarativos que associam descobertas reveladas a sessões narrativas.
+- `presences`: catálogo de entidades e ocorrências por local, estado mínimo de descoberta/resolução e status derivado.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -398,7 +400,34 @@ A persistência serializa somente o schema 3 validado e pode receber o mesmo `Sa
 
 O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste.
 
-A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, resolve no máximo um gatilho elegível sobre `result.current` (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession` e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. O autor definiu encontros com NPCs e criaturas como direção; persistência própria, agendas, comportamento autônomo e combate ainda não possuem contrato aprovado.
+A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, resolve no máximo um gatilho elegível sobre `result.current` (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession` e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo.
+
+## Contrato de presenças isoladas
+
+O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. Não altera `GameState`, `schemaVersion` nem a interface nesta fatia. Descobrir ou resolver uma presença não abre narrativa, não avança o relógio e não sincroniza exploração.
+
+```ts
+type WorldEntityKind = 'npc' | 'animal' | 'creature';
+
+interface PresenceState {
+  discoveredPresenceIds: string[];
+  resolvedPresenceIds: string[];
+}
+
+type PresenceStatus = 'hidden' | 'available' | 'unavailable' | 'resolved';
+```
+
+O catálogo inicial valida Mira na Clareira (`first-priority-event`) e o coelho chifrudo na Mata Densa (`horned-rabbit-tracks`). Consultas comuns omitem presenças ocultas. `available` e `unavailable` são derivados; só descoberta e resolução entram no estado.
+
+Operações públicas:
+
+- `inspectPresenceCatalog` e `indexPresenceCatalog`;
+- `createInitialPresenceState` e `inspectPresenceState`;
+- `discoverPresence` e `resolvePresence`;
+- `getPresence`, `getEntity` e `listDiscoveredPresencesAtLocation`;
+- `getPresenceStatus` e `createPresenceEvaluator`.
+
+Agenda, movimento, interações, save e UI ficam fora deste contrato.
 
 ## Contratos do motor
 

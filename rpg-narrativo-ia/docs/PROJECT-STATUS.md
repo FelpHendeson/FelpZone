@@ -74,6 +74,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 6 — Crafting e cozinha | **Implementado e consolidado** | Receitas, consumo atômico, fogueira, estruturas locais e cozinha por estação. | Poucas receitas; combustível e ferramentas não funcionam ainda. |
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e primeiro gatilho de mundo. | Há somente um encontro acionado pelo mundo. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta e apresentação própria de encontros. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
+| Sistema 8 — Presenças e interações | **Fatia 8.1 implementada; demais fatias aguardando** | Catálogo de entidades e presenças, estado isolado, descoberta/resolução idempotentes, status derivado e consulta por local. | Sem save, UI, tempo, narrativa, agenda, IA ou combate. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -93,11 +94,11 @@ Esses elementos podem ser usados para testar contratos sem se tornarem automatic
 
 Estas metas fazem parte da visão, mas ainda precisam de especificação antes de implementação:
 
-### Presença e interação com NPCs e criaturas
+### Presença e interação com NPCs e criaturas — sistema aprovado
 
 Explorar deve permitir encontrar NPCs, animais ou criaturas no mundo. Quando o encontro acontecer, diálogo, narrativa e escolhas podem assumir temporariamente o controle e depois devolver o jogador à exploração.
 
-Está definido **o resultado de experiência**. Ainda não estão definidos persistência individual, agenda, deslocamento autônomo, reaparecimento, hostilidade ou modelo de comportamento.
+O Sistema 8 foi aprovado para representar entidades, presenças descobertas por local, disponibilidade derivada, resolução e ações contextuais. Seu estado persistente futuro será mínimo e registrará ocorrências descobertas e resolvidas. `NPCState` completo, agenda, deslocamento autônomo, reaparecimento, hostilidade e modelo de comportamento continuam sem aprovação.
 
 ### Interações com elementos do cenário
 
@@ -161,12 +162,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora, aciona o primeiro encontro e retorna ao sandbox.
 
-**Não há um Sistema 8 aprovado neste momento.** A próxima conversa deve escolher qual problema de diversão ou imersão resolver. Presença de NPCs e criaturas é uma direção confirmada, mas “NPCs persistentes”, “agenda”, “comportamento de criatura” e “combate” não devem ser tratados como um pacote já decidido.
+**O Sistema 8 foi aprovado e especificado.** A Fatia 8.1 está implementada isoladamente. A próxima implementação autorizada é a Fatia 8.2 — sincronização com descobertas — somente depois de revisão e autorização. Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 Antes de qualquer próxima implementação:
 
-1. confirmar com o autor o resultado desejado;
-2. classificar a ideia usando esta legenda;
-3. escrever a especificação da menor fatia;
-4. atualizar o roadmap somente após aprovação;
-5. então gerar o prompt do agente codificador.
+1. revisar a Fatia 8.1 contra o contrato;
+2. obter autorização antes de iniciar a Fatia 8.2;
+3. não promover possibilidades futuras a requisitos.

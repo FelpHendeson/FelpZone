@@ -6,7 +6,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-Não existe Sistema 8 aprovado. Encontrar e interagir com NPCs e criaturas é uma direção definida pelo autor; persistência própria, agendas, comportamento autônomo, sobrevivência e combate ainda não foram definidos. Leia [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e não transforme itens “em discussão” ou “ainda não discutidos” em implementação, contrato ou roadmap sem autorização explícita.
+O Sistema 8 — Presenças e interações no mundo — foi aprovado. A Fatia 8.1 está implementada: catálogo e estado isolado em `modules/presences`, sem integração com save, UI, tempo ou narrativa. Não implementar a Fatia 8.2 nem os demais recortes sem autorização. Leia [Sistema 8](docs/SYSTEM-PRESENCES.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo, sobrevivência e combate continuam sem implementação aprovada.
 
 ## Regras obrigatórias
 

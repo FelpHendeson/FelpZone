@@ -52,7 +52,7 @@ Menus não constituem modo de mundo e não avançam tempo.
 
 ## Gatilhos
 
-O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. Os demais ainda precisam ser discutidos e aprovados:
+O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. A Fatia 8.1 do Sistema 8 já isolou o catálogo e o estado de presenças; sincronização, interações e demais gatilhos continuam para etapas posteriores:
 
 - entrada em local;
 - primeira visita;
@@ -127,7 +127,9 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 - a superfície mobile de exploração (Fatia 7.4) já expõe navegar, explorar, coletar e fabricar;
 - o primeiro encontro (Fatia 7.5) abre `first-priority` a partir da descoberta `first-priority-event` e devolve o jogador ao sandbox;
 - nenhum minijogo está definido ou aprovado;
-- o autor definiu que NPCs e criaturas devem ser encontrados no mundo, mas persistência própria e agenda não foram discutidas;
+- o Sistema 8 foi aprovado para entidades, presenças por local, descoberta, disponibilidade derivada, resolução e ações contextuais;
+- a Fatia 8.1 já isolou o catálogo e o estado de presenças, sem ligá-los ao save, à UI, ao relógio ou à narrativa;
+- estado persistente mínimo de ocorrências foi aprovado para uma fatia posterior, mas `NPCState` completo e agenda continuam fora do escopo;
 - comportamento de criaturas e combate não foram discutidos nem aprovados;
 - fome, alimento, descanso e abrigo aparecem na experiência, mas sobrevivência automática ainda não foi definida;
 - outros tipos de gatilho (entrada em local, presença, período) ainda não existem nem possuem etapa aprovada;
