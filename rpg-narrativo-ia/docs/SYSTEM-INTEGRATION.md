@@ -1,6 +1,6 @@
 # Sistema 7 — Integração explorável
 
-O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos e crafting ao estado principal, à persistência e, depois, à interface. Ele é fatiado. **O marco mínimo foi atingido na Fatia 7.5:** o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox. NPCs persistentes, agendas, comportamento de criaturas e combate continuam pendentes.
+O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos e crafting ao estado principal, à persistência e, depois, à interface. Ele é fatiado. **O marco mínimo foi atingido na Fatia 7.5:** o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox. A próxima etapa não foi escolhida; consulte `PROJECT-STATUS.md` para separar metas confirmadas de hipóteses ainda não discutidas.
 
 ## Fatia 7.1 — Estado integrado e persistência principal
 
@@ -20,7 +20,7 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.5 — Gatilho de mundo e primeiro encontro
 
-**Implementada.** Explorar a Clareira do Despertar revela a descoberta `first-priority-event` (`kind: 'event'`, `revealAt: 10`). Um catálogo declarativo em `modules/world-events` associa essa descoberta a `first-day` / `first-priority`. A superfície executa a ação sandbox, resolve no máximo um gatilho elegível na ordem do catálogo, marca `world.trigger.<id>.consumed` em `GameState.flags`, abre a sessão e persiste uma única vez o estado composto. A cadeia noturna devolve o jogador à exploração. O marco mínimo do Sistema 7 foi atingido. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
+**Implementada.** Explorar a Clareira do Despertar revela a descoberta `first-priority-event` (`kind: 'event'`, `revealAt: 10`). Um catálogo declarativo em `modules/world-events` associa essa descoberta a `first-day` / `first-priority`. A superfície executa a ação sandbox, resolve no máximo um gatilho elegível na ordem do catálogo, marca `world.trigger.<id>.consumed` em `GameState.flags`, abre a sessão e persiste uma única vez o estado composto. A cadeia noturna devolve o jogador à exploração. O marco mínimo do Sistema 7 foi atingido.
 
 ## Estado integrado
 
@@ -179,6 +179,8 @@ Prioridade: ordem declarada do catálogo.
 
 - mapa visual complexo ou minijogos;
 - renovação ou recuperação no carregamento;
-- NPC persistido no mapa, agenda ou deslocamento;
-- diálogo livre, IA de criatura, combate, caça, sobrevivência automática, clima, facções, assentamentos;
+- presença e interação genéricas de NPCs ou criaturas fora do encontro atual;
+- persistência própria, agenda ou deslocamento de NPCs — ainda não discutidos;
+- diálogo livre, comportamento de criatura, combate, caça detalhada, sobrevivência automática e clima — ainda não discutidos;
+- sistemas jogáveis de facções ou assentamentos — somente o papel narrativo no universo está definido;
 - schema 4, backend e IA em runtime.

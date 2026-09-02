@@ -1,5 +1,7 @@
 # Arquitetura
 
+Esta especificação descreve contratos existentes e possibilidades de integração. Ela não aprova sistemas futuros. A classificação de decisões de produto está em [Estado, metas e horizonte](PROJECT-STATUS.md).
+
 ## Abordagem
 
 Usar um **monólito modular**: uma única aplicação estática, dividida internamente em módulos. Não usar microserviços.
@@ -396,7 +398,7 @@ A persistência serializa somente o schema 3 validado e pode receber o mesmo `Sa
 
 O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste.
 
-A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, resolve no máximo um gatilho elegível sobre `result.current` (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession` e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
+A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, resolve no máximo um gatilho elegível sobre `result.current` (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession` e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. O autor definiu encontros com NPCs e criaturas como direção; persistência própria, agendas, comportamento autônomo e combate ainda não possuem contrato aprovado.
 
 ## Contratos do motor
 

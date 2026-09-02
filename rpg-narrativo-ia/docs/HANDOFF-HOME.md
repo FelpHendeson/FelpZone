@@ -18,7 +18,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 7.3 — da introdução à exploração livre — está implementada: `schemaVersion: 3`, `narrativeSession` opcional e retorno à exploração depois da capacidade inicial.
 - A Fatia 7.4 — superfície mobile — está implementada: destinos, explorar, coletar e fabricar na tela de exploração, via `executeSandboxAction` e o mesmo `SandboxContext` da persistência.
 - A Fatia 7.5 — gatilho de mundo e primeiro encontro — está implementada: explorar a Clareira revela `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite. O consumo fica em `GameState.flags`.
-- O marco mínimo do Sistema 7 foi atingido. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
+- O marco mínimo do Sistema 7 foi atingido. Não há Sistema 8 aprovado. Encontrar e interagir com NPCs e criaturas é uma direção confirmada; a forma técnica dos sistemas seguintes ainda precisa ser discutida.
+- `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
 
@@ -70,7 +71,7 @@ Antes de agir, leia integralmente:
 
 - AGENTS.md
 - README.md
-- todos os arquivos em docs/, começando por PRODUCT.md, ARCHITECTURE.md, SANDBOX-FLOW.md, ROADMAP.md e SYSTEM-INTEGRATION.md;
+- todos os arquivos em docs/, começando por PROJECT-STATUS.md, PRODUCT.md, ARCHITECTURE.md, SANDBOX-FLOW.md, ROADMAP.md e SYSTEM-INTEGRATION.md;
 - os módulos e testes relacionados à tarefa atual.
 
 Estado conhecido:
@@ -81,9 +82,12 @@ Estado conhecido:
 - a Fatia 7.3 devolve o jogador à exploração depois da capacidade inicial, com schema 3 e sessão narrativa opcional;
 - a Fatia 7.4 expõe destinos, explorar, coletar e fabricar na superfície mobile;
 - a Fatia 7.5 abre o primeiro encontro pelo gatilho de descoberta `first-priority-event` e devolve o jogador ao sandbox;
-- o marco mínimo do Sistema 7 foi atingido; NPCs persistentes, agendas, comportamento de criaturas e combate continuam pendentes.
+- o marco mínimo do Sistema 7 foi atingido;
+- não há Sistema 8 aprovado;
+- presença e interação com NPCs e criaturas são metas definidas pelo autor;
+- persistência própria, agendas, comportamento autônomo, sobrevivência e combate ainda não foram discutidos nem autorizados.
 
-Sua primeira tarefa é validar e revisar a Fatia 7.5 contra docs/SYSTEM-INTEGRATION.md.
+Sua primeira tarefa é verificar o estado do repositório e usar docs/PROJECT-STATUS.md para recapitular ao autor o que está implementado, o que está em discussão e o que ainda não foi decidido. Não proponha uma solução técnica como requisito aprovado.
 
 Execute:
 
@@ -92,7 +96,7 @@ npm run lint
 npm run typecheck
 npm run build
 
-Revise especialmente:
+Se precisar rever a Fatia 7.5, confira especialmente:
 
 - descoberta `event` declarativa, sem hardcode de limiar na UI;
 - catálogo de gatilhos validado (IDs únicos, descoberta e evento existentes, `canStartSession`, sem ambiguidade);
@@ -101,7 +105,7 @@ Revise especialmente:
 - retorno de `night-together` / `night-alone` à exploração, com saves `completed` legados preservados;
 - o encontro não se repete; saves da Fatia 7.4 com descoberta revelada disparam na próxima ação válida.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 7.5. Se não houver problemas, declare a Fatia 7.5 consolidada e então prepare, somente quando eu pedir, o próximo recorte.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Não numere, especifique nem implemente um novo sistema até o autor discutir o resultado desejado e autorizar a documentação da etapa.
 
 Preserve o ciclo de trabalho:
 
@@ -112,4 +116,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão depois da revisão
 
-Se a Fatia 7.5 passar sem achados, a próxima etapa autorizável continua nas etapas posteriores do Sistema 7 descritas em `docs/ROADMAP.md`: NPCs persistentes, agendas, comportamento de criaturas e combate. O marco mínimo já foi atingido; esses itens ainda não estão implementados.
+O marco mínimo do Sistema 7 já foi atingido, mas não há próxima etapa autorizada. A conversa deve escolher qual problema de diversão ou imersão resolver. Encontrar e interagir com NPCs e criaturas é uma direção confirmada; `NPCState` persistente, agenda, movimentação, comportamento de criatura e combate são apenas possibilidades até nova decisão do autor.

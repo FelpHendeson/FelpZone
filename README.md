@@ -81,10 +81,10 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Estrutura inicial do laboratório com o primeiro conceito em planejamento.
+Laboratório ativo com o primeiro projeto já em protótipo jogável. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
 
 ## Ideias
 
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
-| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | MVP jogável | RPG mobile-first de escolhas, campanha do primeiro dia e salvamento local. |
+| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável | RPG mobile-first com narrativa, exploração, navegação, recursos, crafting, persistência e primeiro encontro acionado pelo mundo. |

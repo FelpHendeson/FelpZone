@@ -14,37 +14,37 @@ Não iniciar duas etapas simultaneamente. Cada sistema deve estar estável antes
 
 ### Etapa 1 — Horário e data
 
-Implementar um relógio determinístico por períodos e avanço de dias, sem ainda aplicar rotinas, sobrevivência ou navegação.
+**Implementada e integrada.** O módulo `modules/time` fornece um relógio determinístico por períodos e avanço de dias. O Sistema 7 passou a aplicar os custos das ações sandbox.
 
 Fonte: `SYSTEM-TIME-AND-DATE.md`.
 
 ### Etapa 2 — Ciclo diário
 
-**Implementado.** O módulo `modules/day-cycle` interpreta o avanço do relógio e produz eventos de início e encerramento de períodos e dias, além da fase visual derivada. Ainda não aplica sobrevivência, agenda, clima, gatilhos de mundo nem tema na interface.
+**Implementada e integrada.** O módulo `modules/day-cycle` interpreta o avanço do relógio e produz eventos de início e encerramento de períodos e dias, além da fase visual derivada. O Sistema 7 usa esses eventos para recuperação populacional; tema por fase, sobrevivência, agenda e clima não possuem implementação aprovada.
 
 Fonte: `SYSTEM-DAY-CYCLE.md`.
 
 ### Etapa 3 — Navegação hierárquica
 
-**Implementado.** O módulo `modules/navigation` carrega o mapa JSON aninhado, controla localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos. Ainda não aplica custo ao relógio, não altera o save principal e não introduz tela de mapa.
+**Implementada e integrada.** O módulo `modules/navigation` carrega o mapa JSON aninhado e controla localização, descoberta, bloqueios e movimento entre pai, filhos diretos e irmãos. O Sistema 7 persiste o estado, aplica custo e expõe destinos na superfície mobile. Não existe tela de mapa gráfico.
 
 Fonte: `SYSTEM-NAVIGATION.md`.
 
 ### Etapa 4 — Exploração e descobertas
 
-**Implementado.** O módulo `modules/exploration` aumenta o percentual de conhecimento de cada local, revela conteúdo dirigido por dados e deriva a conclusão da zona. Ainda não coleta recursos, não aplica o custo ao relógio, não altera o save principal e não introduz botão de explorar.
+**Implementada e integrada.** O módulo `modules/exploration` aumenta o percentual de conhecimento de cada local, revela conteúdo dirigido por dados e deriva a conclusão da zona. O Sistema 7 persiste o estado, aplica custo, oferece a ação na interface e conecta uma descoberta ao primeiro encontro.
 
 Fonte: `SYSTEM-EXPLORATION.md`.
 
 ### Etapa 5 — Recursos e ecologia
 
-**Implementado.** O módulo `modules/resources` modela pontos de coleta com capacidade limitada, coleta atômica, renovação curta ou longa e populações que podem ser pressionadas ou extintas localmente. Ainda não aplica o custo ao relógio, não altera o save principal e não introduz interface de coleta.
+**Implementada e integrada.** O módulo `modules/resources` modela pontos de coleta com capacidade limitada, coleta atômica, renovação curta ou longa e populações que podem ser pressionadas ou extintas localmente. O Sistema 7 persiste, aplica custo e expõe coleta na interface.
 
 Fonte: `SYSTEM-RESOURCES.md`.
 
 ### Etapa 6 — Crafting e cozinha
 
-**Implementado.** O módulo `modules/crafting` declara receitas, consome materiais atomicamente, constrói estruturas no local atual e cozinha quando há estação ativa. Ainda não aplica o custo ao relógio, não altera o save principal e não introduz interface de crafting.
+**Implementada e integrada.** O módulo `modules/crafting` declara receitas, consome materiais atomicamente, constrói estruturas no local atual e cozinha quando há estação ativa. O Sistema 7 persiste, aplica custo e expõe receitas na interface.
 
 Fonte: `SYSTEM-CRAFTING.md`.
 
@@ -54,7 +54,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.1 — Estado integrado e persistência principal
 
-**Implementada.** `GameState` inclui `sandbox`, o save usa `schemaVersion: 2` e partidas v1 válidas são migradas na leitura. A interface narrativa não mudou.
+**Implementada.** `GameState` passou a incluir `sandbox`; esta fatia introduziu `schemaVersion: 2` e migração de partidas v1. A Fatia 7.3 evoluiu depois o formato atual para schema 3.
 
 #### Fatia 7.2 — Orquestrador de ações e tempo
 
@@ -70,22 +70,41 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.5 — Gatilho de mundo e primeiro encontro
 
-**Implementada.** O jogador desperta, escolhe uma capacidade, explora a Clareira e encontra a criatura e Mira por consequência da descoberta `first-priority-event`. Depois da noite, retorna ao sandbox. O marco mínimo do Sistema 7 foi atingido. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras.
+**Implementada.** O jogador desperta, escolhe uma capacidade, explora a Clareira e encontra a criatura e Mira por consequência da descoberta `first-priority-event`. Depois da noite, retorna ao sandbox. O marco mínimo do Sistema 7 foi atingido. Não existe etapa posterior aprovada.
 
-## Etapas posteriores, ainda não especificadas
+## Depois do Sistema 7
 
-1. Interações avançadas com elementos do cenário.
-2. Agenda, presença e progressão de NPCs.
-3. Criaturas e encontros por habitat e período.
-4. Sobrevivência: fome, energia, água, descanso e abrigo.
-5. Testes de capacidade, risco e consequências.
-6. Ferramentas, durabilidade e crafting avançado.
-7. Relações e grupo.
-8. Conflitos e combate.
-9. Assentamentos e facções.
-10. Progresso de rotas e conclusão de 100% do mundo.
+Não existe Sistema 8 aprovado nem uma ordem fechada de implementação. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
 
-Esses itens não autorizam implementação. Cada um será discutido e especificado quando sua etapa chegar.
+### Direções definidas pelo autor, ainda sem especificação
+
+- encontrar e interagir com NPCs, animais e criaturas por ações no mundo;
+- interagir com elementos do cenário além de coleta e crafting;
+- ampliar exploração, passagens, áreas bônus, recursos, crafting e cozinha;
+- permitir trama principal, conteúdo opcional e alguma forma futura de conclusão de áreas ou rotas;
+- desenvolver assentamentos, facções e modelos de sociedade como partes do universo narrativo.
+
+### Em discussão
+
+- minijogos;
+- interface de mapa mais visual;
+- objetivos e notificações mais amplos do Sistema;
+- progressão extensa de NPCs;
+- formato de rotas e de conclusão global.
+
+### Ainda não discutido / sem certeza de implementação
+
+- estado persistente próprio, agenda e deslocamento autônomo de NPCs;
+- comportamento ou IA de criaturas;
+- sobrevivência automática;
+- ferramentas, equipamentos, durabilidade e combustível;
+- grupo ou companheiros;
+- combate;
+- clima, economia, comércio ou viagem rápida;
+- administração jogável de assentamentos ou facções;
+- geração procedural, backend, sincronização, monetização e editor.
+
+Nenhum item desta seção autoriza implementação. A próxima etapa só recebe número depois de ser discutida, especificada e aprovada pelo autor.
 
 ## Regra de entrada de um sistema
 

@@ -4,7 +4,9 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 ## Objetivo atual
 
-A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox. NPCs persistentes, agendas, comportamento de criaturas e combate continuam para etapas futuras. Não implementar outros itens do [roadmap](docs/ROADMAP.md) sem autorização explícita.
+A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
+
+Não existe Sistema 8 aprovado. Encontrar e interagir com NPCs e criaturas é uma direção definida pelo autor; persistência própria, agendas, comportamento autônomo, sobrevivência e combate ainda não foram definidos. Leia [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e não transforme itens “em discussão” ou “ainda não discutidos” em implementação, contrato ou roadmap sem autorização explícita.
 
 ## Regras obrigatórias
 
@@ -21,6 +23,7 @@ A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da ev
 - Não expanda facções, assentamentos, combate complexo ou geração procedural além do exigido pelo MVP.
 - Trate dados persistidos e conteúdo de campanha como entradas não confiáveis e valide-os nas fronteiras.
 - Toda nova garantia do motor deve possuir teste automatizado que falhe sem a correção.
+- Preserve os rótulos de decisão de `docs/PROJECT-STATUS.md`: hipótese de agente não é requisito de produto.
 - O motor narrativo será uma camada acionada pelo mundo; não deve permanecer como único loop de jogo.
 - Preserve autoria de mapas em JSON hierárquico e navegação somente entre pai, filhos diretos e irmãos.
 - Mantenha exploração, coleta e crafting como sistemas distintos, conectados por contratos.

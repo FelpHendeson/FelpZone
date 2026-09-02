@@ -45,14 +45,14 @@ A introdução reutiliza o conteúdo atual até a capacidade inicial. Depois del
 - `exploration`: modo padrão para navegar e agir.
 - `narrative`: acontecimentos do mundo sem conversa direta.
 - `dialogue`: encontros com personagens e escolhas sociais.
-- `interaction`: objetos, coleta, investigação e futuros minijogos.
+- `interaction`: objetos, coleta e investigação; minijogos foram citados como possibilidade, mas não estão decididos.
 - `summary`: encerramentos e resumos de marcos.
 
 Menus não constituem modo de mundo e não avançam tempo.
 
 ## Gatilhos
 
-Eventos poderão ser iniciados por:
+O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. Os demais ainda precisam ser discutidos e aprovados:
 
 - entrada em local;
 - primeira visita;
@@ -81,7 +81,7 @@ Exemplo conceitual:
 }
 ```
 
-O primeiro gatilho implementado é declarativo: `source.type: 'discovery.revealed'` associa uma descoberta a `campaignId` / `eventId`. O catálogo vive em `modules/world-events` e na campanha `first-day`. Consumo único fica em `GameState.flags`. Outros tipos (entrada em local, presença de NPC, período) continuam para etapas futuras.
+O primeiro gatilho implementado é declarativo: `source.type: 'discovery.revealed'` associa uma descoberta a `campaignId` / `eventId`. O catálogo vive em `modules/world-events` e na campanha `first-day`. Consumo único fica em `GameState.flags`. Outros tipos (entrada em local, presença de NPC, período) são possibilidades ainda sem etapa aprovada.
 
 ## Trama principal e conteúdo opcional
 
@@ -126,9 +126,9 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 
 - a superfície mobile de exploração (Fatia 7.4) já expõe navegar, explorar, coletar e fabricar;
 - o primeiro encontro (Fatia 7.5) abre `first-priority` a partir da descoberta `first-priority-event` e devolve o jogador ao sandbox;
-- nenhum minijogo está definido;
-- NPCs não estão persistidos no mapa e não possuem agenda ainda;
-- criaturas não possuem comportamento nem combate ainda;
-- sobrevivência não será acoplada antes dos sistemas básicos de tempo, navegação, exploração e recursos;
-- outros tipos de gatilho (entrada em local, presença, período) ainda não existem;
+- nenhum minijogo está definido ou aprovado;
+- o autor definiu que NPCs e criaturas devem ser encontrados no mundo, mas persistência própria e agenda não foram discutidas;
+- comportamento de criaturas e combate não foram discutidos nem aprovados;
+- fome, alimento, descanso e abrigo aparecem na experiência, mas sobrevivência automática ainda não foi definida;
+- outros tipos de gatilho (entrada em local, presença, período) ainda não existem nem possuem etapa aprovada;
 - não há viagem rápida nem conexões especiais no primeiro mapa.
