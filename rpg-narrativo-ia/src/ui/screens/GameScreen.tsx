@@ -8,6 +8,7 @@ import { describeWorld } from '../../modules/world';
 import { AttributeSummary } from '../components/AttributeSummary';
 import { AppDialog } from '../components/AppDialog';
 import { ChoiceList } from '../components/ChoiceList';
+import { GameHud } from '../components/GameHud';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
 
 interface GameScreenProps {
@@ -28,39 +29,56 @@ export function GameScreen({ state, campaign, event, choices, onChoose, onExit }
   const title = interpolate(event.title, vars);
 
   return (
-    <main className="screen screen--game">
-      <header className="game-header">
-        <div>
-          <p className="eyebrow">{fullName(state.character)}</p>
-          <p className="game-header__period">{describeWorld(state.world)}</p>
+    <main className="screen screen--game screen--play">
+      <GameHud
+        characterName={fullName(state.character)}
+        worldLabel={describeWorld(state.world)}
+        attributes={state.attributes}
+        onExit={onExit}
+      />
+
+      <div className="narrative-stage">
+        <div className="narrative-hero">
+          <ImagePlaceholder kind="scene" label={event.image.label} className="narrative-hero__scene" />
+          <div className="narrative-hero__shade" aria-hidden="true" />
+          <span className="narrative-hero__tag">Encontro narrativo</span>
+          {event.portrait ? (
+            <div className="narrative-speaker">
+              <ImagePlaceholder kind="portrait" label={event.portrait.label} />
+              <span>{event.portrait.label}</span>
+            </div>
+          ) : null}
         </div>
-        <button type="button" className="button button--ghost button--small" onClick={onExit}>
-          Início
-        </button>
-      </header>
 
-      <AttributeSummary attributes={state.attributes} compact />
-      <ImagePlaceholder kind="scene" label={event.image.label} />
-      {event.portrait ? <ImagePlaceholder kind="portrait" label={event.portrait.label} className="placeholder--inline" /> : null}
+        <article className="event event--card">
+          <p className="section-kicker">O mundo reage</p>
+          <h1 className="event__title">{title}</h1>
+          {body.split('\n\n').map((paragraph) => (
+            <p key={paragraph}>{paragraph}</p>
+          ))}
+        </article>
 
-      <article className="event">
-        <h1 className="event__title">{title}</h1>
-        {body.split('\n\n').map((paragraph) => (
-          <p key={paragraph}>{paragraph}</p>
-        ))}
-      </article>
-
-      <ChoiceList choices={choices} onChoose={onChoose} />
+        <section className="narrative-choices" aria-labelledby="narrative-choices-title">
+          <div className="section-heading">
+            <h2 id="narrative-choices-title">Como você reage?</h2>
+            <span className="section-count">{choices.length}</span>
+          </div>
+          <ChoiceList choices={choices} onChoose={onChoose} />
+        </section>
+      </div>
 
       <nav className="game-nav" aria-label="Fichas da partida">
         <button type="button" className="button button--ghost" onClick={() => setPanel('history')}>
+          <span aria-hidden="true">☷</span>
           Histórico
         </button>
         <button type="button" className="button button--ghost" onClick={() => setPanel('character')}>
+          <span aria-hidden="true">♙</span>
           Personagem
         </button>
         <button type="button" className="button button--ghost" onClick={() => setPanel('inventory')}>
-          Inventário
+          <span aria-hidden="true">▣</span>
+          Mochila
         </button>
       </nav>
 

@@ -20,10 +20,14 @@ export function SummaryScreen({ state, campaign, onRestart, onBack }: SummaryScr
   const mira = state.relationships.find((entry) => findNpc(campaign, entry.characterId));
 
   return (
-    <main className="screen">
-      <p className="eyebrow">Resumo do primeiro dia</p>
-      <ImagePlaceholder kind="scene" label="O vale depois da primeira noite" />
-      <h1 className="title title--small">{fullName(state.character)}</h1>
+    <main className="screen screen--narrow summary-screen">
+      <section className="summary-hero">
+        <ImagePlaceholder kind="scene" label="O vale depois da primeira noite" />
+        <div className="summary-hero__content">
+          <p className="eyebrow">Primeiro dia concluído</p>
+          <h1 className="title title--small">{fullName(state.character)}</h1>
+        </div>
+      </section>
       {title ? (
         <section className="summary-title">
           <ImagePlaceholder kind="icon" label={title.name} />

@@ -68,11 +68,12 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 3, migrações v1/v2, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
-| Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio e movimento entre pai, filhos e irmãos. | Sem mapa gráfico, atalhos ou viagem rápida. |
+| Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
 | Sistema 4 — Exploração | **Implementado e consolidado** | Progresso por local, descobertas dirigidas por dados, passagens e conclusão agregada de zona. | Balanceamento e conteúdo ainda são protótipos. |
 | Sistema 5 — Recursos e ecologia | **Implementado e consolidado** | Pontos limitados, coleta, renovação curta/longa e população que pode sofrer pressão ou extinção local. | A caça atual é uma abstração de coleta. |
 | Sistema 6 — Crafting e cozinha | **Implementado e consolidado** | Receitas, consumo atômico, fogueira, estruturas locais e cozinha por estação. | Poucas receitas; combustível e ferramentas não funcionam ainda. |
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e primeiro gatilho de mundo. | Há somente um encontro acionado pelo mundo. |
+| Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta e apresentação própria de encontros. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -117,7 +118,7 @@ São parte confirmada do mundo e da trama futura. Mecânicas de construção, ad
 ## Ideias em discussão, sem compromisso de implementação
 
 - minijogos dentro de interações ou encontros;
-- uma interface de mapa mais visual;
+- expansão do mapa visual para uma visão global ou regional;
 - objetivos e notificações mais amplos do Sistema;
 - progressão extensa de NPCs;
 - rotas principais e opcionais com métricas próprias;

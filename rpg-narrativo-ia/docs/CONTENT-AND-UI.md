@@ -26,7 +26,7 @@ interface StoryChoice {
 
 Evite colocar funções, JSX ou lógica específica da interface nos arquivos de campanha.
 
-## Telas do MVP
+## Telas e estrutura visual atual
 
 ### Início
 
@@ -44,12 +44,24 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 
 ### Jogo
 
-- cabeçalho do personagem e período;
-- resumo curto de atributos;
-- imagem ou placeholder da cena;
-- título e texto do evento;
-- escolhas grandes e acessíveis ao toque;
-- acesso a histórico, personagem e inventário.
+- HUD persistente com personagem, período e condição resumida;
+- cena dominante com imagem ou placeholder;
+- apresentação própria de encontro narrativo, com retrato opcional;
+- texto e escolhas em cartões de leitura;
+- acesso a histórico, personagem e mochila pela barra inferior.
+
+### Exploração
+
+- o local atual é a tela principal do loop sandbox;
+- imagem dominante, descrição e progresso aparecem no mesmo bloco;
+- explorar é a ação contextual principal;
+- mapa visual mostra somente o local atual e destinos adjacentes já descobertos;
+- as relações `parent`, `sibling` e `child` continuam derivadas do mapa hierárquico;
+- coleta e crafting ficam agrupados no painel de ações;
+- mochila usa uma grade visual de itens;
+- ficha mostra atributos, capacidade inicial e relações;
+- a navegação inferior alterna entre Mundo, Ações, Mochila e Eu;
+- descobertas e resultados ganham feedback destacado sem criar novas regras de domínio.
 
 ### Resumo
 
@@ -66,6 +78,9 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 - Evitar textos excessivamente largos em desktop.
 - Garantir contraste, foco visível e navegação por teclado.
 - Respeitar áreas seguras de aparelhos quando estiver em modo instalado.
+- Manter a cena e a ação principal visíveis cedo na rolagem.
+- Organizar ações secundárias por intenção em vez de exibir todas numa lista contínua.
+- Não apresentar valores fictícios: clima, nível, peso, combate e outros indicadores só entram na UI quando existirem no domínio.
 
 ## Placeholders de imagem
 
@@ -109,7 +124,7 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 ## Evolução sandbox
 
-A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. Não há mapa gráfico complexo nem inventário novo; a tela lê o `GameState` e dispara `executeSandboxAction`.
+A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. A revisão posterior de UI/UX preserva esse contrato e o apresenta por HUD, cena, mapa adjacente, painéis e navegação inferior. A tela continua lendo o `GameState` e disparando ações do sandbox; apresentação não decide regra de jogo.
 
 A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta. A interface reutiliza `GameScreen` e o motor existente; não há uma segunda tela de diálogo. O feedback da ação pode avisar que algo exige atenção. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo.
 

@@ -27,8 +27,9 @@ export function CreateCharacterScreen({ onBack, onConfirm }: CreateCharacterScre
 
   if (step === 'confirm') {
     return (
-      <main className="screen">
+      <main className="screen screen--narrow character-create">
         <p className="eyebrow">Confirmação</p>
+        <div className="identity-mark" aria-hidden="true">{identity.firstName[0]}{identity.lastName[0]}</div>
         <h1 className="title title--small">Começar como {identity.firstName} {identity.lastName}?</h1>
         <p className="lede">
           Esse será o nome que o Sistema reconhece. Não há família esperando do outro lado do vale.
@@ -50,9 +51,10 @@ export function CreateCharacterScreen({ onBack, onConfirm }: CreateCharacterScre
   }
 
   return (
-    <main className="screen">
+    <main className="screen screen--narrow character-create">
       <p className="eyebrow">Criação de personagem</p>
       <h1 className="title title--small">Quem acorda neste mundo?</h1>
+      <p className="lede lede--tight">Seu nome é a primeira coisa que o Sistema conseguirá reconhecer.</p>
       <form className="form" onSubmit={handleSubmit} noValidate>
         <label className="field">
           <span>Nome</span>
