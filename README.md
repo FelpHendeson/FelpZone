@@ -21,6 +21,8 @@ FelpZone/
 ├── .cursor/                 # Regras e comandos para trabalhar com IA
 │   ├── commands/            # Prompts reutilizáveis
 │   └── rules/               # Instruções persistentes do repositório
+├── prompts/                 # Prompts de implementação separados por projeto
+│   └── nome-da-ideia/
 ├── nome-da-ideia/           # Um experimento independente
 │   ├── README.md
 │   └── ...
@@ -67,6 +69,8 @@ A pasta [`.cursor`](.cursor/README.md) contém o contexto compartilhado com assi
 - `commands/revisar-ideia.md`: roteiro para avaliar um experimento existente.
 
 As regras dão contexto persistente. Os comandos são prompts reutilizáveis: abra o arquivo correspondente ou invoque-o pelo nome quando o editor oferecer suporte a comandos personalizados.
+
+Prompts extensos ligados a uma sequência específica de desenvolvimento ficam em `prompts/<nome-do-projeto>/`. O pacote do primeiro projeto está em [`prompts/rpg-narrativo-ia`](prompts/rpg-narrativo-ia/README.md).
 
 ## Segurança e privacidade
 
