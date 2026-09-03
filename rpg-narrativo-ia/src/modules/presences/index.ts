@@ -1,16 +1,19 @@
 import { evaluateConditions, type GameCondition, type ImageReference } from '../../core/events';
 import { isAttributeId, type GameState } from '../../core/state/types';
-import type { IndexedExploration } from '../exploration';
+import type { ExplorationState, IndexedExploration } from '../exploration';
 import type { IndexedMap } from '../navigation';
 import { INITIAL_PRESENCE_CATALOG } from './initial-presences';
 import {
   WORLD_ENTITY_KINDS,
   type IndexedPresences,
+  type KnownPresence,
   type PresenceConditionEvaluator,
   type PresenceConditionSource,
   type PresenceInspection,
   type PresenceState,
   type PresenceStatus,
+  type PresenceSynchronizationResult,
+  type VisiblePresenceStatus,
   type WorldEntityDefinition,
   type WorldEntityKind,
   type WorldPresenceDefinition,
@@ -325,6 +328,80 @@ export function getPresenceStatus(
   return areConditionsSatisfied(presence.availabilityConditions, evaluate) ? 'available' : 'unavailable';
 }
 
+export function synchronizeDiscoveredPresences(
+  catalog: IndexedPresences,
+  presenceState: PresenceState,
+  explorationState: ExplorationState,
+): PresenceSynchronizationResult {
+  const indexed = requireIndexedCatalog(catalog);
+  const previous = requireState(presenceState, indexed);
+  const exploration = requireExplorationSnapshot(explorationState);
+  const revealedByLocation = revealedDiscoveriesByLocation(exploration);
+  const alreadyDiscovered = new Set(previous.discoveredPresenceIds);
+  const newlyDiscoveredPresenceIds: string[] = [];
+
+  for (const presence of indexed.presences) {
+    if (alreadyDiscovered.has(presence.id)) {
+      continue;
+    }
+
+    const revealed = revealedByLocation.get(presence.locationId);
+    if (!revealed?.has(presence.discoveryId)) {
+      continue;
+    }
+
+    newlyDiscoveredPresenceIds.push(presence.id);
+    alreadyDiscovered.add(presence.id);
+  }
+
+  return {
+    previous: copyState(previous),
+    current: {
+      discoveredPresenceIds: [...previous.discoveredPresenceIds, ...newlyDiscoveredPresenceIds],
+      resolvedPresenceIds: [...previous.resolvedPresenceIds],
+    },
+    newlyDiscoveredPresenceIds: [...newlyDiscoveredPresenceIds],
+  };
+}
+
+export function listKnownPresencesAtLocation(
+  catalog: IndexedPresences,
+  state: PresenceState,
+  locationId: string,
+  conditions?: PresenceConditionSource,
+): KnownPresence[] {
+  const indexed = requireIndexedCatalog(catalog);
+  const current = requireState(state, indexed);
+
+  if (typeof locationId !== 'string' || locationId.trim() === '') {
+    throw new PresenceError('A localização não existe.');
+  }
+
+  const discovered = new Set(current.discoveredPresenceIds);
+  const presenceIds = indexed.presenceIdsByLocation.get(locationId) ?? [];
+
+  return presenceIds.flatMap((presenceId) => {
+    if (!discovered.has(presenceId)) {
+      return [];
+    }
+
+    const presence = requirePresence(indexed, presenceId);
+    const status = deriveVisibleStatus(presence, current, locationId, resolveEvaluator(conditions));
+    const entity = indexed.byEntity.get(presence.entityId);
+    if (!entity) {
+      throw new PresenceError('A entidade não existe.');
+    }
+
+    return [
+      {
+        presence: copyPresence(presence),
+        entity: copyEntity(entity),
+        status,
+      },
+    ];
+  });
+}
+
 export function createPresenceEvaluator(state: GameState): PresenceConditionEvaluator {
   return (conditions) => evaluateConditions(conditions ? copyConditions(conditions) : undefined, state);
 }
@@ -332,6 +409,7 @@ export function createPresenceEvaluator(state: GameState): PresenceConditionEval
 export { INITIAL_PRESENCE_CATALOG };
 export type {
   IndexedPresences,
+  KnownPresence,
   PresenceCatalog,
   PresenceCatalogContext,
   PresenceConditionEvaluator,
@@ -339,6 +417,8 @@ export type {
   PresenceInspection,
   PresenceState,
   PresenceStatus,
+  PresenceSynchronizationResult,
+  VisiblePresenceStatus,
   WorldEntityDefinition,
   WorldEntityKind,
   WorldPresenceDefinition,
@@ -913,6 +993,114 @@ function requirePresence(catalog: IndexedPresences, presenceId: string): WorldPr
   return presence;
 }
 
+function requireExplorationSnapshot(state: ExplorationState): ExplorationState {
+  const inspected = inspectExplorationSnapshot(state);
+  if (!inspected.ok) {
+    throw new PresenceError(inspected.reason);
+  }
+
+  return inspected.value;
+}
+
+function inspectExplorationSnapshot(value: unknown): PresenceInspection<ExplorationState> {
+  if (!isRecord(value) || !Array.isArray(value.locations)) {
+    return fail('O estado de exploração é inválido.');
+  }
+
+  const seenLocations = new Set<string>();
+  const locations: ExplorationState['locations'] = [];
+
+  for (const entry of value.locations) {
+    const inspected = inspectExplorationLocationSnapshot(entry, seenLocations);
+    if (!inspected.ok) {
+      return inspected;
+    }
+
+    seenLocations.add(inspected.value.locationId);
+    locations.push(inspected.value);
+  }
+
+  return { ok: true, value: { locations } };
+}
+
+function inspectExplorationLocationSnapshot(
+  value: unknown,
+  seenLocations: ReadonlySet<string>,
+): PresenceInspection<ExplorationState['locations'][number]> {
+  if (!isRecord(value)) {
+    return fail('O estado de exploração é inválido.');
+  }
+
+  if (typeof value.locationId !== 'string' || value.locationId.trim() === '') {
+    return fail('O estado de exploração é inválido.');
+  }
+
+  if (seenLocations.has(value.locationId)) {
+    return fail('O estado de exploração possui localização duplicada.');
+  }
+
+  if (!isProgressValue(value.progress)) {
+    return fail('O progresso de exploração é inválido.');
+  }
+
+  if (!isNonNegativeSafeInteger(value.explorationCount)) {
+    return fail('A contagem de exploração é inválida.');
+  }
+
+  if (!Array.isArray(value.revealedDiscoveryIds)) {
+    return fail('O estado de exploração é inválido.');
+  }
+
+  const revealed = new Set<string>();
+  const revealedDiscoveryIds: string[] = [];
+
+  for (const discoveryId of value.revealedDiscoveryIds) {
+    if (typeof discoveryId !== 'string' || discoveryId.trim() === '') {
+      return fail('O estado de exploração possui descoberta inexistente.');
+    }
+
+    if (revealed.has(discoveryId)) {
+      return fail('O estado de exploração possui descobertas duplicadas.');
+    }
+
+    revealed.add(discoveryId);
+    revealedDiscoveryIds.push(discoveryId);
+  }
+
+  return {
+    ok: true,
+    value: {
+      locationId: value.locationId,
+      progress: value.progress,
+      revealedDiscoveryIds,
+      explorationCount: value.explorationCount,
+    },
+  };
+}
+
+function revealedDiscoveriesByLocation(state: ExplorationState): Map<string, ReadonlySet<string>> {
+  return new Map(
+    state.locations.map((entry) => [entry.locationId, new Set(entry.revealedDiscoveryIds)] as const),
+  );
+}
+
+function deriveVisibleStatus(
+  presence: WorldPresenceDefinition,
+  state: PresenceState,
+  locationId: string,
+  evaluate: PresenceConditionEvaluator | undefined,
+): VisiblePresenceStatus {
+  if (state.resolvedPresenceIds.includes(presence.id)) {
+    return 'resolved';
+  }
+
+  if (presence.locationId !== locationId) {
+    return 'unavailable';
+  }
+
+  return areConditionsSatisfied(presence.availabilityConditions, evaluate) ? 'available' : 'unavailable';
+}
+
 function copyState(state: PresenceState): PresenceState {
   return {
     discoveredPresenceIds: [...state.discoveredPresenceIds],
@@ -1129,6 +1317,14 @@ function isFiniteNumber(value: unknown): value is number {
 
 function isPositiveInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value > 0;
+}
+
+function isProgressValue(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= 100;
+}
+
+function isNonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

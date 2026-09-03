@@ -20,7 +20,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 7.5 — gatilho de mundo e primeiro encontro — está implementada: explorar a Clareira revela `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite. O consumo fica em `GameState.flags`.
 - O marco mínimo do Sistema 7 foi atingido.
 - A Fatia 8.1 — catálogo e estado isolado de presenças — está implementada em `modules/presences`, sem save, UI, tempo ou narrativa.
-- As Fatias 8.2 a 8.6 continuam aguardando autorização. Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
+- A Fatia 8.2 — sincronização com descobertas — está implementada: operação pura e consulta de presenças conhecidas, ainda sem orquestrador, save ou UI.
+- As Fatias 8.3 a 8.6 continuam aguardando autorização. Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -86,12 +87,13 @@ Estado conhecido:
 - a Fatia 7.5 abre o primeiro encontro pelo gatilho de descoberta `first-priority-event` e devolve o jogador ao sandbox;
 - o marco mínimo do Sistema 7 foi atingido;
 - a Fatia 8.1 isolou o catálogo e o estado de presenças em `modules/presences`;
-- as Fatias 8.2 a 8.6 continuam aguardando autorização;
+- a Fatia 8.2 sincroniza descobertas reveladas com presenças conhecidas, sem save, UI, tempo ou narrativa;
+- as Fatias 8.3 a 8.6 continuam aguardando autorização;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
 
-Sua primeira tarefa é validar e revisar a Fatia 8.1 contra docs/SYSTEM-PRESENCES.md.
+Sua primeira tarefa é validar e revisar a Fatia 8.2 contra docs/SYSTEM-PRESENCES.md.
 
 Execute:
 
@@ -102,15 +104,13 @@ npm run build
 
 Revise especialmente:
 
-- IDs e referências inválidas são rejeitados nas fronteiras;
-- presença e descoberta pertencem ao mesmo local;
-- presença resolvida também está descoberta e é resolvível;
-- descoberta e resolução repetidas são idempotentes;
-- consultas não expõem conteúdo oculto;
-- nenhuma função muta estado, catálogo ou índices recebidos;
+- sincronização só revela presença quando a descoberta está no local correto;
+- ordem determinística do catálogo e idempotência;
+- consultas não expõem conteúdo oculto e derivam available/unavailable/resolved;
+- nenhuma função muta catálogo, PresenceState ou ExplorationState recebidos;
 - o módulo não importa UI, persistência ou orquestrador.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.1. Se não houver problemas, declare a Fatia 8.1 consolidada e então prepare, somente quando eu pedir, o recorte da Fatia 8.2.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.2. Se não houver problemas, declare a Fatia 8.2 consolidada e então prepare, somente quando eu pedir, o recorte da Fatia 8.3.
 
 Preserve o ciclo de trabalho:
 
@@ -119,6 +119,6 @@ especificar → implementar → testar → revisar → corrigir → consolidar �
 Não faça push sem minha autorização. Preserve alterações existentes e mantenha a conversa em português do Brasil.
 ```
 
-## Próxima decisão depois da Fatia 8.1
+## Próxima decisão depois da Fatia 8.2
 
-Revisar e corrigir o módulo isolado. A Fatia 8.2 só começa depois da consolidação e de nova autorização do autor. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.
+Revisar e corrigir a sincronização isolada. A Fatia 8.3 só começa depois da consolidação e de nova autorização do autor. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.

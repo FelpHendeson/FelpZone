@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 2 de setembro de 2026.**
 
-O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. A Fatia 8.1 está implementada. As fatias seguintes dependem de validação e consolidação da anterior.
+O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. A Fatia 8.1 está implementada. A Fatia 8.2 está implementada. As fatias seguintes dependem de validação e consolidação da anterior.
 
 ## Problema de diversão e imersão
 
@@ -249,7 +249,7 @@ Regras de UX:
 
 ### Fatia 8.2 — Sincronização com descobertas
 
-**Aprovada, aguardando revisão e autorização após a Fatia 8.1.** Converter descobertas já reveladas em presenças descobertas, de forma explícita e idempotente. Derivar disponibilidade usando localização e condições.
+**Implementada.** `synchronizeDiscoveredPresences` converte descobertas já reveladas em `ExplorationState` nas presenças correspondentes, na ordem do catálogo, sem mutar as entradas, iniciar narrativa, aplicar tempo ou alterar a exploração. `listKnownPresencesAtLocation` lista somente presenças conhecidas do local com status `available`, `unavailable` ou `resolved`. Condições de disponibilidade afetam o status derivado, não a descoberta.
 
 ### Fatia 8.3 — Interações
 
@@ -341,6 +341,44 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 - combate, dano, captura ou domesticação;
 - aleatoriedade;
 - sobrevivência automática.
+
+## Fatia 8.2 — Contrato de implementação
+
+### Entrega
+
+- operação pura `synchronizeDiscoveredPresences(catalog, presenceState, explorationState)`;
+- resultado com estado anterior, estado novo e IDs descobertos nesta sincronização;
+- consulta `listKnownPresencesAtLocation` com status derivado visível;
+- testes unitários da sincronização e das consultas;
+- documentação ajustada somente ao comportamento implementado.
+
+### Invariantes
+
+- uma presença só é descoberta quando seu `discoveryId` já está revelado no estado do local correto;
+- o vínculo catálogo → descoberta da Fatia 8.1 permanece a fonte da associação;
+- sincronizar o mesmo estado repetidamente é idempotente;
+- IDs novos não se repetem e seguem a ordem do catálogo indexado;
+- presenças já descobertas ou resolvidas são preservadas;
+- a operação não remove descobertas nem resoluções;
+- uma descoberta pode revelar mais de uma presença;
+- nenhuma presença é resolvida automaticamente;
+- condições de disponibilidade não impedem a descoberta;
+- consultas comuns não expõem presenças ocultas;
+- catálogo, `PresenceState` e `ExplorationState` recebidos não são mutados;
+- estados malformados são rejeitados de forma controlada.
+
+### Fora da Fatia 8.2
+
+- alteração de `GameState`, `SandboxState` ou `schemaVersion`;
+- migração ou persistência principal;
+- chamada automática no orquestrador;
+- nova `SandboxAction`;
+- catálogo de interações;
+- aplicação de tempo;
+- abertura de narrativa;
+- alterações na interface;
+- conteúdo narrativo novo;
+- agenda, movimento autônomo, IA, combate ou sobrevivência.
 
 ## Critérios de conclusão do Sistema 8
 

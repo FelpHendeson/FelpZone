@@ -52,7 +52,7 @@ Menus não constituem modo de mundo e não avançam tempo.
 
 ## Gatilhos
 
-O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. A Fatia 8.1 do Sistema 8 já isolou o catálogo e o estado de presenças; sincronização, interações e demais gatilhos continuam para etapas posteriores:
+O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. As Fatias 8.1 e 8.2 do Sistema 8 já isolam o catálogo de presenças e a sincronização com descobertas; interações e demais gatilhos continuam para etapas posteriores:
 
 - entrada em local;
 - primeira visita;

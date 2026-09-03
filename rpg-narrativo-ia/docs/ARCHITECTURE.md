@@ -404,7 +404,7 @@ A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa 
 
 ## Contrato de presenças isoladas
 
-O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. Não altera `GameState`, `schemaVersion` nem a interface nesta fatia. Descobrir ou resolver uma presença não abre narrativa, não avança o relógio e não sincroniza exploração.
+O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. Não altera `GameState`, `schemaVersion` nem a interface nesta fatia. Descobrir, resolver ou sincronizar uma presença não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo.
 
 ```ts
 type WorldEntityKind = 'npc' | 'animal' | 'creature';
@@ -425,6 +425,7 @@ Operações públicas:
 - `createInitialPresenceState` e `inspectPresenceState`;
 - `discoverPresence` e `resolvePresence`;
 - `getPresence`, `getEntity` e `listDiscoveredPresencesAtLocation`;
+- `synchronizeDiscoveredPresences` e `listKnownPresencesAtLocation`;
 - `getPresenceStatus` e `createPresenceEvaluator`.
 
 Agenda, movimento, interações, save e UI ficam fora deste contrato.

@@ -11,6 +11,8 @@ export const PRESENCE_STATUSES = ['hidden', 'available', 'unavailable', 'resolve
 
 export type PresenceStatus = (typeof PRESENCE_STATUSES)[number];
 
+export type VisiblePresenceStatus = Exclude<PresenceStatus, 'hidden'>;
+
 export interface WorldEntityDefinition {
   id: string;
   kind: WorldEntityKind;
@@ -36,6 +38,18 @@ export interface PresenceCatalog {
 export interface PresenceState {
   discoveredPresenceIds: string[];
   resolvedPresenceIds: string[];
+}
+
+export interface PresenceSynchronizationResult {
+  previous: PresenceState;
+  current: PresenceState;
+  newlyDiscoveredPresenceIds: string[];
+}
+
+export interface KnownPresence {
+  presence: WorldPresenceDefinition;
+  entity: WorldEntityDefinition;
+  status: VisiblePresenceStatus;
 }
 
 export interface IndexedPresences {

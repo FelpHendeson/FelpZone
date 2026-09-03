@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   INITIAL_EXPLORATION_DEFINITIONS,
+  createInitialExploration,
   indexExplorationDefinitions,
+  type ExplorationState,
   type IndexedExploration,
 } from '../modules/exploration';
 import {
@@ -22,7 +24,9 @@ import {
   inspectPresenceCatalog,
   inspectPresenceState,
   listDiscoveredPresencesAtLocation,
+  listKnownPresencesAtLocation,
   resolvePresence,
+  synchronizeDiscoveredPresences,
   PresenceError,
   type IndexedPresences,
   type PresenceCatalog,
@@ -147,6 +151,40 @@ function forgeCatalog(
     byPresence: overrides.byPresence ?? new Map(catalog.byPresence),
     presenceIdsByLocation: overrides.presenceIdsByLocation ?? new Map(catalog.presenceIdsByLocation),
   };
+}
+
+function locationExploration(
+  locationId: string,
+  revealedDiscoveryIds: string[],
+  progress: number,
+): ExplorationState['locations'][number] {
+  return {
+    locationId,
+    progress,
+    revealedDiscoveryIds,
+    explorationCount: 1,
+  };
+}
+
+function explorationState(locations: ExplorationState['locations']): ExplorationState {
+  return { locations };
+}
+
+function explorationAt(locationId: string, revealedDiscoveryIds: string[], progress: number): ExplorationState {
+  return explorationState([locationExploration(locationId, revealedDiscoveryIds, progress)]);
+}
+
+function freezeExploration(state: ExplorationState): ExplorationState {
+  return Object.freeze({
+    locations: Object.freeze(
+      state.locations.map((entry) =>
+        Object.freeze({
+          ...entry,
+          revealedDiscoveryIds: Object.freeze([...entry.revealedDiscoveryIds]) as string[],
+        }),
+      ),
+    ) as ExplorationState['locations'],
+  });
 }
 
 describe('catálogo de presenças', () => {
@@ -475,6 +513,240 @@ describe('imutabilidade do catálogo recebido', () => {
     expect(getEntity(indexed, 'mira-vale').name).toBe('Mira Vale');
     expect(indexed.entities).not.toBe(source.entities);
     expect(indexed.presences).not.toBe(source.presences);
+  });
+});
+
+describe('sincronização com descobertas', () => {
+  it('não revela presença quando a exploração não tem descobertas', () => {
+    const catalog = worldCatalog();
+    const previous = freezeState(createInitialPresenceState(catalog));
+    const exploration = freezeExploration(createInitialExploration());
+    const result = synchronizeDiscoveredPresences(catalog, previous, exploration);
+
+    expect(result.newlyDiscoveredPresenceIds).toEqual([]);
+    expect(result.current).toEqual(previous);
+    expect(result.current).not.toBe(previous);
+    expect(listKnownPresencesAtLocation(catalog, result.current, START)).toEqual([]);
+  });
+
+  it('revela Mira na Clareira quando first-priority-event está registrado', () => {
+    const catalog = worldCatalog();
+    const result = synchronizeDiscoveredPresences(
+      catalog,
+      freezeState(createInitialPresenceState(catalog)),
+      freezeExploration(explorationAt(START, ['awakening-site', 'first-priority-event'], 10)),
+    );
+
+    expect(result.newlyDiscoveredPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(result.current.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(result.current.resolvedPresenceIds).toEqual([]);
+    expect(listKnownPresencesAtLocation(catalog, result.current, START).map((entry) => entry.presence.id)).toEqual([
+      'mira-awakening-clearing',
+    ]);
+  });
+
+  it('revela o coelho na Mata Densa quando horned-rabbit-tracks está registrado', () => {
+    const catalog = worldCatalog();
+    const result = synchronizeDiscoveredPresences(
+      catalog,
+      freezeState(createInitialPresenceState(catalog)),
+      freezeExploration(explorationAt('dense-woods', ['horned-rabbit-tracks'], 40)),
+    );
+
+    expect(result.newlyDiscoveredPresenceIds).toEqual(['horned-rabbit-dense-woods']);
+    expect(listKnownPresencesAtLocation(catalog, result.current, 'dense-woods').map((entry) => entry.entity.id)).toEqual(
+      ['horned-rabbit'],
+    );
+    expect(listKnownPresencesAtLocation(catalog, result.current, START)).toEqual([]);
+  });
+
+  it('não revela presença de outro local', () => {
+    const catalog = worldCatalog();
+    const result = synchronizeDiscoveredPresences(
+      catalog,
+      freezeState(createInitialPresenceState(catalog)),
+      freezeExploration(explorationAt('dense-woods', ['horned-rabbit-tracks'], 40)),
+    );
+
+    expect(result.newlyDiscoveredPresenceIds).not.toContain('mira-awakening-clearing');
+    expect(getPresenceStatus(catalog, result.current, 'mira-awakening-clearing', START)).toBe('hidden');
+  });
+
+  it('sincroniza duas presenças da mesma descoberta na ordem do catálogo', () => {
+    const map = worldMap();
+    const catalog = indexPresenceCatalog(
+      {
+        entities: [
+          ...INITIAL_PRESENCE_CATALOG.entities,
+          entity({ id: 'mira-echo', name: 'Eco de Mira', description: 'Uma segunda ocorrência de teste.' }),
+        ],
+        presences: [
+          presence({ id: 'mira-first' }),
+          presence({ id: 'mira-second', entityId: 'mira-echo' }),
+        ],
+      },
+      map,
+      worldExploration(map),
+    );
+
+    const result = synchronizeDiscoveredPresences(
+      catalog,
+      freezeState(createInitialPresenceState(catalog)),
+      freezeExploration(explorationAt(START, ['first-priority-event'], 10)),
+    );
+
+    expect(result.newlyDiscoveredPresenceIds).toEqual(['mira-first', 'mira-second']);
+    expect(result.current.discoveredPresenceIds).toEqual(['mira-first', 'mira-second']);
+  });
+
+  it('sincronização repetida é idempotente e não relata IDs antigos como novos', () => {
+    const catalog = worldCatalog();
+    const exploration = freezeExploration(
+      explorationState([
+        locationExploration(START, ['first-priority-event'], 10),
+        locationExploration('dense-woods', ['horned-rabbit-tracks'], 40),
+      ]),
+    );
+    const first = synchronizeDiscoveredPresences(catalog, freezeState(createInitialPresenceState(catalog)), exploration);
+    const second = synchronizeDiscoveredPresences(catalog, freezeState(first.current), exploration);
+
+    expect(first.newlyDiscoveredPresenceIds).toEqual(['mira-awakening-clearing', 'horned-rabbit-dense-woods']);
+    expect(second.newlyDiscoveredPresenceIds).toEqual([]);
+    expect(second.current).toEqual(first.current);
+    expect(second.current.discoveredPresenceIds).toEqual(['mira-awakening-clearing', 'horned-rabbit-dense-woods']);
+  });
+
+  it('preserva presença já resolvida e não resolve automaticamente', () => {
+    const catalog = worldCatalog();
+    const discovered = discoverPresence(catalog, createInitialPresenceState(catalog), 'mira-awakening-clearing');
+    const resolved = freezeState(resolvePresence(catalog, freezeState(discovered), 'mira-awakening-clearing'));
+    const result = synchronizeDiscoveredPresences(
+      catalog,
+      resolved,
+      freezeExploration(explorationAt(START, ['first-priority-event'], 10)),
+    );
+
+    expect(result.newlyDiscoveredPresenceIds).toEqual([]);
+    expect(result.current.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(result.current.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
+  });
+
+  it('rejeita estado de exploração malformado', () => {
+    const catalog = worldCatalog();
+    const previous = freezeState(createInitialPresenceState(catalog));
+
+    expect(() => synchronizeDiscoveredPresences(catalog, previous, null as unknown as ExplorationState)).toThrow(
+      PresenceError,
+    );
+    expect(() => synchronizeDiscoveredPresences(catalog, previous, { locations: 'broken' } as unknown as ExplorationState)).toThrow(
+      /inválido/,
+    );
+    expect(() =>
+      synchronizeDiscoveredPresences(
+        catalog,
+        previous,
+        explorationState([
+          locationExploration(START, ['first-priority-event'], 10),
+          locationExploration(START, ['awakening-site'], 10),
+        ]),
+      ),
+    ).toThrow(/duplicada/);
+  });
+
+  it('não muta catálogo, PresenceState nem ExplorationState recebidos', () => {
+    const catalog = worldCatalog();
+    const previous = freezeState(createInitialPresenceState(catalog));
+    const exploration = freezeExploration(explorationAt(START, ['first-priority-event'], 10));
+    const result = synchronizeDiscoveredPresences(catalog, previous, exploration);
+
+    expect(previous).toEqual({ discoveredPresenceIds: [], resolvedPresenceIds: [] });
+    expect(exploration.locations[0]?.revealedDiscoveryIds).toEqual(['first-priority-event']);
+    expect(result.previous).not.toBe(previous);
+    expect(result.current).not.toBe(previous);
+    expect(() => result.newlyDiscoveredPresenceIds.push('hacked')).not.toThrow();
+    expect(result.current.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
+  });
+
+  it('consulta exclui ocultas e deriva disponível, indisponível e resolvida', () => {
+    const map = worldMap();
+    const catalog = indexPresenceCatalog(
+      {
+        entities: INITIAL_PRESENCE_CATALOG.entities,
+        presences: [
+          presence({
+            id: 'mira-conditional',
+            availabilityConditions: [{ type: 'flag.is', flag: 'met.mira', value: true }],
+          }),
+          presence({
+            id: 'horned-rabbit-dense-woods',
+            entityId: 'horned-rabbit',
+            locationId: 'dense-woods',
+            discoveryId: 'horned-rabbit-tracks',
+            resolvable: false,
+          }),
+        ],
+      },
+      map,
+      worldExploration(map),
+    );
+
+    const hidden = freezeState(createInitialPresenceState(catalog));
+    expect(listKnownPresencesAtLocation(catalog, hidden, START)).toEqual([]);
+
+    const synced = synchronizeDiscoveredPresences(
+      catalog,
+      hidden,
+      freezeExploration(
+        explorationState([
+          locationExploration(START, ['first-priority-event'], 10),
+          locationExploration('dense-woods', ['horned-rabbit-tracks'], 40),
+        ]),
+      ),
+    );
+
+    expect(listKnownPresencesAtLocation(catalog, synced.current, START).map((entry) => entry.status)).toEqual([
+      'unavailable',
+    ]);
+    expect(
+      listKnownPresencesAtLocation(
+        catalog,
+        synced.current,
+        START,
+        createPresenceEvaluator({ ...freshState(), flags: { ...freshState().flags, 'met.mira': true } }),
+      ).map((entry) => ({ id: entry.presence.id, status: entry.status, name: entry.entity.name })),
+    ).toEqual([{ id: 'mira-conditional', status: 'available', name: 'Mira Vale' }]);
+
+    const resolved = freezeState(resolvePresence(catalog, freezeState(synced.current), 'mira-conditional'));
+    expect(listKnownPresencesAtLocation(catalog, resolved, START).map((entry) => entry.status)).toEqual(['resolved']);
+    expect(listKnownPresencesAtLocation(catalog, synced.current, START).map((entry) => entry.presence.id)).not.toContain(
+      'horned-rabbit-dense-woods',
+    );
+  });
+
+  it('condições de disponibilidade não impedem a descoberta', () => {
+    const map = worldMap();
+    const catalog = indexPresenceCatalog(
+      {
+        entities: INITIAL_PRESENCE_CATALOG.entities,
+        presences: [
+          presence({
+            id: 'mira-conditional',
+            availabilityConditions: [{ type: 'flag.is', flag: 'met.mira', value: true }],
+          }),
+        ],
+      },
+      map,
+      worldExploration(map),
+    );
+
+    const result = synchronizeDiscoveredPresences(
+      catalog,
+      freezeState(createInitialPresenceState(catalog)),
+      freezeExploration(explorationAt(START, ['first-priority-event'], 10)),
+    );
+
+    expect(result.newlyDiscoveredPresenceIds).toEqual(['mira-conditional']);
+    expect(getPresenceStatus(catalog, result.current, 'mira-conditional', START)).toBe('unavailable');
   });
 });
 

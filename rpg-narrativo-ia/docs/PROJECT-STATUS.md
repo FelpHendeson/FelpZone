@@ -74,7 +74,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 6 — Crafting e cozinha | **Implementado e consolidado** | Receitas, consumo atômico, fogueira, estruturas locais e cozinha por estação. | Poucas receitas; combustível e ferramentas não funcionam ainda. |
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e primeiro gatilho de mundo. | Há somente um encontro acionado pelo mundo. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta e apresentação própria de encontros. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
-| Sistema 8 — Presenças e interações | **Fatia 8.1 implementada; demais fatias aguardando** | Catálogo de entidades e presenças, estado isolado, descoberta/resolução idempotentes, status derivado e consulta por local. | Sem save, UI, tempo, narrativa, agenda, IA ou combate. |
+| Sistema 8 — Presenças e interações | **Fatias 8.1 e 8.2 implementadas; demais fatias aguardando** | Catálogo isolado, estado mínimo, sincronização explícita com descobertas e consulta de presenças conhecidas com status derivado. | Sem save, UI, tempo, narrativa, agenda, IA ou combate. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -162,10 +162,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora, aciona o primeiro encontro e retorna ao sandbox.
 
-**O Sistema 8 foi aprovado e especificado.** A Fatia 8.1 está implementada isoladamente. A próxima implementação autorizada é a Fatia 8.2 — sincronização com descobertas — somente depois de revisão e autorização. Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**O Sistema 8 foi aprovado e especificado.** As Fatias 8.1 e 8.2 estão implementadas isoladamente. A próxima implementação autorizada é a Fatia 8.3 — interações — somente depois de revisão e autorização. Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 Antes de qualquer próxima implementação:
 
-1. revisar a Fatia 8.1 contra o contrato;
-2. obter autorização antes de iniciar a Fatia 8.2;
+1. revisar a Fatia 8.2 contra o contrato;
+2. obter autorização antes de iniciar a Fatia 8.3;
 3. não promover possibilidades futuras a requisitos.
