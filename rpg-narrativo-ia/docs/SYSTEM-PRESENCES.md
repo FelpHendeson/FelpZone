@@ -245,7 +245,7 @@ Regras de UX:
 
 ### Fatia 8.1 — Catálogo e estado isolado
 
-**Implementada.** O módulo puro `modules/presences` indexa entidades e presenças, valida o catálogo contra mapa e exploração, mantém `PresenceState` serializável e deriva `hidden` / `available` / `unavailable` / `resolved`. O catálogo inicial reutiliza as descobertas já existentes `first-priority-event` (Clareira) e `horned-rabbit-tracks` (Mata Densa) só para validar Mira e o coelho chifrudo; não está ligado ao jogo, ao save nem à UI.
+**Implementada.** O módulo puro `modules/presences` indexa entidades e presenças, valida o catálogo contra mapa e exploração, mantém `PresenceState` serializável e deriva `hidden` / `available` / `unavailable` / `resolved`. Condições de disponibilidade são copiadas e congeladas em profundidade. Os índices `byEntity`, `byPresence` e `presenceIdsByLocation` não são `Map` mutáveis: a API continua `ReadonlyMap`, mas a implementação rejeita `set`, `delete` e `clear` em runtime e recusa catálogos indexados cujos mapas não sejam consistentes com as listas. O catálogo inicial reutiliza as descobertas já existentes `first-priority-event` (Clareira) e `horned-rabbit-tracks` (Mata Densa) só para validar Mira e o coelho chifrudo; não está ligado ao jogo, ao save nem à UI.
 
 ### Fatia 8.2 — Sincronização com descobertas
 
@@ -306,7 +306,10 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 - descobrir ou resolver novamente é idempotente;
 - funções não mutam definições nem estado recebido;
 - consultas comuns não retornam presenças ocultas;
-- definições e estado são tratados como entradas não confiáveis.
+- definições e estado são tratados como entradas não confiáveis;
+- cada `GameCondition` armazenada é uma cópia independente e congelada;
+- índices não aceitam mutação em runtime (`set`, `delete`, `clear`);
+- catálogo indexado com listas e mapas inconsistentes é rejeitado de forma controlada.
 
 ### Testes obrigatórios
 

@@ -23,6 +23,67 @@ export class PresenceError extends Error {
   }
 }
 
+class ImmutableIndex<K, V> implements ReadonlyMap<K, V> {
+  readonly #entries: Map<K, V>;
+
+  constructor(entries: Iterable<readonly [K, V]>) {
+    this.#entries = new Map(entries);
+  }
+
+  get size(): number {
+    return this.#entries.size;
+  }
+
+  get(key: K): V | undefined {
+    return this.#entries.get(key);
+  }
+
+  has(key: K): boolean {
+    return this.#entries.has(key);
+  }
+
+  keys(): IterableIterator<K> {
+    return this.#entries.keys();
+  }
+
+  values(): IterableIterator<V> {
+    return this.#entries.values();
+  }
+
+  entries(): IterableIterator<[K, V]> {
+    return this.#entries.entries();
+  }
+
+  forEach(callback: (value: V, key: K, map: ReadonlyMap<K, V>) => void, thisArg?: unknown): void {
+    this.#entries.forEach((value, key) => {
+      callback.call(thisArg, value, key, this);
+    });
+  }
+
+  [Symbol.iterator](): IterableIterator<[K, V]> {
+    return this.#entries.entries();
+  }
+
+  get [Symbol.toStringTag](): string {
+    return 'Map';
+  }
+
+  set(key: K, value: V): never {
+    void key;
+    void value;
+    throw new PresenceError('O índice de presenças é imutável.');
+  }
+
+  delete(key: K): never {
+    void key;
+    throw new PresenceError('O índice de presenças é imutável.');
+  }
+
+  clear(): never {
+    throw new PresenceError('O índice de presenças é imutável.');
+  }
+}
+
 const IMAGE_KINDS = ['scene', 'portrait', 'icon'] as const;
 
 export function inspectPresenceCatalog(
@@ -60,7 +121,6 @@ export function inspectPresenceCatalog(
 
   const presences: WorldPresenceDefinition[] = [];
   const byPresence = new Map<string, WorldPresenceDefinition>();
-  const idsByLocation = new Map<string, string[]>();
 
   for (const entry of value.presences) {
     const inspected = inspectPresence(
@@ -77,26 +137,11 @@ export function inspectPresenceCatalog(
     const frozen = freezePresence(inspected.value);
     byPresence.set(frozen.id, frozen);
     presences.push(frozen);
-
-    const linked = idsByLocation.get(frozen.locationId) ?? [];
-    linked.push(frozen.id);
-    idsByLocation.set(frozen.locationId, linked);
-  }
-
-  const presenceIdsByLocation = new Map<string, readonly string[]>();
-  for (const [locationId, presenceIds] of idsByLocation) {
-    presenceIdsByLocation.set(locationId, Object.freeze([...presenceIds]));
   }
 
   return {
     ok: true,
-    value: {
-      entities: Object.freeze(entities),
-      presences: Object.freeze(presences),
-      byEntity,
-      byPresence,
-      presenceIdsByLocation,
-    },
+    value: freezeIndexedCatalog(entities, presences),
   };
 }
 
@@ -410,6 +455,60 @@ function inspectPresence(
   };
 }
 
+function inspectIndexedPresenceDefinition(
+  value: unknown,
+  byEntity: ReadonlyMap<string, WorldEntityDefinition>,
+  byPresence: ReadonlyMap<string, WorldPresenceDefinition>,
+): PresenceInspection<WorldPresenceDefinition> {
+  if (!isRecord(value)) {
+    return fail('O catálogo de presenças indexado é inválido.');
+  }
+
+  if (typeof value.id !== 'string' || value.id.trim() === '') {
+    return fail('O identificador da presença é inválido.');
+  }
+
+  if (byPresence.has(value.id)) {
+    return fail(`A presença ${value.id} está duplicada.`);
+  }
+
+  if (typeof value.entityId !== 'string' || value.entityId.trim() === '' || !byEntity.has(value.entityId)) {
+    return fail(`A entidade da presença ${value.id} não existe.`);
+  }
+
+  if (typeof value.locationId !== 'string' || value.locationId.trim() === '') {
+    return fail(`A localização da presença ${value.id} não existe.`);
+  }
+
+  if (typeof value.discoveryId !== 'string' || value.discoveryId.trim() === '') {
+    return fail(`A descoberta da presença ${value.id} não existe nas definições de exploração.`);
+  }
+
+  if (typeof value.resolvable !== 'boolean') {
+    return fail(`A presença ${value.id} possui resolubilidade inválida.`);
+  }
+
+  const conditions = inspectOptionalConditions(
+    value.availabilityConditions,
+    `A presença ${value.id} possui condições malformadas.`,
+  );
+  if (!conditions.ok) {
+    return conditions;
+  }
+
+  return {
+    ok: true,
+    value: copyPresence({
+      id: value.id,
+      entityId: value.entityId,
+      locationId: value.locationId,
+      discoveryId: value.discoveryId,
+      availabilityConditions: conditions.value,
+      resolvable: value.resolvable,
+    }),
+  };
+}
+
 function inspectIdList(
   value: unknown,
   catalog: IndexedPresences,
@@ -569,14 +668,218 @@ function inspectIndexedCatalog(catalog: unknown): PresenceInspection<IndexedPres
     !isRecord(catalog) ||
     !Array.isArray(catalog.entities) ||
     !Array.isArray(catalog.presences) ||
-    !(catalog.byEntity instanceof Map) ||
-    !(catalog.byPresence instanceof Map) ||
-    !(catalog.presenceIdsByLocation instanceof Map)
+    !isMapLike(catalog.byEntity) ||
+    !isMapLike(catalog.byPresence) ||
+    !isMapLike(catalog.presenceIdsByLocation)
   ) {
     return fail('O catálogo de presenças indexado é inválido.');
   }
 
-  return { ok: true, value: catalog as unknown as IndexedPresences };
+  const entities: WorldEntityDefinition[] = [];
+  const byEntity = new Map<string, WorldEntityDefinition>();
+
+  for (const entry of catalog.entities) {
+    const inspected = inspectEntity(entry, byEntity);
+    if (!inspected.ok) {
+      return inspected;
+    }
+
+    const frozen = freezeEntity(inspected.value);
+    byEntity.set(frozen.id, frozen);
+    entities.push(frozen);
+  }
+
+  const presences: WorldPresenceDefinition[] = [];
+  const byPresence = new Map<string, WorldPresenceDefinition>();
+
+  for (const entry of catalog.presences) {
+    const inspected = inspectIndexedPresenceDefinition(entry, byEntity, byPresence);
+    if (!inspected.ok) {
+      return inspected;
+    }
+
+    const frozen = freezePresence(inspected.value);
+    byPresence.set(frozen.id, frozen);
+    presences.push(frozen);
+  }
+
+  const entityIndex = inspectConsistentEntityIndex(entities, catalog.byEntity);
+  if (!entityIndex.ok) {
+    return entityIndex;
+  }
+
+  const presenceIndex = inspectConsistentPresenceIndex(presences, catalog.byPresence);
+  if (!presenceIndex.ok) {
+    return presenceIndex;
+  }
+
+  const locationIndex = inspectConsistentLocationIndex(presences, catalog.presenceIdsByLocation);
+  if (!locationIndex.ok) {
+    return locationIndex;
+  }
+
+  return {
+    ok: true,
+    value: freezeIndexedCatalog(entities, presences),
+  };
+}
+
+function freezeIndexedCatalog(
+  entities: readonly WorldEntityDefinition[],
+  presences: readonly WorldPresenceDefinition[],
+): IndexedPresences {
+  const idsByLocation = new Map<string, string[]>();
+  for (const presence of presences) {
+    const linked = idsByLocation.get(presence.locationId) ?? [];
+    linked.push(presence.id);
+    idsByLocation.set(presence.locationId, linked);
+  }
+
+  return Object.freeze({
+    entities: Object.freeze([...entities]),
+    presences: Object.freeze([...presences]),
+    byEntity: new ImmutableIndex(entities.map((entity) => [entity.id, entity] as const)),
+    byPresence: new ImmutableIndex(presences.map((presence) => [presence.id, presence] as const)),
+    presenceIdsByLocation: new ImmutableIndex(
+      [...idsByLocation].map(([locationId, presenceIds]) => [locationId, Object.freeze([...presenceIds])] as const),
+    ),
+  });
+}
+
+function inspectConsistentEntityIndex(
+  entities: readonly WorldEntityDefinition[],
+  index: ReadonlyMap<unknown, unknown>,
+): PresenceInspection<void> {
+  const entries = readMapEntries(index);
+  if (!entries.ok) {
+    return entries;
+  }
+
+  if (entries.value.length !== entities.length) {
+    return fail('O índice de entidades é inconsistente.');
+  }
+
+  const seen = new Set<string>();
+  for (const [key, value] of entries.value) {
+    if (typeof key !== 'string' || !isRecord(value) || value.id !== key) {
+      return fail('O índice de entidades é inconsistente.');
+    }
+
+    if (seen.has(key)) {
+      return fail('O índice de entidades é inconsistente.');
+    }
+
+    seen.add(key);
+  }
+
+  for (const entity of entities) {
+    const indexed = index.get(entity.id);
+    if (!sameEntity(entity, indexed)) {
+      return fail('O índice de entidades é inconsistente.');
+    }
+  }
+
+  return { ok: true, value: undefined };
+}
+
+function inspectConsistentPresenceIndex(
+  presences: readonly WorldPresenceDefinition[],
+  index: ReadonlyMap<unknown, unknown>,
+): PresenceInspection<void> {
+  const entries = readMapEntries(index);
+  if (!entries.ok) {
+    return entries;
+  }
+
+  if (entries.value.length !== presences.length) {
+    return fail('O índice de presenças é inconsistente.');
+  }
+
+  const seen = new Set<string>();
+  for (const [key, value] of entries.value) {
+    if (typeof key !== 'string' || !isRecord(value) || value.id !== key) {
+      return fail('O índice de presenças é inconsistente.');
+    }
+
+    if (seen.has(key)) {
+      return fail('O índice de presenças é inconsistente.');
+    }
+
+    seen.add(key);
+  }
+
+  for (const presence of presences) {
+    const indexed = index.get(presence.id);
+    if (!samePresence(presence, indexed)) {
+      return fail('O índice de presenças é inconsistente.');
+    }
+  }
+
+  return { ok: true, value: undefined };
+}
+
+function inspectConsistentLocationIndex(
+  presences: readonly WorldPresenceDefinition[],
+  index: ReadonlyMap<unknown, unknown>,
+): PresenceInspection<void> {
+  const expected = new Map<string, string[]>();
+  for (const presence of presences) {
+    const linked = expected.get(presence.locationId) ?? [];
+    linked.push(presence.id);
+    expected.set(presence.locationId, linked);
+  }
+
+  const entries = readMapEntries(index);
+  if (!entries.ok) {
+    return entries;
+  }
+
+  if (entries.value.length !== expected.size) {
+    return fail('O índice de presenças por localização é inconsistente.');
+  }
+
+  const seenLocations = new Set<string>();
+  for (const [locationId, presenceIds] of entries.value) {
+    if (typeof locationId !== 'string' || !Array.isArray(presenceIds) || seenLocations.has(locationId)) {
+      return fail('O índice de presenças por localização é inconsistente.');
+    }
+
+    seenLocations.add(locationId);
+
+    for (const presenceId of presenceIds) {
+      if (typeof presenceId !== 'string') {
+        return fail('O índice de presenças por localização é inconsistente.');
+      }
+
+      const presence = presences.find((entry) => entry.id === presenceId);
+      if (!presence) {
+        return fail('O índice de presenças por localização é inconsistente.');
+      }
+
+      if (presence.locationId !== locationId) {
+        return fail(`A presença ${presenceId} está indexada em uma localização diferente.`);
+      }
+    }
+
+    const expectedIds = expected.get(locationId);
+    if (!expectedIds || expectedIds.length !== presenceIds.length) {
+      return fail('O índice de presenças por localização é inconsistente.');
+    }
+
+    for (let indexPosition = 0; indexPosition < expectedIds.length; indexPosition += 1) {
+      if (expectedIds[indexPosition] !== presenceIds[indexPosition]) {
+        return fail('O índice de presenças por localização é inconsistente.');
+      }
+    }
+  }
+
+  for (const locationId of expected.keys()) {
+    if (!index.has(locationId)) {
+      return fail('O índice de presenças por localização é inconsistente.');
+    }
+  }
+
+  return { ok: true, value: undefined };
 }
 
 function requireIndexedCatalog(catalog: IndexedPresences): IndexedPresences {
@@ -641,11 +944,21 @@ function freezeEntity(entity: WorldEntityDefinition): WorldEntityDefinition {
 }
 
 function freezePresence(presence: WorldPresenceDefinition): WorldPresenceDefinition {
-  const copied = copyPresence(presence);
-  if (copied.availabilityConditions) {
-    Object.freeze(copied.availabilityConditions);
+  const frozen: WorldPresenceDefinition = {
+    id: presence.id,
+    entityId: presence.entityId,
+    locationId: presence.locationId,
+    discoveryId: presence.discoveryId,
+    resolvable: presence.resolvable,
+  };
+
+  if (presence.availabilityConditions) {
+    frozen.availabilityConditions = Object.freeze(
+      presence.availabilityConditions.map((condition) => Object.freeze(copyCondition(condition))),
+    ) as GameCondition[];
   }
-  return Object.freeze(copied);
+
+  return Object.freeze(frozen);
 }
 
 function copyPresence(presence: WorldPresenceDefinition): WorldPresenceDefinition {
@@ -704,6 +1017,101 @@ function copyCondition(condition: GameCondition): GameCondition {
         : { type: 'inventory.has', itemId: condition.itemId, quantity: condition.quantity };
     case 'relationship.min':
       return { type: 'relationship.min', characterId: condition.characterId, amount: condition.amount };
+  }
+}
+
+function isMapLike(value: unknown): value is ReadonlyMap<unknown, unknown> {
+  if (!isRecord(value)) {
+    return false;
+  }
+
+  const candidate = value as {
+    size?: unknown;
+    get?: unknown;
+    has?: unknown;
+    entries?: unknown;
+  };
+
+  return (
+    typeof candidate.size === 'number' &&
+    Number.isInteger(candidate.size) &&
+    candidate.size >= 0 &&
+    typeof candidate.get === 'function' &&
+    typeof candidate.has === 'function' &&
+    typeof candidate.entries === 'function'
+  );
+}
+
+function readMapEntries(map: ReadonlyMap<unknown, unknown>): PresenceInspection<readonly [unknown, unknown][]> {
+  try {
+    return { ok: true, value: [...map.entries()] };
+  } catch {
+    return fail('O catálogo de presenças indexado é inválido.');
+  }
+}
+
+function sameEntity(left: WorldEntityDefinition, right: unknown): boolean {
+  if (!isRecord(right)) {
+    return false;
+  }
+
+  if (right.id !== left.id || right.kind !== left.kind || right.name !== left.name || right.description !== left.description) {
+    return false;
+  }
+
+  if (left.image === undefined) {
+    return right.image === undefined;
+  }
+
+  if (!isRecord(right.image)) {
+    return false;
+  }
+
+  return right.image.kind === left.image.kind && right.image.label === left.image.label;
+}
+
+function samePresence(left: WorldPresenceDefinition, right: unknown): boolean {
+  if (!isRecord(right)) {
+    return false;
+  }
+
+  return (
+    right.id === left.id &&
+    right.entityId === left.entityId &&
+    right.locationId === left.locationId &&
+    right.discoveryId === left.discoveryId &&
+    right.resolvable === left.resolvable &&
+    sameConditions(left.availabilityConditions, right.availabilityConditions)
+  );
+}
+
+function sameConditions(left: readonly GameCondition[] | undefined, right: unknown): boolean {
+  if (left === undefined) {
+    return right === undefined;
+  }
+
+  if (!Array.isArray(right) || right.length !== left.length) {
+    return false;
+  }
+
+  return left.every((condition, index) => sameCondition(condition, right[index]));
+}
+
+function sameCondition(left: GameCondition, right: unknown): boolean {
+  if (!isRecord(right) || right.type !== left.type) {
+    return false;
+  }
+
+  switch (left.type) {
+    case 'flag.is':
+      return right.flag === left.flag && right.value === left.value;
+    case 'attribute.min':
+    case 'attribute.max':
+      return right.attribute === left.attribute && right.amount === left.amount;
+    case 'inventory.has':
+      return right.itemId === left.itemId && right.quantity === left.quantity;
+    case 'relationship.min':
+      return right.characterId === left.characterId && right.amount === left.amount;
   }
 }
 

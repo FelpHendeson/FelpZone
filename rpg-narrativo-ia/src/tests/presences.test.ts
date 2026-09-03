@@ -24,6 +24,7 @@ import {
   listDiscoveredPresencesAtLocation,
   resolvePresence,
   PresenceError,
+  type IndexedPresences,
   type PresenceCatalog,
   type PresenceState,
   type WorldEntityDefinition,
@@ -106,6 +107,46 @@ function freezeState(state: PresenceState): PresenceState {
     discoveredPresenceIds: Object.freeze([...state.discoveredPresenceIds]) as string[],
     resolvedPresenceIds: Object.freeze([...state.resolvedPresenceIds]) as string[],
   });
+}
+
+function asMutableMap<K, V>(value: ReadonlyMap<K, V>): Map<K, V> {
+  return value as unknown as Map<K, V>;
+}
+
+function conditionalCatalog() {
+  const map = worldMap();
+  return indexPresenceCatalog(
+    {
+      entities: INITIAL_PRESENCE_CATALOG.entities,
+      presences: [
+        presence({
+          id: 'mira-conditional',
+          availabilityConditions: [{ type: 'flag.is', flag: 'met.mira', value: true }],
+        }),
+      ],
+    },
+    map,
+    worldExploration(map),
+  );
+}
+
+function forgeCatalog(
+  catalog: IndexedPresences,
+  overrides: {
+    entities?: WorldEntityDefinition[];
+    presences?: WorldPresenceDefinition[];
+    byEntity?: Map<string, WorldEntityDefinition>;
+    byPresence?: Map<string, WorldPresenceDefinition>;
+    presenceIdsByLocation?: Map<string, readonly string[]>;
+  },
+): IndexedPresences {
+  return {
+    entities: overrides.entities ?? [...catalog.entities],
+    presences: overrides.presences ?? [...catalog.presences],
+    byEntity: overrides.byEntity ?? new Map(catalog.byEntity),
+    byPresence: overrides.byPresence ?? new Map(catalog.byPresence),
+    presenceIdsByLocation: overrides.presenceIdsByLocation ?? new Map(catalog.presenceIdsByLocation),
+  };
 }
 
 describe('catálogo de presenças', () => {
@@ -434,5 +475,196 @@ describe('imutabilidade do catálogo recebido', () => {
     expect(getEntity(indexed, 'mira-vale').name).toBe('Mira Vale');
     expect(indexed.entities).not.toBe(source.entities);
     expect(indexed.presences).not.toBe(source.presences);
+  });
+});
+
+describe('imutabilidade profunda e índices adversariais', () => {
+  it('protege condições em profundidade e não altera o status derivado', () => {
+    const catalog = conditionalCatalog();
+    const discovered = freezeState(discoverPresence(catalog, createInitialPresenceState(catalog), 'mira-conditional'));
+    const stored = catalog.byPresence.get('mira-conditional');
+    expect(stored?.availabilityConditions).toHaveLength(1);
+
+    const condition = stored?.availabilityConditions?.[0] as { flag: string; value: boolean };
+    expect(() => {
+      condition.flag = 'hacked';
+    }).toThrow();
+    expect(() => {
+      condition.value = false;
+    }).toThrow();
+    expect(() => {
+      (stored?.availabilityConditions as { type: string; flag: string; value: boolean }[]).push({
+        type: 'flag.is',
+        flag: 'always',
+        value: true,
+      });
+    }).toThrow();
+    expect(() => {
+      (stored?.availabilityConditions as unknown[]).splice(0, 1);
+    }).toThrow();
+
+    expect(getPresenceStatus(catalog, discovered, 'mira-conditional', START)).toBe('unavailable');
+    expect(
+      getPresenceStatus(
+        catalog,
+        discovered,
+        'mira-conditional',
+        START,
+        createPresenceEvaluator({ ...freshState(), flags: { ...freshState().flags, 'met.mira': true } }),
+      ),
+    ).toBe('available');
+    expect(catalog.byPresence.get('mira-conditional')?.availabilityConditions).toEqual([
+      { type: 'flag.is', flag: 'met.mira', value: true },
+    ]);
+  });
+
+  it('rejeita mutação dos índices e não aceita presenças forjadas', () => {
+    const catalog = worldCatalog();
+    const byPresence = asMutableMap(catalog.byPresence);
+    const byEntity = asMutableMap(catalog.byEntity);
+    const byLocation = asMutableMap(catalog.presenceIdsByLocation);
+    const fakePresence = presence({ id: 'forged-presence', entityId: 'mira-vale' });
+
+    expect(() => byPresence.set('forged-presence', fakePresence)).toThrow(PresenceError);
+    expect(() => byPresence.delete('mira-awakening-clearing')).toThrow(PresenceError);
+    expect(() => byPresence.clear()).toThrow(PresenceError);
+    expect(() => byEntity.set('forged-entity', entity({ id: 'forged-entity' }))).toThrow(PresenceError);
+    expect(() => byEntity.delete('mira-vale')).toThrow(PresenceError);
+    expect(() => byLocation.set('hacked-clearing', ['mira-awakening-clearing'])).toThrow(PresenceError);
+    expect(() => byLocation.delete(START)).toThrow(PresenceError);
+
+    expect(getPresence(catalog, 'mira-awakening-clearing').id).toBe('mira-awakening-clearing');
+    expect(getEntity(catalog, 'mira-vale').id).toBe('mira-vale');
+    expect(() => getPresence(catalog, 'forged-presence')).toThrow(PresenceError);
+    expect(catalog.presenceIdsByLocation.get(START)).toEqual(['mira-awakening-clearing']);
+  });
+
+  it('rejeita catálogo indexado com arrays e mapas inconsistentes', () => {
+    const catalog = worldCatalog();
+    const fakePresence = presence({ id: 'forged-presence', entityId: 'mira-vale' });
+    const extraPresence = new Map(catalog.byPresence);
+    extraPresence.set('forged-presence', fakePresence);
+    const extraEntity = new Map(catalog.byEntity);
+    extraEntity.set('forged-entity', entity({ id: 'forged-entity' }));
+    const extraLocation = new Map(catalog.presenceIdsByLocation);
+    extraLocation.set('ghost-clearing', ['mira-awakening-clearing']);
+
+    expect(() => getPresence(forgeCatalog(catalog, { byPresence: extraPresence }), 'mira-awakening-clearing')).toThrow(
+      /inconsistente/,
+    );
+    expect(() => getEntity(forgeCatalog(catalog, { byEntity: extraEntity }), 'mira-vale')).toThrow(/inconsistente/);
+    expect(() =>
+      listDiscoveredPresencesAtLocation(
+        forgeCatalog(catalog, { presenceIdsByLocation: extraLocation }),
+        createInitialPresenceState(catalog),
+        START,
+      ),
+    ).toThrow(/inconsistente/);
+    expect(() =>
+      discoverPresence(
+        forgeCatalog(catalog, { byPresence: extraPresence }),
+        createInitialPresenceState(catalog),
+        'mira-awakening-clearing',
+      ),
+    ).toThrow(/inconsistente/);
+    expect(inspectPresenceState(createInitialPresenceState(catalog), forgeCatalog(catalog, { byPresence: extraPresence })).ok).toBe(
+      false,
+    );
+  });
+
+  it('rejeita presença indexada em localização diferente do locationId', () => {
+    const catalog = worldCatalog();
+    const misplaced = new Map(catalog.presenceIdsByLocation);
+    misplaced.set(START, ['horned-rabbit-dense-woods']);
+    misplaced.set('dense-woods', ['mira-awakening-clearing']);
+
+    const forged = forgeCatalog(catalog, { presenceIdsByLocation: misplaced });
+    expect(() => getPresence(forged, 'mira-awakening-clearing')).toThrow(/localização diferente/);
+    expect(() => listDiscoveredPresencesAtLocation(forged, createInitialPresenceState(catalog), START)).toThrow(
+      /localização diferente/,
+    );
+  });
+
+  it('rejeita estado cujo ID existe só em um índice adulterado', () => {
+    const catalog = worldCatalog();
+    const fakePresence = presence({ id: 'ghost-presence', entityId: 'mira-vale' });
+    const adulterated = new Map(catalog.byPresence);
+    adulterated.set('ghost-presence', fakePresence);
+
+    const forged = forgeCatalog(catalog, { byPresence: adulterated });
+    const inspected = inspectPresenceState(
+      { discoveredPresenceIds: ['ghost-presence'], resolvedPresenceIds: [] },
+      forged,
+    );
+
+    expect(inspected.ok).toBe(false);
+    if (inspected.ok) {
+      throw new Error('O estado com índice adulterado deveria ter sido rejeitado.');
+    }
+    expect(inspected.reason).toMatch(/inconsistente/);
+    expect(() => resolvePresence(forged, createInitialPresenceState(catalog), 'ghost-presence')).toThrow(/inconsistente/);
+  });
+
+  it('preserva descoberta, resolução, consultas e status atuais', () => {
+    const catalog = worldCatalog();
+    const start = freezeState(createInitialPresenceState(catalog));
+    const discovered = freezeState(discoverPresence(catalog, start, 'mira-awakening-clearing'));
+    const resolved = freezeState(resolvePresence(catalog, discovered, 'mira-awakening-clearing'));
+    const both = freezeState(discoverPresence(catalog, resolved, 'horned-rabbit-dense-woods'));
+
+    expect(discovered.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(resolved.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(listDiscoveredPresencesAtLocation(catalog, both, START).map((entry) => entry.id)).toEqual([
+      'mira-awakening-clearing',
+    ]);
+    expect(listDiscoveredPresencesAtLocation(catalog, both, 'dense-woods').map((entry) => entry.id)).toEqual([
+      'horned-rabbit-dense-woods',
+    ]);
+    expect(getPresenceStatus(catalog, start, 'mira-awakening-clearing', START)).toBe('hidden');
+    expect(getPresenceStatus(catalog, discovered, 'mira-awakening-clearing', START)).toBe('available');
+    expect(getPresenceStatus(catalog, resolved, 'mira-awakening-clearing', START)).toBe('resolved');
+    expect(getPresenceStatus(catalog, both, 'horned-rabbit-dense-woods', 'dense-woods')).toBe('available');
+  });
+
+  it('não reutiliza referências do catálogo original, inclusive condições', () => {
+    const condition: { type: 'flag.is'; flag: string; value: boolean } = {
+      type: 'flag.is',
+      flag: 'met.mira',
+      value: true,
+    };
+    const source: PresenceCatalog = {
+      entities: INITIAL_PRESENCE_CATALOG.entities.map((entry) => ({ ...entry })),
+      presences: [
+        presence({
+          id: 'mira-conditional',
+          availabilityConditions: [condition],
+        }),
+      ],
+    };
+    const snapshot = structuredClone(source);
+    const catalog = indexPresenceCatalog(source, worldMap(), worldExploration());
+
+    condition.flag = 'hacked';
+    condition.value = false;
+    source.presences[0].id = 'mutated-source';
+    source.presences[0].availabilityConditions = [{ type: 'flag.is', flag: 'always', value: true }];
+
+    const discovered = freezeState(discoverPresence(catalog, createInitialPresenceState(catalog), 'mira-conditional'));
+    expect(source.presences[0].id).toBe('mutated-source');
+    expect(catalog.presences[0].id).toBe('mira-conditional');
+    expect(catalog.byPresence.get('mira-conditional')?.availabilityConditions).toEqual([
+      { type: 'flag.is', flag: 'met.mira', value: true },
+    ]);
+    expect(
+      getPresenceStatus(
+        catalog,
+        discovered,
+        'mira-conditional',
+        START,
+        createPresenceEvaluator({ ...freshState(), flags: { ...freshState().flags, 'met.mira': true } }),
+      ),
+    ).toBe('available');
+    expect(source.entities).toEqual(snapshot.entities);
+    expect(source.presences[0].availabilityConditions).toEqual([{ type: 'flag.is', flag: 'always', value: true }]);
   });
 });
