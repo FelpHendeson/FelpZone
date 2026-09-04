@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 2 de setembro de 2026.**
 
-O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. A Fatia 8.1 está implementada. A Fatia 8.2 está implementada. As fatias seguintes dependem de validação e consolidação da anterior.
+O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.3 estão implementadas. As fatias seguintes dependem de validação e consolidação da anterior.
 
 ## Problema de diversão e imersão
 
@@ -129,7 +129,7 @@ Não persistir `available` ou `unavailable`, pois ambos dependem do estado atual
 
 ## Interações dirigidas por dados
 
-O contrato detalhado entra na Fatia 8.3. A direção aprovada é:
+O contrato da Fatia 8.3 está implementado. A direção aprovada é:
 
 ```ts
 type PresenceInteractionKind =
@@ -147,6 +147,21 @@ interface PresenceInteractionDefinition {
   hint?: string;
   timeCost: TimeCost;
   conditions?: GameCondition[];
+  effects?: GameEffect[];
+  feedback?: string;
+  narrative?: {
+    campaignId: string;
+    eventId: string;
+  };
+  resolvesPresence: boolean;
+}
+
+interface PresenceInteractionPlan {
+  interactionId: string;
+  presenceId: string;
+  timeCost: TimeCost;
+  effects: GameEffect[];
+  feedback?: string;
   narrative?: {
     campaignId: string;
     eventId: string;
@@ -155,7 +170,7 @@ interface PresenceInteractionDefinition {
 }
 ```
 
-Os tipos acima descrevem intenções de interação, não resultados fixos. `observe` pode abrir narrativa ou apenas produzir efeito; `talk` não garante sucesso; `avoid` não remove automaticamente a presença.
+Os tipos acima descrevem intenções de interação, não resultados fixos. `observe` pode abrir narrativa ou apenas produzir efeito; `talk` não garante sucesso; `avoid` não remove automaticamente a presença. O plano da Fatia 8.3 não aplica efeitos, não avança o relógio, não resolve a presença e não abre `narrativeSession`.
 
 ## Estado mínimo e persistência
 
@@ -253,7 +268,7 @@ Regras de UX:
 
 ### Fatia 8.3 — Interações
 
-Definir o catálogo de interações e uma operação pura que valide presença, condições e custo, retornando efeitos e possível solicitação narrativa sem aplicar tempo.
+**Implementada.** O catálogo `INITIAL_PRESENCE_INTERACTIONS` indexa interações por ID e por presença. Mira oferece `talk` com referência ao evento existente `first-priority`; o coelho oferece `observe` sem diálogo. `listKnownPresenceInteractions` lista interações de presenças descobertas, inclusive bloqueadas com motivo seguro, e omite as de presenças ocultas. `planPresenceInteraction` devolve um plano com cópias defensivas de custo, efeitos e narrativa. O plano não aplica efeitos, não avança o relógio, não resolve a presença e não abre `narrativeSession`.
 
 ### Fatia 8.4 — Estado integrado e orquestração
 
@@ -379,6 +394,53 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 - alterações na interface;
 - conteúdo narrativo novo;
 - agenda, movimento autônomo, IA, combate ou sobrevivência.
+
+## Fatia 8.3 — Contrato de implementação
+
+### Entrega
+
+- catálogo de interações indexado por ID e por presença;
+- `inspectPresenceInteractionCatalog` e `indexPresenceInteractionCatalog`;
+- consulta `listKnownPresenceInteractions`;
+- planejamento puro `planPresenceInteraction`;
+- protótipo mínimo com Mira (`talk` → `first-priority`) e coelho (`observe` sem diálogo);
+- testes unitários do catálogo, da consulta e do planejamento;
+- documentação ajustada somente ao comportamento implementado.
+
+### Operações públicas mínimas
+
+- `inspectPresenceInteractionCatalog`;
+- `indexPresenceInteractionCatalog`;
+- `listKnownPresenceInteractions`;
+- `planPresenceInteraction`.
+
+### Invariantes
+
+- IDs globais de interação não vazios e únicos;
+- tipo pertencente a `observe`, `investigate`, `approach`, `talk` ou `avoid`;
+- `presenceId` existente no catálogo de presenças;
+- rótulo não vazio; dica e feedback válidos quando presentes;
+- `timeCost` validado por `inspectTimeCost`;
+- condições e efeitos validados nos formatos existentes, sem aplicar regras do motor;
+- referência narrativa aponta para campanha e evento existentes, com `canStartSession`;
+- `resolvesPresence` é booleano e só pode ser verdadeiro se a presença for resolvível;
+- presença oculta, indisponível ou resolvida não aceita planejamento;
+- a interação precisa pertencer à presença solicitada;
+- condições da presença e da interação precisam estar satisfeitas para o plano ser válido;
+- a consulta pode mostrar interação conhecida bloqueada com motivo seguro e não revela interação de presença oculta;
+- o plano devolve cópias defensivas e não altera `PresenceState`, `GameState` ou catálogos;
+- a existência de `narrative` não inicia sessão; `resolvesPresence` é intenção, não resolução imediata.
+
+### Fora da Fatia 8.3
+
+- nova `SandboxAction`;
+- aplicação de efeitos ou de tempo;
+- resolução efetiva da presença;
+- abertura de `narrativeSession`;
+- alteração de `GameState`, `SandboxState`, schema, save ou migrações;
+- UI;
+- conteúdo completo da Fatia 8.6;
+- agenda, IA, combate ou sobrevivência.
 
 ## Critérios de conclusão do Sistema 8
 

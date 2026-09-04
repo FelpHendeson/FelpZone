@@ -31,7 +31,7 @@ Leia nesta ordem:
 13. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
 14. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
 15. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
-16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado; Fatias 8.1 e 8.2 implementadas isoladamente.
+16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado; Fatias 8.1 a 8.3 implementadas isoladamente.
 17. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, próxima fatia e temas ainda sem etapa aprovada.
 18. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -77,7 +77,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 **MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: explorar o mundo dispara o primeiro encontro (criatura e Mira) e a sessão devolve o jogador ao sandbox.
 
-O Sistema 8 — Presenças e interações no mundo — está aprovado. As Fatias 8.1 e 8.2 estão implementadas: catálogo isolado e sincronização explícita com descobertas, ainda sem save, UI, relógio ou narrativa. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam fora da etapa.
+O Sistema 8 — Presenças e interações no mundo — está aprovado. As Fatias 8.1 a 8.3 estão implementadas: catálogo isolado, sincronização com descobertas e planejamento puro de interações, ainda sem save, UI ou aplicação de tempo. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam fora da etapa.
 
 ## Decisões já tomadas
 
@@ -99,11 +99,11 @@ O Sistema 8 — Presenças e interações no mundo — está aprovado. As Fatias
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o primeiro encontro acionado por gatilho de mundo.
-- O Sistema 8 está aprovado. As Fatias 8.1 e 8.2 existem no módulo isolado; interações, save e interface continuam para fatias posteriores.
+- O Sistema 8 está aprovado. As Fatias 8.1 a 8.3 existem no módulo isolado; orquestração, save e interface continuam para fatias posteriores.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo o módulo isolado de presenças e os testes anteriores.
+- `npm test`: suíte completa, incluindo o módulo isolado de presenças, interações e os testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela o gatilho `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite.

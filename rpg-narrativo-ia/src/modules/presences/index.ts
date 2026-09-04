@@ -1,15 +1,26 @@
-import { evaluateConditions, type GameCondition, type ImageReference } from '../../core/events';
+import { evaluateConditions, type Campaign, type GameCondition, type ImageReference } from '../../core/events';
 import { isAttributeId, type GameState } from '../../core/state/types';
 import type { ExplorationState, IndexedExploration } from '../exploration';
 import type { IndexedMap } from '../navigation';
+import { PresenceError } from './errors';
+import { ImmutableIndex } from './immutable-index';
 import { INITIAL_PRESENCE_CATALOG } from './initial-presences';
 import {
+  copyInteraction,
+  createInteractionPlan,
+  inspectPresenceInteractionCatalog as inspectInteractionCatalogValue,
+  requireIndexedPresenceInteractions,
+} from './interactions';
+import {
   WORLD_ENTITY_KINDS,
+  type IndexedPresenceInteractions,
   type IndexedPresences,
   type KnownPresence,
+  type KnownPresenceInteraction,
   type PresenceConditionEvaluator,
   type PresenceConditionSource,
   type PresenceInspection,
+  type PresenceInteractionPlan,
   type PresenceState,
   type PresenceStatus,
   type PresenceSynchronizationResult,
@@ -19,73 +30,7 @@ import {
   type WorldPresenceDefinition,
 } from './types';
 
-export class PresenceError extends Error {
-  constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
-    this.name = 'PresenceError';
-  }
-}
-
-class ImmutableIndex<K, V> implements ReadonlyMap<K, V> {
-  readonly #entries: Map<K, V>;
-
-  constructor(entries: Iterable<readonly [K, V]>) {
-    this.#entries = new Map(entries);
-  }
-
-  get size(): number {
-    return this.#entries.size;
-  }
-
-  get(key: K): V | undefined {
-    return this.#entries.get(key);
-  }
-
-  has(key: K): boolean {
-    return this.#entries.has(key);
-  }
-
-  keys(): IterableIterator<K> {
-    return this.#entries.keys();
-  }
-
-  values(): IterableIterator<V> {
-    return this.#entries.values();
-  }
-
-  entries(): IterableIterator<[K, V]> {
-    return this.#entries.entries();
-  }
-
-  forEach(callback: (value: V, key: K, map: ReadonlyMap<K, V>) => void, thisArg?: unknown): void {
-    this.#entries.forEach((value, key) => {
-      callback.call(thisArg, value, key, this);
-    });
-  }
-
-  [Symbol.iterator](): IterableIterator<[K, V]> {
-    return this.#entries.entries();
-  }
-
-  get [Symbol.toStringTag](): string {
-    return 'Map';
-  }
-
-  set(key: K, value: V): never {
-    void key;
-    void value;
-    throw new PresenceError('O índice de presenças é imutável.');
-  }
-
-  delete(key: K): never {
-    void key;
-    throw new PresenceError('O índice de presenças é imutável.');
-  }
-
-  clear(): never {
-    throw new PresenceError('O índice de presenças é imutável.');
-  }
-}
+export { PresenceError } from './errors';
 
 const IMAGE_KINDS = ['scene', 'portrait', 'icon'] as const;
 
@@ -402,19 +347,147 @@ export function listKnownPresencesAtLocation(
   });
 }
 
+export function inspectPresenceInteractionCatalog(
+  value: unknown,
+  catalog: IndexedPresences,
+  campaign?: Campaign,
+): PresenceInspection<IndexedPresenceInteractions> {
+  const indexed = inspectIndexedCatalog(catalog);
+  if (!indexed.ok) {
+    return indexed;
+  }
+
+  return inspectInteractionCatalogValue(value, indexed.value, campaign);
+}
+
+export function indexPresenceInteractionCatalog(
+  value: unknown,
+  catalog: IndexedPresences,
+  campaign?: Campaign,
+): IndexedPresenceInteractions {
+  const inspected = inspectPresenceInteractionCatalog(value, catalog, campaign);
+  if (!inspected.ok) {
+    throw new PresenceError(inspected.reason);
+  }
+
+  return inspected.value;
+}
+
+export function listKnownPresenceInteractions(
+  catalog: IndexedPresences,
+  interactions: IndexedPresenceInteractions,
+  state: PresenceState,
+  presenceId: string,
+  locationId: string,
+  conditions?: PresenceConditionSource,
+): KnownPresenceInteraction[] {
+  const indexed = requireIndexedCatalog(catalog);
+  const indexedInteractions = requireIndexedPresenceInteractions(interactions, indexed);
+  requireState(state, indexed);
+  requirePresence(indexed, presenceId);
+
+  if (typeof locationId !== 'string' || locationId.trim() === '') {
+    throw new PresenceError('A localização não existe.');
+  }
+
+  const status = getPresenceStatus(indexed, state, presenceId, locationId, conditions);
+  if (status === 'hidden') {
+    return [];
+  }
+
+  const evaluate = resolveEvaluator(conditions);
+  const listed = indexedInteractions.byPresence.get(presenceId) ?? [];
+
+  return listed.map((interaction) => {
+    const copied = copyInteraction(interaction);
+    if (status === 'unavailable' || status === 'resolved') {
+      return {
+        interaction: copied,
+        available: false,
+        blockedReason: presenceInteractionBlockReason(status),
+      };
+    }
+
+    if (!areConditionsSatisfied(interaction.conditions, evaluate)) {
+      return {
+        interaction: copied,
+        available: false,
+        blockedReason: 'As condições da interação não foram satisfeitas.',
+      };
+    }
+
+    return {
+      interaction: copied,
+      available: true,
+    };
+  });
+}
+
+export function planPresenceInteraction(
+  catalog: IndexedPresences,
+  interactions: IndexedPresenceInteractions,
+  state: PresenceState,
+  presenceId: string,
+  interactionId: string,
+  locationId: string,
+  conditions?: PresenceConditionSource,
+): PresenceInteractionPlan {
+  const indexed = requireIndexedCatalog(catalog);
+  const indexedInteractions = requireIndexedPresenceInteractions(interactions, indexed);
+  const current = requireState(state, indexed);
+  requirePresence(indexed, presenceId);
+
+  if (typeof interactionId !== 'string' || interactionId.trim() === '') {
+    throw new PresenceError('A interação não existe.');
+  }
+
+  if (typeof locationId !== 'string' || locationId.trim() === '') {
+    throw new PresenceError('A localização não existe.');
+  }
+
+  const interaction = indexedInteractions.byId.get(interactionId);
+  if (!interaction) {
+    throw new PresenceError('A interação não existe.');
+  }
+
+  if (interaction.presenceId !== presenceId) {
+    throw new PresenceError('A interação não pertence à presença.');
+  }
+
+  const status = getPresenceStatus(indexed, current, presenceId, locationId, conditions);
+  if (status === 'hidden' || status === 'unavailable' || status === 'resolved') {
+    throw new PresenceError(presenceInteractionBlockReason(status));
+  }
+
+  if (!areConditionsSatisfied(interaction.conditions, resolveEvaluator(conditions))) {
+    throw new PresenceError('As condições da interação não foram satisfeitas.');
+  }
+
+  return createInteractionPlan(interaction);
+}
+
 export function createPresenceEvaluator(state: GameState): PresenceConditionEvaluator {
   return (conditions) => evaluateConditions(conditions ? copyConditions(conditions) : undefined, state);
 }
 
 export { INITIAL_PRESENCE_CATALOG };
+export { INITIAL_PRESENCE_INTERACTIONS } from './initial-presences';
 export type {
+  IndexedPresenceInteractions,
   IndexedPresences,
   KnownPresence,
+  KnownPresenceInteraction,
   PresenceCatalog,
   PresenceCatalogContext,
   PresenceConditionEvaluator,
   PresenceConditionSource,
   PresenceInspection,
+  PresenceInteractionCatalog,
+  PresenceInteractionCatalogContext,
+  PresenceInteractionDefinition,
+  PresenceInteractionKind,
+  PresenceInteractionPlan,
+  PresenceNarrativeReference,
   PresenceState,
   PresenceStatus,
   PresenceSynchronizationResult,
@@ -423,7 +496,7 @@ export type {
   WorldEntityKind,
   WorldPresenceDefinition,
 } from './types';
-export { PRESENCE_STATUSES, WORLD_ENTITY_KINDS } from './types';
+export { PRESENCE_INTERACTION_KINDS, PRESENCE_STATUSES, WORLD_ENTITY_KINDS } from './types';
 
 function inspectEntity(
   value: unknown,
@@ -1099,6 +1172,17 @@ function deriveVisibleStatus(
   }
 
   return areConditionsSatisfied(presence.availabilityConditions, evaluate) ? 'available' : 'unavailable';
+}
+
+function presenceInteractionBlockReason(status: 'hidden' | 'unavailable' | 'resolved'): string {
+  switch (status) {
+    case 'hidden':
+      return 'A presença está oculta.';
+    case 'unavailable':
+      return 'A presença não está disponível.';
+    case 'resolved':
+      return 'A presença já foi resolvida.';
+  }
 }
 
 function copyState(state: PresenceState): PresenceState {

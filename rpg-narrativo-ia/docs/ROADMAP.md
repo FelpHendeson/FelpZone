@@ -74,7 +74,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 8 — Presenças e interações no mundo
 
-**Aprovada e especificada.** As Fatias 8.1 e 8.2 estão implementadas isoladamente. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**Aprovada e especificada.** As Fatias 8.1 a 8.3 estão implementadas isoladamente. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 #### Fatia 8.1 — Catálogo e estado isolado
 
@@ -86,11 +86,11 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 8.3 — Interações
 
-**Aprovada, aguardando revisão e autorização após a Fatia 8.2.** Modelar observar, investigar, aproximar, conversar e evitar como ações dirigidas por dados, ainda sem aplicar o custo no relógio.
+**Implementada.** Observar, investigar, aproximar, conversar e evitar são dados de catálogo. `planPresenceInteraction` valida presença, condições e custo e devolve um plano com efeitos e possível pedido narrativo, sem aplicar tempo, resolver presença ou abrir sessão.
 
 #### Fatia 8.4 — Estado integrado e orquestração
 
-**Aprovada, aguardando a Fatia 8.3.** Integrar o estado mínimo ao save, criar migração e executar interações atomicamente com custo temporal único.
+**Aprovada, aguardando revisão e autorização após a Fatia 8.3.** Integrar o estado mínimo ao save, criar migração e executar interações atomicamente com custo temporal único.
 
 #### Fatia 8.5 — Interface mobile
 
@@ -131,7 +131,7 @@ Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificaçã
 - administração jogável de assentamentos ou facções;
 - geração procedural, backend, sincronização, monetização e editor.
 
-Nenhum item desta seção autoriza implementação. Depois da Fatia 8.2, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
+Nenhum item desta seção autoriza implementação. Depois da Fatia 8.3, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
 
 ## Regra de entrada de um sistema
 

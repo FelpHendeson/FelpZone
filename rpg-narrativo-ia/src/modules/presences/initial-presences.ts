@@ -1,4 +1,4 @@
-import type { PresenceCatalog } from './types';
+import type { PresenceCatalog, PresenceInteractionCatalog } from './types';
 
 export const INITIAL_PRESENCE_CATALOG: PresenceCatalog = {
   entities: [
@@ -31,6 +31,31 @@ export const INITIAL_PRESENCE_CATALOG: PresenceCatalog = {
       locationId: 'dense-woods',
       discoveryId: 'horned-rabbit-tracks',
       resolvable: false,
+    },
+  ],
+};
+
+export const INITIAL_PRESENCE_INTERACTIONS: PresenceInteractionCatalog = {
+  interactions: [
+    {
+      id: 'talk-mira-awakening-clearing',
+      presenceId: 'mira-awakening-clearing',
+      kind: 'talk',
+      label: 'Conversar',
+      hint: 'Falar com Mira Vale.',
+      timeCost: { periods: 1 },
+      narrative: { campaignId: 'first-day', eventId: 'first-priority' },
+      resolvesPresence: true,
+    },
+    {
+      id: 'observe-horned-rabbit-dense-woods',
+      presenceId: 'horned-rabbit-dense-woods',
+      kind: 'observe',
+      label: 'Observar',
+      hint: 'Observar o animal à distância, sem iniciar diálogo.',
+      timeCost: { periods: 1 },
+      feedback: 'O coelho chifrudo fareja o ar e segue pastando entre os arbustos.',
+      resolvesPresence: false,
     },
   ],
 };

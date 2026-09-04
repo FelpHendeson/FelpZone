@@ -52,7 +52,7 @@ Menus não constituem modo de mundo e não avançam tempo.
 
 ## Gatilhos
 
-O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. As Fatias 8.1 e 8.2 do Sistema 8 já isolam o catálogo de presenças e a sincronização com descobertas; interações e demais gatilhos continuam para etapas posteriores:
+O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. As Fatias 8.1 a 8.3 do Sistema 8 já isolam o catálogo de presenças, a sincronização com descobertas e o planejamento de interações; orquestração, save e demais gatilhos continuam para etapas posteriores:
 
 - entrada em local;
 - primeira visita;
@@ -129,6 +129,8 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 - nenhum minijogo está definido ou aprovado;
 - o Sistema 8 foi aprovado para entidades, presenças por local, descoberta, disponibilidade derivada, resolução e ações contextuais;
 - a Fatia 8.1 já isolou o catálogo e o estado de presenças, sem ligá-los ao save, à UI, ao relógio ou à narrativa;
+- a Fatia 8.2 sincroniza descobertas reveladas com presenças conhecidas, ainda sem orquestrador;
+- a Fatia 8.3 planeja interações dirigidas por dados sem aplicar tempo, resolver presença ou abrir sessão;
 - estado persistente mínimo de ocorrências foi aprovado para uma fatia posterior, mas `NPCState` completo e agenda continuam fora do escopo;
 - comportamento de criaturas e combate não foram discutidos nem aprovados;
 - fome, alimento, descanso e abrigo aparecem na experiência, mas sobrevivência automática ainda não foi definida;
