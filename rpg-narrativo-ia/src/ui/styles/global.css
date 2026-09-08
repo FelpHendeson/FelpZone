@@ -435,7 +435,7 @@ button:disabled {
 
 .screen--exploration {
   min-height: calc(100dvh - 20px);
-  padding-bottom: 76px;
+  padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
 }
 
 .game-hud {
@@ -547,7 +547,7 @@ button:disabled {
 .exploration-content {
   display: grid;
   gap: 16px;
-  padding: 14px 0 22px;
+  padding: 14px 0 28px;
 }
 
 .world-panel,
@@ -657,6 +657,7 @@ button:disabled {
 
 .primary-action-card,
 .world-map,
+.presence-section,
 .action-section,
 .character-section {
   border: 1px solid var(--border);
@@ -726,6 +727,7 @@ button:disabled {
 .quick-actions small { color: var(--text-muted); }
 
 .world-map,
+.presence-section,
 .action-section,
 .character-section {
   padding: 18px;
@@ -826,6 +828,143 @@ button:disabled {
 .empty-state > span { color: var(--accent); font-size: 1.7rem; }
 .empty-state p { max-width: 25rem; font-size: 0.9rem; }
 .empty-state--large { min-height: 18rem; margin: 0; }
+
+.presence-card-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  min-width: 0;
+}
+
+.presence-card {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+  background: var(--bg-soft);
+}
+
+.presence-card--unavailable,
+.presence-card--resolved {
+  opacity: 0.82;
+}
+
+.presence-card__media.placeholder {
+  width: 56px;
+  height: 56px;
+  max-width: 56px;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 14px;
+}
+
+.presence-card .placeholder__label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.presence-card__body {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.presence-card__title h3 {
+  margin: 0;
+  overflow-wrap: anywhere;
+  font-size: 1rem;
+}
+
+.presence-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.presence-card__meta > span[aria-hidden='true'] {
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.presence-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.presence-card__trust {
+  color: var(--accent) !important;
+  font-weight: 700;
+}
+
+.presence-card__resolved {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.presence-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+
+.presence-action {
+  display: grid;
+  gap: 4px;
+  flex: 1 1 8.5rem;
+  min-width: 0;
+}
+
+.button--presence {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 2px;
+  width: 100%;
+  min-height: var(--touch);
+  padding: 8px 12px;
+  border-color: var(--accent-strong);
+  background: rgba(53, 185, 140, 0.12);
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.button--presence small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.presence-action__hint,
+.presence-action__reason {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.presence-action__reason {
+  color: var(--gold);
+}
 
 .world-feedback {
   display: grid;
@@ -1233,6 +1372,8 @@ button:disabled {
   .primary-action-card,
   .quick-actions { grid-column: 1; }
   .world-map { grid-column: 2; grid-row: 3 / span 2; }
+  .presence-section { grid-column: 1 / -1; }
+  .presence-card-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .action-card-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .inventory-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .narrative-stage { width: min(100%, 46rem); margin-inline: auto; }

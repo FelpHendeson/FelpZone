@@ -5,6 +5,8 @@ export type {
   DestinationView,
   ExplorationView,
   InventoryViewItem,
+  PresenceInteractionView,
+  PresenceView,
   RecipeView,
   ResourceView,
 } from './model';

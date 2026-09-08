@@ -74,7 +74,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 8 — Presenças e interações no mundo
 
-**Aprovada e especificada.** As Fatias 8.1 a 8.4 estão implementadas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**Aprovada e especificada.** As Fatias 8.1 a 8.5 estão implementadas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 #### Fatia 8.1 — Catálogo e estado isolado
 
@@ -90,11 +90,11 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 8.4 — Estado integrado e orquestração
 
-**Implementada.** `sandbox.presences` entra no save com schema 4. Saves v1, v2 e v3 são migrados na leitura. `presence.interact` executa o plano da Fatia 8.3 com custo único e atomicidade. A UI ainda não expõe a ação.
+**Implementada.** `sandbox.presences` entra no save com schema 4. Saves v1, v2 e v3 são migrados na leitura. `presence.interact` executa o plano da Fatia 8.3 com custo único e atomicidade.
 
 #### Fatia 8.5 — Interface mobile
 
-**Aprovada, aguardando revisão e autorização após a Fatia 8.4.** Mostrar presenças conhecidas no local e permitir ações contextuais na UI existente.
+**Implementada.** O painel Mundo mostra presenças conhecidas do local, estados compreensíveis e ações contextuais. Regras continuam no view-model e no motor; o React só apresenta e dispara `presence.interact`.
 
 #### Fatia 8.6 — Conteúdo protótipo
 
@@ -131,7 +131,7 @@ Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificaçã
 - administração jogável de assentamentos ou facções;
 - geração procedural, backend, sincronização, monetização e editor.
 
-Nenhum item desta seção autoriza implementação. Depois da Fatia 8.4, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
+Nenhum item desta seção autoriza implementação. Depois da Fatia 8.5, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
 
 ## Regra de entrada de um sistema
 

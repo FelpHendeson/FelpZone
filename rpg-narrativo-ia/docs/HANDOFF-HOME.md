@@ -22,8 +22,9 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.1 — catálogo e estado isolado de presenças — está implementada em `modules/presences`.
 - A Fatia 8.2 — sincronização com descobertas — está implementada: operação pura e consulta de presenças conhecidas.
 - A Fatia 8.3 — interações dirigidas por dados — está implementada: catálogo, consulta e planejamento puro.
-- A Fatia 8.4 — estado integrado, save e orquestração — está implementada: `sandbox.presences`, `schemaVersion: 4`, migração v1/v2/v3 e `presence.interact` atômico. O gatilho da 7.5 permanece, mas conversar e o gatilho se excluem para não reabrir `first-priority`. Sem UI de presenças.
-- As Fatias 8.5 e 8.6 continuam aguardando autorização. Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
+- A Fatia 8.4 — estado integrado, save e orquestração — está implementada: `sandbox.presences`, `schemaVersion: 4`, migração v1/v2/v3 e `presence.interact` atômico. O gatilho da 7.5 permanece, mas conversar e o gatilho se excluem para não reabrir `first-priority`.
+- A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`. Sem conteúdo extra da Fatia 8.6.
+- A Fatia 8.6 continua aguardando autorização. Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -92,12 +93,13 @@ Estado conhecido:
 - a Fatia 8.2 sincroniza descobertas reveladas com presenças conhecidas;
 - a Fatia 8.3 planeja interações dirigidas por dados;
 - a Fatia 8.4 persiste `sandbox.presences` no schema 4 e executa `presence.interact` no orquestrador;
-- as Fatias 8.5 e 8.6 continuam aguardando autorização;
+- a Fatia 8.5 mostra presenças conhecidas no painel Mundo e dispara `presence.interact`;
+- a Fatia 8.6 continua aguardando autorização;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
 
-Sua primeira tarefa é validar e revisar a Fatia 8.4 contra docs/SYSTEM-PRESENCES.md.
+Sua primeira tarefa é validar e revisar a Fatia 8.5 contra docs/SYSTEM-PRESENCES.md.
 
 Execute:
 
@@ -108,14 +110,15 @@ npm run build
 
 Revise especialmente:
 
-- `PresenceState` persistido em `sandbox.presences` com schema 4;
-- migração v1/v2/v3 sem regravar `localStorage` e sem inventar resoluções;
-- `presence.interact` atômico, com custo único e abertura de narrativa só quando o plano declarar;
-- falha não altera nem persiste estado parcial;
-- o gatilho da Fatia 7.5 permanece;
-- a UI ainda não expõe presenças.
+- o view-model `buildExplorationView` só lista presenças conhecidas do local atual;
+- conteúdo oculto permanece invisível;
+- a seção “Presenças neste local” some quando vazia;
+- ações disparam somente `presence.interact`;
+- custo e motivo de bloqueio aparecem antes do clique;
+- presença resolvida não oferece ações inválidas;
+- overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.4. Se não houver problemas, declare a Fatia 8.4 consolidada e então prepare, somente quando eu pedir, o recorte da Fatia 8.5.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.5. Se não houver problemas, declare a Fatia 8.5 consolidada e então prepare, somente quando eu pedir, o recorte da Fatia 8.6.
 
 Preserve o ciclo de trabalho:
 
@@ -124,6 +127,6 @@ especificar → implementar → testar → revisar → corrigir → consolidar �
 Não faça push sem minha autorização. Preserve alterações existentes e mantenha a conversa em português do Brasil.
 ```
 
-## Próxima decisão depois da Fatia 8.4
+## Próxima decisão depois da Fatia 8.5
 
-Revisar e corrigir a integração de estado, save e orquestração. A Fatia 8.5 só começa depois da consolidação e de nova autorização do autor. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.
+Revisar e corrigir a interface mobile de presenças. A Fatia 8.6 só começa depois da consolidação e de nova autorização do autor. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.

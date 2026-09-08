@@ -57,6 +57,7 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 - explorar é a ação contextual principal;
 - mapa visual mostra somente o local atual e destinos adjacentes já descobertos;
 - as relações `parent`, `sibling` e `child` continuam derivadas do mapa hierárquico;
+- presenças descobertas do local aparecem em “Presenças neste local”, com ações contextuais;
 - coleta e crafting ficam agrupados no painel de ações;
 - mochila usa uma grade visual de itens;
 - ficha mostra atributos, capacidade inicial e relações;
@@ -124,7 +125,7 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 ## Evolução sandbox
 
-A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. A revisão posterior de UI/UX preserva esse contrato e o apresenta por HUD, cena, mapa adjacente, painéis e navegação inferior. A tela continua lendo o `GameState` e disparando ações do sandbox; apresentação não decide regra de jogo.
+A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. A revisão posterior de UI/UX preserva esse contrato e o apresenta por HUD, cena, mapa adjacente, painéis e navegação inferior. A Fatia 8.5 acrescenta a seção “Presenças neste local” no painel Mundo, alimentada pelo view-model; a tela continua lendo o `GameState` e disparando ações do sandbox. Apresentação não decide regra de jogo.
 
 A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta. A interface reutiliza `GameScreen` e o motor existente; não há uma segunda tela de diálogo. O feedback da ação pode avisar que algo exige atenção. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo.
 

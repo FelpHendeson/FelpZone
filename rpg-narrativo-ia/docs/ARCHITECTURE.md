@@ -404,7 +404,7 @@ A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa 
 
 ## Contrato de presenças
 
-O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. O planejamento puro não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo. A Fatia 8.4 persiste `PresenceState` em `sandbox.presences` e executa o plano por `presence.interact`.
+O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. O planejamento puro não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo. A Fatia 8.4 persiste `PresenceState` em `sandbox.presences` e executa o plano por `presence.interact`. A Fatia 8.5 deriva a apresentação em `buildExplorationView` e dispara somente essa ação na interface.
 
 ```ts
 type WorldEntityKind = 'npc' | 'animal' | 'creature';
@@ -430,7 +430,7 @@ Operações públicas:
 - `listKnownPresenceInteractions` e `planPresenceInteraction`;
 - `getPresenceStatus` e `createPresenceEvaluator`.
 
-Agenda, movimento e UI ficam fora deste contrato. Save e orquestração da Fatia 8.4 usam esse módulo sem substituí-lo.
+Agenda e movimento ficam fora deste contrato. A Fatia 8.5 apresenta o estado derivado na superfície mobile sem copiar regras para o React.
 
 ## Contratos do motor
 

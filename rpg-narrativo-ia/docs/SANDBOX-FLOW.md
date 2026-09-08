@@ -52,7 +52,7 @@ Menus não constituem modo de mundo e não avançam tempo.
 
 ## Gatilhos
 
-O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. As Fatias 8.1 a 8.3 do Sistema 8 já isolam o catálogo de presenças, a sincronização com descobertas e o planejamento de interações; orquestração, save e demais gatilhos continuam para etapas posteriores:
+O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. As Fatias 8.1 a 8.3 do Sistema 8 já isolam o catálogo de presenças, a sincronização com descobertas e o planejamento de interações; a Fatia 8.4 persiste e orquestra; a Fatia 8.5 apresenta as presenças conhecidas. Demais gatilhos continuam para etapas posteriores:
 
 - entrada em local;
 - primeira visita;
@@ -126,12 +126,14 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 
 - a superfície mobile de exploração (Fatia 7.4) já expõe navegar, explorar, coletar e fabricar;
 - o primeiro encontro (Fatia 7.5) abre `first-priority` a partir da descoberta `first-priority-event` e devolve o jogador ao sandbox;
+- a Fatia 8.5 mostra presenças conhecidas do local no painel Mundo e dispara `presence.interact`;
 - nenhum minijogo está definido ou aprovado;
 - o Sistema 8 foi aprovado para entidades, presenças por local, descoberta, disponibilidade derivada, resolução e ações contextuais;
 - a Fatia 8.1 já isolou o catálogo e o estado de presenças;
 - a Fatia 8.2 sincroniza descobertas reveladas com presenças conhecidas;
 - a Fatia 8.3 planeja interações dirigidas por dados;
-- a Fatia 8.4 persiste o estado mínimo no sandbox, executa `presence.interact` no orquestrador e impede que o gatilho da 7.5 e a conversa reabram o mesmo encontro, ainda sem UI;
+- a Fatia 8.4 persiste o estado mínimo no sandbox, executa `presence.interact` no orquestrador e impede que o gatilho da 7.5 e a conversa reabram o mesmo encontro;
+- a Fatia 8.5 expõe essas presenças na interface mobile existente;
 - `NPCState` completo e agenda continuam fora do escopo;
 - comportamento de criaturas e combate não foram discutidos nem aprovados;
 - fome, alimento, descanso e abrigo aparecem na experiência, mas sobrevivência automática ainda não foi definida;

@@ -16,7 +16,7 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.4 — Superfície mobile
 
-**Implementada.** A tela de exploração é um loop jogável mobile-first: destinos visíveis, explorar, coletar e fabricar. Toda mutação passa por `executeSandboxAction`; a interface persiste somente `result.current` com o mesmo `SandboxContext` da persistência.
+**Implementada.** A tela de exploração é um loop jogável mobile-first: destinos visíveis, explorar, coletar e fabricar. Toda mutação passa por `executeSandboxAction`; a interface persiste somente `result.current` com o mesmo `SandboxContext` da persistência. A Fatia 8.5 acrescenta presenças conhecidas no painel Mundo, sem alterar esse contrato.
 
 ## Fatia 7.5 — Gatilho de mundo e primeiro encontro
 

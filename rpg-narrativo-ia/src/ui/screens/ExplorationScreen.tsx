@@ -14,6 +14,7 @@ import {
   type DestinationView,
   type ExplorationView,
   type InventoryViewItem,
+  type PresenceView,
   type RecipeView,
   type ResourceView,
 } from '../sandbox';
@@ -139,8 +140,124 @@ function WorldPanel({
         </button>
       </div>
 
+      <PresenceSection presences={view.presences} onAction={onAction} />
+
       <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
     </div>
+  );
+}
+
+function PresenceSection({
+  presences,
+  onAction,
+}: {
+  presences: PresenceView[];
+  onAction: (action: SandboxAction) => void;
+}) {
+  if (presences.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="presence-section" aria-labelledby="presences-title">
+      <div className="section-heading">
+        <div>
+          <span className="section-kicker">Quem está aqui</span>
+          <h2 id="presences-title">Presenças neste local</h2>
+        </div>
+        <span className="section-count">{presences.length}</span>
+      </div>
+
+      <div className="presence-card-list">
+        {presences.map((presence) => (
+          <PresenceCard key={presence.presenceId} presence={presence} onAction={onAction} />
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function PresenceCard({
+  presence,
+  onAction,
+}: {
+  presence: PresenceView;
+  onAction: (action: SandboxAction) => void;
+}) {
+  const resolved = presence.status === 'resolved';
+  const cardClass =
+    presence.status === 'available'
+      ? 'presence-card'
+      : `presence-card presence-card--${presence.status}`;
+
+  return (
+    <article className={cardClass} aria-labelledby={`${presence.presenceId}-name`}>
+      <ImagePlaceholder
+        kind={presence.imageKind}
+        label={presence.imageLabel}
+        className="presence-card__media"
+      />
+      <div className="presence-card__body">
+        <div className="presence-card__title">
+          <h3 id={`${presence.presenceId}-name`}>{presence.name}</h3>
+          <p className="presence-card__meta">
+            <span aria-hidden="true">{presence.kindSymbol}</span>
+            {presence.kindLabel} · {presence.statusLabel}
+          </p>
+        </div>
+        <p>{presence.description}</p>
+        {presence.trust !== undefined ? (
+          <p className="presence-card__trust">Confiança: {presence.trust}</p>
+        ) : null}
+        {resolved ? (
+          <p className="presence-card__resolved">Ocorrência concluída.</p>
+        ) : (
+          <div className="presence-actions">
+            {presence.interactions.map((interaction) => {
+              const reasonId = `${interaction.interactionId}-reason`;
+              const hintId = `${interaction.interactionId}-hint`;
+              const describedBy = [
+                interaction.hint ? hintId : null,
+                interaction.blockedReason ? reasonId : null,
+              ]
+                .filter(Boolean)
+                .join(' ');
+
+              return (
+                <div key={interaction.interactionId} className="presence-action">
+                  <button
+                    type="button"
+                    className="button button--presence"
+                    disabled={!interaction.available}
+                    aria-describedby={describedBy || undefined}
+                    onClick={() =>
+                      onAction({
+                        type: 'presence.interact',
+                        presenceId: presence.presenceId,
+                        interactionId: interaction.interactionId,
+                      })
+                    }
+                  >
+                    <span>{interaction.label}</span>
+                    <small>{formatPeriodCost(interaction.costPeriods)}</small>
+                  </button>
+                  {interaction.hint ? (
+                    <p id={hintId} className="presence-action__hint">
+                      {interaction.hint}
+                    </p>
+                  ) : null}
+                  {interaction.blockedReason ? (
+                    <p id={reasonId} className="presence-action__reason">
+                      {interaction.blockedReason}
+                    </p>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
 

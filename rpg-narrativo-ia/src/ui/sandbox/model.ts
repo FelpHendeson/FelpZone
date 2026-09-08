@@ -1,4 +1,4 @@
-import type { Campaign } from '../../core/events';
+import type { Campaign, ImageKind } from '../../core/events';
 import type { GameState, InventoryItem } from '../../core/state';
 import { findAbility } from '../../campaigns/first-day';
 import { fullName } from '../../modules/character';
@@ -12,6 +12,13 @@ import {
   listVisibleDestinations,
   type LocationRelation,
 } from '../../modules/navigation';
+import {
+  listKnownPresenceInteractions,
+  listKnownPresencesAtLocation,
+  type PresenceInteractionKind,
+  type VisiblePresenceStatus,
+  type WorldEntityKind,
+} from '../../modules/presences';
 import {
   getCollectionCost,
   getPopulationStatus,
@@ -61,6 +68,32 @@ export interface InventoryViewItem {
   quantity: number;
 }
 
+export interface PresenceInteractionView {
+  interactionId: string;
+  kind: PresenceInteractionKind;
+  label: string;
+  hint?: string;
+  costPeriods: number;
+  available: boolean;
+  blockedReason?: string;
+}
+
+export interface PresenceView {
+  presenceId: string;
+  entityId: string;
+  kind: WorldEntityKind;
+  kindLabel: string;
+  kindSymbol: string;
+  name: string;
+  description: string;
+  imageKind: ImageKind;
+  imageLabel: string;
+  status: VisiblePresenceStatus;
+  statusLabel: string;
+  trust?: number;
+  interactions: PresenceInteractionView[];
+}
+
 export interface ExplorationView {
   characterName: string;
   worldLabel: string;
@@ -79,12 +112,25 @@ export interface ExplorationView {
   resources: ResourceView[];
   recipes: RecipeView[];
   inventory: InventoryViewItem[];
+  presences: PresenceView[];
 }
 
 const RELATION_LABELS: Record<LocationRelation, string> = {
   parent: 'Região',
   sibling: 'Próximo',
   child: 'Interior',
+};
+
+const ENTITY_KIND_PRESENTATION: Record<WorldEntityKind, { label: string; symbol: string }> = {
+  npc: { label: 'NPC', symbol: '♙' },
+  animal: { label: 'Animal', symbol: '♧' },
+  creature: { label: 'Criatura', symbol: '◈' },
+};
+
+const PRESENCE_STATUS_LABELS: Record<VisiblePresenceStatus, string> = {
+  available: 'Disponível',
+  unavailable: 'Indisponível',
+  resolved: 'Resolvida',
 };
 
 export function buildExplorationView(
@@ -131,6 +177,7 @@ export function buildExplorationView(
     resources: visibleResources(state, context, location.id),
     recipes: visibleRecipes(state, context),
     inventory: copyInventory(state.inventory),
+    presences: visiblePresences(state, context, location.id),
   };
 }
 
@@ -266,4 +313,61 @@ function copyInventory(items: readonly InventoryItem[]): InventoryViewItem[] {
     name: sandboxItemName(item.itemId),
     quantity: item.quantity,
   }));
+}
+
+function visiblePresences(state: GameState, context: SandboxContext, locationId: string): PresenceView[] {
+  return listKnownPresencesAtLocation(
+    context.presences,
+    state.sandbox.presences,
+    locationId,
+    state,
+  ).map((known) => {
+    const kindPresentation = ENTITY_KIND_PRESENTATION[known.entity.kind];
+    const relationship = state.relationships.find((entry) => entry.characterId === known.entity.id);
+    const view: PresenceView = {
+      presenceId: known.presence.id,
+      entityId: known.entity.id,
+      kind: known.entity.kind,
+      kindLabel: kindPresentation.label,
+      kindSymbol: kindPresentation.symbol,
+      name: known.entity.name,
+      description: known.entity.description,
+      imageKind: known.entity.image?.kind ?? (known.entity.kind === 'npc' ? 'portrait' : 'icon'),
+      imageLabel: known.entity.image?.label ?? known.entity.name,
+      status: known.status,
+      statusLabel: PRESENCE_STATUS_LABELS[known.status],
+      interactions: listKnownPresenceInteractions(
+        context.presences,
+        context.presenceInteractions,
+        state.sandbox.presences,
+        known.presence.id,
+        locationId,
+        state,
+      ).map((knownInteraction) => {
+        const interactionView: PresenceInteractionView = {
+          interactionId: knownInteraction.interaction.id,
+          kind: knownInteraction.interaction.kind,
+          label: knownInteraction.interaction.label,
+          costPeriods: knownInteraction.interaction.timeCost.periods,
+          available: knownInteraction.available,
+        };
+
+        if (knownInteraction.interaction.hint) {
+          interactionView.hint = knownInteraction.interaction.hint;
+        }
+
+        if (knownInteraction.blockedReason) {
+          interactionView.blockedReason = knownInteraction.blockedReason;
+        }
+
+        return interactionView;
+      }),
+    };
+
+    if (relationship) {
+      view.trust = relationship.trust;
+    }
+
+    return view;
+  });
 }

@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 2 de setembro de 2026.**
 
-O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.4 estão implementadas. As fatias seguintes dependem de validação e consolidação da anterior.
+O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.5 estão implementadas. As fatias seguintes dependem de validação e consolidação da anterior.
 
 ## Problema de diversão e imersão
 
@@ -276,7 +276,7 @@ Regras de UX:
 
 ### Fatia 8.5 — Interface mobile
 
-Expor presenças conhecidas no local, estados compreensíveis, ações contextuais e transição para narrativa.
+**Implementada.** `buildExplorationView` deriva somente presenças conhecidas do local atual, com entidade, tipo, nome, descrição, placeholder, status, confiança quando já existe em `relationships` e interações conhecidas. O painel Mundo mostra “Presenças neste local” só quando há conteúdo descoberto. Cartões usam `ImagePlaceholder`, diferenciam `npc`, `animal` e `creature` por texto e símbolo, exibem custo antes do clique e motivo de bloqueio. Presença resolvida aparece de forma discreta, sem ações inválidas. A UI dispara só `presence.interact`; o roteamento existente abre `GameScreen` quando há narrativa e o feedback sem diálogo permanece no componente de atualização do mundo.
 
 ### Fatia 8.6 — Conteúdo protótipo
 
