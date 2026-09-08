@@ -120,16 +120,16 @@ O estado salvo deve conter no mínimo:
 - histórico;
 - mundo (`day` e `period`);
 - progressão;
-- sandbox (navegação, exploração, recursos e crafting);
+- sandbox (navegação, exploração, recursos, crafting e presenças);
 - data da última atualização.
 
-A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1`, `2` e `3` retornam `status: 'incompatible'`. Saves v1 e v2 válidos são migrados para v3 na leitura. O parser não lança exceção.
+A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1`, `2`, `3` e `4` retornam `status: 'incompatible'`. Saves v1, v2 e v3 válidos são migrados para v4 na leitura. O parser não lança exceção.
 
 Antes de o estado chegar à interface, `bindSavedState` confere a sessão narrativa, quando ela existe, contra a campanha: o evento precisa existir e cumprir as próprias condições. Partidas em exploração (`narrativeSession === null`) e partidas concluídas com sessão nula são aceitas. Falhas viram `corrupt` e a UI não tenta renderizar um evento inexistente.
 
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`. A chave `reset.mvp.save` permanece.
 
-`schemaVersion` é `3`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. Contextos recebidos são reconstruídos e normalizados antes da validação. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão. O schema 3 não persiste `currentEventId`.
+`schemaVersion` é `4`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. Contextos recebidos são reconstruídos e normalizados antes da validação. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão. O schema atual não persiste `currentEventId`.
 
 ## Contrato de horário e data
 
@@ -393,18 +393,18 @@ Operação pública do orquestrador:
 Operações públicas dos gatilhos de mundo:
 
 - `inspectWorldTriggerCatalog` e `indexWorldTriggerCatalog`;
-- `resolveEligibleWorldTrigger`;
+- `resolveEligibleWorldTrigger` e `consumeWorldTriggersMatchingNarrative`;
 - `applyWorldNarrativeTrigger`.
 
-A persistência serializa somente o schema 3 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6.
+A persistência serializa somente o schema 4 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6 e 8.
 
-O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta ou crafting. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas e receitas sem custo extra. Preserva `narrativeSession` e não a recria. Não persiste.
+O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting ou interação de presença. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
 
-A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, resolve no máximo um gatilho elegível sobre `result.current` (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession` e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo.
+A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, consome gatilhos cujo evento já foi aberto pela ação, resolve no máximo um gatilho elegível sobre o estado seguinte (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession`, resolve presenças resolvíveis da descoberta correspondente e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo.
 
-## Contrato de presenças isoladas
+## Contrato de presenças
 
-O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. Não altera `GameState`, `schemaVersion` nem a interface nesta fatia. Descobrir, resolver, sincronizar ou planejar uma presença não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo. O planejamento devolve um plano de execução sem aplicar efeitos.
+O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. O planejamento puro não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo. A Fatia 8.4 persiste `PresenceState` em `sandbox.presences` e executa o plano por `presence.interact`.
 
 ```ts
 type WorldEntityKind = 'npc' | 'animal' | 'creature';
@@ -430,7 +430,7 @@ Operações públicas:
 - `listKnownPresenceInteractions` e `planPresenceInteraction`;
 - `getPresenceStatus` e `createPresenceEvaluator`.
 
-Agenda, movimento, orquestração, save e UI ficam fora deste contrato.
+Agenda, movimento e UI ficam fora deste contrato. Save e orquestração da Fatia 8.4 usam esse módulo sem substituí-lo.
 
 ## Contratos do motor
 
@@ -451,7 +451,7 @@ O retorno de uma escolha continua sendo o novo `GameState`. Um `ChoiceOutcome` c
 
 ## Evolução do estado narrativo
 
-A narrativa deixou de ser o loop permanente. O schema 3 persiste uma sessão opcional:
+A narrativa deixou de ser o loop permanente. O schema atual persiste uma sessão opcional:
 
 ```ts
 interface NarrativeSession {
@@ -460,7 +460,7 @@ interface NarrativeSession {
 }
 
 interface GameState {
-  schemaVersion: 3;
+  schemaVersion: 4;
   status: GameStatus;
   narrativeSession: NarrativeSession | null;
   // demais campos

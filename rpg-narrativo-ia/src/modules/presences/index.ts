@@ -204,6 +204,33 @@ export function resolvePresence(
   };
 }
 
+export function resolvePresencesRevealedByDiscovery(
+  catalog: IndexedPresences,
+  state: PresenceState,
+  discoveryId: string,
+): PresenceState {
+  const indexed = requireIndexedCatalog(catalog);
+  let current = requireState(state, indexed);
+
+  if (typeof discoveryId !== 'string' || discoveryId.trim() === '') {
+    throw new PresenceError('A descoberta não existe.');
+  }
+
+  for (const presence of indexed.presences) {
+    if (presence.discoveryId !== discoveryId || !presence.resolvable) {
+      continue;
+    }
+
+    if (!current.discoveredPresenceIds.includes(presence.id)) {
+      continue;
+    }
+
+    current = resolvePresence(indexed, current, presence.id);
+  }
+
+  return current;
+}
+
 export function getPresence(catalog: IndexedPresences, presenceId: string): WorldPresenceDefinition {
   return copyPresence(requirePresence(requireIndexedCatalog(catalog), presenceId));
 }

@@ -1,9 +1,15 @@
+import { applyEffects } from '../../core/effects';
+import { EngineError, startNarrativeSession } from '../../core/engine';
+import type { Campaign } from '../../core/events';
 import {
   defaultNow,
   inspectGameState,
+  type Attributes,
   type GameState,
   type InventoryItem,
   type NarrativeSession,
+  type ProgressionState,
+  type Relationship,
 } from '../../core/state';
 import { craftRecipe, CraftingError, synchronizeKnownRecipes, type CraftingState } from '../crafting';
 import { advanceDayCycle, DayCycleError, type DayCycleResult } from '../day-cycle';
@@ -28,6 +34,14 @@ import {
   type SandboxContext,
   type SandboxState,
 } from '../sandbox';
+import {
+  PresenceError,
+  planPresenceInteraction,
+  resolvePresence,
+  synchronizeDiscoveredPresences,
+  type PresenceInteractionPlan,
+  type PresenceState,
+} from '../presences';
 import type { TimeCost } from '../time';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -53,7 +67,7 @@ export function executeSandboxAction(
   const currentAction = requireAction(action);
 
   try {
-    return runTransaction(previous, currentAction, context, options.now ?? defaultNow);
+    return runTransaction(previous, currentAction, context, options.now ?? defaultNow, options.campaign);
   } catch (error) {
     rethrowDomain(error);
   }
@@ -64,6 +78,7 @@ function runTransaction(
   action: SandboxAction,
   context: SandboxContext,
   now: () => string,
+  campaign: Campaign | undefined,
 ): SandboxActionResult {
   const initialTime = worldToTimeState(previous.world);
   const executed = executePrimary(previous, action, context, initialTime);
@@ -74,6 +89,7 @@ function runTransaction(
   let exploration = executed.exploration;
   let resources = executed.resources;
   let crafting = executed.crafting;
+  let presences = executed.presences;
   const inventory = executed.inventory;
 
   const dayCycle = advanceDayCycle(initialTime, timeCost);
@@ -93,7 +109,13 @@ function runTransaction(
   const conditionSource = buildConditionSource(previous, {
     world,
     inventory,
-    sandbox: { navigation, exploration, resources, crafting },
+    sandbox: { navigation, exploration, resources, crafting, presences },
+    attributes: executed.attributes,
+    flags: executed.flags,
+    relationships: executed.relationships,
+    progression: executed.progression,
+    status: executed.status,
+    narrativeSession: executed.narrativeSession,
   });
 
   if (context.exploration.byLocation.has(navigation.currentLocationId)) {
@@ -115,17 +137,41 @@ function runTransaction(
     buildConditionSource(previous, {
       world,
       inventory,
-      sandbox: { navigation, exploration, resources, crafting },
+      sandbox: { navigation, exploration, resources, crafting, presences },
+      attributes: executed.attributes,
+      flags: executed.flags,
+      relationships: executed.relationships,
+      progression: executed.progression,
+      status: executed.status,
+      narrativeSession: executed.narrativeSession,
     }),
   );
 
+  presences = synchronizeDiscoveredPresences(context.presences, presences, exploration).current;
+
   const updatedAt = now();
-  const candidate = buildGameState(previous, {
+  let candidate = buildGameState(previous, {
     world,
     inventory,
-    sandbox: { navigation, exploration, resources, crafting },
+    sandbox: { navigation, exploration, resources, crafting, presences },
     updatedAt,
+    attributes: executed.attributes,
+    flags: executed.flags,
+    relationships: executed.relationships,
+    progression: executed.progression,
+    status: executed.status,
+    narrativeSession: executed.narrativeSession,
   });
+
+  if (action.type === 'presence.interact' && executed.plan?.narrative) {
+    const narrative = executed.plan.narrative;
+    if (!campaign || campaign.id !== narrative.campaignId) {
+      throw new SandboxActionError('A campanha da interação não existe.');
+    }
+
+    candidate = startNarrativeSession(candidate, campaign, narrative.eventId);
+  }
+
   const current = requireGameState(candidate, context);
 
   return {
@@ -135,6 +181,7 @@ function runTransaction(
     timeCost,
     dayCycle: copyDayCycle(dayCycle),
     detail,
+    feedback: executed.plan?.feedback,
     synchronization: summarizeSynchronization({
       previousExploration: previous.sandbox.exploration,
       currentExploration: current.sandbox.exploration,
@@ -155,17 +202,37 @@ function executePrimary(
 ): {
   detail: SandboxActionDetail;
   timeCost: TimeCost;
-  navigation: NavigationState;
-  exploration: ExplorationState;
-  resources: ResourcesState;
-  crafting: CraftingState;
+  plan?: PresenceInteractionPlan;
+  navigation: GameState['sandbox']['navigation'];
+  exploration: GameState['sandbox']['exploration'];
+  resources: GameState['sandbox']['resources'];
+  crafting: GameState['sandbox']['crafting'];
+  presences: PresenceState;
   inventory: InventoryItem[];
+  attributes: Attributes;
+  flags: Record<string, boolean>;
+  relationships: Relationship[];
+  progression: ProgressionState;
+  status: GameState['status'];
+  narrativeSession: NarrativeSession | null;
 } {
   const navigation = copyNavigation(state.sandbox.navigation);
   const exploration = copyExploration(state.sandbox.exploration);
   const resources = copyResources(state.sandbox.resources);
   const crafting = copyCrafting(state.sandbox.crafting);
+  const presences = copyPresenceState(state.sandbox.presences);
   const inventory = copyInventory(state.inventory);
+  const unchanged = {
+    attributes: { ...state.attributes },
+    flags: { ...state.flags },
+    relationships: state.relationships.map((entry) => ({ characterId: entry.characterId, trust: entry.trust })),
+    progression: {
+      abilityIds: [...state.progression.abilityIds],
+      titleIds: [...state.progression.titleIds],
+    },
+    status: state.status,
+    narrativeSession: copyNarrativeSession(state.narrativeSession),
+  };
 
   if (action.type === 'navigation.move') {
     const result = moveToLocation(context.map, navigation, action.locationId, state);
@@ -176,7 +243,9 @@ function executePrimary(
       exploration,
       resources,
       crafting,
+      presences,
       inventory,
+      ...unchanged,
     };
   }
 
@@ -195,7 +264,9 @@ function executePrimary(
       exploration: result.current,
       resources,
       crafting,
+      presences,
       inventory,
+      ...unchanged,
     };
   }
 
@@ -220,27 +291,73 @@ function executePrimary(
       exploration,
       resources: result.current,
       crafting,
+      presences,
       inventory: result.inventory.current,
+      ...unchanged,
     };
   }
 
-  const result = craftRecipe(
-    context.map,
-    navigation,
-    context.crafting,
-    crafting,
-    inventory,
-    action.recipeId,
+  if (action.type === 'crafting.craft') {
+    const result = craftRecipe(
+      context.map,
+      navigation,
+      context.crafting,
+      crafting,
+      inventory,
+      action.recipeId,
+      state,
+    );
+    return {
+      detail: { type: 'crafting.craft', result },
+      timeCost: result.timeCost,
+      navigation,
+      exploration,
+      resources,
+      crafting: result.current,
+      presences,
+      inventory: result.inventory.current,
+      ...unchanged,
+    };
+  }
+
+  const plan = planPresenceInteraction(
+    context.presences,
+    context.presenceInteractions,
+    presences,
+    action.presenceId,
+    action.interactionId,
+    navigation.currentLocationId,
     state,
   );
+
+  const afterEffects = applyEffects(state, plan.effects);
+  let nextPresences = copyPresenceState(presences);
+  if (plan.resolvesPresence) {
+    nextPresences = resolvePresence(context.presences, nextPresences, action.presenceId);
+  }
+
   return {
-    detail: { type: 'crafting.craft', result },
-    timeCost: result.timeCost,
+    detail: { type: 'presence.interact', plan: createInteractionPlanCopy(plan) },
+    timeCost: { periods: plan.timeCost.periods },
+    plan,
     navigation,
     exploration,
     resources,
-    crafting: result.current,
-    inventory: result.inventory.current,
+    crafting,
+    presences: nextPresences,
+    inventory: copyInventory(afterEffects.inventory),
+    attributes: { ...afterEffects.attributes },
+    flags: { ...afterEffects.flags },
+    relationships: afterEffects.relationships.map((entry) => ({
+      characterId: entry.characterId,
+      trust: entry.trust,
+    })),
+    progression: {
+      abilityIds: [...afterEffects.progression.abilityIds],
+      titleIds: [...afterEffects.progression.titleIds],
+    },
+    status: afterEffects.status,
+    narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
   };
 }
 
@@ -303,52 +420,66 @@ function requireAction(value: unknown): SandboxAction {
     return { type: 'crafting.craft', recipeId: value.recipeId };
   }
 
+  if (value.type === 'presence.interact') {
+    if (typeof value.presenceId !== 'string' || value.presenceId.trim() === '') {
+      throw new SandboxActionError('A presença é inválida.');
+    }
+
+    if (typeof value.interactionId !== 'string' || value.interactionId.trim() === '') {
+      throw new SandboxActionError('A interação é inválida.');
+    }
+
+    return { type: 'presence.interact', presenceId: value.presenceId, interactionId: value.interactionId };
+  }
+
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
 }
 
 function buildConditionSource(
   base: GameState,
-  patch: {
-    world: GameState['world'];
-    inventory: InventoryItem[];
-    sandbox: SandboxState;
-  },
+  patch: GameStatePatch,
 ): GameState {
   return buildGameState(base, { ...patch, updatedAt: base.updatedAt });
 }
 
-function buildGameState(
-  base: GameState,
-  patch: {
-    world: GameState['world'];
-    inventory: InventoryItem[];
-    sandbox: SandboxState;
-    updatedAt: string;
-  },
-): GameState {
+interface GameStatePatch {
+  world: GameState['world'];
+  inventory: InventoryItem[];
+  sandbox: SandboxState;
+  attributes?: Attributes;
+  flags?: Record<string, boolean>;
+  relationships?: Relationship[];
+  progression?: ProgressionState;
+  status?: GameState['status'];
+  narrativeSession?: NarrativeSession | null;
+  updatedAt?: string;
+}
+
+function buildGameState(base: GameState, patch: GameStatePatch & { updatedAt: string }): GameState {
   return {
     schemaVersion: base.schemaVersion,
-    status: base.status,
+    status: patch.status ?? base.status,
     character: { firstName: base.character.firstName, lastName: base.character.lastName },
-    narrativeSession: copyNarrativeSession(base.narrativeSession),
-    attributes: { ...base.attributes },
+    narrativeSession: copyNarrativeSession(patch.narrativeSession ?? base.narrativeSession),
+    attributes: { ...(patch.attributes ?? base.attributes) },
     inventory: copyInventory(patch.inventory),
-    relationships: base.relationships.map((entry) => ({
+    relationships: (patch.relationships ?? base.relationships).map((entry) => ({
       characterId: entry.characterId,
       trust: entry.trust,
     })),
-    flags: { ...base.flags },
+    flags: { ...(patch.flags ?? base.flags) },
     history: base.history.map((entry) => ({ ...entry })),
     world: { day: patch.world.day, period: patch.world.period },
     progression: {
-      abilityIds: [...base.progression.abilityIds],
-      titleIds: [...base.progression.titleIds],
+      abilityIds: [...(patch.progression ?? base.progression).abilityIds],
+      titleIds: [...(patch.progression ?? base.progression).titleIds],
     },
     sandbox: {
       navigation: copyNavigation(patch.sandbox.navigation),
       exploration: copyExploration(patch.sandbox.exploration),
       resources: copyResources(patch.sandbox.resources),
       crafting: copyCrafting(patch.sandbox.crafting),
+      presences: copyPresenceState(patch.sandbox.presences),
     },
     updatedAt: patch.updatedAt,
   };
@@ -367,7 +498,11 @@ function copyAction(action: SandboxAction): SandboxAction {
     return { type: 'resource.collect', nodeId: action.nodeId, units: action.units };
   }
 
-  return { type: 'crafting.craft', recipeId: action.recipeId };
+  if (action.type === 'crafting.craft') {
+    return { type: 'crafting.craft', recipeId: action.recipeId };
+  }
+
+  return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
 }
 
 function copyDayCycle(result: DayCycleResult): DayCycleResult {
@@ -421,6 +556,33 @@ function copyCrafting(state: CraftingState): CraftingState {
   };
 }
 
+function copyPresenceState(state: PresenceState): PresenceState {
+  return {
+    discoveredPresenceIds: [...state.discoveredPresenceIds],
+    resolvedPresenceIds: [...state.resolvedPresenceIds],
+  };
+}
+
+function createInteractionPlanCopy(plan: PresenceInteractionPlan): PresenceInteractionPlan {
+  const copied: PresenceInteractionPlan = {
+    interactionId: plan.interactionId,
+    presenceId: plan.presenceId,
+    timeCost: { periods: plan.timeCost.periods },
+    effects: plan.effects.map((effect) => ({ ...effect })),
+    resolvesPresence: plan.resolvesPresence,
+  };
+
+  if (plan.feedback !== undefined) {
+    copied.feedback = plan.feedback;
+  }
+
+  if (plan.narrative) {
+    copied.narrative = { campaignId: plan.narrative.campaignId, eventId: plan.narrative.eventId };
+  }
+
+  return copied;
+}
+
 function copyInventory(items: readonly InventoryItem[]): InventoryItem[] {
   return items.map((item) => ({ itemId: item.itemId, quantity: item.quantity }));
 }
@@ -452,7 +614,9 @@ function rethrowDomain(error: unknown): never {
     error instanceof CraftingError ||
     error instanceof DayCycleError ||
     error instanceof WorldError ||
-    error instanceof SandboxError
+    error instanceof SandboxError ||
+    error instanceof PresenceError ||
+    error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });
   }

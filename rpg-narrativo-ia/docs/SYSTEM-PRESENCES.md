@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 2 de setembro de 2026.**
 
-O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.3 estão implementadas. As fatias seguintes dependem de validação e consolidação da anterior.
+O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.4 estão implementadas. As fatias seguintes dependem de validação e consolidação da anterior.
 
 ## Problema de diversão e imersão
 
@@ -170,11 +170,11 @@ interface PresenceInteractionPlan {
 }
 ```
 
-Os tipos acima descrevem intenções de interação, não resultados fixos. `observe` pode abrir narrativa ou apenas produzir efeito; `talk` não garante sucesso; `avoid` não remove automaticamente a presença. O plano da Fatia 8.3 não aplica efeitos, não avança o relógio, não resolve a presença e não abre `narrativeSession`.
+Os tipos acima descrevem intenções de interação, não resultados fixos. `observe` pode abrir narrativa ou apenas produzir efeito; `talk` não garante sucesso; `avoid` não remove automaticamente a presença. O plano da Fatia 8.3 não aplica efeitos, não avança o relógio, não resolve a presença e não abre `narrativeSession`. A Fatia 8.4 executa esse plano no orquestrador.
 
 ## Estado mínimo e persistência
 
-O Sistema 8 terá estado próprio apenas para registrar presenças descobertas e ocorrências resolvidas. Isso foi aprovado como parte desta etapa.
+O Sistema 8 registra no sandbox persistido apenas presenças descobertas e ocorrências resolvidas. Isso está implementado na Fatia 8.4.
 
 Esse estado mínimo **não é um `NPCState` completo**. Continuam sem aprovação:
 
@@ -272,7 +272,7 @@ Regras de UX:
 
 ### Fatia 8.4 — Estado integrado e orquestração
 
-Adicionar presenças ao sandbox persistido, criar migração de schema e integrar `presence.interact` ao orquestrador com custo único e atomicidade.
+**Implementada.** `SandboxState.presences` entra no save com `schemaVersion: 4`. O contexto indexa os catálogos de presenças e de interações. Saves v1, v2 e v3 válidos são lidos e migrados; a migração v3 cria estado inicial vazio e sincroniza descobertas já reveladas, sem inventar resoluções nem regravar `localStorage`. `presence.interact` planeja pela Fatia 8.3, aplica efeitos, cobra `TimeCost` uma vez, sincroniza presenças, resolve só quando o plano declara e abre `narrativeSession` quando a referência é válida. Falha não devolve nem persiste estado parcial. A localização atual não muda. O gatilho de mundo da Fatia 7.5 permanece: se `presence.interact` abrir o mesmo evento, o adaptador consome o gatilho correspondente; se o gatilho abrir a sessão, as presenças resolvíveis daquela descoberta também são resolvidas. Os dois caminhos não reabrem o encontro.
 
 ### Fatia 8.5 — Interface mobile
 
@@ -441,6 +441,40 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 - UI;
 - conteúdo completo da Fatia 8.6;
 - agenda, IA, combate ou sobrevivência.
+
+## Fatia 8.4 — Contrato de implementação
+
+### Entrega
+
+- `PresenceState` em `SandboxState.presences`;
+- catálogos indexados `presences` e `presenceInteractions` em `SandboxContext`;
+- `SCHEMA_VERSION` 4, com leitura de v1, v2 e v3;
+- ação `presence.interact` no orquestrador atômico;
+- testes de migração, atomicidade, custo único e regressão das ações existentes;
+- documentação ajustada somente ao comportamento implementado.
+
+### Invariantes
+
+- o estado persistido contém só IDs descobertos e resolvidos; catálogos e definições ficam fora do JSON;
+- saves v3 sem as descobertas de Mira ou do coelho migram com listas vazias;
+- saves v3 que já revelaram `first-priority-event` ou `horned-rabbit-tracks` sincronizam a presença correspondente, sem marcar resolução;
+- `world.trigger.*.consumed` não corrompe nem duplica presença;
+- `presence.interact` que abre o mesmo evento de um gatilho consome esse gatilho; o gatilho que abre a sessão resolve as presenças resolvíveis da descoberta correspondente;
+- `presence.interact` valida o plano antes de comprometer mudanças;
+- efeitos, tempo, resolução e narrativa falham juntos: nada parcial é retornado ou persistido;
+- o custo temporal é aplicado no máximo uma vez; abrir narrativa não acrescenta custo;
+- sincronizações gratuitas não avançam o relógio; renovação e recuperação só ocorrem se o relógio avançar;
+- a localização atual não muda;
+- `updatedAt` segue a convenção do orquestrador;
+- a operação pura continua separada da persistência.
+
+### Fora da Fatia 8.4
+
+- botões, cartões ou qualquer mudança visual de presença;
+- eventos narrativos extensos da Fatia 8.6;
+- remoção do gatilho `first-priority` da Fatia 7.5;
+- agenda, movimento autônomo, IA ou combate;
+- sobrevivência automática.
 
 ## Critérios de conclusão do Sistema 8
 

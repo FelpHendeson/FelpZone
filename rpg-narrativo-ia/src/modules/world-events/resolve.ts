@@ -52,3 +52,39 @@ export function resolveEligibleWorldTrigger(
 ): WorldNarrativeTriggerDefinition | undefined {
   return listEligibleWorldTriggers(catalog, state)[0];
 }
+
+export function consumeWorldTriggersMatchingNarrative(
+  catalog: IndexedWorldTriggers,
+  state: GameState,
+): GameState {
+  if (state.status !== 'playing' || state.narrativeSession === null) {
+    return state;
+  }
+
+  const session = state.narrativeSession;
+  const flags = { ...state.flags };
+  let changed = false;
+
+  for (const trigger of catalog.definitions) {
+    if (trigger.campaignId !== session.campaignId || trigger.eventId !== session.eventId) {
+      continue;
+    }
+
+    const flag = worldTriggerConsumedFlag(trigger.id);
+    if (flags[flag] === true) {
+      continue;
+    }
+
+    flags[flag] = true;
+    changed = true;
+  }
+
+  if (!changed) {
+    return state;
+  }
+
+  return {
+    ...state,
+    flags,
+  };
+}

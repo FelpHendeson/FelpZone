@@ -65,7 +65,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 3, migrações v1/v2, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 4, migrações v1/v2/v3, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -74,7 +74,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 6 — Crafting e cozinha | **Implementado e consolidado** | Receitas, consumo atômico, fogueira, estruturas locais e cozinha por estação. | Poucas receitas; combustível e ferramentas não funcionam ainda. |
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e primeiro gatilho de mundo. | Há somente um encontro acionado pelo mundo. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta e apresentação própria de encontros. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
-| Sistema 8 — Presenças e interações | **Fatias 8.1 a 8.3 implementadas; demais fatias aguardando** | Catálogo isolado, estado mínimo, sincronização explícita com descobertas, consulta de presenças conhecidas e planejamento puro de interações. | Sem save, UI, aplicação de tempo, abertura de narrativa, agenda, IA ou combate. |
+| Sistema 8 — Presenças e interações | **Fatias 8.1 a 8.4 implementadas; demais fatias aguardando** | Catálogo, sincronização com descobertas, planejamento de interações, `PresenceState` no sandbox persistido, schema 4 e `presence.interact` atômico. | Sem UI de presenças, conteúdo extra da Fatia 8.6, agenda, IA ou combate. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -162,10 +162,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora, aciona o primeiro encontro e retorna ao sandbox.
 
-**O Sistema 8 foi aprovado e especificado.** As Fatias 8.1 a 8.3 estão implementadas isoladamente. A próxima implementação autorizada é a Fatia 8.4 — estado integrado e orquestração — somente depois de revisão e autorização. Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**O Sistema 8 foi aprovado e especificado.** As Fatias 8.1 a 8.4 estão implementadas. A Fatia 8.5 — interface mobile — só começa depois de revisão e autorização. Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 Antes de qualquer próxima implementação:
 
-1. revisar a Fatia 8.3 contra o contrato;
-2. obter autorização antes de iniciar a Fatia 8.4;
+1. revisar a Fatia 8.4 contra o contrato;
+2. obter autorização antes de iniciar a Fatia 8.5;
 3. não promover possibilidades futuras a requisitos.

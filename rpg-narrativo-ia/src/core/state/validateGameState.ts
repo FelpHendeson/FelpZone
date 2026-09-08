@@ -1,19 +1,28 @@
 import { inspectTimeState } from '../../modules/time';
 import {
   createInitialSandboxState,
+  createSandboxContext,
+  inspectLegacySandboxState,
+  inspectSandboxContext,
   inspectSandboxState,
   type SandboxContext,
 } from '../../modules/sandbox';
+import {
+  createInitialPresenceState,
+  synchronizeDiscoveredPresences,
+} from '../../modules/presences';
 import {
   ATTRIBUTE_IDS,
   MIGRATED_CAMPAIGN_ID,
   SCHEMA_VERSION,
   SCHEMA_VERSION_V1,
   SCHEMA_VERSION_V2,
+  SCHEMA_VERSION_V3,
   isDayPeriod,
   type GameState,
   type GameStateV1,
   type GameStateV2,
+  type GameStateV3,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -28,6 +37,10 @@ export type GameStateV1Inspection =
 
 export type GameStateV2Inspection =
   | { ok: true; state: GameStateV2 }
+  | { ok: false; reason: string };
+
+export type GameStateV3Inspection =
+  | { ok: true; state: GameStateV3 }
   | { ok: false; reason: string };
 
 export function inspectGameState(value: unknown, context?: SandboxContext): GameStateInspection {
@@ -54,18 +67,69 @@ export function inspectGameStateV2(value: unknown, context?: SandboxContext): Ga
   }
 }
 
+export function inspectGameStateV3(value: unknown, context?: SandboxContext): GameStateV3Inspection {
+  try {
+    return inspectV3(value, context);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
 export function migrateGameStateV1(state: GameStateV1, context?: SandboxContext): GameState {
-  return migrateGameStateV2(migrateGameStateV1ToV2(state, context), context);
+  return migrateGameStateV3(migrateGameStateV2ToV3(migrateGameStateV1ToV2(state, context), context), context);
 }
 
 export function migrateGameStateV2(state: GameStateV2, context?: SandboxContext): GameState {
-  const sandbox = inspectSandboxState(state.sandbox, context);
+  return migrateGameStateV3(migrateGameStateV2ToV3(state, context), context);
+}
+
+export function migrateGameStateV3(state: GameStateV3, context?: SandboxContext): GameState {
+  const sandbox = inspectLegacySandboxState(state.sandbox, context);
+  if (!sandbox.ok) {
+    throw new Error(sandbox.reason);
+  }
+
+  const resolvedContext = requireContext(context);
+  const synced = synchronizeDiscoveredPresences(
+    resolvedContext.presences,
+    createInitialPresenceState(resolvedContext.presences),
+    sandbox.value.exploration,
+  );
+
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    status: state.status,
+    character: { firstName: state.character.firstName, lastName: state.character.lastName },
+    narrativeSession: copyNarrativeSession(state.narrativeSession),
+    attributes: { ...state.attributes },
+    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    relationships: state.relationships.map((entry) => ({
+      characterId: entry.characterId,
+      trust: entry.trust,
+    })),
+    flags: { ...state.flags },
+    history: state.history.map((entry) => ({ ...entry })),
+    world: { day: state.world.day, period: state.world.period },
+    progression: {
+      abilityIds: [...state.progression.abilityIds],
+      titleIds: [...state.progression.titleIds],
+    },
+    sandbox: {
+      ...sandbox.value,
+      presences: synced.current,
+    },
+    updatedAt: state.updatedAt,
+  };
+}
+
+function migrateGameStateV2ToV3(state: GameStateV2, context?: SandboxContext): GameStateV3 {
+  const sandbox = inspectLegacySandboxState(state.sandbox, context);
   if (!sandbox.ok) {
     throw new Error(sandbox.reason);
   }
 
   return {
-    schemaVersion: SCHEMA_VERSION,
+    schemaVersion: SCHEMA_VERSION_V3,
     status: state.status,
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copySessionFromLegacy(state.status, state.currentEventId),
@@ -88,6 +152,7 @@ export function migrateGameStateV2(state: GameStateV2, context?: SandboxContext)
 }
 
 function migrateGameStateV1ToV2(state: GameStateV1, context?: SandboxContext): GameStateV2 {
+  const sandbox = createInitialSandboxState(context);
   return {
     schemaVersion: SCHEMA_VERSION_V2,
     status: state.status,
@@ -106,7 +171,7 @@ function migrateGameStateV1ToV2(state: GameStateV1, context?: SandboxContext): G
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
     },
-    sandbox: createInitialSandboxState(context),
+    sandbox,
     updatedAt: state.updatedAt,
   };
 }
@@ -120,6 +185,26 @@ function copySessionFromLegacy(status: GameStatus, currentEventId: string): Narr
     campaignId: MIGRATED_CAMPAIGN_ID,
     eventId: currentEventId,
   };
+}
+
+function copyNarrativeSession(session: NarrativeSession | null): NarrativeSession | null {
+  if (!session) {
+    return null;
+  }
+
+  return {
+    campaignId: session.campaignId,
+    eventId: session.eventId,
+  };
+}
+
+function requireContext(context?: SandboxContext): SandboxContext {
+  const inspected = inspectSandboxContext(context ?? createSandboxContext());
+  if (!inspected.ok) {
+    throw new Error(inspected.reason);
+  }
+
+  return inspected.value;
 }
 
 function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInspection {
@@ -209,7 +294,7 @@ function inspectV2(value: unknown, context?: SandboxContext): GameStateV2Inspect
     return fail('O evento atual é inválido.');
   }
 
-  const sandbox = inspectSandboxState(value.sandbox, context);
+  const sandbox = inspectLegacySandboxState(value.sandbox, context);
   if (!sandbox.ok) {
     return fail(sandbox.reason);
   }
@@ -220,6 +305,45 @@ function inspectV2(value: unknown, context?: SandboxContext): GameStateV2Inspect
       schemaVersion: SCHEMA_VERSION_V2,
       ...shared.value,
       currentEventId,
+      sandbox: sandbox.value,
+    },
+  };
+}
+
+function inspectV3(value: unknown, context?: SandboxContext): GameStateV3Inspection {
+  if (!isRecord(value)) {
+    return fail('O salvamento não contém um objeto válido.');
+  }
+
+  if (value.schemaVersion !== SCHEMA_VERSION_V3) {
+    return fail('O salvamento está incompleto.');
+  }
+
+  const shared = readShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+
+  if ('currentEventId' in value) {
+    return fail('O salvamento usa o contrato antigo de evento atual.');
+  }
+
+  const session = readNarrativeSession(value, shared.value.status);
+  if (!session.ok) {
+    return session;
+  }
+
+  const sandbox = inspectLegacySandboxState(value.sandbox, context);
+  if (!sandbox.ok) {
+    return fail(sandbox.reason);
+  }
+
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION_V3,
+      ...shared.value,
+      narrativeSession: session.value,
       sandbox: sandbox.value,
     },
   };

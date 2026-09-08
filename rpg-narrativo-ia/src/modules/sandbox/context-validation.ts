@@ -1,7 +1,9 @@
 import { inspectCraftingDefinitions } from '../crafting';
 import { inspectExplorationDefinitions } from '../exploration';
 import { inspectNavigationMap } from '../navigation';
+import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
 import { inspectResourceDefinitions } from '../resources';
+import { firstDayCampaign } from '../../campaigns/first-day';
 import type { SandboxContext, SandboxContextInspection } from './types';
 
 export function inspectSandboxContext(value: unknown): SandboxContextInspection {
@@ -58,12 +60,40 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     return fail(crafting.reason);
   }
 
+  if (!isRecord(value.presences) || !Array.isArray(value.presences.entities) || !Array.isArray(value.presences.presences)) {
+    return fail('O catálogo de presenças é inválido.');
+  }
+
+  const presences = inspectPresenceCatalog(
+    { entities: value.presences.entities, presences: value.presences.presences },
+    map.value,
+    exploration.value,
+  );
+  if (!presences.ok) {
+    return fail(presences.reason);
+  }
+
+  if (!isRecord(value.presenceInteractions) || !Array.isArray(value.presenceInteractions.interactions)) {
+    return fail('O catálogo de interações é inválido.');
+  }
+
+  const presenceInteractions = inspectPresenceInteractionCatalog(
+    { interactions: value.presenceInteractions.interactions },
+    presences.value,
+    firstDayCampaign,
+  );
+  if (!presenceInteractions.ok) {
+    return fail(presenceInteractions.reason);
+  }
+
   const context: SandboxContext = {
     startingLocationId: value.startingLocationId,
     map: map.value,
     exploration: exploration.value,
     resources: resources.value,
     crafting: crafting.value,
+    presences: presences.value,
+    presenceInteractions: presenceInteractions.value,
   };
 
   return { ok: true, value: context };

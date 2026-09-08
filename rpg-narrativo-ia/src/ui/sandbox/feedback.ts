@@ -45,6 +45,11 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       }
       break;
     }
+    case 'presence.interact': {
+      const declared = result.feedback ?? result.detail.plan.feedback;
+      parts.push(declared ?? result.detail.plan.interactionId);
+      break;
+    }
   }
 
   if (result.timeCost.periods > 0) {

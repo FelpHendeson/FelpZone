@@ -14,6 +14,7 @@ import { createMemoryPersistence, parseGameState, serializeGameState } from '../
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction } from '../modules/sandbox-actions';
 import {
+  consumeWorldTriggersMatchingNarrative,
   inspectWorldTriggerCatalog,
   worldTriggerConsumedFlag,
 } from '../modules/world-events';
@@ -199,7 +200,14 @@ describe('primeiro encontro acionado pelo mundo', () => {
       throw new Error('save inválido');
     }
 
-    expect(loaded.state.sandbox).toEqual(attempt.result.current.sandbox);
+    expect(loaded.state.sandbox.navigation).toEqual(attempt.result.current.sandbox.navigation);
+    expect(loaded.state.sandbox.exploration).toEqual(attempt.result.current.sandbox.exploration);
+    expect(loaded.state.sandbox.resources).toEqual(attempt.result.current.sandbox.resources);
+    expect(loaded.state.sandbox.crafting).toEqual(attempt.result.current.sandbox.crafting);
+    expect(loaded.state.sandbox.presences).toEqual({
+      discoveredPresenceIds: ['mira-awakening-clearing'],
+      resolvedPresenceIds: ['mira-awakening-clearing'],
+    });
     expect(loaded.state.flags[consumedFlag]).toBe(true);
     expect(loaded.state.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
     expect(attempt.current).not.toBe(attempt.result.current);
@@ -288,6 +296,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(returned.sandbox.resources).toEqual(before.current.sandbox.resources);
     expect(returned.sandbox.crafting).toEqual(before.current.sandbox.crafting);
     expect(returned.flags[consumedFlag]).toBe(true);
+    expect(returned.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(returned.flags['camp.together']).toBe(true);
     expect(returned.world.period).toBe('noite');
     expect(toAppScreen(returned)).toBe('exploration');
@@ -334,6 +343,28 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(second.current.narrativeSession).toBeNull();
     expect(second.current.flags[consumedFlag]).toBe(true);
     expect(toAppScreen(second.current)).toBe('exploration');
+  });
+
+  it('sessão já aberta pelo mesmo evento consome o gatilho sem mutar o estado recebido', () => {
+    const exploring = exploringWith('ability-perception');
+    const revealed = executeSandboxAction(exploring, { type: 'exploration.explore' }, { context, now }).current;
+    const opened = startNarrativeSession(revealed, firstDayCampaign, 'first-priority');
+    const inspected = inspectWorldTriggerCatalog(catalog, {
+      campaign: firstDayCampaign,
+      exploration: context.exploration,
+    });
+    expect(inspected.ok).toBe(true);
+    if (!inspected.ok) {
+      throw new Error(inspected.reason);
+    }
+
+    const consumed = consumeWorldTriggersMatchingNarrative(inspected.value, opened);
+
+    expect(opened.flags[consumedFlag]).toBeUndefined();
+    expect(consumed.flags[consumedFlag]).toBe(true);
+    expect(consumed.narrativeSession).toEqual(opened.narrativeSession);
+    expect(consumeWorldTriggersMatchingNarrative(inspected.value, consumed)).toBe(consumed);
+    expect(consumeWorldTriggersMatchingNarrative(inspected.value, revealed)).toBe(revealed);
   });
 
   it('um save da Fatia 7.4 com descoberta revelada e sem flag dispara na próxima ação válida', () => {
@@ -393,7 +424,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(parseGameState(serializeGameState(completed))).toEqual({ status: 'ok', state: completed });
   });
 
-  it('migrações v1/v2 e schema 3 continuam válidas', () => {
+  it('migrações v1/v2 e schema atual continuam válidas', () => {
     const playing = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const v1 = parseGameState(JSON.stringify(asV1(playing)));
     const v2 = parseGameState(JSON.stringify(asV2(playing)));
@@ -404,7 +435,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(v2.status).toBe('ok');
     expect(v3).toEqual({ status: 'ok', state: playing });
     if (v1.status === 'ok') {
-      expect(v1.state.schemaVersion).toBe(3);
+      expect(v1.state.schemaVersion).toBe(SCHEMA_VERSION);
       expect(v1.state.narrativeSession?.eventId).toBe('awakening');
     }
   });

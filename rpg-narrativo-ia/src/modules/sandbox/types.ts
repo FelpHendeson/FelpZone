@@ -1,6 +1,11 @@
 import type { CraftingState, IndexedCrafting } from '../crafting/types';
 import type { ExplorationState, IndexedExploration } from '../exploration/types';
 import type { IndexedMap, NavigationState } from '../navigation/types';
+import type {
+  IndexedPresenceInteractions,
+  IndexedPresences,
+  PresenceState,
+} from '../presences/types';
 import type { IndexedResources, ResourcesState } from '../resources/types';
 
 export class SandboxError extends Error {
@@ -10,11 +15,15 @@ export class SandboxError extends Error {
   }
 }
 
-export interface SandboxState {
+export interface SandboxCoreState {
   navigation: NavigationState;
   exploration: ExplorationState;
   resources: ResourcesState;
   crafting: CraftingState;
+}
+
+export interface SandboxState extends SandboxCoreState {
+  presences: PresenceState;
 }
 
 export interface SandboxContext {
@@ -23,6 +32,8 @@ export interface SandboxContext {
   exploration: IndexedExploration;
   resources: IndexedResources;
   crafting: IndexedCrafting;
+  presences: IndexedPresences;
+  presenceInteractions: IndexedPresenceInteractions;
 }
 
 export type SandboxInspection =

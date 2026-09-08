@@ -54,7 +54,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.1 — Estado integrado e persistência principal
 
-**Implementada.** `GameState` passou a incluir `sandbox`; esta fatia introduziu `schemaVersion: 2` e migração de partidas v1. A Fatia 7.3 evoluiu depois o formato atual para schema 3.
+**Implementada.** `GameState` passou a incluir `sandbox`; esta fatia introduziu `schemaVersion: 2` e migração de partidas v1. A Fatia 7.3 evoluiu o formato para schema 3. A Fatia 8.4 evoluiu o formato atual para schema 4.
 
 #### Fatia 7.2 — Orquestrador de ações e tempo
 
@@ -74,7 +74,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 8 — Presenças e interações no mundo
 
-**Aprovada e especificada.** As Fatias 8.1 a 8.3 estão implementadas isoladamente. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**Aprovada e especificada.** As Fatias 8.1 a 8.4 estão implementadas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 #### Fatia 8.1 — Catálogo e estado isolado
 
@@ -90,11 +90,11 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 8.4 — Estado integrado e orquestração
 
-**Aprovada, aguardando revisão e autorização após a Fatia 8.3.** Integrar o estado mínimo ao save, criar migração e executar interações atomicamente com custo temporal único.
+**Implementada.** `sandbox.presences` entra no save com schema 4. Saves v1, v2 e v3 são migrados na leitura. `presence.interact` executa o plano da Fatia 8.3 com custo único e atomicidade. A UI ainda não expõe a ação.
 
 #### Fatia 8.5 — Interface mobile
 
-**Aprovada, aguardando a Fatia 8.4.** Mostrar presenças conhecidas no local e permitir ações contextuais na UI existente.
+**Aprovada, aguardando revisão e autorização após a Fatia 8.4.** Mostrar presenças conhecidas no local e permitir ações contextuais na UI existente.
 
 #### Fatia 8.6 — Conteúdo protótipo
 
@@ -131,7 +131,7 @@ Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificaçã
 - administração jogável de assentamentos ou facções;
 - geração procedural, backend, sincronização, monetização e editor.
 
-Nenhum item desta seção autoriza implementação. Depois da Fatia 8.3, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
+Nenhum item desta seção autoriza implementação. Depois da Fatia 8.4, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
 
 ## Regra de entrada de um sistema
 

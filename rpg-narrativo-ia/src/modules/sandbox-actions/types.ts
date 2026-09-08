@@ -1,8 +1,10 @@
+import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state/types';
 import type { CraftingResult } from '../crafting/types';
 import type { DayCycleResult } from '../day-cycle';
 import type { ExplorationResult } from '../exploration/types';
 import type { NavigationMoveResult } from '../navigation/types';
+import type { PresenceInteractionPlan } from '../presences';
 import type { ResourceCollectionResult } from '../resources/types';
 import type { SandboxContext } from '../sandbox';
 import type { TimeCost } from '../time';
@@ -23,13 +25,19 @@ export type SandboxAction =
   | {
       type: 'crafting.craft';
       recipeId: string;
+    }
+  | {
+      type: 'presence.interact';
+      presenceId: string;
+      interactionId: string;
     };
 
 export type SandboxActionDetail =
   | { type: 'navigation.move'; result: NavigationMoveResult }
   | { type: 'exploration.explore'; result: ExplorationResult }
   | { type: 'resource.collect'; result: ResourceCollectionResult }
-  | { type: 'crafting.craft'; result: CraftingResult };
+  | { type: 'crafting.craft'; result: CraftingResult }
+  | { type: 'presence.interact'; plan: PresenceInteractionPlan };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];
@@ -46,9 +54,11 @@ export interface SandboxActionResult {
   dayCycle: DayCycleResult;
   detail: SandboxActionDetail;
   synchronization: SandboxSynchronizationSummary;
+  feedback?: string;
 }
 
 export interface SandboxActionOptions {
   context?: SandboxContext;
   now?: () => string;
+  campaign?: Campaign;
 }

@@ -95,15 +95,15 @@ O Sistema 8 — Presenças e interações no mundo — está aprovado. As Fatias
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 3`, persiste `narrativeSession` (nula na exploração livre), valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1 e v2 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- O salvamento local usa `schemaVersion: 4`, persiste `narrativeSession` (nula na exploração livre) e `sandbox.presences`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1, v2 e v3 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o primeiro encontro acionado por gatilho de mundo.
-- O Sistema 8 está aprovado. As Fatias 8.1 a 8.3 existem no módulo isolado; orquestração, save e interface continuam para fatias posteriores.
+- O Sistema 8 está aprovado. As Fatias 8.1 a 8.4 existem no código: catálogo, sincronização, planejamento, save schema 4 e orquestração de `presence.interact`. A interface de presenças continua para a Fatia 8.5.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo o módulo isolado de presenças, interações e os testes anteriores.
+- `npm test`: suíte completa, incluindo persistência schema 4, orquestração de presenças, interações e os testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela o gatilho `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite.

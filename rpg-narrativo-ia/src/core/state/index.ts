@@ -35,18 +35,21 @@ export function defaultNow(): string {
   return new Date().toISOString();
 }
 
-export { SCHEMA_VERSION, SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, MIGRATED_CAMPAIGN_ID } from './types';
+export { SCHEMA_VERSION, SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, SCHEMA_VERSION_V3, MIGRATED_CAMPAIGN_ID } from './types';
 export {
   inspectGameState,
   inspectGameStateV1,
   inspectGameStateV2,
+  inspectGameStateV3,
   migrateGameStateV1,
   migrateGameStateV2,
+  migrateGameStateV3,
 } from './validateGameState';
 export type {
   GameStateInspection,
   GameStateV1Inspection,
   GameStateV2Inspection,
+  GameStateV3Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
@@ -62,6 +65,7 @@ export type {
   GameState,
   GameStateV1,
   GameStateV2,
+  GameStateV3,
   GameStatus,
   HistoryEntry,
   InventoryItem,

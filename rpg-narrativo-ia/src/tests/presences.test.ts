@@ -26,6 +26,7 @@ import {
   listDiscoveredPresencesAtLocation,
   listKnownPresencesAtLocation,
   resolvePresence,
+  resolvePresencesRevealedByDiscovery,
   synchronizeDiscoveredPresences,
   PresenceError,
   type IndexedPresences,
@@ -358,6 +359,30 @@ describe('estado isolado de presenças', () => {
     expect(resolved.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(again).toEqual(resolved);
     expect(frozen.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+  });
+
+  it('resolve presenças resolvíveis já descobertas pela descoberta do gatilho', () => {
+    const catalog = worldCatalog();
+    const previous = freezeState(
+      discoverPresence(
+        catalog,
+        discoverPresence(catalog, createInitialPresenceState(catalog), 'mira-awakening-clearing'),
+        'horned-rabbit-dense-woods',
+      ),
+    );
+    const current = resolvePresencesRevealedByDiscovery(catalog, previous, 'first-priority-event');
+    const again = resolvePresencesRevealedByDiscovery(catalog, freezeState(current), 'first-priority-event');
+    const skipped = resolvePresencesRevealedByDiscovery(
+      catalog,
+      freezeState(createInitialPresenceState(catalog)),
+      'first-priority-event',
+    );
+
+    expect(previous.resolvedPresenceIds).toEqual([]);
+    expect(current.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(current.discoveredPresenceIds).toEqual(['mira-awakening-clearing', 'horned-rabbit-dense-woods']);
+    expect(again).toEqual(current);
+    expect(skipped.resolvedPresenceIds).toEqual([]);
   });
 
   it('rejeita estado restaurado malformado', () => {

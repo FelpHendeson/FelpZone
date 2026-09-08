@@ -110,7 +110,12 @@ describe('superfície mobile do sandbox', () => {
     const attempt = mustCommit(exploring, { type: 'exploration.explore' }, (next) => persistence.save(next));
     const loaded = persistence.load();
 
-    expect(attempt.current.sandbox).toEqual(attempt.result.current.sandbox);
+    expect(attempt.current.sandbox.navigation).toEqual(attempt.result.current.sandbox.navigation);
+    expect(attempt.current.sandbox.exploration).toEqual(attempt.result.current.sandbox.exploration);
+    expect(attempt.current.sandbox.presences).toEqual({
+      discoveredPresenceIds: ['mira-awakening-clearing'],
+      resolvedPresenceIds: ['mira-awakening-clearing'],
+    });
     expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
     expect(loaded).toEqual({ status: 'ok', state: attempt.current });
     expect(loaded.status === 'ok' && loaded.state).not.toEqual(exploring);

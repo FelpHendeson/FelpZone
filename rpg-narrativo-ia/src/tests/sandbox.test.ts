@@ -29,6 +29,7 @@ import {
 import type { LocationNode } from '../modules/navigation';
 import { createInitialResources, INITIAL_POPULATIONS, INITIAL_RESOURCE_NODES, indexResourceDefinitions } from '../modules/resources';
 import type { ResourceNodeDefinition } from '../modules/resources';
+import { indexPresenceCatalog, indexPresenceInteractionCatalog } from '../modules/presences';
 import {
   SandboxError,
   createInitialSandboxState,
@@ -48,11 +49,11 @@ function parsedJson(state: GameState): Record<string, unknown> {
 }
 
 describe('estado integrado e persistência principal', () => {
-  it('inicia uma nova partida no schema 3 com sandbox completo', () => {
+  it('inicia uma nova partida no schema 4 com sandbox completo', () => {
     const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const context = createSandboxContext();
 
-    expect(state.schemaVersion).toBe(3);
+    expect(state.schemaVersion).toBe(4);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(inspectGameState(state).ok).toBe(true);
     expect(state.sandbox).toEqual(createInitialSandboxState(context));
@@ -77,6 +78,7 @@ describe('estado integrado e persistência principal', () => {
       INITIAL_RECIPES.filter((recipe) => recipe.discovery.type === 'known').map((recipe) => recipe.id),
     );
     expect(state.sandbox.crafting.structures).toEqual([]);
+    expect(state.sandbox.presences).toEqual({ discoveredPresenceIds: [], resolvedPresenceIds: [] });
     expect(INITIAL_STRUCTURES.map((entry) => entry.id)).toEqual(['campfire']);
   });
 
@@ -98,7 +100,7 @@ describe('estado integrado e persistência principal', () => {
     expect(sandbox).not.toHaveProperty('map');
     expect(sandbox).not.toHaveProperty('definitions');
     expect(JSON.stringify(raw)).not.toContain('DaylightPhase');
-    expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'navigation', 'resources']);
+    expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'navigation', 'presences', 'resources']);
     expect(state.world).toEqual(timeStateToWorld(createInitialTime()));
   });
 
@@ -419,12 +421,16 @@ function customContext(): SandboxContext {
   const exploration = indexExplorationDefinitions(CUSTOM_EXPLORATION, map);
   const resources = indexResourceDefinitions(CUSTOM_NODES, [], map, exploration);
   const crafting = indexCraftingDefinitions(CUSTOM_RECIPES, CUSTOM_STRUCTURES);
+  const presences = indexPresenceCatalog({ entities: [], presences: [] }, map, exploration);
+  const presenceInteractions = indexPresenceInteractionCatalog({ interactions: [] }, presences);
   return {
     startingLocationId: CUSTOM_START,
     map,
     exploration,
     resources,
     crafting,
+    presences,
+    presenceInteractions,
   };
 }
 
@@ -435,6 +441,8 @@ function freezeContext(context: SandboxContext): SandboxContext {
     exploration: context.exploration,
     resources: context.resources,
     crafting: context.crafting,
+    presences: context.presences,
+    presenceInteractions: context.presenceInteractions,
   });
 }
 
@@ -629,6 +637,8 @@ function copyContext(context: SandboxContext): SandboxContext {
       byRecipe: new Map(context.crafting.byRecipe),
       byStructure: new Map(context.crafting.byStructure),
     },
+    presences: context.presences,
+    presenceInteractions: context.presenceInteractions,
   };
 }
 

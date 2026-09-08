@@ -1,6 +1,7 @@
 import { EngineError } from '../../core/engine';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
+import { PresenceError, resolvePresencesRevealedByDiscovery } from '../../modules/presences';
 import type { SandboxContext } from '../../modules/sandbox';
 import {
   SandboxActionError,
@@ -11,6 +12,7 @@ import {
 import {
   WorldEventError,
   applyWorldNarrativeTrigger,
+  consumeWorldTriggersMatchingNarrative,
   indexWorldTriggerCatalog,
   resolveEligibleWorldTrigger,
   type WorldNarrativeTriggerDefinition,
@@ -48,15 +50,20 @@ export function attemptSandboxAction(
   catalog: readonly WorldNarrativeTriggerDefinition[],
 ): SandboxActionAttempt {
   try {
-    const result = executeSandboxAction(state, action, { context });
+    const result = executeSandboxAction(state, action, { context, campaign });
     const indexed = indexWorldTriggerCatalog(catalog, {
       campaign,
       exploration: context.exploration,
     });
-    const trigger = resolveEligibleWorldTrigger(indexed, result.current);
+    const afterMatchingSession = consumeWorldTriggersMatchingNarrative(indexed, result.current);
+    const trigger = resolveEligibleWorldTrigger(indexed, afterMatchingSession);
     const current = trigger
-      ? applyWorldNarrativeTrigger(result.current, campaign, trigger)
-      : result.current;
+      ? resolvePresencesForWorldTrigger(
+          applyWorldNarrativeTrigger(afterMatchingSession, campaign, trigger),
+          context,
+          trigger,
+        )
+      : afterMatchingSession;
     const feedback = trigger
       ? [describeSandboxFeedback(result, context), WORLD_TRIGGER_ATTENTION].filter(Boolean).join(' ')
       : describeSandboxFeedback(result, context);
@@ -73,6 +80,7 @@ export function attemptSandboxAction(
     const error =
       caught instanceof SandboxActionError ||
       caught instanceof WorldEventError ||
+      caught instanceof PresenceError ||
       caught instanceof EngineError
         ? caught.message
         : caught instanceof Error
@@ -85,6 +93,31 @@ export function attemptSandboxAction(
       error,
     };
   }
+}
+
+function resolvePresencesForWorldTrigger(
+  state: GameState,
+  context: SandboxContext,
+  trigger: WorldNarrativeTriggerDefinition,
+): GameState {
+  if (trigger.source.type !== 'discovery.revealed') {
+    return state;
+  }
+
+  return {
+    ...state,
+    sandbox: {
+      navigation: state.sandbox.navigation,
+      exploration: state.sandbox.exploration,
+      resources: state.sandbox.resources,
+      crafting: state.sandbox.crafting,
+      presences: resolvePresencesRevealedByDiscovery(
+        context.presences,
+        state.sandbox.presences,
+        trigger.source.discoveryId,
+      ),
+    },
+  };
 }
 
 export function commitSandboxAction(

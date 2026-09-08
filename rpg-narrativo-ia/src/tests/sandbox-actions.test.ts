@@ -26,6 +26,7 @@ import {
   inspectSandboxContext,
   type SandboxContext,
 } from '../modules/sandbox';
+import { indexPresenceCatalog, indexPresenceInteractionCatalog } from '../modules/presences';
 import {
   executeSandboxAction,
   SandboxActionError,
@@ -238,12 +239,16 @@ function customContext(): SandboxContext {
   const exploration = indexExplorationDefinitions(CUSTOM_EXPLORATION, map);
   const resources = indexResourceDefinitions(CUSTOM_NODES, CUSTOM_POPULATIONS, map, exploration);
   const crafting = indexCraftingDefinitions(CUSTOM_RECIPES, CUSTOM_STRUCTURES);
+  const presences = indexPresenceCatalog({ entities: [], presences: [] }, map, exploration);
+  const presenceInteractions = indexPresenceInteractionCatalog({ interactions: [] }, presences);
   return {
     startingLocationId: CAMP,
     map,
     exploration,
     resources,
     crafting,
+    presences,
+    presenceInteractions,
   };
 }
 
@@ -376,6 +381,10 @@ function freezeState(state: GameState): GameState {
       crafting: Object.freeze({
         knownRecipeIds: Object.freeze([...state.sandbox.crafting.knownRecipeIds]),
         structures: Object.freeze(state.sandbox.crafting.structures.map((entry) => Object.freeze({ ...entry }))),
+      }),
+      presences: Object.freeze({
+        discoveredPresenceIds: Object.freeze([...state.sandbox.presences.discoveredPresenceIds]),
+        resolvedPresenceIds: Object.freeze([...state.sandbox.presences.resolvedPresenceIds]),
       }),
     }),
   }) as GameState;

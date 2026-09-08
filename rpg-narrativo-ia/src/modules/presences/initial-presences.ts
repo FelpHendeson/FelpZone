@@ -54,6 +54,7 @@ export const INITIAL_PRESENCE_INTERACTIONS: PresenceInteractionCatalog = {
       label: 'Observar',
       hint: 'Observar o animal à distância, sem iniciar diálogo.',
       timeCost: { periods: 1 },
+      effects: [{ type: 'flag.set', flag: 'saw.horned.rabbit', value: true }],
       feedback: 'O coelho chifrudo fareja o ar e segue pastando entre os arbustos.',
       resolvesPresence: false,
     },

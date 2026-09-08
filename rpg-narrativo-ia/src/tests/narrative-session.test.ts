@@ -35,12 +35,11 @@ function chooseAbility(choiceId: string): GameState {
   return playFirstDay(['awake-calm', 'system-touch', choiceId]);
 }
 
-describe('sessão narrativa e schema 3', () => {
-  it('inicia uma nova partida no schema 3 com sessão em awakening', () => {
+describe('sessão narrativa e schema atual', () => {
+  it('inicia uma nova partida no schema atual com sessão em awakening', () => {
     const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
 
-    expect(state.schemaVersion).toBe(3);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'awakening' });
     expect(raw).not.toHaveProperty('currentEventId');
@@ -48,7 +47,7 @@ describe('sessão narrativa e schema 3', () => {
     expect(parseGameState(serializeGameState(state))).toEqual({ status: 'ok', state });
   });
 
-  it('rejeita schema 3 sem sessão, com sessão vazia ou com contrato antigo', () => {
+  it('rejeita schema atual sem sessão, com sessão vazia ou com contrato antigo', () => {
     const missing = serializedPlaying();
     delete missing.narrativeSession;
     expect(parseGameState(JSON.stringify(missing)).status).toBe('corrupt');
@@ -93,7 +92,7 @@ describe('sessão narrativa e schema 3', () => {
     const fromV1 = parseGameState(JSON.stringify(v1));
     expect(fromV1.status).toBe('ok');
     if (fromV1.status === 'ok') {
-      expect(fromV1.state.schemaVersion).toBe(3);
+      expect(fromV1.state.schemaVersion).toBe(SCHEMA_VERSION);
       expect(fromV1.state.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'awakening' });
       expect(fromV1.state.sandbox).toEqual(freshState().sandbox);
       expect(fromV1.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 1 }]);
@@ -108,7 +107,7 @@ describe('sessão narrativa e schema 3', () => {
     const fromV2 = parseGameState(JSON.stringify(v2));
     expect(fromV2.status).toBe('ok');
     if (fromV2.status === 'ok') {
-      expect(fromV2.state.schemaVersion).toBe(3);
+      expect(fromV2.state.schemaVersion).toBe(SCHEMA_VERSION);
       expect(fromV2.state.narrativeSession?.eventId).toBe('awakening');
       expect(fromV2.state.sandbox).toEqual(current.sandbox);
       expect(fromV2.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');

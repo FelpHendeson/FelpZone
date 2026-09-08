@@ -1,3 +1,4 @@
+import { firstDayCampaign } from '../../campaigns/first-day';
 import {
   INITIAL_RECIPES,
   INITIAL_STRUCTURES,
@@ -16,6 +17,13 @@ import {
   createInitialNavigation,
   indexNavigationMap,
 } from '../navigation';
+import {
+  INITIAL_PRESENCE_CATALOG,
+  INITIAL_PRESENCE_INTERACTIONS,
+  createInitialPresenceState,
+  indexPresenceCatalog,
+  indexPresenceInteractionCatalog,
+} from '../presences';
 import {
   INITIAL_POPULATIONS,
   INITIAL_RESOURCE_NODES,
@@ -37,6 +45,12 @@ export function createSandboxContext(
     const exploration = indexExplorationDefinitions(INITIAL_EXPLORATION_DEFINITIONS, map);
     const resources = indexResourceDefinitions(INITIAL_RESOURCE_NODES, INITIAL_POPULATIONS, map, exploration);
     const crafting = indexCraftingDefinitions(INITIAL_RECIPES, INITIAL_STRUCTURES);
+    const presences = indexPresenceCatalog(INITIAL_PRESENCE_CATALOG, map, exploration);
+    const presenceInteractions = indexPresenceInteractionCatalog(
+      INITIAL_PRESENCE_INTERACTIONS,
+      presences,
+      firstDayCampaign,
+    );
 
     return {
       startingLocationId,
@@ -44,6 +58,8 @@ export function createSandboxContext(
       exploration,
       resources,
       crafting,
+      presences,
+      presenceInteractions,
     };
   } catch (error) {
     if (error instanceof NavigationError) {
@@ -66,5 +82,6 @@ export function createInitialSandboxState(context: SandboxContext = createSandbo
     exploration: createInitialExploration(),
     resources: createInitialResources(current.resources),
     crafting: createInitialCrafting(current.crafting),
+    presences: createInitialPresenceState(current.presences),
   };
 }
