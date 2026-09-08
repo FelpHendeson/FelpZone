@@ -17,14 +17,14 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 
 ## Ordem obrigatória
 
-| Ordem | Arquivo | Situação em 2 de setembro de 2026 |
+| Ordem | Arquivo | Situação |
 | --- | --- | --- |
-| 1 | `01-fatia-8.1-catalogo-e-estado.md` | Implementada no commit `7b36993`; mantida como histórico. |
-| 2 | `02-fatia-8.2-sincronizacao.md` | Próxima candidata, somente após revisão da 8.1. |
-| 3 | `03-fatia-8.3-interacoes.md` | Preparada; não executar antes da consolidação da 8.2. |
-| 4 | `04-fatia-8.4-integracao-e-save.md` | Preparada; não executar antes da consolidação da 8.3. |
-| 5 | `05-fatia-8.5-interface-mobile.md` | Implementada neste recorte; aguardando revisão. |
-| 6 | `06-fatia-8.6-conteudo-jogavel.md` | Preparada; não executar antes da consolidação da 8.5. |
+| 1 | `01-fatia-8.1-catalogo-e-estado.md` | Implementada; mantida como histórico. |
+| 2 | `02-fatia-8.2-sincronizacao.md` | Implementada; mantida como histórico. |
+| 3 | `03-fatia-8.3-interacoes.md` | Implementada; mantida como histórico. |
+| 4 | `04-fatia-8.4-integracao-e-save.md` | Implementada; mantida como histórico. |
+| 5 | `05-fatia-8.5-interface-mobile.md` | Implementada; mantida como histórico. |
+| 6 | `06-fatia-8.6-conteudo-jogavel.md` | Implementada neste recorte; aguardando revisão. |
 
 Não dispare duas fatias em paralelo. O ciclo continua sendo:
 

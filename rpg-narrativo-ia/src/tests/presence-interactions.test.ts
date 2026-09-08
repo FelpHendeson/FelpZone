@@ -168,6 +168,11 @@ describe('catálogo de interações', () => {
       throw new Error(inspected.reason);
     }
 
+    expect(inspected.value.byId.get('observe-mira-awakening-clearing')).toMatchObject({
+      presenceId: 'mira-awakening-clearing',
+      kind: 'observe',
+      resolvesPresence: false,
+    });
     expect(inspected.value.byId.get('talk-mira-awakening-clearing')).toMatchObject({
       presenceId: 'mira-awakening-clearing',
       kind: 'talk',
@@ -179,12 +184,20 @@ describe('catálogo de interações', () => {
       kind: 'observe',
       resolvesPresence: false,
     });
+    expect(inspected.value.byId.get('avoid-horned-rabbit-dense-woods')).toMatchObject({
+      presenceId: 'horned-rabbit-dense-woods',
+      kind: 'avoid',
+      resolvesPresence: false,
+      timeCost: { periods: 0 },
+    });
     expect(inspected.value.byId.get('observe-horned-rabbit-dense-woods')?.narrative).toBeUndefined();
     expect(inspected.value.byPresence.get('mira-awakening-clearing')?.map((entry) => entry.id)).toEqual([
+      'observe-mira-awakening-clearing',
       'talk-mira-awakening-clearing',
     ]);
     expect(inspected.value.byPresence.get('horned-rabbit-dense-woods')?.map((entry) => entry.id)).toEqual([
       'observe-horned-rabbit-dense-woods',
+      'avoid-horned-rabbit-dense-woods',
     ]);
   });
 
@@ -636,7 +649,7 @@ describe('planejamento puro de interação', () => {
       START,
     );
 
-    expect(source.interactions[0]?.id).toBe('talk-mira-awakening-clearing');
+    expect(source.interactions.some((entry) => entry.id === 'talk-mira-awakening-clearing')).toBe(true);
     expect(plan.interactionId).toBe('talk-mira-awakening-clearing');
     expect(() => asMutableMap(interactions.byId).set('hacked', interaction({ id: 'hacked' }))).toThrow(PresenceError);
     expect(() => asMutableMap(interactions.byPresence).clear()).toThrow(PresenceError);

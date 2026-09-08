@@ -114,9 +114,9 @@ describe('superfície mobile do sandbox', () => {
     expect(attempt.current.sandbox.exploration).toEqual(attempt.result.current.sandbox.exploration);
     expect(attempt.current.sandbox.presences).toEqual({
       discoveredPresenceIds: ['mira-awakening-clearing'],
-      resolvedPresenceIds: ['mira-awakening-clearing'],
+      resolvedPresenceIds: [],
     });
-    expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
+    expect(attempt.current.narrativeSession).toBeNull();
     expect(loaded).toEqual({ status: 'ok', state: attempt.current });
     expect(loaded.status === 'ok' && loaded.state).not.toEqual(exploring);
   });

@@ -17,14 +17,15 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 7.2 — orquestrador de ações e tempo — está implementada: `executeSandboxAction` aplica movimento, exploração, coleta e crafting sobre o `GameState`, com custo único, recuperação, renovação e reavaliações gratuitas. Não persiste.
 - A Fatia 7.3 — da introdução à exploração livre — está implementada: `narrativeSession` opcional e retorno à exploração depois da capacidade inicial.
 - A Fatia 7.4 — superfície mobile — está implementada: destinos, explorar, coletar e fabricar na tela de exploração, via `executeSandboxAction` e o mesmo `SandboxContext` da persistência.
-- A Fatia 7.5 — gatilho de mundo e primeiro encontro — está implementada: explorar a Clareira revela `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite. O consumo fica em `GameState.flags`.
+- A Fatia 7.5 — gatilho de mundo e primeiro encontro — está implementada: o mecanismo genérico associa descobertas a sessões. A Fatia 8.6 desligou a ligação automática da Clareira; explorar revela Mira e a conversa abre `first-priority`.
 - O marco mínimo do Sistema 7 foi atingido.
 - A Fatia 8.1 — catálogo e estado isolado de presenças — está implementada em `modules/presences`.
 - A Fatia 8.2 — sincronização com descobertas — está implementada: operação pura e consulta de presenças conhecidas.
 - A Fatia 8.3 — interações dirigidas por dados — está implementada: catálogo, consulta e planejamento puro.
-- A Fatia 8.4 — estado integrado, save e orquestração — está implementada: `sandbox.presences`, `schemaVersion: 4`, migração v1/v2/v3 e `presence.interact` atômico. O gatilho da 7.5 permanece, mas conversar e o gatilho se excluem para não reabrir `first-priority`.
-- A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`. Sem conteúdo extra da Fatia 8.6.
-- A Fatia 8.6 continua aguardando autorização. Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
+- A Fatia 8.4 — estado integrado, save e orquestração — está implementada: `sandbox.presences`, `schemaVersion: 4`, migração v1/v2/v3 e `presence.interact` atômico.
+- A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`.
+- A Fatia 8.6 — conteúdo jogável — está implementada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
+- Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -87,19 +88,19 @@ Estado conhecido:
 - a Fatia 7.2 orquestra movimento, exploração, coleta e crafting com aplicação única do tempo;
 - a Fatia 7.3 devolve o jogador à exploração depois da capacidade inicial, com sessão narrativa opcional;
 - a Fatia 7.4 expõe destinos, explorar, coletar e fabricar na superfície mobile;
-- a Fatia 7.5 abre o primeiro encontro pelo gatilho de descoberta `first-priority-event` e devolve o jogador ao sandbox;
+- a Fatia 7.5 oferece o mecanismo de gatilho de mundo; a campanha `first-day` não dispara mais `first-priority` ao explorar a Clareira;
 - o marco mínimo do Sistema 7 foi atingido;
 - a Fatia 8.1 isolou o catálogo e o estado de presenças em `modules/presences`;
 - a Fatia 8.2 sincroniza descobertas reveladas com presenças conhecidas;
 - a Fatia 8.3 planeja interações dirigidas por dados;
 - a Fatia 8.4 persiste `sandbox.presences` no schema 4 e executa `presence.interact` no orquestrador;
 - a Fatia 8.5 mostra presenças conhecidas no painel Mundo e dispara `presence.interact`;
-- a Fatia 8.6 continua aguardando autorização;
+- a Fatia 8.6 valida Mira e o coelho chifrudo ponta a ponta e reconcilia saves que já consumiram o gatilho da Clareira;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
 
-Sua primeira tarefa é validar e revisar a Fatia 8.5 contra docs/SYSTEM-PRESENCES.md.
+Sua primeira tarefa é validar e revisar a Fatia 8.6 contra docs/SYSTEM-PRESENCES.md.
 
 Execute:
 
@@ -110,15 +111,14 @@ npm run build
 
 Revise especialmente:
 
-- o view-model `buildExplorationView` só lista presenças conhecidas do local atual;
-- conteúdo oculto permanece invisível;
-- a seção “Presenças neste local” some quando vazia;
-- ações disparam somente `presence.interact`;
-- custo e motivo de bloqueio aparecem antes do clique;
-- presença resolvida não oferece ações inválidas;
+- explorar a Clareira revela Mira sem abrir `GameScreen`;
+- conversar abre `first-priority` uma vez e devolve ao mesmo local;
+- presença resolvida não repete o encontro;
+- o coelho aparece só após `horned-rabbit-tracks` e permanece no sandbox;
+- saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.5. Se não houver problemas, declare a Fatia 8.5 consolidada e então prepare, somente quando eu pedir, o recorte da Fatia 8.6.
+Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.6. Se não houver problemas, declare a Fatia 8.6 consolidada. Não numere um Sistema 9.
 
 Preserve o ciclo de trabalho:
 
@@ -127,6 +127,6 @@ especificar → implementar → testar → revisar → corrigir → consolidar �
 Não faça push sem minha autorização. Preserve alterações existentes e mantenha a conversa em português do Brasil.
 ```
 
-## Próxima decisão depois da Fatia 8.5
+## Próxima decisão depois da Fatia 8.6
 
-Revisar e corrigir a interface mobile de presenças. A Fatia 8.6 só começa depois da consolidação e de nova autorização do autor. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.
+Revisar e consolidar o conteúdo jogável de Mira e do coelho. Não criar Sistema 9. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.

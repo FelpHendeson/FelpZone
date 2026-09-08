@@ -20,7 +20,7 @@ O Sistema 7 conecta horário, ciclo diário, navegação, exploração, recursos
 
 ## Fatia 7.5 — Gatilho de mundo e primeiro encontro
 
-**Implementada.** Explorar a Clareira do Despertar revela a descoberta `first-priority-event` (`kind: 'event'`, `revealAt: 10`). Um catálogo declarativo em `modules/world-events` associa essa descoberta a `first-day` / `first-priority`. A superfície executa a ação sandbox, resolve no máximo um gatilho elegível na ordem do catálogo, marca `world.trigger.<id>.consumed` em `GameState.flags`, abre a sessão e persiste uma única vez o estado composto. A cadeia noturna devolve o jogador à exploração. O marco mínimo do Sistema 7 foi atingido.
+**Implementada.** Explorar a Clareira do Despertar revela a descoberta `first-priority-event` (`kind: 'event'`, `revealAt: 10`). O módulo `modules/world-events` continua oferecendo um catálogo declarativo que pode associar descobertas a sessões. A superfície executa a ação sandbox, resolve no máximo um gatilho elegível na ordem do catálogo ativo, marca `world.trigger.<id>.consumed` em `GameState.flags` quando um gatilho dispara, abre a sessão e persiste uma única vez o estado composto. A Fatia 8.6 deixou `FIRST_DAY_WORLD_TRIGGERS` vazio: a Clareira revela Mira e a narrativa começa só por `presence.interact`. A cadeia noturna devolve o jogador à exploração. O marco mínimo do Sistema 7 foi atingido.
 
 ## Estado integrado
 
@@ -157,7 +157,7 @@ A operação é atômica: se qualquer etapa falhar, o `GameState` recebido perma
 
 `startGame` abre `narrativeSession: { campaignId, eventId: campaign.firstEventId }`. Depois de `choose-ability`, as três capacidades usam `{ type: 'returnToExploration' }`: o jogador permanece `playing`, a sessão vira `null` e os efeitos da capacidade ficam no estado.
 
-`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` e ainda pode ser aberto pelo gatilho de descoberta `first-priority-event`. A Fatia 8.4 também pode abrir a mesma sessão por `presence.interact` quando o plano da interação declarar esse evento. Os dois caminhos se excluem: conversar consome o gatilho correspondente; o gatilho resolve a presença resolvível revelada por essa descoberta. Depois de um dos caminhos, o encontro não reabre.
+`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` e passa a ser aberto pela interação `talk` da presença de Mira. O mecanismo genérico de gatilhos permanece no adaptador, mas o catálogo da campanha `first-day` está vazio. Saves que já possuem `world.trigger.first-priority.consumed` reconciliam a presença revelada por `first-priority-event` como resolvida, para não repetir o encontro.
 
 A interface deriva a tela do estado: narrativa com sessão, exploração sem sessão, resumo quando `completed`. Um único `SandboxContext` alimenta persistência, leitura da interface e `executeSandboxAction`. Depois de uma ação sandbox, a integração consome gatilhos cujo evento já foi aberto, resolve gatilhos elegíveis sobre o estado seguinte, abre no máximo uma sessão, consome só o gatilho escolhido, resolve presenças resolvíveis da descoberta correspondente e grava uma vez o estado final. Carregar um save não dispara narrativa nem regrava o armazenamento.
 
@@ -178,7 +178,7 @@ interface WorldNarrativeTriggerDefinition {
 function startNarrativeSession(state: GameState, campaign: Campaign, eventId: string): GameState;
 ```
 
-A abertura da sessão não avança o relógio, não altera sandbox, inventário, atributos, histórico nem `updatedAt`. O consumo fica em `flags['world.trigger.<triggerId>.consumed']`. Se a descoberta já estiver revelada e a flag ainda não existir, a próxima ação sandbox válida dispara o gatilho. Falha no gatilho ou na sessão não persiste estado parcial.
+A abertura da sessão não avança o relógio, não altera sandbox, inventário, atributos, histórico nem `updatedAt`. O consumo de um gatilho ativo fica em `flags['world.trigger.<triggerId>.consumed']`. Com o catálogo da campanha vazio, explorar não dispara narrativa. Falha no gatilho ou na sessão não persiste estado parcial.
 
 Prioridade: ordem declarada do catálogo.
 

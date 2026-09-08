@@ -400,11 +400,11 @@ A persistência serializa somente o schema 4 validado e pode receber o mesmo `Sa
 
 O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting ou interação de presença. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
 
-A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, consome gatilhos cujo evento já foi aberto pela ação, resolve no máximo um gatilho elegível sobre o estado seguinte (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession`, resolve presenças resolvíveis da descoberta correspondente e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo.
+A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, consome gatilhos cujo evento já foi aberto pela ação, resolve no máximo um gatilho elegível sobre o estado seguinte (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession`, resolve presenças resolvíveis da descoberta correspondente e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. A Fatia 8.6 deixou o catálogo da campanha `first-day` vazio; a definição antiga permanece apenas para testes do mecanismo.
 
 ## Contrato de presenças
 
-O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. O planejamento puro não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo. A Fatia 8.4 persiste `PresenceState` em `sandbox.presences` e executa o plano por `presence.interact`. A Fatia 8.5 deriva a apresentação em `buildExplorationView` e dispara somente essa ação na interface.
+O módulo `modules/presences` descreve NPCs, animais e criaturas como entidades e as associa a locais por descobertas existentes. O planejamento puro não abre narrativa e não avança o relógio. A sincronização lê `ExplorationState` sem mutá-lo. A Fatia 8.4 persiste `PresenceState` em `sandbox.presences` e executa o plano por `presence.interact`. A Fatia 8.5 deriva a apresentação em `buildExplorationView` e dispara somente essa ação na interface. A Fatia 8.6 valida Mira (observar/conversar) e o coelho chifrudo (observar/evitar) e reconcilia saves que já consumiram o gatilho da Clareira.
 
 ```ts
 type WorldEntityKind = 'npc' | 'animal' | 'creature';
@@ -430,7 +430,7 @@ Operações públicas:
 - `listKnownPresenceInteractions` e `planPresenceInteraction`;
 - `getPresenceStatus` e `createPresenceEvaluator`.
 
-Agenda e movimento ficam fora deste contrato. A Fatia 8.5 apresenta o estado derivado na superfície mobile sem copiar regras para o React.
+Agenda e movimento ficam fora deste contrato. A Fatia 8.5 apresenta o estado derivado na superfície mobile sem copiar regras para o React. A Fatia 8.6 usa essa superfície para Mira e o coelho.
 
 ## Contratos do motor
 
@@ -473,7 +473,7 @@ A presença da sessão é a fonte canônica:
 - `status: 'playing'` e `narrativeSession === null`: exploração livre;
 - `status: 'completed'`: encerramento definitivo, com sessão nula.
 
-Não há `currentEventId`, `mode` nem `isExploring` no schema atual. Depois da capacidade inicial, a transição `returnToExploration` encerra a sessão sem concluir a partida. `first-priority` é uma entrada com `canStartSession: true`, aberta pelo gatilho de descoberta `first-priority-event`. `night-together` e `night-alone` também devolvem à exploração. Saves `completed` legados continuam válidos.
+Não há `currentEventId`, `mode` nem `isExploring` no schema atual. Depois da capacidade inicial, a transição `returnToExploration` encerra a sessão sem concluir a partida. `first-priority` é uma entrada com `canStartSession: true`, aberta pela interação `talk` da presença de Mira. `night-together` e `night-alone` também devolvem à exploração. Saves `completed` legados continuam válidos.
 
 ## Testes prioritários
 

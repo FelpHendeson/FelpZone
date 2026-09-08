@@ -127,7 +127,7 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. A revisão posterior de UI/UX preserva esse contrato e o apresenta por HUD, cena, mapa adjacente, painéis e navegação inferior. A Fatia 8.5 acrescenta a seção “Presenças neste local” no painel Mundo, alimentada pelo view-model; a tela continua lendo o `GameState` e disparando ações do sandbox. Apresentação não decide regra de jogo.
 
-A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta. A interface reutiliza `GameScreen` e o motor existente; não há uma segunda tela de diálogo. O feedback da ação pode avisar que algo exige atenção. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo.
+A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta quando o catálogo ativo contém essa ligação. A Fatia 8.6 desligou essa ligação na campanha `first-day`: a interface reutiliza `GameScreen` só depois de o jogador conversar com Mira. Não há uma segunda tela de diálogo. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo.
 
 Encontrar e interagir com NPCs e criaturas é uma direção definida. Persistência própria, agendas, comportamento autônomo e combate são possibilidades ainda não discutidas; não existe uma próxima etapa aprovada para elas. Consulte `PROJECT-STATUS.md`.
 

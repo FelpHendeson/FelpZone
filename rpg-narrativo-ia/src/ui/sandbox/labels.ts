@@ -18,7 +18,7 @@ const STATION_NAMES: Record<string, string> = {
 
 const DISCOVERY_NAMES: Record<string, string> = {
   'awakening-site': 'Marca do despertar',
-  'first-priority-event': 'Um chamado do Sistema',
+  'first-priority-event': 'Sinais de outra sobrevivente',
   'path-great-tree': 'Passagem para a Grande Árvore',
   'fallen-sticks': 'Gravetos caídos',
   'path-spring-lake': 'Passagem para a Nascente',

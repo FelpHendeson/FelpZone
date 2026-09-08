@@ -9,8 +9,12 @@ import {
 } from '../../modules/sandbox';
 import {
   createInitialPresenceState,
+  resolvePresencesRevealedByDiscovery,
   synchronizeDiscoveredPresences,
+  type IndexedPresences,
+  type PresenceState,
 } from '../../modules/presences';
+import { worldTriggerConsumedFlag } from '../../modules/world-events';
 import {
   ATTRIBUTE_IDS,
   MIGRATED_CAMPAIGN_ID,
@@ -116,7 +120,11 @@ export function migrateGameStateV3(state: GameStateV3, context?: SandboxContext)
     },
     sandbox: {
       ...sandbox.value,
-      presences: synced.current,
+      presences: reconcileConsumedWorldPresenceResolutions(
+        resolvedContext.presences,
+        synced.current,
+        state.flags,
+      ),
     },
     updatedAt: state.updatedAt,
   };
@@ -207,6 +215,18 @@ function requireContext(context?: SandboxContext): SandboxContext {
   return inspected.value;
 }
 
+function reconcileConsumedWorldPresenceResolutions(
+  catalog: IndexedPresences,
+  presences: PresenceState,
+  flags: Record<string, boolean>,
+): PresenceState {
+  if (flags[worldTriggerConsumedFlag('first-priority')] !== true) {
+    return presences;
+  }
+
+  return resolvePresencesRevealedByDiscovery(catalog, presences, 'first-priority-event');
+}
+
 function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInspection {
   if (!isRecord(value)) {
     return fail('O salvamento não contém um objeto válido.');
@@ -235,13 +255,22 @@ function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInsp
     return fail(sandbox.reason);
   }
 
+  const resolvedContext = requireContext(context);
+
   return {
     ok: true,
     state: {
       schemaVersion: SCHEMA_VERSION,
       ...shared.value,
       narrativeSession: session.value,
-      sandbox: sandbox.value,
+      sandbox: {
+        ...sandbox.value,
+        presences: reconcileConsumedWorldPresenceResolutions(
+          resolvedContext.presences,
+          sandbox.value.presences,
+          shared.value.flags,
+        ),
+      },
     },
   };
 }

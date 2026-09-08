@@ -37,7 +37,7 @@ Retornar à exploração
 5. Receber uma introdução curta a horário e navegação.
 6. Entrar no modo de exploração.
 
-A introdução reutiliza o conteúdo atual até a capacidade inicial. Depois dela, o motor não seleciona automaticamente `first-priority`. A cadeia é aberta pelo gatilho de mundo associado à descoberta `first-priority-event`, revelada ao explorar a Clareira do Despertar. Ao terminar a noite, a sessão devolve o jogador à exploração.
+A introdução reutiliza o conteúdo atual até a capacidade inicial. Depois dela, o motor não seleciona automaticamente `first-priority`. Explorar a Clareira revela `first-priority-event` e a presença de Mira; a narrativa só começa se o jogador escolher conversar. Ao terminar a noite, a sessão devolve o jogador à exploração.
 
 ## Modos
 
@@ -52,7 +52,7 @@ Menus não constituem modo de mundo e não avançam tempo.
 
 ## Gatilhos
 
-O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado. As Fatias 8.1 a 8.3 do Sistema 8 já isolam o catálogo de presenças, a sincronização com descobertas e o planejamento de interações; a Fatia 8.4 persiste e orquestra; a Fatia 8.5 apresenta as presenças conhecidas. Demais gatilhos continuam para etapas posteriores:
+O resultado desejado admite gatilhos como os abaixo, mas somente `discovery.revealed` está implementado no mecanismo genérico. As Fatias 8.1 a 8.6 do Sistema 8 isolam o catálogo de presenças, sincronizam descobertas, planejam interações, persistem, apresentam e validam Mira e o coelho. O catálogo `FIRST_DAY_WORLD_TRIGGERS` está vazio: explorar a Clareira não abre mais `first-priority` automaticamente. Demais tipos de gatilho continuam para etapas posteriores:
 
 - entrada em local;
 - primeira visita;
@@ -81,7 +81,7 @@ Exemplo conceitual:
 }
 ```
 
-O primeiro gatilho implementado é declarativo: `source.type: 'discovery.revealed'` associa uma descoberta a `campaignId` / `eventId`. O catálogo vive em `modules/world-events` e na campanha `first-day`. Consumo único fica em `GameState.flags`. Outros tipos (entrada em local, presença de NPC, período) são possibilidades ainda sem etapa aprovada.
+O primeiro gatilho implementado é declarativo: `source.type: 'discovery.revealed'` associa uma descoberta a `campaignId` / `eventId`. O mecanismo vive em `modules/world-events`. A campanha `first-day` não registra mais essa ligação automática. Consumo único, quando um gatilho ativo dispara, fica em `GameState.flags`. Outros tipos (entrada em local, presença de NPC, período) são possibilidades ainda sem etapa aprovada.
 
 ## Trama principal e conteúdo opcional
 
@@ -125,15 +125,16 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 ## Limites atuais
 
 - a superfície mobile de exploração (Fatia 7.4) já expõe navegar, explorar, coletar e fabricar;
-- o primeiro encontro (Fatia 7.5) abre `first-priority` a partir da descoberta `first-priority-event` e devolve o jogador ao sandbox;
-- a Fatia 8.5 mostra presenças conhecidas do local no painel Mundo e dispara `presence.interact`;
+- o mecanismo de gatilho (Fatia 7.5) permanece disponível; a campanha `first-day` não usa mais a ligação automática da Clareira;
+- a Fatia 8.6 mostra Mira após explorar a Clareira e abre `first-priority` só ao conversar; o coelho na Mata Densa permanece no sandbox;
 - nenhum minijogo está definido ou aprovado;
 - o Sistema 8 foi aprovado para entidades, presenças por local, descoberta, disponibilidade derivada, resolução e ações contextuais;
 - a Fatia 8.1 já isolou o catálogo e o estado de presenças;
 - a Fatia 8.2 sincroniza descobertas reveladas com presenças conhecidas;
 - a Fatia 8.3 planeja interações dirigidas por dados;
-- a Fatia 8.4 persiste o estado mínimo no sandbox, executa `presence.interact` no orquestrador e impede que o gatilho da 7.5 e a conversa reabram o mesmo encontro;
+- a Fatia 8.4 persiste o estado mínimo no sandbox e executa `presence.interact` no orquestrador;
 - a Fatia 8.5 expõe essas presenças na interface mobile existente;
+- saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida;
 - `NPCState` completo e agenda continuam fora do escopo;
 - comportamento de criaturas e combate não foram discutidos nem aprovados;
 - fome, alimento, descanso e abrigo aparecem na experiência, mas sobrevivência automática ainda não foi definida;

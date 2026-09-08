@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 2 de setembro de 2026.**
 
-O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.5 estão implementadas. As fatias seguintes dependem de validação e consolidação da anterior.
+O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.6 estão implementadas. Não existe Sistema 9 aprovado.
 
 ## Problema de diversão e imersão
 
@@ -272,7 +272,7 @@ Regras de UX:
 
 ### Fatia 8.4 — Estado integrado e orquestração
 
-**Implementada.** `SandboxState.presences` entra no save com `schemaVersion: 4`. O contexto indexa os catálogos de presenças e de interações. Saves v1, v2 e v3 válidos são lidos e migrados; a migração v3 cria estado inicial vazio e sincroniza descobertas já reveladas, sem inventar resoluções nem regravar `localStorage`. `presence.interact` planeja pela Fatia 8.3, aplica efeitos, cobra `TimeCost` uma vez, sincroniza presenças, resolve só quando o plano declara e abre `narrativeSession` quando a referência é válida. Falha não devolve nem persiste estado parcial. A localização atual não muda. O gatilho de mundo da Fatia 7.5 permanece: se `presence.interact` abrir o mesmo evento, o adaptador consome o gatilho correspondente; se o gatilho abrir a sessão, as presenças resolvíveis daquela descoberta também são resolvidas. Os dois caminhos não reabrem o encontro.
+**Implementada.** `SandboxState.presences` entra no save com `schemaVersion: 4`. O contexto indexa os catálogos de presenças e de interações. Saves v1, v2 e v3 válidos são lidos e migrados; a migração v3 cria estado inicial vazio e sincroniza descobertas já reveladas. `presence.interact` planeja pela Fatia 8.3, aplica efeitos, cobra `TimeCost` uma vez, sincroniza presenças, resolve só quando o plano declara e abre `narrativeSession` quando a referência é válida. Falha não devolve nem persiste estado parcial. A localização atual não muda. O mecanismo genérico de gatilhos da Fatia 7.5 permanece no adaptador: se um gatilho do catálogo ativo abrir a sessão, as presenças resolvíveis daquela descoberta também são resolvidas.
 
 ### Fatia 8.5 — Interface mobile
 
@@ -280,7 +280,15 @@ Regras de UX:
 
 ### Fatia 8.6 — Conteúdo protótipo
 
-Usar Mira e os coelhos chifrudos para validar ao menos uma presença social, uma presença de criatura, uma interação narrativa e uma interação sem diálogo.
+**Implementada.** Mira e o coelho chifrudo validam os dois caminhos do Sistema 8.
+
+- Explorar a Clareira revela `first-priority-event` e a presença `mira-awakening-clearing` sem abrir narrativa.
+- Mira oferece `observe` (feedback no sandbox, não resolve) e `talk` (abre `first-priority`, resolve a ocorrência).
+- Terminar a cadeia noturna devolve o jogador à mesma localização; a presença resolvida não reabre conversa.
+- Explorar a Mata Densa revela `horned-rabbit-tracks` e `horned-rabbit-dense-woods`.
+- O coelho oferece `observe` (1 período) e `avoid` (custo 0); ambos permanecem no sandbox, sem combate nem atributos de criatura.
+- `FIRST_DAY_WORLD_TRIGGERS` está vazio: a ligação automática `first-priority-event` → `first-priority` foi desligada. A definição `FIRST_PRIORITY_WORLD_TRIGGER` permanece para o mecanismo genérico em `modules/world-events`.
+- Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida na leitura (v3 e v4), sem duplicar o encontro.
 
 ## Fatia 8.1 — Contrato de implementação
 
@@ -458,8 +466,8 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 - o estado persistido contém só IDs descobertos e resolvidos; catálogos e definições ficam fora do JSON;
 - saves v3 sem as descobertas de Mira ou do coelho migram com listas vazias;
 - saves v3 que já revelaram `first-priority-event` ou `horned-rabbit-tracks` sincronizam a presença correspondente, sem marcar resolução;
-- `world.trigger.*.consumed` não corrompe nem duplica presença;
-- `presence.interact` que abre o mesmo evento de um gatilho consome esse gatilho; o gatilho que abre a sessão resolve as presenças resolvíveis da descoberta correspondente;
+- `world.trigger.first-priority.consumed` na leitura reconcilia a presença revelada por `first-priority-event` como resolvida, para partidas que já consumiram o gatilho da 7.5;
+- `presence.interact` que abre o mesmo evento de um gatilho presente no catálogo ativo consome esse gatilho; o gatilho que abre a sessão resolve as presenças resolvíveis da descoberta correspondente;
 - `presence.interact` valida o plano antes de comprometer mudanças;
 - efeitos, tempo, resolução e narrativa falham juntos: nada parcial é retornado ou persistido;
 - o custo temporal é aplicado no máximo uma vez; abrir narrativa não acrescenta custo;
@@ -471,24 +479,13 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 ### Fora da Fatia 8.4
 
 - botões, cartões ou qualquer mudança visual de presença;
-- eventos narrativos extensos da Fatia 8.6;
-- remoção do gatilho `first-priority` da Fatia 7.5;
+- eventos narrativos extensos além do `first-priority` já existente;
 - agenda, movimento autônomo, IA ou combate;
 - sobrevivência automática.
 
 ## Critérios de conclusão do Sistema 8
 
-O sistema completo estará consolidado quando:
-
-- exploração puder revelar presença sem iniciar automaticamente uma conversa;
-- a localização mostrar somente presenças descobertas pertinentes;
-- o jogador puder escolher uma interação válida;
-- custos forem apresentados antes e aplicados uma única vez;
-- interações narrativas abrirem e devolverem ao sandbox corretamente;
-- ocorrências resolvidas não reaparecerem indevidamente;
-- save e migração preservarem o estado mínimo;
-- Mira e coelhos chifrudos validarem caminhos diferentes;
-- testes, lint, tipos, build e revisão passarem.
+O sistema completo está consolidado: exploração revela presença sem conversa automática; o local mostra somente presenças descobertas; o jogador escolhe a interação; custos aparecem antes e aplicam-se uma vez; narrativa de Mira abre e devolve ao sandbox; o coelho permanece no mundo sem combate; save e migração preservam descobertas e resoluções.
 
 ## Fora do Sistema 8
 

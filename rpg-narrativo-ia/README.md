@@ -31,7 +31,7 @@ Leia nesta ordem:
 13. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
 14. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
 15. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
-16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado; Fatias 8.1 a 8.5 implementadas.
+16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
 17. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, próxima fatia e temas ainda sem etapa aprovada.
 18. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -98,13 +98,13 @@ O Sistema 8 — Presenças e interações no mundo — está aprovado. As Fatias
 - O salvamento local usa `schemaVersion: 4`, persiste `narrativeSession` (nula na exploração livre) e `sandbox.presences`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1, v2 e v3 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
-- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o primeiro encontro acionado por gatilho de mundo.
-- O Sistema 8 está aprovado. As Fatias 8.1 a 8.5 existem no código: catálogo, sincronização, planejamento, save schema 4, orquestração de `presence.interact` e a interface mobile de presenças conhecidas no local. O conteúdo extra da Fatia 8.6 continua pendente.
+- A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
+- O Sistema 8 está implementado. As Fatias 8.1 a 8.6 existem no código: catálogo, sincronização, planejamento, save schema 4, orquestração de `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo o view-model de presenças, persistência schema 4, orquestração e os testes anteriores.
+- `npm test`: suíte completa, incluindo o fluxo jogável de Mira e do coelho, persistência schema 4, orquestração e os testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
-- Explorar a Clareira do Despertar revela o gatilho `first-priority-event`, abre `first-priority` e devolve o jogador ao sandbox depois da noite.
+- Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.
 - Presenças conhecidas aparecem no painel Mundo; conteúdo oculto permanece invisível.

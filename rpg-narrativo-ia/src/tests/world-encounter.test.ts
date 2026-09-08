@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
-import { FIRST_DAY_WORLD_TRIGGERS } from '../campaigns/first-day/world-triggers';
+import { FIRST_DAY_WORLD_TRIGGERS, FIRST_PRIORITY_WORLD_TRIGGER } from '../campaigns/first-day/world-triggers';
 import {
   EngineError,
   applyChoice,
@@ -24,6 +24,7 @@ import { asV1, asV2, now, playChoices, playFirstDay } from './helpers';
 
 const context = createSandboxContext();
 const catalog = FIRST_DAY_WORLD_TRIGGERS;
+const mechanismCatalog = [FIRST_PRIORITY_WORLD_TRIGGER];
 const consumedFlag = worldTriggerConsumedFlag('first-priority');
 
 function exploringWith(choiceId: string) {
@@ -47,16 +48,25 @@ function openEncounter(state: ReturnType<typeof playFirstDay>) {
 }
 
 describe('catálogo de gatilhos de mundo', () => {
-  it('aceita o catálogo válido da campanha', () => {
-    const inspected = inspectWorldTriggerCatalog(catalog, {
+  it('aceita o catálogo vazio da campanha e preserva o mecanismo genérico', () => {
+    const empty = inspectWorldTriggerCatalog(catalog, {
+      campaign: firstDayCampaign,
+      exploration: context.exploration,
+    });
+    const mechanism = inspectWorldTriggerCatalog(mechanismCatalog, {
       campaign: firstDayCampaign,
       exploration: context.exploration,
     });
 
-    expect(inspected.ok).toBe(true);
-    if (inspected.ok) {
-      expect(inspected.value.definitions).toHaveLength(1);
-      expect(inspected.value.byDiscoveryId.get('first-priority-event')?.eventId).toBe('first-priority');
+    expect(empty.ok).toBe(true);
+    if (empty.ok) {
+      expect(empty.value.definitions).toHaveLength(0);
+    }
+
+    expect(mechanism.ok).toBe(true);
+    if (mechanism.ok) {
+      expect(mechanism.value.definitions).toHaveLength(1);
+      expect(mechanism.value.byDiscoveryId.get('first-priority-event')?.eventId).toBe('first-priority');
     }
   });
 
@@ -98,12 +108,12 @@ describe('catálogo de gatilhos de mundo', () => {
       ).ok,
     ).toBe(false);
     expect(
-      inspectWorldTriggerCatalog([...catalog, ...catalog], contextValue),
+      inspectWorldTriggerCatalog([...mechanismCatalog, ...mechanismCatalog], contextValue),
     ).toMatchObject({ ok: false, reason: expect.stringMatching(/duplicado/) });
     expect(
       inspectWorldTriggerCatalog(
         [
-          catalog[0],
+          FIRST_PRIORITY_WORLD_TRIGGER,
           {
             id: 'other',
             source: { type: 'discovery.revealed', discoveryId: 'first-priority-event' },
@@ -147,7 +157,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(result.current.narrativeSession).toBeNull();
   });
 
-  it('avança o tempo exatamente uma vez ao explorar e abrir o encontro', () => {
+  it('avança o tempo exatamente uma vez ao explorar sem abrir o encontro', () => {
     const exploring = exploringWith('ability-perception');
     const worldBefore = { ...exploring.world };
     const attempt = commit(exploring, { type: 'exploration.explore' });
@@ -161,8 +171,11 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(attempt.result.dayCycle.time.crossedPeriods).toHaveLength(1);
     expect(attempt.current.world).not.toEqual(worldBefore);
     expect(attempt.current.world).toEqual(attempt.result.current.world);
-    expect(attempt.openedTrigger?.id).toBe('first-priority');
-    expect(attempt.feedback).toContain(WORLD_TRIGGER_ATTENTION);
+    expect(attempt.openedTrigger).toBeUndefined();
+    expect(attempt.current.narrativeSession).toBeNull();
+    expect(attempt.current.sandbox.presences.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(attempt.current.sandbox.presences.resolvedPresenceIds).toEqual([]);
+    expect(attempt.feedback).not.toContain(WORLD_TRIGGER_ATTENTION);
   });
 
   it('não avança tempo adicional ao abrir a sessão', () => {
@@ -179,7 +192,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(opened.history).toEqual(sandboxed.history);
   });
 
-  it('persiste uma única vez o sandbox atualizado, a flag e a sessão', () => {
+  it('persiste uma única vez o sandbox atualizado sem abrir narrativa automaticamente', () => {
     const exploring = exploringWith('ability-perception');
     const persistence = createMemoryPersistence(undefined, context);
     let writes = 0;
@@ -206,17 +219,27 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(loaded.state.sandbox.crafting).toEqual(attempt.result.current.sandbox.crafting);
     expect(loaded.state.sandbox.presences).toEqual({
       discoveredPresenceIds: ['mira-awakening-clearing'],
-      resolvedPresenceIds: ['mira-awakening-clearing'],
+      resolvedPresenceIds: [],
     });
-    expect(loaded.state.flags[consumedFlag]).toBe(true);
-    expect(loaded.state.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
-    expect(attempt.current).not.toBe(attempt.result.current);
-    expect(toAppScreen(loaded.state)).toBe('game');
+    expect(loaded.state.flags[consumedFlag]).toBeUndefined();
+    expect(loaded.state.narrativeSession).toBeNull();
+    expect(attempt.current).toBe(attempt.result.current);
+    expect(toAppScreen(loaded.state)).toBe('exploration');
   });
 
   it('salvar e carregar durante first-priority preserva o evento atual', () => {
     const exploring = exploringWith('ability-perception');
-    const opened = commit(exploring, { type: 'exploration.explore' });
+    const revealed = commit(exploring, { type: 'exploration.explore' });
+    expect(revealed.ok).toBe(true);
+    if (!revealed.ok) {
+      throw new Error(revealed.error);
+    }
+
+    const opened = commit(revealed.current, {
+      type: 'presence.interact',
+      presenceId: 'mira-awakening-clearing',
+      interactionId: 'talk-mira-awakening-clearing',
+    });
     expect(opened.ok).toBe(true);
     if (!opened.ok) {
       throw new Error(opened.error);
@@ -276,7 +299,17 @@ describe('primeiro encontro acionado pelo mundo', () => {
 
   it('night-together retorna à exploração preservando o sandbox', () => {
     const exploring = exploringWith('ability-perception');
-    const before = commit(exploring, { type: 'exploration.explore' });
+    const revealed = commit(exploring, { type: 'exploration.explore' });
+    expect(revealed.ok).toBe(true);
+    if (!revealed.ok) {
+      throw new Error(revealed.error);
+    }
+
+    const before = commit(revealed.current, {
+      type: 'presence.interact',
+      presenceId: 'mira-awakening-clearing',
+      interactionId: 'talk-mira-awakening-clearing',
+    });
     expect(before.ok).toBe(true);
     if (!before.ok) {
       throw new Error(before.error);
@@ -295,7 +328,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(returned.sandbox.exploration).toEqual(before.current.sandbox.exploration);
     expect(returned.sandbox.resources).toEqual(before.current.sandbox.resources);
     expect(returned.sandbox.crafting).toEqual(before.current.sandbox.crafting);
-    expect(returned.flags[consumedFlag]).toBe(true);
+    expect(returned.flags[consumedFlag]).toBeUndefined();
     expect(returned.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(returned.flags['camp.together']).toBe(true);
     expect(returned.world.period).toBe('noite');
@@ -320,7 +353,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(returned.sandbox.navigation.currentLocationId).toBe('awakening-clearing');
   });
 
-  it('o gatilho não dispara novamente depois de consumido', () => {
+  it('o encontro não abre de novo depois de resolvido', () => {
     const exploring = exploringWith('ability-perception');
     const first = commit(exploring, { type: 'exploration.explore' });
     expect(first.ok).toBe(true);
@@ -328,8 +361,18 @@ describe('primeiro encontro acionado pelo mundo', () => {
       throw new Error(first.error);
     }
 
+    const talked = commit(first.current, {
+      type: 'presence.interact',
+      presenceId: 'mira-awakening-clearing',
+      interactionId: 'talk-mira-awakening-clearing',
+    });
+    expect(talked.ok).toBe(true);
+    if (!talked.ok) {
+      throw new Error(talked.error);
+    }
+
     const returned = playChoices(
-      first.current,
+      talked.current,
       ['seek-water', 'alert-hide', 'meet-open', 'share-fruit', 'accept-shelter', 'together-summary'],
     );
     const second = commit(returned, { type: 'exploration.explore' });
@@ -341,7 +384,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
 
     expect(second.openedTrigger).toBeUndefined();
     expect(second.current.narrativeSession).toBeNull();
-    expect(second.current.flags[consumedFlag]).toBe(true);
+    expect(second.current.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(toAppScreen(second.current)).toBe('exploration');
   });
 
@@ -349,7 +392,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     const exploring = exploringWith('ability-perception');
     const revealed = executeSandboxAction(exploring, { type: 'exploration.explore' }, { context, now }).current;
     const opened = startNarrativeSession(revealed, firstDayCampaign, 'first-priority');
-    const inspected = inspectWorldTriggerCatalog(catalog, {
+    const inspected = inspectWorldTriggerCatalog(mechanismCatalog, {
       campaign: firstDayCampaign,
       exploration: context.exploration,
     });
@@ -367,7 +410,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     expect(consumeWorldTriggersMatchingNarrative(inspected.value, revealed)).toBe(revealed);
   });
 
-  it('um save da Fatia 7.4 com descoberta revelada e sem flag dispara na próxima ação válida', () => {
+  it('um save da Fatia 7.4 com descoberta revelada e sem flag não dispara narrativa na próxima ação', () => {
     const exploring = exploringWith('ability-perception');
     const revealed = executeSandboxAction(exploring, { type: 'exploration.explore' }, { context, now }).current;
     expect(revealed.flags[consumedFlag]).toBeUndefined();
@@ -388,9 +431,11 @@ describe('primeiro encontro acionado pelo mundo', () => {
       throw new Error(attempt.error);
     }
 
-    expect(attempt.openedTrigger?.eventId).toBe('first-priority');
-    expect(attempt.current.flags[consumedFlag]).toBe(true);
-    expect(toAppScreen(attempt.current)).toBe('game');
+    expect(attempt.openedTrigger).toBeUndefined();
+    expect(attempt.current.narrativeSession).toBeNull();
+    expect(attempt.current.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
+    expect(attempt.current.sandbox.presences.resolvedPresenceIds).toEqual([]);
+    expect(toAppScreen(attempt.current)).toBe('exploration');
   });
 
   it('ação inválida não consome gatilho nem persiste estado parcial', () => {

@@ -72,9 +72,9 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 4 — Exploração | **Implementado e consolidado** | Progresso por local, descobertas dirigidas por dados, passagens e conclusão agregada de zona. | Balanceamento e conteúdo ainda são protótipos. |
 | Sistema 5 — Recursos e ecologia | **Implementado e consolidado** | Pontos limitados, coleta, renovação curta/longa e população que pode sofrer pressão ou extinção local. | A caça atual é uma abstração de coleta. |
 | Sistema 6 — Crafting e cozinha | **Implementado e consolidado** | Receitas, consumo atômico, fogueira, estruturas locais e cozinha por estação. | Poucas receitas; combustível e ferramentas não funcionam ainda. |
-| Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e primeiro gatilho de mundo. | Há somente um encontro acionado pelo mundo. |
+| Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e mecanismo genérico de gatilhos de mundo. | O catálogo da campanha `first-day` não dispara mais o encontro da Clareira automaticamente. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
-| Sistema 8 — Presenças e interações | **Fatias 8.1 a 8.5 implementadas; Fatia 8.6 aguardando** | Catálogo, sincronização com descobertas, planejamento de interações, `PresenceState` no sandbox persistido, schema 4, `presence.interact` atômico e seção “Presenças neste local” no painel Mundo. | Sem conteúdo extra da Fatia 8.6, agenda, IA ou combate. |
+| Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -160,12 +160,12 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 ## Meta atual e próxima decisão
 
-O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora, aciona o primeiro encontro e retorna ao sandbox.
+O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**O Sistema 8 foi aprovado e especificado.** As Fatias 8.1 a 8.5 estão implementadas. A Fatia 8.6 — conteúdo protótipo — só começa depois de revisão e autorização. Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**O Sistema 8 foi aprovado, implementado e consolidado nas Fatias 8.1 a 8.6.** Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 Antes de qualquer próxima implementação:
 
-1. revisar a Fatia 8.5 contra o contrato;
-2. obter autorização antes de iniciar a Fatia 8.6;
+1. revisar a Fatia 8.6 contra o contrato;
+2. não numerar um Sistema 9 sem discussão e aprovação do autor;
 3. não promover possibilidades futuras a requisitos.

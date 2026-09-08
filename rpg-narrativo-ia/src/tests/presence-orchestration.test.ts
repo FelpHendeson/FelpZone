@@ -101,7 +101,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     expect(revealed.sandbox.presences.resolvedPresenceIds).toEqual([]);
   });
 
-  it('flag de gatilho consumido não duplica presença na migração', () => {
+  it('flag de gatilho consumido resolve Mira na migração sem duplicar o encontro', () => {
     const revealed = revealMira(exploring());
     const flagged = inspectOrThrow({
       ...revealed,
@@ -114,8 +114,20 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     }
 
     expect(migrated.state.sandbox.presences.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
-    expect(migrated.state.sandbox.presences.resolvedPresenceIds).toEqual([]);
+    expect(migrated.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(migrated.state.flags[worldTriggerConsumedFlag('first-priority')]).toBe(true);
+
+    const reloaded = parseGameState(
+      JSON.stringify({
+        ...JSON.parse(serializeGameState(revealed, context)),
+        flags: { ...revealed.flags, [worldTriggerConsumedFlag('first-priority')]: true },
+      }),
+      context,
+    );
+    expect(reloaded.status).toBe('ok');
+    if (reloaded.status === 'ok') {
+      expect(reloaded.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+    }
   });
 
   it('sincroniza descobertas antigas na migração v3', () => {
@@ -351,7 +363,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
 
     expect(talk.openedTrigger).toBeUndefined();
     expect(talk.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
-    expect(talk.current.flags[worldTriggerConsumedFlag('first-priority')]).toBe(true);
+    expect(talk.current.flags[worldTriggerConsumedFlag('first-priority')]).toBeUndefined();
     expect(talk.current.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
 
     const returned = playChoices(talk.current, [
@@ -382,7 +394,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     expect(next.current.narrativeSession).toBeNull();
   });
 
-  it('o gatilho de mundo resolve Mira e impede conversar de novo depois do retorno', () => {
+  it('explorar não resolve Mira; conversar resolve e impede repetir depois do retorno', () => {
     const opened = commitSandboxAction(
       exploring(),
       { type: 'exploration.explore' },
@@ -399,11 +411,32 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
       return;
     }
 
-    expect(opened.openedTrigger?.id).toBe('first-priority');
+    expect(opened.openedTrigger).toBeUndefined();
+    expect(opened.current.narrativeSession).toBeNull();
     expect(opened.current.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
-    expect(opened.current.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(opened.current.sandbox.presences.resolvedPresenceIds).toEqual([]);
 
-    const returned = playChoices(opened.current, [
+    const talked = commitSandboxAction(
+      opened.current,
+      {
+        type: 'presence.interact',
+        presenceId: 'mira-awakening-clearing',
+        interactionId: 'talk-mira-awakening-clearing',
+      },
+      context,
+      {
+        campaign: firstDayCampaign,
+        catalog: FIRST_DAY_WORLD_TRIGGERS,
+        persist: () => undefined,
+      },
+    );
+
+    expect(talked.ok).toBe(true);
+    if (!talked.ok) {
+      return;
+    }
+
+    const returned = playChoices(talked.current, [
       'seek-water',
       'alert-hide',
       'meet-open',

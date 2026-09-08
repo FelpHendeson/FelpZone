@@ -74,7 +74,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 8 — Presenças e interações no mundo
 
-**Aprovada e especificada.** As Fatias 8.1 a 8.5 estão implementadas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**Aprovada, especificada e implementada.** As Fatias 8.1 a 8.6 estão implementadas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
 
 #### Fatia 8.1 — Catálogo e estado isolado
 
@@ -98,7 +98,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 8.6 — Conteúdo protótipo
 
-**Aprovada, aguardando a Fatia 8.5.** Validar uma presença social e uma de criatura usando Mira e coelhos chifrudos.
+**Implementada.** Explorar a Clareira revela Mira sem abrir conversa. Conversar abre `first-priority` e devolve ao mesmo local. Na Mata Densa, o coelho chifrudo pode ser observado ou evitado sem combate. O gatilho automático da 7.5 na campanha `first-day` foi desligado; o mecanismo genérico permanece. Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
 
 ## Depois do Sistema 8
 
@@ -131,7 +131,7 @@ Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificaçã
 - administração jogável de assentamentos ou facções;
 - geração procedural, backend, sincronização, monetização e editor.
 
-Nenhum item desta seção autoriza implementação. Depois da Fatia 8.5, cada fatia do Sistema 8 precisa ser validada antes da seguinte. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
+Nenhum item desta seção autoriza implementação. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
 
 ## Regra de entrada de um sistema
 

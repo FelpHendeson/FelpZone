@@ -99,6 +99,19 @@ describe('Fatia 8.5 — view-model de presenças', () => {
     expect(view.location.id).toBe('awakening-clearing');
   });
 
+  it('explorar pela superfície revela Mira disponível sem abrir narrativa', () => {
+    const attempt = mustCommit(enterExploration(), { type: 'exploration.explore' });
+    const mira = viewOf(attempt.current).presences[0];
+
+    expect(toAppScreen(attempt.current)).toBe('exploration');
+    expect(attempt.current.narrativeSession).toBeNull();
+    expect(mira?.status).toBe('available');
+    expect(mira?.interactions.map((interaction) => interaction.interactionId)).toEqual([
+      'observe-mira-awakening-clearing',
+      'talk-mira-awakening-clearing',
+    ]);
+  });
+
   it('não revela presença de outro local mesmo depois de descoberta', () => {
     const woods = withRabbit(enterExploration());
     const atClearing = inspectOrThrow({
@@ -137,6 +150,13 @@ describe('Fatia 8.5 — view-model de presenças', () => {
     expect(mira?.description).toMatch(/sobrevivente/i);
     expect(mira?.interactions).toEqual([
       expect.objectContaining({
+        interactionId: 'observe-mira-awakening-clearing',
+        kind: 'observe',
+        label: 'Observar',
+        costPeriods: 1,
+        available: true,
+      }),
+      expect.objectContaining({
         interactionId: 'talk-mira-awakening-clearing',
         kind: 'talk',
         label: 'Conversar',
@@ -166,6 +186,12 @@ describe('Fatia 8.5 — view-model de presenças', () => {
         interactionId: 'observe-horned-rabbit-dense-woods',
         label: 'Observar',
         costPeriods: 1,
+        available: true,
+      }),
+      expect.objectContaining({
+        interactionId: 'avoid-horned-rabbit-dense-woods',
+        label: 'Evitar',
+        costPeriods: 0,
         available: true,
       }),
     ]);
@@ -199,6 +225,11 @@ describe('Fatia 8.5 — view-model de presenças', () => {
 
     expect(mira?.status).toBe('available');
     expect(mira?.interactions).toEqual([
+      expect.objectContaining({
+        interactionId: 'observe-mira-awakening-clearing',
+        available: true,
+        costPeriods: 1,
+      }),
       expect.objectContaining({
         interactionId: 'talk-mira-awakening-clearing',
         available: false,
@@ -294,7 +325,7 @@ describe('Fatia 8.5 — view-model de presenças', () => {
     expect(toAppScreen(attempt.current)).toBe('game');
     expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
     expect(attempt.current.sandbox.navigation.currentLocationId).toBe(location);
-    expect(attempt.current.flags[worldTriggerConsumedFlag('first-priority')]).toBe(true);
+    expect(attempt.current.flags[worldTriggerConsumedFlag('first-priority')]).toBeUndefined();
     expect(viewOf(attempt.current).presences[0]?.status).toBe('resolved');
   });
 
