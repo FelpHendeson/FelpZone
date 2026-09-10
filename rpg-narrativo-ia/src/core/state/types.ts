@@ -4,13 +4,15 @@ import { DEFAULT_PERIODS } from '../../modules/time';
 export const SCHEMA_VERSION_V1 = 1 as const;
 export const SCHEMA_VERSION_V2 = 2 as const;
 export const SCHEMA_VERSION_V3 = 3 as const;
-export const SCHEMA_VERSION = 4 as const;
+export const SCHEMA_VERSION_V4 = 4 as const;
+export const SCHEMA_VERSION = 5 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
 export type GameStatus = 'playing' | 'completed';
 
-export const ATTRIBUTE_IDS = ['saude', 'energia', 'fome', 'humanidade', 'cautela'] as const;
+export const LEGACY_ATTRIBUTE_IDS = ['saude', 'energia', 'fome', 'humanidade', 'cautela'] as const;
+export const ATTRIBUTE_IDS = ['saude', 'energia', 'fome', 'sede', 'humanidade', 'cautela'] as const;
 
 export type AttributeId = (typeof ATTRIBUTE_IDS)[number];
 
@@ -26,12 +28,16 @@ export function isDayPeriod(value: unknown): value is DayPeriod {
   return typeof value === 'string' && (DAY_PERIODS as readonly string[]).includes(value);
 }
 
-export interface Attributes {
+export interface LegacyAttributes {
   saude: number;
   energia: number;
   fome: number;
   humanidade: number;
   cautela: number;
+}
+
+export interface Attributes extends LegacyAttributes {
+  sede: number;
 }
 
 export interface CharacterIdentity {
@@ -72,10 +78,10 @@ export interface NarrativeSession {
   eventId: string;
 }
 
-interface SharedState {
+interface SharedState<TAttributes> {
   status: GameStatus;
   character: CharacterIdentity;
-  attributes: Attributes;
+  attributes: TAttributes;
   inventory: InventoryItem[];
   relationships: Relationship[];
   flags: Record<string, boolean>;
@@ -85,24 +91,30 @@ interface SharedState {
   updatedAt: string;
 }
 
-export interface GameStateV1 extends SharedState {
+export interface GameStateV1 extends SharedState<LegacyAttributes> {
   schemaVersion: typeof SCHEMA_VERSION_V1;
   currentEventId: string;
 }
 
-export interface GameStateV2 extends SharedState {
+export interface GameStateV2 extends SharedState<LegacyAttributes> {
   schemaVersion: typeof SCHEMA_VERSION_V2;
   currentEventId: string;
   sandbox: SandboxCoreState;
 }
 
-export interface GameStateV3 extends SharedState {
+export interface GameStateV3 extends SharedState<LegacyAttributes> {
   schemaVersion: typeof SCHEMA_VERSION_V3;
   narrativeSession: NarrativeSession | null;
   sandbox: SandboxCoreState;
 }
 
-export interface GameState extends SharedState {
+export interface GameStateV4 extends SharedState<LegacyAttributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V4;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState;
+}
+
+export interface GameState extends SharedState<Attributes> {
   schemaVersion: typeof SCHEMA_VERSION;
   narrativeSession: NarrativeSession | null;
   sandbox: SandboxState;

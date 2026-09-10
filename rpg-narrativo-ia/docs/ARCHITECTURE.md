@@ -76,6 +76,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `inventory`: itens, recursos e consumo.
 - `relationships`: confiança e estado de vínculos.
 - `world`: estado persistido do mundo, incluindo dia e período; delega o relógio a `time`.
+- `needs`: regras puras de necessidades, desgaste, consumo e repouso; na Fatia 9.2 somente `sede` integra o estado principal.
 - `time`: relógio determinístico por períodos, avanço de data e validação do horário.
 - `day-cycle`: interpreta o avanço do relógio e produz eventos de ciclo e fase visual.
 - `navigation`: mapa hierárquico, posição, descoberta e deslocamento entre pai, filhos diretos e irmãos.
@@ -123,13 +124,13 @@ O estado salvo deve conter no mínimo:
 - sandbox (navegação, exploração, recursos, crafting e presenças);
 - data da última atualização.
 
-A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1`, `2`, `3` e `4` retornam `status: 'incompatible'`. Saves v1, v2 e v3 válidos são migrados para v4 na leitura. O parser não lança exceção.
+A leitura do salvamento valida profundamente cada um desses campos. Um objeto com `schemaVersion` atual e estrutura interna incompleta ou malformada retorna `status: 'corrupt'`. Versões diferentes de `1`, `2`, `3`, `4` e `5` retornam `status: 'incompatible'`. Saves v1, v2, v3 e v4 válidos são migrados para v5 na leitura. O parser não lança exceção.
 
 Antes de o estado chegar à interface, `bindSavedState` confere a sessão narrativa, quando ela existe, contra a campanha: o evento precisa existir e cumprir as próprias condições. Partidas em exploração (`narrativeSession === null`) e partidas concluídas com sessão nula são aceitas. Falhas viram `corrupt` e a UI não tenta renderizar um evento inexistente.
 
 Use uma interface de persistência para permitir trocar `localStorage` por IndexedDB futuramente. O MVP pode começar com `localStorage`. A chave `reset.mvp.save` permanece.
 
-`schemaVersion` é `4`. O formato persistido de `world` continua `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. Contextos recebidos são reconstruídos e normalizados antes da validação. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão. O schema atual não persiste `currentEventId`.
+`schemaVersion` é `5`. O schema atual acrescenta `sede` aos atributos e preserva o formato de `world` como `{ day, period }`, em que `period` é o identificador do período. Não há segundo relógio no sandbox. `DaylightPhase`, mapa, local inicial do contexto e definições não são persistidos. Contextos recebidos são reconstruídos e normalizados antes da validação. A leitura não regrava o armazenamento; o estado migrado é gravado no próximo `save`. Persistências podem receber um `SandboxContext`; a aplicação continua usando o contexto padrão. O schema atual não persiste `currentEventId`.
 
 ## Contrato de horário e data
 
@@ -396,7 +397,7 @@ Operações públicas dos gatilhos de mundo:
 - `resolveEligibleWorldTrigger` e `consumeWorldTriggersMatchingNarrative`;
 - `applyWorldNarrativeTrigger`.
 
-A persistência serializa somente o schema 4 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6 e 8.
+A persistência serializa somente o schema 5 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6 e 8 e valida a sede persistida.
 
 O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting ou interação de presença. A transação aplica primeiro os efeitos declarativos da ação e depois o `TimeCost` uma vez por `advanceDayCycle`, a partir do mundo resultante. Em seguida recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
 
@@ -461,12 +462,14 @@ interface NarrativeSession {
 }
 
 interface GameState {
-  schemaVersion: 4;
+  schemaVersion: 5;
   status: GameStatus;
   narrativeSession: NarrativeSession | null;
   // demais campos
 }
 ```
+
+Na Fatia 9.2, `Attributes` passa a conter `sede`. Saves v1 a v4 mantêm contratos legados próprios, sem esse campo, e recebem `sede: 25` na migração. Essa migração não aplica desgaste nem executa ações.
 
 A presença da sessão é a fonte canônica:
 

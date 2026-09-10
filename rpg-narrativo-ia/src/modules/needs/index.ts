@@ -23,7 +23,14 @@ import {
   type RestMode,
 } from './types';
 
-export { DEFAULT_CONSUMABLES, DEFAULT_NEEDS_DECAY, DEFAULT_REST_MODES, INITIAL_NEEDS_SNAPSHOT, NeedsError };
+export {
+  DEFAULT_CONSUMABLES,
+  DEFAULT_NEEDS_DECAY,
+  DEFAULT_REST_MODES,
+  INITIAL_NEEDS_SNAPSHOT,
+  NEED_IDS,
+  NeedsError,
+};
 export type {
   AppliedNeedEffect,
   ConsumableDefinition,

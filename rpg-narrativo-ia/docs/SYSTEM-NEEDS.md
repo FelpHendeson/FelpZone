@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e em implementação.** A Fatia 9.1 está implementada, revisada e consolidada; as Fatias 9.2 a 9.5 permanecem especificadas, mas ainda não estão autorizadas para implementação. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
+**Aprovado e em implementação.** As Fatias 9.1 e 9.2 estão implementadas, revisadas e consolidadas; as Fatias 9.3 a 9.5 permanecem especificadas, mas ainda não estão autorizadas para implementação. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
 
 Esta etapa cria pressão e propósito para horário, exploração, recursos, crafting e cozinha. Não transforma o jogo em um simulador punitivo nem autoriza combate.
 
@@ -166,7 +166,7 @@ Falha em qualquer etapa não devolve nem persiste estado parcial. Renovação ec
 A integração de `sede` exigirá `schemaVersion: 5`.
 
 - saves v4 válidos recebem `sede: 25` durante a migração;
-- v1, v2 e v3 continuam atravessando a cadeia existente até v5;
+- v1, v2, v3 e v4 atravessam a cadeia de migração até v5;
 - os demais atributos e todo o sandbox são preservados;
 - faixas derivadas, catálogos de consumíveis e regras de desgaste não entram no JSON;
 - ler um save não consome tempo, não altera necessidades e não regrava o armazenamento.
@@ -203,7 +203,7 @@ A revisão rejeita catálogos indexados quando a lista e o índice redundante di
 
 ### Fatia 9.2 — Estado principal e migração
 
-Adicionar `sede` a `Attributes`, evoluir para schema 5 e migrar saves v1 a v4. Ainda sem desgaste automático ou controles visuais.
+**Implementada, revisada e consolidada.** `Attributes` e `ATTRIBUTE_IDS` incluem `sede`; novas partidas começam com `sede: 25`; o save atual usa schema 5. Os contratos legados de atributos permanecem separados para validar e migrar saves v1, v2, v3 e v4 sem mutar a entrada, avançar tempo ou regravar o armazenamento. O schema atual rejeita sede ausente, fracionária ou fora de `0..100`. A entrega acrescenta 13 testes próprios e passou pela suíte completa de 479 testes. Ainda não há desgaste automático, consumo, repouso, novas ações ou controles visuais.
 
 ### Fatia 9.3 — Ações e passagem do tempo
 

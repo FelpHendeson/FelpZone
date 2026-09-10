@@ -1,4 +1,5 @@
 import type { Attributes, AttributeId, CharacterIdentity } from '../../core/state/types';
+import { createInitialNeedsSnapshot } from '../needs';
 
 export type { AttributeId, Attributes, CharacterIdentity };
 
@@ -9,6 +10,7 @@ export const ATTRIBUTE_LABELS: Record<AttributeId, string> = {
   saude: 'Saúde',
   energia: 'Energia',
   fome: 'Fome',
+  sede: 'Sede',
   humanidade: 'Humanidade',
   cautela: 'Cautela',
 };
@@ -25,9 +27,7 @@ export function clampAttribute(value: number): number {
 
 export function createInitialAttributes(): Attributes {
   return {
-    saude: 80,
-    energia: 70,
-    fome: 30,
+    ...createInitialNeedsSnapshot(),
     humanidade: 50,
     cautela: 40,
   };

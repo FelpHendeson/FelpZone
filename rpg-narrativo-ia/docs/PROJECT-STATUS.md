@@ -65,7 +65,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 4, migrações v1/v2/v3, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 5, migrações v1/v2/v3/v4, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -75,7 +75,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e mecanismo genérico de gatilhos de mundo. | O catálogo da campanha `first-day` não dispara mais o encontro da Clareira automaticamente. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
-| Sistema 9 — Necessidades e sobrevivência leve | **Em implementação; Fatia 9.1 consolidada** | Modelo puro de desgaste, sede, consumo e repouso; a integração futura usará água, carne cozida e fogueira atuais. | Ainda não altera `GameState`, save, ações ou UI; sem combate, morte permanente ou novos recursos. |
+| Sistema 9 — Necessidades e sobrevivência leve | **Em implementação; Fatias 9.1 e 9.2 consolidadas** | Modelo puro de desgaste, consumo e repouso; `sede` integrada a `Attributes`; save schema 5 com migrações v1–v4. | Ainda não aplica desgaste, consumo ou repouso nas ações e não altera a UI; sem combate, morte permanente ou novos recursos. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -163,10 +163,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 8 estão implementados e consolidados. O Sistema 9 foi aprovado e sua Fatia 9.1 está implementada e consolidada de forma isolada.** Consulte [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
+**Os Sistemas 1 a 8 estão implementados e consolidados. O Sistema 9 foi aprovado e suas Fatias 9.1 e 9.2 estão implementadas e consolidadas.** Consulte [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
 
 Antes de qualquer próxima implementação:
 
-1. discutir e preparar a Fatia 9.2 antes de integrá-la ao `GameState`;
-2. preservar a migração planejada para schema 5 sem antecipar ações ou UI;
+1. discutir e preparar a Fatia 9.3 antes de integrar ações e desgaste ao orquestrador;
+2. preservar o schema 5 consolidado sem antecipar controles visuais;
 3. manter como aceite final a prova de que o conteúdo atual sustenta o jogador sem combate ou novo recurso.

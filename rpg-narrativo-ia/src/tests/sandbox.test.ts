@@ -49,11 +49,11 @@ function parsedJson(state: GameState): Record<string, unknown> {
 }
 
 describe('estado integrado e persistência principal', () => {
-  it('inicia uma nova partida no schema 4 com sandbox completo', () => {
+  it('inicia uma nova partida no schema 5 com sandbox completo', () => {
     const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const context = createSandboxContext();
 
-    expect(state.schemaVersion).toBe(4);
+    expect(state.schemaVersion).toBe(5);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(inspectGameState(state).ok).toBe(true);
     expect(state.sandbox).toEqual(createInitialSandboxState(context));
@@ -104,7 +104,7 @@ describe('estado integrado e persistência principal', () => {
     expect(state.world).toEqual(timeStateToWorld(createInitialTime()));
   });
 
-  it('realiza roundtrip exato de um save v3 válido', () => {
+  it('realiza roundtrip exato de um save atual válido', () => {
     const state = freshState();
     const parsed = parseGameState(serializeGameState(state));
 
@@ -112,7 +112,7 @@ describe('estado integrado e persistência principal', () => {
     expect(inspectSandboxState(state.sandbox).ok).toBe(true);
   });
 
-  it('trata save v3 sem sandbox ou com sistemas inválidos como corrupt', () => {
+  it('trata save atual sem sandbox ou com sistemas inválidos como corrupt', () => {
     const raw = parsedJson(freshState());
     const withoutSandbox = structuredClone(raw);
     delete withoutSandbox.sandbox;
@@ -144,7 +144,7 @@ describe('estado integrado e persistência principal', () => {
     expect(parseGameState(JSON.stringify(invalidCrafting)).status).toBe('corrupt');
   });
 
-  it('migra um save v1 válido para v3 sem alterar o objeto recebido nem o relógio', () => {
+  it('migra um save v1 válido para o schema atual sem alterar o objeto recebido nem o relógio', () => {
     const current = freshState();
     const v1 = asV1({
       ...current,
@@ -969,4 +969,3 @@ describe('reconstrução e normalização do SandboxContext', () => {
     expect(persistence.load()).toEqual({ status: 'ok', state });
   });
 });
-

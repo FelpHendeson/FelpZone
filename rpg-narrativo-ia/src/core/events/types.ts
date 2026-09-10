@@ -1,6 +1,6 @@
 import type { DayPeriod } from '../state/types';
 
-export type AttributeId = 'saude' | 'energia' | 'fome' | 'humanidade' | 'cautela';
+export type AttributeId = 'saude' | 'energia' | 'fome' | 'sede' | 'humanidade' | 'cautela';
 
 export type GameEffect =
   | { type: 'attribute.change'; attribute: AttributeId; amount: number }

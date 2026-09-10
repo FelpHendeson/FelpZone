@@ -137,6 +137,6 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 - saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida;
 - `NPCState` completo e agenda continuam fora do escopo;
 - comportamento de criaturas e combate não foram discutidos nem aprovados;
-- o Sistema 9 de necessidades e sobrevivência leve foi aprovado e especificado, mas ainda não está implementado; o conteúdo atual deverá sustentar o jogador sem combate;
+- o Sistema 9 de necessidades e sobrevivência leve foi aprovado; as Fatias 9.1 e 9.2 implementam o modelo puro e a sede persistida no schema 5, ainda sem desgaste, ações ou UI;
 - outros tipos de gatilho (entrada em local, presença, período) ainda não existem nem possuem etapa aprovada;
 - não há viagem rápida nem conexões especiais no primeiro mapa.

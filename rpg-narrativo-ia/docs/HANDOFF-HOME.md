@@ -26,8 +26,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`.
 - A Fatia 8.6 — conteúdo jogável — está implementada e consolidada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
-- O Sistema 9 — necessidades e sobrevivência leve — está aprovado e especificado em `docs/SYSTEM-NEEDS.md`; a Fatia 9.1 está implementada, revisada e consolidada.
-- Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
+- O Sistema 9 — necessidades e sobrevivência leve — está aprovado e especificado em `docs/SYSTEM-NEEDS.md`; as Fatias 9.1 e 9.2 estão implementadas, revisadas e consolidadas. `Attributes` inclui `sede` e o save atual usa schema 5 com migração de v1 a v4.
+- Desgaste automático, consumo, repouso, agenda, comportamento autônomo e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -102,7 +102,7 @@ Estado conhecido:
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. A Fatia 9.1 já está consolidada; não implemente a 9.2 antes de o autor pedir seu prompt.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. As Fatias 9.1 e 9.2 já estão consolidadas; não implemente a 9.3 antes de autorização explícita do autor.
 
 Execute:
 
@@ -120,7 +120,7 @@ Se precisar confirmar a base antes da discussão, revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não antecipe as Fatias 9.2 a 9.5. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
+Não antecipe as Fatias 9.3 a 9.5. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
 
 Preserve o ciclo de trabalho:
 

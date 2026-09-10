@@ -33,7 +33,7 @@ Leia nesta ordem:
 15. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
 16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
 17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
-18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 aprovado, com a Fatia 9.1 implementada e consolidada.
+18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 aprovado, com as Fatias 9.1 e 9.2 implementadas e consolidadas.
 19. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e temas ainda sem etapa aprovada.
 20. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -81,7 +81,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 O Sistema 8 — Presenças e interações no mundo — está implementado e consolidado nas Fatias 8.1 a 8.6: catálogo, sincronização, planejamento, save schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md), [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md).
 
-O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado. A Fatia 9.1 está implementada e consolidada como modelo puro; ainda não altera a partida, o save ou a interface. O sistema deverá usar os recursos atuais para sustentar o jogador sem combate.
+O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado. As Fatias 9.1 e 9.2 estão implementadas e consolidadas: existe um modelo puro e `sede` já integra `Attributes` e o save schema 5. Desgaste, consumo, repouso e controles visuais ainda não estão ligados à partida. O sistema deverá usar os recursos atuais para sustentar o jogador sem combate.
 
 ## Decisões já tomadas
 
@@ -99,7 +99,7 @@ O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especifica
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 4`, persiste `narrativeSession` (nula na exploração livre) e `sandbox.presences`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1, v2 e v3 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- O salvamento local usa `schemaVersion: 5`, persiste `sede`, `narrativeSession` (nula na exploração livre) e `sandbox.presences`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1, v2, v3 e v4 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
@@ -107,7 +107,7 @@ O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especifica
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo o fluxo jogável de Mira e do coelho, persistência schema 4, orquestração e os testes anteriores.
+- `npm test`: suíte completa, incluindo o fluxo jogável de Mira e do coelho, persistência schema 5, migrações v1–v4, necessidades isoladas, orquestração e os testes anteriores.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

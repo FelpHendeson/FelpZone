@@ -104,15 +104,19 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 9 — Necessidades e sobrevivência leve
 
-**Aprovada e em implementação.** A Fatia 9.1 está consolidada; as demais permanecem sem autorização de implementação. O conteúdo atual deve sustentar o jogador sem combate. Fonte: [Sistema 9 — Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
+**Aprovada e em implementação.** As Fatias 9.1 e 9.2 estão consolidadas; as demais permanecem sem autorização de implementação. O conteúdo atual deve sustentar o jogador sem combate. Fonte: [Sistema 9 — Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
 
 #### Fatia 9.1 — Modelo puro e prova matemática
 
 **Implementada, revisada e consolidada.** Módulo isolado de necessidades, desgaste, consumíveis, repouso, faixas derivadas e simulação determinística, sem alterar `GameState`.
 
-#### Fatias 9.2 a 9.5
+#### Fatia 9.2 — Estado principal e migração
 
-**Especificadas, ainda não autorizadas para implementação.** Integração e migração, ações e passagem do tempo, interface mobile e prova jogável serão liberadas uma por vez após revisão da anterior.
+**Implementada, revisada e consolidada.** `sede` integra os atributos, novas partidas começam em 25 e o schema 5 migra saves v1 a v4 sem executar gameplay ou regravar durante a leitura.
+
+#### Fatias 9.3 a 9.5
+
+**Especificadas, ainda não autorizadas para implementação.** Ações e passagem do tempo, interface mobile e prova jogável serão liberadas uma por vez após revisão da anterior.
 
 ## Depois do Sistema 9
 

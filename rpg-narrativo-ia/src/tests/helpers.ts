@@ -1,7 +1,13 @@
 import { firstDayCampaign } from '../campaigns/first-day';
 import { applyChoice, startGame } from '../core/engine';
 import { serializeGameState } from '../infrastructure/persistence';
-import { SCHEMA_VERSION_V1, SCHEMA_VERSION_V2, SCHEMA_VERSION_V3, type GameState } from '../core/state';
+import {
+  SCHEMA_VERSION_V1,
+  SCHEMA_VERSION_V2,
+  SCHEMA_VERSION_V3,
+  SCHEMA_VERSION_V4,
+  type GameState,
+} from '../core/state';
 import type { Campaign, StoryEvent } from '../core/events';
 
 export const now = () => '2026-08-31T12:00:00.000Z';
@@ -16,6 +22,7 @@ export function serializedState(): Record<string, unknown> {
 
 export function asV1(state: GameState): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+  removeThirst(raw);
   delete raw.sandbox;
   delete raw.narrativeSession;
   raw.schemaVersion = SCHEMA_VERSION_V1;
@@ -25,6 +32,7 @@ export function asV1(state: GameState): Record<string, unknown> {
 
 export function asV2(state: GameState): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+  removeThirst(raw);
   delete raw.narrativeSession;
   raw.schemaVersion = SCHEMA_VERSION_V2;
   raw.currentEventId = state.narrativeSession?.eventId ?? 'awakening';
@@ -33,11 +41,25 @@ export function asV2(state: GameState): Record<string, unknown> {
 
 export function asV3(state: GameState): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+  removeThirst(raw);
   raw.schemaVersion = SCHEMA_VERSION_V3;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.presences;
   }
   return raw;
+}
+
+export function asV4(state: GameState): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+  removeThirst(raw);
+  raw.schemaVersion = SCHEMA_VERSION_V4;
+  return raw;
+}
+
+function removeThirst(raw: Record<string, unknown>): void {
+  if (isRecord(raw.attributes)) {
+    delete raw.attributes.sede;
+  }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -1,4 +1,5 @@
 import { inspectTimeState } from '../../modules/time';
+import { INITIAL_NEEDS_SNAPSHOT } from '../../modules/needs';
 import {
   createInitialSandboxState,
   createSandboxContext,
@@ -17,16 +18,19 @@ import {
 import { worldTriggerConsumedFlag } from '../../modules/world-events';
 import {
   ATTRIBUTE_IDS,
+  LEGACY_ATTRIBUTE_IDS,
   MIGRATED_CAMPAIGN_ID,
   SCHEMA_VERSION,
   SCHEMA_VERSION_V1,
   SCHEMA_VERSION_V2,
   SCHEMA_VERSION_V3,
+  SCHEMA_VERSION_V4,
   isDayPeriod,
   type GameState,
   type GameStateV1,
   type GameStateV2,
   type GameStateV3,
+  type GameStateV4,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -45,6 +49,10 @@ export type GameStateV2Inspection =
 
 export type GameStateV3Inspection =
   | { ok: true; state: GameStateV3 }
+  | { ok: false; reason: string };
+
+export type GameStateV4Inspection =
+  | { ok: true; state: GameStateV4 }
   | { ok: false; reason: string };
 
 export function inspectGameState(value: unknown, context?: SandboxContext): GameStateInspection {
@@ -79,6 +87,14 @@ export function inspectGameStateV3(value: unknown, context?: SandboxContext): Ga
   }
 }
 
+export function inspectGameStateV4(value: unknown, context?: SandboxContext): GameStateV4Inspection {
+  try {
+    return inspectV4(value, context);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
 export function migrateGameStateV1(state: GameStateV1, context?: SandboxContext): GameState {
   return migrateGameStateV3(migrateGameStateV2ToV3(migrateGameStateV1ToV2(state, context), context), context);
 }
@@ -88,6 +104,53 @@ export function migrateGameStateV2(state: GameStateV2, context?: SandboxContext)
 }
 
 export function migrateGameStateV3(state: GameStateV3, context?: SandboxContext): GameState {
+  return migrateGameStateV4(migrateGameStateV3ToV4(state, context), context);
+}
+
+export function migrateGameStateV4(state: GameStateV4, context?: SandboxContext): GameState {
+  const sandbox = inspectSandboxState(state.sandbox, context);
+  if (!sandbox.ok) {
+    throw new Error(sandbox.reason);
+  }
+
+  const resolvedContext = requireContext(context);
+  const synchronizedPresences = synchronizeDiscoveredPresences(
+    resolvedContext.presences,
+    sandbox.value.presences,
+    sandbox.value.exploration,
+  ).current;
+
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    status: state.status,
+    character: { firstName: state.character.firstName, lastName: state.character.lastName },
+    narrativeSession: copyNarrativeSession(state.narrativeSession),
+    attributes: { ...state.attributes, sede: INITIAL_NEEDS_SNAPSHOT.sede },
+    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    relationships: state.relationships.map((entry) => ({
+      characterId: entry.characterId,
+      trust: entry.trust,
+    })),
+    flags: { ...state.flags },
+    history: state.history.map((entry) => ({ ...entry })),
+    world: { day: state.world.day, period: state.world.period },
+    progression: {
+      abilityIds: [...state.progression.abilityIds],
+      titleIds: [...state.progression.titleIds],
+    },
+    sandbox: {
+      ...sandbox.value,
+      presences: reconcileConsumedWorldPresenceResolutions(
+        resolvedContext.presences,
+        synchronizedPresences,
+        state.flags,
+      ),
+    },
+    updatedAt: state.updatedAt,
+  };
+}
+
+function migrateGameStateV3ToV4(state: GameStateV3, context?: SandboxContext): GameStateV4 {
   const sandbox = inspectLegacySandboxState(state.sandbox, context);
   if (!sandbox.ok) {
     throw new Error(sandbox.reason);
@@ -101,7 +164,7 @@ export function migrateGameStateV3(state: GameStateV3, context?: SandboxContext)
   );
 
   return {
-    schemaVersion: SCHEMA_VERSION,
+    schemaVersion: SCHEMA_VERSION_V4,
     status: state.status,
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copyNarrativeSession(state.narrativeSession),
@@ -236,7 +299,7 @@ function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInsp
     return fail('O salvamento está incompleto.');
   }
 
-  const shared = readShared(value);
+  const shared = readCurrentShared(value);
   if (!shared.ok) {
     return shared;
   }
@@ -289,7 +352,7 @@ function inspectV1(value: unknown): GameStateV1Inspection {
     return fail('O salvamento está incompleto.');
   }
 
-  const shared = readShared(value);
+  const shared = readLegacyShared(value);
   if (!shared.ok) {
     return shared;
   }
@@ -318,7 +381,7 @@ function inspectV2(value: unknown, context?: SandboxContext): GameStateV2Inspect
     return fail('O salvamento está incompleto.');
   }
 
-  const shared = readShared(value);
+  const shared = readLegacyShared(value);
   if (!shared.ok) {
     return shared;
   }
@@ -353,7 +416,7 @@ function inspectV3(value: unknown, context?: SandboxContext): GameStateV3Inspect
     return fail('O salvamento está incompleto.');
   }
 
-  const shared = readShared(value);
+  const shared = readLegacyShared(value);
   if (!shared.ok) {
     return shared;
   }
@@ -383,13 +446,79 @@ function inspectV3(value: unknown, context?: SandboxContext): GameStateV3Inspect
   };
 }
 
+function inspectV4(value: unknown, context?: SandboxContext): GameStateV4Inspection {
+  if (!isRecord(value)) {
+    return fail('O salvamento não contém um objeto válido.');
+  }
+
+  if (value.schemaVersion !== SCHEMA_VERSION_V4) {
+    return fail('O salvamento está incompleto.');
+  }
+
+  const shared = readLegacyShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+
+  if ('currentEventId' in value) {
+    return fail('O salvamento usa o contrato antigo de evento atual.');
+  }
+
+  const session = readNarrativeSession(value, shared.value.status);
+  if (!session.ok) {
+    return session;
+  }
+
+  const sandbox = inspectSandboxState(value.sandbox, context);
+  if (!sandbox.ok) {
+    return fail(sandbox.reason);
+  }
+
+  const resolvedContext = requireContext(context);
+  const synchronizedPresences = synchronizeDiscoveredPresences(
+    resolvedContext.presences,
+    sandbox.value.presences,
+    sandbox.value.exploration,
+  ).current;
+
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION_V4,
+      ...shared.value,
+      narrativeSession: session.value,
+      sandbox: {
+        ...sandbox.value,
+        presences: reconcileConsumedWorldPresenceResolutions(
+          resolvedContext.presences,
+          synchronizedPresences,
+          shared.value.flags,
+        ),
+      },
+    },
+  };
+}
+
 type SharedFields = Omit<GameState, 'schemaVersion' | 'sandbox' | 'narrativeSession'>;
+type LegacySharedFields = Omit<GameStateV4, 'schemaVersion' | 'sandbox' | 'narrativeSession'>;
 
 type SharedInspection = { ok: true; value: SharedFields } | { ok: false; reason: string };
+type LegacySharedInspection = { ok: true; value: LegacySharedFields } | { ok: false; reason: string };
 
 type SessionInspection = { ok: true; value: NarrativeSession | null } | { ok: false; reason: string };
 
-function readShared(value: Record<string, unknown>): SharedInspection {
+function readCurrentShared(value: Record<string, unknown>): SharedInspection {
+  return readShared(value, readAttributes);
+}
+
+function readLegacyShared(value: Record<string, unknown>): LegacySharedInspection {
+  return readShared(value, readLegacyAttributes);
+}
+
+function readShared<TAttributes>(
+  value: Record<string, unknown>,
+  readAttributesValue: (attributes: unknown) => TAttributes | undefined,
+): { ok: true; value: Omit<SharedFields, 'attributes'> & { attributes: TAttributes } } | { ok: false; reason: string } {
   if (value.status !== 'playing' && value.status !== 'completed') {
     return fail('O estado da partida é inválido.');
   }
@@ -403,7 +532,7 @@ function readShared(value: Record<string, unknown>): SharedInspection {
     return fail('A identidade do personagem é inválida.');
   }
 
-  const attributes = readAttributes(value.attributes);
+  const attributes = readAttributesValue(value.attributes);
   if (!attributes) {
     return fail('Os atributos da partida são inválidos.');
   }
@@ -516,17 +645,33 @@ function readCharacter(value: unknown): GameState['character'] | undefined {
 }
 
 function readAttributes(value: unknown): GameState['attributes'] | undefined {
+  const attributes = readAttributesByIds(value, ATTRIBUTE_IDS);
+  if (!attributes || !Number.isSafeInteger(attributes.sede)) {
+    return undefined;
+  }
+
+  return attributes as unknown as GameState['attributes'];
+}
+
+function readLegacyAttributes(value: unknown): GameStateV4['attributes'] | undefined {
+  return readAttributesByIds(value, LEGACY_ATTRIBUTE_IDS) as GameStateV4['attributes'] | undefined;
+}
+
+function readAttributesByIds(
+  value: unknown,
+  attributeIds: readonly string[],
+): Record<string, number> | undefined {
   if (!isRecord(value)) {
     return undefined;
   }
 
   const keys = Object.keys(value);
-  if (keys.length !== ATTRIBUTE_IDS.length || ATTRIBUTE_IDS.some((id) => !keys.includes(id))) {
+  if (keys.length !== attributeIds.length || attributeIds.some((id) => !keys.includes(id))) {
     return undefined;
   }
 
-  const attributes = {} as GameState['attributes'];
-  for (const id of ATTRIBUTE_IDS) {
+  const attributes: Record<string, number> = {};
+  for (const id of attributeIds) {
     if (!isBoundedNumber(value[id], 0, 100)) {
       return undefined;
     }
