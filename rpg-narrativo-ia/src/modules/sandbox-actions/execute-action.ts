@@ -20,6 +20,16 @@ import {
   type ExplorationState,
 } from '../exploration';
 import { moveToLocation, NavigationError, type NavigationState } from '../navigation';
+import { canRemoveItem, removeItem } from '../inventory';
+import {
+  applyNeedsWear,
+  NeedsError,
+  planNeedsConsumption,
+  planNeedsRest,
+  type NeedsConsumptionPlan,
+  type NeedsRestPlan,
+  type NeedsSnapshot,
+} from '../needs';
 import {
   applyPopulationDayCycle,
   collectResource,
@@ -96,6 +106,8 @@ function runTransaction(
   const dayCycle = advanceDayCycle(worldToTimeState(executed.world), timeCost);
   const world = timeStateToWorld(dayCycle.time.current);
   const clockAdvanced = timeCost.periods > 0;
+  const needsWear = applyNeedsWear(attributesToNeeds(executed.attributes), timeCost.periods);
+  const attributes = applyNeedsToAttributes(executed.attributes, needsWear.current);
 
   const resourcesBeforeRecovery = copyResources(resources);
   if (clockAdvanced) {
@@ -111,7 +123,7 @@ function runTransaction(
     world,
     inventory,
     sandbox: { navigation, exploration, resources, crafting, presences },
-    attributes: executed.attributes,
+    attributes,
     flags: executed.flags,
     relationships: executed.relationships,
     progression: executed.progression,
@@ -139,7 +151,7 @@ function runTransaction(
       world,
       inventory,
       sandbox: { navigation, exploration, resources, crafting, presences },
-      attributes: executed.attributes,
+      attributes,
       flags: executed.flags,
       relationships: executed.relationships,
       progression: executed.progression,
@@ -156,7 +168,7 @@ function runTransaction(
     inventory,
     sandbox: { navigation, exploration, resources, crafting, presences },
     updatedAt,
-    attributes: executed.attributes,
+    attributes,
     flags: executed.flags,
     relationships: executed.relationships,
     progression: executed.progression,
@@ -181,6 +193,7 @@ function runTransaction(
     action: copyAction(action),
     timeCost,
     dayCycle: copyDayCycle(dayCycle),
+    needsWear: copyNeedsWearSummary(needsWear.summary),
     detail,
     feedback: executed.plan?.feedback,
     synchronization: summarizeSynchronization({
@@ -323,6 +336,46 @@ function executePrimary(
     };
   }
 
+  if (action.type === 'needs.consume') {
+    const plan = planNeedsConsumption(attributesToNeeds(state.attributes), action.itemId);
+    if (!canRemoveItem(inventory, plan.itemId, plan.quantity)) {
+      throw new SandboxActionError('O item consumível não está disponível no inventário.');
+    }
+
+    return {
+      detail: { type: 'needs.consume', plan: copyConsumptionPlan(plan) },
+      timeCost: { periods: plan.timeCost.periods },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory: removeItem(inventory, plan.itemId, plan.quantity),
+      ...unchanged,
+      attributes: applyNeedsToAttributes(unchanged.attributes, plan.current),
+    };
+  }
+
+  if (action.type === 'needs.rest') {
+    if (action.mode === 'campfire' && !hasActiveCampfire(crafting, navigation.currentLocationId)) {
+      throw new SandboxActionError('É necessária uma fogueira ativa neste local para esse repouso.');
+    }
+
+    const plan = planNeedsRest(attributesToNeeds(state.attributes), action.mode);
+    return {
+      detail: { type: 'needs.rest', plan: copyRestPlan(plan) },
+      timeCost: { periods: plan.timeCost.periods },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      attributes: applyNeedsToAttributes(unchanged.attributes, plan.current),
+    };
+  }
+
   const plan = planPresenceInteraction(
     context.presences,
     context.presenceInteractions,
@@ -436,6 +489,22 @@ function requireAction(value: unknown): SandboxAction {
     return { type: 'presence.interact', presenceId: value.presenceId, interactionId: value.interactionId };
   }
 
+  if (value.type === 'needs.consume') {
+    if (typeof value.itemId !== 'string' || value.itemId.trim() === '') {
+      throw new SandboxActionError('O item consumível é inválido.');
+    }
+
+    return { type: 'needs.consume', itemId: value.itemId };
+  }
+
+  if (value.type === 'needs.rest') {
+    if (value.mode !== 'simple' && value.mode !== 'campfire') {
+      throw new SandboxActionError('A modalidade de repouso é inválida.');
+    }
+
+    return { type: 'needs.rest', mode: value.mode };
+  }
+
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
 }
 
@@ -504,6 +573,14 @@ function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'crafting.craft') {
     return { type: 'crafting.craft', recipeId: action.recipeId };
+  }
+
+  if (action.type === 'needs.consume') {
+    return { type: 'needs.consume', itemId: action.itemId };
+  }
+
+  if (action.type === 'needs.rest') {
+    return { type: 'needs.rest', mode: action.mode };
   }
 
   return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
@@ -587,6 +664,66 @@ function createInteractionPlanCopy(plan: PresenceInteractionPlan): PresenceInter
   return copied;
 }
 
+function copyConsumptionPlan(plan: NeedsConsumptionPlan): NeedsConsumptionPlan {
+  return {
+    previous: { ...plan.previous },
+    current: { ...plan.current },
+    itemId: plan.itemId,
+    quantity: 1,
+    effects: plan.effects.map((effect) => ({ ...effect })),
+    appliedEffects: plan.appliedEffects.map((effect) => ({ ...effect })),
+    timeCost: { periods: plan.timeCost.periods },
+  };
+}
+
+function copyRestPlan(plan: NeedsRestPlan): NeedsRestPlan {
+  return {
+    previous: { ...plan.previous },
+    current: { ...plan.current },
+    mode: plan.mode,
+    effects: plan.effects.map((effect) => ({ ...effect })),
+    appliedEffects: plan.appliedEffects.map((effect) => ({ ...effect })),
+    timeCost: { periods: plan.timeCost.periods },
+  };
+}
+
+function copyNeedsWearSummary(summary: SandboxActionResult['needsWear']): SandboxActionResult['needsWear'] {
+  return {
+    periodsApplied: summary.periodsApplied,
+    changes: { ...summary.changes },
+    criticalPeriods: { ...summary.criticalPeriods },
+    requestedHealthDamage: summary.requestedHealthDamage,
+    appliedHealthDamage: summary.appliedHealthDamage,
+  };
+}
+
+function attributesToNeeds(attributes: Attributes): NeedsSnapshot {
+  return {
+    saude: attributes.saude,
+    energia: attributes.energia,
+    fome: attributes.fome,
+    sede: attributes.sede,
+  };
+}
+
+function applyNeedsToAttributes(attributes: Attributes, needs: NeedsSnapshot): Attributes {
+  return {
+    saude: needs.saude,
+    energia: needs.energia,
+    fome: needs.fome,
+    sede: needs.sede,
+    humanidade: attributes.humanidade,
+    cautela: attributes.cautela,
+  };
+}
+
+function hasActiveCampfire(crafting: CraftingState, locationId: string): boolean {
+  return crafting.structures.some(
+    (structure) =>
+      structure.structureId === 'campfire' && structure.locationId === locationId && structure.active,
+  );
+}
+
 function copyInventory(items: readonly InventoryItem[]): InventoryItem[] {
   return items.map((item) => ({ itemId: item.itemId, quantity: item.quantity }));
 }
@@ -620,6 +757,7 @@ function rethrowDomain(error: unknown): never {
     error instanceof WorldError ||
     error instanceof SandboxError ||
     error instanceof PresenceError ||
+    error instanceof NeedsError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

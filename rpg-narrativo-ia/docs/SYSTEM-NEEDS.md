@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e em implementação.** As Fatias 9.1 e 9.2 estão implementadas, revisadas e consolidadas; as Fatias 9.3 a 9.5 permanecem especificadas, mas ainda não estão autorizadas para implementação. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
+**Aprovado e em implementação.** As Fatias 9.1, 9.2 e 9.3 estão implementadas, revisadas e consolidadas. As Fatias 9.4 e 9.5 permanecem especificadas para execução posterior. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
 
 Esta etapa cria pressão e propósito para horário, exploração, recursos, crafting e cozinha. Não transforma o jogo em um simulador punitivo nem autoriza combate.
 
@@ -207,7 +207,7 @@ A revisão rejeita catálogos indexados quando a lista e o índice redundante di
 
 ### Fatia 9.3 — Ações e passagem do tempo
 
-Adicionar `needs.consume` e `needs.rest`, aplicar desgaste exatamente uma vez pelos períodos cobrados e preservar atomicidade, ecologia e sincronizações.
+**Implementada, revisada e consolidada.** `needs.consume` remove uma unidade e custa zero; `needs.rest` oferece repouso simples e repouso aprimorado condicionado a fogueira ativa no local. O orquestrador aplica efeito da ação → avanço único do relógio → desgaste por período → ecologia e reavaliações. O resultado expõe o resumo do desgaste. Falhas permanecem atômicas e não existe bloqueio crítico, morte ou UI nesta fatia. A entrega acrescenta 8 testes próprios e passou pela suíte completa de 487 testes, além de lint, tipos, build/PWA e revisão sem achados acionáveis.
 
 ### Fatia 9.4 — Interface mobile
 

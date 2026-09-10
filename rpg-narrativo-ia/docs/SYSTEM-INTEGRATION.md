@@ -124,7 +124,9 @@ type SandboxAction =
   | { type: 'exploration.explore' }
   | { type: 'resource.collect'; nodeId: string; units: number }
   | { type: 'crafting.craft'; recipeId: string }
-  | { type: 'presence.interact'; presenceId: string; interactionId: string };
+  | { type: 'presence.interact'; presenceId: string; interactionId: string }
+  | { type: 'needs.consume'; itemId: string }
+  | { type: 'needs.rest'; mode: 'simple' | 'campfire' };
 
 function executeSandboxAction(
   state: GameState,
@@ -139,17 +141,18 @@ Antes de executar, o orquestrador normaliza o contexto, valida o `GameState` con
 
 ### Ordem da transação
 
-1. ação primária (movimento, exploração, coleta, crafting ou interação de presença), incluindo seus efeitos declarativos;
+1. ação primária (movimento, exploração, coleta, crafting, interação de presença, consumo ou repouso), incluindo seus efeitos declarativos;
 2. `advanceDayCycle` a partir do mundo resultante, com o `TimeCost` devolvido — nunca `advanceTime` direto;
-3. se o custo for maior que zero: `applyPopulationDayCycle` só com os eventos dessa ação;
-4. se o custo for maior que zero: `synchronizeResourceRenewal` com o horário final;
-5. `reevaluateDiscoveries` no local atual, sem custo;
-6. `synchronizeKnownRecipes`, sem custo;
-7. `synchronizeDiscoveredPresences`, sem custo;
-8. se a interação declarar narrativa válida: `startNarrativeSession`;
-9. montar e validar o `GameState` final.
+3. `applyNeedsWear` para exatamente a quantidade de períodos cobrados;
+4. se o custo for maior que zero: `applyPopulationDayCycle` só com os eventos dessa ação;
+5. se o custo for maior que zero: `synchronizeResourceRenewal` com o horário final;
+6. `reevaluateDiscoveries` no local atual, sem custo;
+7. `synchronizeKnownRecipes`, sem custo;
+8. `synchronizeDiscoveredPresences`, sem custo;
+9. se a interação declarar narrativa válida: `startNarrativeSession`;
+10. montar e validar o `GameState` final.
 
-Custo zero não acrescenta avanço, não emite eventos de ciclo, não recupera população e não renova recursos; um efeito declarativo válido ainda pode alinhar o período. As reavaliações gratuitas ainda podem ocorrer. Recuperação só em `day.started`. Renovação temporal só quando o `TimeCost` avançou o relógio.
+Custo zero não acrescenta avanço nem desgaste, não emite eventos de ciclo, não recupera população e não renova recursos; um efeito declarativo válido ainda pode alinhar o período. As reavaliações gratuitas ainda podem ocorrer. Recuperação só em `day.started`. Renovação temporal só quando o `TimeCost` avançou o relógio.
 
 A operação é atômica: se qualquer etapa falhar, o `GameState` recebido permanece intacto. O orquestrador não chama `serializeGameState`, `save` nem `localStorage`.
 

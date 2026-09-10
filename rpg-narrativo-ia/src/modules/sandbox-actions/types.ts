@@ -4,6 +4,12 @@ import type { CraftingResult } from '../crafting/types';
 import type { DayCycleResult } from '../day-cycle';
 import type { ExplorationResult } from '../exploration/types';
 import type { NavigationMoveResult } from '../navigation/types';
+import type {
+  NeedsConsumptionPlan,
+  NeedsRestPlan,
+  NeedsWearSummary,
+  RestMode,
+} from '../needs';
 import type { PresenceInteractionPlan } from '../presences';
 import type { ResourceCollectionResult } from '../resources/types';
 import type { SandboxContext } from '../sandbox';
@@ -30,6 +36,14 @@ export type SandboxAction =
       type: 'presence.interact';
       presenceId: string;
       interactionId: string;
+    }
+  | {
+      type: 'needs.consume';
+      itemId: string;
+    }
+  | {
+      type: 'needs.rest';
+      mode: RestMode;
     };
 
 export type SandboxActionDetail =
@@ -37,7 +51,9 @@ export type SandboxActionDetail =
   | { type: 'exploration.explore'; result: ExplorationResult }
   | { type: 'resource.collect'; result: ResourceCollectionResult }
   | { type: 'crafting.craft'; result: CraftingResult }
-  | { type: 'presence.interact'; plan: PresenceInteractionPlan };
+  | { type: 'presence.interact'; plan: PresenceInteractionPlan }
+  | { type: 'needs.consume'; plan: NeedsConsumptionPlan }
+  | { type: 'needs.rest'; plan: NeedsRestPlan };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];
@@ -52,6 +68,7 @@ export interface SandboxActionResult {
   action: SandboxAction;
   timeCost: TimeCost;
   dayCycle: DayCycleResult;
+  needsWear: NeedsWearSummary;
   detail: SandboxActionDetail;
   synchronization: SandboxSynchronizationSummary;
   feedback?: string;

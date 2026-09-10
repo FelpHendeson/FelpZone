@@ -171,7 +171,12 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
     expect(toAppScreen(observed.current)).toBe('exploration');
     expect(observed.current.sandbox.navigation.currentLocationId).toBe('dense-woods');
     expect(Object.keys(observed.current.attributes)).toEqual([...ATTRIBUTE_IDS]);
-    expect(observed.current.attributes).toEqual(attributesBefore);
+    expect(observed.current.attributes).toEqual({
+      ...attributesBefore,
+      energia: attributesBefore.energia - 2,
+      fome: attributesBefore.fome + 3,
+      sede: attributesBefore.sede + 5,
+    });
     expect(JSON.stringify(observed.current)).not.toMatch(/combat|hp|vida da criatura/i);
 
     const avoided = mustCommit(observed.current, {
