@@ -139,8 +139,8 @@ Antes de executar, o orquestrador normaliza o contexto, valida o `GameState` con
 
 ### Ordem da transação
 
-1. ação primária (movimento, exploração, coleta, crafting ou interação de presença);
-2. `advanceDayCycle` com o `TimeCost` devolvido — nunca `advanceTime` direto;
+1. ação primária (movimento, exploração, coleta, crafting ou interação de presença), incluindo seus efeitos declarativos;
+2. `advanceDayCycle` a partir do mundo resultante, com o `TimeCost` devolvido — nunca `advanceTime` direto;
 3. se o custo for maior que zero: `applyPopulationDayCycle` só com os eventos dessa ação;
 4. se o custo for maior que zero: `synchronizeResourceRenewal` com o horário final;
 5. `reevaluateDiscoveries` no local atual, sem custo;
@@ -149,7 +149,7 @@ Antes de executar, o orquestrador normaliza o contexto, valida o `GameState` con
 8. se a interação declarar narrativa válida: `startNarrativeSession`;
 9. montar e validar o `GameState` final.
 
-Custo zero mantém o relógio, não emite eventos de ciclo, não recupera população e não renova recursos. As reavaliações gratuitas ainda podem ocorrer. Recuperação só em `day.started`. Renovação temporal só quando o relógio avançou.
+Custo zero não acrescenta avanço, não emite eventos de ciclo, não recupera população e não renova recursos; um efeito declarativo válido ainda pode alinhar o período. As reavaliações gratuitas ainda podem ocorrer. Recuperação só em `day.started`. Renovação temporal só quando o `TimeCost` avançou o relógio.
 
 A operação é atômica: se qualquer etapa falhar, o `GameState` recebido permanece intacto. O orquestrador não chama `serializeGameState`, `save` nem `localStorage`.
 
@@ -157,7 +157,7 @@ A operação é atômica: se qualquer etapa falhar, o `GameState` recebido perma
 
 `startGame` abre `narrativeSession: { campaignId, eventId: campaign.firstEventId }`. Depois de `choose-ability`, as três capacidades usam `{ type: 'returnToExploration' }`: o jogador permanece `playing`, a sessão vira `null` e os efeitos da capacidade ficam no estado.
 
-`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` e passa a ser aberto pela interação `talk` da presença de Mira. O mecanismo genérico de gatilhos permanece no adaptador, mas o catálogo da campanha `first-day` está vazio. Saves que já possuem `world.trigger.first-priority.consumed` reconciliam a presença revelada por `first-priority-event` como resolvida, para não repetir o encontro.
+`first-priority` e os eventos posteriores não são apagados. `first-priority` está marcado com `canStartSession: true` e passa a ser aberto pela interação `talk` da presença de Mira. Seus efeitos de período só avançam dentro do mesmo dia e nunca fazem o relógio retroceder. O mecanismo genérico de gatilhos permanece no adaptador, mas o catálogo da campanha `first-day` está vazio. Saves que já possuem `world.trigger.first-priority.consumed` sincronizam a presença revelada por `first-priority-event` e a reconciliam como resolvida, para não repetir o encontro.
 
 A interface deriva a tela do estado: narrativa com sessão, exploração sem sessão, resumo quando `completed`. Um único `SandboxContext` alimenta persistência, leitura da interface e `executeSandboxAction`. Depois de uma ação sandbox, a integração consome gatilhos cujo evento já foi aberto, resolve gatilhos elegíveis sobre o estado seguinte, abre no máximo uma sessão, consome só o gatilho escolhido, resolve presenças resolvíveis da descoberta correspondente e grava uma vez o estado final. Carregar um save não dispara narrativa nem regrava o armazenamento.
 
@@ -188,6 +188,6 @@ Prioridade: ordem declarada do catálogo.
 - renovação ou recuperação no carregamento;
 - presença e interação genéricas de NPCs ou criaturas fora do encontro atual;
 - persistência própria, agenda ou deslocamento de NPCs — ainda não discutidos;
-- diálogo livre, comportamento de criatura, combate, caça detalhada, sobrevivência automática e clima — ainda não discutidos;
+- diálogo livre, comportamento de criatura, combate, caça detalhada e clima — ainda não discutidos; necessidades e sobrevivência leve pertencem ao Sistema 9 separado;
 - sistemas jogáveis de facções ou assentamentos — somente o papel narrativo no universo está definido;
 - backend e IA em runtime.

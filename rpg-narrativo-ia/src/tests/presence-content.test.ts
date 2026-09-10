@@ -87,8 +87,10 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
     expect(talked.current.world).not.toEqual(worldBefore);
     expect(toAppScreen(talked.current)).toBe('game');
 
-    const returned = playChoices(talked.current, [
-      'seek-water',
+    const firstChoice = playChoices(talked.current, ['seek-water']);
+    expect(firstChoice.world).toEqual(talked.current.world);
+
+    const returned = playChoices(firstChoice, [
       'alert-hide',
       'meet-open',
       'share-fruit',
@@ -245,10 +247,15 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
 
     const raw = JSON.parse(serializeGameState(revealed, context)) as Record<string, unknown>;
     raw.flags = { ...(raw.flags as Record<string, boolean>), [consumedFlag]: true };
+    raw.sandbox = {
+      ...(raw.sandbox as Record<string, unknown>),
+      presences: { discoveredPresenceIds: [], resolvedPresenceIds: [] },
+    };
     const roundtrip = parseGameState(JSON.stringify(raw), context);
     expect(roundtrip.status).toBe('ok');
     if (roundtrip.status === 'ok') {
       expect(inspectGameState(roundtrip.state, context).ok).toBe(true);
+      expect(roundtrip.state.sandbox.presences.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
       expect(roundtrip.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     }
   });

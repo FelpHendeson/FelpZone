@@ -81,6 +81,8 @@ type TimeEffect =
 
 Não adicionar alteração arbitrária de data como efeito comum. Ajustes administrativos, se necessários, ficam restritos a testes ou migrações.
 
+O efeito narrativo legado `world.period` não altera o dia. Ele pode alinhar a história a um período posterior do dia atual, mas um alvo igual ou anterior mantém o horário corrente. Assim, conteúdo iniciado tarde não retrocede o relógio; viradas de dia continuam acontecendo somente pelo custo temporal das ações.
+
 ## Validações
 
 - dias são inteiros positivos seguros (`Number.isSafeInteger`);

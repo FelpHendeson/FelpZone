@@ -32,8 +32,10 @@ Leia nesta ordem:
 14. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
 15. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
 16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
-17. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, próxima fatia e temas ainda sem etapa aprovada.
-18. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
+18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 aprovado, com a Fatia 9.1 implementada e consolidada.
+19. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e temas ainda sem etapa aprovada.
+20. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -75,9 +77,11 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 ## Estado atual
 
-**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: explorar o mundo dispara o primeiro encontro (criatura e Mira) e a sessão devolve o jogador ao sandbox.
+**MVP narrativo e consolidação do motor concluídos.** As etapas 1 a 6 da evolução sandbox, o Sistema 7 e o Sistema 8 estão implementados e consolidados. O jogador desperta, escolhe uma capacidade, explora livremente e encontra conteúdo por suas próprias ações.
 
-O Sistema 8 — Presenças e interações no mundo — está aprovado. As Fatias 8.1 a 8.5 estão implementadas: catálogo, sincronização, planejamento, save schema 4, `presence.interact` e a seção “Presenças neste local” no painel Mundo. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam fora da etapa.
+O Sistema 8 — Presenças e interações no mundo — está implementado e consolidado nas Fatias 8.1 a 8.6: catálogo, sincronização, planejamento, save schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md), [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md).
+
+O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado. A Fatia 9.1 está implementada e consolidada como modelo puro; ainda não altera a partida, o save ou a interface. O sistema deverá usar os recursos atuais para sustentar o jogador sem combate.
 
 ## Decisões já tomadas
 

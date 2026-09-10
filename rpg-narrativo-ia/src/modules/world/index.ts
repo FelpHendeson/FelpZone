@@ -53,6 +53,22 @@ export function setPeriod(world: WorldState, period: DayPeriod): WorldState {
   });
 }
 
+/**
+ * Avança até um período posterior do mesmo dia sem permitir que conteúdo
+ * narrativo faça o relógio retroceder. Alvos iguais ou anteriores mantêm o
+ * horário atual; a passagem de dia continua sendo responsabilidade do ciclo.
+ */
+export function advancePeriodTo(world: WorldState, period: DayPeriod): WorldState {
+  const current = worldToTimeState(world);
+  const currentIndex = DEFAULT_PERIODS.findIndex((entry) => entry.id === current.periodId);
+  const targetIndex = DEFAULT_PERIODS.findIndex((entry) => entry.id === period);
+
+  return timeStateToWorld({
+    day: current.day,
+    periodId: targetIndex > currentIndex ? period : current.periodId,
+  });
+}
+
 export function describeWorld(world: WorldState): string {
   return formatTime(worldToTimeState(world));
 }

@@ -398,7 +398,7 @@ Operações públicas dos gatilhos de mundo:
 
 A persistência serializa somente o schema 4 validado e pode receber o mesmo `SandboxContext` em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem contexto, a aplicação usa as definições padrão. A validação aproveita o contexto normalizado e não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6 e 8.
 
-O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting ou interação de presença. A transação aplica o `TimeCost` uma vez por `advanceDayCycle`, recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
+O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting ou interação de presença. A transação aplica primeiro os efeitos declarativos da ação e depois o `TimeCost` uma vez por `advanceDayCycle`, a partir do mundo resultante. Em seguida recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
 
 A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, consome gatilhos cujo evento já foi aberto pela ação, resolve no máximo um gatilho elegível sobre o estado seguinte (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession`, resolve presenças resolvíveis da descoberta correspondente e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. A Fatia 8.6 deixou o catálogo da campanha `first-day` vazio; a definição antiga permanece apenas para testes do mecanismo.
 
@@ -435,6 +435,7 @@ Agenda e movimento ficam fora deste contrato. A Fatia 8.5 apresenta o estado der
 ## Contratos do motor
 
 - `applyChoice` só age com `status: 'playing'` e sessão narrativa ativa da mesma campanha.
+- `world.period` alinha a narrativa a um período posterior do mesmo dia, mas nunca faz o relógio retroceder; passagem de dia pertence ao ciclo temporal das ações.
 - `startNarrativeSession` só age com `status: 'playing'`, `narrativeSession === null` e um evento com `canStartSession: true` cujas condições estão satisfeitas. Não avança o relógio, não altera sandbox, inventário, atributos, histórico nem `updatedAt`.
 - Exploração livre (`narrativeSession === null`) não aceita `applyChoice`; `getAvailableChoices` devolve `[]` e `getCurrentEvent` lança.
 - O evento da sessão e a escolha precisam existir e cumprir suas condições.

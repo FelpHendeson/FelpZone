@@ -469,8 +469,8 @@ button:disabled {
 }
 
 .icon-button {
-  width: 36px;
-  height: 30px;
+  width: var(--touch);
+  height: var(--touch);
   border: 0;
   border-radius: 10px;
   background: transparent;
@@ -1053,7 +1053,7 @@ button:disabled {
 
 .button--compact {
   flex: 0 0 auto;
-  min-height: 38px;
+  min-height: var(--touch);
   padding: 8px 12px;
   border-color: var(--accent-strong);
   background: rgba(53, 185, 140, 0.12);

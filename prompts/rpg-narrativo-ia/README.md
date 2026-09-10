@@ -24,13 +24,15 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 | 3 | `03-fatia-8.3-interacoes.md` | Implementada; mantida como histórico. |
 | 4 | `04-fatia-8.4-integracao-e-save.md` | Implementada; mantida como histórico. |
 | 5 | `05-fatia-8.5-interface-mobile.md` | Implementada; mantida como histórico. |
-| 6 | `06-fatia-8.6-conteudo-jogavel.md` | Implementada neste recorte; aguardando revisão. |
+| 6 | `06-fatia-8.6-conteudo-jogavel.md` | Implementada, revisada e consolidada; mantida como histórico. |
 
 Não dispare duas fatias em paralelo. O ciclo continua sendo:
 
 ```text
 implementar → testar → revisar → corrigir → consolidar → autorizar próxima fatia
 ```
+
+O conjunto acima está encerrado. O Sistema 9 foi aprovado posteriormente e possui prompts próprios em `system-9/`; nada nos prompts históricos do Sistema 8 autoriza antecipar suas fatias.
 
 ## Como usar
 
@@ -49,7 +51,7 @@ Estes prompts não autorizam:
 - agenda e deslocamento automático de NPCs;
 - grupo, domesticação ou captura;
 - respawn procedural;
-- sobrevivência automática;
+- necessidades ou sobrevivência dentro das fatias históricas do Sistema 8;
 - clima, economia ou facções jogáveis;
 - backend, serviço pago ou IA em runtime;
 - arte final.

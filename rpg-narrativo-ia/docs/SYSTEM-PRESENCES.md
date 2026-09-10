@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 2 de setembro de 2026.**
 
-O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.6 estão implementadas. Não existe Sistema 9 aprovado.
+O objetivo de experiência, os limites e a sequência de fatias deste documento estão aprovados. As Fatias 8.1 a 8.6 estão implementadas e consolidadas. O Sistema 9 foi definido depois deste marco e possui contrato próprio em [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
 
 ## Problema de diversão e imersão
 
@@ -272,7 +272,7 @@ Regras de UX:
 
 ### Fatia 8.4 — Estado integrado e orquestração
 
-**Implementada.** `SandboxState.presences` entra no save com `schemaVersion: 4`. O contexto indexa os catálogos de presenças e de interações. Saves v1, v2 e v3 válidos são lidos e migrados; a migração v3 cria estado inicial vazio e sincroniza descobertas já reveladas. `presence.interact` planeja pela Fatia 8.3, aplica efeitos, cobra `TimeCost` uma vez, sincroniza presenças, resolve só quando o plano declara e abre `narrativeSession` quando a referência é válida. Falha não devolve nem persiste estado parcial. A localização atual não muda. O mecanismo genérico de gatilhos da Fatia 7.5 permanece no adaptador: se um gatilho do catálogo ativo abrir a sessão, as presenças resolvíveis daquela descoberta também são resolvidas.
+**Implementada.** `SandboxState.presences` entra no save com `schemaVersion: 4`. O contexto indexa os catálogos de presenças e de interações. Saves v1, v2 e v3 válidos são lidos e migrados; a migração v3 cria estado inicial vazio e sincroniza descobertas já reveladas. A leitura do schema atual também reconcilia descobertas e resoluções derivadas antes de devolver o estado. `presence.interact` planeja pela Fatia 8.3, aplica efeitos declarativos, cobra `TimeCost` uma vez a partir do mundo resultante, sincroniza presenças, resolve só quando o plano declara e abre `narrativeSession` quando a referência é válida. Falha não devolve nem persiste estado parcial. A localização atual não muda. O mecanismo genérico de gatilhos da Fatia 7.5 permanece no adaptador: se um gatilho do catálogo ativo abrir a sessão, as presenças resolvíveis daquela descoberta também são resolvidas.
 
 ### Fatia 8.5 — Interface mobile
 
@@ -485,7 +485,7 @@ Os nomes podem acompanhar convenções já usadas nos módulos existentes, desde
 
 ## Critérios de conclusão do Sistema 8
 
-O sistema completo está consolidado: exploração revela presença sem conversa automática; o local mostra somente presenças descobertas; o jogador escolhe a interação; custos aparecem antes e aplicam-se uma vez; narrativa de Mira abre e devolve ao sandbox; o coelho permanece no mundo sem combate; save e migração preservam descobertas e resoluções.
+O sistema completo está consolidado: exploração revela presença sem conversa automática; o local mostra somente presenças descobertas; o jogador escolhe a interação; custos aparecem antes e aplicam-se uma vez; narrativa de Mira abre e devolve ao sandbox sem fazer o relógio retroceder; o coelho permanece no mundo sem combate; save e migração preservam e reconciliam descobertas e resoluções. A revisão integrada está registrada em [Consolidação dos Sistemas 1 a 8](SYSTEMS-1-8-CONSOLIDATION.md).
 
 ## Fora do Sistema 8
 

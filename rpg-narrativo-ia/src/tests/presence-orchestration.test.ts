@@ -9,6 +9,7 @@ import {
 } from '../infrastructure/persistence';
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction, SandboxActionError } from '../modules/sandbox-actions';
+import { indexPresenceInteractionCatalog } from '../modules/presences';
 import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { commitSandboxAction } from '../ui/sandbox';
 import { asV1, asV2, asV3, playChoices, playFirstDay } from './helpers';
@@ -210,6 +211,40 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     expect(result.current.updatedAt).toBe(STAMP);
     expect(result.feedback).toMatch(/coelho chifrudo/);
     expect(result.current.world.day !== previousDay || result.current.world.period !== previousPeriod).toBe(true);
+  });
+
+  it('preserva o efeito de período da interação antes de aplicar seu custo temporal', () => {
+    const rabbit = withRabbit(exploring());
+    const customInteractions = context.presenceInteractions.interactions.map((interaction) =>
+      interaction.id === 'observe-horned-rabbit-dense-woods'
+        ? {
+            ...interaction,
+            timeCost: { periods: 1 },
+            effects: [{ type: 'world.period' as const, period: 'entardecer' as const }],
+          }
+        : interaction,
+    );
+    const customContext = {
+      ...context,
+      presenceInteractions: indexPresenceInteractionCatalog(
+        { interactions: customInteractions },
+        context.presences,
+        firstDayCampaign,
+      ),
+    };
+
+    const result = executeSandboxAction(
+      rabbit,
+      {
+        type: 'presence.interact',
+        presenceId: 'horned-rabbit-dense-woods',
+        interactionId: 'observe-horned-rabbit-dense-woods',
+      },
+      { context: customContext, now: () => STAMP },
+    );
+
+    expect(result.dayCycle.time.previous).toEqual({ day: rabbit.world.day, periodId: 'entardecer' });
+    expect(result.current.world).toEqual({ day: rabbit.world.day, period: 'noite' });
   });
 
   it('interação narrativa abre sessão válida sem custo duplicado e resolve quando declarado', () => {

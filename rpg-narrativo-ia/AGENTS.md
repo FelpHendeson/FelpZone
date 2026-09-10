@@ -6,7 +6,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-O Sistema 8 — Presenças e interações no mundo — foi aprovado. As Fatias 8.1 a 8.6 estão implementadas: catálogo, sincronização com descobertas, planejamento de interações, estado persistido no sandbox com schema 4, `presence.interact` atômico, interface mobile e conteúdo jogável de Mira e do coelho chifrudo. Não implementar recortes posteriores sem autorização. Leia [Sistema 8](docs/SYSTEM-PRESENCES.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo, sobrevivência e combate continuam sem implementação aprovada.
+Os Sistemas 1 a 8 estão implementados e consolidados. O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado; a Fatia 9.1 está implementada e consolidada como modelo puro, sem `GameState`, schema, persistência, orquestrador ou UI. Nenhuma fatia posterior está autorizada para implementação. Leia [Sistema 9](docs/SYSTEM-NEEDS.md), [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam sem implementação aprovada.
 
 ## Regras obrigatórias
 

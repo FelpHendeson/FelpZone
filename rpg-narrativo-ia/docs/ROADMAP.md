@@ -74,7 +74,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 8 — Presenças e interações no mundo
 
-**Aprovada, especificada e implementada.** As Fatias 8.1 a 8.6 estão implementadas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**Aprovada, especificada, implementada e consolidada.** As Fatias 8.1 a 8.6 estão encerradas. Fonte: [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md) e [Consolidação dos Sistemas 1 a 8](SYSTEMS-1-8-CONSOLIDATION.md).
 
 #### Fatia 8.1 — Catálogo e estado isolado
 
@@ -102,7 +102,21 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ## Depois do Sistema 8
 
-Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
+### Etapa 9 — Necessidades e sobrevivência leve
+
+**Aprovada e em implementação.** A Fatia 9.1 está consolidada; as demais permanecem sem autorização de implementação. O conteúdo atual deve sustentar o jogador sem combate. Fonte: [Sistema 9 — Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
+
+#### Fatia 9.1 — Modelo puro e prova matemática
+
+**Implementada, revisada e consolidada.** Módulo isolado de necessidades, desgaste, consumíveis, repouso, faixas derivadas e simulação determinística, sem alterar `GameState`.
+
+#### Fatias 9.2 a 9.5
+
+**Especificadas, ainda não autorizadas para implementação.** Integração e migração, ações e passagem do tempo, interface mobile e prova jogável serão liberadas uma por vez após revisão da anterior.
+
+## Depois do Sistema 9
+
+Não existe Sistema 10 aprovado nem uma ordem fechada posterior. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
 
 ### Direções definidas pelo autor, ainda sem próxima especificação
 
@@ -123,7 +137,6 @@ Não existe Sistema 9 aprovado nem uma ordem fechada posterior. A classificaçã
 
 - estado persistente próprio, agenda e deslocamento autônomo de NPCs;
 - comportamento ou IA de criaturas;
-- sobrevivência automática;
 - ferramentas, equipamentos, durabilidade e combustível;
 - grupo ou companheiros;
 - combate;

@@ -92,7 +92,8 @@ function runTransaction(
   let presences = executed.presences;
   const inventory = executed.inventory;
 
-  const dayCycle = advanceDayCycle(initialTime, timeCost);
+  // Efeitos declarativos da ação são aplicados antes do custo temporal dela.
+  const dayCycle = advanceDayCycle(worldToTimeState(executed.world), timeCost);
   const world = timeStateToWorld(dayCycle.time.current);
   const clockAdvanced = timeCost.periods > 0;
 
@@ -215,6 +216,7 @@ function executePrimary(
   progression: ProgressionState;
   status: GameState['status'];
   narrativeSession: NarrativeSession | null;
+  world: GameState['world'];
 } {
   const navigation = copyNavigation(state.sandbox.navigation);
   const exploration = copyExploration(state.sandbox.exploration);
@@ -232,6 +234,7 @@ function executePrimary(
     },
     status: state.status,
     narrativeSession: copyNarrativeSession(state.narrativeSession),
+    world: { day: state.world.day, period: state.world.period },
   };
 
   if (action.type === 'navigation.move') {
@@ -358,6 +361,7 @@ function executePrimary(
     },
     status: afterEffects.status,
     narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
+    world: { day: afterEffects.world.day, period: afterEffects.world.period },
   };
 }
 

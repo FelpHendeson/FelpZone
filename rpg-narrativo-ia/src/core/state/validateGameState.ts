@@ -256,6 +256,11 @@ function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInsp
   }
 
   const resolvedContext = requireContext(context);
+  const synchronizedPresences = synchronizeDiscoveredPresences(
+    resolvedContext.presences,
+    sandbox.value.presences,
+    sandbox.value.exploration,
+  ).current;
 
   return {
     ok: true,
@@ -267,7 +272,7 @@ function inspectCurrent(value: unknown, context?: SandboxContext): GameStateInsp
         ...sandbox.value,
         presences: reconcileConsumedWorldPresenceResolutions(
           resolvedContext.presences,
-          sandbox.value.presences,
+          synchronizedPresences,
           shared.value.flags,
         ),
       },

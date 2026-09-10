@@ -24,7 +24,9 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.3 — interações dirigidas por dados — está implementada: catálogo, consulta e planejamento puro.
 - A Fatia 8.4 — estado integrado, save e orquestração — está implementada: `sandbox.presences`, `schemaVersion: 4`, migração v1/v2/v3 e `presence.interact` atômico.
 - A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`.
-- A Fatia 8.6 — conteúdo jogável — está implementada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
+- A Fatia 8.6 — conteúdo jogável — está implementada e consolidada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
+- Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
+- O Sistema 9 — necessidades e sobrevivência leve — está aprovado e especificado em `docs/SYSTEM-NEEDS.md`; a Fatia 9.1 está implementada, revisada e consolidada.
 - Agenda, comportamento autônomo, sobrevivência e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
@@ -100,7 +102,7 @@ Estado conhecido:
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
 
-Sua primeira tarefa é validar e revisar a Fatia 8.6 contra docs/SYSTEM-PRESENCES.md.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. A Fatia 9.1 já está consolidada; não implemente a 9.2 antes de o autor pedir seu prompt.
 
 Execute:
 
@@ -109,7 +111,7 @@ npm run lint
 npm run typecheck
 npm run build
 
-Revise especialmente:
+Se precisar confirmar a base antes da discussão, revise especialmente:
 
 - explorar a Clareira revela Mira sem abrir `GameScreen`;
 - conversar abre `first-priority` uma vez e devolve ao mesmo local;
@@ -118,7 +120,7 @@ Revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não corrija achados silenciosamente. Primeiro apresente a revisão com severidade e localização. Se houver problemas, prepare um prompt corretivo limitado à Fatia 8.6. Se não houver problemas, declare a Fatia 8.6 consolidada. Não numere um Sistema 9.
+Não antecipe as Fatias 9.2 a 9.5. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
 
 Preserve o ciclo de trabalho:
 
@@ -127,6 +129,6 @@ especificar → implementar → testar → revisar → corrigir → consolidar �
 Não faça push sem minha autorização. Preserve alterações existentes e mantenha a conversa em português do Brasil.
 ```
 
-## Próxima decisão depois da Fatia 8.6
+## Próxima decisão
 
-Revisar e consolidar o conteúdo jogável de Mira e do coelho. Não criar Sistema 9. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem fora do Sistema 8 aprovado.
+Preparar a Fatia 9.2 somente quando o autor solicitar. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.

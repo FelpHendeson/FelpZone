@@ -108,4 +108,19 @@ describe('efeitos', () => {
     expect(twice.progression.abilityIds).toEqual(['olhar-atento']);
     expect(twice.progression.titleIds).toEqual(['despertar']);
   });
+
+  it('efeito narrativo de período nunca faz o relógio retroceder', () => {
+    const afternoon = {
+      ...baseState(),
+      world: { day: 3, period: 'tarde' as const },
+    };
+    const snapshot = structuredClone(afternoon);
+
+    const ignoredPast = applyEffects(afternoon, [{ type: 'world.period', period: 'meio-dia' }]);
+    const advanced = applyEffects(afternoon, [{ type: 'world.period', period: 'entardecer' }]);
+
+    expect(ignoredPast.world).toEqual({ day: 3, period: 'tarde' });
+    expect(advanced.world).toEqual({ day: 3, period: 'entardecer' });
+    expect(afternoon).toEqual(snapshot);
+  });
 });

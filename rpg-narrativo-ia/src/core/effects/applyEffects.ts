@@ -5,7 +5,7 @@ import { changeAttribute } from '../../modules/character';
 import { addItem, canRemoveItem, removeItem } from '../../modules/inventory';
 import { grantAbility, grantTitle } from '../../modules/progression';
 import { changeRelationship } from '../../modules/relationships';
-import { setPeriod } from '../../modules/world';
+import { advancePeriodTo } from '../../modules/world';
 
 export function applyEffects(state: GameState, effects: GameEffect[]): GameState {
   return effects.reduce(applyEffect, state);
@@ -54,7 +54,7 @@ export function applyEffect(state: GameState, effect: GameEffect): GameState {
     case 'world.period':
       return {
         ...state,
-        world: setPeriod(state.world, effect.period),
+        world: advancePeriodTo(state.world, effect.period),
       };
     case 'progression.ability':
       return {

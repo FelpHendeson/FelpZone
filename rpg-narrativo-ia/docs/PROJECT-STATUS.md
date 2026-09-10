@@ -75,6 +75,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e mecanismo genérico de gatilhos de mundo. | O catálogo da campanha `first-day` não dispara mais o encontro da Clareira automaticamente. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
+| Sistema 9 — Necessidades e sobrevivência leve | **Em implementação; Fatia 9.1 consolidada** | Modelo puro de desgaste, sede, consumo e repouso; a integração futura usará água, carne cozida e fogueira atuais. | Ainda não altera `GameState`, save, ações ou UI; sem combate, morte permanente ou novos recursos. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -98,7 +99,7 @@ Estas metas fazem parte da visão, mas ainda precisam de especificação antes d
 
 Explorar deve permitir encontrar NPCs, animais ou criaturas no mundo. Quando o encontro acontecer, diálogo, narrativa e escolhas podem assumir temporariamente o controle e depois devolver o jogador à exploração.
 
-O Sistema 8 foi aprovado para representar entidades, presenças descobertas por local, disponibilidade derivada, resolução e ações contextuais. Seu estado persistente futuro será mínimo e registrará ocorrências descobertas e resolvidas. `NPCState` completo, agenda, deslocamento autônomo, reaparecimento, hostilidade e modelo de comportamento continuam sem aprovação.
+O Sistema 8 representa entidades, presenças descobertas por local, disponibilidade derivada, resolução e ações contextuais. Seu estado persistente é mínimo e registra ocorrências descobertas e resolvidas. `NPCState` completo, agenda, deslocamento autônomo, reaparecimento, hostilidade e modelo de comportamento continuam sem aprovação.
 
 ### Interações com elementos do cenário
 
@@ -137,7 +138,7 @@ Os itens abaixo apareceram como possibilidades técnicas ou foram inferidos pelo
 - comportamento autônomo ou IA de criaturas;
 - combate, seja tático, automático ou baseado em escolhas;
 - grupo ou sistema de companheiros;
-- sobrevivência automática que reduza fome, energia, água ou saúde com o tempo;
+- consequências irreversíveis de sobrevivência, como morte permanente, perda de save ou bloqueio total de ações;
 - clima, estações e efeitos ambientais;
 - ferramentas, equipamentos, durabilidade, qualidade e combustível consumível;
 - comércio, mercado e economia;
@@ -162,10 +163,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**O Sistema 8 foi aprovado, implementado e consolidado nas Fatias 8.1 a 8.6.** Consulte [Sistema 8 — Presenças e interações](SYSTEM-PRESENCES.md).
+**Os Sistemas 1 a 8 estão implementados e consolidados. O Sistema 9 foi aprovado e sua Fatia 9.1 está implementada e consolidada de forma isolada.** Consulte [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
 
 Antes de qualquer próxima implementação:
 
-1. revisar a Fatia 8.6 contra o contrato;
-2. não numerar um Sistema 9 sem discussão e aprovação do autor;
-3. não promover possibilidades futuras a requisitos.
+1. discutir e preparar a Fatia 9.2 antes de integrá-la ao `GameState`;
+2. preservar a migração planejada para schema 5 sem antecipar ações ou UI;
+3. manter como aceite final a prova de que o conteúdo atual sustenta o jogador sem combate ou novo recurso.
