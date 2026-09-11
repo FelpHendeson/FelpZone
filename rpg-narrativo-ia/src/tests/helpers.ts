@@ -99,9 +99,10 @@ export function playChoices(
   choiceIds: string[],
   campaign: Campaign = firstDayCampaign,
   clock = now,
+  objectiveCatalog?: IndexedObjectives,
 ): GameState {
   return choiceIds.reduce(
-    (state, choiceId) => applyChoice(state, campaign, choiceId, clock),
+    (state, choiceId) => applyChoice(state, campaign, choiceId, clock, objectiveCatalog),
     start,
   );
 }

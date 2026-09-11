@@ -212,6 +212,8 @@ export function listKnownObjectives(catalog: IndexedObjectives, state: Objective
 
 export function evaluateObjectiveCriterion(criterion: ObjectiveCriterion, state: GameState): boolean {
   switch (criterion.type) {
+    case 'progression.ability.selected':
+      return state.progression.abilityIds.length > 0;
     case 'progression.ability.has':
       return state.progression.abilityIds.includes(criterion.abilityId);
     case 'navigation.location.visited':
@@ -422,6 +424,8 @@ function inspectCriterion(value: unknown): ObjectiveInspection<ObjectiveCriterio
   }
 
   switch (value.type) {
+    case 'progression.ability.selected':
+      return { ok: true, value: { type: value.type } };
     case 'progression.ability.has':
       return stringCriterion(value, 'abilityId', value.type);
     case 'navigation.location.visited':

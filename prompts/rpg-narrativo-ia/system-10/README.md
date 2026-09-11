@@ -8,5 +8,6 @@ O Sistema 10 foi aprovado em 11 de setembro de 2026. Os prompts serão adicionad
 | 2 | `02-fatia-10.2-integracao-e-persistencia.md` | Implementada, revisada e consolidada; mantida como histórico. |
 | 3 | `03-fatia-10.3-atualizacao-e-diario-derivado.md` | Implementada, revisada e consolidada; mantida como histórico. |
 | 4 | `04-fatia-10.4-interface-mobile.md` | Implementada, revisada e consolidada; mantida como histórico. |
+| 5 | `05-fatia-10.5-primeira-jornada-ponta-a-ponta.md` | Implementada, revisada e consolidada; mantida como histórico. |
 
-A Fatia 10.5 é a próxima etapa autorizada pelo fluxo contínuo. A fonte normativa é `rpg-narrativo-ia/docs/SYSTEM-OBJECTIVES.md`.
+O Sistema 10 está consolidado. Não existe Sistema 11 aprovado; a fonte normativa para a próxima discussão é `rpg-narrativo-ia/docs/PROJECT-STATUS.md`.

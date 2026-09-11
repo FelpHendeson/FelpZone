@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado pelo autor em 11 de setembro de 2026 e em implementação.** O Sistema 10 deve conectar os sistemas já existentes em metas compreensíveis de curto e médio prazo. Ele não autoriza combate, agenda, equipamentos, facções jogáveis ou conteúdo extenso.
+**Aprovado pelo autor em 11 de setembro de 2026, implementado e consolidado nas Fatias 10.1 a 10.5.** O Sistema 10 conecta os sistemas já existentes em metas compreensíveis de curto e médio prazo. Ele não autoriza combate, agenda, equipamentos, facções jogáveis ou conteúdo extenso.
 
 ## Problema de diversão e imersão
 
@@ -106,6 +106,7 @@ O primeiro contrato observa apenas fatos que já possuem fonte canônica:
 
 ```ts
 type ObjectiveCriterion =
+  | { type: 'progression.ability.selected' }
   | { type: 'progression.ability.has'; abilityId: string }
   | { type: 'navigation.location.visited'; locationId: string }
   | { type: 'exploration.discovery.revealed'; discoveryId: string }
@@ -117,7 +118,7 @@ type ObjectiveCriterion =
   | { type: 'world.day.min'; day: number };
 ```
 
-Todos os critérios de uma etapa precisam ser satisfeitos. Contadores genéricos de ações, porcentagens arbitrárias, condições temporais por período e expressões lógicas aninhadas ficam fora do primeiro recorte.
+Todos os critérios de uma etapa precisam ser satisfeitos. `progression.ability.selected` reconhece qualquer capacidade inicial sem ID-curinga nem flag duplicada; `progression.ability.has` continua atendendo capacidades específicas. Contadores genéricos de ações, porcentagens arbitrárias, condições temporais por período e expressões lógicas aninhadas ficam fora do primeiro recorte.
 
 ## Ativação
 
@@ -133,7 +134,7 @@ Objetivos ocultos só podem ser apresentados depois de ativados. O catálogo com
 
 ## Sincronização com o jogo
 
-A integração futura recebe um `GameState` válido e um catálogo indexado, sem mutar nenhum dos dois:
+A integração recebe um `GameState` válido e um catálogo indexado, sem mutar nenhum dos dois:
 
 1. ativa objetivos elegíveis na ordem do catálogo;
 2. avalia etapas elegíveis de cada objetivo ativo;
@@ -150,6 +151,7 @@ A Fatia 10.2 incluiu `ObjectivesState` no save e elevou o schema somente porque 
 
 - catálogo, textos, critérios e status derivados não entram no JSON;
 - saves anteriores recebem o estado inicial e são sincronizados contra fatos já alcançados;
+- saves do próprio schema 6 são reconciliados na leitura quando o catálogo ganha conteúdo, sem mudar schema, avançar tempo ou regravar o armazenamento;
 - migração não avança tempo, não aplica efeitos e não regrava durante a leitura;
 - estado restaurado precisa referenciar exatamente objetivos e etapas existentes;
 - uma etapa concluída precisa respeitar a ordem sequencial;
@@ -157,14 +159,14 @@ A Fatia 10.2 incluiu `ObjectivesState` no save e elevou o schema somente porque 
 
 ## Diário e registro de descobertas
 
-O diário será uma visão derivada, não um segundo histórico do mundo. Ele reunirá:
+O diário é uma visão derivada, não um segundo histórico do mundo. Ele reúne:
 
 - jornadas conhecidas e seu progresso;
 - localização visitada e descobertas já reveladas;
 - NPCs, animais e criaturas já conhecidos;
 - registros narrativos já presentes em `history`.
 
-O diário não copiará descrições secretas nem persistirá listas redundantes. A Fatia 10.3 definirá view-models seguros para a interface.
+O diário não copia descrições secretas nem persiste listas redundantes. A Fatia 10.3 consolidou view-models seguros para a interface.
 
 ## Interface mobile
 
@@ -213,7 +215,7 @@ Os textos e a ordem final são protótipos. O fluxo não exigirá combate, não 
 
 ### Fatia 10.5 — Primeira jornada ponta a ponta
 
-Adicionar o conteúdo “Primeiros passos” e provar ativação, progresso, persistência, conclusão, ausência de vazamento oculto e continuidade do sandbox usando apenas o conteúdo atual.
+**Implementada, revisada e consolidada.** O catálogo inicial contém uma única jornada principal sequencial `Primeiros passos`, ativada por qualquer capacidade escolhida. Suas sete etapas usam apenas fatos canônicos existentes: capacidade, marca da Clareira, nascente, fogueira ativa, refeição preparada e presença descoberta/resolvida de Mira. Escolhas narrativas agora sincronizam objetivos sobre o estado final; saves schema 6 criados com catálogo vazio são reconciliados na leitura sem mudança de versão. A rota automatizada prova ativação pelas três capacidades, progresso retroativo, persistência, conclusão idempotente e retorno ao sandbox. A entrega passou por 572 testes, lint, tipos, build/PWA, revisão e validação visual em 320 px e desktop sem overflow. O acompanhamento continua efêmero.
 
 ## Fora do Sistema 10
 

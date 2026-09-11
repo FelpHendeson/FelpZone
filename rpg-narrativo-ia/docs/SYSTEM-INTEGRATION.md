@@ -112,7 +112,7 @@ Carregar não aplica tempo, não renova recursos e não recupera populações.
 
 `inspectSandboxContext` é a fronteira do contexto: falha com `{ ok: false, reason }` se o conjunto for incoerente. `createInitialSandboxState` inspeciona o contexto por completo e só então cria o estado com os índices normalizados; contexto inválido lança `SandboxError`. `inspectGameState` valida o schema 6, exige `sede`, `narrativeSession` e `objectives`, rejeita `currentEventId` e delega aos validadores do sandbox e de objetivos. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
 
-`serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` e um catálogo indexado de objetivos opcionais. `save` e `load` da mesma persistência usam os mesmos contratos. Sem argumento, o contexto padrão da Clareira do Despertar e o catálogo inicial vazio continuam em vigor.
+`serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` e um catálogo indexado de objetivos opcionais. `save` e `load` da mesma persistência usam os mesmos contratos. Sem argumento, o contexto padrão da Clareira do Despertar e o catálogo inicial com a jornada `Primeiros passos` entram em vigor. A leitura reconcilia objetivos elegíveis do catálogo atual sem regravar o armazenamento.
 
 ## Orquestrador de ações
 

@@ -85,7 +85,13 @@ function journalState() {
     context,
     objectives,
   );
-  const exploring = playChoices(initial, ['awake-calm', 'system-touch', 'ability-perception']);
+  const exploring = playChoices(
+    initial,
+    ['awake-calm', 'system-touch', 'ability-perception'],
+    firstDayCampaign,
+    () => '2026-09-11T12:00:00.000Z',
+    objectives,
+  );
   return executeSandboxAction(exploring, { type: 'exploration.explore' }, {
     context,
     campaign: firstDayCampaign,

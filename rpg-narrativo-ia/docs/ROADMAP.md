@@ -126,7 +126,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 10 — Objetivos, jornadas e registro de descobertas
 
-**Aprovada e em implementação.** O sistema conectará ações e conhecimento já existentes em jornadas persistentes e em um diário derivado, sem retirar a liberdade do sandbox. Fonte: [Sistema 10 — Objetivos, jornadas e registro de descobertas](SYSTEM-OBJECTIVES.md).
+**Implementada e consolidada nas Fatias 10.1 a 10.5.** O sistema conecta ações e conhecimento já existentes em jornadas persistentes e em um diário derivado, sem retirar a liberdade do sandbox. Fonte: [Sistema 10 — Objetivos, jornadas e registro de descobertas](SYSTEM-OBJECTIVES.md).
 
 #### Fatia 10.1 — Modelo puro
 
@@ -134,7 +134,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 10.2 — Integração e persistência
 
-**Implementada, revisada e consolidada.** Os nove critérios observam fontes canônicas do `GameState`; a sincronização é explícita e idempotente; `ObjectivesState` integra o schema 6; saves v1 a v5 migram sem gameplay nem escrita durante a leitura. O catálogo inicial permanece vazio.
+**Implementada, revisada e consolidada.** Os nove critérios originais observam fontes canônicas do `GameState`; a sincronização é explícita e idempotente; `ObjectivesState` integra o schema 6; saves v1 a v5 migram sem gameplay nem escrita durante a leitura. O catálogo inicial permaneceu vazio nesta fatia.
 
 #### Fatia 10.3 — Atualização e diário derivado
 
@@ -146,7 +146,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 10.5 — Primeira jornada ponta a ponta
 
-**Aprovada como próxima fatia.** Adicionará somente o conteúdo “Primeiros passos” usando fatos e sistemas atuais e provará o fluxo completo.
+**Implementada, revisada e consolidada.** A jornada principal `Primeiros passos` usa dez critérios aprovados no total e conecta capacidade, exploração, nascente, fogueira, refeição e Mira. O fluxo foi provado de ponta a ponta, inclusive para saves schema 6 anteriores ao conteúdo.
 
 ## Depois do Sistema 10
 

@@ -178,7 +178,7 @@ describe('persistência', () => {
     expect(parsed.status).toBe('corrupt');
   });
 
-  it('preserva um estado jogável válido com inventário, relação e histórico', () => {
+  it('preserva dados jogáveis e reconcilia objetivos elegíveis ao carregar', () => {
     const state = freshState();
     const rich: typeof state = {
       ...state,
@@ -197,7 +197,19 @@ describe('persistência', () => {
       progression: { abilityIds: ['olhar-atento'], titleIds: [] },
     };
 
-    expect(parseGameState(serializeGameState(rich))).toEqual({ status: 'ok', state: rich });
+    expect(parseGameState(serializeGameState(rich))).toEqual({
+      status: 'ok',
+      state: {
+        ...rich,
+        objectives: {
+          entries: [{
+            objectiveId: 'first-steps',
+            completedStepIds: ['choose-ability'],
+            completed: false,
+          }],
+        },
+      },
+    });
   });
 
   it('rejeita a serialização de um estado atual inválido', () => {

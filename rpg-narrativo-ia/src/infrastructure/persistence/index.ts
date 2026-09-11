@@ -19,7 +19,7 @@ import {
   type GameState,
 } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
-import type { IndexedObjectives } from '../../modules/objectives';
+import { INITIAL_OBJECTIVES, synchronizeObjectives, type IndexedObjectives } from '../../modules/objectives';
 
 export const SAVE_KEY = 'reset.mvp.save';
 
@@ -176,7 +176,14 @@ export function parseGameState(
       return { status: 'corrupt', reason: inspected.reason };
     }
 
-    return { status: 'ok', state: inspected.state };
+    const catalog = objectiveCatalog ?? INITIAL_OBJECTIVES;
+    return {
+      status: 'ok',
+      state: {
+        ...inspected.state,
+        objectives: synchronizeObjectives(catalog, inspected.state.objectives, inspected.state).current,
+      },
+    };
   } catch {
     return { status: 'corrupt', reason: 'O salvamento está corrompido.' };
   }

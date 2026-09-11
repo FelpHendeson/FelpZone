@@ -153,6 +153,25 @@ describe('Fatia 10.1 — catálogo de objetivos', () => {
     ).toBe(false);
   });
 
+  it('aceita o critério de qualquer capacidade escolhida sem exigir ID-curinga', () => {
+    const inspected = inspectObjectiveCatalog({
+      objectives: [
+        objective({
+          activation: { type: 'criteria', criteria: [{ type: 'progression.ability.selected' }] },
+          steps: [
+            {
+              id: 'ability',
+              title: 'Escolha uma capacidade',
+              criteria: [{ type: 'progression.ability.selected' }],
+            },
+          ],
+        }),
+      ],
+    });
+
+    expect(inspected.ok).toBe(true);
+  });
+
   it('rejeita ativação por critérios vazia e etapa sem critérios', () => {
     expect(
       inspectObjectiveCatalog({

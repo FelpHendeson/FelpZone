@@ -34,7 +34,7 @@ Leia nesta ordem:
 16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
 17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
 18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
-19. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 aprovado e em implementação.
+19. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
 20. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e temas ainda sem etapa aprovada.
 21. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -84,7 +84,7 @@ O Sistema 8 — Presenças e interações no mundo — está implementado e cons
 
 O Sistema 9 — Necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe condição e recuperação e uma rota automatizada sustenta oito dias sem combate usando apenas o conteúdo atual.
 
-O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado e está em implementação. As Fatias 10.1 a 10.4 consolidaram catálogo, estado, nove critérios, schema 6, sincronização após ações, diário seguro e uma aba mobile com acompanhamento efêmero de jornada. A primeira jornada jogável entra separadamente na Fatia 10.5.
+O Sistema 10 — Objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5. Catálogo, estado, dez critérios, schema 6, sincronização após ações e escolhas, diário seguro e interface mobile sustentam a jornada principal `Primeiros passos`, da capacidade inicial ao encontro com Mira.
 
 ## Decisões já tomadas
 
@@ -110,7 +110,7 @@ O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado 
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 565 testes, incluindo o fluxo jogável de Mira e do coelho, persistência schema 6, migrações v1–v5, objetivos, diário, superfície mobile, necessidades e orquestração.
+- `npm test`: 572 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 6, migrações v1–v5, diário, superfície mobile, necessidades e orquestração.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

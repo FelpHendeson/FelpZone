@@ -37,7 +37,13 @@ function exploring(catalog: IndexedObjectives): GameState {
     context,
     catalog,
   );
-  return playChoices(initial, ['awake-calm', 'system-touch', 'ability-perception']);
+  return playChoices(
+    initial,
+    ['awake-calm', 'system-touch', 'ability-perception'],
+    firstDayCampaign,
+    () => STAMP,
+    catalog,
+  );
 }
 
 function valid(state: GameState, catalog: IndexedObjectives): GameState {

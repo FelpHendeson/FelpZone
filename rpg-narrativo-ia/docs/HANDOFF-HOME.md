@@ -27,7 +27,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.6 — conteúdo jogável — está implementada e consolidada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
 - O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o Sistema 9 introduziu o schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
-- O Sistema 10 — objetivos, jornadas e registro de descobertas — foi aprovado e especificado em `docs/SYSTEM-OBJECTIVES.md`; as Fatias 10.1 a 10.4 estão consolidadas com domínio, schema 6, sincronização após ações, diário seguro, interface mobile e acompanhamento efêmero.
+- O Sistema 10 — objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5, incluindo a jornada `Primeiros passos`, sincronização narrativa, compatibilidade de saves schema 6 e acompanhamento efêmero.
 - Agenda, comportamento autônomo e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
@@ -102,9 +102,9 @@ Estado conhecido:
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo e combate continuam sem implementação autorizada;
-- o Sistema 9 está consolidado e as Fatias 10.1–10.4 do Sistema 10 também estão consolidadas; a Fatia 10.5 é a próxima.
+- os Sistemas 1 a 10 estão consolidados; não existe Sistema 11 aprovado.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-NEEDS.md` e `docs/SYSTEM-OBJECTIVES.md`. Os Sistemas 1 a 9 e as Fatias 10.1–10.4 estão consolidados; o Sistema 10 continua em implementação.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-NEEDS.md` e `docs/SYSTEM-OBJECTIVES.md`. Os Sistemas 1 a 10 estão consolidados; a próxima etapa precisa ser discutida com o autor.
 
 Execute:
 
@@ -122,7 +122,7 @@ Se precisar confirmar a base antes da discussão, revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Implemente somente a Fatia 10.5 antes de novo gate. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
+Não invente o Sistema 11. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
 
 Preserve o ciclo de trabalho:
 
@@ -133,4 +133,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Executar somente a Fatia 10.5 do Sistema 10 e submetê-la aos gates antes de avançar. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.
+Discutir com o autor qual será o Sistema 11 antes de escrever especificação ou código. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.

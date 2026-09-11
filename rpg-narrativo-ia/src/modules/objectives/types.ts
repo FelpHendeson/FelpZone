@@ -7,6 +7,7 @@ export type ObjectiveStepMode = (typeof OBJECTIVE_STEP_MODES)[number];
 export type ObjectiveStatus = (typeof OBJECTIVE_STATUSES)[number];
 
 export type ObjectiveCriterion =
+  | { type: 'progression.ability.selected' }
   | { type: 'progression.ability.has'; abilityId: string }
   | { type: 'navigation.location.visited'; locationId: string }
   | { type: 'exploration.discovery.revealed'; discoveryId: string }

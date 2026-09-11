@@ -2,6 +2,7 @@ import { evaluateConditions, getEventById } from '../events';
 import type { Campaign, StoryChoice, StoryEvent } from '../events/types';
 import { applyEffects } from '../effects';
 import { appendHistory } from '../../modules/narrative';
+import { INITIAL_OBJECTIVES, synchronizeObjectives, type IndexedObjectives } from '../../modules/objectives';
 import { createInitialState, defaultNow } from '../state';
 import type { CharacterIdentity, GameState } from '../state/types';
 import { EngineError } from './errors';
@@ -38,6 +39,7 @@ export function applyChoice(
   campaign: Campaign,
   choiceId: string,
   now = defaultNow,
+  objectiveCatalog: IndexedObjectives = INITIAL_OBJECTIVES,
 ): GameState {
   if (state.status !== 'playing') {
     throw new EngineError('A partida já foi concluída e não aceita novas escolhas.');
@@ -72,7 +74,11 @@ export function applyChoice(
     updatedAt: now(),
   };
 
-  return resolveTransition(withHistory, campaign, choice.transition);
+  const transitioned = resolveTransition(withHistory, campaign, choice.transition);
+  return {
+    ...transitioned,
+    objectives: synchronizeObjectives(objectiveCatalog, transitioned.objectives, transitioned).current,
+  };
 }
 
 function requireNarrativeSession(state: GameState, campaign: Campaign) {
