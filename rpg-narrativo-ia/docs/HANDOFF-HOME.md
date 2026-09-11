@@ -26,7 +26,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`.
 - A Fatia 8.6 — conteúdo jogável — está implementada e consolidada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
-- O Sistema 9 — necessidades e sobrevivência leve — está aprovado e especificado em `docs/SYSTEM-NEEDS.md`; as Fatias 9.1, 9.2 e 9.3 estão consolidadas. `Attributes` inclui `sede`, o save atual usa schema 5 e o orquestrador já aplica desgaste, consumo e repouso.
+- O Sistema 9 — necessidades e sobrevivência leve — está aprovado e especificado em `docs/SYSTEM-NEEDS.md`; as Fatias 9.1 a 9.4 estão consolidadas. `Attributes` inclui `sede`, o save atual usa schema 5, o orquestrador aplica desgaste, consumo e repouso e a interface mobile expõe essas ações.
 - Interface de necessidades, agenda, comportamento autônomo e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
@@ -102,7 +102,7 @@ Estado conhecido:
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. As Fatias 9.1, 9.2 e 9.3 estão consolidadas; prossiga pela Fatia 9.4 somente quando ela estiver autorizada pelo autor.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. As Fatias 9.1 a 9.4 estão consolidadas; a próxima etapa é a prova ponta a ponta da Fatia 9.5.
 
 Execute:
 

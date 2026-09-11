@@ -8,12 +8,14 @@ import { AttributeSummary } from '../components/AttributeSummary';
 import { BottomNavigation, type GameTab } from '../components/BottomNavigation';
 import { GameHud } from '../components/GameHud';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
+import { formatNeedDelta } from '../needs/presentation';
 import {
   buildExplorationView,
   formatPeriodCost,
   type DestinationView,
   type ExplorationView,
   type InventoryViewItem,
+  type NeedEffectView,
   type PresenceView,
   type RecipeView,
   type ResourceView,
@@ -25,11 +27,20 @@ interface ExplorationScreenProps {
   campaign: Campaign;
   context: SandboxContext;
   feedback?: string | null;
+  actionPending?: boolean;
   onAction: (action: SandboxAction) => void;
   onExit: () => void;
 }
 
-export function ExplorationScreen({ state, campaign, context, feedback, onAction, onExit }: ExplorationScreenProps) {
+export function ExplorationScreen({
+  state,
+  campaign,
+  context,
+  feedback,
+  actionPending = false,
+  onAction,
+  onExit,
+}: ExplorationScreenProps) {
   const [activeTab, setActiveTab] = useState<GameTab>('world');
   const view = buildExplorationView(state, campaign, context);
 
@@ -44,14 +55,16 @@ export function ExplorationScreen({ state, campaign, context, feedback, onAction
 
       <div className="exploration-content">
         {feedback ? <WorldFeedback message={feedback} /> : null}
-        {activeTab === 'world' ? (
-          <WorldPanel view={view} onAction={onAction} onOpenActions={() => setActiveTab('actions')} />
-        ) : null}
-        {activeTab === 'actions' ? <ActionsPanel view={view} onAction={onAction} /> : null}
-        {activeTab === 'inventory' ? <InventoryPanel items={view.inventory} /> : null}
-        {activeTab === 'character' ? (
-          <CharacterPanel state={state} campaign={campaign} abilityName={view.abilityName} />
-        ) : null}
+        <fieldset className="sandbox-action-surface" disabled={actionPending} aria-busy={actionPending}>
+          {activeTab === 'world' ? (
+            <WorldPanel view={view} onAction={onAction} onOpenActions={() => setActiveTab('actions')} />
+          ) : null}
+          {activeTab === 'actions' ? <ActionsPanel view={view} onAction={onAction} /> : null}
+          {activeTab === 'inventory' ? <InventoryPanel items={view.inventory} onAction={onAction} /> : null}
+          {activeTab === 'character' ? (
+            <CharacterPanel state={state} campaign={campaign} abilityName={view.abilityName} />
+          ) : null}
+        </fieldset>
       </div>
 
       <BottomNavigation active={activeTab} inventoryCount={view.inventory.length} onChange={setActiveTab} />
@@ -61,16 +74,22 @@ export function ExplorationScreen({ state, campaign, context, feedback, onAction
 
 function WorldFeedback({ message }: { message: string }) {
   const discovery = message.includes('Descoberta:');
+  const warning = message.includes('Condição crítica:');
+  const className = warning
+    ? 'world-feedback world-feedback--warning'
+    : discovery
+      ? 'world-feedback world-feedback--discovery'
+      : 'world-feedback';
 
   return (
     <section
-      className={discovery ? 'world-feedback world-feedback--discovery' : 'world-feedback'}
+      className={className}
       role="status"
       aria-live="polite"
     >
-      <span className="world-feedback__icon" aria-hidden="true">{discovery ? '✦' : '✓'}</span>
+      <span className="world-feedback__icon" aria-hidden="true">{warning ? '!' : discovery ? '✦' : '✓'}</span>
       <div>
-        <strong>{discovery ? 'Nova descoberta' : 'Mundo atualizado'}</strong>
+        <strong>{warning ? 'Atenção à condição' : discovery ? 'Nova descoberta' : 'Mundo atualizado'}</strong>
         <p>{message}</p>
       </div>
     </section>
@@ -346,6 +365,31 @@ function ActionsPanel({ view, onAction }: { view: ExplorationView; onAction: (ac
         <p>Veja custos e resultados antes de comprometer um período.</p>
       </header>
 
+      <section className="action-section" aria-labelledby="rest-title">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Recuperação</span>
+            <h2 id="rest-title">Descanso</h2>
+          </div>
+          {view.rest.recommended ? <span className="condition-chip condition-chip--urgent">Recomendado</span> : null}
+        </div>
+        <article className={view.rest.recommended ? 'rest-card rest-card--recommended' : 'rest-card'}>
+          <div className="rest-card__icon" aria-hidden="true">☾</div>
+          <div className="rest-card__body">
+            <h3>{view.rest.label}</h3>
+            <p>{view.rest.description}</p>
+            <NeedEffectList effects={view.rest.effects} />
+            <button
+              type="button"
+              className="button button--compact rest-card__button"
+              onClick={() => onAction({ type: 'needs.rest', mode: view.rest.mode })}
+            >
+              {view.rest.label} · {formatPeriodCost(view.rest.costPeriods)}
+            </button>
+          </div>
+        </article>
+      </section>
+
       <section className="action-section" aria-labelledby="collect-title">
         <div className="section-heading">
           <div>
@@ -454,7 +498,7 @@ function RecipeCard({ recipe, onAction }: { recipe: RecipeView; onAction: (actio
   );
 }
 
-function InventoryPanel({ items }: { items: InventoryViewItem[] }) {
+function InventoryPanel({ items, onAction }: { items: InventoryViewItem[]; onAction: (action: SandboxAction) => void }) {
   return (
     <div className="tab-panel">
       <header className="panel-heading panel-heading--split">
@@ -474,15 +518,39 @@ function InventoryPanel({ items }: { items: InventoryViewItem[] }) {
       ) : (
         <ul className="inventory-grid">
           {items.map((item) => (
-            <li key={item.itemId}>
+            <li key={item.itemId} className={item.consumable ? 'inventory-grid__item inventory-grid__item--consumable' : 'inventory-grid__item'}>
               <span className="inventory-grid__icon" aria-hidden="true">{itemGlyph(item.itemId)}</span>
               <strong>{item.name}</strong>
               <span>× {item.quantity}</span>
+              {item.consumable ? (
+                <>
+                  <NeedEffectList effects={item.effects} compact />
+                  <button
+                    type="button"
+                    className="button button--compact inventory-grid__consume"
+                    onClick={() => onAction({ type: 'needs.consume', itemId: item.itemId })}
+                  >
+                    Consumir
+                  </button>
+                </>
+              ) : null}
             </li>
           ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function NeedEffectList({ effects, compact = false }: { effects: NeedEffectView[]; compact?: boolean }) {
+  return (
+    <ul className={compact ? 'need-effect-list need-effect-list--compact' : 'need-effect-list'} aria-label="Efeitos">
+      {effects.map((effect) => (
+        <li key={effect.needId}>
+          {formatNeedDelta(effect.needId, effect.amount)}{effect.limited ? ' (limitado)' : ''}
+        </li>
+      ))}
+    </ul>
   );
 }
 

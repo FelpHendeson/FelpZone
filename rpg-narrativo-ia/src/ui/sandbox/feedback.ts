@@ -1,5 +1,7 @@
 import type { SandboxContext } from '../../modules/sandbox';
 import type { SandboxActionResult } from '../../modules/sandbox-actions';
+import { deriveNeedsBands, type NeedId } from '../../modules/needs';
+import { attributesToNeedsSnapshot, formatNeedDelta, needLabel } from '../needs/presentation';
 import { formatPeriodCost, sandboxDiscoveryName, sandboxItemName } from './labels';
 
 export function describeSandboxFeedback(result: SandboxActionResult, context: SandboxContext): string {
@@ -50,10 +52,27 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       parts.push(declared ?? result.detail.plan.interactionId);
       break;
     }
+    case 'needs.consume': {
+      parts.push(`Consumiu ${sandboxItemName(result.detail.plan.itemId)}.`);
+      appendNeedEffects(parts, result.detail.plan.appliedEffects);
+      break;
+    }
+    case 'needs.rest': {
+      parts.push(result.detail.plan.mode === 'campfire' ? 'Você repousou junto à fogueira.' : 'Você repousou.');
+      appendNeedEffects(parts, result.detail.plan.appliedEffects);
+      break;
+    }
   }
 
   if (result.timeCost.periods > 0) {
     parts.push(`Tempo: ${formatPeriodCost(result.timeCost.periods)}.`);
+  }
+
+  const wear = Object.entries(result.needsWear.changes)
+    .filter((entry): entry is [NeedId, number] => entry[1] !== 0)
+    .map(([needId, amount]) => formatNeedDelta(needId, amount));
+  if (wear.length > 0) {
+    parts.push(`Desgaste: ${wear.join(', ')}.`);
   }
 
   if (result.synchronization.revealedDiscoveryIds.length > 0) {
@@ -76,5 +95,25 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
     parts.push(`Receitas aprendidas: ${names.join(', ')}.`);
   }
 
+  const bands = deriveNeedsBands(attributesToNeedsSnapshot(result.current.attributes));
+  const critical = (Object.entries(bands) as Array<[NeedId, (typeof bands)[NeedId]]>)
+    .filter(([, band]) => band === 'critical')
+    .map(([needId]) => needLabel(needId));
+  if (critical.length > 0) {
+    parts.push(`Condição crítica: ${critical.join(', ')}. Ações de recuperação continuam disponíveis.`);
+  }
+
   return parts.join(' ');
+}
+
+function appendNeedEffects(
+  parts: string[],
+  effects: readonly { needId: NeedId; amount: number; limited: boolean }[],
+): void {
+  const described = effects
+    .map((effect) => `${formatNeedDelta(effect.needId, effect.amount)}${effect.limited ? ' (limitado)' : ''}`)
+    .join(', ');
+  if (described) {
+    parts.push(`${described}.`);
+  }
 }

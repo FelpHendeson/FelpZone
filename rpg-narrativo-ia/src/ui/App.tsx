@@ -14,7 +14,7 @@ import { StartScreen } from './screens/StartScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { hasActiveNarrativeSession, toAppScreen } from './routing';
 import { commitSandboxAction } from './sandbox';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Screen = 'start' | 'create' | 'game' | 'exploration' | 'summary';
 type ConfirmKind = 'none' | 'new-game' | 'delete' | 'restart';
@@ -66,6 +66,15 @@ export function App() {
   const [confirm, setConfirm] = useState<ConfirmKind>('none');
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
+  const [actionPending, setActionPending] = useState(false);
+  const actionLock = useRef(false);
+  const actionUnlockTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (actionUnlockTimer.current !== null) {
+      window.clearTimeout(actionUnlockTimer.current);
+    }
+  }, []);
 
   const savedState = loadResult.status === 'ok' ? loadResult.state : null;
 
@@ -135,23 +144,43 @@ export function App() {
   }
 
   function handleSandboxAction(action: SandboxAction) {
-    if (!state) {
+    if (!state || actionLock.current) {
       return;
     }
 
-    const attempt = commitSandboxAction(state, action, sandboxContext, {
-      campaign,
-      catalog: FIRST_DAY_WORLD_TRIGGERS,
-      persist,
-    });
-    if (!attempt.ok) {
-      setError(attempt.error);
-      return;
-    }
+    actionLock.current = true;
+    setActionPending(true);
 
-    setError(null);
-    setFeedback(attempt.feedback);
-    setScreen(toAppScreen(attempt.current));
+    try {
+      const attempt = commitSandboxAction(state, action, sandboxContext, {
+        campaign,
+        catalog: FIRST_DAY_WORLD_TRIGGERS,
+        persist,
+      });
+      if (!attempt.ok) {
+        setError(attempt.error);
+        return;
+      }
+
+      setError(null);
+      setFeedback(attempt.feedback);
+      setScreen(toAppScreen(attempt.current));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Não foi possível salvar a ação.');
+    } finally {
+      scheduleActionUnlock();
+    }
+  }
+
+  function scheduleActionUnlock() {
+    if (actionUnlockTimer.current !== null) {
+      window.clearTimeout(actionUnlockTimer.current);
+    }
+    actionUnlockTimer.current = window.setTimeout(() => {
+      actionLock.current = false;
+      setActionPending(false);
+      actionUnlockTimer.current = null;
+    }, 350);
   }
 
   function handleDelete() {
@@ -208,6 +237,7 @@ export function App() {
           campaign={campaign}
           context={sandboxContext}
           feedback={feedback}
+          actionPending={actionPending}
           onAction={handleSandboxAction}
           onExit={() => {
             setFeedback(null);

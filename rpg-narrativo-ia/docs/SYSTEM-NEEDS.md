@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e em implementação.** As Fatias 9.1, 9.2 e 9.3 estão implementadas, revisadas e consolidadas. As Fatias 9.4 e 9.5 permanecem especificadas para execução posterior. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
+**Aprovado e em implementação.** As Fatias 9.1 a 9.4 estão implementadas, revisadas e consolidadas. A Fatia 9.5 permanece como prova jogável final. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
 
 Esta etapa cria pressão e propósito para horário, exploração, recursos, crafting e cozinha. Não transforma o jogo em um simulador punitivo nem autoriza combate.
 
@@ -211,7 +211,9 @@ A revisão rejeita catálogos indexados quando a lista e o índice redundante di
 
 ### Fatia 9.4 — Interface mobile
 
-Expor sede, faixas, consumo, repouso e feedback na superfície existente, com validação em 320, 360 e 390 px.
+**Implementada, revisada e consolidada.** O HUD mostra as quatro necessidades e suas faixas, a mochila oferece consumo apenas aos itens aprovados, o painel Ações oferece o melhor repouso válido no local e o feedback diferencia recuperação, desgaste e condição crítica. A superfície bloqueia repetição enquanto uma ação está pendente e mantém recuperação disponível sem modal ou combate.
+
+A revisão corrigiu o desbloqueio depois de falha na persistência, tornou a faixa textual sempre visível no HUD e removeu um corte de vitais em larguras intermediárias. A entrega acrescenta 5 testes próprios e passou pela suíte completa de 492 testes, além de lint, tipos, build/PWA e revisão visual sem overflow em 320, 360, 390, 480 e 500 px, com alvos visíveis de pelo menos 48 px.
 
 ### Fatia 9.5 — Conteúdo e sobrevivência ponta a ponta
 

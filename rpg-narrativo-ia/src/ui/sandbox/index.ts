@@ -5,9 +5,11 @@ export type {
   DestinationView,
   ExplorationView,
   InventoryViewItem,
+  NeedEffectView,
   PresenceInteractionView,
   PresenceView,
   RecipeView,
+  RestView,
   ResourceView,
 } from './model';
 export { attemptSandboxAction, commitSandboxAction, WORLD_TRIGGER_ATTENTION } from './run-action';

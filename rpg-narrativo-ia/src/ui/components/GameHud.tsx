@@ -1,4 +1,5 @@
 import type { Attributes } from '../../core/state';
+import { buildNeedsPresentation } from '../needs/presentation';
 
 interface GameHudProps {
   characterName: string;
@@ -7,13 +8,9 @@ interface GameHudProps {
   onExit: () => void;
 }
 
-const HUD_ATTRIBUTES = [
-  { id: 'saude', icon: '♥', label: 'Saúde' },
-  { id: 'energia', icon: 'ϟ', label: 'Energia' },
-  { id: 'fome', icon: '◒', label: 'Fome' },
-] as const;
-
 export function GameHud({ characterName, worldLabel, attributes, onExit }: GameHudProps) {
+  const needs = buildNeedsPresentation(attributes);
+
   return (
     <header className="game-hud">
       <div className="game-hud__time">
@@ -31,11 +28,17 @@ export function GameHud({ characterName, worldLabel, attributes, onExit }: GameH
           <strong>{characterName}</strong>
         </div>
         <ul className="hud-vitals" aria-label="Condição atual">
-          {HUD_ATTRIBUTES.map(({ id, icon, label }) => (
-            <li key={id} title={label}>
-              <span aria-hidden="true">{icon}</span>
-              <strong>{attributes[id]}</strong>
-              <span className="sr-only">{label}</span>
+          {needs.map((need) => (
+            <li
+              key={need.id}
+              className={`hud-vitals__item hud-vitals__item--${need.band}`}
+              data-need={need.id}
+              title={`${need.label}: ${need.bandLabel}`}
+            >
+              <span aria-hidden="true">{need.icon}</span>
+              <strong>{need.value}</strong>
+              <small>{need.bandLabel}</small>
+              <span className="sr-only">{need.label}</span>
             </li>
           ))}
         </ul>

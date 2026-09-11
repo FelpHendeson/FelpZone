@@ -403,6 +403,8 @@ O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameStat
 
 Na Fatia 9.3, `needs.consume` remove uma unidade do inventário e custa zero; `needs.rest` custa dois períodos. O repouso aprimorado exige uma fogueira ativa no local atual. `SandboxActionResult.needsWear` expõe o resumo do desgaste aplicado sem persistir dados derivados.
 
+Na Fatia 9.4, `ui/needs/presentation.ts` traduz valores e faixas para o HUD, resumos, efeitos e feedback. `ui/sandbox/model.ts` oferece à tela apenas consumíveis aprovados e o repouso válido para o local, enquanto a regra continua nos módulos de domínio. A superfície bloqueia novos despachos durante a janela de uma ação para evitar duplo toque.
+
 A Fatia 7.5 compõe a ação com o catálogo de gatilhos: a superfície executa `executeSandboxAction`, consome gatilhos cujo evento já foi aberto pela ação, resolve no máximo um gatilho elegível sobre o estado seguinte (ordem declarada do catálogo), marca `world.trigger.<id>.consumed` em `flags`, abre a sessão com `startNarrativeSession`, resolve presenças resolvíveis da descoberta correspondente e persiste uma única vez o estado composto. O módulo de gatilhos é puro: sem React, sem `localStorage` e sem avanço de tempo. A Fatia 8.6 deixou o catálogo da campanha `first-day` vazio; a definição antiga permanece apenas para testes do mecanismo.
 
 ## Contrato de presenças

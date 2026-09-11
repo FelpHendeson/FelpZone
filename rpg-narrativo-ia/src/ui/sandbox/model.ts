@@ -25,9 +25,23 @@ import {
   inspectResourceAccess,
 } from '../../modules/resources';
 import { inspectRecipeAccess } from '../../modules/crafting';
+import {
+  INITIAL_CONSUMABLES,
+  planNeedsConsumption,
+  planNeedsRest,
+  type NeedId,
+  type RestMode,
+} from '../../modules/needs';
 import type { SandboxContext } from '../../modules/sandbox';
 import { describeWorld } from '../../modules/world';
 import { sandboxItemName, sandboxStationName } from './labels';
+import { attributesToNeedsSnapshot, buildNeedsPresentation, type NeedPresentation } from '../needs/presentation';
+
+export interface NeedEffectView {
+  needId: NeedId;
+  amount: number;
+  limited: boolean;
+}
 
 export interface DestinationView {
   locationId: string;
@@ -66,6 +80,17 @@ export interface InventoryViewItem {
   itemId: string;
   name: string;
   quantity: number;
+  consumable: boolean;
+  effects: NeedEffectView[];
+}
+
+export interface RestView {
+  mode: RestMode;
+  label: string;
+  description: string;
+  costPeriods: number;
+  effects: NeedEffectView[];
+  recommended: boolean;
 }
 
 export interface PresenceInteractionView {
@@ -113,6 +138,8 @@ export interface ExplorationView {
   recipes: RecipeView[];
   inventory: InventoryViewItem[];
   presences: PresenceView[];
+  needs: NeedPresentation[];
+  rest: RestView;
 }
 
 const RELATION_LABELS: Record<LocationRelation, string> = {
@@ -176,8 +203,10 @@ export function buildExplorationView(
     })),
     resources: visibleResources(state, context, location.id),
     recipes: visibleRecipes(state, context),
-    inventory: copyInventory(state.inventory),
+    inventory: copyInventory(state.inventory, state),
     presences: visiblePresences(state, context, location.id),
+    needs: buildNeedsPresentation(state.attributes),
+    rest: buildRestView(state, location.id),
   };
 }
 
@@ -307,12 +336,42 @@ function visibleRecipes(state: GameState, context: SandboxContext): RecipeView[]
   return views;
 }
 
-function copyInventory(items: readonly InventoryItem[]): InventoryViewItem[] {
+function copyInventory(items: readonly InventoryItem[], state: GameState): InventoryViewItem[] {
+  const snapshot = attributesToNeedsSnapshot(state.attributes);
   return items.map((item) => ({
     itemId: item.itemId,
     name: sandboxItemName(item.itemId),
     quantity: item.quantity,
+    consumable: INITIAL_CONSUMABLES.byItemId.has(item.itemId),
+    effects: INITIAL_CONSUMABLES.byItemId.has(item.itemId)
+      ? planNeedsConsumption(snapshot, item.itemId).appliedEffects.map(copyNeedEffect)
+      : [],
   }));
+}
+
+function buildRestView(state: GameState, locationId: string): RestView {
+  const campfireAvailable = state.sandbox.crafting.structures.some(
+    (structure) =>
+      structure.structureId === 'campfire' && structure.locationId === locationId && structure.active,
+  );
+  const mode: RestMode = campfireAvailable ? 'campfire' : 'simple';
+  const plan = planNeedsRest(attributesToNeedsSnapshot(state.attributes), mode);
+  const energy = buildNeedsPresentation(state.attributes).find((need) => need.id === 'energia');
+
+  return {
+    mode,
+    label: campfireAvailable ? 'Repousar junto à fogueira' : 'Repousar',
+    description: campfireAvailable
+      ? 'A fogueira ativa melhora o descanso e permite recuperar um pouco de saúde.'
+      : 'Recupere energia em qualquer local. Uma fogueira ativa torna o repouso mais eficiente.',
+    costPeriods: plan.timeCost.periods,
+    effects: plan.appliedEffects.map(copyNeedEffect),
+    recommended: energy?.band === 'urgent' || energy?.band === 'critical',
+  };
+}
+
+function copyNeedEffect(effect: { needId: NeedId; amount: number; limited: boolean }): NeedEffectView {
+  return { needId: effect.needId, amount: effect.amount, limited: effect.limited };
 }
 
 function visiblePresences(state: GameState, context: SandboxContext, locationId: string): PresenceView[] {

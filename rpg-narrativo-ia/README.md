@@ -81,7 +81,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 O Sistema 8 — Presenças e interações no mundo — está implementado e consolidado nas Fatias 8.1 a 8.6: catálogo, sincronização, planejamento, save schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md), [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md).
 
-O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado. As Fatias 9.1, 9.2 e 9.3 estão consolidadas: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, e o orquestrador aplica desgaste, consumo e repouso. Controles visuais ainda não estão ligados à partida. O sistema deverá usar os recursos atuais para sustentar o jogador sem combate.
+O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado. As Fatias 9.1 a 9.4 estão consolidadas: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, o orquestrador aplica desgaste, consumo e repouso e a interface mobile expõe condição e recuperação. A prova ponta a ponta ainda deve demonstrar sete dias sustentáveis sem combate.
 
 ## Decisões já tomadas
 

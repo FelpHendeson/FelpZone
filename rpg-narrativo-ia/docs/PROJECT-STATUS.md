@@ -75,7 +75,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 7 — Integração explorável | **Implementado e consolidado** | Estado sandbox no save, orquestrador com custo único, superfície mobile, retorno da narrativa e mecanismo genérico de gatilhos de mundo. | O catálogo da campanha `first-day` não dispara mais o encontro da Clareira automaticamente. |
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
-| Sistema 9 — Necessidades e sobrevivência leve | **Em implementação; Fatias 9.1, 9.2 e 9.3 consolidadas** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas de consumo e repouso. | Ainda não possui controles visuais nem prova jogável final; sem combate, morte permanente ou novos recursos. |
+| Sistema 9 — Necessidades e sobrevivência leve | **Em implementação; Fatias 9.1 a 9.4 consolidadas** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas e superfície mobile de consumo e repouso. | Ainda não possui a prova jogável final de sete dias; sem combate, morte permanente ou novos recursos. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -163,10 +163,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 8 estão implementados e consolidados. O Sistema 9 foi aprovado; as Fatias 9.1, 9.2 e 9.3 estão consolidadas.** Consulte [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
+**Os Sistemas 1 a 8 estão implementados e consolidados. O Sistema 9 foi aprovado; as Fatias 9.1 a 9.4 estão consolidadas.** Consulte [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
 
 Antes de qualquer próxima implementação:
 
-1. implementar a interface mobile da Fatia 9.4;
+1. executar a prova ponta a ponta de sete dias da Fatia 9.5;
 2. discutir e preparar a Fatia 9.4 antes de expor controles visuais;
 3. manter como aceite final a prova de que o conteúdo atual sustenta o jogador sem combate ou novo recurso.
