@@ -87,7 +87,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `sandbox`: composição do estado integrado e validação conjunta dos sistemas 3 a 6.
 - `world-events`: catálogo de gatilhos declarativos que associam descobertas reveladas a sessões narrativas.
 - `presences`: catálogo de entidades e ocorrências por local, estado mínimo de descoberta/resolução e status derivado.
-- `objectives`: catálogo de jornadas, etapas, critérios e progresso monotônico; desde a Fatia 10.2 integra o estado principal e a persistência. O diário derivado entra na Fatia 10.3.
+- `objectives`: catálogo de jornadas, etapas, critérios e progresso monotônico; integra o estado principal e a persistência, e é sincronizado no fim de cada ação sandbox.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -403,6 +403,8 @@ Operações públicas dos gatilhos de mundo:
 A persistência serializa somente o schema 6 validado e pode receber o mesmo `SandboxContext` e catálogo de objetivos em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem argumentos, a aplicação usa as definições padrão e o catálogo inicial vazio. A validação não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6, 8 e 10 e valida a sede persistida.
 
 O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting, interação de presença, consumo ou repouso. A transação aplica primeiro os efeitos declarativos da ação, depois o `TimeCost` uma vez por `advanceDayCycle` e então o desgaste das necessidades para a mesma quantidade de períodos. Em seguida recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
+
+Na Fatia 10.3, o mesmo orquestrador sincroniza objetivos depois de compor o estado final da ação e devolve o resumo das mudanças de jornada. Essa etapa não cobra tempo nem modifica outros domínios. `ui/journal/model.ts` deriva um diário não persistido com jornadas e fatos conhecidos; o modelo omite objetivos ocultos não ativados e etapas sequenciais ainda futuras.
 
 Na Fatia 9.3, `needs.consume` remove uma unidade do inventário e custa zero; `needs.rest` custa dois períodos. O repouso aprimorado exige uma fogueira ativa no local atual. `SandboxActionResult.needsWear` expõe o resumo do desgaste aplicado sem persistir dados derivados.
 

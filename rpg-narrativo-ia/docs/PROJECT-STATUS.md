@@ -76,7 +76,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
-| Sistema 10 — Objetivos, jornadas e diário | **Definido pelo autor; aprovado e em implementação** | Fatias 10.1–10.2 consolidadas: catálogo, estado, nove critérios, sincronização explícita e persistência no schema 6. | Ainda sem atualização automática no loop, diário ou interface. |
+| Sistema 10 — Objetivos, jornadas e diário | **Definido pelo autor; aprovado e em implementação** | Fatias 10.1–10.3 consolidadas: catálogo, estado, nove critérios, schema 6, atualização após ações e diário derivado seguro. | Ainda sem interface mobile, objetivo acompanhado ou conteúdo “Primeiros passos”. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -168,6 +168,6 @@ O marco mínimo da integração explorável foi atingido: o jogador desperta, es
 
 Antes de qualquer próxima implementação:
 
-1. executar a Fatia 10.3 para sincronizar progresso no fluxo jogável e derivar o diário sem alterar a interface;
-2. preservar o modelo consolidado, a aplicação única de tempo e a migração sem efeitos de gameplay;
+1. executar a Fatia 10.4 para apresentar Jornadas/Diário na interface mobile, ainda sem conteúdo novo;
+2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto e a migração sem efeitos de gameplay;
 3. preservar combate, agenda, equipamentos e recompensas automáticas fora do Sistema 10.

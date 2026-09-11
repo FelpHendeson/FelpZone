@@ -84,7 +84,7 @@ O Sistema 8 — Presenças e interações no mundo — está implementado e cons
 
 O Sistema 9 — Necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe condição e recuperação e uma rota automatizada sustenta oito dias sem combate usando apenas o conteúdo atual.
 
-O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado e está em implementação. As Fatias 10.1 e 10.2 consolidaram catálogo, estado isolado, avaliação dos nove critérios, sincronização explícita e persistência no schema 6 com migração v1–v5. Atualização automática, diário, interface e conteúdo serão integrados separadamente.
+O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado e está em implementação. As Fatias 10.1 a 10.3 consolidaram catálogo, estado, nove critérios, schema 6, sincronização automática após ações do sandbox e um diário seguro derivado do conhecimento adquirido. Interface e conteúdo serão integrados separadamente.
 
 ## Decisões já tomadas
 
@@ -110,7 +110,7 @@ O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado 
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 554 testes, incluindo o fluxo jogável de Mira e do coelho, persistência schema 6, migrações v1–v5, objetivos, necessidades e orquestração.
+- `npm test`: 560 testes, incluindo o fluxo jogável de Mira e do coelho, persistência schema 6, migrações v1–v5, objetivos, diário, necessidades e orquestração.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

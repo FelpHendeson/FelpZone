@@ -205,7 +205,7 @@ Os textos e a ordem final são protótipos. O fluxo não exigirá combate, não 
 
 ### Fatia 10.3 — Atualização e diário derivado
 
-Sincronizar objetivos no fluxo jogável depois de ações do sandbox e produzir o modelo derivado do diário com jornadas, descobertas, presenças e histórico. Não adicionar tela nesta fatia.
+**Implementada, revisada e consolidada.** `executeSandboxAction` sincroniza objetivos sobre o estado final da transação e expõe as ativações, etapas e conclusões novas sem custo adicional. Isso cobre movimento, exploração, coleta, crafting, interação, consumo e repouso e mantém falhas atômicas. `buildJournalView` deriva jornadas conhecidas, somente etapas concluídas ou elegíveis, locais visitados, descobertas reveladas, presenças conhecidas/resolvidas e histórico narrativo. Objetivos ocultos e etapas sequenciais futuras não vazam; reconstruir o diário não altera estado, tempo ou persistência. A entrega elevou a suíte completa para 560 testes e passou por lint, tipos e build/PWA. Ainda não há componentes React, objetivo acompanhado, conteúdo jogável ou feedback visual.
 
 ### Fatia 10.4 — Interface mobile
 

@@ -22,6 +22,12 @@ import {
 import { moveToLocation, NavigationError, type NavigationState } from '../navigation';
 import { canRemoveItem, removeItem } from '../inventory';
 import {
+  INITIAL_OBJECTIVES,
+  ObjectiveError,
+  synchronizeObjectives,
+  type IndexedObjectives,
+} from '../objectives';
+import {
   applyNeedsWear,
   NeedsError,
   planNeedsConsumption,
@@ -69,7 +75,8 @@ export function executeSandboxAction(
   options: SandboxActionOptions = {},
 ): SandboxActionResult {
   const context = requireContext(options.context);
-  const previous = requireGameState(state, context);
+  const objectiveCatalog = options.objectives ?? INITIAL_OBJECTIVES;
+  const previous = requireGameState(state, context, objectiveCatalog);
   if (previous.status !== 'playing') {
     throw new SandboxActionError('A partida já foi concluída e não aceita novas ações.');
   }
@@ -77,7 +84,14 @@ export function executeSandboxAction(
   const currentAction = requireAction(action);
 
   try {
-    return runTransaction(previous, currentAction, context, options.now ?? defaultNow, options.campaign);
+    return runTransaction(
+      previous,
+      currentAction,
+      context,
+      objectiveCatalog,
+      options.now ?? defaultNow,
+      options.campaign,
+    );
   } catch (error) {
     rethrowDomain(error);
   }
@@ -87,6 +101,7 @@ function runTransaction(
   previous: GameState,
   action: SandboxAction,
   context: SandboxContext,
+  objectiveCatalog: IndexedObjectives,
   now: () => string,
   campaign: Campaign | undefined,
 ): SandboxActionResult {
@@ -185,7 +200,16 @@ function runTransaction(
     candidate = startNarrativeSession(candidate, campaign, narrative.eventId);
   }
 
-  const current = requireGameState(candidate, context);
+  const objectiveSynchronization = synchronizeObjectives(
+    objectiveCatalog,
+    candidate.objectives,
+    candidate,
+  );
+  const current = requireGameState(
+    { ...candidate, objectives: objectiveSynchronization.current },
+    context,
+    objectiveCatalog,
+  );
 
   return {
     previous,
@@ -205,6 +229,7 @@ function runTransaction(
       resourcesAfterRecovery,
       resourcesAfterRenewal,
     }),
+    objectives: objectiveSynchronization,
   };
 }
 
@@ -431,8 +456,12 @@ function requireContext(value: SandboxContext | undefined): SandboxContext {
   }
 }
 
-function requireGameState(value: unknown, context: SandboxContext): GameState {
-  const inspected = inspectGameState(value, context);
+function requireGameState(
+  value: unknown,
+  context: SandboxContext,
+  objectiveCatalog: IndexedObjectives,
+): GameState {
+  const inspected = inspectGameState(value, context, objectiveCatalog);
   if (!inspected.ok) {
     throw new SandboxActionError(inspected.reason);
   }
@@ -765,6 +794,7 @@ function rethrowDomain(error: unknown): never {
     error instanceof SandboxError ||
     error instanceof PresenceError ||
     error instanceof NeedsError ||
+    error instanceof ObjectiveError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

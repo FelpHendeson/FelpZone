@@ -1,6 +1,7 @@
 import { EngineError } from '../../core/engine';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
+import { INITIAL_OBJECTIVES, type IndexedObjectives } from '../../modules/objectives';
 import { PresenceError, resolvePresencesRevealedByDiscovery } from '../../modules/presences';
 import type { SandboxContext } from '../../modules/sandbox';
 import {
@@ -40,6 +41,7 @@ export interface CommitSandboxActionOptions {
   campaign: Campaign;
   catalog: readonly WorldNarrativeTriggerDefinition[];
   persist: (next: GameState) => void;
+  objectiveCatalog?: IndexedObjectives;
 }
 
 export function attemptSandboxAction(
@@ -48,9 +50,10 @@ export function attemptSandboxAction(
   context: SandboxContext,
   campaign: Campaign,
   catalog: readonly WorldNarrativeTriggerDefinition[],
+  objectiveCatalog: IndexedObjectives = INITIAL_OBJECTIVES,
 ): SandboxActionAttempt {
   try {
-    const result = executeSandboxAction(state, action, { context, campaign });
+    const result = executeSandboxAction(state, action, { context, campaign, objectives: objectiveCatalog });
     const indexed = indexWorldTriggerCatalog(catalog, {
       campaign,
       exploration: context.exploration,
@@ -126,7 +129,14 @@ export function commitSandboxAction(
   context: SandboxContext,
   options: CommitSandboxActionOptions,
 ): SandboxActionAttempt {
-  const attempt = attemptSandboxAction(state, action, context, options.campaign, options.catalog);
+  const attempt = attemptSandboxAction(
+    state,
+    action,
+    context,
+    options.campaign,
+    options.catalog,
+    options.objectiveCatalog,
+  );
   if (attempt.ok) {
     options.persist(attempt.current);
   }

@@ -11,6 +11,7 @@ import type {
   RestMode,
 } from '../needs';
 import type { PresenceInteractionPlan } from '../presences';
+import type { IndexedObjectives, ObjectivesSynchronizationResult } from '../objectives';
 import type { ResourceCollectionResult } from '../resources/types';
 import type { SandboxContext } from '../sandbox';
 import type { TimeCost } from '../time';
@@ -71,6 +72,7 @@ export interface SandboxActionResult {
   needsWear: NeedsWearSummary;
   detail: SandboxActionDetail;
   synchronization: SandboxSynchronizationSummary;
+  objectives: ObjectivesSynchronizationResult;
   feedback?: string;
 }
 
@@ -78,4 +80,5 @@ export interface SandboxActionOptions {
   context?: SandboxContext;
   now?: () => string;
   campaign?: Campaign;
+  objectives?: IndexedObjectives;
 }

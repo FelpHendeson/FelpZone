@@ -136,9 +136,13 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 **Implementada, revisada e consolidada.** Os nove critérios observam fontes canônicas do `GameState`; a sincronização é explícita e idempotente; `ObjectivesState` integra o schema 6; saves v1 a v5 migram sem gameplay nem escrita durante a leitura. O catálogo inicial permanece vazio.
 
-#### Fatias 10.3 a 10.5
+#### Fatia 10.3 — Atualização e diário derivado
 
-**Aprovadas como sequência; Fatia 10.3 é a próxima.** Atualização automática/diário, interface mobile e primeira jornada ponta a ponta entram somente depois da consolidação da fatia anterior.
+**Implementada, revisada e consolidada.** Ações do sandbox sincronizam objetivos depois de todos os seus efeitos e o diário deriva somente jornadas, etapas e fatos conhecidos, sem persistir dados redundantes ou criar UI.
+
+#### Fatias 10.4 e 10.5
+
+**Aprovadas como sequência; Fatia 10.4 é a próxima.** Interface mobile e primeira jornada ponta a ponta entram somente depois da consolidação da fatia anterior.
 
 ## Depois do Sistema 10
 
