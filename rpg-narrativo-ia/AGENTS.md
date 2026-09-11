@@ -6,7 +6,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-Os Sistemas 1 a 9 estão implementados e consolidados. O Sistema 9 — Necessidades e sobrevivência leve — inclui modelo puro, `sede` em `Attributes`, save schema 5, desgaste temporal, consumo, repouso, superfície mobile e uma prova persistida de oito dias usando somente o conteúdo atual. Leia [Sistema 9](docs/SYSTEM-NEEDS.md), [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). O Sistema 10 ainda não foi discutido; agenda, comportamento autônomo e combate continuam sem implementação aprovada.
+Os Sistemas 1 a 9 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado e está em implementação por fatias; a Fatia 10.1 está consolidada com o modelo puro. A próxima fatia integra critérios e persistência, ainda sem UI. Leia [Sistema 10](docs/SYSTEM-OBJECTIVES.md), [Sistema 9](docs/SYSTEM-NEEDS.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam sem implementação aprovada.
 
 ## Regras obrigatórias
 

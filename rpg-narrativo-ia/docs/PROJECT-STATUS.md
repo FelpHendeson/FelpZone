@@ -76,6 +76,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
+| Sistema 10 — Objetivos, jornadas e diário | **Definido pelo autor; aprovado e em implementação** | Fatia 10.1 consolidada: catálogo, estado isolado, ativação e etapas sequenciais/paralelas. | Ainda sem persistência, sincronização com o jogo ou interface. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -121,7 +122,7 @@ São parte confirmada do mundo e da trama futura. Mecânicas de construção, ad
 
 - minijogos dentro de interações ou encontros;
 - expansão do mapa visual para uma visão global ou regional;
-- objetivos e notificações mais amplos do Sistema;
+- notificações mais amplas do Sistema além do feedback previsto para objetivos;
 - progressão extensa de NPCs;
 - rotas principais e opcionais com métricas próprias;
 - itens e áreas bônus encontrados dentro de áreas exploráveis;
@@ -163,10 +164,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 9 estão implementados e consolidados.** Consulte [Necessidades e sobrevivência leve](SYSTEM-NEEDS.md). O Sistema 10 ainda não foi discutido nem autorizado.
+**Os Sistemas 1 a 9 estão implementados e consolidados. O Sistema 10 foi aprovado e especificado.** Consulte [Objetivos, jornadas e registro de descobertas](SYSTEM-OBJECTIVES.md).
 
 Antes de qualquer próxima implementação:
 
-1. manter como contrato do Sistema 9 que o conteúdo atual sustenta o jogador sem combate ou novo recurso;
-2. discutir qual necessidade de experiência deve orientar o possível Sistema 10;
-3. especificar qualquer próximo sistema antes de gerar prompts ou implementar código.
+1. preparar a Fatia 10.2 para integrar critérios e persistência sem alterar a interface;
+2. preservar o modelo consolidado e a migração sem efeitos de gameplay;
+3. preservar combate, agenda, equipamentos e recompensas automáticas fora do Sistema 10.

@@ -54,6 +54,7 @@ src/
 │   ├── sandbox/
 │   ├── world-events/
 │   ├── presences/
+│   ├── objectives/
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -86,6 +87,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `sandbox`: composição do estado integrado e validação conjunta dos sistemas 3 a 6.
 - `world-events`: catálogo de gatilhos declarativos que associam descobertas reveladas a sessões narrativas.
 - `presences`: catálogo de entidades e ocorrências por local, estado mínimo de descoberta/resolução e status derivado.
+- `objectives`: catálogo de jornadas, etapas, critérios, progresso monotônico e diário derivado; entra de forma isolada na Fatia 10.1.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.

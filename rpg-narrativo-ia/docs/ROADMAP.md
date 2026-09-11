@@ -124,7 +124,21 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ## Depois do Sistema 9
 
-Não existe Sistema 10 aprovado nem uma ordem fechada posterior. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
+### Etapa 10 — Objetivos, jornadas e registro de descobertas
+
+**Aprovada e em implementação.** O sistema conectará ações e conhecimento já existentes em jornadas persistentes e em um diário derivado, sem retirar a liberdade do sandbox. Fonte: [Sistema 10 — Objetivos, jornadas e registro de descobertas](SYSTEM-OBJECTIVES.md).
+
+#### Fatia 10.1 — Modelo puro
+
+**Implementada, revisada e consolidada.** Catálogo, estado isolado, validação, ativação e conclusão manual de etapas, sem `GameState`, save ou UI. A entrega passou por 40 testes próprios e pela suíte completa de 533 testes.
+
+#### Fatias 10.2 a 10.5
+
+**Aprovadas como sequência; Fatia 10.2 é a próxima.** Integração/persistência, atualização/diário, interface mobile e primeira jornada ponta a ponta entram somente depois da consolidação da fatia anterior.
+
+## Depois do Sistema 10
+
+Não existe Sistema 11 aprovado nem uma ordem fechada posterior. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
 
 ### Direções definidas pelo autor, ainda sem próxima especificação
 
@@ -137,7 +151,7 @@ Não existe Sistema 10 aprovado nem uma ordem fechada posterior. A classificaç�
 
 - minijogos;
 - expansão do mapa visual para visão regional ou global;
-- objetivos e notificações mais amplos do Sistema;
+- notificações mais amplas do Sistema além do feedback de jornadas;
 - progressão extensa de NPCs;
 - formato de rotas e de conclusão global.
 
