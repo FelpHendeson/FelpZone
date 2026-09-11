@@ -65,7 +65,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 5, migrações v1/v2/v3/v4, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 6, migrações v1–v5, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -76,7 +76,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Camada de UI/UX jogável | **Implementado; apresentação em protótipo** | HUD persistente, cena dominante, progresso contextual, navegação inferior, mapa adjacente, painéis de ações, mochila visual, ficha do personagem, feedback de descoberta, apresentação própria de encontros e seção de presenças conhecidas no local. | Ícones e imagens ainda são placeholders; não adiciona clima, nível, peso ou outras regras inexistentes no domínio. |
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
-| Sistema 10 — Objetivos, jornadas e diário | **Definido pelo autor; aprovado e em implementação** | Fatia 10.1 consolidada: catálogo, estado isolado, ativação e etapas sequenciais/paralelas. | Ainda sem persistência, sincronização com o jogo ou interface. |
+| Sistema 10 — Objetivos, jornadas e diário | **Definido pelo autor; aprovado e em implementação** | Fatias 10.1–10.2 consolidadas: catálogo, estado, nove critérios, sincronização explícita e persistência no schema 6. | Ainda sem atualização automática no loop, diário ou interface. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -168,6 +168,6 @@ O marco mínimo da integração explorável foi atingido: o jogador desperta, es
 
 Antes de qualquer próxima implementação:
 
-1. preparar a Fatia 10.2 para integrar critérios e persistência sem alterar a interface;
-2. preservar o modelo consolidado e a migração sem efeitos de gameplay;
+1. executar a Fatia 10.3 para sincronizar progresso no fluxo jogável e derivar o diário sem alterar a interface;
+2. preservar o modelo consolidado, a aplicação única de tempo e a migração sem efeitos de gameplay;
 3. preservar combate, agenda, equipamentos e recompensas automáticas fora do Sistema 10.

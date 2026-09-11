@@ -11,11 +11,11 @@ import { INITIAL_NEEDS_SNAPSHOT } from '../modules/needs';
 import { asV1, asV2, asV3, asV4, freshState } from './helpers';
 
 describe('Fatia 9.2 — estado principal e migração', () => {
-  it('cria o estado atual no schema 5 com sede inicial e sem mudar a interface', () => {
+  it('mantém sede inicial no schema atual sem mudar a interface', () => {
     const state = freshState();
 
-    expect(SCHEMA_VERSION).toBe(5);
-    expect(state.schemaVersion).toBe(5);
+    expect(SCHEMA_VERSION).toBe(6);
+    expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.attributes.sede).toBe(INITIAL_NEEDS_SNAPSHOT.sede);
     expect(Object.keys(state.attributes)).toEqual([...ATTRIBUTE_IDS]);
     expect(inspectGameState(state).ok).toBe(true);

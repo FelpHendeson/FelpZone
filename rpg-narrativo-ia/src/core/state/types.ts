@@ -1,11 +1,13 @@
 import type { SandboxCoreState, SandboxState } from '../../modules/sandbox/types';
+import type { ObjectivesState } from '../../modules/objectives/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
 export const SCHEMA_VERSION_V1 = 1 as const;
 export const SCHEMA_VERSION_V2 = 2 as const;
 export const SCHEMA_VERSION_V3 = 3 as const;
 export const SCHEMA_VERSION_V4 = 4 as const;
-export const SCHEMA_VERSION = 5 as const;
+export const SCHEMA_VERSION_V5 = 5 as const;
+export const SCHEMA_VERSION = 6 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
@@ -114,8 +116,15 @@ export interface GameStateV4 extends SharedState<LegacyAttributes> {
   sandbox: SandboxState;
 }
 
+export interface GameStateV5 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V5;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState;
+}
+
 export interface GameState extends SharedState<Attributes> {
   schemaVersion: typeof SCHEMA_VERSION;
   narrativeSession: NarrativeSession | null;
   sandbox: SandboxState;
+  objectives: ObjectivesState;
 }

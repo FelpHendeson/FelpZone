@@ -49,11 +49,11 @@ function parsedJson(state: GameState): Record<string, unknown> {
 }
 
 describe('estado integrado e persistência principal', () => {
-  it('inicia uma nova partida no schema 5 com sandbox completo', () => {
+  it('inicia uma nova partida no schema atual com sandbox completo', () => {
     const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const context = createSandboxContext();
 
-    expect(state.schemaVersion).toBe(5);
+    expect(state.schemaVersion).toBe(6);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(inspectGameState(state).ok).toBe(true);
     expect(state.sandbox).toEqual(createInitialSandboxState(context));

@@ -146,7 +146,7 @@ A sincronização observa o estado final de uma ação. Por isso, uma etapa de i
 
 ## Persistência
 
-A Fatia 10.2 deverá incluir `ObjectivesState` no save e elevar o schema somente porque o formato persistido mudará.
+A Fatia 10.2 incluiu `ObjectivesState` no save e elevou o schema somente porque o formato persistido mudou.
 
 - catálogo, textos, critérios e status derivados não entram no JSON;
 - saves anteriores recebem o estado inicial e são sincronizados contra fatos já alcançados;
@@ -201,7 +201,7 @@ Os textos e a ordem final são protótipos. O fluxo não exigirá combate, não 
 
 ### Fatia 10.2 — Integração e persistência
 
-Adicionar critérios e sincronização contra o `GameState`, persistir `ObjectivesState`, migrar saves anteriores e preservar atomicidade. Ainda sem atualização automática pelas ações e sem UI.
+**Implementada, revisada e consolidada.** Os nove critérios são avaliados contra as fontes canônicas do `GameState`; `synchronizeObjectives` ativa e progride jornadas de modo puro, determinístico e idempotente. `ObjectivesState` integra o schema 6, com validação profunda e migração segura de saves v1 a v5. Migrações sincronizam fatos já alcançados sem avançar tempo, aplicar efeitos ou regravar o armazenamento. O catálogo inicial permanece vazio até a Fatia 10.5. A entrega elevou a suíte completa para 554 testes e passou por lint, tipos e build/PWA. Ainda não há atualização automática depois das ações, diário ou UI.
 
 ### Fatia 10.3 — Atualização e diário derivado
 

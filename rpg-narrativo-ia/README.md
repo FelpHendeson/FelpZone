@@ -67,7 +67,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações do sandbox, gatilhos de mundo, presenças, narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos e narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # HUD, telas mobile-first, navegação inferior e placeholders
@@ -84,7 +84,7 @@ O Sistema 8 — Presenças e interações no mundo — está implementado e cons
 
 O Sistema 9 — Necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe condição e recuperação e uma rota automatizada sustenta oito dias sem combate usando apenas o conteúdo atual.
 
-O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado e está em implementação. A Fatia 10.1 consolidou catálogo, estado isolado e progresso manual; persistência, atualização automática, diário, interface e conteúdo serão integrados separadamente.
+O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado e está em implementação. As Fatias 10.1 e 10.2 consolidaram catálogo, estado isolado, avaliação dos nove critérios, sincronização explícita e persistência no schema 6 com migração v1–v5. Atualização automática, diário, interface e conteúdo serão integrados separadamente.
 
 ## Decisões já tomadas
 
@@ -102,7 +102,7 @@ O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado 
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 5`, persiste `sede`, `narrativeSession` (nula na exploração livre) e `sandbox.presences`, valida o sandbox contra o contexto informado (padrão da Clareira do Despertar na aplicação) e migra saves v1, v2, v3 e v4 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. O contexto é reconstruído e normalizado antes do uso. Contexto, mapa e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- O salvamento local usa `schemaVersion: 6`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences` e o progresso mínimo de objetivos. Valida o sandbox e os objetivos contra seus catálogos e migra saves v1 a v5 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
@@ -110,7 +110,7 @@ O Sistema 10 — Objetivos, jornadas e registro de descobertas — foi aprovado 
 
 ## O que foi validado nesta entrega
 
-- `npm test`: suíte completa, incluindo o fluxo jogável de Mira e do coelho, persistência schema 5, migrações v1–v4, necessidades isoladas, orquestração e os testes anteriores.
+- `npm test`: 554 testes, incluindo o fluxo jogável de Mira e do coelho, persistência schema 6, migrações v1–v5, objetivos, necessidades e orquestração.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

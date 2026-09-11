@@ -26,8 +26,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`.
 - A Fatia 8.6 — conteúdo jogável — está implementada e consolidada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
-- O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o save atual usa schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
-- O Sistema 10 — objetivos, jornadas e registro de descobertas — foi aprovado e especificado em `docs/SYSTEM-OBJECTIVES.md`; a Fatia 10.1 está implementada e consolidada com o modelo puro.
+- O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o Sistema 9 introduziu o schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
+- O Sistema 10 — objetivos, jornadas e registro de descobertas — foi aprovado e especificado em `docs/SYSTEM-OBJECTIVES.md`; as Fatias 10.1 e 10.2 estão consolidadas com modelo puro, critérios, sincronização explícita e persistência no schema 6 com migração v1–v5.
 - Agenda, comportamento autônomo e combate não estão aprovados para implementação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
@@ -102,9 +102,9 @@ Estado conhecido:
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas, comportamento autônomo e combate continuam sem implementação autorizada;
-- o Sistema 9 está consolidado e o Sistema 10 foi aprovado para implementação sequencial por fatias.
+- o Sistema 9 está consolidado e as Fatias 10.1–10.2 do Sistema 10 também estão consolidadas; a Fatia 10.3 é a próxima.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-NEEDS.md` e `docs/SYSTEM-OBJECTIVES.md`. Os Sistemas 1 a 9 estão consolidados e o Sistema 10 está em implementação.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-NEEDS.md` e `docs/SYSTEM-OBJECTIVES.md`. Os Sistemas 1 a 9 e as Fatias 10.1–10.2 estão consolidados; o Sistema 10 continua em implementação.
 
 Execute:
 
@@ -122,7 +122,7 @@ Se precisar confirmar a base antes da discussão, revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não antecipe a próxima fatia do Sistema 10. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
+Implemente somente a Fatia 10.3 antes de novo gate. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
 
 Preserve o ciclo de trabalho:
 
@@ -133,4 +133,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Executar somente a fatia autorizada do Sistema 10 e submetê-la aos gates antes de avançar. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.
+Executar somente a Fatia 10.3 do Sistema 10 e submetê-la aos gates antes de avançar. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.

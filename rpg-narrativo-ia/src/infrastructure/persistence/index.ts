@@ -4,18 +4,22 @@ import {
   SCHEMA_VERSION_V2,
   SCHEMA_VERSION_V3,
   SCHEMA_VERSION_V4,
+  SCHEMA_VERSION_V5,
   inspectGameState,
   inspectGameStateV1,
   inspectGameStateV2,
   inspectGameStateV3,
   inspectGameStateV4,
+  inspectGameStateV5,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
   migrateGameStateV4,
+  migrateGameStateV5,
   type GameState,
 } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
+import type { IndexedObjectives } from '../../modules/objectives';
 
 export const SAVE_KEY = 'reset.mvp.save';
 
@@ -38,8 +42,12 @@ export interface GamePersistence {
   clear(): void;
 }
 
-export function serializeGameState(state: GameState, context?: SandboxContext): string {
-  const inspected = inspectGameState(state, context);
+export function serializeGameState(
+  state: GameState,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): string {
+  const inspected = inspectGameState(state, context, objectiveCatalog);
   if (!inspected.ok) {
     throw new PersistenceError(inspected.reason);
   }
@@ -47,7 +55,11 @@ export function serializeGameState(state: GameState, context?: SandboxContext): 
   return JSON.stringify(inspected.state);
 }
 
-export function parseGameState(raw: string, context?: SandboxContext): LoadResult {
+export function parseGameState(
+  raw: string,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): LoadResult {
   if (!raw || raw.trim() === '') {
     return { status: 'empty' };
   }
@@ -71,7 +83,11 @@ export function parseGameState(raw: string, context?: SandboxContext): LoadResul
         return { status: 'corrupt', reason: previous.reason };
       }
 
-      const migrated = inspectGameState(migrateGameStateV1(previous.state, context), context);
+      const migrated = inspectGameState(
+        migrateGameStateV1(previous.state, context, objectiveCatalog),
+        context,
+        objectiveCatalog,
+      );
       if (!migrated.ok) {
         return { status: 'corrupt', reason: migrated.reason };
       }
@@ -85,7 +101,11 @@ export function parseGameState(raw: string, context?: SandboxContext): LoadResul
         return { status: 'corrupt', reason: previous.reason };
       }
 
-      const migrated = inspectGameState(migrateGameStateV2(previous.state, context), context);
+      const migrated = inspectGameState(
+        migrateGameStateV2(previous.state, context, objectiveCatalog),
+        context,
+        objectiveCatalog,
+      );
       if (!migrated.ok) {
         return { status: 'corrupt', reason: migrated.reason };
       }
@@ -99,7 +119,11 @@ export function parseGameState(raw: string, context?: SandboxContext): LoadResul
         return { status: 'corrupt', reason: previous.reason };
       }
 
-      const migrated = inspectGameState(migrateGameStateV3(previous.state, context), context);
+      const migrated = inspectGameState(
+        migrateGameStateV3(previous.state, context, objectiveCatalog),
+        context,
+        objectiveCatalog,
+      );
       if (!migrated.ok) {
         return { status: 'corrupt', reason: migrated.reason };
       }
@@ -113,7 +137,29 @@ export function parseGameState(raw: string, context?: SandboxContext): LoadResul
         return { status: 'corrupt', reason: previous.reason };
       }
 
-      const migrated = inspectGameState(migrateGameStateV4(previous.state, context), context);
+      const migrated = inspectGameState(
+        migrateGameStateV4(previous.state, context, objectiveCatalog),
+        context,
+        objectiveCatalog,
+      );
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V5) {
+      const previous = inspectGameStateV5(parsed, context);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+
+      const migrated = inspectGameState(
+        migrateGameStateV5(previous.state, context, objectiveCatalog),
+        context,
+        objectiveCatalog,
+      );
       if (!migrated.ok) {
         return { status: 'corrupt', reason: migrated.reason };
       }
@@ -125,7 +171,7 @@ export function parseGameState(raw: string, context?: SandboxContext): LoadResul
       return { status: 'incompatible', foundVersion: parsed.schemaVersion };
     }
 
-    const inspected = inspectGameState(parsed, context);
+    const inspected = inspectGameState(parsed, context, objectiveCatalog);
     if (!inspected.ok) {
       return { status: 'corrupt', reason: inspected.reason };
     }
@@ -139,6 +185,7 @@ export function parseGameState(raw: string, context?: SandboxContext): LoadResul
 export function createPersistence(
   storage: Pick<Storage, 'getItem' | 'setItem' | 'removeItem'>,
   context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
 ): GamePersistence {
   return {
     load() {
@@ -147,10 +194,10 @@ export function createPersistence(
         return { status: 'empty' };
       }
 
-      return parseGameState(raw, context);
+      return parseGameState(raw, context, objectiveCatalog);
     },
     save(state) {
-      storage.setItem(SAVE_KEY, serializeGameState(state, context));
+      storage.setItem(SAVE_KEY, serializeGameState(state, context, objectiveCatalog));
     },
     clear() {
       storage.removeItem(SAVE_KEY);
@@ -158,7 +205,11 @@ export function createPersistence(
   };
 }
 
-export function createMemoryPersistence(initial?: string, context?: SandboxContext): GamePersistence {
+export function createMemoryPersistence(
+  initial?: string,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GamePersistence {
   const memory = new Map<string, string>();
   if (initial) {
     memory.set(SAVE_KEY, initial);
@@ -175,6 +226,7 @@ export function createMemoryPersistence(initial?: string, context?: SandboxConte
       },
     },
     context,
+    objectiveCatalog,
   );
 }
 

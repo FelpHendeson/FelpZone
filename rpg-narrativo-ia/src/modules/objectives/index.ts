@@ -1,5 +1,7 @@
 import { ObjectiveError } from './errors';
 import { ImmutableIndex } from './immutable-index';
+import { INITIAL_OBJECTIVE_CATALOG } from './initial-objectives';
+import type { GameState } from '../../core/state/types';
 import {
   OBJECTIVE_KINDS,
   OBJECTIVE_STEP_MODES,
@@ -11,12 +13,15 @@ import {
   type ObjectiveInspection,
   type ObjectiveProgress,
   type ObjectivesState,
+  type ObjectivesSynchronizationResult,
   type ObjectiveStatus,
   type ObjectiveStepCompletionResult,
   type ObjectiveStepDefinition,
 } from './types';
 
 export { ObjectiveError } from './errors';
+
+export const INITIAL_OBJECTIVES = indexObjectiveCatalog(INITIAL_OBJECTIVE_CATALOG);
 
 export function inspectObjectiveCatalog(value: unknown): ObjectiveInspection<IndexedObjectives> {
   if (!isRecord(value) || !Array.isArray(value.objectives)) {
@@ -203,6 +208,100 @@ export function listKnownObjectives(catalog: IndexedObjectives, state: Objective
       nextStepIds: getNextStepIds(objective, progress),
     };
   });
+}
+
+export function evaluateObjectiveCriterion(criterion: ObjectiveCriterion, state: GameState): boolean {
+  switch (criterion.type) {
+    case 'progression.ability.has':
+      return state.progression.abilityIds.includes(criterion.abilityId);
+    case 'navigation.location.visited':
+      return state.sandbox.navigation.visitedLocationIds.includes(criterion.locationId);
+    case 'exploration.discovery.revealed':
+      return state.sandbox.exploration.locations.some((location) =>
+        location.revealedDiscoveryIds.includes(criterion.discoveryId),
+      );
+    case 'inventory.item.quantity':
+      return (state.inventory.find((item) => item.itemId === criterion.itemId)?.quantity ?? 0) >= criterion.quantity;
+    case 'crafting.structure.active':
+      return state.sandbox.crafting.structures.some(
+        (structure) =>
+          structure.structureId === criterion.structureId &&
+          structure.active &&
+          (criterion.locationId === undefined || structure.locationId === criterion.locationId),
+      );
+    case 'presence.discovered':
+      return state.sandbox.presences.discoveredPresenceIds.includes(criterion.presenceId);
+    case 'presence.resolved':
+      return state.sandbox.presences.resolvedPresenceIds.includes(criterion.presenceId);
+    case 'flag.is':
+      return (state.flags[criterion.flag] ?? false) === criterion.value;
+    case 'world.day.min':
+      return state.world.day >= criterion.day;
+  }
+}
+
+export function synchronizeObjectives(
+  catalog: IndexedObjectives,
+  objectivesState: ObjectivesState,
+  gameState: GameState,
+): ObjectivesSynchronizationResult {
+  const indexed = requireIndexedCatalog(catalog);
+  const previous = requireState(objectivesState, indexed);
+  let current = copyState(previous);
+  const activatedObjectiveIds: string[] = [];
+  const completedSteps: { objectiveId: string; stepId: string }[] = [];
+  const completedObjectiveIds: string[] = [];
+
+  for (const objective of indexed.objectives) {
+    const known = current.entries.some((entry) => entry.objectiveId === objective.id);
+    if (
+      !known &&
+      objective.activation.type === 'criteria' &&
+      objective.activation.criteria.every((criterion) => evaluateObjectiveCriterion(criterion, gameState))
+    ) {
+      current = activateObjective(indexed, current, objective.id);
+      activatedObjectiveIds.push(objective.id);
+    }
+  }
+
+  for (const objective of indexed.objectives) {
+    let progress = current.entries.find((entry) => entry.objectiveId === objective.id);
+    if (!progress || progress.completed) {
+      continue;
+    }
+
+    const candidates = objective.stepMode === 'sequential'
+      ? objective.steps.slice(progress.completedStepIds.length)
+      : objective.steps.filter((step) => !progress?.completedStepIds.includes(step.id));
+
+    for (const step of candidates) {
+      const satisfied = step.criteria.every((criterion) => evaluateObjectiveCriterion(criterion, gameState));
+      if (!satisfied) {
+        if (objective.stepMode === 'sequential') {
+          break;
+        }
+        continue;
+      }
+
+      const result = completeObjectiveStep(indexed, current, objective.id, step.id);
+      current = result.current;
+      progress = current.entries.find((entry) => entry.objectiveId === objective.id);
+      if (result.stepNewlyCompleted) {
+        completedSteps.push({ objectiveId: objective.id, stepId: step.id });
+      }
+      if (result.objectiveNewlyCompleted) {
+        completedObjectiveIds.push(objective.id);
+      }
+    }
+  }
+
+  return {
+    previous: copyState(previous),
+    current: copyState(current),
+    activatedObjectiveIds,
+    completedSteps,
+    completedObjectiveIds,
+  };
 }
 
 function inspectObjective(
@@ -612,6 +711,10 @@ export type {
   ObjectivesState,
   ObjectiveStatus,
   ObjectiveStepCompletionResult,
+  ObjectiveStepReference,
   ObjectiveStepDefinition,
   ObjectiveStepMode,
+  ObjectivesSynchronizationResult,
 } from './types';
+
+export { INITIAL_OBJECTIVE_CATALOG } from './initial-objectives';

@@ -132,9 +132,13 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 **Implementada, revisada e consolidada.** Catálogo, estado isolado, validação, ativação e conclusão manual de etapas, sem `GameState`, save ou UI. A entrega passou por 40 testes próprios e pela suíte completa de 533 testes.
 
-#### Fatias 10.2 a 10.5
+#### Fatia 10.2 — Integração e persistência
 
-**Aprovadas como sequência; Fatia 10.2 é a próxima.** Integração/persistência, atualização/diário, interface mobile e primeira jornada ponta a ponta entram somente depois da consolidação da fatia anterior.
+**Implementada, revisada e consolidada.** Os nove critérios observam fontes canônicas do `GameState`; a sincronização é explícita e idempotente; `ObjectivesState` integra o schema 6; saves v1 a v5 migram sem gameplay nem escrita durante a leitura. O catálogo inicial permanece vazio.
+
+#### Fatias 10.3 a 10.5
+
+**Aprovadas como sequência; Fatia 10.3 é a próxima.** Atualização automática/diário, interface mobile e primeira jornada ponta a ponta entram somente depois da consolidação da fatia anterior.
 
 ## Depois do Sistema 10
 

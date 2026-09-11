@@ -66,9 +66,9 @@ function withRabbit(state: GameState): GameState {
 }
 
 describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
-  it('estado inicial v5 contém presenças válidas', () => {
+  it('estado inicial atual contém presenças válidas', () => {
     const state = exploring();
-    expect(state.schemaVersion).toBe(5);
+    expect(state.schemaVersion).toBe(6);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.sandbox.presences).toEqual({ discoveredPresenceIds: [], resolvedPresenceIds: [] });
     expect(inspectGameState(state, context).ok).toBe(true);

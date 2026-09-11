@@ -74,6 +74,19 @@ export interface ObjectiveStepCompletionResult {
   objectiveNewlyCompleted: boolean;
 }
 
+export interface ObjectiveStepReference {
+  objectiveId: string;
+  stepId: string;
+}
+
+export interface ObjectivesSynchronizationResult {
+  previous: ObjectivesState;
+  current: ObjectivesState;
+  activatedObjectiveIds: string[];
+  completedSteps: ObjectiveStepReference[];
+  completedObjectiveIds: string[];
+}
+
 export type ObjectiveInspection<T> =
   | { ok: true; value: T }
   | { ok: false; reason: string };

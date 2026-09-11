@@ -6,9 +6,11 @@ import {
   SCHEMA_VERSION_V2,
   SCHEMA_VERSION_V3,
   SCHEMA_VERSION_V4,
+  SCHEMA_VERSION_V5,
   type GameState,
 } from '../core/state';
 import type { Campaign, StoryEvent } from '../core/events';
+import type { IndexedObjectives } from '../modules/objectives';
 
 export const now = () => '2026-08-31T12:00:00.000Z';
 
@@ -20,9 +22,10 @@ export function serializedState(): Record<string, unknown> {
   return JSON.parse(serializeGameState(freshState())) as Record<string, unknown>;
 }
 
-export function asV1(state: GameState): Record<string, unknown> {
-  const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+export function asV1(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.objectives;
   delete raw.sandbox;
   delete raw.narrativeSession;
   raw.schemaVersion = SCHEMA_VERSION_V1;
@@ -30,18 +33,20 @@ export function asV1(state: GameState): Record<string, unknown> {
   return raw;
 }
 
-export function asV2(state: GameState): Record<string, unknown> {
-  const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+export function asV2(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.objectives;
   delete raw.narrativeSession;
   raw.schemaVersion = SCHEMA_VERSION_V2;
   raw.currentEventId = state.narrativeSession?.eventId ?? 'awakening';
   return raw;
 }
 
-export function asV3(state: GameState): Record<string, unknown> {
-  const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+export function asV3(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V3;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.presences;
@@ -49,10 +54,18 @@ export function asV3(state: GameState): Record<string, unknown> {
   return raw;
 }
 
-export function asV4(state: GameState): Record<string, unknown> {
-  const raw = JSON.parse(serializeGameState(state)) as Record<string, unknown>;
+export function asV4(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V4;
+  return raw;
+}
+
+export function asV5(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.objectives;
+  raw.schemaVersion = SCHEMA_VERSION_V5;
   return raw;
 }
 

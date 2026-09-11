@@ -203,7 +203,7 @@ A revisão rejeita catálogos indexados quando a lista e o índice redundante di
 
 ### Fatia 9.2 — Estado principal e migração
 
-**Implementada, revisada e consolidada.** `Attributes` e `ATTRIBUTE_IDS` incluem `sede`; novas partidas começam com `sede: 25`; o save atual usa schema 5. Os contratos legados de atributos permanecem separados para validar e migrar saves v1, v2, v3 e v4 sem mutar a entrada, avançar tempo ou regravar o armazenamento. O schema atual rejeita sede ausente, fracionária ou fora de `0..100`. A entrega acrescenta 13 testes próprios e passou pela suíte completa de 479 testes. Ainda não há desgaste automático, consumo, repouso, novas ações ou controles visuais.
+**Implementada, revisada e consolidada.** `Attributes` e `ATTRIBUTE_IDS` incluem `sede`; novas partidas começam com `sede: 25`; esta fatia introduziu o schema 5, depois sucedido pelo schema 6 do Sistema 10. Os contratos legados de atributos permanecem separados para validar e migrar saves v1, v2, v3 e v4 sem mutar a entrada, avançar tempo ou regravar o armazenamento. A validação rejeita sede ausente, fracionária ou fora de `0..100`. A entrega acrescentou 13 testes próprios e passou pela suíte completa de 479 testes. Desgaste automático, consumo, repouso e controles visuais foram adicionados nas fatias seguintes do Sistema 9.
 
 ### Fatia 9.3 — Ações e passagem do tempo
 

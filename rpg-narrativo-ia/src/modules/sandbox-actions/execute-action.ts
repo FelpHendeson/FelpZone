@@ -554,6 +554,13 @@ function buildGameState(base: GameState, patch: GameStatePatch & { updatedAt: st
       crafting: copyCrafting(patch.sandbox.crafting),
       presences: copyPresenceState(patch.sandbox.presences),
     },
+    objectives: {
+      entries: base.objectives.entries.map((entry) => ({
+        objectiveId: entry.objectiveId,
+        completedStepIds: [...entry.completedStepIds],
+        completed: entry.completed,
+      })),
+    },
     updatedAt: patch.updatedAt,
   };
 }

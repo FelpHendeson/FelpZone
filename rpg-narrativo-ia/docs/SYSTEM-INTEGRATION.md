@@ -84,7 +84,7 @@ Não existe `sandbox.time`, segundo inventário, flags duplicadas nem `DaylightP
 
 ## Schema e migração
 
-`SCHEMA_VERSION` é `5`. O schema 5 exige `sede` em `attributes`, `narrativeSession` (o valor pode ser `null`), `sandbox` e `sandbox.presences`. Não persiste `currentEventId`. Saves v4 válidos recebem `sede: 25`; saves v3 recebem primeiro o estado de presenças e sincronizam descobertas já reveladas. Saves v2 e v1 atravessam toda a cadeia `v1 → v2 → v3 → v4 → v5`.
+`SCHEMA_VERSION` é `6`. O schema 6 exige `sede` em `attributes`, `narrativeSession` (o valor pode ser `null`), `sandbox`, `sandbox.presences` e `objectives`. Não persiste `currentEventId`. Saves v5 recebem o estado inicial de objetivos e sincronizam fatos já alcançados; saves v4 válidos recebem antes `sede: 25`; saves v3 recebem primeiro o estado de presenças e sincronizam descobertas já reveladas. Saves v2 e v1 atravessam toda a cadeia `v1 → v2 → v3 → v4 → v5 → v6`.
 
 Um save v2 válido é inspecionado por `inspectGameStateV2` e copiado campo a campo. Partidas `playing` recebem:
 
@@ -94,7 +94,7 @@ narrativeSession: { campaignId: 'first-day', eventId: old.currentEventId }
 
 Partidas `completed` recebem `narrativeSession: null`. A migração não transforma automaticamente um save no meio da campanha em exploração.
 
-Um save v1 válido percorre a cadeia segura `v1 → v2 → v3 → v4 → v5`: recebe o sandbox inicial do contexto, depois a sessão narrativa, o estado de presenças sincronizado com as descobertas e, por fim, `sede: 25`. Em todos os casos a migração:
+Um save v1 válido percorre a cadeia segura `v1 → v2 → v3 → v4 → v5 → v6`: recebe o sandbox inicial do contexto, depois a sessão narrativa, o estado de presenças sincronizado com as descobertas, `sede: 25` e o estado de objetivos sincronizado com os fatos preservados. Em todos os casos a migração:
 
 - preserva personagem, status, atributos, inventário, relações, flags, histórico, dia, período, progressão, sandbox (quando já existia) e `updatedAt`;
 - não é uma ação de jogo;
@@ -102,7 +102,7 @@ Um save v1 válido percorre a cadeia segura `v1 → v2 → v3 → v4 → v5`: re
 - não adiciona itens, estruturas nem progresso de exploração;
 - não muta o objeto antigo.
 
-Saves v1, v2, v3, v4 e v5 malformados retornam `corrupt`. Versões diferentes de 1, 2, 3, 4 e 5 retornam `incompatible`. JSON inválido continua `corrupt`; string vazia continua `empty`.
+Saves v1 a v6 malformados retornam `corrupt`. Versões diferentes de 1 a 6 retornam `incompatible`. JSON inválido continua `corrupt`; string vazia continua `empty`.
 
 A leitura **não** regrava o `localStorage`. O estado migrado só é persistido na próxima chamada de `save`. A chave `reset.mvp.save` foi preservada.
 
@@ -110,9 +110,9 @@ Carregar não aplica tempo, não renova recursos e não recupera populações.
 
 ## Validação
 
-`inspectSandboxContext` é a fronteira do contexto: falha com `{ ok: false, reason }` se o conjunto for incoerente. `createInitialSandboxState` inspeciona o contexto por completo e só então cria o estado com os índices normalizados; contexto inválido lança `SandboxError`. `inspectGameState` valida o schema 5, exige `sede`, `narrativeSession`, rejeita `currentEventId` e delega a `inspectNavigationState`, `inspectExplorationState`, `inspectResourcesState`, `inspectCraftingState` e `inspectPresenceState`. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
+`inspectSandboxContext` é a fronteira do contexto: falha com `{ ok: false, reason }` se o conjunto for incoerente. `createInitialSandboxState` inspeciona o contexto por completo e só então cria o estado com os índices normalizados; contexto inválido lança `SandboxError`. `inspectGameState` valida o schema 6, exige `sede`, `narrativeSession` e `objectives`, rejeita `currentEventId` e delega aos validadores do sandbox e de objetivos. Quantidades de inventário precisam ser inteiras, positivas, `Number.isSafeInteger` e únicas por `itemId`. O resultado é um objeto novo, sem reutilizar referências do JSON.
 
-`serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` opcional. `save` e `load` da mesma persistência usam o mesmo contexto. Sem argumento, o contexto padrão da Clareira do Despertar continua em vigor.
+`serializeGameState` só grava um estado válido do schema atual. `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence` aceitam um `SandboxContext` e um catálogo indexado de objetivos opcionais. `save` e `load` da mesma persistência usam os mesmos contratos. Sem argumento, o contexto padrão da Clareira do Despertar e o catálogo inicial vazio continuam em vigor.
 
 ## Orquestrador de ações
 
