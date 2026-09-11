@@ -26,8 +26,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - A Fatia 8.5 — interface mobile de presenças — está implementada: o painel Mundo mostra presenças conhecidas do local e dispara `presence.interact`.
 - A Fatia 8.6 — conteúdo jogável — está implementada e consolidada: Mira (observar/conversar) e o coelho chifrudo (observar/evitar). Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
-- O Sistema 9 — necessidades e sobrevivência leve — está aprovado e especificado em `docs/SYSTEM-NEEDS.md`; as Fatias 9.1 a 9.4 estão consolidadas. `Attributes` inclui `sede`, o save atual usa schema 5, o orquestrador aplica desgaste, consumo e repouso e a interface mobile expõe essas ações.
-- Interface de necessidades, agenda, comportamento autônomo e combate não estão aprovados para implementação.
+- O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o save atual usa schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
+- Agenda, comportamento autônomo e combate não estão aprovados para implementação. O Sistema 10 ainda não foi discutido.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -100,9 +100,10 @@ Estado conhecido:
 - a Fatia 8.6 valida Mira e o coelho chifrudo ponta a ponta e reconcilia saves que já consumiram o gatilho da Clareira;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
-- `NPCState` completo, agendas, comportamento autônomo, sobrevivência e combate continuam sem implementação autorizada.
+- `NPCState` completo, agendas, comportamento autônomo e combate continuam sem implementação autorizada;
+- o Sistema 9 está consolidado e o Sistema 10 ainda não foi discutido.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. As Fatias 9.1 a 9.4 estão consolidadas; a próxima etapa é a prova ponta a ponta da Fatia 9.5.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/SYSTEMS-1-8-CONSOLIDATION.md`, `docs/PROJECT-STATUS.md` e `docs/SYSTEM-NEEDS.md`. Os Sistemas 1 a 9 estão consolidados; o próximo sistema ainda não foi discutido.
 
 Execute:
 
@@ -120,7 +121,7 @@ Se precisar confirmar a base antes da discussão, revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não antecipe as Fatias 9.4 e 9.5. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
+Não antecipe o Sistema 10. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
 
 Preserve o ciclo de trabalho:
 
@@ -131,4 +132,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Preparar a Fatia 9.2 somente quando o autor solicitar. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.
+Discutir o possível Sistema 10 somente quando o autor solicitar. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.

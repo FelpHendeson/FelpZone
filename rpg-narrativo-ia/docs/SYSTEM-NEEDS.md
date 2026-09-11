@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e em implementação.** As Fatias 9.1 a 9.4 estão implementadas, revisadas e consolidadas. A Fatia 9.5 permanece como prova jogável final. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário.
+**Implementado e consolidado.** As Fatias 9.1 a 9.5 estão implementadas, revisadas e consolidadas. O autor aprovou o Sistema 9 desde que o conteúdo atual permita ao jogador sobreviver e que combate não seja necessário; a prova ponta a ponta confirmou esse contrato.
 
 Esta etapa cria pressão e propósito para horário, exploração, recursos, crafting e cozinha. Não transforma o jogo em um simulador punitivo nem autoriza combate.
 
@@ -217,7 +217,7 @@ A revisão corrigiu o desbloqueio depois de falha na persistência, tornou a fai
 
 ### Fatia 9.5 — Conteúdo e sobrevivência ponta a ponta
 
-Validar a rota sustentável de sete dias, ajustar somente valores de protótipo quando necessário e consolidar o sistema sem acrescentar combate ou novos recursos.
+**Implementada, revisada e consolidada.** A prova parte do fluxo narrativo público, prepara clareira, nascente, mata e fogueira apenas por ações públicas e persiste/recarrega depois de cada passo. Sete ciclos de água, uma unidade de coelho, cozinha, consumo e repouso atravessam oito dias após a preparação. O resultado é Saúde 100, Energia 96, Fome 6 e Sede 25; foram coletadas 7 unidades de coelho, média de 0,875 por dia, sem extinção local. Nenhum valor de protótipo precisou ser alterado. A entrega passou pela suíte completa de 493 testes, lint, tipos, build/PWA e revisão sem achados de código acionáveis.
 
 ## Fora do Sistema 9
 

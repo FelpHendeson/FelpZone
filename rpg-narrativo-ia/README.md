@@ -33,7 +33,7 @@ Leia nesta ordem:
 15. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
 16. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
 17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
-18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 aprovado, com as Fatias 9.1 e 9.2 implementadas e consolidadas.
+18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
 19. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e temas ainda sem etapa aprovada.
 20. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -81,7 +81,7 @@ O fluxo da interface dispara ações; o motor em TypeScript puro devolve um novo
 
 O Sistema 8 — Presenças e interações no mundo — está implementado e consolidado nas Fatias 8.1 a 8.6: catálogo, sincronização, planejamento, save schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo. Consulte [Sistema 8](docs/SYSTEM-PRESENCES.md), [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md).
 
-O Sistema 9 — Necessidades e sobrevivência leve — foi aprovado e especificado. As Fatias 9.1 a 9.4 estão consolidadas: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, o orquestrador aplica desgaste, consumo e repouso e a interface mobile expõe condição e recuperação. A prova ponta a ponta ainda deve demonstrar sete dias sustentáveis sem combate.
+O Sistema 9 — Necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5: existe um modelo puro, `sede` integra `Attributes` e o save schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe condição e recuperação e uma rota automatizada sustenta oito dias sem combate usando apenas o conteúdo atual. O Sistema 10 ainda não foi discutido.
 
 ## Decisões já tomadas
 

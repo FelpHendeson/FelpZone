@@ -104,7 +104,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 9 — Necessidades e sobrevivência leve
 
-**Aprovada e em implementação.** As Fatias 9.1 a 9.4 estão consolidadas; a prova ponta a ponta permanece para a Fatia 9.5. O conteúdo atual deve sustentar o jogador sem combate. Fonte: [Sistema 9 — Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
+**Implementada e consolidada.** As Fatias 9.1 a 9.5 estão consolidadas. O conteúdo atual sustenta uma rota automatizada de oito dias sem combate. Fonte: [Sistema 9 — Necessidades e sobrevivência leve](SYSTEM-NEEDS.md).
 
 #### Fatia 9.1 — Modelo puro e prova matemática
 
@@ -120,7 +120,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatias 9.4 e 9.5
 
-**Fatia 9.4 implementada, revisada e consolidada; Fatia 9.5 ainda não iniciada.** A interface expõe sede, faixas, consumo, repouso e feedback; a próxima fatia deve provar a rota sustentável de sete dias sem ampliar o conteúdo.
+**Fatias 9.4 e 9.5 implementadas, revisadas e consolidadas.** A prova usa somente sistemas e conteúdo atuais, atravessa oito dias após a preparação, mantém a população local e não exige combate nem ajuste de balanceamento.
 
 ## Depois do Sistema 9
 
