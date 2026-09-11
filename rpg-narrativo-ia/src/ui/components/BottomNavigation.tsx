@@ -1,4 +1,4 @@
-export type GameTab = 'world' | 'actions' | 'inventory' | 'character';
+export type GameTab = 'world' | 'actions' | 'journal' | 'inventory' | 'character';
 
 interface BottomNavigationProps {
   active: GameTab;
@@ -9,6 +9,7 @@ interface BottomNavigationProps {
 const ITEMS: Array<{ id: GameTab; icon: string; label: string }> = [
   { id: 'world', icon: '◉', label: 'Mundo' },
   { id: 'actions', icon: '⌁', label: 'Ações' },
+  { id: 'journal', icon: '☷', label: 'Diário' },
   { id: 'inventory', icon: '▣', label: 'Mochila' },
   { id: 'character', icon: '♙', label: 'Eu' },
 ];
@@ -27,7 +28,7 @@ export function BottomNavigation({ active, inventoryCount, onChange }: BottomNav
           <span className="bottom-nav__icon" aria-hidden="true">
             {item.icon}
           </span>
-          <span>{item.label}</span>
+          <span className="bottom-nav__label">{item.label}</span>
           {item.id === 'inventory' && inventoryCount > 0 ? (
             <span className="bottom-nav__badge" aria-label={`${inventoryCount} tipos de item`}>
               {inventoryCount}

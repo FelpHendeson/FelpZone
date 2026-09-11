@@ -140,9 +140,13 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 **Implementada, revisada e consolidada.** Ações do sandbox sincronizam objetivos depois de todos os seus efeitos e o diário deriva somente jornadas, etapas e fatos conhecidos, sem persistir dados redundantes ou criar UI.
 
-#### Fatias 10.4 e 10.5
+#### Fatia 10.4 — Interface mobile
 
-**Aprovadas como sequência; Fatia 10.4 é a próxima.** Interface mobile e primeira jornada ponta a ponta entram somente depois da consolidação da fatia anterior.
+**Implementada, revisada e consolidada.** A aba Diário apresenta o conhecimento derivado, permite acompanhar uma jornada durante a sessão e mostra feedback não modal, sem conteúdo novo nem mudança de schema. Foi validada de 320 px a desktop sem overflow horizontal.
+
+#### Fatia 10.5 — Primeira jornada ponta a ponta
+
+**Aprovada como próxima fatia.** Adicionará somente o conteúdo “Primeiros passos” usando fatos e sistemas atuais e provará o fluxo completo.
 
 ## Depois do Sistema 10
 

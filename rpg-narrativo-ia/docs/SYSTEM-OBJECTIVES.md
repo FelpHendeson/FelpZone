@@ -209,7 +209,7 @@ Os textos e a ordem final são protótipos. O fluxo não exigirá combate, não 
 
 ### Fatia 10.4 — Interface mobile
 
-Adicionar Jornadas/Diário à navegação, objetivo acompanhado, progresso e feedback discreto. Validar celular, tablet e desktop.
+**Implementada, revisada e consolidada.** A exploração ganhou a quinta aba `Diário`, com jornadas principais, opcionais/descobertas e concluídas, progresso textual, etapas seguras, locais, descobertas, presenças e histórico. Uma jornada ativa pode ser acompanhada em estado efêmero da interface e sua próxima etapa aparece no painel Mundo. Atualizações e conclusões usam o feedback existente, sem modal. Estados vazios permanecem úteis antes da Fatia 10.5. A entrega passou por 565 testes, lint, tipos, build/PWA, revisão React e validação real em 320 px, 375 px, tablet e desktop, sem overflow horizontal e com alvos inferiores de pelo menos 52 px de altura. Não altera schema nem adiciona conteúdo.
 
 ### Fatia 10.5 — Primeira jornada ponta a ponta
 

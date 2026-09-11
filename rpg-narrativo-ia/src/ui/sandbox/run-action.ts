@@ -19,6 +19,7 @@ import {
   type WorldNarrativeTriggerDefinition,
 } from '../../modules/world-events';
 import { describeSandboxFeedback } from './feedback';
+import { describeObjectiveFeedback } from '../journal/feedback';
 
 export const WORLD_TRIGGER_ATTENTION = 'Algo exige a sua atenção.';
 
@@ -67,9 +68,11 @@ export function attemptSandboxAction(
           trigger,
         )
       : afterMatchingSession;
-    const feedback = trigger
-      ? [describeSandboxFeedback(result, context), WORLD_TRIGGER_ATTENTION].filter(Boolean).join(' ')
-      : describeSandboxFeedback(result, context);
+    const feedback = [
+      describeSandboxFeedback(result, context),
+      trigger ? WORLD_TRIGGER_ATTENTION : '',
+      describeObjectiveFeedback(result.objectives, objectiveCatalog),
+    ].filter(Boolean).join(' ');
 
     return {
       ok: true,

@@ -8,6 +8,8 @@ import { AttributeSummary } from '../components/AttributeSummary';
 import { BottomNavigation, type GameTab } from '../components/BottomNavigation';
 import { GameHud } from '../components/GameHud';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
+import { buildJournalView, type JournalJourneyView } from '../journal/model';
+import { JournalPanel, TrackedJourneyCard } from '../components/JournalPanel';
 import { formatNeedDelta } from '../needs/presentation';
 import {
   buildExplorationView,
@@ -42,7 +44,12 @@ export function ExplorationScreen({
   onExit,
 }: ExplorationScreenProps) {
   const [activeTab, setActiveTab] = useState<GameTab>('world');
+  const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const view = buildExplorationView(state, campaign, context);
+  const journal = buildJournalView(state, context);
+  const trackedJourney = journal.journeys.find(
+    (journey) => journey.id === trackedJourneyId && journey.status === 'active',
+  );
 
   return (
     <main className="screen screen--exploration">
@@ -57,9 +64,22 @@ export function ExplorationScreen({
         {feedback ? <WorldFeedback message={feedback} /> : null}
         <fieldset className="sandbox-action-surface" disabled={actionPending} aria-busy={actionPending}>
           {activeTab === 'world' ? (
-            <WorldPanel view={view} onAction={onAction} onOpenActions={() => setActiveTab('actions')} />
+            <WorldPanel
+              view={view}
+              trackedJourney={trackedJourney}
+              onAction={onAction}
+              onOpenActions={() => setActiveTab('actions')}
+              onOpenJournal={() => setActiveTab('journal')}
+            />
           ) : null}
           {activeTab === 'actions' ? <ActionsPanel view={view} onAction={onAction} /> : null}
+          {activeTab === 'journal' ? (
+            <JournalPanel
+              view={journal}
+              trackedJourneyId={trackedJourneyId}
+              onTrackJourney={setTrackedJourneyId}
+            />
+          ) : null}
           {activeTab === 'inventory' ? <InventoryPanel items={view.inventory} onAction={onAction} /> : null}
           {activeTab === 'character' ? (
             <CharacterPanel state={state} campaign={campaign} abilityName={view.abilityName} />
@@ -75,10 +95,13 @@ export function ExplorationScreen({
 function WorldFeedback({ message }: { message: string }) {
   const discovery = message.includes('Descoberta:');
   const warning = message.includes('Condição crítica:');
+  const journey = message.includes('Jornada ') || message.includes('Nova jornada:');
   const className = warning
     ? 'world-feedback world-feedback--warning'
     : discovery
       ? 'world-feedback world-feedback--discovery'
+      : journey
+        ? 'world-feedback world-feedback--journey'
       : 'world-feedback';
 
   return (
@@ -87,9 +110,9 @@ function WorldFeedback({ message }: { message: string }) {
       role="status"
       aria-live="polite"
     >
-      <span className="world-feedback__icon" aria-hidden="true">{warning ? '!' : discovery ? '✦' : '✓'}</span>
+      <span className="world-feedback__icon" aria-hidden="true">{warning ? '!' : discovery ? '✦' : journey ? '⌖' : '✓'}</span>
       <div>
-        <strong>{warning ? 'Atenção à condição' : discovery ? 'Nova descoberta' : 'Mundo atualizado'}</strong>
+        <strong>{warning ? 'Atenção à condição' : discovery ? 'Nova descoberta' : journey ? 'Jornada atualizada' : 'Mundo atualizado'}</strong>
         <p>{message}</p>
       </div>
     </section>
@@ -98,12 +121,16 @@ function WorldFeedback({ message }: { message: string }) {
 
 function WorldPanel({
   view,
+  trackedJourney,
   onAction,
   onOpenActions,
+  onOpenJournal,
 }: {
   view: ExplorationView;
+  trackedJourney?: JournalJourneyView;
   onAction: (action: SandboxAction) => void;
   onOpenActions: () => void;
+  onOpenJournal: () => void;
 }) {
   return (
     <div className="world-panel">
@@ -125,6 +152,10 @@ function WorldPanel({
       </section>
 
       <p className="world-intro">{EXPLORATION_INTRO}</p>
+
+      {trackedJourney ? (
+        <TrackedJourneyCard journey={trackedJourney} onOpenJournal={onOpenJournal} />
+      ) : null}
 
       <section className="primary-action-card">
         <div>

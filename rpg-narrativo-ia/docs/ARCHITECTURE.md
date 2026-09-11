@@ -406,6 +406,8 @@ O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameStat
 
 Na Fatia 10.3, o mesmo orquestrador sincroniza objetivos depois de compor o estado final da ação e devolve o resumo das mudanças de jornada. Essa etapa não cobra tempo nem modifica outros domínios. `ui/journal/model.ts` deriva um diário não persistido com jornadas e fatos conhecidos; o modelo omite objetivos ocultos não ativados e etapas sequenciais ainda futuras.
 
+Na Fatia 10.4, `ui/components/JournalPanel.tsx` apresenta esse modelo na quinta aba da exploração. O ID acompanhado vive somente no estado local de `ExplorationScreen`: não altera o domínio nem o save. O painel Mundo recebe apenas a jornada ativa derivada e sua próxima etapa; feedback de progresso é textual e não modal.
+
 Na Fatia 9.3, `needs.consume` remove uma unidade do inventário e custa zero; `needs.rest` custa dois períodos. O repouso aprimorado exige uma fogueira ativa no local atual. `SandboxActionResult.needsWear` expõe o resumo do desgaste aplicado sem persistir dados derivados.
 
 Na Fatia 9.4, `ui/needs/presentation.ts` traduz valores e faixas para o HUD, resumos, efeitos e feedback. `ui/sandbox/model.ts` oferece à tela apenas consumíveis aprovados e o repouso válido para o local, enquanto a regra continua nos módulos de domínio. A superfície bloqueia novos despachos durante a janela de uma ação para evitar duplo toque.
