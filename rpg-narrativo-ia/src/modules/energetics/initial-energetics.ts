@@ -1,0 +1,28 @@
+import type { EnergeticsCatalog } from './types';
+
+export const INITIAL_ENERGETICS_CATALOG = {
+  energies: [
+    {
+      id: 'eteris',
+      name: 'Eteris',
+      description: 'Energia presente no mundo e no ambiente, absorvida por seres vivos ao viver e interagir.',
+    },
+    {
+      id: 'numen',
+      name: 'Númen',
+      description: 'Eteris interiorizado e individualizado por um ser vivo, base de suas aplicações de Corpo e Poder.',
+    },
+  ],
+  fields: [
+    {
+      id: 'corpo',
+      name: 'Corpo',
+      description: 'Aplicações interiorizadas do Númen: reforço, movimento, resistência e sentidos.',
+    },
+    {
+      id: 'poder',
+      name: 'Poder',
+      description: 'Aplicações exteriorizadas ou especializadas do Númen: manifestação, técnica e magia.',
+    },
+  ],
+} as const satisfies EnergeticsCatalog;
