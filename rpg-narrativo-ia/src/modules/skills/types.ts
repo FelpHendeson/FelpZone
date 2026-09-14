@@ -27,6 +27,16 @@ export interface IndexedSkills {
   readonly skillIdsByPath: ReadonlyMap<string, readonly string[]>;
 }
 
+export interface SkillProgressEntry {
+  skillId: string;
+  proficiency: number;
+}
+
+export interface SkillsProgressState {
+  level: number;
+  entries: SkillProgressEntry[];
+}
+
 export type SkillsInspection<T> =
   | { ok: true; value: T }
   | { ok: false; reason: string };

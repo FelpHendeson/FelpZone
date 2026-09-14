@@ -5,17 +5,20 @@ import {
   SCHEMA_VERSION_V3,
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
+  SCHEMA_VERSION_V6,
   inspectGameState,
   inspectGameStateV1,
   inspectGameStateV2,
   inspectGameStateV3,
   inspectGameStateV4,
   inspectGameStateV5,
+  inspectGameStateV6,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
   migrateGameStateV4,
   migrateGameStateV5,
+  migrateGameStateV6,
   type GameState,
 } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
@@ -157,6 +160,24 @@ export function parseGameState(
 
       const migrated = inspectGameState(
         migrateGameStateV5(previous.state, context, objectiveCatalog),
+        context,
+        objectiveCatalog,
+      );
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V6) {
+      const previous = inspectGameStateV6(parsed, context, objectiveCatalog);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+
+      const migrated = inspectGameState(
+        migrateGameStateV6(previous.state, objectiveCatalog),
         context,
         objectiveCatalog,
       );

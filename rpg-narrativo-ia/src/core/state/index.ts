@@ -4,6 +4,7 @@ import { createInitialAttributes } from '../../modules/character';
 import { createInitialProgression } from '../../modules/progression';
 import { createInitialSandboxState, type SandboxContext } from '../../modules/sandbox';
 import { createInitialObjectivesState, INITIAL_OBJECTIVES, type IndexedObjectives } from '../../modules/objectives';
+import { createInitialSkillsProgress, INITIAL_SKILLS } from '../../modules/skills';
 import { createInitialWorld } from '../../modules/world';
 
 export function createInitialState(
@@ -30,6 +31,7 @@ export function createInitialState(
     progression: createInitialProgression(),
     sandbox: createInitialSandboxState(sandboxContext),
     objectives: createInitialObjectivesState(objectiveCatalog),
+    system: createInitialSkillsProgress(INITIAL_SKILLS),
     updatedAt: now(),
   };
 }
@@ -45,6 +47,7 @@ export {
   SCHEMA_VERSION_V3,
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
+  SCHEMA_VERSION_V6,
   MIGRATED_CAMPAIGN_ID,
 } from './types';
 export {
@@ -54,11 +57,13 @@ export {
   inspectGameStateV3,
   inspectGameStateV4,
   inspectGameStateV5,
+  inspectGameStateV6,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
   migrateGameStateV4,
   migrateGameStateV5,
+  migrateGameStateV6,
 } from './validateGameState';
 export type {
   GameStateInspection,
@@ -67,6 +72,7 @@ export type {
   GameStateV3Inspection,
   GameStateV4Inspection,
   GameStateV5Inspection,
+  GameStateV6Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
@@ -86,6 +92,7 @@ export type {
   GameStateV3,
   GameStateV4,
   GameStateV5,
+  GameStateV6,
   GameStatus,
   HistoryEntry,
   InventoryItem,

@@ -14,7 +14,7 @@ describe('Fatia 9.2 — estado principal e migração', () => {
   it('mantém sede inicial no schema atual sem mudar a interface', () => {
     const state = freshState();
 
-    expect(SCHEMA_VERSION).toBe(6);
+    expect(SCHEMA_VERSION).toBe(7);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.attributes.sede).toBe(INITIAL_NEEDS_SNAPSHOT.sede);
     expect(Object.keys(state.attributes)).toEqual([...ATTRIBUTE_IDS]);

@@ -7,6 +7,7 @@ import {
   SCHEMA_VERSION_V3,
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
+  SCHEMA_VERSION_V6,
   type GameState,
 } from '../core/state';
 import type { Campaign, StoryEvent } from '../core/events';
@@ -25,6 +26,7 @@ export function serializedState(): Record<string, unknown> {
 export function asV1(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.system;
   delete raw.objectives;
   delete raw.sandbox;
   delete raw.narrativeSession;
@@ -36,6 +38,7 @@ export function asV1(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 export function asV2(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.system;
   delete raw.objectives;
   delete raw.narrativeSession;
   raw.schemaVersion = SCHEMA_VERSION_V2;
@@ -46,6 +49,7 @@ export function asV2(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 export function asV3(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.system;
   delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V3;
   if (isRecord(raw.sandbox)) {
@@ -57,6 +61,7 @@ export function asV3(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 export function asV4(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   removeThirst(raw);
+  delete raw.system;
   delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V4;
   return raw;
@@ -64,8 +69,16 @@ export function asV4(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV5(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.system;
   delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V5;
+  return raw;
+}
+
+export function asV6(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.system;
+  raw.schemaVersion = SCHEMA_VERSION_V6;
   return raw;
 }
 

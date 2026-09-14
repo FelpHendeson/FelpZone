@@ -6,7 +6,9 @@ import {
   type IndexedSkills,
   type PathDefinition,
   type SkillDefinition,
+  type SkillProgressEntry,
   type SkillsInspection,
+  type SkillsProgressState,
 } from './types';
 
 export { SkillError } from './errors';
@@ -82,6 +84,71 @@ export function listSkillsByPath(catalog: IndexedSkills, pathId: string): SkillD
   }
   const ids = indexed.skillIdsByPath.get(pathId) ?? [];
   return ids.map((id) => ({ ...(indexed.skillById.get(id) as SkillDefinition) }));
+}
+
+export function createInitialSkillsProgress(catalog: IndexedSkills): SkillsProgressState {
+  const indexed = requireIndexed(catalog);
+  const first = indexed.skills[0];
+  return {
+    level: 1,
+    entries: first ? [{ skillId: first.id, proficiency: 0 }] : [],
+  };
+}
+
+export function inspectSkillsProgress(
+  value: unknown,
+  catalog: IndexedSkills,
+): SkillsInspection<SkillsProgressState> {
+  const indexed = requireIndexed(catalog);
+  if (!isRecord(value) || !positiveSafeInteger(value.level) || !Array.isArray(value.entries)) {
+    return fail('O estado de progresso de habilidades é inválido.');
+  }
+
+  const entries: SkillProgressEntry[] = [];
+  const seen = new Set<string>();
+  let previousIndex = -1;
+  for (const entry of value.entries) {
+    if (!isRecord(entry) || !nonEmpty(entry.skillId) || !nonNegativeSafeInteger(entry.proficiency)) {
+      return fail('O progresso de uma habilidade é inválido.');
+    }
+    const skillIndex = indexed.skills.findIndex((skill) => skill.id === entry.skillId);
+    if (skillIndex < 0) {
+      return fail('O progresso referencia uma habilidade inexistente.');
+    }
+    if (seen.has(entry.skillId)) {
+      return fail('Uma habilidade aparece mais de uma vez no progresso.');
+    }
+    if (skillIndex <= previousIndex) {
+      return fail('A ordem das habilidades no progresso é inválida.');
+    }
+    seen.add(entry.skillId);
+    previousIndex = skillIndex;
+    entries.push({ skillId: entry.skillId, proficiency: entry.proficiency });
+  }
+
+  return { ok: true, value: { level: value.level, entries } };
+}
+
+export function isSkillKnown(state: SkillsProgressState, skillId: string): boolean {
+  return state.entries.some((entry) => entry.skillId === skillId);
+}
+
+export function getSkillProficiency(state: SkillsProgressState, skillId: string): number {
+  const entry = state.entries.find((item) => item.skillId === skillId);
+  if (!entry) {
+    throw new SkillError('A habilidade não é conhecida.');
+  }
+  return entry.proficiency;
+}
+
+export function listKnownSkills(
+  catalog: IndexedSkills,
+  state: SkillsProgressState,
+): { skill: SkillDefinition; proficiency: number }[] {
+  const indexed = requireIndexed(catalog);
+  return indexed.skills
+    .filter((skill) => isSkillKnown(state, skill.id))
+    .map((skill) => ({ skill: { ...skill }, proficiency: getSkillProficiency(state, skill.id) }));
 }
 
 function inspectPath(value: unknown, existing: ReadonlySet<string>): SkillsInspection<PathDefinition> {
@@ -169,6 +236,14 @@ function nonEmpty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function positiveSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+}
+
+function nonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
 function fail<T>(reason: string): SkillsInspection<T> {
   return { ok: false, reason };
 }
@@ -177,8 +252,10 @@ export {
   type IndexedSkills,
   type PathDefinition,
   type SkillDefinition,
+  type SkillProgressEntry,
   type SkillsCatalog,
   type SkillsInspection,
+  type SkillsProgressState,
 } from './types';
 
 export { INITIAL_SKILLS_CATALOG } from './initial-skills';
