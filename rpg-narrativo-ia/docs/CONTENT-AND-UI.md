@@ -48,20 +48,23 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 - cena dominante com imagem ou placeholder;
 - apresentação própria de encontro narrativo, com retrato opcional;
 - texto e escolhas em cartões de leitura;
-- acesso a histórico, personagem e mochila pela barra inferior.
+- acesso persistente a Mundo, Jornadas, Mochila e Sistema pela barra inferior;
+- identidade, condição, relações, energéticos, habilidades e treino reunidos no Sistema diegético;
+- conteúdo detalhado recolhido até ser solicitado pelo jogador.
 
 ### Exploração
 
 - o local atual é a tela principal do loop sandbox;
 - imagem dominante, descrição e progresso aparecem no mesmo bloco;
 - explorar é a ação contextual principal;
-- mapa visual mostra somente o local atual e destinos adjacentes já descobertos;
+- ações de descanso, coleta e fabricação abrem em um painel contextual do local;
+- mapa visual apresenta o local atual e destinos adjacentes em rotas verticais;
 - as relações `parent`, `sibling` e `child` continuam derivadas do mapa hierárquico;
-- presenças descobertas do local aparecem em “Presenças neste local”, com ações contextuais;
-- coleta e crafting ficam agrupados no painel de ações;
+- presenças descobertas do local aparecem em cartões expansíveis, com ações contextuais;
 - mochila usa uma grade visual de itens;
-- ficha mostra atributos, capacidade inicial e relações;
-- a navegação inferior alterna entre Mundo, Ações, Mochila e Eu;
+- Jornadas agrupa objetivos e registros do mundo em seções expansíveis;
+- Sistema agrupa ficha, condição, relações, Eteris, Númen, habilidades e treino;
+- a navegação inferior alterna entre Mundo, Jornadas, Mochila e Sistema;
 - descobertas e resultados ganham feedback destacado sem criar novas regras de domínio.
 
 ### Resumo
@@ -81,6 +84,9 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 - Respeitar áreas seguras de aparelhos quando estiver em modo instalado.
 - Manter a cena e a ação principal visíveis cedo na rolagem.
 - Organizar ações secundárias por intenção em vez de exibir todas numa lista contínua.
+- Preservar custos e motivos de bloqueio antes da confirmação de qualquer ação.
+- Usar divulgação progressiva: primeiro contexto e decisão, depois consequência e detalhes.
+- Evitar navegação horizontal obrigatória; a interface deve funcionar a partir de 320 px.
 - Não apresentar valores fictícios: clima, nível, peso, combate e outros indicadores só entram na UI quando existirem no domínio.
 
 ## Placeholders de imagem
