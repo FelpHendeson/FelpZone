@@ -28,7 +28,7 @@ function indexed(): IndexedSkills {
 }
 
 describe('Fatia 11.4 — árvore de habilidades', () => {
-  it('deriva conhecido, disponível e conta o oculto sem vazar conteúdo bloqueado', () => {
+  it('deriva conhecido e disponível sem contar nem vazar conteúdo bloqueado', () => {
     const value = indexed();
     const tree = deriveSkillTree(value, createInitialSkillsProgress(value));
 
@@ -48,11 +48,12 @@ describe('Fatia 11.4 — árvore de habilidades', () => {
         requires: ['sense'],
       },
     ]);
-    expect(body.hiddenCount).toBe(1);
+    expect(body.hasHiddenSkills).toBe(true);
 
     const serialized = JSON.stringify(tree);
     expect(serialized).not.toContain('Maestria Oculta');
     expect(serialized).not.toContain('Fagulha');
+    expect(serialized).not.toContain('hiddenCount');
   });
 
   it('revela um caminho novo apenas quando os requisitos são cumpridos', () => {

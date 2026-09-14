@@ -40,6 +40,24 @@ describe('Fatia 11.3 — ação integrada de treino', () => {
     expect(isSkillKnown(before.system, 'steady-body')).toBe(false);
   });
 
+  it('recusa repetir um treino de revelação sem cobrar tempo nem desgastar necessidades', () => {
+    const learned = executeSandboxAction(
+      exploring(),
+      { type: 'training.train', methodId: 'body-reinforcement-routine' },
+      { now },
+    ).current;
+    const snapshot = JSON.stringify(learned);
+
+    expect(() =>
+      executeSandboxAction(
+        learned,
+        { type: 'training.train', methodId: 'body-reinforcement-routine' },
+        { now },
+      ),
+    ).toThrow(SandboxActionError);
+    expect(JSON.stringify(learned)).toBe(snapshot);
+  });
+
   it('persiste o progresso obtido no treino', () => {
     const before = exploring();
     const trained = executeSandboxAction(

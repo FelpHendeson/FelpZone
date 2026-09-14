@@ -109,6 +109,16 @@ describe('Fatia 11.3 — planejamento de treino', () => {
     expect(isSkillKnown(before, 'steady')).toBe(false);
   });
 
+  it('recusa repetir um método de revelação já concluído antes de cobrar tempo', () => {
+    const s = skills();
+    const before = baseline(s);
+    const learned = applyTrainingPlan(s, before, planTraining(training(s), s, before, 'learn-steady'));
+
+    expect(() => planTraining(training(s), s, learned, 'learn-steady')).toThrow(
+      'Este método de treinamento já foi concluído.',
+    );
+  });
+
   it('recusa treinar uma habilidade ainda não conhecida', () => {
     const s = skills();
     expect(() => planTraining(training(s), s, baseline(s), 'spark-drill')).toThrow(TrainingError);

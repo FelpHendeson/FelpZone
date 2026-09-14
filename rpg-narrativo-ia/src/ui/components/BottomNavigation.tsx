@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 export type GameTab = 'world' | 'actions' | 'system' | 'journal' | 'inventory' | 'character';
 
 interface BottomNavigationProps {
@@ -17,7 +19,11 @@ const ITEMS: Array<{ id: GameTab; icon: string; label: string }> = [
 
 export function BottomNavigation({ active, inventoryCount, onChange }: BottomNavigationProps) {
   return (
-    <nav className="bottom-nav" aria-label="Navegação da partida">
+    <nav
+      className="bottom-nav"
+      aria-label="Navegação da partida"
+      style={{ '--bottom-navigation-items': ITEMS.length } as CSSProperties}
+    >
       {ITEMS.map((item) => (
         <button
           key={item.id}

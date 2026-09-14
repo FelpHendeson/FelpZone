@@ -55,7 +55,7 @@ export interface SkillTreePath {
   field: ApplicationField;
   known: boolean;
   nodes: SkillTreeNode[];
-  hiddenCount: number;
+  hasHiddenSkills: boolean;
 }
 
 export interface SkillTree {

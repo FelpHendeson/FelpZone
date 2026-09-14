@@ -81,6 +81,17 @@ describe('Fatia 11.1 — catálogo de energéticos', () => {
     expect(getEnergy(value, 'eteris').name).toBe('Eteris');
   });
 
+  it('protege os índices contra set, delete e clear', () => {
+    const value = indexEnergeticsCatalog(catalog());
+    const energies = value.energyById as Map<string, unknown>;
+
+    expect(() => energies.set('forged', {})).toThrow(EnergeticsError);
+    expect(() => energies.delete('eteris')).toThrow(EnergeticsError);
+    expect(() => energies.clear()).toThrow(EnergeticsError);
+    expect(() => (value.fieldById as Map<string, unknown>).set('forged', {})).toThrow(EnergeticsError);
+    expect(getEnergy(value, 'eteris').name).toBe('Eteris');
+  });
+
   it('falha de forma controlada para catálogos e IDs inválidos', () => {
     expect(() => indexEnergeticsCatalog({})).toThrow(EnergeticsError);
     const value = indexEnergeticsCatalog(catalog());

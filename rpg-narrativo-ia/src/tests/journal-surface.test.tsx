@@ -84,6 +84,7 @@ describe('Fatia 10.4 — superfície de Jornadas e Diário', () => {
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('Diário');
     expect(html).toContain('Sistema');
+    expect(html).toContain('style="--bottom-navigation-items:6"');
   });
 
   it('separa jornadas, mostra progresso textual e oferece acompanhamento não persistido', () => {

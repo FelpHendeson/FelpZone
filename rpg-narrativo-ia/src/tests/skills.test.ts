@@ -73,8 +73,26 @@ describe('Fatia 11.1 — catálogo de habilidades', () => {
       paths: catalog().paths,
       skills: [skill({ id: 'a', requires: ['b'] }), skill({ id: 'b', requires: ['a'] })],
     },
+    {
+      paths: [path()],
+      skills: [skill({ id: 'dependent', requires: ['root'] }), skill({ id: 'root' })],
+    },
+    { paths: [path({ id: 'x'.repeat(129) })], skills: [] },
+    { paths: [path({ description: 'x'.repeat(2_001) })], skills: [] },
+    { paths: [path()], skills: Array.from({ length: 2_049 }, (_, index) => skill({ id: `skill-${index}` })) },
   ])('rejeita forma de catálogo inválida %#', (value) => {
     expect(inspectSkillsCatalog(value).ok).toBe(false);
+  });
+
+  it('valida cadeias profundas sem recursão e rejeita requisitos excessivos', () => {
+    const chain = Array.from({ length: 1_500 }, (_, index) =>
+      skill({ id: `chain-${index}`, requires: index === 0 ? [] : [`chain-${index - 1}`] }),
+    );
+    expect(inspectSkillsCatalog({ paths: [path()], skills: chain }).ok).toBe(true);
+
+    const roots = Array.from({ length: 33 }, (_, index) => skill({ id: `root-${index}` }));
+    const overloaded = skill({ id: 'overloaded', requires: roots.map((entry) => entry.id) });
+    expect(inspectSkillsCatalog({ paths: [path()], skills: [...roots, overloaded] }).ok).toBe(false);
   });
 
   it('congela definições e devolve cópias defensivas nas consultas', () => {

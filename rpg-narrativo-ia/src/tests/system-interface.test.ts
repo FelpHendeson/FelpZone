@@ -45,6 +45,12 @@ describe('Fatia 11.5 — Status diegético derivado', () => {
     const status = buildSystemStatus(trained);
 
     expect(status.knownSkills.map((skill) => skill.skillId)).toContain('steady-body');
+    expect(status.trainings.find((training) => training.methodId === 'body-reinforcement-routine')).toEqual(
+      expect.objectContaining({
+        canTrain: false,
+        blockedReason: 'Este método de treinamento já foi concluído.',
+      }),
+    );
     // aprender Corpo Firme cumpre o requisito da Fagulha Condutora, revelando o caminho de Númen
     expect(status.tree.paths.map((path) => path.pathId)).toContain('numen-manifestation');
   });

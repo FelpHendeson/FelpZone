@@ -16,11 +16,20 @@ import {
 
 export { SkillError } from './errors';
 
+const MAX_PATHS = 128;
+const MAX_SKILLS = 2_048;
+const MAX_REQUIREMENTS_PER_SKILL = 32;
+const MAX_ID_LENGTH = 128;
+const MAX_TEXT_LENGTH = 2_000;
+
 export const INITIAL_SKILLS = indexSkillsCatalog(INITIAL_SKILLS_CATALOG);
 
 export function inspectSkillsCatalog(value: unknown): SkillsInspection<IndexedSkills> {
   if (!isRecord(value) || !Array.isArray(value.paths) || !Array.isArray(value.skills)) {
     return fail('O catálogo de habilidades é inválido.');
+  }
+  if (value.paths.length > MAX_PATHS || value.skills.length > MAX_SKILLS) {
+    return fail('O catálogo de habilidades excede os limites permitidos.');
   }
 
   const paths: PathDefinition[] = [];
@@ -55,6 +64,9 @@ export function inspectSkillsCatalog(value: unknown): SkillsInspection<IndexedSk
 
   if (hasRequirementCycle(skills)) {
     return fail('Os requisitos de habilidade formam um ciclo.');
+  }
+  if (skills[0] && skills[0].requires.length > 0) {
+    return fail('A habilidade inicial precisa ser uma raiz sem requisitos.');
   }
 
   return { ok: true, value: freezeCatalog(paths, skills) };
@@ -114,6 +126,9 @@ function copySkill(skill: SkillDefinition): SkillDefinition {
 export function createInitialSkillsProgress(catalog: IndexedSkills): SkillsProgressState {
   const indexed = requireIndexed(catalog);
   const first = indexed.skills[0];
+  if (first && first.requires.length > 0) {
+    throw new SkillError('A habilidade inicial precisa ser uma raiz sem requisitos.');
+  }
   return {
     level: 1,
     entries: first ? [{ skillId: first.id, proficiency: 0 }] : [],
@@ -195,7 +210,7 @@ export function deriveSkillTree(catalog: IndexedSkills, state: SkillsProgressSta
   for (const path of indexed.paths) {
     const skillIds = indexed.skillIdsByPath.get(path.id) ?? [];
     const nodes: SkillTreeNode[] = [];
-    let hiddenCount = 0;
+    let hasHiddenSkills = false;
 
     for (const skillId of skillIds) {
       const skill = indexed.skillById.get(skillId) as SkillDefinition;
@@ -204,7 +219,7 @@ export function deriveSkillTree(catalog: IndexedSkills, state: SkillsProgressSta
       } else if (areSkillRequirementsMet(indexed, state, skill.id)) {
         nodes.push(treeNode(skill, 'available', null));
       } else {
-        hiddenCount += 1;
+        hasHiddenSkills = true;
       }
     }
 
@@ -218,7 +233,7 @@ export function deriveSkillTree(catalog: IndexedSkills, state: SkillsProgressSta
       field: path.field,
       known: nodes.some((node) => node.status === 'known'),
       nodes,
-      hiddenCount,
+      hasHiddenSkills,
     });
   }
 
@@ -288,7 +303,7 @@ function skillOrder(catalog: IndexedSkills, skillId: string): number {
 }
 
 function inspectPath(value: unknown, existing: ReadonlySet<string>): SkillsInspection<PathDefinition> {
-  if (!isRecord(value) || !nonEmpty(value.id) || !nonEmpty(value.name) || !nonEmpty(value.description)) {
+  if (!isRecord(value) || !validId(value.id) || !validText(value.name) || !validText(value.description)) {
     return fail('A definição de caminho é inválida.');
   }
   if (existing.has(value.id)) {
@@ -308,13 +323,13 @@ function inspectSkill(
   existing: ReadonlySet<string>,
   pathIds: ReadonlySet<string>,
 ): SkillsInspection<SkillDefinition> {
-  if (!isRecord(value) || !nonEmpty(value.id) || !nonEmpty(value.name) || !nonEmpty(value.description)) {
+  if (!isRecord(value) || !validId(value.id) || !validText(value.name) || !validText(value.description)) {
     return fail('A definição de habilidade é inválida.');
   }
   if (existing.has(value.id)) {
     return fail('Os IDs de habilidade precisam ser únicos.');
   }
-  if (!nonEmpty(value.pathId) || !pathIds.has(value.pathId)) {
+  if (!validId(value.pathId) || !pathIds.has(value.pathId)) {
     return fail('A habilidade referencia um caminho inexistente.');
   }
   const requires = inspectRequires(value.requires, value.id);
@@ -340,10 +355,13 @@ function inspectRequires(value: unknown, ownId: string): SkillsInspection<string
   if (!Array.isArray(value)) {
     return fail('Os requisitos da habilidade são inválidos.');
   }
+  if (value.length > MAX_REQUIREMENTS_PER_SKILL) {
+    return fail('A habilidade excede o limite de requisitos permitido.');
+  }
   const requires: string[] = [];
   const seen = new Set<string>();
   for (const entry of value) {
-    if (!nonEmpty(entry) || seen.has(entry) || entry === ownId) {
+    if (!validId(entry) || seen.has(entry) || entry === ownId) {
       return fail('Os requisitos da habilidade são inválidos.');
     }
     seen.add(entry);
@@ -353,28 +371,31 @@ function inspectRequires(value: unknown, ownId: string): SkillsInspection<string
 }
 
 function hasRequirementCycle(skills: readonly SkillDefinition[]): boolean {
-  const requiresById = new Map(skills.map((skill) => [skill.id, skill.requires]));
-  const state = new Map<string, 'visiting' | 'done'>();
+  const pendingRequirements = new Map(skills.map((skill) => [skill.id, skill.requires.length]));
+  const dependents = new Map<string, string[]>();
+  for (const skill of skills) {
+    for (const requirement of skill.requires) {
+      const entries = dependents.get(requirement) ?? [];
+      entries.push(skill.id);
+      dependents.set(requirement, entries);
+    }
+  }
 
-  const visit = (id: string): boolean => {
-    const current = state.get(id);
-    if (current === 'visiting') {
-      return true;
-    }
-    if (current === 'done') {
-      return false;
-    }
-    state.set(id, 'visiting');
-    for (const requirement of requiresById.get(id) ?? []) {
-      if (visit(requirement)) {
-        return true;
+  const ready = skills.filter((skill) => skill.requires.length === 0).map((skill) => skill.id);
+  let processed = 0;
+  for (let index = 0; index < ready.length; index += 1) {
+    const current = ready[index];
+    processed += 1;
+    for (const dependent of dependents.get(current) ?? []) {
+      const remaining = (pendingRequirements.get(dependent) as number) - 1;
+      pendingRequirements.set(dependent, remaining);
+      if (remaining === 0) {
+        ready.push(dependent);
       }
     }
-    state.set(id, 'done');
-    return false;
-  };
+  }
 
-  return skills.some((skill) => visit(skill.id));
+  return processed !== skills.length;
 }
 
 function freezeCatalog(paths: PathDefinition[], skills: SkillDefinition[]): IndexedSkills {
@@ -428,6 +449,14 @@ function isReadonlyMap(value: unknown): value is ReadonlyMap<unknown, unknown> {
 
 function nonEmpty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
+}
+
+function validId(value: unknown): value is string {
+  return nonEmpty(value) && value.length <= MAX_ID_LENGTH;
+}
+
+function validText(value: unknown): value is string {
+  return nonEmpty(value) && value.length <= MAX_TEXT_LENGTH;
 }
 
 function positiveSafeInteger(value: unknown): value is number {

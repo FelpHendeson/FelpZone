@@ -730,9 +730,9 @@ function SystemPanel({
                     </li>
                   ))}
                 </ul>
-                {path.hiddenCount > 0 ? (
+                {path.hasHiddenSkills ? (
                   <small className="system-tree__hidden">
-                    +{path.hiddenCount} possibilidade(s) ainda não compreendida(s)
+                    Há possibilidades ainda não compreendidas neste caminho
                   </small>
                 ) : null}
               </article>

@@ -1,4 +1,5 @@
 import { EnergeticsError } from './errors';
+import { ImmutableIndex } from './immutable-index';
 import { INITIAL_ENERGETICS_CATALOG } from './initial-energetics';
 import {
   APPLICATION_FIELDS,
@@ -128,8 +129,8 @@ function freezeCatalog(
   return Object.freeze({
     energies: frozenEnergies,
     fields: frozenFields,
-    energyById: new Map(frozenEnergies.map((energy) => [energy.id, energy] as const)),
-    fieldById: new Map(frozenFields.map((field) => [field.id, field] as const)),
+    energyById: new ImmutableIndex(frozenEnergies.map((energy) => [energy.id, energy] as const)),
+    fieldById: new ImmutableIndex(frozenFields.map((field) => [field.id, field] as const)),
   });
 }
 
@@ -151,7 +152,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function isReadonlyMap(value: unknown): value is ReadonlyMap<unknown, unknown> {
-  return value instanceof Map;
+  return isRecord(value) && typeof value.get === 'function' && typeof value.keys === 'function' && typeof value.size === 'number';
 }
 
 function nonEmpty(value: unknown): value is string {
