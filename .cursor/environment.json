@@ -4,7 +4,7 @@
   "terminals": [
     {
       "name": "vite-dev",
-      "command": "cd rpg-narrativo-ia && npm run dev -- --host 0.0.0.0 --port 5173",
+      "command": "cd rpg-narrativo-ia && ([ -d node_modules ] || npm ci) && npm run dev -- --host 0.0.0.0 --port 5173",
       "description": "Servidor de desenvolvimento Vite do rpg-narrativo-ia em http://localhost:5173"
     }
   ],
