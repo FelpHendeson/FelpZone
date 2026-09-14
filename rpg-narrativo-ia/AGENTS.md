@@ -6,9 +6,9 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — entrega domínio, schema 6, sincronização após ações e escolhas narrativas, diário mobile e a jornada jogável `Primeiros passos`.
+Os Sistemas 1 a 11 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — entrega domínio, sincronização após ações e escolhas narrativas, diário mobile e a jornada jogável `Primeiros passos`.
 
-O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **aprovado para especificação e roadmap; a Fatia 11.1 está implementada** nos módulos isolados `energetics`, `skills` e `training` (catálogos e validação, sem tocar em `GameState`, schema, relógio, campanha ou UI). Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. As Fatias 11.2 em diante não podem ser executadas sem autorização explícita. Combate tem uma direção conceitual de banco de ações, mas continua sem sistema numerado, fórmulas ou implementação aprovada.
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **implementado e consolidado nas Fatias 11.1 a 11.7** nos módulos `energetics`, `skills`, `training` e `system-interface`: vocabulário energético, catálogos validados, `GameState.system` no schema 7, ação de treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Números, nomes e conteúdo de habilidades são protótipos. Combate tem uma direção conceitual de banco de ações que pode reutilizar os contratos públicos do Sistema 11, mas continua sem sistema numerado, fórmulas ou implementação aprovada.
 
 ## Regras obrigatórias
 

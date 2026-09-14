@@ -2,11 +2,11 @@
 
 ## Estado da decisão
 
-**Aprovado pelo autor para especificação e roadmap em 14 de setembro de 2026. Fatia 11.1 implementada; Fatias 11.2 em diante ainda não implementadas.**
+**Aprovado pelo autor em 14 de setembro de 2026 e implementado nas Fatias 11.1 a 11.7 (autorização explícita do autor para desenvolvimento contínuo).**
 
-Este documento amadurece o próximo eixo do jogo. A Fatia 11.1 — vocabulário, catálogos e validação isolada — foi implementada nos módulos `energetics`, `skills` e `training`. As demais fatias permanecem como roadmap: não estão autorizadas para implementação automática. O Sistema 11 deve dar significado mecânico e narrativo ao Sistema já presente no cânone, estabelecer a base da progressão do personagem e preparar contratos que um combate futuro possa reutilizar.
+Este documento amadureceu o próximo eixo do jogo e agora está implementado: os módulos `energetics`, `skills`, `training` e `system-interface` entregam vocabulário energético, catálogos validados, estado de progressão persistido no schema 7, treino que cobra o relógio uma vez, Árvore de habilidades derivada com sigilo de conteúdo oculto e uma interface diegética mobile. O Sistema 11 dá significado mecânico e narrativo ao Sistema canônico e prepara contratos públicos que um combate futuro poderá reutilizar.
 
-Antes de qualquer código, cada fatia precisa receber autorização explícita e transformar as decisões ainda abertas em regras verificáveis. Nenhum nome de atributo, fórmula, curva ou número mencionado como exemplo deve ser tratado como definitivo.
+Números, nomes, custos e conteúdo de habilidades permanecem protótipos e não são cânone. Balanceamento definitivo, regras do Jardim e o banco de ações de combate continuam fora do escopo e exigem especificação e autorização próprias.
 
 ## Problema de diversão e imersão
 
@@ -260,33 +260,29 @@ Foram fechadas apenas as decisões indispensáveis de IDs, referências e invari
 
 ### Fatia 11.2 — Estado de progressão e migração
 
-Definir o estado mínimo persistente para nível, proficiências e conhecimentos que forem aprovados. Integrar ao `GameState` com nova versão de schema somente se o formato persistido realmente mudar. Migração não treina, não concede progresso por suposição, não avança tempo e não regrava durante a leitura.
-
-Esta fatia depende da aprovação prévia dos campos exatos. Não reutilizar os atributos de sobrevivência como fórmula de poder sem decisão explícita.
+**Implementada.** O `GameState` passou a incluir `system: { level, entries: [{ skillId, proficiency }] }` sob `schemaVersion: 7`. Novas partidas e migrações v1–v6 começam com a aptidão inicial em proficiência 0 e nível 1; a migração não treina, não concede progresso por suposição, não avança tempo e não regrava durante a leitura. Os atributos de sobrevivência não foram reutilizados como fórmula de poder.
 
 ### Fatia 11.3 — Treinamento e tempo
 
-Implementar planejamento puro e uma ação integrada de treino. Validar tudo antes do commit da transação, aplicar `TimeCost` uma única vez e deixar necessidades, ciclo diário, recursos e objetivos observarem o mesmo avanço pelas integrações existentes.
-
-Começar com um método pequeno de conteúdo protótipo; seus números não se tornam cânone.
+**Implementada.** `planTraining` valida acesso, custo e efeitos e devolve um plano sem tocar no relógio; a ação `training.train` passa pelo orquestrador consolidado, aplica `TimeCost` uma única vez e deixa necessidades, ciclo diário, recursos e objetivos observarem o mesmo avanço. Os efeitos declarativos (`skill.proficiency.increase`, `skill.learn`) são protótipos; seus números não são cânone.
 
 ### Fatia 11.4 — Árvore de habilidades
 
-Derivar caminhos, requisitos conhecidos, bloqueios seguros e progresso sem vazar nós ocultos. A Árvore consulta o catálogo e o estado; abrir ou navegar nela não consome tempo.
+**Implementada.** As habilidades declaram `requires` (validado, sem ciclos) e `deriveSkillTree` deriva caminhos, nós conhecidos, possibilidades disponíveis e uma contagem de nós ainda ocultos, sem vazar conteúdo bloqueado. Consultar a Árvore é uma derivação pura e não consome tempo.
 
 ### Fatia 11.5 — Status e interface diegética mobile
 
-Apresentar Status, energia, habilidades, proficiências, caminhos e treinos conhecidos como funções do Sistema acessadas pelo personagem. A interface deve funcionar a partir de 320 px, não duplicar regras e explicar custos antes da confirmação.
+**Implementada.** O módulo `system-interface` deriva uma visão segura de Status (nível, Eteris/Númen, campos, habilidades, Árvore e treinos conhecidos) e a aba mobile `Sistema` a apresenta a partir de 320 px, explicando o custo em um diálogo de confirmação antes de treinar, sem duplicar regras no React.
 
 ### Fatia 11.6 — Primeiro ciclo de fortalecimento ponta a ponta
 
-Conectar descoberta ou orientação do Sistema, consulta, treino, passagem do tempo, progresso, persistência e uma consequência perceptível no sandbox. A prova não precisa de combate, Jardim funcional, raça não humana ou conteúdo definitivo.
+**Implementada.** O jogador consulta o Sistema, escolhe um treino, investe períodos, vê a proficiência crescer, revela uma habilidade e um caminho antes ocultos e mantém tudo após salvar e recarregar — provado por teste automatizado e por validação visual na interface.
 
 ### Fatia 11.7 — Consolidação e ponte para combate
 
-Revisar invariantes, migrações, vazamento de conteúdo, atomicidade e gates. Publicar somente os contratos públicos necessários para que uma especificação posterior de banco de ações e combate possa ser escrita sem acessar internos.
+**Implementada.** Uma bateria de consolidação cobre atomicidade do treino, imutabilidade dos catálogos, ausência de vazamento e a presença dos contratos públicos. Os contratos reutilizáveis por um futuro banco de ações — definições de habilidade, estado de progressão, requisitos e o molde declarativo de plano com custo e efeitos — estão expostos sem revelar internos.
 
-O Jardim poderá receber uma fatia própria somente depois que as regras mínimas de fusão forem discutidas e aprovadas. Ele não deve ser simulado por uma combinação arbitrária durante as fatias acima.
+O Jardim poderá receber uma fatia própria somente depois que as regras mínimas de fusão forem discutidas e aprovadas. Ele não foi simulado por uma combinação arbitrária.
 
 ## Critérios de aceite do Sistema 11
 
