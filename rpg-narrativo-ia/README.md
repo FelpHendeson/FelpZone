@@ -4,6 +4,8 @@ Protótipo jogável de um RPG narrativo sandbox mobile-first sobre uma humanidad
 
 O jogo é uma aplicação web estática, modular e expansível. A IA participa somente da criação do projeto: ajuda a definir o mundo, escrever conteúdo e implementar o código. O jogo publicado não chama APIs de IA, não exige chave e não possui custo operacional inicial.
 
+**Versão publicada:** [felp-rpg.vercel.app](https://felp-rpg.vercel.app/)
+
 ## Premissa
 
 Durante o Reset, os planetas aumentaram drasticamente, a geografia foi refeita e todos os vestígios materiais da civilização desapareceram. Os humanos mantiveram suas memórias, mas foram espalhados pelo novo mundo e receberam poderes, capacidades mágicas e acesso individual a um Sistema.
@@ -35,8 +37,9 @@ Leia nesta ordem:
 17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
 18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
 19. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
-20. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e temas ainda sem etapa aprovada.
-21. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+20. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 aprovado para especificação e roadmap, ainda sem implementação autorizada.
+21. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistema 11 planejado e horizonte posterior.
+22. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -86,6 +89,8 @@ O Sistema 9 — Necessidades e sobrevivência leve — está implementado e cons
 
 O Sistema 10 — Objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5. Catálogo, estado, dez critérios, schema 6, sincronização após ações e escolhas, diário seguro e interface mobile sustentam a jornada principal `Primeiros passos`, da capacidade inicial ao encontro com Mira.
 
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está aprovado para especificação e roadmap, mas ainda não foi implementado. Ele estabelece o Sistema como interface diegética, diferencia Eteris ambiental de Númen individualizado e planeja Status, nível, proficiências, treino temporal e Árvore de habilidades. O Jardim e o futuro banco de ações possuem direção conceitual, mas regras de fusão e combate continuam pendentes de decisão própria.
+
 ## Decisões já tomadas
 
 - React, TypeScript e Vite.
@@ -103,7 +108,8 @@ O Sistema 10 — Objetivos, jornadas e registro de descobertas — está impleme
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
 - O salvamento local usa `schemaVersion: 6`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences` e o progresso mínimo de objetivos. Valida o sandbox e os objetivos contra seus catálogos e migra saves v1 a v5 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
-- Fora do MVP: combate tático, facções, assentamentos, mapa aberto, geração procedural, editor e qualquer serviço pago.
+- Status expandido, Eteris, Númen, nível, proficiências, treinamento, Árvore e Jardim ainda não existem no código nem no schema 6.
+- Fora da implementação atual: combate jogável, facções e assentamentos administráveis, mapa aberto, geração procedural, editor e qualquer serviço pago. O banco de ações de combate é apenas uma direção futura documentada.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
 - O Sistema 8 está implementado. As Fatias 8.1 a 8.6 existem no código: catálogo, sincronização, planejamento, save schema 4, orquestração de `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo.

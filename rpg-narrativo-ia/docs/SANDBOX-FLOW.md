@@ -136,7 +136,7 @@ Exploração poderá revelar marcos, passagens, subáreas secretas, NPCs, habita
 - a Fatia 8.5 expõe essas presenças na interface mobile existente;
 - saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida;
 - `NPCState` completo e agenda continuam fora do escopo;
-- comportamento de criaturas e combate não foram discutidos nem aprovados;
+- comportamento autônomo de criaturas continua sem aprovação; combate agora possui direção conceitual de banco de ações declarativo, mas ainda não tem sistema próprio, fórmulas ou implementação autorizada;
 - o Sistema 9 de necessidades e sobrevivência leve foi implementado e consolidado nas Fatias 9.1 a 9.5; o schema 5 introduzido por ele foi sucedido pelo schema 6 do Sistema 10;
 - outros tipos de gatilho (entrada em local, presença, período) ainda não existem nem possuem etapa aprovada;
 - não há viagem rápida nem conexões especiais no primeiro mapa.

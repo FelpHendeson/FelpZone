@@ -150,9 +150,51 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ## Depois do Sistema 10
 
-Não existe Sistema 11 aprovado nem uma ordem fechada posterior. A classificação completa está em [Estado, metas e horizonte](PROJECT-STATUS.md).
+### Etapa 11 — Núcleo do Sistema, Eteris, Númen e Progressão
 
-### Direções definidas pelo autor, ainda sem próxima especificação
+**Aprovada para especificação e roadmap; ainda não implementada.** O Sistema 11 transforma o Sistema canônico em interface diegética e estabelece fundamentos para crescimento do personagem: Eteris ambiental, Númen individualizado, Status, nível, proficiências, treino com custo temporal, Árvore de habilidades e pontos de extensão para o Jardim.
+
+A etapa deve preparar um futuro banco de ações e combate sem implementá-los nem inventar atributos, fórmulas ou regras de fusão. Fonte: [Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+
+#### Fatia 11.1 — Vocabulário, catálogos e validação isolada
+
+**Especificada; implementação não autorizada.** Fechar e validar contratos mínimos de energia, habilidades, caminhos e métodos de treino sem alterar `GameState`, schema, campanha ou UI.
+
+#### Fatia 11.2 — Estado de progressão e migração
+
+**Planejada; depende das decisões da 11.1.** Persistir somente nível, proficiências e conhecimentos que forem aprovados. Qualquer nova versão de schema deve migrar sem treinar, conceder progresso, avançar tempo ou regravar durante a leitura.
+
+#### Fatia 11.3 — Treinamento e tempo
+
+**Planejada.** Planejar e executar treino atomicamente, cobrando `TimeCost` uma única vez e reutilizando o ciclo já consolidado de necessidades e sincronizações.
+
+#### Fatia 11.4 — Árvore de habilidades
+
+**Planejada.** Derivar caminhos, requisitos conhecidos, bloqueios e progresso sem revelar conteúdo oculto. Consultar a Árvore não consome tempo.
+
+#### Fatia 11.5 — Status e interface diegética mobile
+
+**Planejada.** Apresentar o Sistema como algo consultado pelo personagem, com Status, energia, habilidades, proficiências, caminhos e treinos conhecidos, sem regras dentro do React.
+
+#### Fatia 11.6 — Primeiro ciclo de fortalecimento ponta a ponta
+
+**Planejada.** Demonstrar orientação ou descoberta, treino, passagem do tempo, progresso persistido e uma consequência perceptível no sandbox, ainda sem combate.
+
+#### Fatia 11.7 — Consolidação e ponte para combate
+
+**Planejada.** Revisar contratos, migrações, atomicidade, sigilo e UI e expor somente as interfaces públicas necessárias ao futuro banco de ações.
+
+Cada fatia exige autorização explícita antes de implementação. O Jardim só recebe implementação quando suas regras mínimas de fusão forem aprovadas.
+
+## Horizonte depois do Sistema 11
+
+### Banco de ações e combate — direção definida, sem número aprovado
+
+O combate futuro usará habilidades físicas e mágicas como ações declarativas com condições de ativação, custos, velocidade ou tempo de execução, efeitos e encadeamentos resolvidos por turno. Pessoas e criaturas poderão compartilhar o contrato de combatente; “inimigo” não será sinônimo de “monstro”.
+
+Fórmulas, atributos, comportamento dos oponentes, posicionamento e consequências de vitória, fuga ou derrota continuam em discussão. Esse eixo só recebe número e fatias próprias depois da fundação do Sistema 11 e de uma especificação aprovada.
+
+### Outras direções definidas pelo autor
 
 - interagir com elementos do cenário além de coleta, crafting e presenças;
 - ampliar exploração, passagens, áreas bônus, recursos, crafting e cozinha;
@@ -161,7 +203,11 @@ Não existe Sistema 11 aprovado nem uma ordem fechada posterior. A classificaç�
 
 ### Em discussão
 
-- minijogos;
+- Jardim de habilidades: fusão, preservação, reversibilidade, limites e resultados;
+- minijogos de treino, interação ou experimentação;
+- fórmulas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
+- protagonista não humano, raças não humanas concretas e extensão do Sistema a todos os seres;
+- comportamento de oponentes e consequências do combate;
 - expansão do mapa visual para visão regional ou global;
 - notificações mais amplas do Sistema além do feedback de jornadas;
 - progressão extensa de NPCs;
@@ -170,15 +216,14 @@ Não existe Sistema 11 aprovado nem uma ordem fechada posterior. A classificaç�
 ### Ainda não discutido / sem certeza de implementação
 
 - estado persistente próprio, agenda e deslocamento autônomo de NPCs;
-- comportamento ou IA de criaturas;
+- comportamento autônomo de criaturas fora do combate;
 - ferramentas, equipamentos, durabilidade e combustível;
 - grupo ou companheiros;
-- combate;
 - clima, economia, comércio ou viagem rápida;
 - administração jogável de assentamentos ou facções;
 - geração procedural, backend, sincronização, monetização e editor.
 
-Nenhum item desta seção autoriza implementação. Uma etapa posterior só recebe número depois de ser discutida, especificada e aprovada pelo autor.
+Nenhum item do horizonte autoriza implementação por si só.
 
 ## Regra de entrada de um sistema
 

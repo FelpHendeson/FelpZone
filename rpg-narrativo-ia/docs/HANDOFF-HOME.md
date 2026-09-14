@@ -28,7 +28,8 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
 - O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o Sistema 9 introduziu o schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
 - O Sistema 10 — objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5, incluindo a jornada `Primeiros passos`, sincronização narrativa, compatibilidade de saves schema 6 e acompanhamento efêmero.
-- Agenda, comportamento autônomo e combate não estão aprovados para implementação.
+- O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está aprovado para especificação e roadmap, mas ainda não para implementação. O contrato está em `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`.
+- Combate possui direção conceitual de banco de ações declarativo, mas ainda não tem número, fórmulas, comportamento ou implementação aprovados. Agenda e comportamento autônomo fora do combate também permanecem sem aprovação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -81,7 +82,7 @@ Antes de agir, leia integralmente:
 
 - AGENTS.md
 - README.md
-- todos os arquivos em docs/, começando por PROJECT-STATUS.md, SYSTEM-PRESENCES.md, PRODUCT.md, ARCHITECTURE.md, SANDBOX-FLOW.md, ROADMAP.md e SYSTEM-INTEGRATION.md;
+- todos os arquivos em docs/, começando por PROJECT-STATUS.md, SYSTEM-ETERIS-NUMEN-PROGRESSION.md, PRODUCT.md, ARCHITECTURE.md, ROADMAP.md, SYSTEM-OBJECTIVES.md e SYSTEM-PRESENCES.md;
 - os módulos e testes relacionados à tarefa atual.
 
 Estado conhecido:
@@ -101,10 +102,13 @@ Estado conhecido:
 - a Fatia 8.6 valida Mira e o coelho chifrudo ponta a ponta e reconcilia saves que já consumiram o gatilho da Clareira;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
-- `NPCState` completo, agendas, comportamento autônomo e combate continuam sem implementação autorizada;
-- os Sistemas 1 a 10 estão consolidados; não existe Sistema 11 aprovado.
+- `NPCState` completo, agendas e comportamento autônomo continuam sem implementação autorizada;
+- os Sistemas 1 a 10 estão consolidados;
+- o Sistema 11 está aprovado para especificação e roadmap, mas nenhuma fatia 11.x está autorizada para implementação;
+- o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
+- Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; regras do Jardim, fórmulas e combate continuam pendentes.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-NEEDS.md` e `docs/SYSTEM-OBJECTIVES.md`. Os Sistemas 1 a 10 estão consolidados; a próxima etapa precisa ser discutida com o autor.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md` e `docs/ROADMAP.md`. Os Sistemas 1 a 10 estão consolidados; não implemente o Sistema 11 até o autor autorizar uma fatia específica.
 
 Execute:
 
@@ -122,7 +126,7 @@ Se precisar confirmar a base antes da discussão, revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não invente o Sistema 11. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
+Não invente atributos, fórmulas, raças, fusões, minijogos ou regras de combate. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
 
 Preserve o ciclo de trabalho:
 
@@ -133,4 +137,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Discutir com o autor qual será o Sistema 11 antes de escrever especificação ou código. `NPCState` completo, agenda, movimentação autônoma, comportamento de criatura e combate permanecem sem implementação autorizada.
+Fechar somente as decisões mínimas da Fatia 11.1 e obter autorização explícita antes de implementar. `NPCState` completo, agenda, movimentação autônoma, fórmulas de progressão, regras do Jardim e combate permanecem sem implementação autorizada.

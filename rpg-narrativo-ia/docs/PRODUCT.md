@@ -33,11 +33,33 @@ O jogador define nome e sobrenome. O protagonista tinha acabado de atingir a mai
 
 Não existe alinhamento ou profissão predeterminada. A identidade emerge das decisões: sobrevivente, explorador, líder, artesão, diplomata, conquistador ou qualquer combinação permitida pelo conteúdo futuro.
 
+A premissa e o protótipo atuais tratam o protagonista como humano. Permitir que ele pertença a outra raça é uma possibilidade **em discussão**, dependente da definição de povos não humanos e de quem recebe acesso ao Sistema; não é cânone nem requisito de implementação neste momento.
+
 ## O Sistema
 
 Todos os humanos possuem o Sistema; o protagonista não é escolhido por exclusividade.
 
-O Sistema apresenta atributos, habilidades, notificações, objetivos, recompensas e títulos. Ele reage às ações, mas não deve remover a autonomia do jogador. A origem e as intenções do Sistema permanecem um mistério narrativo.
+O Sistema é uma interface existente dentro do mundo. Menus, mensagens e ações apresentadas pela aplicação podem representar o próprio personagem consultando ou operando essa ferramenta. Status, habilidades, jornadas, mapa conhecido, receitas, registros e títulos ganham assim função mecânica e narrativa ao mesmo tempo.
+
+O Sistema reage às ações, registra conhecimentos e pode oferecer orientação ou métodos de desenvolvimento, mas não deve remover a autonomia do jogador. A origem e as intenções do Sistema permanecem um mistério narrativo. Estender o Sistema a todas as raças ou seres continua **em discussão**; o cânone confirmado abrange toda a humanidade.
+
+## Eteris, Númen e progressão
+
+Eteris é a energia presente no mundo e no ambiente, equivalente funcional à mana ambiental. Ao ser absorvido e interiorizado por um ser vivo, ele se individualiza como Númen.
+
+Númen pode alimentar aplicações ligadas ao Corpo — reforço, movimento, resistência e sentidos — e ao Poder, incluindo técnicas, manifestações e magia. Essas duas categorias não definem classes fechadas nem fórmulas prontas.
+
+O jogador poderá investir tempo em métodos de treinamento apresentados pelo Sistema, desenvolver nível, proficiências, habilidades e caminhos, e consultar esse crescimento pelo Status. A velocidade de conjuração ou execução deverá ganhar efeito compreensível sobre o tempo necessário para usar uma capacidade, mas sua fórmula ainda não foi decidida.
+
+A Árvore de habilidades apresenta desenvolvimento e caminhos conhecidos. O Jardim de habilidades integra caminhos por combinações ou fusões. As regras exatas de fusão continuam em discussão e não devem ser inventadas durante as primeiras fatias.
+
+Esse núcleo está aprovado para especificação como Sistema 11, mas ainda não foi implementado. O contrato completo está em [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+
+## Combate futuro
+
+O combate deverá reutilizar habilidades físicas e mágicas por um banco de ações declarativo: condições de ativação, custos, tempo de execução, efeitos e encadeamentos são preparados antes de cada turno e resolvidos pelo motor. O contrato não pode presumir que todo oponente seja um monstro; pessoas e criaturas também podem participar.
+
+Combate ainda não está implementado. Atributos, fórmulas, comportamento de oponentes e consequências de vitória, fuga ou derrota permanecem em discussão e receberão especificação própria depois da fundação do Sistema 11.
 
 ## Tom
 

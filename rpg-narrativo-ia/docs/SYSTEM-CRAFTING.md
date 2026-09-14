@@ -186,6 +186,12 @@ Não há integração com `GameState`, save principal, `localStorage` ou schema 
 - árvore extensa de receitas;
 - combate, backend, autenticação e IA em runtime.
 
+## Evolução aprovada depois desta etapa
+
+No eixo do [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md), receitas e conhecimentos de fabricação podem ser registrados e apresentados pela interface diegética do Sistema. A autoria continuará separada: `crafting` valida materiais, estações e produção; o Sistema apenas registra e apresenta o conhecimento adquirido.
+
+Uma receita futura poderá ser aprendida por orientação do Sistema, campanha, personagem, observação ou experimentação. Minijogos também foram propostos como possível forma de experimentar ou influenciar a execução, mas formatos, qualidade, desperdício e regras de descoberta continuam em discussão. Esta direção não altera o contrato já implementado nem autoriza código novo nesta etapa.
+
 ## Critérios de aceite
 
 - fogueira pode ser construída com gravetos no local atual;

@@ -25,6 +25,8 @@ As decisões abaixo foram definidas pelo autor:
 - a IA participa da concepção, escrita, revisão e programação, mas não roda dentro do jogo publicado;
 - a versão inicial não depende de backend, chave de API ou serviço pago;
 - os sistemas são especificados, implementados, testados e consolidados separadamente antes de uma integração maior;
+- o Sistema é uma interface diegética: menus, mensagens e ações podem representar o personagem consultando e operando essa ferramenta dentro do mundo;
+- conteúdo de habilidades, personagens e história deve permanecer modular, validado e substituível sem reescrever o motor;
 - depois de uma abertura dirigida, o jogador deve ganhar liberdade para explorar, mapear o mundo e encontrar conteúdo por suas próprias ações;
 - narrativa e escolhas devem surgir durante encontros, diálogos, descobertas e outros acontecimentos, em vez de formarem o único loop do jogo.
 
@@ -35,6 +37,8 @@ As decisões abaixo foram definidas pelo autor:
 - Não restaram construções ou objetos da civilização anterior; não é um cenário centrado em ruínas pós-apocalípticas.
 - Humanos mantiveram memórias, foram espalhados pelo novo mundo e receberam poderes, capacidades mágicas e acesso a um Sistema.
 - O Sistema existe para toda a humanidade e ajuda a orientá-la; o protagonista não é um escolhido exclusivo.
+- Eteris é a energia existente no mundo; quando um ser vivo a absorve e individualiza, ela se torna Númen.
+- Númen pode alimentar aplicações de Corpo e de Poder, incluindo reforço corporal, técnicas e magia.
 - Sem as estruturas anteriores, assentamentos, facções e diferentes modelos de sociedade começam a surgir sob relações de poder ainda instáveis.
 - O jogador define nome e sobrenome de um jovem que acabara de atingir a maioridade e desperta sozinho, sem familiares ou aliados.
 - A trajetória pode misturar aventura, drama, fantasia e ficção especulativa; o tom deve responder às decisões do jogador.
@@ -77,6 +81,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
 | Sistema 10 — Objetivos, jornadas e diário | **Implementado e consolidado** | Fatias 10.1–10.5: catálogo, dez critérios, schema 6, sincronização após ações/escolhas, diário mobile e jornada `Primeiros passos` ponta a ponta. | O acompanhamento não persiste por decisão do recorte; não há recompensas automáticas. |
+| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Definido pelo autor, aprovado para especificação e roadmap; não implementado** | Especificação de interface diegética, fundamentos energéticos, Status, nível, proficiências, treino temporal, Árvore e preparação modular para ações futuras. | Campos, fórmulas, balanceamento, implementação do Jardim e combate ainda exigem decisões e autorização por fatia. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -94,7 +99,21 @@ Esses elementos podem ser usados para testar contratos sem se tornarem automatic
 
 ## Direções futuras já definidas pelo autor
 
-Estas metas fazem parte da visão, mas ainda precisam de especificação antes de implementação:
+Estas metas fazem parte da visão. O Sistema 11 já possui especificação; as demais ainda precisam de contrato próprio antes de implementação:
+
+### Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão
+
+O próximo eixo foi aprovado para especificação e roadmap, mas ainda não para implementação. O Sistema deve funcionar como interface existente dentro do universo; o personagem consulta por ele Status, habilidades, caminhos, métodos, receitas, registros e orientações.
+
+Eteris é energia ambiental. Númen é Eteris interiorizado e individualizado por um ser vivo e pode ser aplicado ao Corpo ou ao Poder. Treinos consomem tempo. Nível, proficiências e velocidade de conjuração ou execução devem ganhar significado mecânico sem fórmulas inventadas antecipadamente. A Árvore apresenta caminhos; o Jardim integra caminhos por combinação ou fusão, cujas regras exatas ainda estão em discussão.
+
+O contrato e as fatias propostas estão em [Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+
+### Banco de ações e combate — direção definida, sistema futuro ainda sem número
+
+O combate futuro deverá usar ações físicas e mágicas declaradas por dados, com condições de ativação, custos, tempo de execução, efeitos e encadeamentos resolvidos por turno. O modelo não deve equiparar inimigo a monstro: pessoas, criaturas e o personagem precisam poder participar por contratos compatíveis.
+
+Ainda não foram definidos atributos e fórmulas, comportamento de oponentes, dano, defesa, posicionamento ou consequências de vitória, fuga e derrota. Portanto, combate não integra o Sistema 11 e não possui implementação autorizada.
 
 ### Presença e interação com NPCs e criaturas — sistema aprovado
 
@@ -121,6 +140,11 @@ São parte confirmada do mundo e da trama futura. Mecânicas de construção, ad
 ## Ideias em discussão, sem compromisso de implementação
 
 - minijogos dentro de interações ou encontros;
+- minijogos de treino ou experimentação ligados ao Sistema;
+- regras exatas do Jardim, incluindo fusão, preservação, reversibilidade e limites;
+- permitir protagonista não humano, criar raças não humanas concretas ou estender o Sistema a todos os seres/raças;
+- fórmulas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
+- comportamento de oponentes e consequências de combate;
 - expansão do mapa visual para uma visão global ou regional;
 - notificações mais amplas do Sistema além do feedback previsto para objetivos;
 - progressão extensa de NPCs;
@@ -136,8 +160,7 @@ Os itens abaixo apareceram como possibilidades técnicas ou foram inferidos pelo
 
 - `NPCState` persistente como estrutura própria do save;
 - agenda e deslocamento automático de NPCs por horário;
-- comportamento autônomo ou IA de criaturas;
-- combate, seja tático, automático ou baseado em escolhas;
+- comportamento autônomo de criaturas fora do combate;
 - grupo ou sistema de companheiros;
 - consequências irreversíveis de sobrevivência, como morte permanente, perda de save ou bloqueio total de ações;
 - clima, estações e efeitos ambientais;
@@ -164,10 +187,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 10 estão implementados e consolidados. Não existe Sistema 11 aprovado.** Consulte [Objetivos, jornadas e registro de descobertas](SYSTEM-OBJECTIVES.md).
+**Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 11 está aprovado para especificação e roadmap, mas ainda não possui código nem fatia autorizada para implementação.** Consulte [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
 
 Antes de qualquer próxima implementação:
 
-1. discutir e aprovar qual direção do horizonte se tornará o Sistema 11;
+1. fechar somente as decisões mínimas exigidas pela Fatia 11.1 e autorizar explicitamente sua implementação;
 2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto e a migração sem efeitos de gameplay;
-3. não transformar automaticamente hipóteses como combate, agenda, equipamentos ou recompensas em requisitos.
+3. não transformar automaticamente detalhes ainda em discussão — fórmulas, raças, Jardim, combate, agenda, equipamentos ou recompensas — em requisitos.

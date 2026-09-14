@@ -55,6 +55,10 @@ src/
 │   ├── world-events/
 │   ├── presences/
 │   ├── objectives/
+│   ├── system-interface/   # direção do Sistema 11; ainda não implementada
+│   ├── energetics/         # direção do Sistema 11; ainda não implementada
+│   ├── skills/             # direção do Sistema 11; ainda não implementada
+│   ├── training/           # direção do Sistema 11; ainda não implementada
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -67,7 +71,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/`, `modules/world-events/` e `modules/presences/` estão implementados.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/`, `modules/world-events/`, `modules/presences/` e `modules/objectives/` estão implementados. Os quatro módulos anotados como direção do Sistema 11 são fronteiras recomendadas, não pastas ou contratos existentes.
 
 ## Responsabilidades
 
@@ -88,6 +92,10 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `world-events`: catálogo de gatilhos declarativos que associam descobertas reveladas a sessões narrativas.
 - `presences`: catálogo de entidades e ocorrências por local, estado mínimo de descoberta/resolução e status derivado.
 - `objectives`: catálogo de jornadas, etapas, critérios e progresso monotônico; integra o estado principal e a persistência, e é sincronizado no fim de cada ação sandbox.
+- `system-interface` (proposto): organiza as funções que o personagem pode consultar no Sistema e deriva conhecimento seguro; não calcula progressão.
+- `energetics` (proposto): representa Eteris, Númen e suas leituras aprovadas; não executa treino ou combate.
+- `skills` (proposto): valida habilidades, caminhos, conhecimento e proficiências; não contém componentes React.
+- `training` (proposto): planeja métodos, requisitos, custo e efeitos de treino; devolve `TimeCost` sem avançar o relógio.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -108,6 +116,80 @@ type GameEffect =
 ```
 
 Novos efeitos podem ser acrescentados sem alterar componentes React ou reescrever campanhas existentes.
+
+## Direção arquitetural do Sistema 11 — ainda não implementada
+
+O [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) está aprovado para especificação e roadmap, não para código. Ele introduz uma regra de apresentação importante: a interface do Sistema é diegética. Status, habilidades, caminhos, treinos, jornadas, receitas e registros podem ser informações que o próprio personagem consulta dentro do mundo.
+
+Essa decisão não transforma componentes React em regras de domínio. O fluxo continua:
+
+```text
+personagem consulta o Sistema
+          ↓
+UI deriva somente conhecimento permitido
+          ↓
+jogador envia uma intenção
+          ↓
+motor valida catálogo, estado e condições
+          ↓
+orquestrador aplica efeitos e tempo uma vez
+          ↓
+novo estado validado retorna à interface
+```
+
+### Separação entre definição e estado
+
+Habilidades, caminhos, métodos, personagens e campanhas devem ser conteúdo validado, preferencialmente em JSON ou estruturas de dados equivalentes. O save não deve copiar nomes, descrições, topologia ou fórmulas.
+
+```text
+catálogos versionados                    estado mínimo persistido
+├── definições de habilidades            ├── IDs conhecidos
+├── relações entre caminhos              ├── progresso aprovado
+├── métodos de treinamento               ├── proficiências aprovadas
+├── personagens e entidades              └── fatos necessários
+└── campanhas e eventos
+```
+
+Arquivos de autoria não podem executar código arbitrário. Condições, custos e efeitos usam uniões declarativas fechadas e validação profunda. Toda referência entre catálogos deve ser resolvida antes de uma ação chegar ao motor.
+
+### Eteris e Númen
+
+- Eteris é energia ambiental;
+- Númen é Eteris interiorizado e individualizado por um ser vivo;
+- Númen alimenta aplicações conceituais de Corpo e Poder;
+- reserva, controle, potência, absorção, regeneração e conversão ainda não possuem campos ou fórmulas aprovados.
+
+Não adicionar novos atributos ao `GameState` até a Fatia 11.2 definir quais valores são realmente persistidos. Valores derivados devem continuar fora do save.
+
+### Treinamento e tempo
+
+O módulo proposto de treinamento planeja a ação e devolve condições, efeitos e um `TimeCost` validado. Ele não chama `advanceTime`. A integração futura deve reutilizar o orquestrador consolidado, com validação anterior à transação, custo único, desgaste das necessidades pelo mesmo avanço e sincronizações posteriores.
+
+Falha de requisito, referência ou efeito não pode conceder progresso parcial nem consumir tempo. Abrir Status, Árvore ou outro menu do Sistema não cobra períodos.
+
+### Árvore e Jardim
+
+A Árvore será uma visão derivada de habilidades, caminhos, requisitos conhecidos e proficiências. Conteúdo oculto não pode vazar por contagens, IDs, rótulos ou motivos de bloqueio.
+
+O Jardim integrará caminhos por combinação ou fusão, mas suas regras exatas permanecem em discussão. O núcleo deve usar IDs e referências capazes de receber essa evolução; não deve implementar combinações arbitrárias nem persistir grafos redundantes antes de uma decisão.
+
+### Ponte para banco de ações e combate
+
+Combate não pertence ao Sistema 11. Um sistema futuro consumirá contratos públicos de habilidade para formar ações declarativas com condições de ativação, custos, tempo de execução, efeitos e encadeamentos.
+
+Velocidade de conjuração ou execução deverá ter consequência observável, mas sua fórmula e a conversão entre relógio sandbox e turno ainda não estão definidas. O contrato futuro de combatente precisa representar jogador, pessoas e criaturas sem assumir que todo oponente é monstro. Comportamento, seleção de ações, dano e consequências de derrota permanecem fora desta arquitetura aprovada.
+
+### Compatibilidade com módulos atuais
+
+- `progression` hoje persiste apenas `abilityIds` e `titleIds`; isso é um protótipo anterior, não o modelo completo do Sistema 11;
+- `character` e `needs` continuam donos dos atributos atuais de sobrevivência;
+- `crafting` continua dono da execução de receitas; o Sistema apenas registra e apresenta conhecimento;
+- `objectives` continua dono do progresso de jornadas; a interface diegética não duplica seu estado;
+- `presences` continua dono da descoberta e disponibilidade de entidades no mundo;
+- `campaigns` podem conceder conhecimento por efeitos declarativos, sem conter as fórmulas de progressão;
+- `ui` apresenta view-models derivados e não acessa arquivos internos dos novos módulos.
+
+Uma nova versão de schema só será criada quando um campo persistente aprovado realmente entrar no estado. Migração não pode simular treino, conceder nível ou proficiência por suposição, avançar tempo, executar crafting ou regravar o armazenamento durante a leitura.
 
 ## Estado e persistência
 
@@ -475,7 +557,7 @@ interface NarrativeSession {
 }
 
 interface GameState {
-  schemaVersion: 5;
+  schemaVersion: 6;
   status: GameStatus;
   narrativeSession: NarrativeSession | null;
   // demais campos

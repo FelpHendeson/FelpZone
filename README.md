@@ -85,10 +85,10 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Laboratório ativo com o primeiro projeto já em protótipo jogável. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
+Laboratório ativo com o primeiro projeto já em protótipo jogável e publicado. Os Sistemas 1 a 10 do RPG estão implementados e consolidados. O Sistema 11 — núcleo diegético do Sistema, Eteris, Númen e progressão — está aprovado e documentado para planejamento, mas ainda não possui implementação autorizada. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
 
 ## Ideias
 
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
-| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável | RPG mobile-first com narrativa, exploração, navegação, recursos, crafting, persistência e primeiro encontro acionado pelo mundo. |
+| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistema 11 especificado | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, jornadas e presenças; a próxima fundação planejada trata Eteris, Númen e fortalecimento do personagem. |

@@ -6,7 +6,9 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — entrega domínio, schema 6, sincronização após ações e escolhas narrativas, diário mobile e a jornada jogável `Primeiros passos`. Não existe Sistema 11 aprovado. Leia [Sistema 10](docs/SYSTEM-OBJECTIVES.md), [Sistema 9](docs/SYSTEM-NEEDS.md) e [Estado, metas e horizonte](docs/PROJECT-STATUS.md). Agenda, comportamento autônomo e combate continuam sem implementação aprovada.
+Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — entrega domínio, schema 6, sincronização após ações e escolhas narrativas, diário mobile e a jornada jogável `Primeiros passos`.
+
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **aprovado para especificação e roadmap, mas ainda não para implementação**. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Nenhuma fatia 11.x pode ser executada sem autorização explícita. Combate tem uma direção conceitual de banco de ações, mas continua sem sistema numerado, fórmulas ou implementação aprovada.
 
 ## Regras obrigatórias
 
@@ -29,6 +31,12 @@ Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 10 — Objetiv
 - Mantenha exploração, coleta e crafting como sistemas distintos, conectados por contratos.
 - Cada local explorável possui progresso próprio; conclusão de zona é uma métrica agregada separada.
 - Recursos renováveis possuem estado e tempo de recuperação; coleta nunca cria materiais infinitos.
+- Trate o Sistema como interface diegética: menus e mensagens podem ser percebidos pelo personagem, mas regras continuam fora do React.
+- Preserve a distinção conceitual: Eteris é energia ambiental; Númen é Eteris interiorizado e individualizado por um ser vivo.
+- Não invente atributos, fórmulas de nível, curvas, velocidade de conjuração, regras de fusão, raças ou consequências de combate.
+- Separe catálogos de habilidades, personagens e campanhas do estado persistido; prefira dados declarativos validados e nunca código executável em JSON.
+- O cânone atual garante Sistema a todos os humanos. Protagonista não humano, raças não humanas concretas e Sistema universal para todos os seres permanecem em discussão.
+- O futuro contrato de combatente não deve equivaler oponente a monstro, mas não implemente combate dentro do Sistema 11.
 
 ## Entrega esperada
 
