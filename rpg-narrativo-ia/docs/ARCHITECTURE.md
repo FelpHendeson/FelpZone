@@ -56,9 +56,9 @@ src/
 │   ├── presences/
 │   ├── objectives/
 │   ├── system-interface/   # direção do Sistema 11; ainda não implementada
-│   ├── energetics/         # direção do Sistema 11; ainda não implementada
-│   ├── skills/             # direção do Sistema 11; ainda não implementada
-│   ├── training/           # direção do Sistema 11; ainda não implementada
+│   ├── energetics/         # Sistema 11, Fatia 11.1: catálogo e validação isolados
+│   ├── skills/             # Sistema 11, Fatia 11.1: catálogo e validação isolados
+│   ├── training/           # Sistema 11, Fatia 11.1: catálogo e validação isolados
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -71,7 +71,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/`, `modules/world-events/`, `modules/presences/` e `modules/objectives/` estão implementados. Os quatro módulos anotados como direção do Sistema 11 são fronteiras recomendadas, não pastas ou contratos existentes.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/`, `modules/world-events/`, `modules/presences/` e `modules/objectives/` estão implementados. A Fatia 11.1 do Sistema 11 implementou `modules/energetics/`, `modules/skills/` e `modules/training/` apenas como catálogos validados e isolados; `modules/system-interface/` permanece uma fronteira recomendada, ainda sem pasta ou contrato.
 
 ## Responsabilidades
 
@@ -93,9 +93,9 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `presences`: catálogo de entidades e ocorrências por local, estado mínimo de descoberta/resolução e status derivado.
 - `objectives`: catálogo de jornadas, etapas, critérios e progresso monotônico; integra o estado principal e a persistência, e é sincronizado no fim de cada ação sandbox.
 - `system-interface` (proposto): organiza as funções que o personagem pode consultar no Sistema e deriva conhecimento seguro; não calcula progressão.
-- `energetics` (proposto): representa Eteris, Númen e suas leituras aprovadas; não executa treino ou combate.
-- `skills` (proposto): valida habilidades, caminhos, conhecimento e proficiências; não contém componentes React.
-- `training` (proposto): planeja métodos, requisitos, custo e efeitos de treino; devolve `TimeCost` sem avançar o relógio.
+- `energetics` (Fatia 11.1): representa o vocabulário de Eteris, Númen e campos de aplicação (Corpo, Poder) como catálogo validado; ainda sem reserva, controle, potência ou fórmulas.
+- `skills` (Fatia 11.1): valida o catálogo de caminhos e habilidades e suas referências a campos de aplicação; ainda sem requisitos de Árvore, proficiências ou componentes React.
+- `training` (Fatia 11.1): valida o catálogo de métodos de treino, resolvendo alvo de caminho ou habilidade e custo em períodos; ainda não planeja nem executa treino, e não avança o relógio.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -117,9 +117,9 @@ type GameEffect =
 
 Novos efeitos podem ser acrescentados sem alterar componentes React ou reescrever campanhas existentes.
 
-## Direção arquitetural do Sistema 11 — ainda não implementada
+## Direção arquitetural do Sistema 11 — Fatia 11.1 implementada, demais fatias pendentes
 
-O [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) está aprovado para especificação e roadmap, não para código. Ele introduz uma regra de apresentação importante: a interface do Sistema é diegética. Status, habilidades, caminhos, treinos, jornadas, receitas e registros podem ser informações que o próprio personagem consulta dentro do mundo.
+O [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) teve sua Fatia 11.1 implementada como catálogos isolados de energéticos, habilidades e treino. As fatias seguintes (estado, migração, treino, Árvore e interface) continuam aprovadas apenas para especificação e roadmap, não para código. Ele introduz uma regra de apresentação importante: a interface do Sistema é diegética. Status, habilidades, caminhos, treinos, jornadas, receitas e registros podem ser informações que o próprio personagem consulta dentro do mundo.
 
 Essa decisão não transforma componentes React em regras de domínio. O fluxo continua:
 

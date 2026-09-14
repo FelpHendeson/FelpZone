@@ -81,7 +81,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
 | Sistema 10 — Objetivos, jornadas e diário | **Implementado e consolidado** | Fatias 10.1–10.5: catálogo, dez critérios, schema 6, sincronização após ações/escolhas, diário mobile e jornada `Primeiros passos` ponta a ponta. | O acompanhamento não persiste por decisão do recorte; não há recompensas automáticas. |
-| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Definido pelo autor, aprovado para especificação e roadmap; não implementado** | Especificação de interface diegética, fundamentos energéticos, Status, nível, proficiências, treino temporal, Árvore e preparação modular para ações futuras. | Campos, fórmulas, balanceamento, implementação do Jardim e combate ainda exigem decisões e autorização por fatia. |
+| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Aprovado para especificação e roadmap; Fatia 11.1 implementada** | Fatia 11.1: módulos `energetics`, `skills` e `training` com contratos mínimos, catálogos protótipo e validação isolada de energias, campos, caminhos, habilidades e métodos de treino. | Estado persistido, migração, execução de treino, Árvore, interface e balanceamento seguem sem implementação e exigem autorização por fatia. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -187,10 +187,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 11 está aprovado para especificação e roadmap, mas ainda não possui código nem fatia autorizada para implementação.** Consulte [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+**Os Sistemas 1 a 10 estão implementados e consolidados. A Fatia 11.1 do Sistema 11 está implementada: contratos mínimos e catálogos isolados de energéticos, habilidades e treino, sem tocar em `GameState`, schema, relógio, campanha ou UI. As Fatias 11.2 em diante seguem sem implementação e exigem autorização explícita.** Consulte [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
 
-Antes de qualquer próxima implementação:
+Antes da próxima implementação:
 
-1. fechar somente as decisões mínimas exigidas pela Fatia 11.1 e autorizar explicitamente sua implementação;
+1. fechar as decisões exigidas pela Fatia 11.2 (campos exatos persistidos) e autorizar explicitamente sua implementação;
 2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto e a migração sem efeitos de gameplay;
 3. não transformar automaticamente detalhes ainda em discussão — fórmulas, raças, Jardim, combate, agenda, equipamentos ou recompensas — em requisitos.

@@ -37,7 +37,7 @@ Leia nesta ordem:
 17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
 18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
 19. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
-20. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 aprovado para especificação e roadmap, ainda sem implementação autorizada.
+20. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 aprovado para especificação e roadmap; Fatia 11.1 (catálogos isolados) implementada.
 21. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistema 11 planejado e horizonte posterior.
 22. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -89,7 +89,7 @@ O Sistema 9 — Necessidades e sobrevivência leve — está implementado e cons
 
 O Sistema 10 — Objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5. Catálogo, estado, dez critérios, schema 6, sincronização após ações e escolhas, diário seguro e interface mobile sustentam a jornada principal `Primeiros passos`, da capacidade inicial ao encontro com Mira.
 
-O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está aprovado para especificação e roadmap, mas ainda não foi implementado. Ele estabelece o Sistema como interface diegética, diferencia Eteris ambiental de Númen individualizado e planeja Status, nível, proficiências, treino temporal e Árvore de habilidades. O Jardim e o futuro banco de ações possuem direção conceitual, mas regras de fusão e combate continuam pendentes de decisão própria.
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está aprovado para especificação e roadmap; sua Fatia 11.1 está implementada. Os módulos `energetics`, `skills` e `training` declaram, de forma isolada e profundamente validada, o vocabulário de Eteris/Númen e Corpo/Poder, os catálogos de caminhos e habilidades e os métodos de treino, sem tocar em `GameState`, schema, relógio, campanha ou UI. As fatias seguintes — estado persistido, treino executável, Árvore e interface — planejam Status, nível, proficiências e treino temporal, mas ainda não foram implementadas. O Jardim e o futuro banco de ações possuem direção conceitual, mas regras de fusão e combate continuam pendentes de decisão própria.
 
 ## Decisões já tomadas
 
@@ -108,7 +108,7 @@ O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está apro
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
 - O salvamento local usa `schemaVersion: 6`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences` e o progresso mínimo de objetivos. Valida o sandbox e os objetivos contra seus catálogos e migra saves v1 a v5 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
-- Status expandido, Eteris, Númen, nível, proficiências, treinamento, Árvore e Jardim ainda não existem no código nem no schema 6.
+- Status expandido, nível, proficiências, estado persistido de energia, treino executável, Árvore e Jardim ainda não existem no código nem no schema 6; a Fatia 11.1 adicionou apenas catálogos isolados de energéticos, habilidades e métodos de treino, sem integração com a partida.
 - Fora da implementação atual: combate jogável, facções e assentamentos administráveis, mapa aberto, geração procedural, editor e qualquer serviço pago. O banco de ações de combate é apenas uma direção futura documentada.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.

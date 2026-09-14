@@ -8,7 +8,7 @@ A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da ev
 
 Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — entrega domínio, schema 6, sincronização após ações e escolhas narrativas, diário mobile e a jornada jogável `Primeiros passos`.
 
-O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **aprovado para especificação e roadmap, mas ainda não para implementação**. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Nenhuma fatia 11.x pode ser executada sem autorização explícita. Combate tem uma direção conceitual de banco de ações, mas continua sem sistema numerado, fórmulas ou implementação aprovada.
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **aprovado para especificação e roadmap; a Fatia 11.1 está implementada** nos módulos isolados `energetics`, `skills` e `training` (catálogos e validação, sem tocar em `GameState`, schema, relógio, campanha ou UI). Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. As Fatias 11.2 em diante não podem ser executadas sem autorização explícita. Combate tem uma direção conceitual de banco de ações, mas continua sem sistema numerado, fórmulas ou implementação aprovada.
 
 ## Regras obrigatórias
 

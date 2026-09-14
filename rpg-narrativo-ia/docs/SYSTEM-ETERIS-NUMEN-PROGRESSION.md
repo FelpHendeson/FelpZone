@@ -2,9 +2,9 @@
 
 ## Estado da decisão
 
-**Aprovado pelo autor para especificação e roadmap em 14 de setembro de 2026; ainda não implementado.**
+**Aprovado pelo autor para especificação e roadmap em 14 de setembro de 2026. Fatia 11.1 implementada; Fatias 11.2 em diante ainda não implementadas.**
 
-Este documento amadurece o próximo eixo do jogo sem autorizar sua implementação automática. O Sistema 11 deve dar significado mecânico e narrativo ao Sistema já presente no cânone, estabelecer a base da progressão do personagem e preparar contratos que um combate futuro possa reutilizar.
+Este documento amadurece o próximo eixo do jogo. A Fatia 11.1 — vocabulário, catálogos e validação isolada — foi implementada nos módulos `energetics`, `skills` e `training`. As demais fatias permanecem como roadmap: não estão autorizadas para implementação automática. O Sistema 11 deve dar significado mecânico e narrativo ao Sistema já presente no cânone, estabelecer a base da progressão do personagem e preparar contratos que um combate futuro possa reutilizar.
 
 Antes de qualquer código, cada fatia precisa receber autorização explícita e transformar as decisões ainda abertas em regras verificáveis. Nenhum nome de atributo, fórmula, curva ou número mencionado como exemplo deve ser tratado como definitivo.
 
@@ -244,9 +244,19 @@ As fatias estão aprovadas como roadmap de especificação. Cada uma ainda exige
 
 ### Fatia 11.1 — Vocabulário, catálogos e validação isolada
 
-Definir os contratos mínimos de energia, habilidade, caminho e método de treinamento, com catálogos pequenos e profundamente validados. Não alterar `GameState`, schema, relógio, UI ou campanha.
+**Implementada.** Definir os contratos mínimos de energia, habilidade, caminho e método de treinamento, com catálogos pequenos e profundamente validados. Não alterar `GameState`, schema, relógio, UI ou campanha.
 
 Antes de implementar, fechar apenas as decisões indispensáveis sobre IDs, referências e invariantes; não fechar balanceamento definitivo.
+
+#### Decisões fechadas na Fatia 11.1
+
+Foram fechadas apenas as decisões indispensáveis de IDs, referências e invariantes; balanceamento, fórmulas e topologia permanecem em aberto.
+
+- **Energéticos (`modules/energetics`):** o vocabulário canônico é fixo — energias `eteris` e `numen`, campos de aplicação `corpo` e `poder`. O catálogo declara exatamente essas quatro entradas, cada uma com nome e descrição não vazios. Nenhum campo de reserva, controle, potência, absorção, regeneração ou conversão é definido.
+- **Habilidades (`modules/skills`):** um caminho declara `id`, `name`, `description` e um `field` que precisa ser um campo de aplicação válido. Uma habilidade declara `id`, `name`, `description` e um `pathId` que precisa resolver para um caminho existente. IDs são únicos dentro de cada namespace (caminhos e habilidades). Requisitos de Árvore, proficiências e desbloqueios ficam para fatias futuras.
+- **Treinamento (`modules/training`):** um método declara `id`, `name`, `description`, um `target` (`{ type: 'path' | 'skill', id }`) que precisa resolver contra o catálogo de habilidades, e um `cost.periods` inteiro positivo. Condições de acesso, efeitos mecânicos, requisitos de local/recurso/estado e execução do treino ficam para as Fatias 11.2 e 11.3.
+- **Invariantes gerais:** cada catálogo é validado nas fronteiras públicas, congelado em profundidade, indexado por estruturas imutáveis e devolve cópias defensivas nas consultas; IDs inexistentes falham de forma controlada. Todo conteúdo é protótipo e substituível; seus nomes e números não são cânone.
+- **Referências entre módulos:** `skills` importa apenas o tipo e o guarda público de campos de aplicação de `energetics`; `training` valida alvos recebendo o índice público de `skills` por parâmetro, sem acessar arquivos internos.
 
 ### Fatia 11.2 — Estado de progressão e migração
 

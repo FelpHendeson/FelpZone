@@ -152,13 +152,13 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 11 — Núcleo do Sistema, Eteris, Númen e Progressão
 
-**Aprovada para especificação e roadmap; ainda não implementada.** O Sistema 11 transforma o Sistema canônico em interface diegética e estabelece fundamentos para crescimento do personagem: Eteris ambiental, Númen individualizado, Status, nível, proficiências, treino com custo temporal, Árvore de habilidades e pontos de extensão para o Jardim.
+**Aprovada para especificação e roadmap; Fatia 11.1 implementada, demais fatias ainda não implementadas.** O Sistema 11 transforma o Sistema canônico em interface diegética e estabelece fundamentos para crescimento do personagem: Eteris ambiental, Númen individualizado, Status, nível, proficiências, treino com custo temporal, Árvore de habilidades e pontos de extensão para o Jardim.
 
 A etapa deve preparar um futuro banco de ações e combate sem implementá-los nem inventar atributos, fórmulas ou regras de fusão. Fonte: [Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
 
 #### Fatia 11.1 — Vocabulário, catálogos e validação isolada
 
-**Especificada; implementação não autorizada.** Fechar e validar contratos mínimos de energia, habilidades, caminhos e métodos de treino sem alterar `GameState`, schema, campanha ou UI.
+**Implementada.** Os módulos `modules/energetics`, `modules/skills` e `modules/training` declaram os contratos mínimos e catálogos protótipo com validação profunda e isolada: energias (Eteris, Númen) e campos de aplicação (Corpo, Poder); caminhos e habilidades que referenciam um campo válido; e métodos de treino que resolvem um alvo de caminho ou habilidade e declaram um custo em períodos. Índices imutáveis, congelamento profundo, cópias defensivas e falha controlada protegem cada fronteira. Não altera `GameState`, schema, relógio, campanha nem UI. As decisões fechadas estão registradas em [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md#decisões-fechadas-na-fatia-111).
 
 #### Fatia 11.2 — Estado de progressão e migração
 
