@@ -31,6 +31,7 @@ function method(overrides: Partial<TrainingMethodDefinition> = {}): TrainingMeth
     description: 'Assenta os Sentidos.',
     target: { type: 'skill', id: 'sense' },
     cost: { periods: 1 },
+    effects: [{ type: 'skill.proficiency.increase', skillId: 'sense', amount: 1 }],
     ...overrides,
   };
 }
@@ -72,6 +73,11 @@ describe('Fatia 11.1 — catálogo de treinamentos', () => {
     { methods: [method({ cost: { periods: 1.5 } })] },
     { methods: [method({ cost: { periods: -1 } })] },
     { methods: [method({ cost: {} as TrainingMethodDefinition['cost'] })] },
+    { methods: [method({ effects: [] })] },
+    { methods: [method({ effects: [{ type: 'skill.proficiency.increase', skillId: 'missing', amount: 1 }] })] },
+    { methods: [method({ effects: [{ type: 'skill.proficiency.increase', skillId: 'sense', amount: 0 }] })] },
+    { methods: [method({ effects: [{ type: 'skill.learn', skillId: 'missing' }] })] },
+    { methods: [method({ effects: [{ type: 'unknown' as never, skillId: 'sense' }] })] },
   ])('rejeita forma de catálogo inválida %#', (value) => {
     expect(inspectTrainingCatalog(value, skills()).ok).toBe(false);
   });

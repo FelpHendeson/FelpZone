@@ -1,12 +1,25 @@
-import { INITIAL_SKILLS, hasPath, hasSkill, type IndexedSkills } from '../skills';
+import {
+  INITIAL_SKILLS,
+  hasPath,
+  hasSkill,
+  increaseSkillProficiency,
+  isSkillKnown,
+  learnSkill,
+  listSkillsByPath,
+  type IndexedSkills,
+  type SkillsProgressState,
+} from '../skills';
 import { TrainingError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_TRAINING_CATALOG } from './initial-training';
 import {
+  TRAINING_EFFECT_TYPES,
   TRAINING_TARGET_TYPES,
   type IndexedTraining,
+  type TrainingEffect,
   type TrainingInspection,
   type TrainingMethodDefinition,
+  type TrainingPlan,
   type TrainingTarget,
 } from './types';
 
@@ -56,6 +69,76 @@ export function hasTrainingMethod(catalog: IndexedTraining, methodId: unknown): 
   return nonEmpty(methodId) && requireIndexed(catalog).byId.has(methodId);
 }
 
+export function planTraining(
+  catalog: IndexedTraining,
+  skills: IndexedSkills,
+  progress: SkillsProgressState,
+  methodId: string,
+): TrainingPlan {
+  const method = getTrainingMethod(catalog, methodId);
+  requireAccessibleTarget(skills, progress, method.target);
+  for (const effect of method.effects) {
+    if (effect.type === 'skill.proficiency.increase' && !isSkillKnown(progress, effect.skillId)) {
+      throw new TrainingError('O treino tenta desenvolver uma habilidade ainda não conhecida.');
+    }
+  }
+  return {
+    methodId: method.id,
+    timeCost: { periods: method.cost.periods },
+    effects: method.effects.map(copyEffect),
+  };
+}
+
+export function applyTrainingPlan(
+  skills: IndexedSkills,
+  progress: SkillsProgressState,
+  plan: TrainingPlan,
+): SkillsProgressState {
+  let next = progress;
+  for (const effect of plan.effects) {
+    if (effect.type === 'skill.proficiency.increase') {
+      next = increaseSkillProficiency(skills, next, effect.skillId, effect.amount);
+    } else {
+      next = learnSkill(skills, next, effect.skillId);
+    }
+  }
+  return next;
+}
+
+function requireAccessibleTarget(
+  skills: IndexedSkills,
+  progress: SkillsProgressState,
+  target: TrainingTarget,
+): void {
+  if (target.type === 'skill') {
+    if (!isSkillKnown(progress, target.id)) {
+      throw new TrainingError('A habilidade do treino ainda não é conhecida.');
+    }
+    return;
+  }
+  if (!hasPath(skills, target.id)) {
+    throw new TrainingError('O caminho do treino não existe.');
+  }
+  const known = listSkillsByPath(skills, target.id).some((skill) => isSkillKnown(progress, skill.id));
+  if (!known) {
+    throw new TrainingError('O caminho do treino ainda não é conhecido.');
+  }
+}
+
+function copyEffect(effect: TrainingEffect): TrainingEffect {
+  return effect.type === 'skill.proficiency.increase'
+    ? { type: effect.type, skillId: effect.skillId, amount: effect.amount }
+    : { type: effect.type, skillId: effect.skillId };
+}
+
+export function copyTrainingPlan(plan: TrainingPlan): TrainingPlan {
+  return {
+    methodId: plan.methodId,
+    timeCost: { periods: plan.timeCost.periods },
+    effects: plan.effects.map(copyEffect),
+  };
+}
+
 function inspectMethod(
   value: unknown,
   existing: ReadonlySet<string>,
@@ -77,6 +160,19 @@ function inspectMethod(
     return fail('O custo em períodos do método de treinamento é inválido.');
   }
 
+  if (!Array.isArray(value.effects) || value.effects.length === 0) {
+    return fail('O método de treinamento precisa declarar ao menos um efeito.');
+  }
+
+  const effects: TrainingEffect[] = [];
+  for (const entry of value.effects) {
+    const inspected = inspectEffect(entry, skills);
+    if (!inspected.ok) {
+      return inspected;
+    }
+    effects.push(inspected.value);
+  }
+
   return {
     ok: true,
     value: {
@@ -85,8 +181,25 @@ function inspectMethod(
       description: value.description,
       target: target.value,
       cost: { periods: value.cost.periods },
+      effects,
     },
   };
+}
+
+function inspectEffect(value: unknown, skills: IndexedSkills): TrainingInspection<TrainingEffect> {
+  if (!isRecord(value) || !includes(TRAINING_EFFECT_TYPES, value.type)) {
+    return fail('O efeito do método de treinamento é inválido.');
+  }
+  if (!hasSkill(skills, value.skillId)) {
+    return fail('O efeito de treinamento referencia uma habilidade inexistente.');
+  }
+  if (value.type === 'skill.proficiency.increase') {
+    if (!positiveSafeInteger(value.amount)) {
+      return fail('O incremento de proficiência do treino é inválido.');
+    }
+    return { ok: true, value: { type: value.type, skillId: value.skillId, amount: value.amount } };
+  }
+  return { ok: true, value: { type: value.type, skillId: value.skillId } };
 }
 
 function inspectTarget(value: unknown, skills: IndexedSkills): TrainingInspection<TrainingTarget> {
@@ -115,11 +228,17 @@ function freezeMethod(method: TrainingMethodDefinition): TrainingMethodDefinitio
     ...method,
     target: Object.freeze({ ...method.target }),
     cost: Object.freeze({ ...method.cost }),
+    effects: Object.freeze(method.effects.map((effect) => Object.freeze(copyEffect(effect)))) as unknown as TrainingEffect[],
   });
 }
 
 function copyMethod(method: TrainingMethodDefinition): TrainingMethodDefinition {
-  return { ...method, target: { ...method.target }, cost: { ...method.cost } };
+  return {
+    ...method,
+    target: { ...method.target },
+    cost: { ...method.cost },
+    effects: method.effects.map(copyEffect),
+  };
 }
 
 function requireIndexed(catalog: IndexedTraining): IndexedTraining {
@@ -154,12 +273,15 @@ function fail<T>(reason: string): TrainingInspection<T> {
 }
 
 export {
+  TRAINING_EFFECT_TYPES,
   TRAINING_TARGET_TYPES,
   type IndexedTraining,
   type TrainingCatalog,
   type TrainingCost,
+  type TrainingEffect,
   type TrainingInspection,
   type TrainingMethodDefinition,
+  type TrainingPlan,
   type TrainingTarget,
   type TrainingTargetType,
 } from './types';

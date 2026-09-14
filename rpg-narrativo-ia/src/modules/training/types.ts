@@ -1,3 +1,5 @@
+import type { TimeCost } from '../time';
+
 export const TRAINING_TARGET_TYPES = ['path', 'skill'] as const;
 
 export type TrainingTargetType = (typeof TRAINING_TARGET_TYPES)[number];
@@ -11,12 +13,25 @@ export interface TrainingCost {
   periods: number;
 }
 
+export const TRAINING_EFFECT_TYPES = ['skill.proficiency.increase', 'skill.learn'] as const;
+
+export type TrainingEffect =
+  | { type: 'skill.proficiency.increase'; skillId: string; amount: number }
+  | { type: 'skill.learn'; skillId: string };
+
 export interface TrainingMethodDefinition {
   id: string;
   name: string;
   description: string;
   target: TrainingTarget;
   cost: TrainingCost;
+  effects: TrainingEffect[];
+}
+
+export interface TrainingPlan {
+  methodId: string;
+  timeCost: TimeCost;
+  effects: TrainingEffect[];
 }
 
 export interface TrainingCatalog {

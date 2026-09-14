@@ -15,6 +15,7 @@ import type { IndexedObjectives, ObjectivesSynchronizationResult } from '../obje
 import type { ResourceCollectionResult } from '../resources/types';
 import type { SandboxContext } from '../sandbox';
 import type { TimeCost } from '../time';
+import type { TrainingPlan } from '../training';
 
 export type SandboxAction =
   | {
@@ -45,6 +46,10 @@ export type SandboxAction =
   | {
       type: 'needs.rest';
       mode: RestMode;
+    }
+  | {
+      type: 'training.train';
+      methodId: string;
     };
 
 export type SandboxActionDetail =
@@ -54,7 +59,8 @@ export type SandboxActionDetail =
   | { type: 'crafting.craft'; result: CraftingResult }
   | { type: 'presence.interact'; plan: PresenceInteractionPlan }
   | { type: 'needs.consume'; plan: NeedsConsumptionPlan }
-  | { type: 'needs.rest'; plan: NeedsRestPlan };
+  | { type: 'needs.rest'; plan: NeedsRestPlan }
+  | { type: 'training.train'; plan: TrainingPlan };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];

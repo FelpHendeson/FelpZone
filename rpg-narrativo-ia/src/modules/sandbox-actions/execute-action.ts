@@ -58,7 +58,14 @@ import {
   type PresenceInteractionPlan,
   type PresenceState,
 } from '../presences';
-import type { SkillsProgressState } from '../skills';
+import { INITIAL_SKILLS, type SkillsProgressState } from '../skills';
+import {
+  INITIAL_TRAINING,
+  TrainingError,
+  applyTrainingPlan,
+  copyTrainingPlan,
+  planTraining,
+} from '../training';
 import type { TimeCost } from '../time';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -405,6 +412,23 @@ function executePrimary(
     };
   }
 
+  if (action.type === 'training.train') {
+    const trainingPlan = planTraining(INITIAL_TRAINING, INITIAL_SKILLS, state.system, action.methodId);
+    const system = applyTrainingPlan(INITIAL_SKILLS, state.system, trainingPlan);
+    return {
+      detail: { type: 'training.train', plan: copyTrainingPlan(trainingPlan) },
+      timeCost: { periods: trainingPlan.timeCost.periods },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      system,
+    };
+  }
+
   const plan = planPresenceInteraction(
     context.presences,
     context.presenceInteractions,
@@ -539,6 +563,14 @@ function requireAction(value: unknown): SandboxAction {
     return { type: 'needs.rest', mode: value.mode };
   }
 
+  if (value.type === 'training.train') {
+    if (typeof value.methodId !== 'string' || value.methodId.trim() === '') {
+      throw new SandboxActionError('O método de treinamento é inválido.');
+    }
+
+    return { type: 'training.train', methodId: value.methodId };
+  }
+
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
 }
 
@@ -631,6 +663,10 @@ function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'needs.rest') {
     return { type: 'needs.rest', mode: action.mode };
+  }
+
+  if (action.type === 'training.train') {
+    return { type: 'training.train', methodId: action.methodId };
   }
 
   return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
@@ -809,6 +845,7 @@ function rethrowDomain(error: unknown): never {
     error instanceof PresenceError ||
     error instanceof NeedsError ||
     error instanceof ObjectiveError ||
+    error instanceof TrainingError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

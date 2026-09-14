@@ -151,6 +151,53 @@ export function listKnownSkills(
     .map((skill) => ({ skill: { ...skill }, proficiency: getSkillProficiency(state, skill.id) }));
 }
 
+export function increaseSkillProficiency(
+  catalog: IndexedSkills,
+  state: SkillsProgressState,
+  skillId: string,
+  amount: number,
+): SkillsProgressState {
+  requireIndexed(catalog);
+  if (!positiveSafeInteger(amount)) {
+    throw new SkillError('O incremento de proficiência é inválido.');
+  }
+  if (!isSkillKnown(state, skillId)) {
+    throw new SkillError('A habilidade não é conhecida.');
+  }
+  return {
+    level: state.level,
+    entries: state.entries.map((entry) =>
+      entry.skillId === skillId ? { skillId, proficiency: entry.proficiency + amount } : { ...entry },
+    ),
+  };
+}
+
+export function learnSkill(
+  catalog: IndexedSkills,
+  state: SkillsProgressState,
+  skillId: string,
+): SkillsProgressState {
+  const indexed = requireIndexed(catalog);
+  if (!indexed.skillById.has(skillId)) {
+    throw new SkillError('A habilidade não existe.');
+  }
+  if (isSkillKnown(state, skillId)) {
+    return copySkillsProgress(state);
+  }
+  const entries = [...state.entries, { skillId, proficiency: 0 }].sort(
+    (left, right) => skillOrder(indexed, left.skillId) - skillOrder(indexed, right.skillId),
+  );
+  return { level: state.level, entries };
+}
+
+function copySkillsProgress(state: SkillsProgressState): SkillsProgressState {
+  return { level: state.level, entries: state.entries.map((entry) => ({ ...entry })) };
+}
+
+function skillOrder(catalog: IndexedSkills, skillId: string): number {
+  return catalog.skills.findIndex((skill) => skill.id === skillId);
+}
+
 function inspectPath(value: unknown, existing: ReadonlySet<string>): SkillsInspection<PathDefinition> {
   if (!isRecord(value) || !nonEmpty(value.id) || !nonEmpty(value.name) || !nonEmpty(value.description)) {
     return fail('A definição de caminho é inválida.');
