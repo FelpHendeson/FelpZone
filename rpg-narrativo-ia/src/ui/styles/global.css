@@ -1880,3 +1880,149 @@ button:disabled {
     transition: none !important;
   }
 }
+
+.system-section {
+  margin-top: 20px;
+}
+
+.system-note-list,
+.system-skill-list,
+.system-tree__nodes,
+.training-effects {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.system-note-list li {
+  margin-bottom: 8px;
+}
+
+.system-note-list strong {
+  display: block;
+}
+
+.system-note-list p,
+.system-skill p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.system-chip-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+}
+
+.system-chip {
+  flex: 1 1 8rem;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 8px 10px;
+}
+
+.system-chip strong {
+  display: block;
+}
+
+.system-chip span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.system-skill {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+
+.system-skill__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.system-skill small {
+  color: var(--accent-system);
+}
+
+.system-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.system-tree__path {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.system-tree__path-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.system-tree__path-head span {
+  color: var(--accent-system);
+  font-size: 0.8rem;
+}
+
+.system-tree__nodes {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.system-tree__node {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bg-choice);
+}
+
+.system-tree__node strong {
+  font-weight: 600;
+}
+
+.system-tree__node span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.system-tree__node--known {
+  border-left: 3px solid var(--accent-strong);
+}
+
+.system-tree__node--available {
+  border-left: 3px solid var(--gold);
+}
+
+.system-tree__hidden {
+  display: block;
+  margin-top: 8px;
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.training-effects {
+  margin: 6px 0;
+}
+
+.training-effects li {
+  font-size: 0.82rem;
+  color: var(--accent-system);
+}

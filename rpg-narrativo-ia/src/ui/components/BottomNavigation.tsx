@@ -1,4 +1,4 @@
-export type GameTab = 'world' | 'actions' | 'journal' | 'inventory' | 'character';
+export type GameTab = 'world' | 'actions' | 'system' | 'journal' | 'inventory' | 'character';
 
 interface BottomNavigationProps {
   active: GameTab;
@@ -9,6 +9,7 @@ interface BottomNavigationProps {
 const ITEMS: Array<{ id: GameTab; icon: string; label: string }> = [
   { id: 'world', icon: '◉', label: 'Mundo' },
   { id: 'actions', icon: '⌁', label: 'Ações' },
+  { id: 'system', icon: '❖', label: 'Sistema' },
   { id: 'journal', icon: '☷', label: 'Diário' },
   { id: 'inventory', icon: '▣', label: 'Mochila' },
   { id: 'character', icon: '♙', label: 'Eu' },

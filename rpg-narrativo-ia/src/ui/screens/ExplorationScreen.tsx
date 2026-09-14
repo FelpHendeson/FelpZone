@@ -4,8 +4,14 @@ import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
 import type { SandboxAction } from '../../modules/sandbox-actions';
+import {
+  buildSystemStatus,
+  type SystemStatusView,
+  type SystemTrainingView,
+} from '../../modules/system-interface';
 import { AttributeSummary } from '../components/AttributeSummary';
 import { BottomNavigation, type GameTab } from '../components/BottomNavigation';
+import { ConfirmDialog } from '../components/ConfirmDialog';
 import { GameHud } from '../components/GameHud';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
 import { buildJournalView, type JournalJourneyView } from '../journal/model';
@@ -73,6 +79,7 @@ export function ExplorationScreen({
             />
           ) : null}
           {activeTab === 'actions' ? <ActionsPanel view={view} onAction={onAction} /> : null}
+          {activeTab === 'system' ? <SystemPanel status={buildSystemStatus(state)} onAction={onAction} /> : null}
           {activeTab === 'journal' ? (
             <JournalPanel
               view={journal}
@@ -622,6 +629,181 @@ function CharacterPanel({ state, campaign, abilityName }: { state: GameState; ca
           </ul>
         )}
       </section>
+    </div>
+  );
+}
+
+function SystemPanel({
+  status,
+  onAction,
+}: {
+  status: SystemStatusView;
+  onAction: (action: SandboxAction) => void;
+}) {
+  const [pending, setPending] = useState<SystemTrainingView | null>(null);
+
+  return (
+    <div className="tab-panel">
+      <header className="panel-heading">
+        <span className="section-kicker">Sistema · {status.characterName}</span>
+        <h1>Status</h1>
+        <p>O Sistema organiza o que você já compreende sobre o próprio poder. Nível {status.level}.</p>
+      </header>
+
+      <section className="system-section" aria-labelledby="system-energy-title">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Fundamentos</span>
+            <h2 id="system-energy-title">Eteris e Númen</h2>
+          </div>
+        </div>
+        <ul className="system-note-list">
+          {status.energies.map((energy) => (
+            <li key={energy.id}>
+              <strong>{energy.name}</strong>
+              <p>{energy.description}</p>
+            </li>
+          ))}
+        </ul>
+        <ul className="system-chip-list" aria-label="Campos de aplicação">
+          {status.fields.map((field) => (
+            <li key={field.id} className="system-chip">
+              <strong>{field.name}</strong>
+              <span>{field.description}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <section className="system-section" aria-labelledby="system-skills-title">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Domínio atual</span>
+            <h2 id="system-skills-title">Habilidades conhecidas</h2>
+          </div>
+          <span className="section-count">{status.knownSkills.length}</span>
+        </div>
+        {status.knownSkills.length === 0 ? (
+          <EmptyAction message="O Sistema ainda não registrou habilidades." />
+        ) : (
+          <ul className="system-skill-list">
+            {status.knownSkills.map((skill) => (
+              <li key={skill.skillId} className="system-skill">
+                <div className="system-skill__head">
+                  <strong>{skill.name}</strong>
+                  <span>Proficiência {skill.proficiency}</span>
+                </div>
+                <p>{skill.description}</p>
+                <small>{skill.pathName}</small>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="system-section" aria-labelledby="system-tree-title">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Caminhos conhecidos</span>
+            <h2 id="system-tree-title">Árvore de habilidades</h2>
+          </div>
+        </div>
+        {status.tree.paths.length === 0 ? (
+          <EmptyAction message="Nenhum caminho revelado ainda." />
+        ) : (
+          <div className="system-tree">
+            {status.tree.paths.map((path) => (
+              <article key={path.pathId} className="system-tree__path">
+                <header className="system-tree__path-head">
+                  <strong>{path.name}</strong>
+                  <span>{path.field === 'corpo' ? 'Corpo' : 'Poder'}</span>
+                </header>
+                <ul className="system-tree__nodes">
+                  {path.nodes.map((node) => (
+                    <li key={node.skillId} className={`system-tree__node system-tree__node--${node.status}`}>
+                      <strong>{node.name}</strong>
+                      <span>
+                        {node.status === 'known'
+                          ? `Conhecida · proficiência ${node.proficiency}`
+                          : 'Possível de desenvolver'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+                {path.hiddenCount > 0 ? (
+                  <small className="system-tree__hidden">
+                    +{path.hiddenCount} possibilidade(s) ainda não compreendida(s)
+                  </small>
+                ) : null}
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <section className="system-section" aria-labelledby="system-training-title">
+        <div className="section-heading">
+          <div>
+            <span className="section-kicker">Métodos conhecidos</span>
+            <h2 id="system-training-title">Treinamento</h2>
+          </div>
+          <span className="section-count">{status.trainings.length}</span>
+        </div>
+        {status.trainings.length === 0 ? (
+          <EmptyAction message="Nenhum método de treino disponível agora." />
+        ) : (
+          <div className="action-card-list">
+            {status.trainings.map((training) => (
+              <article
+                key={training.methodId}
+                className={training.canTrain ? 'action-card' : 'action-card action-card--blocked'}
+              >
+                <div className="action-card__body">
+                  <div className="action-card__title">
+                    <h3>{training.name}</h3>
+                    <span>{training.targetLabel}</span>
+                  </div>
+                  <p>{training.description}</p>
+                  <ul className="training-effects" aria-label="Efeitos do treino">
+                    {training.effectsSummary.map((effect) => (
+                      <li key={effect}>{effect}</li>
+                    ))}
+                  </ul>
+                  <div className="action-card__footer">
+                    <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
+                    <button
+                      type="button"
+                      className="button button--compact"
+                      disabled={!training.canTrain}
+                      onClick={() => setPending(training)}
+                    >
+                      Treinar
+                    </button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      <ConfirmDialog
+        open={pending !== null}
+        title={pending ? `Treinar: ${pending.name}` : ''}
+        message={
+          pending
+            ? `${pending.targetLabel}. Custa ${formatPeriodCost(pending.costPeriods)}. ${pending.effectsSummary.join('. ')}.`
+            : ''
+        }
+        confirmLabel="Confirmar treino"
+        onConfirm={() => {
+          if (pending) {
+            onAction({ type: 'training.train', methodId: pending.methodId });
+            setPending(null);
+          }
+        }}
+        onCancel={() => setPending(null)}
+      />
     </div>
   );
 }
