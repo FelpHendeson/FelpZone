@@ -9,6 +9,9 @@ import {
   type SkillProgressEntry,
   type SkillsInspection,
   type SkillsProgressState,
+  type SkillTree,
+  type SkillTreeNode,
+  type SkillTreePath,
 } from './types';
 
 export { SkillError } from './errors';
@@ -42,6 +45,18 @@ export function inspectSkillsCatalog(value: unknown): SkillsInspection<IndexedSk
     skills.push(inspected.value);
   }
 
+  for (const skill of skills) {
+    for (const requirement of skill.requires) {
+      if (!skillIds.has(requirement)) {
+        return fail('Uma habilidade referencia um requisito inexistente.');
+      }
+    }
+  }
+
+  if (hasRequirementCycle(skills)) {
+    return fail('Os requisitos de habilidade formam um ciclo.');
+  }
+
   return { ok: true, value: freezeCatalog(paths, skills) };
 }
 
@@ -66,7 +81,7 @@ export function getSkill(catalog: IndexedSkills, skillId: string): SkillDefiniti
   if (!skill) {
     throw new SkillError('A habilidade não existe.');
   }
-  return { ...skill };
+  return copySkill(skill);
 }
 
 export function hasPath(catalog: IndexedSkills, pathId: unknown): pathId is string {
@@ -83,7 +98,17 @@ export function listSkillsByPath(catalog: IndexedSkills, pathId: string): SkillD
     throw new SkillError('O caminho não existe.');
   }
   const ids = indexed.skillIdsByPath.get(pathId) ?? [];
-  return ids.map((id) => ({ ...(indexed.skillById.get(id) as SkillDefinition) }));
+  return ids.map((id) => copySkill(indexed.skillById.get(id) as SkillDefinition));
+}
+
+function copySkill(skill: SkillDefinition): SkillDefinition {
+  return {
+    id: skill.id,
+    name: skill.name,
+    description: skill.description,
+    pathId: skill.pathId,
+    requires: [...skill.requires],
+  };
 }
 
 export function createInitialSkillsProgress(catalog: IndexedSkills): SkillsProgressState {
@@ -148,7 +173,71 @@ export function listKnownSkills(
   const indexed = requireIndexed(catalog);
   return indexed.skills
     .filter((skill) => isSkillKnown(state, skill.id))
-    .map((skill) => ({ skill: { ...skill }, proficiency: getSkillProficiency(state, skill.id) }));
+    .map((skill) => ({ skill: copySkill(skill), proficiency: getSkillProficiency(state, skill.id) }));
+}
+
+export function areSkillRequirementsMet(
+  catalog: IndexedSkills,
+  state: SkillsProgressState,
+  skillId: string,
+): boolean {
+  const skill = requireIndexed(catalog).skillById.get(skillId);
+  if (!skill) {
+    throw new SkillError('A habilidade não existe.');
+  }
+  return skill.requires.every((requirement) => isSkillKnown(state, requirement));
+}
+
+export function deriveSkillTree(catalog: IndexedSkills, state: SkillsProgressState): SkillTree {
+  const indexed = requireIndexed(catalog);
+  const paths: SkillTreePath[] = [];
+
+  for (const path of indexed.paths) {
+    const skillIds = indexed.skillIdsByPath.get(path.id) ?? [];
+    const nodes: SkillTreeNode[] = [];
+    let hiddenCount = 0;
+
+    for (const skillId of skillIds) {
+      const skill = indexed.skillById.get(skillId) as SkillDefinition;
+      if (isSkillKnown(state, skill.id)) {
+        nodes.push(treeNode(skill, 'known', getSkillProficiency(state, skill.id)));
+      } else if (areSkillRequirementsMet(indexed, state, skill.id)) {
+        nodes.push(treeNode(skill, 'available', null));
+      } else {
+        hiddenCount += 1;
+      }
+    }
+
+    if (nodes.length === 0) {
+      continue;
+    }
+
+    paths.push({
+      pathId: path.id,
+      name: path.name,
+      field: path.field,
+      known: nodes.some((node) => node.status === 'known'),
+      nodes,
+      hiddenCount,
+    });
+  }
+
+  return { level: state.level, paths };
+}
+
+function treeNode(
+  skill: SkillDefinition,
+  status: SkillTreeNode['status'],
+  proficiency: number | null,
+): SkillTreeNode {
+  return {
+    skillId: skill.id,
+    name: skill.name,
+    description: skill.description,
+    status,
+    proficiency,
+    requires: [...skill.requires],
+  };
 }
 
 export function increaseSkillProficiency(
@@ -228,15 +317,73 @@ function inspectSkill(
   if (!nonEmpty(value.pathId) || !pathIds.has(value.pathId)) {
     return fail('A habilidade referencia um caminho inexistente.');
   }
+  const requires = inspectRequires(value.requires, value.id);
+  if (!requires.ok) {
+    return requires;
+  }
   return {
     ok: true,
-    value: { id: value.id, name: value.name, description: value.description, pathId: value.pathId },
+    value: {
+      id: value.id,
+      name: value.name,
+      description: value.description,
+      pathId: value.pathId,
+      requires: requires.value,
+    },
   };
+}
+
+function inspectRequires(value: unknown, ownId: string): SkillsInspection<string[]> {
+  if (value === undefined) {
+    return { ok: true, value: [] };
+  }
+  if (!Array.isArray(value)) {
+    return fail('Os requisitos da habilidade são inválidos.');
+  }
+  const requires: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of value) {
+    if (!nonEmpty(entry) || seen.has(entry) || entry === ownId) {
+      return fail('Os requisitos da habilidade são inválidos.');
+    }
+    seen.add(entry);
+    requires.push(entry);
+  }
+  return { ok: true, value: requires };
+}
+
+function hasRequirementCycle(skills: readonly SkillDefinition[]): boolean {
+  const requiresById = new Map(skills.map((skill) => [skill.id, skill.requires]));
+  const state = new Map<string, 'visiting' | 'done'>();
+
+  const visit = (id: string): boolean => {
+    const current = state.get(id);
+    if (current === 'visiting') {
+      return true;
+    }
+    if (current === 'done') {
+      return false;
+    }
+    state.set(id, 'visiting');
+    for (const requirement of requiresById.get(id) ?? []) {
+      if (visit(requirement)) {
+        return true;
+      }
+    }
+    state.set(id, 'done');
+    return false;
+  };
+
+  return skills.some((skill) => visit(skill.id));
 }
 
 function freezeCatalog(paths: PathDefinition[], skills: SkillDefinition[]): IndexedSkills {
   const frozenPaths = Object.freeze(paths.map((path) => Object.freeze({ ...path })));
-  const frozenSkills = Object.freeze(skills.map((skill) => Object.freeze({ ...skill })));
+  const frozenSkills = Object.freeze(
+    skills.map((skill) =>
+      Object.freeze({ ...skill, requires: Object.freeze([...skill.requires]) as unknown as string[] }),
+    ),
+  );
 
   const skillIdsByPath = new Map<string, string[]>();
   for (const path of frozenPaths) {
@@ -303,6 +450,10 @@ export {
   type SkillsCatalog,
   type SkillsInspection,
   type SkillsProgressState,
+  type SkillTree,
+  type SkillTreeNode,
+  type SkillTreeNodeStatus,
+  type SkillTreePath,
 } from './types';
 
 export { INITIAL_SKILLS_CATALOG } from './initial-skills';

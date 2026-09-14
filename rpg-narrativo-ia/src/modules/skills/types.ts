@@ -12,6 +12,7 @@ export interface SkillDefinition {
   name: string;
   description: string;
   pathId: string;
+  requires: string[];
 }
 
 export interface SkillsCatalog {
@@ -35,6 +36,31 @@ export interface SkillProgressEntry {
 export interface SkillsProgressState {
   level: number;
   entries: SkillProgressEntry[];
+}
+
+export type SkillTreeNodeStatus = 'known' | 'available';
+
+export interface SkillTreeNode {
+  skillId: string;
+  name: string;
+  description: string;
+  status: SkillTreeNodeStatus;
+  proficiency: number | null;
+  requires: string[];
+}
+
+export interface SkillTreePath {
+  pathId: string;
+  name: string;
+  field: ApplicationField;
+  known: boolean;
+  nodes: SkillTreeNode[];
+  hiddenCount: number;
+}
+
+export interface SkillTree {
+  level: number;
+  paths: SkillTreePath[];
 }
 
 export type SkillsInspection<T> =

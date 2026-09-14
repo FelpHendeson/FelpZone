@@ -17,8 +17,8 @@ function catalog(): SkillsCatalog {
   return {
     paths: [{ id: 'body', name: 'Corpo', description: 'Caminho do corpo.', field: 'corpo' }],
     skills: [
-      { id: 'sense', name: 'Sentidos', description: 'Percepção.', pathId: 'body' },
-      { id: 'steady', name: 'Firmeza', description: 'Resistência.', pathId: 'body' },
+      { id: 'sense', name: 'Sentidos', description: 'Percepção.', pathId: 'body', requires: [] },
+      { id: 'steady', name: 'Firmeza', description: 'Resistência.', pathId: 'body', requires: [] },
     ],
   };
 }

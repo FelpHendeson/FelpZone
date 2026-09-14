@@ -21,18 +21,21 @@ export const INITIAL_SKILLS_CATALOG = {
       name: 'Sentidos Aguçados',
       description: 'Percepção reforçada pelo Númen que revela detalhes e sinais do ambiente.',
       pathId: 'body-reinforcement',
+      requires: [],
     },
     {
       id: 'steady-body',
       name: 'Corpo Firme',
       description: 'Resistência interiorizada que sustenta esforço prolongado com menos desgaste.',
       pathId: 'body-reinforcement',
+      requires: ['sharpened-senses'],
     },
     {
       id: 'guiding-spark',
       name: 'Fagulha Condutora',
       description: 'Primeira manifestação exteriorizada do Númen, uma centelha controlada de energia.',
       pathId: 'numen-manifestation',
+      requires: ['steady-body'],
     },
   ],
 } as const satisfies SkillsCatalog;

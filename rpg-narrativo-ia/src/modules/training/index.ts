@@ -1,5 +1,6 @@
 import {
   INITIAL_SKILLS,
+  areSkillRequirementsMet,
   hasPath,
   hasSkill,
   increaseSkillProficiency,
@@ -80,6 +81,13 @@ export function planTraining(
   for (const effect of method.effects) {
     if (effect.type === 'skill.proficiency.increase' && !isSkillKnown(progress, effect.skillId)) {
       throw new TrainingError('O treino tenta desenvolver uma habilidade ainda não conhecida.');
+    }
+    if (
+      effect.type === 'skill.learn' &&
+      !isSkillKnown(progress, effect.skillId) &&
+      !areSkillRequirementsMet(skills, progress, effect.skillId)
+    ) {
+      throw new TrainingError('O treino tenta revelar uma habilidade cujos requisitos ainda não foram cumpridos.');
     }
   }
   return {

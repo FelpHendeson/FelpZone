@@ -21,7 +21,7 @@ function path(overrides: Partial<PathDefinition> = {}): PathDefinition {
 }
 
 function skill(overrides: Partial<SkillDefinition> = {}): SkillDefinition {
-  return { id: 'sense', name: 'Sentidos', description: 'Percepção reforçada.', pathId: 'body', ...overrides };
+  return { id: 'sense', name: 'Sentidos', description: 'Percepção reforçada.', pathId: 'body', requires: [], ...overrides };
 }
 
 function catalog(): SkillsCatalog {
@@ -67,6 +67,12 @@ describe('Fatia 11.1 — catálogo de habilidades', () => {
     { paths: catalog().paths, skills: [skill(), skill()] },
     { paths: catalog().paths, skills: [skill({ pathId: 'missing' })] },
     { paths: catalog().paths, skills: [skill({ pathId: '' })] },
+    { paths: catalog().paths, skills: [skill({ requires: ['missing'] })] },
+    { paths: catalog().paths, skills: [skill({ id: 'loop', requires: ['loop'] })] },
+    {
+      paths: catalog().paths,
+      skills: [skill({ id: 'a', requires: ['b'] }), skill({ id: 'b', requires: ['a'] })],
+    },
   ])('rejeita forma de catálogo inválida %#', (value) => {
     expect(inspectSkillsCatalog(value).ok).toBe(false);
   });

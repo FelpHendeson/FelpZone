@@ -22,9 +22,9 @@ function skills(): IndexedSkills {
       { id: 'power', name: 'Poder', description: 'Caminho do poder.', field: 'poder' },
     ],
     skills: [
-      { id: 'sense', name: 'Sentidos', description: 'Percepção.', pathId: 'body' },
-      { id: 'steady', name: 'Firmeza', description: 'Resistência.', pathId: 'body' },
-      { id: 'spark', name: 'Fagulha', description: 'Centelha.', pathId: 'power' },
+      { id: 'sense', name: 'Sentidos', description: 'Percepção.', pathId: 'body', requires: [] },
+      { id: 'steady', name: 'Firmeza', description: 'Resistência.', pathId: 'body', requires: [] },
+      { id: 'spark', name: 'Fagulha', description: 'Centelha.', pathId: 'power', requires: [] },
     ],
   });
 }

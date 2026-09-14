@@ -16,7 +16,7 @@ import {
 function skillsCatalog(): SkillsCatalog {
   return {
     paths: [{ id: 'body', name: 'Corpo', description: 'Caminho do corpo.', field: 'corpo' }],
-    skills: [{ id: 'sense', name: 'Sentidos', description: 'Percepção.', pathId: 'body' }],
+    skills: [{ id: 'sense', name: 'Sentidos', description: 'Percepção.', pathId: 'body', requires: [] }],
   };
 }
 
