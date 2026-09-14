@@ -1,0 +1,17 @@
+{
+  "name": "FelpZone — RPG Narrativo IA",
+  "install": "cd rpg-narrativo-ia && npm ci",
+  "terminals": [
+    {
+      "name": "vite-dev",
+      "command": "cd rpg-narrativo-ia && npm run dev -- --host 0.0.0.0 --port 5173",
+      "description": "Servidor de desenvolvimento Vite do rpg-narrativo-ia em http://localhost:5173"
+    }
+  ],
+  "ports": [
+    {
+      "name": "vite-dev",
+      "port": 5173
+    }
+  ]
+}
