@@ -152,39 +152,39 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 ### Etapa 11 — Núcleo do Sistema, Eteris, Númen e Progressão
 
-**Aprovada para especificação e roadmap; ainda não implementada.** O Sistema 11 transforma o Sistema canônico em interface diegética e estabelece fundamentos para crescimento do personagem: Eteris ambiental, Númen individualizado, Status, nível, proficiências, treino com custo temporal, Árvore de habilidades e pontos de extensão para o Jardim.
+**Implementada e consolidada nas Fatias 11.1 a 11.7.** O Sistema 11 transforma o Sistema canônico em interface diegética e estabelece fundamentos para crescimento do personagem: Eteris ambiental, Númen individualizado, Status, nível, proficiências, treino com custo temporal, Árvore de habilidades e pontos de extensão para o Jardim.
 
 A etapa deve preparar um futuro banco de ações e combate sem implementá-los nem inventar atributos, fórmulas ou regras de fusão. Fonte: [Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
 
 #### Fatia 11.1 — Vocabulário, catálogos e validação isolada
 
-**Especificada; implementação não autorizada.** Fechar e validar contratos mínimos de energia, habilidades, caminhos e métodos de treino sem alterar `GameState`, schema, campanha ou UI.
+**Implementada.** Os módulos `modules/energetics`, `modules/skills` e `modules/training` declaram os contratos mínimos e catálogos protótipo com validação profunda e isolada: energias (Eteris, Númen) e campos de aplicação (Corpo, Poder); caminhos e habilidades que referenciam um campo válido; e métodos de treino que resolvem um alvo de caminho ou habilidade e declaram um custo em períodos. Índices imutáveis, congelamento profundo, cópias defensivas e falha controlada protegem cada fronteira. Não altera `GameState`, schema, relógio, campanha nem UI. As decisões fechadas estão registradas em [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md#decisões-fechadas-na-fatia-111).
 
 #### Fatia 11.2 — Estado de progressão e migração
 
-**Planejada; depende das decisões da 11.1.** Persistir somente nível, proficiências e conhecimentos que forem aprovados. Qualquer nova versão de schema deve migrar sem treinar, conceder progresso, avançar tempo ou regravar durante a leitura.
+**Implementada.** `GameState.system` guarda nível e proficiências por habilidade sob `schemaVersion: 7`; a migração v1–v6 concede apenas a aptidão de base sem treinar, avançar tempo ou regravar durante a leitura.
 
 #### Fatia 11.3 — Treinamento e tempo
 
-**Planejada.** Planejar e executar treino atomicamente, cobrando `TimeCost` uma única vez e reutilizando o ciclo já consolidado de necessidades e sincronizações.
+**Implementada.** `planTraining` e a ação `training.train` executam o treino atomicamente, cobrando `TimeCost` uma única vez e reutilizando o ciclo consolidado de necessidades, ciclo diário, recursos e objetivos.
 
 #### Fatia 11.4 — Árvore de habilidades
 
-**Planejada.** Derivar caminhos, requisitos conhecidos, bloqueios e progresso sem revelar conteúdo oculto. Consultar a Árvore não consome tempo.
+**Implementada.** `deriveSkillTree` deriva caminhos, requisitos, nós disponíveis e contagem de ocultos sem revelar conteúdo bloqueado; a consulta é pura e não consome tempo.
 
 #### Fatia 11.5 — Status e interface diegética mobile
 
-**Planejada.** Apresentar o Sistema como algo consultado pelo personagem, com Status, energia, habilidades, proficiências, caminhos e treinos conhecidos, sem regras dentro do React.
+**Implementada.** O módulo `system-interface` e a aba mobile `Sistema` apresentam Status, energia, habilidades, proficiências, caminhos e treinos conhecidos a partir de 320 px, com confirmação que explica o custo, sem regras dentro do React.
 
 #### Fatia 11.6 — Primeiro ciclo de fortalecimento ponta a ponta
 
-**Planejada.** Demonstrar orientação ou descoberta, treino, passagem do tempo, progresso persistido e uma consequência perceptível no sandbox, ainda sem combate.
+**Implementada.** Consultar o Sistema, treinar, avançar o tempo, evoluir a proficiência, revelar uma habilidade oculta e persistir o progresso foi provado por teste automatizado e por validação visual.
 
 #### Fatia 11.7 — Consolidação e ponte para combate
 
-**Planejada.** Revisar contratos, migrações, atomicidade, sigilo e UI e expor somente as interfaces públicas necessárias ao futuro banco de ações.
+**Implementada.** Consolidação de atomicidade, imutabilidade, sigilo e gates; os contratos públicos reutilizáveis por um futuro banco de ações estão expostos sem revelar internos.
 
-Cada fatia exige autorização explícita antes de implementação. O Jardim só recebe implementação quando suas regras mínimas de fusão forem aprovadas.
+O Jardim só recebe implementação quando suas regras mínimas de fusão forem aprovadas.
 
 ## Horizonte depois do Sistema 11
 

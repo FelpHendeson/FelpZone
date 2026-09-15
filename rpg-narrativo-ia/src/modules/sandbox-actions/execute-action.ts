@@ -58,6 +58,14 @@ import {
   type PresenceInteractionPlan,
   type PresenceState,
 } from '../presences';
+import { INITIAL_SKILLS, type SkillsProgressState } from '../skills';
+import {
+  INITIAL_TRAINING,
+  TrainingError,
+  applyTrainingPlan,
+  copyTrainingPlan,
+  planTraining,
+} from '../training';
 import type { TimeCost } from '../time';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -187,6 +195,7 @@ function runTransaction(
     flags: executed.flags,
     relationships: executed.relationships,
     progression: executed.progression,
+    system: executed.system,
     status: executed.status,
     narrativeSession: executed.narrativeSession,
   });
@@ -252,6 +261,7 @@ function executePrimary(
   flags: Record<string, boolean>;
   relationships: Relationship[];
   progression: ProgressionState;
+  system: SkillsProgressState;
   status: GameState['status'];
   narrativeSession: NarrativeSession | null;
   world: GameState['world'];
@@ -270,6 +280,7 @@ function executePrimary(
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
     },
+    system: copySystem(state.system),
     status: state.status,
     narrativeSession: copyNarrativeSession(state.narrativeSession),
     world: { day: state.world.day, period: state.world.period },
@@ -401,6 +412,23 @@ function executePrimary(
     };
   }
 
+  if (action.type === 'training.train') {
+    const trainingPlan = planTraining(INITIAL_TRAINING, INITIAL_SKILLS, state.system, action.methodId);
+    const system = applyTrainingPlan(INITIAL_SKILLS, state.system, trainingPlan);
+    return {
+      detail: { type: 'training.train', plan: copyTrainingPlan(trainingPlan) },
+      timeCost: { periods: trainingPlan.timeCost.periods },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      system,
+    };
+  }
+
   const plan = planPresenceInteraction(
     context.presences,
     context.presenceInteractions,
@@ -437,6 +465,7 @@ function executePrimary(
       abilityIds: [...afterEffects.progression.abilityIds],
       titleIds: [...afterEffects.progression.titleIds],
     },
+    system: copySystem(state.system),
     status: afterEffects.status,
     narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
     world: { day: afterEffects.world.day, period: afterEffects.world.period },
@@ -534,6 +563,14 @@ function requireAction(value: unknown): SandboxAction {
     return { type: 'needs.rest', mode: value.mode };
   }
 
+  if (value.type === 'training.train') {
+    if (typeof value.methodId !== 'string' || value.methodId.trim() === '') {
+      throw new SandboxActionError('O método de treinamento é inválido.');
+    }
+
+    return { type: 'training.train', methodId: value.methodId };
+  }
+
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
 }
 
@@ -552,6 +589,7 @@ interface GameStatePatch {
   flags?: Record<string, boolean>;
   relationships?: Relationship[];
   progression?: ProgressionState;
+  system?: SkillsProgressState;
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
   updatedAt?: string;
@@ -590,7 +628,15 @@ function buildGameState(base: GameState, patch: GameStatePatch & { updatedAt: st
         completed: entry.completed,
       })),
     },
+    system: copySystem(patch.system ?? base.system),
     updatedAt: patch.updatedAt,
+  };
+}
+
+function copySystem(state: SkillsProgressState): SkillsProgressState {
+  return {
+    level: state.level,
+    entries: state.entries.map((entry) => ({ skillId: entry.skillId, proficiency: entry.proficiency })),
   };
 }
 
@@ -617,6 +663,10 @@ function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'needs.rest') {
     return { type: 'needs.rest', mode: action.mode };
+  }
+
+  if (action.type === 'training.train') {
+    return { type: 'training.train', methodId: action.methodId };
   }
 
   return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
@@ -795,6 +845,7 @@ function rethrowDomain(error: unknown): never {
     error instanceof PresenceError ||
     error instanceof NeedsError ||
     error instanceof ObjectiveError ||
+    error instanceof TrainingError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

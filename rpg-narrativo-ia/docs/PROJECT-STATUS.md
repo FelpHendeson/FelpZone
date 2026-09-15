@@ -69,7 +69,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 6, migrações v1–v5, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 7, migrações v1–v6, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -81,7 +81,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
 | Sistema 10 — Objetivos, jornadas e diário | **Implementado e consolidado** | Fatias 10.1–10.5: catálogo, dez critérios, schema 6, sincronização após ações/escolhas, diário mobile e jornada `Primeiros passos` ponta a ponta. | O acompanhamento não persiste por decisão do recorte; não há recompensas automáticas. |
-| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Definido pelo autor, aprovado para especificação e roadmap; não implementado** | Especificação de interface diegética, fundamentos energéticos, Status, nível, proficiências, treino temporal, Árvore e preparação modular para ações futuras. | Campos, fórmulas, balanceamento, implementação do Jardim e combate ainda exigem decisões e autorização por fatia. |
+| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Implementado e consolidado (Fatias 11.1 a 11.7)** | Vocabulário de Eteris/Númen e Corpo/Poder; catálogos de habilidades, caminhos e treino; `GameState.system` no schema 7; ação de treino com custo temporal único; Árvore de habilidades com sigilo; aba mobile `Sistema` com Status e confirmação de treino. | Balanceamento, Jardim, combate e conteúdo definitivo seguem fora do escopo; números e nomes são protótipos. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -103,7 +103,7 @@ Estas metas fazem parte da visão. O Sistema 11 já possui especificação; as d
 
 ### Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão
 
-O próximo eixo foi aprovado para especificação e roadmap, mas ainda não para implementação. O Sistema deve funcionar como interface existente dentro do universo; o personagem consulta por ele Status, habilidades, caminhos, métodos, receitas, registros e orientações.
+Este eixo foi implementado nas Fatias 11.1 a 11.7. O Sistema funciona como interface existente dentro do universo; o personagem consulta por ele Status, habilidades, caminhos, métodos, receitas, registros e orientações.
 
 Eteris é energia ambiental. Númen é Eteris interiorizado e individualizado por um ser vivo e pode ser aplicado ao Corpo ou ao Poder. Treinos consomem tempo. Nível, proficiências e velocidade de conjuração ou execução devem ganhar significado mecânico sem fórmulas inventadas antecipadamente. A Árvore apresenta caminhos; o Jardim integra caminhos por combinação ou fusão, cujas regras exatas ainda estão em discussão.
 
@@ -187,10 +187,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 10 estão implementados e consolidados. O Sistema 11 está aprovado para especificação e roadmap, mas ainda não possui código nem fatia autorizada para implementação.** Consulte [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+**Os Sistemas 1 a 11 estão implementados e consolidados.** O Sistema 11 entregou, nas Fatias 11.1 a 11.7, o núcleo diegético do Sistema: vocabulário energético, catálogos validados, `GameState.system` no schema 7, treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Consulte [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
 
-Antes de qualquer próxima implementação:
+Antes da próxima implementação:
 
-1. fechar somente as decisões mínimas exigidas pela Fatia 11.1 e autorizar explicitamente sua implementação;
+1. escolher e especificar o próximo eixo (por exemplo, o banco de ações e combate) com contrato e autorização próprios, reutilizando os contratos públicos já expostos pelo Sistema 11;
 2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto e a migração sem efeitos de gameplay;
 3. não transformar automaticamente detalhes ainda em discussão — fórmulas, raças, Jardim, combate, agenda, equipamentos ou recompensas — em requisitos.

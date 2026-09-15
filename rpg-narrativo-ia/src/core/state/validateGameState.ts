@@ -24,6 +24,11 @@ import {
 } from '../../modules/presences';
 import { worldTriggerConsumedFlag } from '../../modules/world-events';
 import {
+  INITIAL_SKILLS,
+  createInitialSkillsProgress,
+  inspectSkillsProgress,
+} from '../../modules/skills';
+import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
   MIGRATED_CAMPAIGN_ID,
@@ -33,6 +38,7 @@ import {
   SCHEMA_VERSION_V3,
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
+  SCHEMA_VERSION_V6,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -40,6 +46,7 @@ import {
   type GameStateV3,
   type GameStateV4,
   type GameStateV5,
+  type GameStateV6,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -66,6 +73,10 @@ export type GameStateV4Inspection =
 
 export type GameStateV5Inspection =
   | { ok: true; state: GameStateV5 }
+  | { ok: false; reason: string };
+
+export type GameStateV6Inspection =
+  | { ok: true; state: GameStateV6 }
   | { ok: false; reason: string };
 
 export function inspectGameState(
@@ -120,6 +131,18 @@ export function inspectGameStateV5(value: unknown, context?: SandboxContext): Ga
   }
 }
 
+export function inspectGameStateV6(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV6Inspection {
+  try {
+    return inspectV6(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
 export function migrateGameStateV1(
   state: GameStateV1,
   context?: SandboxContext,
@@ -161,6 +184,31 @@ export function migrateGameStateV5(
   context?: SandboxContext,
   objectiveCatalog?: IndexedObjectives,
 ): GameState {
+  return migrateGameStateV6(migrateGameStateV5ToV6(state, context, objectiveCatalog), objectiveCatalog);
+}
+
+export function migrateGameStateV6(
+  state: GameStateV6,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  const catalog = requireObjectiveCatalog(objectiveCatalog);
+  const candidate: GameState = {
+    ...structuredClone(state),
+    schemaVersion: SCHEMA_VERSION,
+    system: createInitialSkillsProgress(INITIAL_SKILLS),
+  };
+
+  return {
+    ...candidate,
+    objectives: synchronizeObjectives(catalog, candidate.objectives, candidate).current,
+  };
+}
+
+function migrateGameStateV5ToV6(
+  state: GameStateV5,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV6 {
   const sandbox = inspectSandboxState(state.sandbox, context);
   if (!sandbox.ok) {
     throw new Error(sandbox.reason);
@@ -173,9 +221,8 @@ export function migrateGameStateV5(
     sandbox.value.exploration,
   ).current;
 
-  const catalog = requireObjectiveCatalog(objectiveCatalog);
-  const candidate: GameState = {
-    schemaVersion: SCHEMA_VERSION,
+  return {
+    schemaVersion: SCHEMA_VERSION_V6,
     status: state.status,
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copyNarrativeSession(state.narrativeSession),
@@ -200,13 +247,8 @@ export function migrateGameStateV5(
         state.flags,
       ),
     },
-    objectives: createInitialObjectivesState(catalog),
+    objectives: createInitialObjectivesState(requireObjectiveCatalog(objectiveCatalog)),
     updatedAt: state.updatedAt,
-  };
-
-  return {
-    ...candidate,
-    objectives: synchronizeObjectives(catalog, candidate.objectives, candidate).current,
   };
 }
 
@@ -434,6 +476,10 @@ function inspectCurrent(
   if (!objectives.ok) {
     return fail(objectives.reason);
   }
+  const system = inspectSkillsProgress(value.system, INITIAL_SKILLS);
+  if (!system.ok) {
+    return fail(system.reason);
+  }
   const synchronizedPresences = synchronizeDiscoveredPresences(
     resolvedContext.presences,
     sandbox.value.presences,
@@ -444,6 +490,74 @@ function inspectCurrent(
     ok: true,
     state: {
       schemaVersion: SCHEMA_VERSION,
+      ...shared.value,
+      narrativeSession: session.value,
+      sandbox: {
+        ...sandbox.value,
+        presences: reconcileConsumedWorldPresenceResolutions(
+          resolvedContext.presences,
+          synchronizedPresences,
+          shared.value.flags,
+        ),
+      },
+      objectives: objectives.value,
+      system: system.value,
+    },
+  };
+}
+
+function inspectV6(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV6Inspection {
+  if (!isRecord(value)) {
+    return fail('O salvamento não contém um objeto válido.');
+  }
+
+  if (value.schemaVersion !== SCHEMA_VERSION_V6) {
+    return fail('O salvamento está incompleto.');
+  }
+
+  const shared = readCurrentShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+
+  if ('currentEventId' in value) {
+    return fail('O salvamento usa o contrato antigo de evento atual.');
+  }
+
+  if ('system' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 6.');
+  }
+
+  const session = readNarrativeSession(value, shared.value.status);
+  if (!session.ok) {
+    return session;
+  }
+
+  const sandbox = inspectSandboxState(value.sandbox, context);
+  if (!sandbox.ok) {
+    return fail(sandbox.reason);
+  }
+
+  const resolvedContext = requireContext(context);
+  const catalog = requireObjectiveCatalog(objectiveCatalog);
+  const objectives = inspectObjectivesState(value.objectives, catalog);
+  if (!objectives.ok) {
+    return fail(objectives.reason);
+  }
+  const synchronizedPresences = synchronizeDiscoveredPresences(
+    resolvedContext.presences,
+    sandbox.value.presences,
+    sandbox.value.exploration,
+  ).current;
+
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION_V6,
       ...shared.value,
       narrativeSession: session.value,
       sandbox: {

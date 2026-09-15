@@ -28,7 +28,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - Os Sistemas 1 a 8 passaram pela revisão integrada registrada em `docs/SYSTEMS-1-8-CONSOLIDATION.md`.
 - O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o Sistema 9 introduziu o schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
 - O Sistema 10 — objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5, incluindo a jornada `Primeiros passos`, sincronização narrativa, compatibilidade de saves schema 6 e acompanhamento efêmero.
-- O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está aprovado para especificação e roadmap, mas ainda não para implementação. O contrato está em `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`.
+- O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7 (progressão persistida no schema 7, treino com custo temporal, Árvore de habilidades e aba mobile `Sistema`). O contrato está em `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`.
 - Combate possui direção conceitual de banco de ações declarativo, mas ainda não tem número, fórmulas, comportamento ou implementação aprovados. Agenda e comportamento autônomo fora do combate também permanecem sem aprovação.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
@@ -104,11 +104,11 @@ Estado conhecido:
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
 - `NPCState` completo, agendas e comportamento autônomo continuam sem implementação autorizada;
 - os Sistemas 1 a 10 estão consolidados;
-- o Sistema 11 está aprovado para especificação e roadmap, mas nenhuma fatia 11.x está autorizada para implementação;
+- o Sistema 11 está implementado e consolidado nas Fatias 11.1 a 11.7;
 - o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
 - Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; regras do Jardim, fórmulas e combate continuam pendentes.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md` e `docs/ROADMAP.md`. Os Sistemas 1 a 10 estão consolidados; não implemente o Sistema 11 até o autor autorizar uma fatia específica.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md` e `docs/ROADMAP.md`. Os Sistemas 1 a 11 estão consolidados; o próximo eixo (por exemplo, o banco de ações e combate) exige especificação e autorização próprias.
 
 Execute:
 
@@ -137,4 +137,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Fechar somente as decisões mínimas da Fatia 11.1 e obter autorização explícita antes de implementar. `NPCState` completo, agenda, movimentação autônoma, fórmulas de progressão, regras do Jardim e combate permanecem sem implementação autorizada.
+O Sistema 11 está completo. `NPCState` completo, agenda, movimentação autônoma, balanceamento definitivo de progressão, regras do Jardim e combate permanecem sem implementação autorizada e exigem especificação própria.

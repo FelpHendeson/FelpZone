@@ -37,8 +37,8 @@ Leia nesta ordem:
 17. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
 18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
 19. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
-20. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 aprovado para especificação e roadmap, ainda sem implementação autorizada.
-21. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistema 11 planejado e horizonte posterior.
+20. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 implementado e consolidado nas Fatias 11.1 a 11.7.
+21. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistema 11 implementado e horizonte posterior.
 22. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -70,7 +70,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos e narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos, energéticos, habilidades, treino, interface do Sistema e narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # HUD, telas mobile-first, navegação inferior e placeholders
@@ -89,7 +89,7 @@ O Sistema 9 — Necessidades e sobrevivência leve — está implementado e cons
 
 O Sistema 10 — Objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5. Catálogo, estado, dez critérios, schema 6, sincronização após ações e escolhas, diário seguro e interface mobile sustentam a jornada principal `Primeiros passos`, da capacidade inicial ao encontro com Mira.
 
-O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está aprovado para especificação e roadmap, mas ainda não foi implementado. Ele estabelece o Sistema como interface diegética, diferencia Eteris ambiental de Númen individualizado e planeja Status, nível, proficiências, treino temporal e Árvore de habilidades. O Jardim e o futuro banco de ações possuem direção conceitual, mas regras de fusão e combate continuam pendentes de decisão própria.
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7. Os módulos `energetics`, `skills`, `training` e `system-interface` entregam o vocabulário de Eteris/Númen e Corpo/Poder, os catálogos validados de caminhos, habilidades e métodos de treino, o estado de progressão persistido em `GameState.system` (schema 7), a ação de treino que cobra o relógio uma vez, a Árvore de habilidades com sigilo de conteúdo oculto e a aba mobile `Sistema` com Status e confirmação de custo. O Jardim e o futuro banco de ações de combate possuem direção conceitual, mas regras de fusão e combate continuam pendentes de decisão própria.
 
 ## Decisões já tomadas
 
@@ -107,8 +107,8 @@ O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está apro
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 6`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences` e o progresso mínimo de objetivos. Valida o sandbox e os objetivos contra seus catálogos e migra saves v1 a v5 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
-- Status expandido, Eteris, Númen, nível, proficiências, treinamento, Árvore e Jardim ainda não existem no código nem no schema 6.
+- O salvamento local usa `schemaVersion: 7`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v6 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- Balanceamento definitivo, o Jardim de habilidades e o combate ainda não existem; nomes, números e conteúdo de habilidades permanecem protótipos.
 - Fora da implementação atual: combate jogável, facções e assentamentos administráveis, mapa aberto, geração procedural, editor e qualquer serviço pago. O banco de ações de combate é apenas uma direção futura documentada.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
@@ -116,7 +116,7 @@ O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está apro
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 572 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 6, migrações v1–v5, diário, superfície mobile, necessidades e orquestração.
+- `npm test`: 679 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração e o ciclo de fortalecimento do Sistema 11.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

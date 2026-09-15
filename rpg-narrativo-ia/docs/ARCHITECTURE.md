@@ -55,10 +55,10 @@ src/
 │   ├── world-events/
 │   ├── presences/
 │   ├── objectives/
-│   ├── system-interface/   # direção do Sistema 11; ainda não implementada
-│   ├── energetics/         # direção do Sistema 11; ainda não implementada
-│   ├── skills/             # direção do Sistema 11; ainda não implementada
-│   ├── training/           # direção do Sistema 11; ainda não implementada
+│   ├── system-interface/   # Sistema 11: deriva a visão segura de Status
+│   ├── energetics/         # Sistema 11: vocabulário de Eteris/Númen e campos
+│   ├── skills/             # Sistema 11: catálogos, progressão e Árvore de habilidades
+│   ├── training/           # Sistema 11: métodos, planejamento e efeitos de treino
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -71,7 +71,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modules/time/`, `modules/day-cycle/`, `modules/navigation/`, `modules/exploration/`, `modules/resources/`, `modules/crafting/`, `modules/sandbox/`, `modules/world-events/`, `modules/presences/` e `modules/objectives/` estão implementados. Os quatro módulos anotados como direção do Sistema 11 são fronteiras recomendadas, não pastas ou contratos existentes.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os módulos das Etapas 1 a 10 estão implementados. O Sistema 11 implementou `modules/energetics/`, `modules/skills/`, `modules/training/` e `modules/system-interface/`: catálogos validados, o estado de progressão persistido, a ação de treino, a Árvore de habilidades e a derivação do Status diegético.
 
 ## Responsabilidades
 
@@ -92,10 +92,10 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. `modu
 - `world-events`: catálogo de gatilhos declarativos que associam descobertas reveladas a sessões narrativas.
 - `presences`: catálogo de entidades e ocorrências por local, estado mínimo de descoberta/resolução e status derivado.
 - `objectives`: catálogo de jornadas, etapas, critérios e progresso monotônico; integra o estado principal e a persistência, e é sincronizado no fim de cada ação sandbox.
-- `system-interface` (proposto): organiza as funções que o personagem pode consultar no Sistema e deriva conhecimento seguro; não calcula progressão.
-- `energetics` (proposto): representa Eteris, Númen e suas leituras aprovadas; não executa treino ou combate.
-- `skills` (proposto): valida habilidades, caminhos, conhecimento e proficiências; não contém componentes React.
-- `training` (proposto): planeja métodos, requisitos, custo e efeitos de treino; devolve `TimeCost` sem avançar o relógio.
+- `system-interface`: deriva a visão segura de Status (nível, Eteris/Númen, habilidades, Árvore e treinos conhecidos) a partir dos catálogos e do estado; não calcula progressão nem contém componentes React.
+- `energetics`: representa o vocabulário de Eteris, Númen e campos de aplicação (Corpo, Poder) como catálogo validado; ainda sem reserva, controle, potência ou fórmulas.
+- `skills`: valida caminhos e habilidades com requisitos, mantém o estado de progressão (nível e proficiências) e deriva a Árvore de habilidades sem vazar nós ocultos; não contém componentes React.
+- `training`: valida métodos, planeja um treino (alvo, custo em períodos e efeitos declarativos) e aplica seus efeitos à progressão; devolve `TimeCost` sem avançar o relógio.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
@@ -117,9 +117,9 @@ type GameEffect =
 
 Novos efeitos podem ser acrescentados sem alterar componentes React ou reescrever campanhas existentes.
 
-## Direção arquitetural do Sistema 11 — ainda não implementada
+## Arquitetura do Sistema 11 — implementado
 
-O [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) está aprovado para especificação e roadmap, não para código. Ele introduz uma regra de apresentação importante: a interface do Sistema é diegética. Status, habilidades, caminhos, treinos, jornadas, receitas e registros podem ser informações que o próprio personagem consulta dentro do mundo.
+O [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) está implementado nas Fatias 11.1 a 11.7: catálogos de energéticos, habilidades e treino; o estado `system` no `GameState` sob o schema 7; a ação `training.train` pelo orquestrador; a Árvore de habilidades derivada; e a aba diegética `Sistema`. Ele introduz uma regra de apresentação importante: a interface do Sistema é diegética. Status, habilidades, caminhos, treinos, jornadas, receitas e registros podem ser informações que o próprio personagem consulta dentro do mundo.
 
 Essa decisão não transforma componentes React em regras de domínio. O fluxo continua:
 
@@ -159,7 +159,7 @@ Arquivos de autoria não podem executar código arbitrário. Condições, custos
 - Númen alimenta aplicações conceituais de Corpo e Poder;
 - reserva, controle, potência, absorção, regeneração e conversão ainda não possuem campos ou fórmulas aprovados.
 
-Não adicionar novos atributos ao `GameState` até a Fatia 11.2 definir quais valores são realmente persistidos. Valores derivados devem continuar fora do save.
+A Fatia 11.2 adicionou `system: { level, entries: [{ skillId, proficiency }] }` ao `GameState` sob o `schemaVersion: 7`. Valores derivados (Árvore, Status e treinos disponíveis) continuam fora do save e são recompostos a partir dos catálogos.
 
 ### Treinamento e tempo
 
@@ -482,7 +482,7 @@ Operações públicas dos gatilhos de mundo:
 - `resolveEligibleWorldTrigger` e `consumeWorldTriggersMatchingNarrative`;
 - `applyWorldNarrativeTrigger`.
 
-A persistência serializa somente o schema 6 validado e pode receber o mesmo `SandboxContext` e catálogo de objetivos em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem argumentos, a aplicação usa as definições padrão e o catálogo inicial com `Primeiros passos`. A validação não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6, 8 e 10 e valida a sede persistida.
+A persistência serializa somente o schema 7 validado e pode receber o mesmo `SandboxContext` e catálogo de objetivos em `serializeGameState`, `parseGameState`, `createPersistence` e `createMemoryPersistence`. Sem argumentos, a aplicação usa as definições padrão e o catálogo inicial com `Primeiros passos`. A validação não grava índices nem definições. `inspectGameState` delega aos validadores dos Sistemas 3 a 6, 8, 10 e 11, valida a sede persistida e o estado de progressão do Sistema, e migra saves v1–v6.
 
 O módulo `modules/sandbox-actions` executa uma ação sandbox sobre o `GameState`: movimento, exploração, coleta, crafting, interação de presença, consumo ou repouso. A transação aplica primeiro os efeitos declarativos da ação, depois o `TimeCost` uma vez por `advanceDayCycle` e então o desgaste das necessidades para a mesma quantidade de períodos. Em seguida recupera populações pelos eventos `day.started`, sincroniza renovação com o horário final e reavalia descobertas, receitas e presenças sem custo extra. Preserva `narrativeSession`, salvo quando `presence.interact` abre uma sessão declarada pelo plano. Não persiste.
 
