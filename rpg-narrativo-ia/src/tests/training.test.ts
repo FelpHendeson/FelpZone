@@ -32,6 +32,7 @@ function method(overrides: Partial<TrainingMethodDefinition> = {}): TrainingMeth
     target: { type: 'skill', id: 'sense' },
     cost: { periods: 1 },
     effects: [{ type: 'skill.proficiency.increase', skillId: 'sense', amount: 1 }],
+    requirements: [],
     ...overrides,
   };
 }

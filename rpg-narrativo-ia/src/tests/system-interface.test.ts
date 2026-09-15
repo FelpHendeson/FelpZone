@@ -29,16 +29,26 @@ describe('Fatia 11.5 — Status diegético derivado', () => {
 
     const methods = status.trainings.map((training) => training.methodId);
     expect(methods).toContain('focused-perception-drill');
-    expect(methods).toContain('body-reinforcement-routine');
+    // A Rotina de Reforço exige nível 2 (marco) e permanece oculta no início.
+    expect(methods).not.toContain('body-reinforcement-routine');
     const drill = status.trainings.find((training) => training.methodId === 'focused-perception-drill');
     expect(drill?.canTrain).toBe(true);
     expect(drill?.costPeriods).toBe(1);
     expect(drill?.effectsSummary).toEqual(['Aprofunda Sentidos Aguçados (+1)']);
   });
 
-  it('reflete o progresso do treino, revelando novos caminhos e proficiência', () => {
+  it('revela e conclui a Rotina após o marco de nível 2, revelando novos caminhos', () => {
+    let state = exploring();
+    for (let i = 0; i < 3; i += 1) {
+      state = executeSandboxAction(state, { type: 'training.train', methodId: 'focused-perception-drill' }, { now }).current;
+    }
+    // Com nível 2, a Rotina fica visível e treinável.
+    const revealedStatus = buildSystemStatus(state);
+    expect(revealedStatus.level).toBe(2);
+    expect(revealedStatus.trainings.find((training) => training.methodId === 'body-reinforcement-routine')?.canTrain).toBe(true);
+
     const trained = executeSandboxAction(
-      exploring(),
+      state,
       { type: 'training.train', methodId: 'body-reinforcement-routine' },
       { now },
     ).current;

@@ -16,6 +16,7 @@ import {
   type TrainingEffect,
   type TrainingMethodDefinition,
 } from '../training';
+import { areMasteryRequirementsMet } from '../mastery';
 import type { SystemSkillView, SystemStatusView, SystemTrainingView } from './types';
 
 export function buildSystemStatus(state: GameState): SystemStatusView {
@@ -51,7 +52,7 @@ function buildTrainings(progress: SkillsProgressState): SystemTrainingView[] {
   const views: SystemTrainingView[] = [];
 
   for (const method of INITIAL_TRAINING.methods) {
-    if (!isTargetKnown(progress, method)) {
+    if (!isTargetKnown(progress, method) || !areMasteryRequirementsMet(method.requirements, progress)) {
       continue;
     }
 

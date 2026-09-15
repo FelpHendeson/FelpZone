@@ -12,6 +12,7 @@ import {
 
 export { MasteryError } from './errors';
 export { applyMastery, areMasteryRequirementsMet, isRequirementMet } from './engine';
+export { describeMasteryRequirement } from './describe';
 
 export const INITIAL_MASTERY = indexMasteryCatalog(INITIAL_MASTERY_CATALOG);
 
@@ -55,6 +56,24 @@ export function indexMasteryCatalog(value: unknown): IndexedMastery {
     throw new MasteryError(inspected.reason);
   }
   return inspected.value;
+}
+
+export function parseMasteryRequirements(value: unknown): MasteryRequirement[] | null {
+  if (value === undefined) {
+    return [];
+  }
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const requirements: MasteryRequirement[] = [];
+  for (const entry of value) {
+    const inspected = inspectRequirement(entry);
+    if (!inspected.ok) {
+      return null;
+    }
+    requirements.push(inspected.value);
+  }
+  return requirements;
 }
 
 export interface MasteryReferenceSets {

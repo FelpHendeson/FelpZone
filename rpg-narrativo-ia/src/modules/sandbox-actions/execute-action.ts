@@ -435,7 +435,11 @@ function executePrimary(
 
   if (action.type === 'training.train') {
     const trainingPlan = planTraining(INITIAL_TRAINING, INITIAL_SKILLS, state.system, action.methodId);
-    const system = applyTrainingPlan(INITIAL_SKILLS, state.system, trainingPlan);
+    const trainedSystem = applyTrainingPlan(INITIAL_SKILLS, state.system, trainingPlan);
+    const mastery = applyMastery(INITIAL_MASTERY, INITIAL_SKILLS, trainedSystem, {
+      type: 'training.completed',
+      methodId: action.methodId,
+    });
     return {
       detail: { type: 'training.train', plan: copyTrainingPlan(trainingPlan) },
       timeCost: { periods: trainingPlan.timeCost.periods },
@@ -446,7 +450,8 @@ function executePrimary(
       presences,
       inventory,
       ...unchanged,
-      system,
+      system: copySystem(mastery.current),
+      mastery,
     };
   }
 

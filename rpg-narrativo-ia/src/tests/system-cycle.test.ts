@@ -39,9 +39,17 @@ describe('Fatia 11.6 — ciclo de fortalecimento ponta a ponta', () => {
     }
     expect(getSkillProficiency(reloaded.state.system, 'sharpened-senses')).toBe(1);
 
-    // 4. Um novo treino revela uma habilidade e um caminho antes ocultos (consequência perceptível)
+    // 4. Treinar até proficiência 3 alcança o nível 2 (marco)
+    let leveled = reloaded.state;
+    for (let i = 0; i < 2; i += 1) {
+      leveled = executeSandboxAction(leveled, { type: 'training.train', methodId: 'focused-perception-drill' }, { now }).current;
+    }
+    expect(getSkillProficiency(leveled.system, 'sharpened-senses')).toBe(3);
+    expect(leveled.system.level).toBe(2);
+
+    // 5. Com o nível 2, a Rotina de Reforço revela uma habilidade e um caminho antes ocultos
     const revealed = executeSandboxAction(
-      reloaded.state,
+      leveled,
       { type: 'training.train', methodId: 'body-reinforcement-routine' },
       { now },
     ).current;
