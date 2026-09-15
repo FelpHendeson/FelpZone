@@ -2724,6 +2724,17 @@ button:disabled {
   font-size: 0.88rem;
 }
 
+.threat-card__cost {
+  margin-top: 6px;
+  color: var(--gold);
+  font-size: 0.82rem;
+}
+
+.combat-result__detail {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 .screen--combat {
   min-height: 100dvh;
   display: flex;

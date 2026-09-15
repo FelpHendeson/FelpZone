@@ -69,6 +69,8 @@ export function ExplorationScreen({
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
       ?.revealedDiscoveryIds ?? [];
   const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags, revealedDiscoveryIds);
+  const fightBlockedReason =
+    state.attributes.saude < 1 ? 'Você está ferido demais para enfrentar uma ameaça agora.' : undefined;
 
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
@@ -112,6 +114,7 @@ export function ExplorationScreen({
               view={view}
               trackedJourney={trackedJourney}
               encounters={encounters}
+              fightBlockedReason={fightBlockedReason}
               onAction={onAction}
               onFight={setCombatEncounterId}
               onOpenActions={() => setActionsOpen(true)}
@@ -182,6 +185,7 @@ function WorldPanel({
   view,
   trackedJourney,
   encounters,
+  fightBlockedReason,
   onAction,
   onFight,
   onOpenActions,
@@ -190,6 +194,7 @@ function WorldPanel({
   view: ExplorationView;
   trackedJourney?: JournalJourneyView;
   encounters: EncounterDefinition[];
+  fightBlockedReason?: string;
   onAction: (action: SandboxAction) => void;
   onFight: (encounterId: string) => void;
   onOpenActions: () => void;
@@ -250,7 +255,7 @@ function WorldPanel({
 
       <div className="world-context-grid">
         <PresenceSection presences={view.presences} onAction={onAction} />
-        <ThreatSection encounters={encounters} onFight={onFight} />
+        <ThreatSection encounters={encounters} blockedReason={fightBlockedReason} onFight={onFight} />
         <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
       </div>
     </div>
@@ -259,9 +264,11 @@ function WorldPanel({
 
 function ThreatSection({
   encounters,
+  blockedReason,
   onFight,
 }: {
   encounters: EncounterDefinition[];
+  blockedReason?: string;
   onFight: (encounterId: string) => void;
 }) {
   if (encounters.length === 0) {
@@ -283,10 +290,12 @@ function ThreatSection({
             <div className="threat-card__body">
               <h3>{encounter.name}</h3>
               <p>{encounter.description}</p>
+              <p className="threat-card__cost">{blockedReason ?? `Enfrentar custa ${formatPeriodCost(encounter.timeCost.periods)}`}</p>
             </div>
             <button
               type="button"
               className="button button--danger button--action"
+              disabled={Boolean(blockedReason)}
               onClick={() => onFight(encounter.id)}
             >
               Enfrentar

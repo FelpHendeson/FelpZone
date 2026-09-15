@@ -58,6 +58,11 @@ export function CombatScreen({ initialState, encounterName, onFinish }: CombatSc
         <section className={`combat-result combat-result--${state.outcome}`} role="status">
           <strong>{outcomeTitle(state.outcome)}</strong>
           <p>{outcomeMessage(state.outcome)}</p>
+          <p className="combat-result__detail">
+            {state.outcome === 'defeat'
+              ? 'Você retorna com a saúde no limite (1). O mundo avança um período.'
+              : `Saúde preservada: ${state.player.health}/${state.player.maxHealth}. O mundo avança um período.`}
+          </p>
           <button
             type="button"
             className="button button--primary button--action"

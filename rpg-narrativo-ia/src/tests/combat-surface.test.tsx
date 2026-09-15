@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { INITIAL_COMBAT, createCombat } from '../modules/combat';
+import { INITIAL_COMBAT, createCombat, resolveTurn, type CombatState } from '../modules/combat';
 import { CombatScreen } from '../ui/screens/CombatScreen';
 
 function render(knownSkillIds: string[]) {
@@ -33,5 +33,24 @@ describe('Fatia 12.5 — superfície de combate', () => {
   it('oculta ações de habilidades ainda não conhecidas', () => {
     const html = render([]);
     expect(html).not.toContain('Golpe Preciso');
+  });
+
+  it('mostra o desfecho com a saúde preservada e o retorno ao mundo', () => {
+    let state: CombatState = createCombat(INITIAL_COMBAT, 'clearing-predator', {
+      playerName: 'Ana Sol',
+      knownSkillIds: ['sharpened-senses'],
+      playerMaxHealth: 80,
+    });
+    let safety = 0;
+    while (state.outcome === 'ongoing' && safety < 50) {
+      state = resolveTurn(INITIAL_COMBAT, state, 'focus-strike');
+      safety += 1;
+    }
+    const html = renderToStaticMarkup(
+      <CombatScreen initialState={state} encounterName="Predador Arisco" onFinish={() => undefined} />,
+    );
+    expect(html).toContain('Vitória');
+    expect(html).toContain('Saúde preservada');
+    expect(html).toContain('Voltar ao mundo');
   });
 });
