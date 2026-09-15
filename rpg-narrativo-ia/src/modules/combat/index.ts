@@ -21,6 +21,11 @@ export {
   resolveTurn,
   type CreateCombatOptions,
 } from './engine';
+export {
+  combatEncounterResolvedFlag,
+  listAvailableEncounters,
+  resolveEncounterOutcome,
+} from './integration';
 
 export const INITIAL_COMBAT = indexCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS);
 
