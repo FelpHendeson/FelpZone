@@ -2,9 +2,9 @@
 
 ## Estado da decisão
 
-**Definido pelo autor e especificado em 15 de setembro de 2026. Implementação ainda não iniciada.**
+**Definido pelo autor em 15 de setembro de 2026 e implementado nas Fatias 12.8 a 12.12.**
 
-O núcleo do Sistema 12 permanece **implementado e consolidado nas Fatias 12.1 a 12.7**. Este documento aprova o recorte complementar das Fatias 12.8 a 12.12 para transformar a prova de combate existente em uma parte coerente do loop de exploração e sobrevivência.
+O núcleo do Sistema 12 (Fatias 12.1 a 12.7) já estava consolidado. As Fatias 12.8 a 12.12 desta consolidação estão implementadas: a ameaça só aparece após a descoberta exigida, a vitalidade de entrada vem da saúde do mundo, o desfecho vira uma única transação atômica (tempo, necessidades, saúde, flag, recompensa e sincronizações) e a interface apresenta custos e consequências.
 
 Esta etapa não cria um Sistema 13. Ela fecha integrações que o protótipo atual ainda simula de forma isolada.
 
