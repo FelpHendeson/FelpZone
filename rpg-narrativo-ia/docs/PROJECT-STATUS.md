@@ -81,7 +81,8 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 8 — Presenças e interações | **Implementado e consolidado** | Catálogo, sincronização, planejamento, `PresenceState` no schema 4, `presence.interact`, interface mobile e conteúdo jogável de Mira (social/narrativa) e do coelho chifrudo (observar/evitar, sem combate). | Sem agenda, IA, combate ou conteúdo extra. |
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
 | Sistema 10 — Objetivos, jornadas e diário | **Implementado e consolidado** | Fatias 10.1–10.5: catálogo, dez critérios, schema 6, sincronização após ações/escolhas, diário mobile e jornada `Primeiros passos` ponta a ponta. | O acompanhamento não persiste por decisão do recorte; não há recompensas automáticas. |
-| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Implementado e consolidado (Fatias 11.1 a 11.7)** | Vocabulário de Eteris/Númen e Corpo/Poder; catálogos de habilidades, caminhos e treino; `GameState.system` no schema 7; ação de treino com custo temporal único; Árvore de habilidades com sigilo; aba mobile `Sistema` com Status e confirmação de treino. | Balanceamento, Jardim, combate e conteúdo definitivo seguem fora do escopo; números e nomes são protótipos. |
+| Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Implementado e consolidado (Fatias 11.1 a 11.7)** | Vocabulário de Eteris/Númen e Corpo/Poder; catálogos de habilidades, caminhos e treino; `GameState.system` no schema 7; ação de treino com custo temporal único; Árvore de habilidades com sigilo; aba mobile `Sistema` com Status e confirmação de treino. | Balanceamento, Jardim e conteúdo definitivo seguem fora do escopo; números e nomes são protótipos. |
+| Sistema 12 — Banco de ações e combate | **Implementado e consolidado (Fatias 12.1 a 12.7)** | Catálogos de ações, combatentes e encontros; motor de turno determinístico com dano, cura e escudo; IA de oponente por regras; habilidades do Sistema 11 liberam ações; encontro jogável no mundo com desfecho aplicado ao `GameState` sem mudar o schema; tela de combate mobile. | Posicionamento, condições de status ricas, grupos, balanceamento definitivo e itens seguem fora do escopo. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -109,11 +110,11 @@ Eteris é energia ambiental. Númen é Eteris interiorizado e individualizado po
 
 O contrato e as fatias propostas estão em [Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
 
-### Banco de ações e combate — direção definida, sistema futuro ainda sem número
+### Banco de ações e combate — implementado no Sistema 12
 
-O combate futuro deverá usar ações físicas e mágicas declaradas por dados, com condições de ativação, custos, tempo de execução, efeitos e encadeamentos resolvidos por turno. O modelo não deve equiparar inimigo a monstro: pessoas, criaturas e o personagem precisam poder participar por contratos compatíveis.
+O combate usa ações declaradas por dados (velocidade, alvo e efeitos de dano, cura e escudo), resolvidas por turno de forma determinística. Pessoas, criaturas e o personagem participam pelo mesmo contrato de combatente; inimigo não é monstro por definição. Habilidades conhecidas do Sistema 11 liberam ações extras, e o desfecho gera consequências no `GameState` sem alterar o schema.
 
-Ainda não foram definidos atributos e fórmulas, comportamento de oponentes, dano, defesa, posicionamento ou consequências de vitória, fuga e derrota. Portanto, combate não integra o Sistema 11 e não possui implementação autorizada.
+Posicionamento, iniciativa por frações de turno, condições de status ricas, grupos, itens e balanceamento definitivo permanecem fora do escopo. Contrato e fatias em [Sistema 12 — Banco de ações e combate](SYSTEM-ACTION-COMBAT.md).
 
 ### Presença e interação com NPCs e criaturas — sistema aprovado
 
@@ -187,10 +188,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 11 estão implementados e consolidados.** O Sistema 11 entregou, nas Fatias 11.1 a 11.7, o núcleo diegético do Sistema: vocabulário energético, catálogos validados, `GameState.system` no schema 7, treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Consulte [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+**Os Sistemas 1 a 12 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, integrado ao mundo e reutilizando as habilidades do Sistema 11. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) e [Sistema 12](SYSTEM-ACTION-COMBAT.md).
 
 Antes da próxima implementação:
 
-1. escolher e especificar o próximo eixo (por exemplo, o banco de ações e combate) com contrato e autorização próprios, reutilizando os contratos públicos já expostos pelo Sistema 11;
-2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto e a migração sem efeitos de gameplay;
-3. não transformar automaticamente detalhes ainda em discussão — fórmulas, raças, Jardim, combate, agenda, equipamentos ou recompensas — em requisitos.
+1. escolher e especificar o próximo eixo (por exemplo, expansão de conteúdo de combate, assentamentos ou trama principal) com contrato e autorização próprios;
+2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto, o determinismo do combate e a migração sem efeitos de gameplay;
+3. não transformar automaticamente detalhes ainda em discussão — fórmulas de balanceamento, raças, Jardim, posicionamento de combate, agenda ou equipamentos — em requisitos.

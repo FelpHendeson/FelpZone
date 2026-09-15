@@ -6,7 +6,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-Os Sistemas 1 a 11 estão implementados e consolidados. O Sistema 10 — Objetivos, jornadas e registro de descobertas — entrega domínio, sincronização após ações e escolhas narrativas, diário mobile e a jornada jogável `Primeiros passos`.
+Os Sistemas 1 a 12 estão implementados e consolidados. O Sistema 12 — Banco de ações e combate — entrega combate por turnos determinístico integrado ao mundo, reutilizando as habilidades do Sistema 11. Leia [Sistema 12](docs/SYSTEM-ACTION-COMBAT.md).
 
 O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **implementado e consolidado nas Fatias 11.1 a 11.7** nos módulos `energetics`, `skills`, `training` e `system-interface`: vocabulário energético, catálogos validados, `GameState.system` no schema 7, ação de treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Números, nomes e conteúdo de habilidades são protótipos. Combate tem uma direção conceitual de banco de ações que pode reutilizar os contratos públicos do Sistema 11, mas continua sem sistema numerado, fórmulas ou implementação aprovada.
 
@@ -36,7 +36,7 @@ O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **im
 - Não invente atributos, fórmulas de nível, curvas, velocidade de conjuração, regras de fusão, raças ou consequências de combate.
 - Separe catálogos de habilidades, personagens e campanhas do estado persistido; prefira dados declarativos validados e nunca código executável em JSON.
 - O cânone atual garante Sistema a todos os humanos. Protagonista não humano, raças não humanas concretas e Sistema universal para todos os seres permanecem em discussão.
-- O futuro contrato de combatente não deve equivaler oponente a monstro, mas não implemente combate dentro do Sistema 11.
+- O contrato de combatente do Sistema 12 não equivale oponente a monstro: pessoas e criaturas compartilham o mesmo contrato, diferindo apenas por conteúdo.
 
 ## Entrega esperada
 
