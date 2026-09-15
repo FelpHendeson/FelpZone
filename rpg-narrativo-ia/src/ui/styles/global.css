@@ -2027,6 +2027,38 @@ button:disabled {
   color: var(--accent-system);
 }
 
+.training-requirements {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--gold);
+}
+
+.system-milestone {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-soft);
+}
+
+.system-milestone__list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.system-milestone__list li {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.system-milestone__list li.is-met {
+  color: var(--accent-strong);
+}
+
 /* UI consolidation — adventure first, details on demand */
 .screen--exploration {
   width: min(100%, 70rem);

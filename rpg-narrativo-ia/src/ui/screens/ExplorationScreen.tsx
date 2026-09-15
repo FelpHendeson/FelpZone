@@ -752,6 +752,19 @@ function SystemPanel({
         <span className="system-console__level">Nível <strong>{status.level}</strong></span>
       </header>
 
+      {status.nextMilestone ? (
+        <section className="system-milestone" aria-label="Próximo marco">
+          <span className="section-kicker">Próximo marco · Nível {status.nextMilestone.level}</span>
+          <ul className="system-milestone__list">
+            {status.nextMilestone.requirements.map((requirement) => (
+              <li key={requirement.text} className={requirement.met ? 'is-met' : undefined}>
+                <span aria-hidden="true">{requirement.met ? '✓' : '○'}</span> {requirement.text}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <div className="system-disclosure-list">
         <details className="system-disclosure" open>
           <summary>
@@ -846,6 +859,9 @@ function SystemPanel({
                       <ul className="training-effects" aria-label="Efeitos do treino">
                         {training.effectsSummary.map((effect) => <li key={effect}>{effect}</li>)}
                       </ul>
+                      {training.requirementsSummary.length > 0 ? (
+                        <p className="training-requirements">Requisitos: {training.requirementsSummary.join(', ')}</p>
+                      ) : null}
                       <div className="action-card__footer">
                         <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
                         <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => setPending(training)}>Treinar</button>

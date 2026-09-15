@@ -8,6 +8,7 @@ import {
   type CombatOutcome,
   type CombatState,
 } from '../modules/combat';
+import { describeMasteryProgress } from '../modules/system-interface';
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
@@ -180,7 +181,11 @@ export function App() {
       }
 
       setError(null);
-      setFeedback(attempt.feedback);
+      setFeedback(
+        [attempt.feedback, attempt.result.mastery ? describeMasteryProgress(attempt.result.mastery) : '']
+          .filter(Boolean)
+          .join(' '),
+      );
       setScreen(toAppScreen(attempt.current));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível salvar a ação.');
@@ -206,7 +211,15 @@ export function App() {
         return;
       }
       setError(null);
-      setFeedback([combatFeedback(resolution.outcome), attempt.feedback].filter(Boolean).join(' '));
+      setFeedback(
+        [
+          combatFeedback(resolution.outcome),
+          attempt.feedback,
+          attempt.result.mastery ? describeMasteryProgress(attempt.result.mastery) : '',
+        ]
+          .filter(Boolean)
+          .join(' '),
+      );
       setScreen(toAppScreen(attempt.current));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível concluir o combate.');
