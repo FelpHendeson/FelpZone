@@ -23,8 +23,8 @@ export function JournalPanel({ view, trackedJourneyId, onTrackJourney }: Journal
       <header className="panel-heading panel-heading--split">
         <div>
           <span className="section-kicker">Memória do sobrevivente</span>
-          <h1>Jornadas e diário</h1>
-          <p>Consulte seus próximos passos e tudo o que já encontrou. Abrir o diário não consome tempo.</p>
+          <h1>Jornadas</h1>
+          <p>Escolha o que acompanhar. Registros do mundo e memórias ficam recolhidos até você precisar deles.</p>
         </div>
         <span className="journal-mark" aria-hidden="true">☷</span>
       </header>
@@ -115,29 +115,31 @@ function JourneySection({
   onTrackJourney: (journeyId: string | null) => void;
 }) {
   return (
-    <section className="journal-section" aria-labelledby={id}>
-      <div className="section-heading">
+    <details className="journal-section" open={id === 'main-journeys'}>
+      <summary className="journal-section__summary">
         <div>
           <span className="section-kicker">{kicker}</span>
           <h2 id={id}>{title}</h2>
         </div>
         <span className="section-count">{journeys.length}</span>
+      </summary>
+      <div className="journal-section__body">
+        {journeys.length === 0 ? (
+          <p className="journal-empty">{empty}</p>
+        ) : (
+          <div className="journey-list">
+            {journeys.map((journey) => (
+              <JourneyCard
+                key={journey.id}
+                journey={journey}
+                tracked={trackedJourneyId === journey.id}
+                onTrackJourney={onTrackJourney}
+              />
+            ))}
+          </div>
+        )}
       </div>
-      {journeys.length === 0 ? (
-        <p className="journal-empty">{empty}</p>
-      ) : (
-        <div className="journey-list">
-          {journeys.map((journey) => (
-            <JourneyCard
-              key={journey.id}
-              journey={journey}
-              tracked={trackedJourneyId === journey.id}
-              onTrackJourney={onTrackJourney}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+    </details>
   );
 }
 
@@ -204,73 +206,79 @@ function JourneyCard({
 
 function LocationsSection({ locations }: { locations: JournalLocationView[] }) {
   return (
-    <section className="journal-section" aria-labelledby="journal-locations">
-      <div className="section-heading">
+    <details className="journal-section">
+      <summary className="journal-section__summary">
         <div><span className="section-kicker">Mapa registrado</span><h2 id="journal-locations">Locais visitados</h2></div>
         <span className="section-count">{locations.length}</span>
+      </summary>
+      <div className="journal-section__body">
+        {locations.length === 0 ? <p className="journal-empty">Nenhum local foi visitado.</p> : (
+          <div className="journal-record-list">
+            {locations.map((location) => (
+              <article key={location.id} className="journal-record">
+                <div className="journal-record__heading">
+                  <span aria-hidden="true">◇</span>
+                  <div><h3>{location.name}</h3><small>{location.progress}% explorado</small></div>
+                </div>
+                <p>{location.description}</p>
+                {location.discoveries.length > 0 ? (
+                  <ul className="discovery-tags" aria-label={`Descobertas em ${location.name}`}>
+                    {location.discoveries.map((discovery) => <li key={discovery.id}>{discovery.name}</li>)}
+                  </ul>
+                ) : <small className="journal-record__empty">Nenhuma descoberta registrada.</small>}
+              </article>
+            ))}
+          </div>
+        )}
       </div>
-      {locations.length === 0 ? <p className="journal-empty">Nenhum local foi visitado.</p> : (
-        <div className="journal-record-list">
-          {locations.map((location) => (
-            <article key={location.id} className="journal-record">
-              <div className="journal-record__heading">
-                <span aria-hidden="true">◇</span>
-                <div><h3>{location.name}</h3><small>{location.progress}% explorado</small></div>
-              </div>
-              <p>{location.description}</p>
-              {location.discoveries.length > 0 ? (
-                <ul className="discovery-tags" aria-label={`Descobertas em ${location.name}`}>
-                  {location.discoveries.map((discovery) => <li key={discovery.id}>{discovery.name}</li>)}
-                </ul>
-              ) : <small className="journal-record__empty">Nenhuma descoberta registrada.</small>}
-            </article>
-          ))}
-        </div>
-      )}
-    </section>
+    </details>
   );
 }
 
 function PresencesSection({ presences }: { presences: JournalPresenceView[] }) {
   return (
-    <section className="journal-section" aria-labelledby="journal-presences">
-      <div className="section-heading">
+    <details className="journal-section">
+      <summary className="journal-section__summary">
         <div><span className="section-kicker">Sinais de vida</span><h2 id="journal-presences">Presenças conhecidas</h2></div>
         <span className="section-count">{presences.length}</span>
+      </summary>
+      <div className="journal-section__body">
+        {presences.length === 0 ? <p className="journal-empty">Você ainda não encontrou ninguém.</p> : (
+          <ul className="known-presence-list">
+            {presences.map((presence) => (
+              <li key={presence.presenceId}>
+                <span className="known-presence-list__icon" aria-hidden="true">{presence.kind === 'npc' ? '♙' : '◈'}</span>
+                <div><strong>{presence.name}</strong><p>{presence.description}</p></div>
+                <span className="condition-chip">{presence.status === 'resolved' ? 'Concluída' : 'Conhecida'}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
-      {presences.length === 0 ? <p className="journal-empty">Você ainda não encontrou ninguém.</p> : (
-        <ul className="known-presence-list">
-          {presences.map((presence) => (
-            <li key={presence.presenceId}>
-              <span className="known-presence-list__icon" aria-hidden="true">{presence.kind === 'npc' ? '♙' : '◈'}</span>
-              <div><strong>{presence.name}</strong><p>{presence.description}</p></div>
-              <span className="condition-chip">{presence.status === 'resolved' ? 'Concluída' : 'Conhecida'}</span>
-            </li>
-          ))}
-        </ul>
-      )}
-    </section>
+    </details>
   );
 }
 
 function HistorySection({ history }: { history: JournalView['history'] }) {
   return (
-    <section className="journal-section" aria-labelledby="journal-history">
-      <div className="section-heading">
+    <details className="journal-section">
+      <summary className="journal-section__summary">
         <div><span className="section-kicker">Memórias</span><h2 id="journal-history">Registro narrativo</h2></div>
         <span className="section-count">{history.length}</span>
+      </summary>
+      <div className="journal-section__body">
+        {history.length === 0 ? <p className="journal-empty">Suas escolhas importantes aparecerão aqui.</p> : (
+          <ol className="journal-history">
+            {history.map((entry, index) => (
+              <li key={`${entry.eventId}-${entry.choiceId}-${index}`}>
+                <span aria-hidden="true">{entry.notable ? '✦' : '·'}</span>
+                <div><strong>{entry.eventTitle}</strong><p>{entry.choiceLabel}</p></div>
+              </li>
+            ))}
+          </ol>
+        )}
       </div>
-      {history.length === 0 ? <p className="journal-empty">Suas escolhas importantes aparecerão aqui.</p> : (
-        <ol className="journal-history">
-          {history.map((entry, index) => (
-            <li key={`${entry.eventId}-${entry.choiceId}-${index}`}>
-              <span aria-hidden="true">{entry.notable ? '✦' : '·'}</span>
-              <div><strong>{entry.eventTitle}</strong><p>{entry.choiceLabel}</p></div>
-            </li>
-          ))}
-        </ol>
-      )}
-    </section>
+    </details>
   );
 }
 

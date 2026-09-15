@@ -17,6 +17,7 @@ import {
   type EncounterDefinition,
 } from '../../modules/combat';
 import { CombatScreen } from './CombatScreen';
+import { AppDialog } from '../components/AppDialog';
 import { AttributeSummary } from '../components/AttributeSummary';
 import { BottomNavigation, type GameTab } from '../components/BottomNavigation';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -60,6 +61,7 @@ export function ExplorationScreen({
   onExit,
 }: ExplorationScreenProps) {
   const [activeTab, setActiveTab] = useState<GameTab>('world');
+  const [actionsOpen, setActionsOpen] = useState(false);
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
@@ -109,12 +111,19 @@ export function ExplorationScreen({
               encounters={encounters}
               onAction={onAction}
               onFight={setCombatEncounterId}
-              onOpenActions={() => setActiveTab('actions')}
+              onOpenActions={() => setActionsOpen(true)}
               onOpenJournal={() => setActiveTab('journal')}
             />
           ) : null}
-          {activeTab === 'actions' ? <ActionsPanel view={view} onAction={onAction} /> : null}
-          {activeTab === 'system' ? <SystemPanel status={buildSystemStatus(state)} onAction={onAction} /> : null}
+          {activeTab === 'system' ? (
+            <SystemPanel
+              status={buildSystemStatus(state)}
+              state={state}
+              campaign={campaign}
+              abilityName={view.abilityName}
+              onAction={onAction}
+            />
+          ) : null}
           {activeTab === 'journal' ? (
             <JournalPanel
               view={journal}
@@ -123,9 +132,14 @@ export function ExplorationScreen({
             />
           ) : null}
           {activeTab === 'inventory' ? <InventoryPanel items={view.inventory} onAction={onAction} /> : null}
-          {activeTab === 'character' ? (
-            <CharacterPanel state={state} campaign={campaign} abilityName={view.abilityName} />
-          ) : null}
+
+          <AppDialog
+            open={actionsOpen}
+            title={`Ações em ${view.location.name}`}
+            onClose={() => setActionsOpen(false)}
+          >
+            <ActionsPanel view={view} onAction={onAction} compact />
+          </AppDialog>
         </fieldset>
       </div>
 
@@ -194,53 +208,48 @@ function WorldPanel({
               <span style={{ width: `${view.location.progress}%` }} />
             </div>
           </div>
+          <div className="location-hero__actions">
+            <button
+              type="button"
+              className="button button--primary location-hero__primary"
+              disabled={!view.location.canExplore}
+              onClick={() => onAction({ type: 'exploration.explore' })}
+            >
+              <span aria-hidden="true">⌕</span>
+              <span>
+                <strong>Explorar</strong>
+                <small>{view.location.exploreDisabledReason ?? formatPeriodCost(view.location.exploreCostPeriods)}</small>
+              </span>
+            </button>
+            <button type="button" className="button location-hero__secondary" onClick={onOpenActions}>
+              <span aria-hidden="true">⌁</span>
+              <span>
+                <strong>Ações locais</strong>
+                <small>{view.resources.length + view.recipes.length} disponíveis</small>
+              </span>
+            </button>
+          </div>
         </div>
       </section>
 
-      <p className="world-intro">{EXPLORATION_INTRO}</p>
+      <details className="world-briefing">
+        <summary>
+          <span aria-hidden="true">❖</span>
+          <strong>Orientação do Sistema</strong>
+          <small>Consultar</small>
+        </summary>
+        <p>{EXPLORATION_INTRO}</p>
+      </details>
 
       {trackedJourney ? (
         <TrackedJourneyCard journey={trackedJourney} onOpenJournal={onOpenJournal} />
       ) : null}
 
-      <section className="primary-action-card">
-        <div>
-          <span className="section-kicker">Ação principal</span>
-          <h2>Investigar a redondeza</h2>
-          <p>
-            {view.location.exploreDisabledReason ??
-              `Procure passagens, recursos e sinais de vida. Custa ${formatPeriodCost(view.location.exploreCostPeriods)}.`}
-          </p>
-        </div>
-        <button
-          type="button"
-          className="button button--primary button--action"
-          disabled={!view.location.canExplore}
-          onClick={() => onAction({ type: 'exploration.explore' })}
-        >
-          <span aria-hidden="true">⌕</span>
-          Explorar local
-        </button>
-      </section>
-
-      <div className="quick-actions" aria-label="Atalhos do local">
-        <button type="button" onClick={onOpenActions}>
-          <span aria-hidden="true">♧</span>
-          <strong>Coletar</strong>
-          <small>{countLabel(view.resources.length, 'ponto')}</small>
-        </button>
-        <button type="button" onClick={onOpenActions}>
-          <span aria-hidden="true">⚒</span>
-          <strong>Fabricar</strong>
-          <small>{countLabel(view.recipes.length, 'receita')}</small>
-        </button>
+      <div className="world-context-grid">
+        <PresenceSection presences={view.presences} onAction={onAction} />
+        <ThreatSection encounters={encounters} onFight={onFight} />
+        <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
       </div>
-
-      <PresenceSection presences={view.presences} onAction={onAction} />
-
-      <ThreatSection encounters={encounters} onFight={onFight} />
-
-      <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
     </div>
   );
 }
@@ -308,8 +317,13 @@ function PresenceSection({
       </div>
 
       <div className="presence-card-list">
-        {presences.map((presence) => (
-          <PresenceCard key={presence.presenceId} presence={presence} onAction={onAction} />
+        {presences.map((presence, index) => (
+          <PresenceCard
+            key={presence.presenceId}
+            presence={presence}
+            onAction={onAction}
+            initiallyOpen={index === 0}
+          />
         ))}
       </div>
     </section>
@@ -319,9 +333,11 @@ function PresenceSection({
 function PresenceCard({
   presence,
   onAction,
+  initiallyOpen,
 }: {
   presence: PresenceView;
   onAction: (action: SandboxAction) => void;
+  initiallyOpen: boolean;
 }) {
   const resolved = presence.status === 'resolved';
   const cardClass =
@@ -331,19 +347,23 @@ function PresenceCard({
 
   return (
     <article className={cardClass} aria-labelledby={`${presence.presenceId}-name`}>
-      <ImagePlaceholder
-        kind={presence.imageKind}
-        label={presence.imageLabel}
-        className="presence-card__media"
-      />
-      <div className="presence-card__body">
-        <div className="presence-card__title">
-          <h3 id={`${presence.presenceId}-name`}>{presence.name}</h3>
-          <p className="presence-card__meta">
-            <span aria-hidden="true">{presence.kindSymbol}</span>
-            {presence.kindLabel} · {presence.statusLabel}
-          </p>
-        </div>
+      <details open={initiallyOpen}>
+        <summary className="presence-card__summary">
+          <ImagePlaceholder
+            kind={presence.imageKind}
+            label={presence.imageLabel}
+            className="presence-card__media"
+          />
+          <span className="presence-card__title">
+            <h3 id={`${presence.presenceId}-name`}>{presence.name}</h3>
+            <span className="presence-card__meta">
+              <span aria-hidden="true">{presence.kindSymbol}</span>
+              {presence.kindLabel} · {presence.statusLabel}
+            </span>
+          </span>
+          <span className="presence-card__chevron" aria-hidden="true">⌄</span>
+        </summary>
+        <div className="presence-card__body">
         <p>{presence.description}</p>
         {presence.trust !== undefined ? (
           <p className="presence-card__trust">Confiança: {presence.trust}</p>
@@ -395,7 +415,8 @@ function PresenceCard({
             })}
           </div>
         )}
-      </div>
+        </div>
+      </details>
     </article>
   );
 }
@@ -430,34 +451,40 @@ function LocationMap({
           <p>Explore o local para encontrar passagens e revelar novos destinos.</p>
         </div>
       ) : (
-        <div className="map-tree">
-          {parents.length > 0 ? (
-            <div className="map-tree__row map-tree__row--parent">
-              {parents.map((destination) => (
-                <MapNode key={destination.locationId} destination={destination} onAction={onAction} />
-              ))}
-            </div>
-          ) : null}
-          <div className="map-tree__row map-tree__row--current">
-            <span className="map-node map-node--current">
-              <span className="map-node__marker" aria-hidden="true">●</span>
-              <strong>{currentName}</strong>
-              <small>Você está aqui</small>
-            </span>
-            {siblings.map((destination) => (
-              <MapNode key={destination.locationId} destination={destination} onAction={onAction} />
-            ))}
+        <div className="map-route-list">
+          <div className="map-current-location">
+            <span className="map-node__marker" aria-hidden="true">●</span>
+            <span><small>Você está aqui</small><strong>{currentName}</strong></span>
           </div>
-          {children.length > 0 ? (
-            <div className="map-tree__row map-tree__row--children">
-              {children.map((destination) => (
-                <MapNode key={destination.locationId} destination={destination} onAction={onAction} />
-              ))}
-            </div>
-          ) : null}
+          <MapGroup label="Retornar" destinations={parents} onAction={onAction} />
+          <MapGroup label="Mesmo território" destinations={siblings} onAction={onAction} />
+          <MapGroup label="Seguir adiante" destinations={children} onAction={onAction} />
         </div>
       )}
     </section>
+  );
+}
+
+function MapGroup({
+  label,
+  destinations,
+  onAction,
+}: {
+  label: string;
+  destinations: DestinationView[];
+  onAction: (action: SandboxAction) => void;
+}) {
+  if (destinations.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="map-route-group">
+      <span className="map-route-group__label">{label}</span>
+      {destinations.map((destination) => (
+        <MapNode key={destination.locationId} destination={destination} onAction={onAction} />
+      ))}
+    </div>
   );
 }
 
@@ -470,20 +497,31 @@ function MapNode({ destination, onAction }: { destination: DestinationView; onAc
       onClick={() => onAction({ type: 'navigation.move', locationId: destination.locationId })}
     >
       <span className="map-node__marker" aria-hidden="true">{destination.accessible ? '○' : '▒'}</span>
-      <strong>{destination.name}</strong>
-      <small>{destination.blockedReason ?? `${destination.relationLabel} · ${formatPeriodCost(destination.costPeriods)}`}</small>
+      <span className="map-node__copy">
+        <strong>{destination.name}</strong>
+        <small>{destination.blockedReason ?? `${destination.relationLabel} · ${formatPeriodCost(destination.costPeriods)}`}</small>
+      </span>
+      <span className="map-node__arrow" aria-hidden="true">→</span>
     </button>
   );
 }
 
-function ActionsPanel({ view, onAction }: { view: ExplorationView; onAction: (action: SandboxAction) => void }) {
+function ActionsPanel({
+  view,
+  onAction,
+  compact = false,
+}: {
+  view: ExplorationView;
+  onAction: (action: SandboxAction) => void;
+  compact?: boolean;
+}) {
   return (
-    <div className="tab-panel">
-      <header className="panel-heading">
+    <div className={compact ? 'tab-panel tab-panel--action-drawer' : 'tab-panel'}>
+      {!compact ? <header className="panel-heading">
         <span className="section-kicker">{view.location.name}</span>
         <h1>Ações disponíveis</h1>
         <p>Veja custos e resultados antes de comprometer um período.</p>
-      </header>
+      </header> : <p className="action-drawer__intro">Escolha uma atividade. O custo aparece antes de você agir.</p>}
 
       <section className="action-section" aria-labelledby="rest-title">
         <div className="section-heading">
@@ -674,200 +712,139 @@ function NeedEffectList({ effects, compact = false }: { effects: NeedEffectView[
   );
 }
 
-function CharacterPanel({ state, campaign, abilityName }: { state: GameState; campaign: Campaign; abilityName: string }) {
-  return (
-    <div className="tab-panel">
-      <header className="character-card">
-        <span className="character-card__avatar" aria-hidden="true">♙</span>
-        <span className="section-kicker">Sobrevivente</span>
-        <h1>{state.character.firstName} {state.character.lastName}</h1>
-        <p>{abilityName}</p>
-      </header>
-
-      <section className="character-section">
-        <div className="section-heading"><h2>Condição</h2></div>
-        <AttributeSummary attributes={state.attributes} />
-      </section>
-
-      <section className="character-section">
-        <div className="section-heading">
-          <h2>Relações</h2>
-          <span className="section-count">{state.relationships.length}</span>
-        </div>
-        {state.relationships.length === 0 ? (
-          <EmptyAction message="Nenhum vínculo foi formado." />
-        ) : (
-          <ul className="relationship-list">
-            {state.relationships.map((relationship) => (
-              <li key={relationship.characterId}>
-                <span className="relationship-list__avatar" aria-hidden="true">♙</span>
-                <div>
-                  <strong>{findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}</strong>
-                  <span>Confiança</span>
-                </div>
-                <strong>{relationship.trust}</strong>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-    </div>
-  );
-}
-
 function SystemPanel({
   status,
+  state,
+  campaign,
+  abilityName,
   onAction,
 }: {
   status: SystemStatusView;
+  state: GameState;
+  campaign: Campaign;
+  abilityName: string;
   onAction: (action: SandboxAction) => void;
 }) {
   const [pending, setPending] = useState<SystemTrainingView | null>(null);
 
   return (
-    <div className="tab-panel">
-      <header className="panel-heading">
-        <span className="section-kicker">Sistema · {status.characterName}</span>
-        <h1>Status</h1>
-        <p>O Sistema organiza o que você já compreende sobre o próprio poder. Nível {status.level}.</p>
+    <div className="tab-panel system-panel">
+      <header className="system-console">
+        <span className="system-console__mark" aria-hidden="true">❖</span>
+        <div>
+          <span className="section-kicker">Sistema conectado</span>
+          <h1>{status.characterName}</h1>
+          <p>Conhecimento, condição e desenvolvimento reunidos em uma única interface.</p>
+        </div>
+        <span className="system-console__level">Nível <strong>{status.level}</strong></span>
       </header>
 
-      <section className="system-section" aria-labelledby="system-energy-title">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Fundamentos</span>
-            <h2 id="system-energy-title">Eteris e Númen</h2>
+      <div className="system-disclosure-list">
+        <details className="system-disclosure" open>
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">♙</span>
+            <span><strong>Identidade e condição</strong><small>{abilityName}</small></span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} />
           </div>
-        </div>
-        <ul className="system-note-list">
-          {status.energies.map((energy) => (
-            <li key={energy.id}>
-              <strong>{energy.name}</strong>
-              <p>{energy.description}</p>
-            </li>
-          ))}
-        </ul>
-        <ul className="system-chip-list" aria-label="Campos de aplicação">
-          {status.fields.map((field) => (
-            <li key={field.id} className="system-chip">
-              <strong>{field.name}</strong>
-              <span>{field.description}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+        </details>
 
-      <section className="system-section" aria-labelledby="system-skills-title">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Domínio atual</span>
-            <h2 id="system-skills-title">Habilidades conhecidas</h2>
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">∞</span>
+            <span><strong>Eteris e Númen</strong><small>Fundamentos conhecidos</small></span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            <ul className="system-note-list">
+              {status.energies.map((energy) => (
+                <li key={energy.id}><strong>{energy.name}</strong><p>{energy.description}</p></li>
+              ))}
+            </ul>
+            <ul className="system-chip-list" aria-label="Campos de aplicação">
+              {status.fields.map((field) => (
+                <li key={field.id} className="system-chip"><strong>{field.name}</strong><span>{field.description}</span></li>
+              ))}
+            </ul>
           </div>
-          <span className="section-count">{status.knownSkills.length}</span>
-        </div>
-        {status.knownSkills.length === 0 ? (
-          <EmptyAction message="O Sistema ainda não registrou habilidades." />
-        ) : (
-          <ul className="system-skill-list">
-            {status.knownSkills.map((skill) => (
-              <li key={skill.skillId} className="system-skill">
-                <div className="system-skill__head">
-                  <strong>{skill.name}</strong>
-                  <span>Proficiência {skill.proficiency}</span>
-                </div>
-                <p>{skill.description}</p>
-                <small>{skill.pathName}</small>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
+        </details>
 
-      <section className="system-section" aria-labelledby="system-tree-title">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Caminhos conhecidos</span>
-            <h2 id="system-tree-title">Árvore de habilidades</h2>
-          </div>
-        </div>
-        {status.tree.paths.length === 0 ? (
-          <EmptyAction message="Nenhum caminho revelado ainda." />
-        ) : (
-          <div className="system-tree">
-            {status.tree.paths.map((path) => (
-              <article key={path.pathId} className="system-tree__path">
-                <header className="system-tree__path-head">
-                  <strong>{path.name}</strong>
-                  <span>{path.field === 'corpo' ? 'Corpo' : 'Poder'}</span>
-                </header>
-                <ul className="system-tree__nodes">
-                  {path.nodes.map((node) => (
-                    <li key={node.skillId} className={`system-tree__node system-tree__node--${node.status}`}>
-                      <strong>{node.name}</strong>
-                      <span>
-                        {node.status === 'known'
-                          ? `Conhecida · proficiência ${node.proficiency}`
-                          : 'Possível de desenvolver'}
-                      </span>
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⌘</span>
+            <span><strong>Habilidades e caminhos</strong><small>{status.knownSkills.length} conhecidas</small></span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body system-disclosure__body--stack">
+            <section aria-labelledby="system-skills-title">
+              <div className="section-heading"><h2 id="system-skills-title">Habilidades conhecidas</h2><span className="section-count">{status.knownSkills.length}</span></div>
+              {status.knownSkills.length === 0 ? <EmptyAction message="O Sistema ainda não registrou habilidades." /> : (
+                <ul className="system-skill-list">
+                  {status.knownSkills.map((skill) => (
+                    <li key={skill.skillId} className="system-skill">
+                      <div className="system-skill__head"><strong>{skill.name}</strong><span>Proficiência {skill.proficiency}</span></div>
+                      <p>{skill.description}</p><small>{skill.pathName}</small>
                     </li>
                   ))}
                 </ul>
-                {path.hasHiddenSkills ? (
-                  <small className="system-tree__hidden">
-                    Há possibilidades ainda não compreendidas neste caminho
-                  </small>
-                ) : null}
-              </article>
-            ))}
-          </div>
-        )}
-      </section>
+              )}
+            </section>
 
-      <section className="system-section" aria-labelledby="system-training-title">
-        <div className="section-heading">
-          <div>
-            <span className="section-kicker">Métodos conhecidos</span>
-            <h2 id="system-training-title">Treinamento</h2>
-          </div>
-          <span className="section-count">{status.trainings.length}</span>
-        </div>
-        {status.trainings.length === 0 ? (
-          <EmptyAction message="Nenhum método de treino disponível agora." />
-        ) : (
-          <div className="action-card-list">
-            {status.trainings.map((training) => (
-              <article
-                key={training.methodId}
-                className={training.canTrain ? 'action-card' : 'action-card action-card--blocked'}
-              >
-                <div className="action-card__body">
-                  <div className="action-card__title">
-                    <h3>{training.name}</h3>
-                    <span>{training.targetLabel}</span>
-                  </div>
-                  <p>{training.description}</p>
-                  <ul className="training-effects" aria-label="Efeitos do treino">
-                    {training.effectsSummary.map((effect) => (
-                      <li key={effect}>{effect}</li>
-                    ))}
-                  </ul>
-                  <div className="action-card__footer">
-                    <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
-                    <button
-                      type="button"
-                      className="button button--compact"
-                      disabled={!training.canTrain}
-                      onClick={() => setPending(training)}
-                    >
-                      Treinar
-                    </button>
-                  </div>
+            <section aria-labelledby="system-tree-title">
+              <div className="section-heading"><h2 id="system-tree-title">Árvore de habilidades</h2></div>
+              {status.tree.paths.length === 0 ? <EmptyAction message="Nenhum caminho revelado ainda." /> : (
+                <div className="system-tree">
+                  {status.tree.paths.map((path) => (
+                    <article key={path.pathId} className="system-tree__path">
+                      <header className="system-tree__path-head"><strong>{path.name}</strong><span>{path.field === 'corpo' ? 'Corpo' : 'Poder'}</span></header>
+                      <ul className="system-tree__nodes">
+                        {path.nodes.map((node) => (
+                          <li key={node.skillId} className={`system-tree__node system-tree__node--${node.status}`}>
+                            <strong>{node.name}</strong>
+                            <span>{node.status === 'known' ? `Conhecida · proficiência ${node.proficiency}` : 'Possível de desenvolver'}</span>
+                          </li>
+                        ))}
+                      </ul>
+                      {path.hasHiddenSkills ? <small className="system-tree__hidden">Há possibilidades ainda não compreendidas neste caminho</small> : null}
+                    </article>
+                  ))}
                 </div>
-              </article>
-            ))}
+              )}
+            </section>
           </div>
-        )}
-      </section>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">△</span>
+            <span><strong>Treinamento</strong><small>{status.trainings.length} métodos conhecidos</small></span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.trainings.length === 0 ? <EmptyAction message="Nenhum método de treino disponível agora." /> : (
+              <div className="action-card-list">
+                {status.trainings.map((training) => (
+                  <article key={training.methodId} className={training.canTrain ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title"><h3>{training.name}</h3><span>{training.targetLabel}</span></div>
+                      <p>{training.description}</p>
+                      <ul className="training-effects" aria-label="Efeitos do treino">
+                        {training.effectsSummary.map((effect) => <li key={effect}>{effect}</li>)}
+                      </ul>
+                      <div className="action-card__footer">
+                        <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
+                        <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => setPending(training)}>Treinar</button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
+      </div>
 
       <ConfirmDialog
         open={pending !== null}
@@ -890,12 +867,40 @@ function SystemPanel({
   );
 }
 
-function EmptyAction({ message }: { message: string }) {
-  return <p className="empty-action">{message}</p>;
+function SystemIdentity({
+  state,
+  campaign,
+  abilityName,
+}: {
+  state: GameState;
+  campaign: Campaign;
+  abilityName: string;
+}) {
+  return (
+    <div className="system-identity">
+      <div className="system-identity__profile">
+        <span className="character-card__avatar" aria-hidden="true">♙</span>
+        <div><span className="section-kicker">Sobrevivente</span><strong>{state.character.firstName} {state.character.lastName}</strong><small>{abilityName}</small></div>
+      </div>
+      <AttributeSummary attributes={state.attributes} />
+      <div className="section-heading"><h2>Relações</h2><span className="section-count">{state.relationships.length}</span></div>
+      {state.relationships.length === 0 ? <EmptyAction message="Nenhum vínculo foi formado." /> : (
+        <ul className="relationship-list">
+          {state.relationships.map((relationship) => (
+            <li key={relationship.characterId}>
+              <span className="relationship-list__avatar" aria-hidden="true">♙</span>
+              <div><strong>{findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}</strong><span>Confiança</span></div>
+              <strong>{relationship.trust}</strong>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
 }
 
-function countLabel(count: number, noun: string): string {
-  return `${count} ${noun}${count === 1 ? '' : 's'}`;
+function EmptyAction({ message }: { message: string }) {
+  return <p className="empty-action">{message}</p>;
 }
 
 function itemGlyph(id: string): string {
