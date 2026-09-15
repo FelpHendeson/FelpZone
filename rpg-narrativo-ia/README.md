@@ -126,7 +126,7 @@ O Sistema 13 — Progressão por prática e recompensas do Sistema — está **i
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 780 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica) e o ciclo de progressão por prática do Sistema 13 (prática → proficiência → marco → método → habilidade → ação).
+- `npm test`: 783 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica) e o ciclo de progressão por prática do Sistema 13 (prática → proficiência → marco → método → habilidade → ação).
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

@@ -191,9 +191,9 @@ function inspectMethod(
     effects.push(inspected.value);
   }
 
-  const requirements = parseMasteryRequirements(value.requirements);
-  if (requirements === null) {
-    return fail('Os requisitos de domínio do método de treinamento são inválidos.');
+  const requirements = inspectMasteryRequirements(value.requirements, skills);
+  if (!requirements.ok) {
+    return requirements;
   }
 
   return {
@@ -205,9 +205,25 @@ function inspectMethod(
       target: target.value,
       cost: { periods: value.cost.periods },
       effects,
-      requirements,
+      requirements: requirements.value,
     },
   };
+}
+
+function inspectMasteryRequirements(
+  value: unknown,
+  skills: IndexedSkills,
+): TrainingInspection<MasteryRequirement[]> {
+  const requirements = parseMasteryRequirements(value);
+  if (requirements === null) {
+    return fail('Os requisitos de domínio do método de treinamento são inválidos.');
+  }
+  for (const requirement of requirements) {
+    if (requirement.type !== 'level.minimum' && !hasSkill(skills, requirement.skillId)) {
+      return fail('Um requisito de domínio referencia uma habilidade inexistente.');
+    }
+  }
+  return { ok: true, value: requirements };
 }
 
 function inspectEffect(value: unknown, skills: IndexedSkills): TrainingInspection<TrainingEffect> {

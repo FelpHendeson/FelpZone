@@ -13,6 +13,7 @@ import {
 import { INITIAL_SKILLS } from '../modules/skills';
 import { INITIAL_TRAINING } from '../modules/training';
 import { INITIAL_COMBAT } from '../modules/combat';
+import { createSandboxContext } from '../modules/sandbox';
 
 function rule(overrides: Partial<PracticeRuleDefinition> = {}): PracticeRuleDefinition {
   return {
@@ -77,6 +78,10 @@ describe('Fatia 13.1 — catálogo de maestria', () => {
     expect(() =>
       validateMasteryReferences(INITIAL_MASTERY, { ...references, trainingMethodIds: new Set<string>() }),
     ).toThrow(MasteryError);
+  });
+
+  it('executa a validação cruzada durante o bootstrap do conteúdo inicial', () => {
+    expect(() => createSandboxContext()).not.toThrow();
   });
 
   it('congela o catálogo indexado', () => {
