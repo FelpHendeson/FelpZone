@@ -1,6 +1,8 @@
 import { firstDayCampaign } from '../campaigns/first-day';
 import { FIRST_DAY_WORLD_TRIGGERS } from '../campaigns/first-day/world-triggers';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
+import { applyEffects } from '../core/effects';
+import { resolveEncounterOutcome, type CombatOutcome } from '../modules/combat';
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
@@ -32,6 +34,16 @@ function bindLoadResult(result: LoadResult): LoadResult {
   }
 
   return { status: 'ok', state: bound.state };
+}
+
+function combatFeedback(outcome: Exclude<CombatOutcome, 'ongoing'>): string {
+  if (outcome === 'victory') {
+    return 'Você venceu o confronto e ganhou cautela.';
+  }
+  if (outcome === 'defeat') {
+    return 'Condição crítica: você foi ferido no confronto.';
+  }
+  return 'Você fugiu do confronto.';
 }
 
 function createBrowserPersistence(context: SandboxContext): GamePersistence {
@@ -172,6 +184,23 @@ export function App() {
     }
   }
 
+  function handleResolveCombat(encounterId: string, outcome: Exclude<CombatOutcome, 'ongoing'>) {
+    if (!state) {
+      return;
+    }
+
+    try {
+      const effects = resolveEncounterOutcome(encounterId, outcome);
+      const next = effects.length > 0 ? applyEffects(state, effects) : state;
+      persist(next);
+      setError(null);
+      setFeedback(combatFeedback(outcome));
+      setScreen(toAppScreen(next));
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Não foi possível concluir o combate.');
+    }
+  }
+
   function scheduleActionUnlock() {
     if (actionUnlockTimer.current !== null) {
       window.clearTimeout(actionUnlockTimer.current);
@@ -239,6 +268,7 @@ export function App() {
           feedback={feedback}
           actionPending={actionPending}
           onAction={handleSandboxAction}
+          onResolveCombat={handleResolveCombat}
           onExit={() => {
             setFeedback(null);
             setScreen('start');
