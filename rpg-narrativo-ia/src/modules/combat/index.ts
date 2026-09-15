@@ -14,6 +14,13 @@ import {
 } from './types';
 
 export { CombatError } from './errors';
+export {
+  chooseOpponentAction,
+  createCombat,
+  listPlayerActions,
+  resolveTurn,
+  type CreateCombatOptions,
+} from './engine';
 
 export const INITIAL_COMBAT = indexCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS);
 
