@@ -186,13 +186,21 @@ A etapa deve preparar um futuro banco de ações e combate sem implementá-los n
 
 O Jardim só recebe implementação quando suas regras mínimas de fusão forem aprovadas.
 
-## Horizonte depois do Sistema 11
+### Etapa 12 — Banco de ações e combate
 
-### Banco de ações e combate — direção definida, sem número aprovado
+**Implementada e consolidada nas Fatias 12.1 a 12.7.** O combate usa ações declarativas com velocidade, alvo e efeitos (`damage`, `heal`, `guard`), resolvidas por turno de forma determinística. Pessoas e criaturas compartilham o contrato de combatente; inimigo não é sinônimo de monstro. Habilidades conhecidas do Sistema 11 liberam ações extras. O desfecho (vitória, derrota, fuga) gera consequências no `GameState` sem alterar o schema. Fonte: [Sistema 12 — Banco de ações e combate](SYSTEM-ACTION-COMBAT.md).
 
-O combate futuro usará habilidades físicas e mágicas como ações declarativas com condições de ativação, custos, velocidade ou tempo de execução, efeitos e encadeamentos resolvidos por turno. Pessoas e criaturas poderão compartilhar o contrato de combatente; “inimigo” não será sinônimo de “monstro”.
+- **12.1** — catálogos de ações, combatentes e encontros validados e isolados.
+- **12.2** — estado de combate e resolução de turno determinística (motor puro).
+- **12.3** — IA de oponente determinística baseada em regras.
+- **12.4** — integração com o mundo: encontros por local e consequências declarativas.
+- **12.5** — interface mobile de combate a partir de 320 px.
+- **12.6** — encontro jogável ponta a ponta com retorno ao sandbox.
+- **12.7** — consolidação: determinismo, imutabilidade e gates.
 
-Fórmulas, atributos, comportamento dos oponentes, posicionamento e consequências de vitória, fuga ou derrota continuam em discussão. Esse eixo só recebe número e fatias próprias depois da fundação do Sistema 11 e de uma especificação aprovada.
+Balanceamento definitivo, posicionamento, condições de status ricas, grupos e múltiplos oponentes permanecem fora do escopo.
+
+## Horizonte depois do Sistema 12
 
 ### Outras direções definidas pelo autor
 

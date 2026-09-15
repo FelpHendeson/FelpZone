@@ -9,6 +9,14 @@ import {
   type SystemStatusView,
   type SystemTrainingView,
 } from '../../modules/system-interface';
+import {
+  INITIAL_COMBAT,
+  createCombat,
+  listAvailableEncounters,
+  type CombatOutcome,
+  type EncounterDefinition,
+} from '../../modules/combat';
+import { CombatScreen } from './CombatScreen';
 import { AttributeSummary } from '../components/AttributeSummary';
 import { BottomNavigation, type GameTab } from '../components/BottomNavigation';
 import { ConfirmDialog } from '../components/ConfirmDialog';
@@ -37,6 +45,7 @@ interface ExplorationScreenProps {
   feedback?: string | null;
   actionPending?: boolean;
   onAction: (action: SandboxAction) => void;
+  onResolveCombat: (encounterId: string, outcome: Exclude<CombatOutcome, 'ongoing'>) => void;
   onExit: () => void;
 }
 
@@ -47,10 +56,34 @@ export function ExplorationScreen({
   feedback,
   actionPending = false,
   onAction,
+  onResolveCombat,
   onExit,
 }: ExplorationScreenProps) {
   const [activeTab, setActiveTab] = useState<GameTab>('world');
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
+  const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
+  const currentLocationId = state.sandbox.navigation.currentLocationId;
+  const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags);
+
+  if (combatEncounterId) {
+    const encounter = encounters.find((entry) => entry.id === combatEncounterId)
+      ?? INITIAL_COMBAT.encounters.find((entry) => entry.id === combatEncounterId);
+    const initialCombat = createCombat(INITIAL_COMBAT, combatEncounterId, {
+      playerName: `${state.character.firstName} ${state.character.lastName}`,
+      knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+    });
+    return (
+      <CombatScreen
+        initialState={initialCombat}
+        encounterName={encounter?.name ?? 'Confronto'}
+        onFinish={(outcome) => {
+          onResolveCombat(combatEncounterId, outcome);
+          setCombatEncounterId(null);
+        }}
+      />
+    );
+  }
+
   const view = buildExplorationView(state, campaign, context);
   const journal = buildJournalView(state, context);
   const trackedJourney = journal.journeys.find(
@@ -73,7 +106,9 @@ export function ExplorationScreen({
             <WorldPanel
               view={view}
               trackedJourney={trackedJourney}
+              encounters={encounters}
               onAction={onAction}
+              onFight={setCombatEncounterId}
               onOpenActions={() => setActiveTab('actions')}
               onOpenJournal={() => setActiveTab('journal')}
             />
@@ -129,13 +164,17 @@ function WorldFeedback({ message }: { message: string }) {
 function WorldPanel({
   view,
   trackedJourney,
+  encounters,
   onAction,
+  onFight,
   onOpenActions,
   onOpenJournal,
 }: {
   view: ExplorationView;
   trackedJourney?: JournalJourneyView;
+  encounters: EncounterDefinition[];
   onAction: (action: SandboxAction) => void;
+  onFight: (encounterId: string) => void;
   onOpenActions: () => void;
   onOpenJournal: () => void;
 }) {
@@ -199,8 +238,51 @@ function WorldPanel({
 
       <PresenceSection presences={view.presences} onAction={onAction} />
 
+      <ThreatSection encounters={encounters} onFight={onFight} />
+
       <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
     </div>
+  );
+}
+
+function ThreatSection({
+  encounters,
+  onFight,
+}: {
+  encounters: EncounterDefinition[];
+  onFight: (encounterId: string) => void;
+}) {
+  if (encounters.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="threat-section" aria-labelledby="threats-title">
+      <div className="section-heading">
+        <div>
+          <span className="section-kicker">Perigo à espreita</span>
+          <h2 id="threats-title">Ameaças neste local</h2>
+        </div>
+        <span className="section-count">{encounters.length}</span>
+      </div>
+      <div className="threat-card-list">
+        {encounters.map((encounter) => (
+          <article key={encounter.id} className="threat-card">
+            <div className="threat-card__body">
+              <h3>{encounter.name}</h3>
+              <p>{encounter.description}</p>
+            </div>
+            <button
+              type="button"
+              className="button button--danger button--action"
+              onClick={() => onFight(encounter.id)}
+            >
+              Enfrentar
+            </button>
+          </article>
+        ))}
+      </div>
+    </section>
   );
 }
 

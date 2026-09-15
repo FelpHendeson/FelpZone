@@ -2026,3 +2026,184 @@ button:disabled {
   font-size: 0.82rem;
   color: var(--accent-system);
 }
+
+.threat-section {
+  margin-top: 20px;
+}
+
+.threat-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.threat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: var(--bg-soft);
+  border: 1px solid var(--danger);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.threat-card h3 {
+  margin: 0 0 4px;
+}
+
+.threat-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.screen--combat {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px 16px calc(20px + env(safe-area-inset-bottom));
+  max-width: 32rem;
+  margin: 0 auto;
+}
+
+.combat-header h1 {
+  margin: 4px 0 0;
+}
+
+.combat-header p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+.combat-arena {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.combatant-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.combatant-card--opponent {
+  border-color: var(--danger);
+}
+
+.combatant-card--player {
+  border-color: var(--accent-strong);
+}
+
+.combatant-card__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.combatant-health {
+  height: 12px;
+  border-radius: 999px;
+  background: var(--bg-choice);
+  overflow: hidden;
+}
+
+.combatant-health > span {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+  transition: width 0.25s ease;
+}
+
+.combatant-card--opponent .combatant-health > span {
+  background: linear-gradient(90deg, #a2402f, var(--danger));
+}
+
+.combatant-card__guard {
+  margin: 8px 0 0;
+  font-size: 0.8rem;
+  color: var(--accent-system);
+}
+
+.combat-log {
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 10px 14px;
+  min-height: 84px;
+}
+
+.combat-log ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.combat-log li {
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.combat-log__empty {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.combat-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 10px;
+}
+
+.combat-action {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+  text-align: left;
+  padding: 12px 14px;
+  min-height: var(--touch);
+  border-radius: 12px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg-choice);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.combat-action small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.combat-action--flee {
+  border-style: dashed;
+}
+
+.combat-result {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 16px;
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-strong);
+}
+
+.combat-result--victory {
+  border-color: var(--accent-strong);
+}
+
+.combat-result--defeat {
+  border-color: var(--danger);
+}
+
+.combat-result strong {
+  font-size: 1.2rem;
+}

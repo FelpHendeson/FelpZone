@@ -38,7 +38,8 @@ Leia nesta ordem:
 18. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
 19. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
 20. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 implementado e consolidado nas Fatias 11.1 a 11.7.
-21. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistema 11 implementado e horizonte posterior.
+21. [Banco de ações e combate](docs/SYSTEM-ACTION-COMBAT.md): Sistema 12 implementado e consolidado nas Fatias 12.1 a 12.7.
+22. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistemas 11 e 12 implementados e horizonte posterior.
 22. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -70,7 +71,7 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ```text
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos, energéticos, habilidades, treino, interface do Sistema e narrativa
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos, energéticos, habilidades, treino, interface do Sistema, combate e narrativa
 ├── campaigns/        # dados da campanha do primeiro dia
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # HUD, telas mobile-first, navegação inferior e placeholders
@@ -89,7 +90,9 @@ O Sistema 9 — Necessidades e sobrevivência leve — está implementado e cons
 
 O Sistema 10 — Objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5. Catálogo, estado, dez critérios, schema 6, sincronização após ações e escolhas, diário seguro e interface mobile sustentam a jornada principal `Primeiros passos`, da capacidade inicial ao encontro com Mira.
 
-O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7. Os módulos `energetics`, `skills`, `training` e `system-interface` entregam o vocabulário de Eteris/Númen e Corpo/Poder, os catálogos validados de caminhos, habilidades e métodos de treino, o estado de progressão persistido em `GameState.system` (schema 7), a ação de treino que cobra o relógio uma vez, a Árvore de habilidades com sigilo de conteúdo oculto e a aba mobile `Sistema` com Status e confirmação de custo. O Jardim e o futuro banco de ações de combate possuem direção conceitual, mas regras de fusão e combate continuam pendentes de decisão própria.
+O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7. Os módulos `energetics`, `skills`, `training` e `system-interface` entregam o vocabulário de Eteris/Númen e Corpo/Poder, os catálogos validados de caminhos, habilidades e métodos de treino, o estado de progressão persistido em `GameState.system` (schema 7), a ação de treino que cobra o relógio uma vez, a Árvore de habilidades com sigilo de conteúdo oculto e a aba mobile `Sistema` com Status e confirmação de custo.
+
+O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7. O módulo `combat` entrega catálogos de ações, combatentes e encontros; um motor de turno determinístico com dano, cura e escudo; uma IA de oponente por regras; a liberação de ações extras pelas habilidades conhecidas do Sistema 11; um encontro jogável no mundo com desfecho aplicado ao `GameState` sem alterar o schema; e uma tela de combate mobile. O Jardim continua com direção conceitual e regras de fusão pendentes.
 
 ## Decisões já tomadas
 
@@ -116,7 +119,7 @@ O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está impl
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 679 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração e o ciclo de fortalecimento do Sistema 11.
+- `npm test`: 720 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11 e o combate por turnos do Sistema 12.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.
