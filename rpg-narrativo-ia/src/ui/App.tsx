@@ -1,8 +1,13 @@
 import { firstDayCampaign } from '../campaigns/first-day';
 import { FIRST_DAY_WORLD_TRIGGERS } from '../campaigns/first-day/world-triggers';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
-import { applyEffects } from '../core/effects';
-import { resolveEncounterOutcome, type CombatOutcome } from '../modules/combat';
+import {
+  INITIAL_COMBAT,
+  buildCombatResolution,
+  getEncounter,
+  type CombatOutcome,
+  type CombatState,
+} from '../modules/combat';
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
@@ -184,18 +189,25 @@ export function App() {
     }
   }
 
-  function handleResolveCombat(encounterId: string, outcome: Exclude<CombatOutcome, 'ongoing'>) {
+  function handleResolveCombat(encounterId: string, finalState: CombatState) {
     if (!state) {
       return;
     }
 
     try {
-      const effects = resolveEncounterOutcome(encounterId, outcome);
-      const next = effects.length > 0 ? applyEffects(state, effects) : state;
-      persist(next);
+      const resolution = buildCombatResolution(finalState, getEncounter(INITIAL_COMBAT, encounterId));
+      const attempt = commitSandboxAction(state, { type: 'combat.resolve', resolution }, sandboxContext, {
+        campaign,
+        catalog: FIRST_DAY_WORLD_TRIGGERS,
+        persist,
+      });
+      if (!attempt.ok) {
+        setError(attempt.error);
+        return;
+      }
       setError(null);
-      setFeedback(combatFeedback(outcome));
-      setScreen(toAppScreen(next));
+      setFeedback([combatFeedback(resolution.outcome), attempt.feedback].filter(Boolean).join(' '));
+      setScreen(toAppScreen(attempt.current));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível concluir o combate.');
     }

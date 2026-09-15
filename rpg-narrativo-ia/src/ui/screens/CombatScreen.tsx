@@ -13,7 +13,7 @@ import {
 interface CombatScreenProps {
   initialState: CombatState;
   encounterName: string;
-  onFinish: (outcome: Exclude<CombatOutcome, 'ongoing'>) => void;
+  onFinish: (finalState: CombatState) => void;
 }
 
 export function CombatScreen({ initialState, encounterName, onFinish }: CombatScreenProps) {
@@ -61,7 +61,7 @@ export function CombatScreen({ initialState, encounterName, onFinish }: CombatSc
           <button
             type="button"
             className="button button--primary button--action"
-            onClick={() => onFinish(state.outcome as Exclude<CombatOutcome, 'ongoing'>)}
+            onClick={() => onFinish(state)}
           >
             Voltar ao mundo
           </button>

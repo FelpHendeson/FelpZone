@@ -13,7 +13,7 @@ import {
   INITIAL_COMBAT,
   createCombat,
   listAvailableEncounters,
-  type CombatOutcome,
+  type CombatState,
   type EncounterDefinition,
 } from '../../modules/combat';
 import { CombatScreen } from './CombatScreen';
@@ -46,7 +46,7 @@ interface ExplorationScreenProps {
   feedback?: string | null;
   actionPending?: boolean;
   onAction: (action: SandboxAction) => void;
-  onResolveCombat: (encounterId: string, outcome: Exclude<CombatOutcome, 'ongoing'>) => void;
+  onResolveCombat: (encounterId: string, finalState: CombatState) => void;
   onExit: () => void;
 }
 
@@ -81,8 +81,8 @@ export function ExplorationScreen({
       <CombatScreen
         initialState={initialCombat}
         encounterName={encounter?.name ?? 'Confronto'}
-        onFinish={(outcome) => {
-          onResolveCombat(combatEncounterId, outcome);
+        onFinish={(finalState) => {
+          onResolveCombat(combatEncounterId, finalState);
           setCombatEncounterId(null);
         }}
       />

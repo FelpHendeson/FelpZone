@@ -26,7 +26,6 @@ export {
   combatEncounterResolvedFlag,
   combatResolutionEffects,
   listAvailableEncounters,
-  resolveEncounterOutcome,
   terminalHealthFor,
   validateEncounterDiscoveries,
 } from './integration';

@@ -1,7 +1,6 @@
 import type { GameEffect } from '../../core/events';
 import { CombatError } from './errors';
 import type {
-  CombatOutcome,
   CombatResolution,
   CombatState,
   EncounterDefinition,
@@ -77,22 +76,6 @@ export function combatResolutionEffects(resolution: CombatResolution, currentSau
 
 function isSafeInteger(value: number): boolean {
   return Number.isSafeInteger(value) && value >= 0;
-}
-
-export function resolveEncounterOutcome(encounterId: string, outcome: CombatOutcome): GameEffect[] {
-  if (outcome === 'victory') {
-    return [
-      { type: 'flag.set', flag: combatEncounterResolvedFlag(encounterId), value: true },
-      { type: 'attribute.change', attribute: 'cautela', amount: 2 },
-    ];
-  }
-  if (outcome === 'defeat') {
-    return [{ type: 'attribute.change', attribute: 'saude', amount: -8 }];
-  }
-  if (outcome === 'fled') {
-    return [];
-  }
-  throw new CombatError('O combate ainda não terminou.');
 }
 
 function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
