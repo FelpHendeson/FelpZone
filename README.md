@@ -85,10 +85,10 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Laboratório ativo com o primeiro projeto já em protótipo jogável e publicado. Os Sistemas 1 a 13 do RPG estão implementados e consolidados. O Sistema 11 entregou o núcleo diegético do Sistema; o Sistema 12 entrega combate por turnos determinístico integrado a descoberta, saúde, tempo, consequências e apresentação (Fatias 12.1 a 12.12); o Sistema 13 conecta prática verificada, proficiência, marcos de nível e revelação de métodos. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
+Laboratório ativo com o primeiro projeto já em protótipo jogável e publicado. Os Sistemas 1 a 13 do RPG estão implementados e consolidados. Os Sistemas 14 a 17 estão especificados, nesta ordem: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
 
 ## Ideias
 
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
-| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistemas 11 a 13 completos | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, jornadas, presenças, progressão do Sistema (Eteris, Númen, habilidades, treino e Árvore), combate por turnos e progressão por prática. |
+| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistemas 1–13 completos; 14–17 especificados | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, jornadas, presenças, progressão do Sistema, combate por turnos e evolução planejada até um mundo vivo. |

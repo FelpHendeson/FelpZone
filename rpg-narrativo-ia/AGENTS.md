@@ -10,6 +10,8 @@ Os Sistemas 1 a 12 estão implementados e consolidados. O Sistema 12 — Banco d
 
 O Sistema 13 — Progressão por prática e recompensas do Sistema — está **implementado e consolidado nas Fatias 13.1 a 13.7** no módulo `mastery`. Leia [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md) antes de propor código. Ele conecta treino e vitórias verificadas a proficiências e marcos de nível, preserva o schema 7 e não introduz equipamentos, loot, Jardim ou fórmulas definitivas.
 
+Os próximos sistemas estão **especificados, mas ainda não implementados**, nesta ordem obrigatória: Sistema 14 — itens, equipamentos e preparação; Sistema 15 — condições, elementos e aprofundamento do combate; Sistema 16 — Jardim de habilidades; Sistema 17 — NPCs persistentes, agenda e mundo vivo. Leia as quatro especificações e implemente somente o sistema explicitamente autorizado. Cada etapa depende da consolidação da anterior e propõe, respectivamente, os schemas 8, 9, 10 e 11.
+
 O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **implementado e consolidado nas Fatias 11.1 a 11.7** nos módulos `energetics`, `skills`, `training` e `system-interface`: vocabulário energético, catálogos validados, `GameState.system` no schema 7, ação de treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Números, nomes e conteúdo de habilidades são protótipos. O combate já reutiliza os contratos públicos do Sistema 11, mas fórmulas e balanceamento definitivo continuam sem aprovação.
 
 A interface jogável foi consolidada sob o princípio **aventura primeiro, dados sob demanda**. A navegação persistente possui quatro destinos — `Mundo`, `Jornadas`, `Mochila` e `Sistema` — enquanto ações locais aparecem em um painel contextual. Preserve essa hierarquia e consulte [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md) antes de acrescentar novas superfícies.
@@ -37,7 +39,7 @@ A interface jogável foi consolidada sob o princípio **aventura primeiro, dados
 - Recursos renováveis possuem estado e tempo de recuperação; coleta nunca cria materiais infinitos.
 - Trate o Sistema como interface diegética: menus e mensagens podem ser percebidos pelo personagem, mas regras continuam fora do React.
 - Preserve a distinção conceitual: Eteris é energia ambiental; Númen é Eteris interiorizado e individualizado por um ser vivo.
-- Não invente atributos, fórmulas de nível, curvas, velocidade de conjuração, regras de fusão, raças ou consequências de combate.
+- Não invente atributos, fórmulas definitivas, curvas, velocidade de conjuração, raças ou consequências fora das especificações. Equipamentos, condições, Jardim e agenda obedecem estritamente aos contratos dos Sistemas 14 a 17.
 - Separe catálogos de habilidades, personagens e campanhas do estado persistido; prefira dados declarativos validados e nunca código executável em JSON.
 - O cânone atual garante Sistema a todos os humanos. Protagonista não humano, raças não humanas concretas e Sistema universal para todos os seres permanecem em discussão.
 - O contrato de combatente do Sistema 12 não equivale oponente a monstro: pessoas e criaturas compartilham o mesmo contrato, diferindo apenas por conteúdo.

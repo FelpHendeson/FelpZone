@@ -176,11 +176,11 @@ Os tipos acima descrevem intenções de interação, não resultados fixos. `obs
 
 O Sistema 8 registra no sandbox persistido apenas presenças descobertas e ocorrências resolvidas. Isso está implementado na Fatia 8.4.
 
-Esse estado mínimo **não é um `NPCState` completo**. Continuam sem aprovação:
+Esse estado mínimo **não é um `NPCState` completo**. Os itens abaixo ficaram fora do Sistema 8; estado mínimo, agenda e memória fechada foram posteriormente especificados no [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md), enquanto os demais continuam fora do escopo:
 
-- posição autônoma individual;
+- posição derivada por agenda;
 - agenda por horário;
-- memória social genérica;
+- memória por fatos fechados;
 - inventário de NPC;
 - saúde ou atributos de criatura;
 - reaparecimento dinâmico;

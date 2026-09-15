@@ -224,7 +224,59 @@ Balanceamento definitivo, posicionamento, condições de status ricas, grupos e 
 
 O ciclo protótipo usa `Sentidos Aguçados` em proficiência 3 para alcançar nível 2, revelar a `Rotina de Reforço do Corpo`, aprender `Corpo Firme` e liberar `Estancar Ferida`. Os valores são provisórios e substituíveis por conteúdo.
 
-## Horizonte depois do Sistema 13
+## Sequência aprovada depois do Sistema 13
+
+Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro de 2026. A existência das especificações autoriza planejamento, mas cada implementação deve respeitar a dependência da etapa anterior e seus próprios gates.
+
+### Etapa 14 — Itens, equipamentos e preparação
+
+**Especificada; implementação ainda não iniciada.** Materiais e objetos passam a sustentar loadout, espaços de preparação, consumíveis em combate, benefícios declarativos e recompensas materiais determinísticas. O save proposto evolui para schema 8. Fonte: [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md).
+
+- **14.1** — catálogos e contratos puros;
+- **14.2** — estado de equipamento e preparação;
+- **14.3** — crafting e recompensas determinísticas;
+- **14.4** — persistência e migração;
+- **14.5** — integração com combate;
+- **14.6** — interface mobile e conteúdo protótipo;
+- **14.7** — ciclo ponta a ponta e consolidação.
+
+### Etapa 15 — Condições, elementos e aprofundamento do combate
+
+**Especificada; depende da consolidação do Sistema 14.** Condições temporárias, afinidades elementais e respostas de preparação ampliam decisões sem abandonar determinismo. Consequências persistentes mínimas usam o schema 9 proposto. Fonte: [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md).
+
+- **15.1** — catálogos de elementos e condições;
+- **15.2** — motor puro de condições;
+- **15.3** — matriz elemental determinística;
+- **15.4** — integração com ações, IA e replay;
+- **15.5** — persistência de consequências;
+- **15.6** — itens, habilidades e interface mobile;
+- **15.7** — ciclo ponta a ponta e consolidação.
+
+### Etapa 16 — Jardim de habilidades
+
+**Especificada; depende da consolidação do Sistema 15.** Receitas curadas e não destrutivas integram habilidades conhecidas em técnicas híbridas, usando pontos de cultivo concedidos por marcos explícitos. O save proposto evolui para schema 10. Fonte: [Sistema 16](SYSTEM-SKILL-GARDEN.md).
+
+- **16.1** — catálogo e estado isolado;
+- **16.2** — derivação segura e planejamento;
+- **16.3** — pontos e integração com marcos;
+- **16.4** — persistência e ação atômica;
+- **16.5** — habilidade híbrida e combate;
+- **16.6** — interface diegética mobile;
+- **16.7** — ciclo ponta a ponta e consolidação.
+
+### Etapa 17 — NPCs persistentes, agenda e mundo vivo
+
+**Especificada; depende da consolidação do Sistema 16.** NPCs ganham estado mínimo, agenda por período, memória de fatos fechados e presenças derivadas. A atualização ocorre somente pelo relógio canônico; o save proposto evolui para schema 11. Fonte: [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
+
+- **17.1** — catálogo e estado isolado;
+- **17.2** — derivação temporal determinística;
+- **17.3** — memória e integração com relações;
+- **17.4** — presenças derivadas e orquestração;
+- **17.5** — persistência e migração;
+- **17.6** — Mira e interface mobile;
+- **17.7** — ciclo ponta a ponta e consolidação.
+
+## Horizonte depois do Sistema 17
 
 ### Outras direções definidas pelo autor
 
@@ -235,21 +287,16 @@ O ciclo protótipo usa `Sentidos Aguçados` em proficiência 3 para alcançar n�
 
 ### Em discussão
 
-- Jardim de habilidades: fusão, preservação, reversibilidade, limites e resultados;
 - minijogos de treino, interação ou experimentação;
 - fórmulas definitivas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
 - protagonista não humano, raças não humanas concretas e extensão do Sistema a todos os seres;
-- comportamento de oponentes e consequências do combate;
 - expansão do mapa visual para visão regional ou global;
 - notificações mais amplas do Sistema além do feedback de jornadas;
-- progressão extensa de NPCs;
 - formato de rotas e de conclusão global.
 
 ### Ainda não discutido / sem certeza de implementação
 
-- estado persistente próprio, agenda e deslocamento autônomo de NPCs;
 - comportamento autônomo de criaturas fora do combate;
-- ferramentas, equipamentos, durabilidade e combustível;
 - grupo ou companheiros;
 - clima, economia, comércio ou viagem rápida;
 - administração jogável de assentamentos ou facções;

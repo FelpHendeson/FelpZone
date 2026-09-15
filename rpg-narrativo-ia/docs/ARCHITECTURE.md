@@ -175,7 +175,7 @@ Falha de requisito, referência ou efeito não pode conceder progresso parcial n
 
 A Árvore será uma visão derivada de habilidades, caminhos, requisitos conhecidos e proficiências. Conteúdo oculto não pode vazar por contagens, IDs, rótulos ou motivos de bloqueio.
 
-O Jardim integrará caminhos por combinação ou fusão, mas suas regras exatas permanecem em discussão. O núcleo deve usar IDs e referências capazes de receber essa evolução; não deve implementar combinações arbitrárias nem persistir grafos redundantes antes de uma decisão.
+O Jardim integrará caminhos por receitas curadas, não destrutivas e determinísticas, conforme [Sistema 16](SYSTEM-SKILL-GARDEN.md). O núcleo usa IDs e referências; combinações arbitrárias, geração procedural e grafos redundantes permanecem proibidos.
 
 ### Ponte para banco de ações e combate
 

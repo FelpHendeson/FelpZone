@@ -51,9 +51,9 @@ Númen pode alimentar aplicações ligadas ao Corpo — reforço, movimento, res
 
 O jogador poderá investir tempo em métodos de treinamento apresentados pelo Sistema, desenvolver nível, proficiências, habilidades e caminhos, e consultar esse crescimento pelo Status. A velocidade de conjuração ou execução deverá ganhar efeito compreensível sobre o tempo necessário para usar uma capacidade, mas sua fórmula ainda não foi decidida.
 
-A Árvore de habilidades apresenta desenvolvimento e caminhos conhecidos. O Jardim de habilidades integra caminhos por combinações ou fusões. As regras exatas de fusão continuam em discussão e não devem ser inventadas durante as primeiras fatias.
+A Árvore de habilidades apresenta desenvolvimento e caminhos conhecidos. O Jardim de habilidades integra caminhos por receitas curadas, não destrutivas e determinísticas, conforme o Sistema 16; combinações arbitrárias e geração procedural continuam proibidas.
 
-Esse núcleo está aprovado para especificação como Sistema 11, mas ainda não foi implementado. O contrato completo está em [Núcleo do Sistema, Eteris, Númen e Progressão](SYSTEM-ETERIS-NUMEN-PROGRESSION.md).
+O núcleo está implementado no Sistema 11, a progressão por prática no Sistema 13 e o primeiro contrato do Jardim está especificado no [Sistema 16](SYSTEM-SKILL-GARDEN.md).
 
 ## Combate futuro
 

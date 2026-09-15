@@ -29,9 +29,10 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - O Sistema 9 — necessidades e sobrevivência leve — está implementado e consolidado nas Fatias 9.1 a 9.5. `Attributes` inclui `sede`, o Sistema 9 introduziu o schema 5, o orquestrador aplica desgaste, consumo e repouso, a interface mobile expõe essas ações e a prova automatizada atravessa oito dias com o conteúdo atual.
 - O Sistema 10 — objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5, incluindo a jornada `Primeiros passos`, sincronização narrativa, compatibilidade de saves schema 6 e acompanhamento efêmero.
 - O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7 (progressão persistida no schema 7, treino com custo temporal, Árvore de habilidades e aba mobile `Sistema`). O contrato está em `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`.
-- O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7 (motor de turno determinístico, IA de oponente por regras, encontro jogável no mundo e desfecho aplicado ao `GameState`). O contrato está em `docs/SYSTEM-ACTION-COMBAT.md`. Balanceamento definitivo, posicionamento, grupos e agenda autônoma permanecem sem aprovação.
+- O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7 (motor de turno determinístico, IA de oponente por regras, encontro jogável no mundo e desfecho aplicado ao `GameState`). O contrato está em `docs/SYSTEM-ACTION-COMBAT.md`. Balanceamento definitivo, posicionamento, grupos e simulação autônoma irrestrita permanecem fora do escopo.
 - As Fatias 12.8 a 12.12 estão implementadas e consolidadas em `docs/SYSTEM-12-CONSOLIDATION.md`: descoberta da ameaça, saúde persistente, custo temporal único, consequência atômica e consolidação visual.
 - O Sistema 13 — Progressão por prática e recompensas do Sistema — está implementado e consolidado nas Fatias 13.1 a 13.7 (módulo `mastery`, prática por vitória, marcos de nível e requisitos de treino). Fonte: `docs/SYSTEM-PRACTICE-PROGRESSION.md`.
+- Os Sistemas 14 a 17 estão especificados, nesta ordem: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. Ainda não há implementação dessas etapas.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -104,14 +105,14 @@ Estado conhecido:
 - a Fatia 8.6 valida Mira e o coelho chifrudo ponta a ponta e reconcilia saves que já consumiram o gatilho da Clareira;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
-- `NPCState` completo, agendas e comportamento autônomo continuam sem implementação autorizada;
+- `NPCState` mínimo e agendas determinísticas estão especificados para o Sistema 17; comportamento autônomo irrestrito continua fora do escopo;
 - os Sistemas 1 a 10 estão consolidados;
 - os Sistemas 11 e 12 estão implementados e consolidados;
 - o Sistema 13 está implementado e consolidado nas Fatias 13.1 a 13.7;
 - o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
-- Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; o núcleo de combate existe, enquanto Jardim, fórmulas definitivas e recursos avançados de combate continuam pendentes.
+- Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; os próximos contratos estão em `SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md`, `SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md`, `SYSTEM-SKILL-GARDEN.md` e `SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md`.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`, `docs/SYSTEM-ACTION-COMBAT.md`, `docs/SYSTEM-12-CONSOLIDATION.md`, `docs/SYSTEM-PRACTICE-PROGRESSION.md` e `docs/ROADMAP.md`. Os Sistemas 1 a 13 estão implementados e consolidados. O próximo eixo exige especificação e autorização próprias.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-PRACTICE-PROGRESSION.md`, as especificações dos Sistemas 14 a 17 e `docs/ROADMAP.md`. Os Sistemas 1 a 13 estão implementados e consolidados. O próximo eixo é o Sistema 14; não antecipe os seguintes.
 
 Execute:
 
@@ -140,4 +141,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Os Sistemas 11, 12 e 13 estão completos dentro do recorte aprovado, incluindo as Fatias 12.8 a 12.12 e 13.1 a 13.7. `NPCState` completo, agenda, movimentação autônoma, balanceamento definitivo, regras do Jardim, posicionamento de combate e grupos permanecem sem implementação autorizada e exigem especificação própria.
+Os Sistemas 11, 12 e 13 estão completos dentro do recorte aprovado. Os Sistemas 14 a 17 estão especificados e ordenados, mas ainda não implementados. O próximo passo técnico é o Sistema 14; cada etapa posterior depende da consolidação da anterior. Balanceamento definitivo, posicionamento, grupos e comportamento autônomo irrestrito permanecem fora do escopo.
