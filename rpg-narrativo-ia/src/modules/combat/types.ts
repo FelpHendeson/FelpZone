@@ -90,6 +90,7 @@ export interface CombatResolution {
   turns: number;
   entryHealth: number;
   remainingHealth: number;
+  playerActionIds: string[];
 }
 
 export const FLEE_ACTION_ID = 'flee';

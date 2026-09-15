@@ -70,7 +70,8 @@ import {
   CombatError,
   INITIAL_COMBAT,
   combatResolutionEffects,
-  getEncounter,
+  listAvailableEncounters,
+  verifyCombatResolution,
   type CombatResolution,
 } from '../combat';
 import type { TimeCost } from '../time';
@@ -437,10 +438,29 @@ function executePrimary(
   }
 
   if (action.type === 'combat.resolve') {
-    const encounter = getEncounter(INITIAL_COMBAT, action.resolution.encounterId);
-    const afterEffects = applyEffects(state, combatResolutionEffects(action.resolution, state.attributes.saude));
+    const revealedDiscoveryIds = exploration.locations.find(
+      (location) => location.locationId === navigation.currentLocationId,
+    )?.revealedDiscoveryIds ?? [];
+    const encounter = listAvailableEncounters(
+      INITIAL_COMBAT,
+      navigation.currentLocationId,
+      state.flags,
+      revealedDiscoveryIds,
+    ).find((entry) => entry.id === action.resolution.encounterId);
+    if (!encounter) {
+      throw new SandboxActionError('O encontro não está disponível neste local.');
+    }
+    if (state.attributes.saude < 1) {
+      throw new SandboxActionError('Você está ferido demais para concluir um confronto.');
+    }
+    const resolution = verifyCombatResolution(INITIAL_COMBAT, action.resolution, encounter, {
+      playerName: `${state.character.firstName} ${state.character.lastName}`,
+      knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+      playerMaxHealth: state.attributes.saude,
+    });
+    const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude));
     return {
-      detail: { type: 'combat.resolve', resolution: copyResolution(action.resolution) },
+      detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
       timeCost: { periods: encounter.timeCost.periods },
       navigation,
       exploration,
@@ -617,7 +637,10 @@ function requireAction(value: unknown): SandboxAction {
       !nonNegativeSafeInteger(resolution.turns) ||
       !nonNegativeSafeInteger(resolution.entryHealth) ||
       !nonNegativeSafeInteger(resolution.remainingHealth) ||
-      (resolution.remainingHealth as number) > (resolution.entryHealth as number)
+      (resolution.remainingHealth as number) > (resolution.entryHealth as number) ||
+      !Array.isArray(resolution.playerActionIds) ||
+      resolution.playerActionIds.length !== resolution.turns ||
+      resolution.playerActionIds.some((actionId) => typeof actionId !== 'string' || actionId.trim() === '')
     ) {
       throw new SandboxActionError('A resolução de combate é inválida.');
     }
@@ -630,6 +653,7 @@ function requireAction(value: unknown): SandboxAction {
         turns: resolution.turns as number,
         entryHealth: resolution.entryHealth as number,
         remainingHealth: resolution.remainingHealth as number,
+        playerActionIds: [...resolution.playerActionIds] as string[],
       },
     };
   }
@@ -644,6 +668,7 @@ function copyResolution(resolution: CombatResolution): CombatResolution {
     turns: resolution.turns,
     entryHealth: resolution.entryHealth,
     remainingHealth: resolution.remainingHealth,
+    playerActionIds: [...resolution.playerActionIds],
   };
 }
 

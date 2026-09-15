@@ -30,7 +30,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - O Sistema 10 — objetivos, jornadas e registro de descobertas — está implementado e consolidado nas Fatias 10.1 a 10.5, incluindo a jornada `Primeiros passos`, sincronização narrativa, compatibilidade de saves schema 6 e acompanhamento efêmero.
 - O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7 (progressão persistida no schema 7, treino com custo temporal, Árvore de habilidades e aba mobile `Sistema`). O contrato está em `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`.
 - O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7 (motor de turno determinístico, IA de oponente por regras, encontro jogável no mundo e desfecho aplicado ao `GameState`). O contrato está em `docs/SYSTEM-ACTION-COMBAT.md`. Balanceamento definitivo, posicionamento, grupos e agenda autônoma permanecem sem aprovação.
-- As Fatias 12.8 a 12.12 estão especificadas em `docs/SYSTEM-12-CONSOLIDATION.md`, mas ainda não implementadas: descoberta da ameaça, saúde persistente, custo temporal único, consequência atômica e consolidação visual.
+- As Fatias 12.8 a 12.12 estão implementadas e consolidadas em `docs/SYSTEM-12-CONSOLIDATION.md`: descoberta da ameaça, saúde persistente, custo temporal único, consequência atômica e consolidação visual.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -109,7 +109,7 @@ Estado conhecido:
 - o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
 - Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; o núcleo de combate existe, enquanto Jardim, fórmulas definitivas e recursos avançados de combate continuam pendentes.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`, `docs/SYSTEM-ACTION-COMBAT.md`, `docs/SYSTEM-12-CONSOLIDATION.md` e `docs/ROADMAP.md`. O núcleo dos Sistemas 1 a 12 está consolidado; as Fatias 12.8 a 12.12 estão especificadas e exigem autorização explícita antes da implementação.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md`, `docs/SYSTEM-ACTION-COMBAT.md`, `docs/SYSTEM-12-CONSOLIDATION.md` e `docs/ROADMAP.md`. Os Sistemas 1 a 12, incluindo as Fatias 12.8 a 12.12, estão implementados e consolidados.
 
 Execute:
 
@@ -138,4 +138,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Os Sistemas 11 e 12 possuem núcleo completo. As Fatias 12.8 a 12.12 estão especificadas e aguardam autorização de implementação. `NPCState` completo, agenda, movimentação autônoma, balanceamento definitivo, regras do Jardim, posicionamento de combate e grupos permanecem sem implementação autorizada e exigem especificação própria.
+Os Sistemas 11 e 12 estão completos dentro do recorte aprovado, incluindo as Fatias 12.8 a 12.12. `NPCState` completo, agenda, movimentação autônoma, balanceamento definitivo, regras do Jardim, posicionamento de combate e grupos permanecem sem implementação autorizada e exigem especificação própria.

@@ -4,7 +4,7 @@
 
 **Aprovado pelo autor em 15 de setembro de 2026 e implementado nas Fatias 12.1 a 12.7 (autorização explícita para desenvolvimento contínuo do próximo sistema, do início ao fim).**
 
-O núcleo descrito aqui está consolidado. As integrações complementares de descoberta, saúde persistente, tempo e apresentação foram posteriormente definidas nas Fatias 12.8 a 12.12 e estão **especificadas, mas ainda não implementadas**, em [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
+O núcleo descrito aqui está consolidado. As integrações complementares de descoberta, saúde persistente, tempo e apresentação foram posteriormente definidas e implementadas nas Fatias 12.8 a 12.12, registradas em [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
 
 Este documento especifica e registra o eixo de combate preparado pela ponte da Fatia 11.7. O combate reutiliza os contratos públicos do Sistema 11 (definições de habilidade, progressão e o molde declarativo de ação com custo e efeitos) sem acessar internos daqueles módulos.
 

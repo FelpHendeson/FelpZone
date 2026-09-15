@@ -117,21 +117,23 @@ interface CombatResolution {
   turns: number;
   entryHealth: number;
   remainingHealth: number;
+  playerActionIds: string[];
 }
 ```
 
-`CombatResolution` é uma saída produzida pelo domínio a partir do `CombatState` terminal. A UI não pode construir nem editar livremente esse objeto e entregá-lo como fonte de verdade.
+`CombatResolution` é uma saída produzida pelo domínio a partir do `CombatState` terminal. `playerActionIds` registra uma ação do jogador por turno e permite que a fronteira transacional reproduza o combate com a IA determinística. A UI não pode construir nem editar livremente esse objeto e entregá-lo como fonte de verdade.
 
 A operação de conclusão deve:
 
 1. rejeitar estado `ongoing`, encontro inexistente, resultado incompatível ou números malformados;
-2. validar que a resolução pertence ao encontro iniciado;
-3. calcular a variação persistente de saúde;
-4. aplicar o custo temporal uma vez;
-5. aplicar consequências do desfecho;
-6. sincronizar sistemas derivados;
-7. persistir um único `GameState` final;
-8. retornar feedback estruturado para a interface.
+2. validar que o encontro está disponível no local, foi descoberto, ainda não foi resolvido e que a saúde de entrada corresponde ao mundo;
+3. reproduzir a sequência declarada de ações e aceitar somente um desfecho idêntico ao calculado pelo motor;
+4. calcular a variação persistente de saúde;
+5. aplicar o custo temporal uma vez;
+6. aplicar consequências do desfecho;
+7. sincronizar sistemas derivados;
+8. persistir um único `GameState` final;
+9. retornar feedback estruturado para a interface.
 
 Se qualquer etapa falhar, nenhuma consequência parcial pode permanecer.
 

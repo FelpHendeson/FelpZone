@@ -13,18 +13,31 @@ import {
 import { executeSandboxAction, SandboxActionError, type SandboxAction } from '../modules/sandbox-actions';
 import { freshState, now } from './helpers';
 
-function exploring(saude = 80): GameState {
+function exploring(saude = 80, revealThreat = true): GameState {
   const base = freshState();
-  return { ...base, narrativeSession: null, attributes: { ...base.attributes, saude } };
+  let state: GameState = {
+    ...base,
+    narrativeSession: null,
+    attributes: { ...base.attributes, saude },
+  };
+  if (revealThreat) {
+    for (let count = 0; count < 3; count += 1) {
+      state = executeSandboxAction(state, { type: 'exploration.explore' }, { now }).current;
+    }
+  }
+  return state;
 }
 
-function terminal(outcome: 'victory' | 'fled', saude: number): CombatState {
+function terminal(outcome: 'victory' | 'defeat' | 'fled', saude: number): CombatState {
   let state = createCombat(INITIAL_COMBAT, 'clearing-predator', {
     knownSkillIds: ['sharpened-senses'],
     playerMaxHealth: saude,
   });
   if (outcome === 'fled') {
     return resolveTurn(INITIAL_COMBAT, state, 'flee');
+  }
+  if (outcome === 'defeat') {
+    return resolveTurn(INITIAL_COMBAT, state, 'attack');
   }
   let safety = 0;
   while (state.outcome === 'ongoing' && safety < 50) {
@@ -53,9 +66,8 @@ describe('Fatia 12.10 — transação terminal atômica de combate', () => {
   });
 
   it('derrota retorna com saúde 1, cobra 1 período e não resolve o encontro', () => {
-    const before = exploring(80);
-    // Constrói uma resolução de derrota coerente (vida terminal 0).
-    const defeat: CombatState = { ...terminal('fled', 80), outcome: 'defeat', player: { ...terminal('fled', 80).player, health: 0 } };
+    const before = exploring(4);
+    const defeat = terminal('defeat', 4);
     const result = executeSandboxAction(before, resolveAction(defeat), { now });
 
     expect(result.current.attributes.saude).toBe(1);
@@ -85,7 +97,42 @@ describe('Fatia 12.10 — transação terminal atômica de combate', () => {
   it('rejeita resolução forjada de combate em andamento', () => {
     const ongoing = createCombat(INITIAL_COMBAT, 'clearing-predator', { playerMaxHealth: 80 });
     expect(() => executeSandboxAction(exploring(80), resolveAction(ongoing), { now })).toThrow();
-    const forged = { type: 'combat.resolve', resolution: { encounterId: 'clearing-predator', outcome: 'victory', turns: -1, entryHealth: 80, remainingHealth: 5 } } as unknown as SandboxAction;
+    const forged = { type: 'combat.resolve', resolution: { encounterId: 'clearing-predator', outcome: 'victory', turns: -1, entryHealth: 80, remainingHealth: 5, playerActionIds: [] } } as unknown as SandboxAction;
     expect(() => executeSandboxAction(exploring(80), forged, { now })).toThrow(SandboxActionError);
+  });
+
+  it('rejeita encontro oculto, vitória reaplicada e sequência adulterada', () => {
+    const finalState = terminal('victory', 80);
+    const action = resolveAction(finalState);
+
+    expect(() => executeSandboxAction(exploring(80, false), action, { now })).toThrow(SandboxActionError);
+
+    const first = executeSandboxAction(exploring(80), action, { now });
+    expect(() => executeSandboxAction(first.current, action, { now })).toThrow(SandboxActionError);
+
+    if (action.type !== 'combat.resolve') {
+      throw new Error('Ação de combate esperada.');
+    }
+    const tampered: SandboxAction = {
+      type: 'combat.resolve',
+      resolution: {
+        ...action.resolution,
+        outcome: 'fled',
+      },
+    };
+    expect(() => executeSandboxAction(exploring(80), tampered, { now })).toThrow(SandboxActionError);
+  });
+
+  it('rejeita saúde de entrada ou saúde terminal forjadas', () => {
+    const action = resolveAction(terminal('victory', 80));
+    if (action.type !== 'combat.resolve') {
+      throw new Error('Ação de combate esperada.');
+    }
+
+    expect(() => executeSandboxAction(exploring(79), action, { now })).toThrow(SandboxActionError);
+    expect(() => executeSandboxAction(exploring(80), {
+      type: 'combat.resolve',
+      resolution: { ...action.resolution, remainingHealth: action.resolution.entryHealth },
+    }, { now })).toThrow(SandboxActionError);
   });
 });

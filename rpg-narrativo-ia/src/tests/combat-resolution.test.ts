@@ -75,7 +75,14 @@ describe('Fatia 12.9 — ponte de vitalidade e resolução terminal', () => {
   });
 
   it('derrota retorna com saúde 1 e sem a antiga penalidade fixa nem flag de resolvido', () => {
-    const resolution = { encounterId: 'clearing-predator', outcome: 'defeat' as const, turns: 3, entryHealth: 80, remainingHealth: 0 };
+    const resolution = {
+      encounterId: 'clearing-predator',
+      outcome: 'defeat' as const,
+      turns: 3,
+      entryHealth: 80,
+      remainingHealth: 0,
+      playerActionIds: ['attack', 'attack', 'attack'],
+    };
     const before = exploring(80);
     const after = applyEffects(before, combatResolutionEffects(resolution, before.attributes.saude));
 

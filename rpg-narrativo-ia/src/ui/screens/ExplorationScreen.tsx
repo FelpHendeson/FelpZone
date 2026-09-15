@@ -78,6 +78,7 @@ export function ExplorationScreen({
     const initialCombat = createCombat(INITIAL_COMBAT, combatEncounterId, {
       playerName: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+      playerMaxHealth: state.attributes.saude,
     });
     return (
       <CombatScreen

@@ -32,6 +32,11 @@ function start(overrides: { knownSkillIds?: string[] } = {}): CombatState {
 }
 
 describe('Fatia 12.2 — motor de combate', () => {
+  it('rejeita vitalidade inicial inválida', () => {
+    expect(() => createCombat(catalog(), 'enc', { playerMaxHealth: 0 })).toThrow(CombatError);
+    expect(() => createCombat(catalog(), 'enc', { playerMaxHealth: Number.NaN })).toThrow(CombatError);
+  });
+
   it('cria o estado inicial com vida cheia e ações base', () => {
     const state = start();
     expect(state.outcome).toBe('ongoing');

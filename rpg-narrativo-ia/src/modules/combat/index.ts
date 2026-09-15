@@ -28,6 +28,8 @@ export {
   listAvailableEncounters,
   terminalHealthFor,
   validateEncounterDiscoveries,
+  verifyCombatResolution,
+  type VerifyCombatResolutionOptions,
 } from './integration';
 
 export const INITIAL_COMBAT = indexCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS);

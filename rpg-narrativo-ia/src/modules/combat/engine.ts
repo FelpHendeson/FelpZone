@@ -34,6 +34,9 @@ export function createCombat(
     .filter((action) => action.skillId === undefined || known.has(action.skillId))
     .map((action) => action.id);
   const maxHealth = options.playerMaxHealth ?? PLAYER_COMBAT_MAX_HEALTH;
+  if (!Number.isSafeInteger(maxHealth) || maxHealth < 1) {
+    throw new CombatError('A vitalidade inicial do jogador é inválida.');
+  }
 
   return {
     encounterId,
