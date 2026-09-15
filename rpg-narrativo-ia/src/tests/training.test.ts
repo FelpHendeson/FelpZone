@@ -32,6 +32,7 @@ function method(overrides: Partial<TrainingMethodDefinition> = {}): TrainingMeth
     target: { type: 'skill', id: 'sense' },
     cost: { periods: 1 },
     effects: [{ type: 'skill.proficiency.increase', skillId: 'sense', amount: 1 }],
+    requirements: [],
     ...overrides,
   };
 }
@@ -78,6 +79,12 @@ describe('Fatia 11.1 — catálogo de treinamentos', () => {
     { methods: [method({ effects: [{ type: 'skill.proficiency.increase', skillId: 'sense', amount: 0 }] })] },
     { methods: [method({ effects: [{ type: 'skill.learn', skillId: 'missing' }] })] },
     { methods: [method({ effects: [{ type: 'unknown' as never, skillId: 'sense' }] })] },
+    { methods: [method({ requirements: [{ type: 'skill.known', skillId: 'missing' }] })] },
+    {
+      methods: [
+        method({ requirements: [{ type: 'skill.proficiency', skillId: 'missing', minimum: 1 }] }),
+      ],
+    },
   ])('rejeita forma de catálogo inválida %#', (value) => {
     expect(inspectTrainingCatalog(value, skills()).ok).toBe(false);
   });

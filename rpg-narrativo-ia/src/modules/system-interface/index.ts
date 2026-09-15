@@ -16,7 +16,20 @@ import {
   type TrainingEffect,
   type TrainingMethodDefinition,
 } from '../training';
-import type { SystemSkillView, SystemStatusView, SystemTrainingView } from './types';
+import {
+  INITIAL_MASTERY,
+  areMasteryRequirementsMet,
+  describeMasteryRequirement,
+  isRequirementMet,
+  type MasteryRequirement,
+  type MasteryResult,
+} from '../mastery';
+import type {
+  SystemMilestoneView,
+  SystemSkillView,
+  SystemStatusView,
+  SystemTrainingView,
+} from './types';
 
 export function buildSystemStatus(state: GameState): SystemStatusView {
   const progress = state.system;
@@ -29,7 +42,57 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
     knownSkills: buildKnownSkills(progress),
     tree: deriveSkillTree(INITIAL_SKILLS, progress),
     trainings: buildTrainings(progress),
+    nextMilestone: buildNextMilestone(progress),
   };
+}
+
+function resolveSkillName(skillId: string): string {
+  return getSkill(INITIAL_SKILLS, skillId).name;
+}
+
+function buildNextMilestone(progress: SkillsProgressState): SystemMilestoneView | null {
+  const candidates = INITIAL_MASTERY.milestones
+    .filter((milestone) => milestone.level > progress.level)
+    .filter((milestone) => milestone.requirements.every((requirement) => isRequirementComprehensible(requirement, progress)))
+    .sort((left, right) => left.level - right.level);
+  const milestone = candidates[0];
+  if (!milestone) {
+    return null;
+  }
+  return {
+    level: milestone.level,
+    requirements: milestone.requirements.map((requirement) => ({
+      text: describeMasteryRequirement(requirement, resolveSkillName),
+      met: isRequirementMet(requirement, progress),
+    })),
+  };
+}
+
+function isRequirementComprehensible(requirement: MasteryRequirement, progress: SkillsProgressState): boolean {
+  if (requirement.type === 'level.minimum') {
+    return true;
+  }
+  return isSkillKnown(progress, requirement.skillId);
+}
+
+export function describeMasteryProgress(result: MasteryResult): string {
+  const parts: string[] = [];
+  for (const gain of result.proficiencyGains) {
+    parts.push(`Você praticou ${resolveSkillName(gain.skillId)} (+${gain.amount}).`);
+  }
+  for (const milestoneId of result.reachedMilestoneIds) {
+    const milestone = INITIAL_MASTERY.milestoneById.get(milestoneId);
+    if (milestone) {
+      parts.push(`Nível ${milestone.level} alcançado.`);
+    }
+  }
+  for (const methodId of result.revealedTrainingIds) {
+    const method = INITIAL_TRAINING.byId.get(methodId);
+    if (method) {
+      parts.push(`Nova orientação do Sistema: ${method.name}.`);
+    }
+  }
+  return parts.join(' ');
 }
 
 function buildKnownSkills(progress: SkillsProgressState): SystemSkillView[] {
@@ -51,7 +114,7 @@ function buildTrainings(progress: SkillsProgressState): SystemTrainingView[] {
   const views: SystemTrainingView[] = [];
 
   for (const method of INITIAL_TRAINING.methods) {
-    if (!isTargetKnown(progress, method)) {
+    if (!isTargetKnown(progress, method) || !areMasteryRequirementsMet(method.requirements, progress)) {
       continue;
     }
 
@@ -71,6 +134,7 @@ function buildTrainings(progress: SkillsProgressState): SystemTrainingView[] {
       targetLabel: describeTarget(method),
       costPeriods: method.cost.periods,
       effectsSummary: method.effects.map(describeEffect),
+      requirementsSummary: method.requirements.map((requirement) => describeMasteryRequirement(requirement, resolveSkillName)),
       canTrain,
       ...(blockedReason ? { blockedReason } : {}),
     });
@@ -104,6 +168,8 @@ function describeEffect(effect: TrainingEffect): string {
 export type {
   SystemEnergyView,
   SystemFieldView,
+  SystemMilestoneRequirementView,
+  SystemMilestoneView,
   SystemSkillView,
   SystemStatusView,
   SystemTrainingView,

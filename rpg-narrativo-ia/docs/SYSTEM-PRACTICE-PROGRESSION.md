@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado pelo autor em 15 de setembro de 2026 para especificação. A implementação ainda não foi iniciada nem autorizada por este documento.**
+**Aprovado pelo autor em 15 de setembro de 2026 e implementado nas Fatias 13.1 a 13.7.**
 
 O Sistema 13 conecta os ciclos já consolidados de treinamento, Árvore de habilidades e combate. Seu objetivo é fazer ações legítimas do personagem produzirem desenvolvimento compreensível, sem criar experiência genérica, loot, equipamentos ou uma fórmula definitiva de poder.
 

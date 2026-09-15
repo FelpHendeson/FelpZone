@@ -60,6 +60,7 @@ src/
 │   ├── skills/             # Sistema 11: catálogos, progressão e Árvore de habilidades
 │   ├── training/           # Sistema 11: métodos, planejamento e efeitos de treino
 │   ├── combat/             # Sistema 12: ações, combatentes, encontros e turno determinístico
+│   ├── mastery/            # Sistema 13: prática verificada, marcos de nível e revelações
 │   └── narrative/
 ├── campaigns/
 │   └── first-day/
@@ -98,6 +99,7 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os m�
 - `skills`: valida caminhos e habilidades com requisitos, mantém o estado de progressão (nível e proficiências) e deriva a Árvore de habilidades sem vazar nós ocultos; não contém componentes React.
 - `training`: valida métodos, planeja um treino (alvo, custo em períodos e efeitos declarativos) e aplica seus efeitos à progressão; devolve `TimeCost` sem avançar o relógio.
 - `combat`: cataloga ações, combatentes e encontros; cria o estado de combate; resolve turnos por velocidade com efeitos declarativos (dano, cura, escudo); decide a ação do oponente por regras determinísticas; deriva o desfecho e seus efeitos para o `GameState`. Funções puras, sem componentes React.
+- `mastery`: cataloga regras de prática e marcos de nível; transforma evidências verificadas (treino concluído, vitória de combate) em incrementos de proficiência; avalia marcos de forma pura e idempotente e produz um `MasteryResult`. Não acessa React, relógio, persistência nem internos de combate/treino.
 - `narrative`: resolução do evento atual e transições.
 - `campaigns`: dados específicos de cada campanha.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.

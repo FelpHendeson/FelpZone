@@ -9,6 +9,7 @@ export const INITIAL_TRAINING_CATALOG = {
       target: { type: 'skill', id: 'sharpened-senses' },
       cost: { periods: 1 },
       effects: [{ type: 'skill.proficiency.increase', skillId: 'sharpened-senses', amount: 1 }],
+      requirements: [],
     },
     {
       id: 'body-reinforcement-routine',
@@ -17,6 +18,7 @@ export const INITIAL_TRAINING_CATALOG = {
       target: { type: 'path', id: 'body-reinforcement' },
       cost: { periods: 2 },
       effects: [{ type: 'skill.learn', skillId: 'steady-body' }],
+      requirements: [{ type: 'level.minimum', level: 2 }],
     },
   ],
 } as const satisfies TrainingCatalog;

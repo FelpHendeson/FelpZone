@@ -25,12 +25,15 @@ import {
   indexPresenceCatalog,
   indexPresenceInteractionCatalog,
 } from '../presences';
+import { INITIAL_MASTERY, MasteryError, validateMasteryReferences } from '../mastery';
 import {
   INITIAL_POPULATIONS,
   INITIAL_RESOURCE_NODES,
   createInitialResources,
   indexResourceDefinitions,
 } from '../resources';
+import { INITIAL_SKILLS } from '../skills';
+import { INITIAL_TRAINING } from '../training';
 import { inspectSandboxContext } from './context-validation';
 import { SandboxError, type SandboxContext, type SandboxState } from './types';
 
@@ -45,6 +48,11 @@ export function createSandboxContext(
     const map = indexNavigationMap(INITIAL_WORLD_MAP, startingLocationId);
     const exploration = indexExplorationDefinitions(INITIAL_EXPLORATION_DEFINITIONS, map);
     validateEncounterDiscoveries(INITIAL_COMBAT, new Set(exploration.byDiscovery.keys()));
+    validateMasteryReferences(INITIAL_MASTERY, {
+      skillIds: new Set(INITIAL_SKILLS.skills.map((skill) => skill.id)),
+      trainingMethodIds: new Set(INITIAL_TRAINING.methods.map((method) => method.id)),
+      encounterIds: new Set(INITIAL_COMBAT.encounters.map((encounter) => encounter.id)),
+    });
     const resources = indexResourceDefinitions(INITIAL_RESOURCE_NODES, INITIAL_POPULATIONS, map, exploration);
     const crafting = indexCraftingDefinitions(INITIAL_RECIPES, INITIAL_STRUCTURES);
     const presences = indexPresenceCatalog(INITIAL_PRESENCE_CATALOG, map, exploration);
@@ -64,7 +72,7 @@ export function createSandboxContext(
       presenceInteractions,
     };
   } catch (error) {
-    if (error instanceof NavigationError || error instanceof CombatError) {
+    if (error instanceof NavigationError || error instanceof CombatError || error instanceof MasteryError) {
       throw new SandboxError(error.message, { cause: error });
     }
 

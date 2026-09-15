@@ -1,4 +1,5 @@
 import type { TimeCost } from '../time';
+import type { MasteryRequirement } from '../mastery';
 
 export const TRAINING_TARGET_TYPES = ['path', 'skill'] as const;
 
@@ -26,6 +27,7 @@ export interface TrainingMethodDefinition {
   target: TrainingTarget;
   cost: TrainingCost;
   effects: TrainingEffect[];
+  requirements: MasteryRequirement[];
 }
 
 export interface TrainingPlan {

@@ -88,7 +88,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 
 | Sistema | Situação | Direção aprovada | Limite atual |
 | --- | --- | --- | --- |
-| Sistema 13 — Progressão por prática e recompensas do Sistema | **Definido pelo autor e especificado; não implementado** | Treino validado e vitórias verificadas desenvolvem proficiências; marcos dão significado ao nível e revelam métodos; o Sistema explica causa e consequência. | Implementação aguarda autorização. Equipamentos, loot, Jardim e fórmulas definitivas permanecem fora do recorte. |
+| Sistema 13 — Progressão por prática e recompensas do Sistema | **Implementado e consolidado (13.1–13.7)** | Treino validado e vitórias verificadas desenvolvem proficiências; marcos dão significado ao nível e revelam métodos; o módulo `mastery` deriva prática e marcos e entra na mesma transação atômica. | Equipamentos, loot, Jardim e fórmulas definitivas permanecem fora do recorte. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -122,11 +122,11 @@ O combate usa ações declaradas por dados (velocidade, alvo e efeitos de dano, 
 
 As integrações de descoberta, saúde persistente, custo temporal e apresentação foram implementadas nas Fatias 12.8 a 12.12: a ameaça surge após a descoberta exigida, a vitalidade de entrada vem da saúde do mundo, cada desfecho cobra um período e o resultado é aplicado como uma transação atômica. Posicionamento, iniciativa por frações de turno, condições de status ricas, grupos, itens e balanceamento definitivo permanecem fora do escopo. Consulte [Sistema 12 — Banco de ações e combate](SYSTEM-ACTION-COMBAT.md) e [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
 
-### Sistema 13 — Progressão por prática e recompensas — especificado
+### Sistema 13 — Progressão por prática e recompensas — implementado
 
 O próximo eixo aprovado conecta o fortalecimento do Sistema 11 ao combate do Sistema 12. Treinos continuam aplicando seus próprios efeitos; uma vitória reproduzida pode conceder prática às habilidades realmente usadas, no máximo uma vez por habilidade naquele encontro. Marcos declarativos dão significado ao nível e podem revelar novos métodos sem expor conteúdo oculto.
 
-O primeiro ciclo protótipo usa `Sentidos Aguçados`, `Golpe Preciso`, nível 2, `Rotina de Reforço do Corpo`, `Corpo Firme` e `Estancar Ferida`. Valores e limiares não são balanceamento definitivo. A implementação ainda não começou e requer autorização posterior. Consulte [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
+O primeiro ciclo protótipo usa `Sentidos Aguçados`, `Golpe Preciso`, nível 2, `Rotina de Reforço do Corpo`, `Corpo Firme` e `Estancar Ferida`. Valores e limiares não são balanceamento definitivo. O eixo está implementado e consolidado nas Fatias 13.1 a 13.7. Consulte [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
 
 ### Presença e interação com NPCs e criaturas — sistema aprovado
 
@@ -200,10 +200,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 12 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, incluindo a consolidação (Fatias 12.8 a 12.12) que integra o combate ao loop do mundo. O Sistema 13 está especificado para conectar prática, proficiência, marcos e revelação de métodos, mas ainda não foi implementado. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Sistema 12](SYSTEM-ACTION-COMBAT.md), [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md) e [Sistema 13](SYSTEM-PRACTICE-PROGRESSION.md).
+**Os Sistemas 1 a 13 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, incluindo a consolidação (Fatias 12.8 a 12.12); o Sistema 13 conecta prática verificada, proficiência, marcos de nível e revelação de métodos na mesma transação atômica. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Sistema 12](SYSTEM-ACTION-COMBAT.md), [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md) e [Sistema 13](SYSTEM-PRACTICE-PROGRESSION.md).
 
 Antes da próxima implementação:
 
-1. fechar as decisões de entrada do Sistema 13 e autorizar ou não sua implementação;
+1. escolher e especificar o próximo eixo com contrato e autorização próprios;
 2. preservar o schema 7, o determinismo, a aplicação única de tempo, o sigilo de conteúdo oculto e a atomicidade do desfecho;
 3. não transformar automaticamente detalhes ainda em discussão — fórmulas de balanceamento, raças, Jardim, posicionamento, agenda ou equipamentos — em requisitos.

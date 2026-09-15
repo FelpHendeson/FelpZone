@@ -9,6 +9,14 @@ function exploring(): GameState {
   return { ...freshState(), narrativeSession: null };
 }
 
+function atLevelTwo(): GameState {
+  let state = exploring();
+  for (let i = 0; i < 3; i += 1) {
+    state = executeSandboxAction(state, { type: 'training.train', methodId: 'focused-perception-drill' }, { now }).current;
+  }
+  return state;
+}
+
 describe('Fatia 11.3 — ação integrada de treino', () => {
   it('treina uma habilidade conhecida aplicando o custo temporal uma única vez', () => {
     const before = exploring();
@@ -27,7 +35,8 @@ describe('Fatia 11.3 — ação integrada de treino', () => {
   });
 
   it('treina um caminho conhecido revelando uma nova habilidade e cobrando os períodos declarados', () => {
-    const before = exploring();
+    const before = atLevelTwo();
+    expect(before.system.level).toBe(2);
     const result = executeSandboxAction(
       before,
       { type: 'training.train', methodId: 'body-reinforcement-routine' },
@@ -42,7 +51,7 @@ describe('Fatia 11.3 — ação integrada de treino', () => {
 
   it('recusa repetir um treino de revelação sem cobrar tempo nem desgastar necessidades', () => {
     const learned = executeSandboxAction(
-      exploring(),
+      atLevelTwo(),
       { type: 'training.train', methodId: 'body-reinforcement-routine' },
       { now },
     ).current;

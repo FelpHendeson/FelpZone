@@ -10,6 +10,7 @@ import {
   type IndexedSkills,
   type SkillsProgressState,
 } from '../skills';
+import { areMasteryRequirementsMet, parseMasteryRequirements, type MasteryRequirement } from '../mastery';
 import { TrainingError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_TRAINING_CATALOG } from './initial-training';
@@ -77,6 +78,9 @@ export function planTraining(
   methodId: string,
 ): TrainingPlan {
   const method = getTrainingMethod(catalog, methodId);
+  if (method.requirements.length > 0 && !areMasteryRequirementsMet(method.requirements, progress)) {
+    throw new TrainingError('O método de treino exige requisitos de domínio ainda não cumpridos.');
+  }
   requireAccessibleTarget(skills, progress, method.target);
   const applicableEffects: TrainingEffect[] = [];
   for (const effect of method.effects) {
@@ -187,6 +191,11 @@ function inspectMethod(
     effects.push(inspected.value);
   }
 
+  const requirements = inspectMasteryRequirements(value.requirements, skills);
+  if (!requirements.ok) {
+    return requirements;
+  }
+
   return {
     ok: true,
     value: {
@@ -196,8 +205,25 @@ function inspectMethod(
       target: target.value,
       cost: { periods: value.cost.periods },
       effects,
+      requirements: requirements.value,
     },
   };
+}
+
+function inspectMasteryRequirements(
+  value: unknown,
+  skills: IndexedSkills,
+): TrainingInspection<MasteryRequirement[]> {
+  const requirements = parseMasteryRequirements(value);
+  if (requirements === null) {
+    return fail('Os requisitos de domínio do método de treinamento são inválidos.');
+  }
+  for (const requirement of requirements) {
+    if (requirement.type !== 'level.minimum' && !hasSkill(skills, requirement.skillId)) {
+      return fail('Um requisito de domínio referencia uma habilidade inexistente.');
+    }
+  }
+  return { ok: true, value: requirements };
 }
 
 function inspectEffect(value: unknown, skills: IndexedSkills): TrainingInspection<TrainingEffect> {
@@ -243,6 +269,7 @@ function freezeMethod(method: TrainingMethodDefinition): TrainingMethodDefinitio
     target: Object.freeze({ ...method.target }),
     cost: Object.freeze({ ...method.cost }),
     effects: Object.freeze(method.effects.map((effect) => Object.freeze(copyEffect(effect)))) as unknown as TrainingEffect[],
+    requirements: Object.freeze(method.requirements.map((requirement) => Object.freeze({ ...requirement }))) as unknown as MasteryRequirement[],
   });
 }
 
@@ -252,6 +279,7 @@ function copyMethod(method: TrainingMethodDefinition): TrainingMethodDefinition 
     target: { ...method.target },
     cost: { ...method.cost },
     effects: method.effects.map(copyEffect),
+    requirements: method.requirements.map((requirement) => ({ ...requirement })),
   };
 }
 

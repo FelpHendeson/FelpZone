@@ -30,8 +30,19 @@ export interface SystemTrainingView {
   targetLabel: string;
   costPeriods: number;
   effectsSummary: string[];
+  requirementsSummary: string[];
   canTrain: boolean;
   blockedReason?: string;
+}
+
+export interface SystemMilestoneRequirementView {
+  text: string;
+  met: boolean;
+}
+
+export interface SystemMilestoneView {
+  level: number;
+  requirements: SystemMilestoneRequirementView[];
 }
 
 export interface SystemStatusView {
@@ -42,4 +53,5 @@ export interface SystemStatusView {
   knownSkills: SystemSkillView[];
   tree: SkillTree;
   trainings: SystemTrainingView[];
+  nextMilestone: SystemMilestoneView | null;
 }
