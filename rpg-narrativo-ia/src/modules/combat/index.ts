@@ -22,9 +22,12 @@ export {
   type CreateCombatOptions,
 } from './engine';
 export {
+  buildCombatResolution,
   combatEncounterResolvedFlag,
+  combatResolutionEffects,
   listAvailableEncounters,
   resolveEncounterOutcome,
+  terminalHealthFor,
   validateEncounterDiscoveries,
 } from './integration';
 

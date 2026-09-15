@@ -1,6 +1,12 @@
 import type { GameEffect } from '../../core/events';
 import { CombatError } from './errors';
-import type { CombatOutcome, EncounterDefinition, IndexedCombat } from './types';
+import type {
+  CombatOutcome,
+  CombatResolution,
+  CombatState,
+  EncounterDefinition,
+  IndexedCombat,
+} from './types';
 
 export function combatEncounterResolvedFlag(encounterId: string): string {
   return `combat.${encounterId}.resolved`;
@@ -31,6 +37,46 @@ export function validateEncounterDiscoveries(
       }
     }
   }
+}
+
+export function buildCombatResolution(state: CombatState, encounter: EncounterDefinition): CombatResolution {
+  if (state.outcome === 'ongoing') {
+    throw new CombatError('O combate ainda não terminou.');
+  }
+  if (state.encounterId !== encounter.id) {
+    throw new CombatError('A resolução não pertence ao encontro iniciado.');
+  }
+  if (!isSafeInteger(state.player.maxHealth) || !isSafeInteger(state.player.health) || !isSafeInteger(state.turn)) {
+    throw new CombatError('O estado terminal de combate é inválido.');
+  }
+  return {
+    encounterId: encounter.id,
+    outcome: state.outcome,
+    turns: state.turn,
+    entryHealth: state.player.maxHealth,
+    remainingHealth: state.player.health,
+  };
+}
+
+export function terminalHealthFor(resolution: CombatResolution): number {
+  return resolution.outcome === 'defeat' ? 1 : resolution.remainingHealth;
+}
+
+export function combatResolutionEffects(resolution: CombatResolution, currentSaude: number): GameEffect[] {
+  const effects: GameEffect[] = [];
+  const delta = terminalHealthFor(resolution) - currentSaude;
+  if (delta !== 0) {
+    effects.push({ type: 'attribute.change', attribute: 'saude', amount: delta });
+  }
+  if (resolution.outcome === 'victory') {
+    effects.push({ type: 'flag.set', flag: combatEncounterResolvedFlag(resolution.encounterId), value: true });
+    effects.push({ type: 'attribute.change', attribute: 'cautela', amount: 2 });
+  }
+  return effects;
+}
+
+function isSafeInteger(value: number): boolean {
+  return Number.isSafeInteger(value) && value >= 0;
 }
 
 export function resolveEncounterOutcome(encounterId: string, outcome: CombatOutcome): GameEffect[] {
