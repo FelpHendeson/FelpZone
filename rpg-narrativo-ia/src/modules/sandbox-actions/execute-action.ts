@@ -74,6 +74,7 @@ import {
   verifyCombatResolution,
   type CombatResolution,
 } from '../combat';
+import { INITIAL_MASTERY, MasteryError, applyMastery, type MasteryResult } from '../mastery';
 import type { TimeCost } from '../time';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -247,6 +248,17 @@ function runTransaction(
       resourcesAfterRenewal,
     }),
     objectives: objectiveSynchronization,
+    ...(executed.mastery ? { mastery: copyMasteryResult(executed.mastery) } : {}),
+  };
+}
+
+function copyMasteryResult(result: MasteryResult): MasteryResult {
+  return {
+    previous: { level: result.previous.level, entries: result.previous.entries.map((entry) => ({ ...entry })) },
+    current: { level: result.current.level, entries: result.current.entries.map((entry) => ({ ...entry })) },
+    proficiencyGains: result.proficiencyGains.map((gain) => ({ ...gain })),
+    reachedMilestoneIds: [...result.reachedMilestoneIds],
+    revealedTrainingIds: [...result.revealedTrainingIds],
   };
 }
 
@@ -273,6 +285,7 @@ function executePrimary(
   status: GameState['status'];
   narrativeSession: NarrativeSession | null;
   world: GameState['world'];
+  mastery?: MasteryResult;
 } {
   const navigation = copyNavigation(state.sandbox.navigation);
   const exploration = copyExploration(state.sandbox.exploration);
@@ -459,6 +472,19 @@ function executePrimary(
       playerMaxHealth: state.attributes.saude,
     });
     const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude));
+
+    let system = afterEffects.system;
+    let mastery: MasteryResult | undefined;
+    if (resolution.outcome === 'victory') {
+      const usedSkillIds = distinctCombatSkills(resolution.playerActionIds);
+      mastery = applyMastery(INITIAL_MASTERY, INITIAL_SKILLS, system, {
+        type: 'combat.victory',
+        encounterId: resolution.encounterId,
+        usedSkillIds,
+      });
+      system = mastery.current;
+    }
+
     return {
       detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
       timeCost: { periods: encounter.timeCost.periods },
@@ -478,10 +504,11 @@ function executePrimary(
         abilityIds: [...afterEffects.progression.abilityIds],
         titleIds: [...afterEffects.progression.titleIds],
       },
-      system: copySystem(afterEffects.system),
+      system: copySystem(system),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
       world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      mastery,
     };
   }
 
@@ -935,6 +962,19 @@ function nonNegativeSafeInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
+function distinctCombatSkills(actionIds: readonly string[]): string[] {
+  const skills: string[] = [];
+  const seen = new Set<string>();
+  for (const id of actionIds) {
+    const skillId = INITIAL_COMBAT.actionById.get(id)?.skillId;
+    if (skillId && !seen.has(skillId)) {
+      seen.add(skillId);
+      skills.push(skillId);
+    }
+  }
+  return skills;
+}
+
 function rethrowDomain(error: unknown): never {
   if (error instanceof SandboxActionError) {
     throw error;
@@ -953,6 +993,7 @@ function rethrowDomain(error: unknown): never {
     error instanceof ObjectiveError ||
     error instanceof TrainingError ||
     error instanceof CombatError ||
+    error instanceof MasteryError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

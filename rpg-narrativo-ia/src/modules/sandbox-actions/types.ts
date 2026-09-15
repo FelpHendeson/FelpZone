@@ -17,6 +17,7 @@ import type { SandboxContext } from '../sandbox';
 import type { TimeCost } from '../time';
 import type { TrainingPlan } from '../training';
 import type { CombatResolution } from '../combat';
+import type { MasteryResult } from '../mastery';
 
 export type SandboxAction =
   | {
@@ -86,6 +87,7 @@ export interface SandboxActionResult {
   synchronization: SandboxSynchronizationSummary;
   objectives: ObjectivesSynchronizationResult;
   feedback?: string;
+  mastery?: MasteryResult;
 }
 
 export interface SandboxActionOptions {
