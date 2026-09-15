@@ -1,4 +1,5 @@
 import { firstDayCampaign } from '../../campaigns/first-day';
+import { CombatError, INITIAL_COMBAT, validateEncounterDiscoveries } from '../combat';
 import {
   INITIAL_RECIPES,
   INITIAL_STRUCTURES,
@@ -43,6 +44,7 @@ export function createSandboxContext(
   try {
     const map = indexNavigationMap(INITIAL_WORLD_MAP, startingLocationId);
     const exploration = indexExplorationDefinitions(INITIAL_EXPLORATION_DEFINITIONS, map);
+    validateEncounterDiscoveries(INITIAL_COMBAT, new Set(exploration.byDiscovery.keys()));
     const resources = indexResourceDefinitions(INITIAL_RESOURCE_NODES, INITIAL_POPULATIONS, map, exploration);
     const crafting = indexCraftingDefinitions(INITIAL_RECIPES, INITIAL_STRUCTURES);
     const presences = indexPresenceCatalog(INITIAL_PRESENCE_CATALOG, map, exploration);
@@ -62,7 +64,7 @@ export function createSandboxContext(
       presenceInteractions,
     };
   } catch (error) {
-    if (error instanceof NavigationError) {
+    if (error instanceof NavigationError || error instanceof CombatError) {
       throw new SandboxError(error.message, { cause: error });
     }
 

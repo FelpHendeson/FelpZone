@@ -13,7 +13,7 @@ import {
   INITIAL_COMBAT,
   createCombat,
   listAvailableEncounters,
-  type CombatOutcome,
+  type CombatState,
   type EncounterDefinition,
 } from '../../modules/combat';
 import { CombatScreen } from './CombatScreen';
@@ -46,7 +46,7 @@ interface ExplorationScreenProps {
   feedback?: string | null;
   actionPending?: boolean;
   onAction: (action: SandboxAction) => void;
-  onResolveCombat: (encounterId: string, outcome: Exclude<CombatOutcome, 'ongoing'>) => void;
+  onResolveCombat: (encounterId: string, finalState: CombatState) => void;
   onExit: () => void;
 }
 
@@ -65,7 +65,12 @@ export function ExplorationScreen({
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
-  const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags);
+  const revealedDiscoveryIds =
+    state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
+      ?.revealedDiscoveryIds ?? [];
+  const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags, revealedDiscoveryIds);
+  const fightBlockedReason =
+    state.attributes.saude < 1 ? 'Você está ferido demais para enfrentar uma ameaça agora.' : undefined;
 
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
@@ -73,13 +78,14 @@ export function ExplorationScreen({
     const initialCombat = createCombat(INITIAL_COMBAT, combatEncounterId, {
       playerName: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+      playerMaxHealth: state.attributes.saude,
     });
     return (
       <CombatScreen
         initialState={initialCombat}
         encounterName={encounter?.name ?? 'Confronto'}
-        onFinish={(outcome) => {
-          onResolveCombat(combatEncounterId, outcome);
+        onFinish={(finalState) => {
+          onResolveCombat(combatEncounterId, finalState);
           setCombatEncounterId(null);
         }}
       />
@@ -109,6 +115,7 @@ export function ExplorationScreen({
               view={view}
               trackedJourney={trackedJourney}
               encounters={encounters}
+              fightBlockedReason={fightBlockedReason}
               onAction={onAction}
               onFight={setCombatEncounterId}
               onOpenActions={() => setActionsOpen(true)}
@@ -179,6 +186,7 @@ function WorldPanel({
   view,
   trackedJourney,
   encounters,
+  fightBlockedReason,
   onAction,
   onFight,
   onOpenActions,
@@ -187,6 +195,7 @@ function WorldPanel({
   view: ExplorationView;
   trackedJourney?: JournalJourneyView;
   encounters: EncounterDefinition[];
+  fightBlockedReason?: string;
   onAction: (action: SandboxAction) => void;
   onFight: (encounterId: string) => void;
   onOpenActions: () => void;
@@ -247,7 +256,7 @@ function WorldPanel({
 
       <div className="world-context-grid">
         <PresenceSection presences={view.presences} onAction={onAction} />
-        <ThreatSection encounters={encounters} onFight={onFight} />
+        <ThreatSection encounters={encounters} blockedReason={fightBlockedReason} onFight={onFight} />
         <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
       </div>
     </div>
@@ -256,9 +265,11 @@ function WorldPanel({
 
 function ThreatSection({
   encounters,
+  blockedReason,
   onFight,
 }: {
   encounters: EncounterDefinition[];
+  blockedReason?: string;
   onFight: (encounterId: string) => void;
 }) {
   if (encounters.length === 0) {
@@ -280,10 +291,12 @@ function ThreatSection({
             <div className="threat-card__body">
               <h3>{encounter.name}</h3>
               <p>{encounter.description}</p>
+              <p className="threat-card__cost">{blockedReason ?? `Enfrentar custa ${formatPeriodCost(encounter.timeCost.periods)}`}</p>
             </div>
             <button
               type="button"
               className="button button--danger button--action"
+              disabled={Boolean(blockedReason)}
               onClick={() => onFight(encounter.id)}
             >
               Enfrentar

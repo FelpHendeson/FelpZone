@@ -66,6 +66,14 @@ import {
   copyTrainingPlan,
   planTraining,
 } from '../training';
+import {
+  CombatError,
+  INITIAL_COMBAT,
+  combatResolutionEffects,
+  listAvailableEncounters,
+  verifyCombatResolution,
+  type CombatResolution,
+} from '../combat';
 import type { TimeCost } from '../time';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -429,6 +437,54 @@ function executePrimary(
     };
   }
 
+  if (action.type === 'combat.resolve') {
+    const revealedDiscoveryIds = exploration.locations.find(
+      (location) => location.locationId === navigation.currentLocationId,
+    )?.revealedDiscoveryIds ?? [];
+    const encounter = listAvailableEncounters(
+      INITIAL_COMBAT,
+      navigation.currentLocationId,
+      state.flags,
+      revealedDiscoveryIds,
+    ).find((entry) => entry.id === action.resolution.encounterId);
+    if (!encounter) {
+      throw new SandboxActionError('O encontro não está disponível neste local.');
+    }
+    if (state.attributes.saude < 1) {
+      throw new SandboxActionError('Você está ferido demais para concluir um confronto.');
+    }
+    const resolution = verifyCombatResolution(INITIAL_COMBAT, action.resolution, encounter, {
+      playerName: `${state.character.firstName} ${state.character.lastName}`,
+      knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+      playerMaxHealth: state.attributes.saude,
+    });
+    const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude));
+    return {
+      detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
+      timeCost: { periods: encounter.timeCost.periods },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory: copyInventory(afterEffects.inventory),
+      attributes: { ...afterEffects.attributes },
+      flags: { ...afterEffects.flags },
+      relationships: afterEffects.relationships.map((entry) => ({
+        characterId: entry.characterId,
+        trust: entry.trust,
+      })),
+      progression: {
+        abilityIds: [...afterEffects.progression.abilityIds],
+        titleIds: [...afterEffects.progression.titleIds],
+      },
+      system: copySystem(afterEffects.system),
+      status: afterEffects.status,
+      narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
+      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+    };
+  }
+
   const plan = planPresenceInteraction(
     context.presences,
     context.presenceInteractions,
@@ -571,7 +627,49 @@ function requireAction(value: unknown): SandboxAction {
     return { type: 'training.train', methodId: value.methodId };
   }
 
+  if (value.type === 'combat.resolve') {
+    const resolution = value.resolution;
+    if (
+      !isRecord(resolution) ||
+      typeof resolution.encounterId !== 'string' ||
+      resolution.encounterId.trim() === '' ||
+      (resolution.outcome !== 'victory' && resolution.outcome !== 'defeat' && resolution.outcome !== 'fled') ||
+      !nonNegativeSafeInteger(resolution.turns) ||
+      !nonNegativeSafeInteger(resolution.entryHealth) ||
+      !nonNegativeSafeInteger(resolution.remainingHealth) ||
+      (resolution.remainingHealth as number) > (resolution.entryHealth as number) ||
+      !Array.isArray(resolution.playerActionIds) ||
+      resolution.playerActionIds.length !== resolution.turns ||
+      resolution.playerActionIds.some((actionId) => typeof actionId !== 'string' || actionId.trim() === '')
+    ) {
+      throw new SandboxActionError('A resolução de combate é inválida.');
+    }
+
+    return {
+      type: 'combat.resolve',
+      resolution: {
+        encounterId: resolution.encounterId,
+        outcome: resolution.outcome,
+        turns: resolution.turns as number,
+        entryHealth: resolution.entryHealth as number,
+        remainingHealth: resolution.remainingHealth as number,
+        playerActionIds: [...resolution.playerActionIds] as string[],
+      },
+    };
+  }
+
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
+}
+
+function copyResolution(resolution: CombatResolution): CombatResolution {
+  return {
+    encounterId: resolution.encounterId,
+    outcome: resolution.outcome,
+    turns: resolution.turns,
+    entryHealth: resolution.entryHealth,
+    remainingHealth: resolution.remainingHealth,
+    playerActionIds: [...resolution.playerActionIds],
+  };
 }
 
 function buildConditionSource(
@@ -667,6 +765,10 @@ function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'training.train') {
     return { type: 'training.train', methodId: action.methodId };
+  }
+
+  if (action.type === 'combat.resolve') {
+    return { type: 'combat.resolve', resolution: copyResolution(action.resolution) };
   }
 
   return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
@@ -829,6 +931,10 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+function nonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
 function rethrowDomain(error: unknown): never {
   if (error instanceof SandboxActionError) {
     throw error;
@@ -846,6 +952,7 @@ function rethrowDomain(error: unknown): never {
     error instanceof NeedsError ||
     error instanceof ObjectiveError ||
     error instanceof TrainingError ||
+    error instanceof CombatError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

@@ -16,6 +16,7 @@ import type { ResourceCollectionResult } from '../resources/types';
 import type { SandboxContext } from '../sandbox';
 import type { TimeCost } from '../time';
 import type { TrainingPlan } from '../training';
+import type { CombatResolution } from '../combat';
 
 export type SandboxAction =
   | {
@@ -50,6 +51,10 @@ export type SandboxAction =
   | {
       type: 'training.train';
       methodId: string;
+    }
+  | {
+      type: 'combat.resolve';
+      resolution: CombatResolution;
     };
 
 export type SandboxActionDetail =
@@ -60,7 +65,8 @@ export type SandboxActionDetail =
   | { type: 'presence.interact'; plan: PresenceInteractionPlan }
   | { type: 'needs.consume'; plan: NeedsConsumptionPlan }
   | { type: 'needs.rest'; plan: NeedsRestPlan }
-  | { type: 'training.train'; plan: TrainingPlan };
+  | { type: 'training.train'; plan: TrainingPlan }
+  | { type: 'combat.resolve'; resolution: CombatResolution };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];

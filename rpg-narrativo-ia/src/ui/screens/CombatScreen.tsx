@@ -13,7 +13,7 @@ import {
 interface CombatScreenProps {
   initialState: CombatState;
   encounterName: string;
-  onFinish: (outcome: Exclude<CombatOutcome, 'ongoing'>) => void;
+  onFinish: (finalState: CombatState) => void;
 }
 
 export function CombatScreen({ initialState, encounterName, onFinish }: CombatScreenProps) {
@@ -58,10 +58,15 @@ export function CombatScreen({ initialState, encounterName, onFinish }: CombatSc
         <section className={`combat-result combat-result--${state.outcome}`} role="status">
           <strong>{outcomeTitle(state.outcome)}</strong>
           <p>{outcomeMessage(state.outcome)}</p>
+          <p className="combat-result__detail">
+            {state.outcome === 'defeat'
+              ? 'Você retorna com a saúde no limite (1). O mundo avança um período.'
+              : `Saúde preservada: ${state.player.health}/${state.player.maxHealth}. O mundo avança um período.`}
+          </p>
           <button
             type="button"
             className="button button--primary button--action"
-            onClick={() => onFinish(state.outcome as Exclude<CombatOutcome, 'ongoing'>)}
+            onClick={() => onFinish(state)}
           >
             Voltar ao mundo
           </button>

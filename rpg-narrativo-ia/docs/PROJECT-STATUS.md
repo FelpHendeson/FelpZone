@@ -82,7 +82,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 9 — Necessidades e sobrevivência leve | **Implementado e consolidado** | Modelo puro; `sede` integrada; schema 5; desgaste por custo temporal; ações atômicas; superfície mobile; prova persistida de oito dias com conteúdo atual. | Sem combate, morte permanente ou novos recursos. |
 | Sistema 10 — Objetivos, jornadas e diário | **Implementado e consolidado** | Fatias 10.1–10.5: catálogo, dez critérios, schema 6, sincronização após ações/escolhas, diário mobile e jornada `Primeiros passos` ponta a ponta. | O acompanhamento não persiste por decisão do recorte; não há recompensas automáticas. |
 | Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Implementado e consolidado (Fatias 11.1 a 11.7)** | Vocabulário de Eteris/Númen e Corpo/Poder; catálogos de habilidades, caminhos e treino; `GameState.system` no schema 7; ação de treino com custo temporal único; Árvore de habilidades com sigilo; aba mobile `Sistema` com Status e confirmação de treino. | Balanceamento, Jardim e conteúdo definitivo seguem fora do escopo; números e nomes são protótipos. |
-| Sistema 12 — Banco de ações e combate | **Implementado e consolidado (Fatias 12.1 a 12.7)** | Catálogos de ações, combatentes e encontros; motor de turno determinístico com dano, cura e escudo; IA de oponente por regras; habilidades do Sistema 11 liberam ações; encontro jogável no mundo com desfecho aplicado ao `GameState` sem mudar o schema; tela de combate mobile. | Posicionamento, condições de status ricas, grupos, balanceamento definitivo e itens seguem fora do escopo. |
+| Sistema 12 — Banco de ações e combate | **Implementado e consolidado (12.1–12.12)** | Catálogos, motor determinístico, IA por regras, habilidades liberando ações e encontro jogável; a consolidação (12.8–12.12) adiciona ameaça gatilhada por descoberta, vitalidade vinda da saúde do mundo, custo temporal único e desfecho aplicado como uma transação atômica (tempo, necessidades, saúde, flag, recompensa). | Posicionamento, status ricos, grupos, balanceamento definitivo e itens seguem fora do escopo. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -114,7 +114,7 @@ O contrato e as fatias propostas estão em [Sistema 11 — Núcleo do Sistema, E
 
 O combate usa ações declaradas por dados (velocidade, alvo e efeitos de dano, cura e escudo), resolvidas por turno de forma determinística. Pessoas, criaturas e o personagem participam pelo mesmo contrato de combatente; inimigo não é monstro por definição. Habilidades conhecidas do Sistema 11 liberam ações extras, e o desfecho gera consequências no `GameState` sem alterar o schema.
 
-Posicionamento, iniciativa por frações de turno, condições de status ricas, grupos, itens e balanceamento definitivo permanecem fora do escopo. Contrato e fatias em [Sistema 12 — Banco de ações e combate](SYSTEM-ACTION-COMBAT.md).
+As integrações de descoberta, saúde persistente, custo temporal e apresentação foram implementadas nas Fatias 12.8 a 12.12: a ameaça surge após a descoberta exigida, a vitalidade de entrada vem da saúde do mundo, cada desfecho cobra um período e o resultado é aplicado como uma transação atômica. Posicionamento, iniciativa por frações de turno, condições de status ricas, grupos, itens e balanceamento definitivo permanecem fora do escopo. Consulte [Sistema 12 — Banco de ações e combate](SYSTEM-ACTION-COMBAT.md) e [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
 
 ### Presença e interação com NPCs e criaturas — sistema aprovado
 
@@ -145,7 +145,7 @@ São parte confirmada do mundo e da trama futura. Mecânicas de construção, ad
 - regras exatas do Jardim, incluindo fusão, preservação, reversibilidade e limites;
 - permitir protagonista não humano, criar raças não humanas concretas ou estender o Sistema a todos os seres/raças;
 - fórmulas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
-- comportamento de oponentes e consequências de combate;
+- comportamentos avançados de oponentes e consequências além das Fatias 12.8 a 12.12;
 - expansão do mapa visual para uma visão global ou regional;
 - notificações mais amplas do Sistema além do feedback previsto para objetivos;
 - progressão extensa de NPCs;
@@ -188,10 +188,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 12 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, integrado ao mundo e reutilizando as habilidades do Sistema 11. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md) e [Sistema 12](SYSTEM-ACTION-COMBAT.md).
+**Os Sistemas 1 a 12 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, incluindo a consolidação (Fatias 12.8 a 12.12) que integra o combate ao loop do mundo. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Sistema 12](SYSTEM-ACTION-COMBAT.md) e [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
 
 Antes da próxima implementação:
 
-1. escolher e especificar o próximo eixo (por exemplo, expansão de conteúdo de combate, assentamentos ou trama principal) com contrato e autorização próprios;
-2. preservar o modelo consolidado, a aplicação única de tempo, o sigilo de conteúdo oculto, o determinismo do combate e a migração sem efeitos de gameplay;
-3. não transformar automaticamente detalhes ainda em discussão — fórmulas de balanceamento, raças, Jardim, posicionamento de combate, agenda ou equipamentos — em requisitos.
+1. escolher e especificar o próximo eixo com contrato e autorização próprios;
+2. preservar o schema 7, o determinismo, a aplicação única de tempo, o sigilo de conteúdo oculto e a atomicidade do desfecho;
+3. não transformar automaticamente detalhes ainda em discussão — fórmulas de balanceamento, raças, Jardim, posicionamento, agenda ou equipamentos — em requisitos.

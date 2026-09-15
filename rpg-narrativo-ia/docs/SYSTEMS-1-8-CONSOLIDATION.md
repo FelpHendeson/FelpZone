@@ -43,7 +43,7 @@ Os alvos de toque compactos do menu e das ações de coleta/fabricação também
 
 ## Limites preservados
 
-Continuam como protótipo: textos, nomes, balanceamento, ícones, imagens e volume de conteúdo. Permanecem fora dos Sistemas 1 a 8: agenda, deslocamento autônomo, comportamento de criatura, combate, necessidades automáticas, backend, IA em runtime e sincronização em nuvem. Necessidades receberam depois uma especificação própria no Sistema 9; os demais itens continuam sem implementação autorizada.
+Continuam como protótipo: textos, nomes, balanceamento, ícones, imagens e volume de conteúdo. Permanecem fora dos Sistemas 1 a 8: agenda, deslocamento autônomo, comportamento de criatura, combate, necessidades automáticas, backend, IA em runtime e sincronização em nuvem. Necessidades receberam depois especificação e implementação próprias no Sistema 9; combate recebeu especificação e núcleo implementado no Sistema 12. Os demais itens continuam sem implementação autorizada.
 
 Esses limites não bloqueiam a consolidação porque não pertencem aos contratos aprovados dos Sistemas 1 a 8.
 

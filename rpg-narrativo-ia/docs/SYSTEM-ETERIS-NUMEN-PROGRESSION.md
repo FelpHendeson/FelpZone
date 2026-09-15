@@ -4,9 +4,9 @@
 
 **Aprovado pelo autor em 14 de setembro de 2026 e implementado nas Fatias 11.1 a 11.7 (autorização explícita do autor para desenvolvimento contínuo).**
 
-Este documento amadureceu o próximo eixo do jogo e agora está implementado: os módulos `energetics`, `skills`, `training` e `system-interface` entregam vocabulário energético, catálogos validados, estado de progressão persistido no schema 7, treino que cobra o relógio uma vez, Árvore de habilidades derivada com sigilo de conteúdo oculto e uma interface diegética mobile. O Sistema 11 dá significado mecânico e narrativo ao Sistema canônico e prepara contratos públicos que um combate futuro poderá reutilizar.
+Este documento amadureceu o próximo eixo do jogo e agora está implementado: os módulos `energetics`, `skills`, `training` e `system-interface` entregam vocabulário energético, catálogos validados, estado de progressão persistido no schema 7, treino que cobra o relógio uma vez, Árvore de habilidades derivada com sigilo de conteúdo oculto e uma interface diegética mobile. O Sistema 11 dá significado mecânico e narrativo ao Sistema canônico e expõe contratos públicos que o Sistema 12 passou a reutilizar no combate.
 
-Números, nomes, custos e conteúdo de habilidades permanecem protótipos e não são cânone. Balanceamento definitivo, regras do Jardim e o banco de ações de combate continuam fora do escopo e exigem especificação e autorização próprias.
+Números, nomes, custos e conteúdo de habilidades permanecem protótipos e não são cânone. Balanceamento definitivo e regras do Jardim continuam fora do escopo. O banco de ações recebeu especificação e implementação próprias no Sistema 12.
 
 ## Problema de diversão e imersão
 
@@ -163,9 +163,9 @@ O módulo de crafting continua sendo responsável por validar ingredientes, esta
 
 Formatos exatos de experimentação, qualidade, desperdício e minijogos permanecem em discussão.
 
-## Preparação para o combate futuro
+## Preparação para o combate
 
-Combate não faz parte da implementação do Sistema 11, mas este núcleo deve evitar decisões que o impeçam.
+Combate não faz parte da implementação do Sistema 11. Esta seção registrou a ponte posteriormente consumida pelo Sistema 12 e continua delimitando a responsabilidade entre progressão e combate.
 
 A direção definida para o combate é um **banco de ações declarativo**. Habilidades físicas, aplicações de Númen, itens e outras técnicas poderão virar ações com:
 
@@ -232,7 +232,7 @@ Os nomes finais dos módulos ainda podem mudar. As responsabilidades não devem 
 - **habilidades:** valida definições, caminhos, conhecimento e proficiências;
 - **treinamento:** planeja uma ação de treino e devolve custo e efeitos; não avança o relógio;
 - **progressão:** aplica marcos e mantém estado mínimo; não conhece componentes React;
-- **combate futuro:** consumirá ações e habilidades públicas, sem acessar arquivos internos desses módulos;
+- **combate (Sistema 12):** consome ações e habilidades públicas, sem acessar arquivos internos desses módulos;
 - **campanhas:** liberam conhecimento por efeitos declarativos, sem implementar regras do núcleo;
 - **UI:** deriva uma visão segura, sem fórmulas próprias.
 
@@ -299,8 +299,8 @@ O Jardim poderá receber uma fatia própria somente depois que as regras mínima
 
 ## Fora do Sistema 11
 
-- combate jogável e comportamento de oponentes;
-- dano, defesa, vitória, fuga e derrota;
+- implementação de combate jogável e comportamento de oponentes dentro do Sistema 11 — essas responsabilidades pertencem ao Sistema 12;
+- dano, defesa, vitória, fuga e derrota dentro do Sistema 11 — essas responsabilidades pertencem ao Sistema 12;
 - fórmulas e balanceamento definitivos;
 - funcionamento completo do Jardim antes de suas regras serem aprovadas;
 - minijogos específicos;

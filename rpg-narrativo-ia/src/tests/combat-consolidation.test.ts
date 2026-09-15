@@ -3,10 +3,12 @@ import { applyEffects } from '../core/effects';
 import { type GameState } from '../core/state';
 import {
   INITIAL_COMBAT,
+  buildCombatResolution,
   combatEncounterResolvedFlag,
+  combatResolutionEffects,
   createCombat,
+  getEncounter,
   listAvailableEncounters,
-  resolveEncounterOutcome,
   resolveTurn,
   type CombatActionDefinition,
   type CombatState,
@@ -39,11 +41,14 @@ describe('Fatia 12.7 — consolidação do Sistema 12', () => {
     expect(finished.outcome).toBe('victory');
 
     const before = exploring();
-    const after = applyEffects(before, resolveEncounterOutcome('clearing-predator', finished.outcome));
+    const resolution = buildCombatResolution(finished, getEncounter(INITIAL_COMBAT, 'clearing-predator'));
+    const after = applyEffects(before, combatResolutionEffects(resolution, before.attributes.saude));
     expect(after.flags[combatEncounterResolvedFlag('clearing-predator')]).toBe(true);
     expect(after.attributes.cautela).toBe(before.attributes.cautela + 2);
     expect(
-      listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, after.flags).map((e) => e.id),
+      listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, after.flags, ['wary-predator-tracks']).map(
+        (e) => e.id,
+      ),
     ).not.toContain('clearing-predator');
   });
 

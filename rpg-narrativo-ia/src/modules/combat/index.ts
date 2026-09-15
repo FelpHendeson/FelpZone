@@ -22,9 +22,14 @@ export {
   type CreateCombatOptions,
 } from './engine';
 export {
+  buildCombatResolution,
   combatEncounterResolvedFlag,
+  combatResolutionEffects,
   listAvailableEncounters,
-  resolveEncounterOutcome,
+  terminalHealthFor,
+  validateEncounterDiscoveries,
+  verifyCombatResolution,
+  type VerifyCombatResolutionOptions,
 } from './integration';
 
 export const INITIAL_COMBAT = indexCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS);
@@ -104,13 +109,21 @@ export function getEncounter(catalog: IndexedCombat, encounterId: string): Encou
   if (!encounter) {
     throw new CombatError('O encontro não existe.');
   }
-  return { ...encounter };
+  return copyEncounter(encounter);
 }
 
 export function listEncountersByLocation(catalog: IndexedCombat, locationId: string): EncounterDefinition[] {
   return requireIndexed(catalog)
     .encounters.filter((encounter) => encounter.locationId === locationId)
-    .map((encounter) => ({ ...encounter }));
+    .map(copyEncounter);
+}
+
+function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
+  return {
+    ...encounter,
+    timeCost: { ...encounter.timeCost },
+    requiredDiscoveryIds: [...encounter.requiredDiscoveryIds],
+  };
 }
 
 function inspectAction(
@@ -216,6 +229,13 @@ function inspectEncounter(
   if (!nonEmpty(value.opponentId) || !combatantIds.has(value.opponentId)) {
     return fail('O encontro referencia um combatente inexistente.');
   }
+  if (!isRecord(value.timeCost) || !positiveSafeInteger(value.timeCost.periods)) {
+    return fail('O custo temporal do encontro é inválido.');
+  }
+  const requirements = inspectRequiredDiscoveries(value.requiredDiscoveryIds);
+  if (!requirements.ok) {
+    return requirements;
+  }
 
   return {
     ok: true,
@@ -225,8 +245,29 @@ function inspectEncounter(
       opponentId: value.opponentId,
       name: value.name,
       description: value.description,
+      timeCost: { periods: value.timeCost.periods },
+      requiredDiscoveryIds: requirements.value,
     },
   };
+}
+
+function inspectRequiredDiscoveries(value: unknown): CombatInspection<string[]> {
+  if (value === undefined) {
+    return { ok: true, value: [] };
+  }
+  if (!Array.isArray(value)) {
+    return fail('Os requisitos de descoberta do encontro são inválidos.');
+  }
+  const seen = new Set<string>();
+  const ids: string[] = [];
+  for (const entry of value) {
+    if (!nonEmpty(entry) || seen.has(entry)) {
+      return fail('Os requisitos de descoberta do encontro são inválidos.');
+    }
+    seen.add(entry);
+    ids.push(entry);
+  }
+  return { ok: true, value: ids };
 }
 
 function freezeCatalog(
@@ -240,7 +281,15 @@ function freezeCatalog(
       Object.freeze({ ...combatant, actionIds: Object.freeze([...combatant.actionIds]) as unknown as string[] }),
     ),
   );
-  const frozenEncounters = Object.freeze(encounters.map((encounter) => Object.freeze({ ...encounter })));
+  const frozenEncounters = Object.freeze(
+    encounters.map((encounter) =>
+      Object.freeze({
+        ...encounter,
+        timeCost: Object.freeze({ ...encounter.timeCost }),
+        requiredDiscoveryIds: Object.freeze([...encounter.requiredDiscoveryIds]) as unknown as string[],
+      }),
+    ),
+  );
 
   return Object.freeze({
     actions: frozenActions,
@@ -326,6 +375,7 @@ export type {
   CombatInspection,
   CombatLogEntry,
   CombatOutcome,
+  CombatResolution,
   CombatState,
   CombatTarget,
   EncounterDefinition,

@@ -135,6 +135,6 @@ A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visí
 
 A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta quando o catálogo ativo contém essa ligação. A Fatia 8.6 desligou essa ligação na campanha `first-day`: a interface reutiliza `GameScreen` só depois de o jogador conversar com Mira. Não há uma segunda tela de diálogo. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo.
 
-Encontrar e interagir com NPCs e criaturas é uma direção definida. Persistência própria, agendas e comportamento autônomo continuam sem implementação aprovada. Combate passou a ter uma direção conceitual de banco de ações declarativo, mas permanece sem sistema próprio, fórmulas ou implementação autorizada. Consulte `PROJECT-STATUS.md` e `SYSTEM-ETERIS-NUMEN-PROGRESSION.md`.
+Encontrar e interagir com NPCs e criaturas é uma direção definida. Persistência própria, agendas e comportamento autônomo continuam sem implementação aprovada. O combate recebeu um sistema próprio nas Fatias 12.1 a 12.7; sua integração completa com descoberta, saúde global, tempo e consequências está especificada nas Fatias 12.8 a 12.12 e ainda aguarda implementação. Consulte `PROJECT-STATUS.md`, `SYSTEM-ACTION-COMBAT.md` e `SYSTEM-12-CONSOLIDATION.md`.
 
 Consulte `SANDBOX-FLOW.md` e as especificações dos sistemas antes de alterar telas.

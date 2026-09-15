@@ -191,6 +191,6 @@ Prioridade: ordem declarada do catálogo.
 - renovação ou recuperação no carregamento;
 - presença e interação genéricas de NPCs ou criaturas fora do encontro atual;
 - persistência própria, agenda ou deslocamento de NPCs — ainda não discutidos;
-- diálogo livre, comportamento autônomo de criatura, caça detalhada e clima — fora deste contrato; necessidades e sobrevivência leve pertencem ao Sistema 9 separado, enquanto combate recebeu depois uma direção conceitual de banco de ações, ainda sem implementação autorizada;
+- diálogo livre, comportamento autônomo de criatura, caça detalhada e clima — fora deste contrato; necessidades e sobrevivência leve pertencem ao Sistema 9 separado, enquanto combate pertence ao Sistema 12 e sua consolidação está especificada em `SYSTEM-12-CONSOLIDATION.md`;
 - sistemas jogáveis de facções ou assentamentos — somente o papel narrativo no universo está definido;
 - backend e IA em runtime.

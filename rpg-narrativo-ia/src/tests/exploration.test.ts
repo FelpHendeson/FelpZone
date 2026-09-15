@@ -303,6 +303,7 @@ describe('exploração e descobertas', () => {
       'first-priority-event',
       'path-great-tree',
       'fallen-sticks',
+      'wary-predator-tracks',
       'path-spring-lake',
       'torn-cloth',
       'path-dense-woods',
@@ -1112,9 +1113,9 @@ describe('exploração e descobertas', () => {
     const clearing = calculateZoneCompletion(map, definitions, start.current, START);
 
     expect(forest.zoneId).toBe('horned-rabbit-forest');
-    expect(forest.totalPoints).toBe(15);
+    expect(forest.totalPoints).toBe(16);
     expect(forest.completedPoints).toBe(2);
-    expect(clearing.totalPoints).toBe(7);
+    expect(clearing.totalPoints).toBe(8);
     expect(clearing.completedPoints).toBe(2);
     expect(forest).not.toHaveProperty('discoveryIds');
   });
@@ -1152,7 +1153,7 @@ describe('exploração e descobertas', () => {
       totalPoints: 4,
       percentage: 0,
     });
-    expect(forest.totalPoints).toBe(15);
+    expect(forest.totalPoints).toBe(16);
     expect(JSON.stringify(empty)).not.toContain('hidden-cave');
     expect(empty).not.toHaveProperty('revealedDiscoveryIds');
   });
