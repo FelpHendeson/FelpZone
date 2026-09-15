@@ -8,7 +8,7 @@ A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da ev
 
 Os Sistemas 1 a 12 estão implementados e consolidados. O Sistema 12 — Banco de ações e combate — entrega combate por turnos determinístico integrado ao mundo, reutilizando as habilidades do Sistema 11. As Fatias 12.8 a 12.12 consolidam descoberta, vitalidade persistente, tempo, consequências e apresentação. Leia [Sistema 12](docs/SYSTEM-ACTION-COMBAT.md) e [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md).
 
-O Sistema 13 — Progressão por prática e recompensas do Sistema — está **especificado, mas não implementado**. Leia [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md) antes de propor código. Ele conecta treino e vitórias verificadas a proficiências e marcos, preserva o schema 7 no primeiro recorte e não autoriza equipamentos, loot, Jardim ou fórmulas definitivas. A especificação não autoriza implementação sem uma ordem posterior do autor.
+O Sistema 13 — Progressão por prática e recompensas do Sistema — está **implementado e consolidado nas Fatias 13.1 a 13.7** no módulo `mastery`. Leia [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md) antes de propor código. Ele conecta treino e vitórias verificadas a proficiências e marcos de nível, preserva o schema 7 e não introduz equipamentos, loot, Jardim ou fórmulas definitivas.
 
 O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **implementado e consolidado nas Fatias 11.1 a 11.7** nos módulos `energetics`, `skills`, `training` e `system-interface`: vocabulário energético, catálogos validados, `GameState.system` no schema 7, ação de treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Números, nomes e conteúdo de habilidades são protótipos. O combate já reutiliza os contratos públicos do Sistema 11, mas fórmulas e balanceamento definitivo continuam sem aprovação.
 
@@ -44,7 +44,7 @@ A interface jogável foi consolidada sob o princípio **aventura primeiro, dados
 - Preserve as Fatias 12.8 a 12.12: revele ameaças somente por pré-requisitos declarativos, derive a vitalidade do jogador da `saude` atual e persista somente um resultado terminal verificável.
 - Um confronto completo cobra o tempo exatamente uma vez no desfecho; turnos individuais nunca avançam o relógio.
 - Vitória, derrota ou fuga devem formar uma única transação de mundo. React não calcula nem aplica consequências persistentes.
-- No futuro Sistema 13, prática só poderá nascer de treino validado ou resolução de combate reproduzida; não aceite proficiência, nível, marco ou recompensa informados pela UI.
+- No Sistema 13, prática só nasce de treino validado ou resolução de combate reproduzida; não aceite proficiência, nível, marco ou recompensa informados pela UI.
 
 ## Entrega esperada
 

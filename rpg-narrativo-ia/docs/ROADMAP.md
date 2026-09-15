@@ -212,7 +212,7 @@ Balanceamento definitivo, posicionamento, condições de status ricas, grupos e 
 
 ### Etapa 13 — Progressão por prática e recompensas do Sistema
 
-**Especificada; implementação ainda não iniciada nem autorizada.** O Sistema 13 conecta treino, vitórias verificadas, proficiências, marcos de nível e revelação de métodos sem introduzir experiência genérica, equipamentos ou Jardim. Fonte: [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
+**Implementada e consolidada nas Fatias 13.1 a 13.7.** O Sistema 13 conecta treino, vitórias verificadas, proficiências, marcos de nível e revelação de métodos sem introduzir experiência genérica, equipamentos ou Jardim. Fonte: [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
 
 - **13.1** — vocabulário, catálogo e validação isolada de prática e marcos;
 - **13.2** — motor puro e idempotente de evidências, incrementos e marcos;
@@ -222,7 +222,7 @@ Balanceamento definitivo, posicionamento, condições de status ricas, grupos e 
 - **13.6** — ciclo ponta a ponta até nova habilidade e nova ação de combate;
 - **13.7** — consolidação, segurança, compatibilidade e gates.
 
-O ciclo protótipo usa `Sentidos Aguçados` em proficiência 3 para alcançar nível 2, revelar a `Rotina de Reforço do Corpo`, aprender `Corpo Firme` e liberar `Estancar Ferida`. Os valores são provisórios. Antes do código, precisam ser fechadas as decisões de entrada registradas na especificação e a forma de autorização das fatias.
+O ciclo protótipo usa `Sentidos Aguçados` em proficiência 3 para alcançar nível 2, revelar a `Rotina de Reforço do Corpo`, aprender `Corpo Firme` e liberar `Estancar Ferida`. Os valores são provisórios e substituíveis por conteúdo.
 
 ## Horizonte depois do Sistema 13
 
