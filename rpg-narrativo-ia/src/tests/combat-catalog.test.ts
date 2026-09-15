@@ -23,7 +23,9 @@ function catalog(): CombatCatalog {
       { id: 'precise', name: 'Preciso', description: 'Usa Sentidos.', speed: 8, target: 'opponent', effects: [{ type: 'damage', amount: 9 }], skillId: 'sharpened-senses' },
     ],
     combatants: [{ id: 'beast', name: 'Fera', maxHealth: 18, actionIds: ['attack', 'guard'] }],
-    encounters: [{ id: 'enc', locationId: 'clearing', opponentId: 'beast', name: 'Fera', description: 'Rosna.' }],
+    encounters: [
+      { id: 'enc', locationId: 'clearing', opponentId: 'beast', name: 'Fera', description: 'Rosna.', timeCost: { periods: 1 }, requiredDiscoveryIds: [] },
+    ],
   };
 }
 

@@ -10,11 +10,27 @@ export function listAvailableEncounters(
   catalog: IndexedCombat,
   locationId: string,
   flags: Readonly<Record<string, boolean>>,
+  revealedDiscoveryIds: readonly string[] = [],
 ): EncounterDefinition[] {
+  const revealed = new Set(revealedDiscoveryIds);
   return catalog.encounters
     .filter((encounter) => encounter.locationId === locationId)
     .filter((encounter) => flags[combatEncounterResolvedFlag(encounter.id)] !== true)
-    .map((encounter) => ({ ...encounter }));
+    .filter((encounter) => encounter.requiredDiscoveryIds.every((id) => revealed.has(id)))
+    .map((encounter) => copyEncounter(encounter));
+}
+
+export function validateEncounterDiscoveries(
+  catalog: IndexedCombat,
+  knownDiscoveryIds: ReadonlySet<string>,
+): void {
+  for (const encounter of catalog.encounters) {
+    for (const id of encounter.requiredDiscoveryIds) {
+      if (!knownDiscoveryIds.has(id)) {
+        throw new CombatError(`O encontro ${encounter.id} exige uma descoberta inexistente: ${id}.`);
+      }
+    }
+  }
 }
 
 export function resolveEncounterOutcome(encounterId: string, outcome: CombatOutcome): GameEffect[] {
@@ -31,4 +47,12 @@ export function resolveEncounterOutcome(encounterId: string, outcome: CombatOutc
     return [];
   }
   throw new CombatError('O combate ainda não terminou.');
+}
+
+function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
+  return {
+    ...encounter,
+    timeCost: { ...encounter.timeCost },
+    requiredDiscoveryIds: [...encounter.requiredDiscoveryIds],
+  };
 }

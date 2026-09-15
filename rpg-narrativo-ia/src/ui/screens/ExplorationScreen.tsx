@@ -65,7 +65,10 @@ export function ExplorationScreen({
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
-  const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags);
+  const revealedDiscoveryIds =
+    state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
+      ?.revealedDiscoveryIds ?? [];
+  const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags, revealedDiscoveryIds);
 
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)

@@ -1,3 +1,5 @@
+import type { TimeCost } from '../time';
+
 export const COMBAT_EFFECT_TYPES = ['damage', 'heal', 'guard'] as const;
 
 export type CombatEffectType = (typeof COMBAT_EFFECT_TYPES)[number];
@@ -34,6 +36,8 @@ export interface EncounterDefinition {
   opponentId: string;
   name: string;
   description: string;
+  timeCost: TimeCost;
+  requiredDiscoveryIds: string[];
 }
 
 export interface CombatCatalog {
@@ -78,6 +82,14 @@ export interface CombatState {
   opponent: CombatantState;
   log: CombatLogEntry[];
   outcome: CombatOutcome;
+}
+
+export interface CombatResolution {
+  encounterId: string;
+  outcome: Exclude<CombatOutcome, 'ongoing'>;
+  turns: number;
+  entryHealth: number;
+  remainingHealth: number;
 }
 
 export const FLEE_ACTION_ID = 'flee';

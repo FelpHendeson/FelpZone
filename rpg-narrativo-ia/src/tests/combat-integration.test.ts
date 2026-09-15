@@ -15,12 +15,20 @@ function exploring(): GameState {
 }
 
 describe('Fatia 12.4 — integração de combate com o mundo', () => {
-  it('lista encontros do local e oculta os já resolvidos', () => {
-    const available = listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, {});
+  it('só revela a ameaça após a descoberta exigida e oculta a resolvida', () => {
+    // Sem a descoberta exigida, a ameaça não aparece.
+    const hidden = listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, {}, []);
+    expect(hidden.map((encounter) => encounter.id)).not.toContain('clearing-predator');
+
+    // Com a descoberta revelada, a ameaça aparece.
+    const available = listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, {}, ['wary-predator-tracks']);
     expect(available.map((encounter) => encounter.id)).toContain('clearing-predator');
 
+    // Depois de resolvida, some mesmo com a descoberta.
     const resolvedFlags = { [combatEncounterResolvedFlag('clearing-predator')]: true };
-    const afterWin = listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, resolvedFlags);
+    const afterWin = listAvailableEncounters(INITIAL_COMBAT, DEFAULT_STARTING_LOCATION_ID, resolvedFlags, [
+      'wary-predator-tracks',
+    ]);
     expect(afterWin.map((encounter) => encounter.id)).not.toContain('clearing-predator');
   });
 

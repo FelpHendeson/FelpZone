@@ -55,6 +55,8 @@ export const INITIAL_COMBAT_CATALOG = {
       opponentId: 'wary-predator',
       name: 'Predador Arisco',
       description: 'Uma criatura esguia rosna entre a vegetação, medindo se você é presa ou ameaça.',
+      timeCost: { periods: 1 },
+      requiredDiscoveryIds: ['wary-predator-tracks'],
     },
   ],
 } as const satisfies CombatCatalog;

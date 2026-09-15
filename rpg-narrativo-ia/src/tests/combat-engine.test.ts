@@ -20,7 +20,9 @@ function catalog(): IndexedCombat {
       { id: 'precise', name: 'Preciso', description: 'd', speed: 8, target: 'opponent', effects: [{ type: 'damage', amount: 9 }], skillId: 'sharpened-senses' },
     ],
     combatants: [{ id: 'beast', name: 'Fera', maxHealth: 12, actionIds: ['attack'] }],
-    encounters: [{ id: 'enc', locationId: 'clearing', opponentId: 'beast', name: 'Fera', description: 'd' }],
+    encounters: [
+      { id: 'enc', locationId: 'clearing', opponentId: 'beast', name: 'Fera', description: 'd', timeCost: { periods: 1 }, requiredDiscoveryIds: [] },
+    ],
   };
   return indexCombatCatalog(data, INITIAL_SKILLS);
 }

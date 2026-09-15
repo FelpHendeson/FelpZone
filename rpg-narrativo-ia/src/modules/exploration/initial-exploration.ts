@@ -37,6 +37,13 @@ export const INITIAL_EXPLORATION_DEFINITIONS: readonly LocationExplorationDefini
         once: true,
       },
       {
+        id: 'wary-predator-tracks',
+        kind: 'creatureHabitat',
+        revealAt: 30,
+        completionWeight: 1,
+        once: true,
+      },
+      {
         id: 'path-spring-lake',
         kind: 'passage',
         revealAt: 40,

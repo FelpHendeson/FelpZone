@@ -12,7 +12,9 @@ function catalog(): IndexedCombat {
         { id: 'brace', name: 'Firmar', description: 'd', speed: 14, target: 'self', effects: [{ type: 'guard', amount: 5 }] },
       ],
       combatants: [{ id: 'beast', name: 'Fera', maxHealth: 20, actionIds: ['bite'] }],
-      encounters: [{ id: 'enc', locationId: 'l', opponentId: 'beast', name: 'Fera', description: 'd' }],
+      encounters: [
+        { id: 'enc', locationId: 'l', opponentId: 'beast', name: 'Fera', description: 'd', timeCost: { periods: 1 }, requiredDiscoveryIds: [] },
+      ],
     },
     INITIAL_SKILLS,
   );
