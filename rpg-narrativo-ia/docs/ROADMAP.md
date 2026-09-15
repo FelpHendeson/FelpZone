@@ -198,6 +198,16 @@ O Jardim só recebe implementação quando suas regras mínimas de fusão forem 
 - **12.6** — encontro jogável ponta a ponta com retorno ao sandbox.
 - **12.7** — consolidação: determinismo, imutabilidade e gates.
 
+### Consolidação especificada do Sistema 12
+
+**Definida pelo autor e especificada; implementação pendente.** Fonte: [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
+
+- **12.8** — descoberta e disponibilidade declarativa de ameaças.
+- **12.9** — ponte entre saúde do mundo, vitalidade e resolução terminal.
+- **12.10** — tempo, necessidades e consequências em uma transação atômica.
+- **12.11** — consolidação visual do encontro e da tela de combate.
+- **12.12** — prova ponta a ponta, revisão e gates finais.
+
 Balanceamento definitivo, posicionamento, condições de status ricas, grupos e múltiplos oponentes permanecem fora do escopo.
 
 ## Horizonte depois do Sistema 12
