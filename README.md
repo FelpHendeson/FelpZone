@@ -85,7 +85,7 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Laboratório ativo com o primeiro projeto já em protótipo jogável e publicado. Os Sistemas 1 a 12 do RPG estão implementados e consolidados. O Sistema 11 entregou o núcleo diegético do Sistema; o Sistema 12 entrega combate por turnos determinístico integrado a descoberta, saúde, tempo, consequências e apresentação nas Fatias 12.1 a 12.12. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
+Laboratório ativo com o primeiro projeto já em protótipo jogável e publicado. Os Sistemas 1 a 12 do RPG estão implementados e consolidados. O Sistema 11 entregou o núcleo diegético do Sistema; o Sistema 12 entrega combate por turnos determinístico integrado a descoberta, saúde, tempo, consequências e apresentação nas Fatias 12.1 a 12.12. O Sistema 13 — progressão por prática e recompensas — está especificado, mas ainda não implementado. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
 
 ## Ideias
 

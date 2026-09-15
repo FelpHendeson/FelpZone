@@ -41,8 +41,9 @@ Leia nesta ordem:
 21. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 implementado e consolidado nas Fatias 11.1 a 11.7.
 22. [Banco de ações e combate](docs/SYSTEM-ACTION-COMBAT.md): Sistema 12 implementado e consolidado nas Fatias 12.1 a 12.7.
 23. [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md): Fatias 12.8 a 12.12 implementadas — descoberta, saúde, tempo, consequências atômicas e UI de combate.
-24. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistemas 11 e 12 implementados e horizonte posterior.
-25. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+24. [Progressão por prática e recompensas do Sistema](docs/SYSTEM-PRACTICE-PROGRESSION.md): Sistema 13 especificado nas Fatias 13.1 a 13.7; implementação ainda não iniciada.
+25. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas, Sistemas 11 e 12 implementados, Sistema 13 especificado e horizonte posterior.
+26. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -98,6 +99,8 @@ O Sistema 12 — Banco de ações e combate — está implementado e consolidado
 
 As Fatias 12.8 a 12.12 estão implementadas: a ameaça só aparece após a descoberta exigida (`wary-predator-tracks` aos 30% na Clareira), a saúde do mundo é a vitalidade de combate, ferimentos persistem, cada confronto cobra um período e a interface apresenta custo e consequência. O desfecho é aplicado como uma transação atômica pelo orquestrador. Consulte [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md).
 
+O Sistema 13 — Progressão por prática e recompensas do Sistema — está **especificado, mas ainda não implementado**. O contrato proposto conecta treino, uso verificado de habilidades em vitórias, proficiência, marcos de nível e revelação de métodos sem introduzir experiência genérica, equipamentos ou Jardim. Consulte [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md).
+
 ## Decisões já tomadas
 
 - React, TypeScript e Vite.
@@ -115,7 +118,7 @@ As Fatias 12.8 a 12.12 estão implementadas: a ameaça só aparece após a desco
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
 - O salvamento local usa `schemaVersion: 7`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v6 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
-- Balanceamento definitivo e o Jardim de habilidades ainda não existem; nomes, números e conteúdo de habilidades e combate permanecem protótipos.
+- A progressão por prática do Sistema 13 ainda não existe no código. Balanceamento definitivo e o Jardim de habilidades também não existem; nomes, números e conteúdo de habilidades e combate permanecem protótipos.
 - Fora da implementação atual: persistência de combate em andamento, posicionamento, grupos, facções e assentamentos administráveis, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
@@ -123,7 +126,7 @@ As Fatias 12.8 a 12.12 estão implementadas: a ameaça só aparece após a desco
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 739 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate por turnos do Sistema 12 e o ciclo de combate consolidado (descoberta → confronto → transação atômica).
+- `npm test`: 742 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate por turnos do Sistema 12 e o ciclo de combate consolidado (descoberta → confronto → transação atômica). A especificação do Sistema 13 não altera esses gates.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

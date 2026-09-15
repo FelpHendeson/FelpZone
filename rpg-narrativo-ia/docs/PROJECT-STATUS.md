@@ -84,6 +84,12 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Implementado e consolidado (Fatias 11.1 a 11.7)** | Vocabulário de Eteris/Númen e Corpo/Poder; catálogos de habilidades, caminhos e treino; `GameState.system` no schema 7; ação de treino com custo temporal único; Árvore de habilidades com sigilo; aba mobile `Sistema` com Status e confirmação de treino. | Balanceamento, Jardim e conteúdo definitivo seguem fora do escopo; números e nomes são protótipos. |
 | Sistema 12 — Banco de ações e combate | **Implementado e consolidado (12.1–12.12)** | Catálogos, motor determinístico, IA por regras, habilidades liberando ações e encontro jogável; a consolidação (12.8–12.12) adiciona ameaça gatilhada por descoberta, vitalidade vinda da saúde do mundo, custo temporal único e desfecho aplicado como uma transação atômica (tempo, necessidades, saúde, flag, recompensa). | Posicionamento, status ricos, grupos, balanceamento definitivo e itens seguem fora do escopo. |
 
+## Próximo sistema especificado
+
+| Sistema | Situação | Direção aprovada | Limite atual |
+| --- | --- | --- | --- |
+| Sistema 13 — Progressão por prática e recompensas do Sistema | **Definido pelo autor e especificado; não implementado** | Treino validado e vitórias verificadas desenvolvem proficiências; marcos dão significado ao nível e revelam métodos; o Sistema explica causa e consequência. | Implementação aguarda autorização. Equipamentos, loot, Jardim e fórmulas definitivas permanecem fora do recorte. |
+
 ## Conteúdo que permanece como protótipo
 
 - nome “Reset” e nomes de regiões, criaturas, capacidades e itens;
@@ -116,6 +122,12 @@ O combate usa ações declaradas por dados (velocidade, alvo e efeitos de dano, 
 
 As integrações de descoberta, saúde persistente, custo temporal e apresentação foram implementadas nas Fatias 12.8 a 12.12: a ameaça surge após a descoberta exigida, a vitalidade de entrada vem da saúde do mundo, cada desfecho cobra um período e o resultado é aplicado como uma transação atômica. Posicionamento, iniciativa por frações de turno, condições de status ricas, grupos, itens e balanceamento definitivo permanecem fora do escopo. Consulte [Sistema 12 — Banco de ações e combate](SYSTEM-ACTION-COMBAT.md) e [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
 
+### Sistema 13 — Progressão por prática e recompensas — especificado
+
+O próximo eixo aprovado conecta o fortalecimento do Sistema 11 ao combate do Sistema 12. Treinos continuam aplicando seus próprios efeitos; uma vitória reproduzida pode conceder prática às habilidades realmente usadas, no máximo uma vez por habilidade naquele encontro. Marcos declarativos dão significado ao nível e podem revelar novos métodos sem expor conteúdo oculto.
+
+O primeiro ciclo protótipo usa `Sentidos Aguçados`, `Golpe Preciso`, nível 2, `Rotina de Reforço do Corpo`, `Corpo Firme` e `Estancar Ferida`. Valores e limiares não são balanceamento definitivo. A implementação ainda não começou e requer autorização posterior. Consulte [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
+
 ### Presença e interação com NPCs e criaturas — sistema aprovado
 
 Explorar deve permitir encontrar NPCs, animais ou criaturas no mundo. Quando o encontro acontecer, diálogo, narrativa e escolhas podem assumir temporariamente o controle e depois devolver o jogador à exploração.
@@ -144,7 +156,7 @@ São parte confirmada do mundo e da trama futura. Mecânicas de construção, ad
 - minijogos de treino ou experimentação ligados ao Sistema;
 - regras exatas do Jardim, incluindo fusão, preservação, reversibilidade e limites;
 - permitir protagonista não humano, criar raças não humanas concretas ou estender o Sistema a todos os seres/raças;
-- fórmulas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
+- fórmulas definitivas de nível, proficiência, Eteris, Númen e velocidade de conjuração; o Sistema 13 aprovou somente um marco protótipo para provar seu ciclo;
 - comportamentos avançados de oponentes e consequências além das Fatias 12.8 a 12.12;
 - expansão do mapa visual para uma visão global ou regional;
 - notificações mais amplas do Sistema além do feedback previsto para objetivos;
@@ -188,10 +200,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 12 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, incluindo a consolidação (Fatias 12.8 a 12.12) que integra o combate ao loop do mundo. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Sistema 12](SYSTEM-ACTION-COMBAT.md) e [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md).
+**Os Sistemas 1 a 12 estão implementados e consolidados.** O Sistema 11 entregou o núcleo diegético do Sistema (progressão no schema 7); o Sistema 12 entregou o banco de ações e o combate por turnos determinístico, incluindo a consolidação (Fatias 12.8 a 12.12) que integra o combate ao loop do mundo. O Sistema 13 está especificado para conectar prática, proficiência, marcos e revelação de métodos, mas ainda não foi implementado. Consulte [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Sistema 12](SYSTEM-ACTION-COMBAT.md), [Consolidação do Sistema 12](SYSTEM-12-CONSOLIDATION.md) e [Sistema 13](SYSTEM-PRACTICE-PROGRESSION.md).
 
 Antes da próxima implementação:
 
-1. escolher e especificar o próximo eixo com contrato e autorização próprios;
+1. fechar as decisões de entrada do Sistema 13 e autorizar ou não sua implementação;
 2. preservar o schema 7, o determinismo, a aplicação única de tempo, o sigilo de conteúdo oculto e a atomicidade do desfecho;
 3. não transformar automaticamente detalhes ainda em discussão — fórmulas de balanceamento, raças, Jardim, posicionamento, agenda ou equipamentos — em requisitos.

@@ -210,7 +210,21 @@ O Jardim só recebe implementação quando suas regras mínimas de fusão forem 
 
 Balanceamento definitivo, posicionamento, condições de status ricas, grupos e múltiplos oponentes permanecem fora do escopo.
 
-## Horizonte depois do Sistema 12
+### Etapa 13 — Progressão por prática e recompensas do Sistema
+
+**Especificada; implementação ainda não iniciada nem autorizada.** O Sistema 13 conecta treino, vitórias verificadas, proficiências, marcos de nível e revelação de métodos sem introduzir experiência genérica, equipamentos ou Jardim. Fonte: [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
+
+- **13.1** — vocabulário, catálogo e validação isolada de prática e marcos;
+- **13.2** — motor puro e idempotente de evidências, incrementos e marcos;
+- **13.3** — prática de habilidades integrada à vitória de combate na transação terminal;
+- **13.4** — nível por marco e requisitos declarativos de treinamento;
+- **13.5** — interface diegética e feedback mobile;
+- **13.6** — ciclo ponta a ponta até nova habilidade e nova ação de combate;
+- **13.7** — consolidação, segurança, compatibilidade e gates.
+
+O ciclo protótipo usa `Sentidos Aguçados` em proficiência 3 para alcançar nível 2, revelar a `Rotina de Reforço do Corpo`, aprender `Corpo Firme` e liberar `Estancar Ferida`. Os valores são provisórios. Antes do código, precisam ser fechadas as decisões de entrada registradas na especificação e a forma de autorização das fatias.
+
+## Horizonte depois do Sistema 13
 
 ### Outras direções definidas pelo autor
 
@@ -223,7 +237,7 @@ Balanceamento definitivo, posicionamento, condições de status ricas, grupos e 
 
 - Jardim de habilidades: fusão, preservação, reversibilidade, limites e resultados;
 - minijogos de treino, interação ou experimentação;
-- fórmulas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
+- fórmulas definitivas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
 - protagonista não humano, raças não humanas concretas e extensão do Sistema a todos os seres;
 - comportamento de oponentes e consequências do combate;
 - expansão do mapa visual para visão regional ou global;
