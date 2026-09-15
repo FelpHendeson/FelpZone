@@ -294,6 +294,13 @@ export function learnSkill(
   return { level: state.level, entries };
 }
 
+export function raiseSkillsLevel(state: SkillsProgressState, level: number): SkillsProgressState {
+  if (!Number.isSafeInteger(level) || level < 1) {
+    throw new SkillError('O nível é inválido.');
+  }
+  return { level: Math.max(state.level, level), entries: state.entries.map((entry) => ({ ...entry })) };
+}
+
 function copySkillsProgress(state: SkillsProgressState): SkillsProgressState {
   return { level: state.level, entries: state.entries.map((entry) => ({ ...entry })) };
 }

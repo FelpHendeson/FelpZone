@@ -11,6 +11,7 @@ import {
 } from './types';
 
 export { MasteryError } from './errors';
+export { applyMastery, areMasteryRequirementsMet, isRequirementMet } from './engine';
 
 export const INITIAL_MASTERY = indexMasteryCatalog(INITIAL_MASTERY_CATALOG);
 
