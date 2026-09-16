@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e especificado pelo autor em 15 de setembro de 2026. Implementação posterior à consolidação do Sistema 16.**
+**Aprovado, especificado e implementado pelo autor em 15 de setembro de 2026.**
 
 O Sistema 17 faz personagens existirem no mundo além de uma presença pontual. NPCs passam a possuir estado persistente mínimo, localização derivada por agenda, memória de fatos relevantes e disponibilidade coerente com horário, narrativa e consequências.
 

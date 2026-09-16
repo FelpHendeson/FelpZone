@@ -26,6 +26,15 @@ import {
 } from '../../modules/resources';
 import { inspectRecipeAccess } from '../../modules/crafting';
 import {
+  EQUIPMENT_SLOTS,
+  INITIAL_ITEMS,
+  availableQuantity,
+  type EquipmentSlot,
+  type ItemKind,
+} from '../../modules/items';
+import { INITIAL_CONDITIONS } from '../../modules/conditions';
+import { INITIAL_NPCS, deriveNpcAt, type DerivedNpcView } from '../../modules/npcs';
+import {
   INITIAL_CONSUMABLES,
   planNeedsConsumption,
   planNeedsRest,
@@ -80,8 +89,33 @@ export interface InventoryViewItem {
   itemId: string;
   name: string;
   quantity: number;
+  kind: ItemKind | 'unknown';
+  description?: string;
   consumable: boolean;
+  canEquip: boolean;
+  canPrepare: boolean;
+  equipped: boolean;
+  preparedSlots: number[];
   effects: NeedEffectView[];
+}
+
+export interface EquipmentSlotView {
+  slot: EquipmentSlot;
+  label: string;
+  itemId: string | null;
+  itemName: string | null;
+}
+
+export interface PreparationSlotView {
+  index: number;
+  itemId: string | null;
+  itemName: string | null;
+}
+
+export interface LingeringView {
+  conditionId: string;
+  name: string;
+  remainingPeriods: number;
 }
 
 export interface RestView {
@@ -116,6 +150,7 @@ export interface PresenceView {
   status: VisiblePresenceStatus;
   statusLabel: string;
   trust?: number;
+  hint?: string;
   interactions: PresenceInteractionView[];
 }
 
@@ -137,6 +172,10 @@ export interface ExplorationView {
   resources: ResourceView[];
   recipes: RecipeView[];
   inventory: InventoryViewItem[];
+  equipment: EquipmentSlotView[];
+  preparation: PreparationSlotView[];
+  lingering: LingeringView[];
+  knownNpcs: DerivedNpcView[];
   presences: PresenceView[];
   needs: NeedPresentation[];
   rest: RestView;
@@ -204,6 +243,26 @@ export function buildExplorationView(
     resources: visibleResources(state, context, location.id),
     recipes: visibleRecipes(state, context),
     inventory: copyInventory(state.inventory, state),
+    equipment: EQUIPMENT_SLOTS.map((slot) => {
+      const itemId = state.items.equipment[slot];
+      return {
+        slot,
+        label: EQUIPMENT_SLOT_LABELS[slot],
+        itemId,
+        itemName: itemId ? sandboxItemName(itemId) : null,
+      };
+    }),
+    preparation: state.items.preparation.slots.map((slot) => ({
+      index: slot.index,
+      itemId: slot.itemId,
+      itemName: slot.itemId ? sandboxItemName(slot.itemId) : null,
+    })),
+    lingering: state.lingering.entries.map((entry) => ({
+      conditionId: entry.conditionId,
+      name: INITIAL_CONDITIONS.conditionById.get(entry.conditionId)?.name ?? entry.conditionId,
+      remainingPeriods: entry.remainingPeriods,
+    })),
+    knownNpcs: visibleNpcs(state),
     presences: visiblePresences(state, context, location.id),
     needs: buildNeedsPresentation(state.attributes),
     rest: buildRestView(state, location.id),
@@ -336,17 +395,55 @@ function visibleRecipes(state: GameState, context: SandboxContext): RecipeView[]
   return views;
 }
 
+const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = {
+  'main-hand': 'Mão',
+  body: 'Corpo',
+  accessory: 'Acessório',
+};
+
 function copyInventory(items: readonly InventoryItem[], state: GameState): InventoryViewItem[] {
   const snapshot = attributesToNeedsSnapshot(state.attributes);
-  return items.map((item) => ({
-    itemId: item.itemId,
-    name: sandboxItemName(item.itemId),
-    quantity: item.quantity,
-    consumable: INITIAL_CONSUMABLES.byItemId.has(item.itemId),
-    effects: INITIAL_CONSUMABLES.byItemId.has(item.itemId)
-      ? planNeedsConsumption(snapshot, item.itemId).appliedEffects.map(copyNeedEffect)
-      : [],
-  }));
+  return items.map((item) => {
+    const definition = INITIAL_ITEMS.byId.get(item.itemId);
+    const equipped = EQUIPMENT_SLOTS.some((slot) => state.items.equipment[slot] === item.itemId);
+    const preparedSlots = state.items.preparation.slots
+      .filter((slot) => slot.itemId === item.itemId)
+      .map((slot) => slot.index);
+    const canEquip = definition?.kind === 'equipment' && availableQuantity(items, state.items, item.itemId) > 0;
+    const canPrepare =
+      definition?.kind === 'consumable' &&
+      definition.use.type === 'combat.heal' &&
+      availableQuantity(items, state.items, item.itemId) > 0;
+    return {
+      itemId: item.itemId,
+      name: sandboxItemName(item.itemId),
+      quantity: item.quantity,
+      kind: definition?.kind ?? 'unknown',
+      description: definition?.description,
+      consumable: INITIAL_CONSUMABLES.byItemId.has(item.itemId),
+      canEquip: Boolean(canEquip),
+      canPrepare: Boolean(canPrepare),
+      equipped,
+      preparedSlots,
+      effects: INITIAL_CONSUMABLES.byItemId.has(item.itemId)
+        ? planNeedsConsumption(snapshot, item.itemId).appliedEffects.map(copyNeedEffect)
+        : [],
+    };
+  });
+}
+
+function visibleNpcs(state: GameState): DerivedNpcView[] {
+  const discovered = new Set(state.sandbox.navigation.discoveredLocationIds);
+  const views: DerivedNpcView[] = [];
+  for (const npc of INITIAL_NPCS.npcs) {
+    const view = deriveNpcAt(INITIAL_NPCS, state.sandbox.npcs, npc.id, state.world.period, (locationId) =>
+      discovered.has(locationId),
+    );
+    if (view) {
+      views.push(view);
+    }
+  }
+  return views;
 }
 
 function buildRestView(state: GameState, locationId: string): RestView {
@@ -395,6 +492,10 @@ function visiblePresences(state: GameState, context: SandboxContext, locationId:
       imageLabel: known.entity.image?.label ?? known.entity.name,
       status: known.status,
       statusLabel: PRESENCE_STATUS_LABELS[known.status],
+      hint:
+        known.entity.id === 'mira-vale'
+          ? visibleNpcs(state).find((npc) => npc.npcId === 'mira-vale' && npc.locationId === locationId)?.hint
+          : undefined,
       interactions: listKnownPresenceInteractions(
         context.presences,
         context.presenceInteractions,

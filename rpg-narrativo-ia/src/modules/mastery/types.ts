@@ -15,7 +15,9 @@ export type MasteryRequirement =
   | { type: 'skill.known'; skillId: string }
   | { type: 'level.minimum'; level: number };
 
-export type MasteryReveal = { type: 'training.available'; methodId: string };
+export type MasteryReveal =
+  | { type: 'training.available'; methodId: string }
+  | { type: 'garden.cultivation-points'; amount: number };
 
 export interface MasteryMilestoneDefinition {
   id: string;
@@ -48,6 +50,7 @@ export interface MasteryResult {
   proficiencyGains: ProficiencyGain[];
   reachedMilestoneIds: string[];
   revealedTrainingIds: string[];
+  grantedCultivationPoints: number;
 }
 
 export type MasteryInspection<T> =

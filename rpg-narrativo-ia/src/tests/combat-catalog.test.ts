@@ -70,8 +70,12 @@ describe('Fatia 12.1 — catálogo de combate', () => {
     expect(() => (value.actions as CombatActionDefinition[]).push(source.actions[0])).toThrow();
     expect(() => ((value.actions[0].effects[0] as { amount: number }).amount = 99)).toThrow();
     const copied = getCombatAction(value, 'attack');
-    copied.effects[0].amount = 100;
-    expect(getCombatAction(value, 'attack').effects[0].amount).toBe(5);
+    const copiedEffect = copied.effects[0];
+    if (copiedEffect.type === 'damage' || copiedEffect.type === 'heal' || copiedEffect.type === 'guard') {
+      copiedEffect.amount = 100;
+    }
+    const originalEffect = getCombatAction(value, 'attack').effects[0];
+    expect(originalEffect.type === 'damage' ? originalEffect.amount : 0).toBe(5);
   });
 
   it('protege o índice e falha de forma controlada', () => {

@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { INITIAL_SKILLS } from '../modules/skills';
-import { chooseOpponentAction, indexCombatCatalog, type CombatState, type IndexedCombat } from '../modules/combat';
+import {
+  chooseOpponentAction,
+  emptyCombatLoadout,
+  indexCombatCatalog,
+  type CombatState,
+  type IndexedCombat,
+} from '../modules/combat';
 
 function catalog(): IndexedCombat {
   return indexCombatCatalog(
@@ -24,10 +30,13 @@ function state(opponentActionIds: string[], health: number, maxHealth = 20): Com
   return {
     encounterId: 'enc',
     turn: 0,
-    player: { id: 'player', name: 'Ana', maxHealth: 20, health: 20, guard: 0, actionIds: ['attack'] },
-    opponent: { id: 'beast', name: 'Fera', maxHealth, health, guard: 0, actionIds: opponentActionIds },
+    player: { id: 'player', name: 'Ana', maxHealth: 20, health: 20, guard: 0, actionIds: ['attack'], conditions: [] },
+    opponent: { id: 'beast', name: 'Fera', maxHealth, health, guard: 0, actionIds: opponentActionIds, conditions: [] },
     log: [],
     outcome: 'ongoing',
+    loadout: emptyCombatLoadout(),
+    prepared: [],
+    usedPrepared: [],
   };
 }
 

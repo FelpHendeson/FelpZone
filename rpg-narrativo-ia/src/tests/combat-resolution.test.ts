@@ -82,6 +82,8 @@ describe('Fatia 12.9 — ponte de vitalidade e resolução terminal', () => {
       entryHealth: 80,
       remainingHealth: 0,
       playerActionIds: ['attack', 'attack', 'attack'],
+      usedPrepared: [],
+      equipment: { 'main-hand': null, body: null, accessory: null },
     };
     const before = exploring(80);
     const after = applyEffects(before, combatResolutionEffects(resolution, before.attributes.saude));

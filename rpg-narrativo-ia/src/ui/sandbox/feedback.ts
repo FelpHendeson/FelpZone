@@ -2,6 +2,7 @@ import type { SandboxContext } from '../../modules/sandbox';
 import type { SandboxActionResult } from '../../modules/sandbox-actions';
 import { deriveNeedsBands, type NeedId } from '../../modules/needs';
 import { attributesToNeedsSnapshot, formatNeedDelta, needLabel } from '../needs/presentation';
+import { INITIAL_TRAINING, getTrainingMethod } from '../../modules/training';
 import { formatPeriodCost, sandboxDiscoveryName, sandboxItemName } from './labels';
 
 export function describeSandboxFeedback(result: SandboxActionResult, context: SandboxContext): string {
@@ -60,6 +61,40 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
     case 'needs.rest': {
       parts.push(result.detail.plan.mode === 'campfire' ? 'Você repousou junto à fogueira.' : 'Você repousou.');
       appendNeedEffects(parts, result.detail.plan.appliedEffects);
+      break;
+    }
+    case 'training.train': {
+      parts.push(`Treinou ${getTrainingMethod(INITIAL_TRAINING, result.detail.plan.methodId).name}.`);
+      break;
+    }
+    case 'combat.resolve': {
+      if (result.detail.resolution.outcome === 'victory') {
+        parts.push('Você superou o confronto.');
+      } else if (result.detail.resolution.outcome === 'defeat') {
+        parts.push('Você recuou ferido do confronto.');
+      } else {
+        parts.push('Você fugiu do confronto.');
+      }
+      break;
+    }
+    case 'equipment.equip': {
+      parts.push(`Equipou ${sandboxItemName(result.action.type === 'equipment.equip' ? result.action.itemId : '')}.`);
+      break;
+    }
+    case 'equipment.unequip': {
+      parts.push('Você desequipou um espaço.');
+      break;
+    }
+    case 'preparation.assign': {
+      parts.push(`Preparou ${sandboxItemName(result.action.type === 'preparation.assign' ? result.action.itemId : '')}.`);
+      break;
+    }
+    case 'preparation.clear': {
+      parts.push('Você limpou um espaço de preparação.');
+      break;
+    }
+    case 'garden.cultivate': {
+      parts.push('O Jardim integrou uma técnica híbrida.');
       break;
     }
   }

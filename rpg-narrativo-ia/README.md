@@ -42,10 +42,10 @@ Leia nesta ordem:
 22. [Banco de ações e combate](docs/SYSTEM-ACTION-COMBAT.md): Sistema 12 implementado e consolidado nas Fatias 12.1 a 12.7.
 23. [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md): Fatias 12.8 a 12.12 implementadas — descoberta, saúde, tempo, consequências atômicas e UI de combate.
 24. [Progressão por prática e recompensas do Sistema](docs/SYSTEM-PRACTICE-PROGRESSION.md): Sistema 13 implementado e consolidado nas Fatias 13.1 a 13.7.
-25. [Itens, equipamentos e preparação](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md): Sistema 14 especificado; próximo a implementar.
-26. [Condições, elementos e aprofundamento do combate](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md): Sistema 15 especificado; depende do Sistema 14.
-27. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 especificado; depende do Sistema 15.
-28. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 especificado; depende do Sistema 16.
+25. [Itens, equipamentos e preparação](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md): Sistema 14 implementado e consolidado nas Fatias 14.1 a 14.7.
+26. [Condições, elementos e aprofundamento do combate](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md): Sistema 15 implementado e consolidado nas Fatias 15.1 a 15.7.
+27. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 implementado e consolidado nas Fatias 16.1 a 16.7.
+28. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
 29. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e sequência aprovada até o Sistema 17.
 30. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
@@ -99,13 +99,13 @@ O Sistema 10 — Objetivos, jornadas e registro de descobertas — está impleme
 
 O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está implementado e consolidado nas Fatias 11.1 a 11.7. Os módulos `energetics`, `skills`, `training` e `system-interface` entregam o vocabulário de Eteris/Númen e Corpo/Poder, os catálogos validados de caminhos, habilidades e métodos de treino, o estado de progressão persistido em `GameState.system` (schema 7), a ação de treino que cobra o relógio uma vez, a Árvore de habilidades com sigilo de conteúdo oculto e a aba mobile `Sistema` com Status e confirmação de custo.
 
-O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7. O módulo `combat` entrega catálogos de ações, combatentes e encontros; um motor de turno determinístico com dano, cura e escudo; uma IA de oponente por regras; a liberação de ações extras pelas habilidades conhecidas do Sistema 11; um encontro jogável no mundo com desfecho aplicado ao `GameState` sem alterar o schema; e uma tela de combate mobile. O Jardim está especificado para o Sistema 16, ainda sem código.
+O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7. O módulo `combat` entrega catálogos de ações, combatentes e encontros; um motor de turno determinístico com dano, cura e escudo; uma IA de oponente por regras; a liberação de ações extras pelas habilidades conhecidas do Sistema 11; um encontro jogável no mundo com desfecho aplicado ao `GameState`; e uma tela de combate mobile. O Jardim está implementado no Sistema 16.
 
 As Fatias 12.8 a 12.12 estão implementadas: a ameaça só aparece após a descoberta exigida (`wary-predator-tracks` aos 30% na Clareira), a saúde do mundo é a vitalidade de combate, ferimentos persistem, cada confronto cobra um período e a interface apresenta custo e consequência. O desfecho é aplicado como uma transação atômica pelo orquestrador. Consulte [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md).
 
 O Sistema 13 — Progressão por prática e recompensas do Sistema — está **implementado e consolidado nas Fatias 13.1 a 13.7**. O módulo `mastery` conecta treino e o uso verificado de habilidades em vitórias a proficiência, marcos de nível e revelação de métodos, tudo na mesma transação atômica, sem introduzir experiência genérica, equipamentos ou Jardim. Consulte [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md).
 
-Os Sistemas 14 a 17 estão **especificados e ordenados, ainda sem implementação**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; e NPCs persistentes/agenda/mundo vivo. Cada etapa só começa depois da consolidação da anterior. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md) e [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
+Os Sistemas 14 a 17 estão **implementados e consolidados**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; e NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md) e [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
 
 ## Decisões já tomadas
 
@@ -123,8 +123,8 @@ Os Sistemas 14 a 17 estão **especificados e ordenados, ainda sem implementaçã
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 7`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v6 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
-- Balanceamento definitivo e o Jardim de habilidades ainda não existem no código; o Jardim está especificado para o Sistema 16, e nomes, números e conteúdo permanecem protótipos.
+- O salvamento local usa `schemaVersion: 11`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, `sandbox.npcs`, `items`, `lingering`, `garden`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v10 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- Balanceamento definitivo ainda não existe no código; o Jardim está implementado no Sistema 16, e nomes, números e conteúdo permanecem protótipos.
 - Fora da implementação atual: persistência de combate em andamento, posicionamento, grupos, facções e assentamentos administráveis, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
@@ -132,7 +132,7 @@ Os Sistemas 14 a 17 estão **especificados e ordenados, ainda sem implementaçã
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 783 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 7, migrações v1–v6, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica) e o ciclo de progressão por prática do Sistema 13 (prática → proficiência → marco → método → habilidade → ação).
+- `npm test`: 807 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 11, migrações v1–v10, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica), o ciclo de progressão por prática do Sistema 13 e os Sistemas 14 a 17 (loadout, condições, Jardim e NPCs persistentes).
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

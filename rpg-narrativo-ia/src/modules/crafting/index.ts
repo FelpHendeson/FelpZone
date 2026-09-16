@@ -6,6 +6,7 @@ import {
   type NavigationState,
 } from '../navigation';
 import { inspectTimeCost } from '../time';
+import { INITIAL_ITEMS, type IndexedItems } from '../items';
 import { INITIAL_RECIPES, INITIAL_STRUCTURES } from './initial-recipes';
 import {
   CraftingError,
@@ -33,12 +34,15 @@ export const MISSING_MATERIALS_REASON = 'Faltam materiais para esta receita.';
 export const MISSING_STATION_REASON = 'Não há uma estação adequada no local atual.';
 export const DUPLICATE_STRUCTURE_REASON = 'Esta estrutura já existe neste local.';
 export const INVENTORY_OVERFLOW_REASON = 'A soma ultrapassa o inteiro seguro.';
+export const UNKNOWN_ITEM_REASON = 'A receita referencia um item inexistente.';
+export const STACK_LIMIT_REASON = 'A quantidade ultrapassa o limite da pilha.';
 
 const CRAFTING_ERROR = CraftingError;
 
 export function inspectCraftingDefinitions(
   recipes: unknown,
   structures: unknown,
+  items?: IndexedItems,
 ): CraftingInspection<IndexedCrafting> {
   const inspectedStructures = inspectStructureDefinitions(structures);
   if (!inspectedStructures.ok) {
@@ -53,7 +57,7 @@ export function inspectCraftingDefinitions(
   const byRecipe = new Map<string, RecipeDefinition>();
 
   for (const entry of recipes) {
-    const inspected = inspectRecipeDefinition(entry, inspectedStructures.value.byStructure, byRecipe);
+    const inspected = inspectRecipeDefinition(entry, inspectedStructures.value.byStructure, byRecipe, items);
     if (!inspected.ok) {
       return inspected;
     }
@@ -73,8 +77,8 @@ export function inspectCraftingDefinitions(
   };
 }
 
-export function indexCraftingDefinitions(recipes: unknown, structures: unknown): IndexedCrafting {
-  const inspected = inspectCraftingDefinitions(recipes, structures);
+export function indexCraftingDefinitions(recipes: unknown, structures: unknown, items?: IndexedItems): IndexedCrafting {
+  const inspected = inspectCraftingDefinitions(recipes, structures, items);
   if (!inspected.ok) {
     throw new CRAFTING_ERROR(inspected.reason);
   }
@@ -423,6 +427,7 @@ function inspectRecipeDefinition(
   value: unknown,
   structures: ReadonlyMap<string, StructureDefinition>,
   seen: ReadonlyMap<string, RecipeDefinition>,
+  items?: IndexedItems,
 ): CraftingInspection<RecipeDefinition> {
   if (!isRecord(value)) {
     return fail('As definições de crafting são inválidas.');
@@ -444,7 +449,7 @@ function inspectRecipeDefinition(
     return fail('A receita é contraditória.');
   }
 
-  const inputs = inspectIngredients(value.inputs, 'Os materiais de entrada da receita são inválidos.');
+  const inputs = inspectIngredients(value.inputs, 'Os materiais de entrada da receita são inválidos.', items);
   if (!inputs.ok) {
     return inputs;
   }
@@ -508,7 +513,7 @@ function inspectRecipeDefinition(
       return fail('A receita é contraditória.');
     }
 
-    const outputs = inspectIngredients(value.outputs, 'Os materiais de saída da receita são inválidos.');
+    const outputs = inspectIngredients(value.outputs, 'Os materiais de saída da receita são inválidos.', items);
     if (!outputs.ok) {
       return outputs;
     }
@@ -559,7 +564,11 @@ function inspectRecipeDefinition(
   return { ok: true, value: definition };
 }
 
-function inspectIngredients(value: unknown, reason: string): CraftingInspection<RecipeIngredient[]> {
+function inspectIngredients(
+  value: unknown,
+  reason: string,
+  items?: IndexedItems,
+): CraftingInspection<RecipeIngredient[]> {
   if (!Array.isArray(value)) {
     return fail(reason);
   }
@@ -582,6 +591,10 @@ function inspectIngredients(value: unknown, reason: string): CraftingInspection<
 
     if (!isPositiveSafeInteger(entry.quantity)) {
       return fail('A quantidade da receita precisa ser um inteiro positivo.');
+    }
+
+    if (items && !items.byId.has(entry.itemId)) {
+      return fail(UNKNOWN_ITEM_REASON);
     }
 
     seen.add(entry.itemId);
@@ -884,7 +897,13 @@ function applyInventory(
       throw new CRAFTING_ERROR(INVENTORY_OVERFLOW_REASON);
     }
 
-    quantities.set(output.itemId, have + output.quantity);
+    const next = have + output.quantity;
+    const limit = INITIAL_ITEMS.byId.get(output.itemId)?.stackLimit;
+    if (limit !== undefined && next > limit) {
+      throw new CRAFTING_ERROR(STACK_LIMIT_REASON);
+    }
+
+    quantities.set(output.itemId, next);
   }
 
   const next: InventoryItem[] = [];

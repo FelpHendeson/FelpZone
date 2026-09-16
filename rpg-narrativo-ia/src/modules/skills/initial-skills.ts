@@ -37,5 +37,13 @@ export const INITIAL_SKILLS_CATALOG = {
       pathId: 'numen-manifestation',
       requires: ['steady-body'],
     },
+    {
+      id: 'sensing-guard',
+      name: 'Sentinela Interior',
+      description: 'Técnica híbrida que une percepção e resistência num reflexo de guarda.',
+      pathId: 'body-reinforcement',
+      requires: ['steady-body'],
+      hiddenUntilKnown: true,
+    },
   ],
 } as const satisfies SkillsCatalog;

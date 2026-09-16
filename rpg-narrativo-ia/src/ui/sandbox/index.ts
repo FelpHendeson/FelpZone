@@ -3,9 +3,12 @@ export { describeSandboxFeedback } from './feedback';
 export { buildExplorationView } from './model';
 export type {
   DestinationView,
+  EquipmentSlotView,
   ExplorationView,
   InventoryViewItem,
+  LingeringView,
   NeedEffectView,
+  PreparationSlotView,
   PresenceInteractionView,
   PresenceView,
   RecipeView,

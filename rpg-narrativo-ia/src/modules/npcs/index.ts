@@ -1,0 +1,280 @@
+import type { DayPeriod } from '../../core/state/types';
+import { DAY_PERIODS } from '../../core/state/types';
+import { NpcError } from './errors';
+import { INITIAL_NPC_CATALOG } from './initial-npcs';
+import type {
+  DerivedNpcView,
+  IndexedNpcs,
+  NpcDefinition,
+  NpcInspection,
+  NpcMemoryFactDefinition,
+  NpcScheduleDefinition,
+  NpcScheduleEntry,
+  NPCsState,
+  NpcStateEntry,
+} from './types';
+
+export { NpcError } from './errors';
+export { INITIAL_NPC_CATALOG } from './initial-npcs';
+export type {
+  DerivedNpcPresence,
+  DerivedNpcView,
+  IndexedNpcs,
+  NpcAvailability,
+  NpcDefinition,
+  NPCsState,
+  NpcStateEntry,
+} from './types';
+
+export const INITIAL_NPCS = indexNpcCatalog(INITIAL_NPC_CATALOG);
+
+export function inspectNpcCatalog(value: unknown, locationIds: ReadonlySet<string>): NpcInspection<IndexedNpcs> {
+  if (!isRecord(value) || !Array.isArray(value.npcs) || !Array.isArray(value.schedules) || !Array.isArray(value.facts)) {
+    return fail('O catálogo de NPCs é inválido.');
+  }
+  const npcs: NpcDefinition[] = [];
+  const npcIds = new Set<string>();
+  for (const entry of value.npcs) {
+    if (!isRecord(entry) || !nonEmpty(entry.id) || npcIds.has(entry.id) || !nonEmpty(entry.entityId) || !nonEmpty(entry.name) || !nonEmpty(entry.defaultScheduleId)) {
+      return fail('O NPC é inválido ou duplicado.');
+    }
+    npcIds.add(entry.id);
+    npcs.push({ id: entry.id, entityId: entry.entityId, name: entry.name, defaultScheduleId: entry.defaultScheduleId });
+  }
+
+  const schedules: NpcScheduleDefinition[] = [];
+  const scheduleIds = new Set<string>();
+  for (const entry of value.schedules) {
+    if (
+      !isRecord(entry) ||
+      !nonEmpty(entry.id) ||
+      scheduleIds.has(entry.id) ||
+      !nonEmpty(entry.npcId) ||
+      !npcIds.has(entry.npcId) ||
+      !nonEmpty(entry.fallbackLocationId) ||
+      !locationIds.has(entry.fallbackLocationId) ||
+      !Array.isArray(entry.entries)
+    ) {
+      return fail('A agenda do NPC é inválida.');
+    }
+    const seenPeriods = new Set<string>();
+    const entries: NpcScheduleEntry[] = [];
+    for (const slot of entry.entries) {
+      if (!isRecord(slot) || !isPeriod(slot.period) || seenPeriods.has(slot.period) || !nonEmpty(slot.locationId) || !locationIds.has(slot.locationId)) {
+        return fail('A entrada de agenda é inválida.');
+      }
+      if (slot.availability !== 'available' && slot.availability !== 'busy' && slot.availability !== 'hidden') {
+        return fail('A disponibilidade da agenda é inválida.');
+      }
+      seenPeriods.add(slot.period);
+      entries.push({ period: slot.period, locationId: slot.locationId, availability: slot.availability });
+    }
+    scheduleIds.add(entry.id);
+    schedules.push({
+      id: entry.id,
+      npcId: entry.npcId,
+      fallbackLocationId: entry.fallbackLocationId,
+      entries,
+    });
+  }
+
+  for (const npc of npcs) {
+    if (!scheduleIds.has(npc.defaultScheduleId)) {
+      return fail('O NPC referencia uma agenda inexistente.');
+    }
+  }
+
+  const facts: NpcMemoryFactDefinition[] = [];
+  const factIds = new Set<string>();
+  for (const entry of value.facts) {
+    if (!isRecord(entry) || !nonEmpty(entry.id) || factIds.has(entry.id) || !nonEmpty(entry.npcId) || !npcIds.has(entry.npcId) || !nonEmpty(entry.summary)) {
+      return fail('O fato de memória é inválido.');
+    }
+    factIds.add(entry.id);
+    facts.push({ id: entry.id, npcId: entry.npcId, summary: entry.summary });
+  }
+
+  return {
+    ok: true,
+    value: Object.freeze({
+      npcs: Object.freeze(npcs.map((npc) => Object.freeze(npc))),
+      schedules: Object.freeze(schedules.map((schedule) => Object.freeze({ ...schedule, entries: Object.freeze(schedule.entries.map((entry) => Object.freeze(entry))) }))),
+      facts: Object.freeze(facts.map((fact) => Object.freeze(fact))),
+      npcById: new Map(npcs.map((npc) => [npc.id, npc] as const)),
+      scheduleById: new Map(schedules.map((schedule) => [schedule.id, schedule] as const)),
+      factById: new Map(facts.map((fact) => [fact.id, fact] as const)),
+    }),
+  };
+}
+
+export function indexNpcCatalog(value: unknown, locationIds?: ReadonlySet<string>): IndexedNpcs {
+  const locations = locationIds ?? new Set(['awakening-clearing', 'spring-lake', 'dense-woods', 'great-tree', 'hidden-cave']);
+  const inspected = inspectNpcCatalog(value, locations);
+  if (!inspected.ok) {
+    throw new NpcError(inspected.reason);
+  }
+  return inspected.value;
+}
+
+export function createInitialNpcsState(): NPCsState {
+  return { entries: [] };
+}
+
+export function inspectNpcsState(value: unknown, catalog: IndexedNpcs = INITIAL_NPCS): NpcInspection<NPCsState> {
+  if (!isRecord(value) || !Array.isArray(value.entries)) {
+    return fail('O estado de NPCs é inválido.');
+  }
+  const entries: NpcStateEntry[] = [];
+  const seen = new Set<string>();
+  for (const entry of value.entries) {
+    if (!isRecord(entry) || !nonEmpty(entry.npcId) || seen.has(entry.npcId) || !catalog.npcById.has(entry.npcId)) {
+      return fail('O NPC persistido é inválido.');
+    }
+    const npcId = entry.npcId;
+    const status = entry.status;
+    if (status !== 'active' && status !== 'unavailable' && status !== 'departed') {
+      return fail('O status do NPC é inválido.');
+    }
+    if (typeof entry.known !== 'boolean') {
+      return fail('O reconhecimento do NPC é inválido.');
+    }
+    const facts: string[] = [];
+    const seenFacts = new Set<string>();
+    if (!Array.isArray(entry.memoryFactIds)) {
+      return fail('A memória do NPC é inválida.');
+    }
+    for (const factId of entry.memoryFactIds) {
+      if (typeof factId !== 'string' || seenFacts.has(factId)) {
+        return fail('A memória do NPC referencia um fato inválido.');
+      }
+      const fact = catalog.factById.get(factId);
+      if (!fact || fact.npcId !== npcId) {
+        return fail('A memória do NPC referencia um fato inválido.');
+      }
+      seenFacts.add(factId);
+      facts.push(factId);
+    }
+    seen.add(npcId);
+    entries.push({
+      npcId,
+      known: entry.known,
+      status,
+      locationOverrideId: typeof entry.locationOverrideId === 'string' ? entry.locationOverrideId : null,
+      memoryFactIds: facts,
+      scheduleOverrideId: typeof entry.scheduleOverrideId === 'string' ? entry.scheduleOverrideId : null,
+    });
+  }
+  return { ok: true, value: { entries } };
+}
+
+export function copyNpcsState(state: NPCsState): NPCsState {
+  return {
+    entries: state.entries.map((entry) => ({
+      ...entry,
+      memoryFactIds: [...entry.memoryFactIds],
+    })),
+  };
+}
+
+export function rememberNpcFact(catalog: IndexedNpcs, state: NPCsState, npcId: string, factId: string): NPCsState {
+  const fact = catalog.factById.get(factId);
+  if (!fact || fact.npcId !== npcId) {
+    throw new NpcError('O fato de memória não pertence a este NPC.');
+  }
+  const entries = copyNpcsState(state).entries.map((entry) => ({
+    ...entry,
+    memoryFactIds: [...entry.memoryFactIds],
+  }));
+  const existing = entries.find((entry) => entry.npcId === npcId);
+  if (!existing) {
+    return {
+      entries: [
+        ...entries,
+        {
+          npcId,
+          known: true,
+          status: 'active',
+          locationOverrideId: null,
+          memoryFactIds: [factId],
+          scheduleOverrideId: null,
+        },
+      ],
+    };
+  }
+  return {
+    entries: entries.map((entry) =>
+      entry.npcId === npcId
+        ? {
+            ...entry,
+            known: true,
+            memoryFactIds: entry.memoryFactIds.includes(factId) ? entry.memoryFactIds : [...entry.memoryFactIds, factId],
+          }
+        : entry,
+    ),
+  };
+}
+
+export function deriveNpcAt(
+  catalog: IndexedNpcs,
+  state: NPCsState,
+  npcId: string,
+  period: DayPeriod,
+  locationKnown: (locationId: string) => boolean,
+): DerivedNpcView | null {
+  const npc = catalog.npcById.get(npcId);
+  if (!npc) {
+    throw new NpcError('O NPC não existe.');
+  }
+  const entry = state.entries.find((item) => item.npcId === npcId);
+  if (!entry || !entry.known) {
+    return null;
+  }
+  if (entry.status === 'departed') {
+    return { npcId, name: npc.name, locationId: '', availability: 'hidden', presence: 'departed', knownFactIds: [...entry.memoryFactIds] };
+  }
+  const schedule = catalog.scheduleById.get(entry.scheduleOverrideId ?? npc.defaultScheduleId);
+  if (!schedule) {
+    throw new NpcError('A agenda do NPC não existe.');
+  }
+  const slot = schedule.entries.find((item) => item.period === period);
+  const locationId = entry.locationOverrideId ?? slot?.locationId ?? schedule.fallbackLocationId;
+  const availability = slot?.availability ?? 'available';
+  if (!locationKnown(locationId)) {
+    return {
+      npcId,
+      name: npc.name,
+      locationId,
+      availability,
+      presence: 'absent',
+      knownFactIds: [...entry.memoryFactIds],
+      hint: entry.memoryFactIds.includes('mira-seeks-water') ? 'Costuma buscar água pela manhã.' : undefined,
+    };
+  }
+  const presence =
+    availability === 'hidden' ? 'absent' : availability === 'busy' ? 'present-unavailable' : 'present-available';
+  return {
+    npcId,
+    name: npc.name,
+    locationId,
+    availability,
+    presence,
+    knownFactIds: [...entry.memoryFactIds],
+    hint: entry.memoryFactIds.includes('mira-seeks-water') ? 'Costuma buscar água pela manhã.' : undefined,
+  };
+}
+
+function isPeriod(value: unknown): value is DayPeriod {
+  return typeof value === 'string' && (DAY_PERIODS as readonly string[]).includes(value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function nonEmpty(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
+}
+
+function fail<T>(reason: string): NpcInspection<T> {
+  return { ok: false, reason };
+}

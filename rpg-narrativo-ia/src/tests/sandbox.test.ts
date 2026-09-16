@@ -53,10 +53,10 @@ describe('estado integrado e persistência principal', () => {
     const state = startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
     const context = createSandboxContext();
 
-    expect(state.schemaVersion).toBe(7);
+    expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(inspectGameState(state).ok).toBe(true);
-    expect(state.sandbox).toEqual(createInitialSandboxState(context));
+    expect(state.sandbox).toEqual({ ...createInitialSandboxState(context), npcs: { entries: [] } });
     expect(state.sandbox.navigation).toEqual(createInitialNavigation());
     expect(state.sandbox.navigation.currentLocationId).toBe(START);
     expect(state.sandbox.navigation.discoveredLocationIds).toEqual([START]);
@@ -100,7 +100,7 @@ describe('estado integrado e persistência principal', () => {
     expect(sandbox).not.toHaveProperty('map');
     expect(sandbox).not.toHaveProperty('definitions');
     expect(JSON.stringify(raw)).not.toContain('DaylightPhase');
-    expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'navigation', 'presences', 'resources']);
+    expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'navigation', 'npcs', 'presences', 'resources']);
     expect(state.world).toEqual(timeStateToWorld(createInitialTime()));
   });
 
@@ -184,7 +184,7 @@ describe('estado integrado e persistência principal', () => {
     expect(parsed.state.world).toEqual({ day: 3, period: 'noite' });
     expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
     expect(parsed.state.progression).toEqual(current.progression);
-    expect(parsed.state.sandbox).toEqual(createInitialSandboxState());
+    expect(parsed.state.sandbox).toEqual({ ...createInitialSandboxState(), npcs: { entries: [] } });
     expect(parsed.state.sandbox.exploration.locations).toEqual([]);
     expect(parsed.state.sandbox.crafting.structures).toEqual([]);
     expect(parsed.state.inventory).toHaveLength(1);
@@ -304,7 +304,12 @@ describe('estado integrado e persistência principal', () => {
     source.flags.ready = false;
 
     expect(parsed.state.sandbox.navigation.currentLocationId).toBe(START);
-    expect(parsed.state.sandbox.crafting.knownRecipeIds).toEqual(['build-campfire', 'cook-horned-rabbit-meat']);
+    expect(parsed.state.sandbox.crafting.knownRecipeIds).toEqual([
+      'build-campfire',
+      'cook-horned-rabbit-meat',
+      'craft-improvised-tool',
+      'craft-improvised-salve',
+    ]);
     expect(parsed.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 1 }]);
     expect(parsed.state.flags.ready).toBe(true);
   });
@@ -592,7 +597,7 @@ describe('contexto do sandbox na criação e persistência', () => {
     expect(parsed.state.flags).toEqual({ 'ability.olhar-atento': true });
     expect(parsed.state.world).toEqual({ day: 3, period: 'noite' });
     expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
-    expect(parsed.state.sandbox).toEqual(createInitialSandboxState(context));
+    expect(parsed.state.sandbox).toEqual({ ...createInitialSandboxState(context), npcs: { entries: [] } });
     expect(parsed.state.sandbox.navigation.currentLocationId).toBe(CUSTOM_START);
     expect(parsed.state.sandbox.crafting.knownRecipeIds).toEqual(['craft-test-cord']);
     expect(v1).toEqual(snapshot);

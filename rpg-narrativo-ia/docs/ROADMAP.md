@@ -230,7 +230,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ### Etapa 14 — Itens, equipamentos e preparação
 
-**Especificada; implementação ainda não iniciada.** Materiais e objetos passam a sustentar loadout, espaços de preparação, consumíveis em combate, benefícios declarativos e recompensas materiais determinísticas. O save proposto evolui para schema 8. Fonte: [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md).
+**Implementada e consolidada.** Materiais e objetos sustentam loadout, espaços de preparação, consumíveis em combate, benefícios declarativos e recompensas materiais determinísticas. O save evolui para schema 8. Fonte: [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md).
 
 - **14.1** — catálogos e contratos puros;
 - **14.2** — estado de equipamento e preparação;
@@ -242,7 +242,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ### Etapa 15 — Condições, elementos e aprofundamento do combate
 
-**Especificada; depende da consolidação do Sistema 14.** Condições temporárias, afinidades elementais e respostas de preparação ampliam decisões sem abandonar determinismo. Consequências persistentes mínimas usam o schema 9 proposto. Fonte: [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md).
+**Implementada e consolidada.** Condições temporárias, afinidades elementais e respostas de preparação ampliam decisões sem abandonar determinismo. Consequências persistentes mínimas usam o schema 9. Fonte: [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md).
 
 - **15.1** — catálogos de elementos e condições;
 - **15.2** — motor puro de condições;
@@ -254,7 +254,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ### Etapa 16 — Jardim de habilidades
 
-**Especificada; depende da consolidação do Sistema 15.** Receitas curadas e não destrutivas integram habilidades conhecidas em técnicas híbridas, usando pontos de cultivo concedidos por marcos explícitos. O save proposto evolui para schema 10. Fonte: [Sistema 16](SYSTEM-SKILL-GARDEN.md).
+**Implementada e consolidada.** Receitas curadas e não destrutivas integram habilidades conhecidas em técnicas híbridas, usando pontos de cultivo concedidos por marcos explícitos. O save evolui para schema 10. Fonte: [Sistema 16](SYSTEM-SKILL-GARDEN.md).
 
 - **16.1** — catálogo e estado isolado;
 - **16.2** — derivação segura e planejamento;
@@ -266,7 +266,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ### Etapa 17 — NPCs persistentes, agenda e mundo vivo
 
-**Especificada; depende da consolidação do Sistema 16.** NPCs ganham estado mínimo, agenda por período, memória de fatos fechados e presenças derivadas. A atualização ocorre somente pelo relógio canônico; o save proposto evolui para schema 11. Fonte: [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
+**Implementada e consolidada.** NPCs ganham estado mínimo, agenda por período, memória de fatos fechados e presenças derivadas. A atualização ocorre somente pelo relógio canônico; o save evolui para schema 11. Fonte: [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
 
 - **17.1** — catálogo e estado isolado;
 - **17.2** — derivação temporal determinística;

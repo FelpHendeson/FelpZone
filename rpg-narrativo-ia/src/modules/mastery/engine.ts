@@ -59,6 +59,7 @@ export function applyMastery(
 
   const reachedMilestoneIds: string[] = [];
   const revealedTrainingIds: string[] = [];
+  let grantedCultivationPoints = 0;
   const ordered = [...catalog.milestones].sort((left, right) => left.level - right.level);
   let progressed = true;
   while (progressed) {
@@ -68,7 +69,11 @@ export function applyMastery(
         current = raiseSkillsLevel(current, milestone.level);
         reachedMilestoneIds.push(milestone.id);
         for (const reveal of milestone.reveals) {
-          revealedTrainingIds.push(reveal.methodId);
+          if (reveal.type === 'training.available') {
+            revealedTrainingIds.push(reveal.methodId);
+          } else {
+            grantedCultivationPoints += reveal.amount;
+          }
         }
         progressed = true;
       }
@@ -81,6 +86,7 @@ export function applyMastery(
     proficiencyGains,
     reachedMilestoneIds,
     revealedTrainingIds,
+    grantedCultivationPoints,
   };
 }
 

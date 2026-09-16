@@ -200,7 +200,7 @@ describe('superfície mobile do sandbox', () => {
 
   it('mostra as receitas conhecidas', () => {
     const recipes = viewOf(enterExploration()).recipes.map((recipe) => recipe.recipeId);
-    expect(recipes).toEqual(['build-campfire', 'cook-horned-rabbit-meat']);
+    expect(recipes).toEqual(['build-campfire', 'cook-horned-rabbit-meat', 'craft-improvised-tool', 'craft-improvised-salve']);
     expect(viewOf(enterExploration()).recipes[0]?.name).toBe('Construir fogueira');
   });
 

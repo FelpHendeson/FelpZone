@@ -120,6 +120,7 @@ function copySkill(skill: SkillDefinition): SkillDefinition {
     description: skill.description,
     pathId: skill.pathId,
     requires: [...skill.requires],
+    ...(skill.hiddenUntilKnown ? { hiddenUntilKnown: true } : {}),
   };
 }
 
@@ -216,6 +217,8 @@ export function deriveSkillTree(catalog: IndexedSkills, state: SkillsProgressSta
       const skill = indexed.skillById.get(skillId) as SkillDefinition;
       if (isSkillKnown(state, skill.id)) {
         nodes.push(treeNode(skill, 'known', getSkillProficiency(state, skill.id)));
+      } else if (skill.hiddenUntilKnown) {
+        hasHiddenSkills = true;
       } else if (areSkillRequirementsMet(indexed, state, skill.id)) {
         nodes.push(treeNode(skill, 'available', null));
       } else {
@@ -343,6 +346,9 @@ function inspectSkill(
   if (!requires.ok) {
     return requires;
   }
+  if (value.hiddenUntilKnown !== undefined && value.hiddenUntilKnown !== true && value.hiddenUntilKnown !== false) {
+    return fail('A visibilidade da habilidade é inválida.');
+  }
   return {
     ok: true,
     value: {
@@ -351,6 +357,7 @@ function inspectSkill(
       description: value.description,
       pathId: value.pathId,
       requires: requires.value,
+      ...(value.hiddenUntilKnown === true ? { hiddenUntilKnown: true } : {}),
     },
   };
 }

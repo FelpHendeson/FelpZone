@@ -53,7 +53,7 @@ O jogador poderá investir tempo em métodos de treinamento apresentados pelo Si
 
 A Árvore de habilidades apresenta desenvolvimento e caminhos conhecidos. O Jardim de habilidades integra caminhos por receitas curadas, não destrutivas e determinísticas, conforme o Sistema 16; combinações arbitrárias e geração procedural continuam proibidas.
 
-O núcleo está implementado no Sistema 11, a progressão por prática no Sistema 13 e o primeiro contrato do Jardim está especificado no [Sistema 16](SYSTEM-SKILL-GARDEN.md).
+O núcleo está implementado no Sistema 11, a progressão por prática no Sistema 13 e o primeiro contrato do Jardim está implementado no [Sistema 16](SYSTEM-SKILL-GARDEN.md).
 
 ## Combate futuro
 

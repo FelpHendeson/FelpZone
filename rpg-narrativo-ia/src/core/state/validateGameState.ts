@@ -29,6 +29,17 @@ import {
   inspectSkillsProgress,
 } from '../../modules/skills';
 import {
+  INITIAL_ITEMS,
+  createInitialItemsState,
+  inspectItemsAgainstInventory,
+} from '../../modules/items';
+import {
+  createInitialLingering,
+  inspectPersistentConditions,
+} from '../../modules/conditions';
+import { createInitialGardenState, inspectGardenState } from '../../modules/garden';
+import { createInitialNpcsState, inspectNpcsState } from '../../modules/npcs';
+import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
   MIGRATED_CAMPAIGN_ID,
@@ -39,6 +50,10 @@ import {
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
   SCHEMA_VERSION_V6,
+  SCHEMA_VERSION_V7,
+  SCHEMA_VERSION_V8,
+  SCHEMA_VERSION_V9,
+  SCHEMA_VERSION_V10,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -47,6 +62,10 @@ import {
   type GameStateV4,
   type GameStateV5,
   type GameStateV6,
+  type GameStateV7,
+  type GameStateV8,
+  type GameStateV9,
+  type GameStateV10,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -77,6 +96,22 @@ export type GameStateV5Inspection =
 
 export type GameStateV6Inspection =
   | { ok: true; state: GameStateV6 }
+  | { ok: false; reason: string };
+
+export type GameStateV7Inspection =
+  | { ok: true; state: GameStateV7 }
+  | { ok: false; reason: string };
+
+export type GameStateV8Inspection =
+  | { ok: true; state: GameStateV8 }
+  | { ok: false; reason: string };
+
+export type GameStateV9Inspection =
+  | { ok: true; state: GameStateV9 }
+  | { ok: false; reason: string };
+
+export type GameStateV10Inspection =
+  | { ok: true; state: GameStateV10 }
   | { ok: false; reason: string };
 
 export function inspectGameState(
@@ -143,6 +178,54 @@ export function inspectGameStateV6(
   }
 }
 
+export function inspectGameStateV7(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV7Inspection {
+  try {
+    return inspectV7(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV8(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV8Inspection {
+  try {
+    return inspectV8(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV9(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV9Inspection {
+  try {
+    return inspectV9(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV10(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV10Inspection {
+  try {
+    return inspectV10(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
 export function migrateGameStateV1(
   state: GameStateV1,
   context?: SandboxContext,
@@ -190,14 +273,90 @@ export function migrateGameStateV5(
 export function migrateGameStateV6(
   state: GameStateV6,
   objectiveCatalog?: IndexedObjectives,
+  context?: SandboxContext,
+): GameState {
+  return migrateGameStateV7(migrateGameStateV6ToV7(state, objectiveCatalog), context, objectiveCatalog);
+}
+
+function migrateGameStateV6ToV7(
+  state: GameStateV6,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV7 {
+  const catalog = requireObjectiveCatalog(objectiveCatalog);
+  const candidate: GameStateV7 = {
+    ...structuredClone(state),
+    schemaVersion: SCHEMA_VERSION_V7,
+    system: createInitialSkillsProgress(INITIAL_SKILLS),
+  };
+
+  return {
+    ...candidate,
+    objectives: synchronizeObjectives(catalog, candidate.objectives, candidate as unknown as GameState).current,
+  };
+}
+
+export function migrateGameStateV7(
+  state: GameStateV7,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV8(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V8,
+      items: createInitialItemsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV8(
+  state: GameStateV8,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV9(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V9,
+      lingering: createInitialLingering(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV9(
+  state: GameStateV9,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV10(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V10,
+      garden: createInitialGardenState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV10(
+  state: GameStateV10,
+  _context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
 ): GameState {
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const candidate: GameState = {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
-    system: createInitialSkillsProgress(INITIAL_SKILLS),
+    sandbox: {
+      ...state.sandbox,
+      npcs: createInitialNpcsState(),
+    },
   };
-
   return {
     ...candidate,
     objectives: synchronizeObjectives(catalog, candidate.objectives, candidate).current,
@@ -480,6 +639,22 @@ function inspectCurrent(
   if (!system.ok) {
     return fail(system.reason);
   }
+  const items = inspectItemsAgainstInventory(value.items, shared.value.inventory, INITIAL_ITEMS);
+  if (!items.ok) {
+    return fail(items.reason);
+  }
+  const lingering = inspectPersistentConditions(value.lingering);
+  if (!lingering.ok) {
+    return fail(lingering.reason);
+  }
+  const garden = inspectGardenState(value.garden);
+  if (!garden.ok) {
+    return fail(garden.reason);
+  }
+  const npcs = inspectNpcsState(isRecord(value.sandbox) ? value.sandbox.npcs : undefined);
+  if (!npcs.ok) {
+    return fail(npcs.reason);
+  }
   const synchronizedPresences = synchronizeDiscoveredPresences(
     resolvedContext.presences,
     sandbox.value.presences,
@@ -499,9 +674,13 @@ function inspectCurrent(
           synchronizedPresences,
           shared.value.flags,
         ),
+        npcs: npcs.value,
       },
       objectives: objectives.value,
       system: system.value,
+      items: items.value,
+      lingering: lingering.value,
+      garden: garden.value,
     },
   };
 }
@@ -569,6 +748,142 @@ function inspectV6(
         ),
       },
       objectives: objectives.value,
+    },
+  };
+}
+
+function inspectV7(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV7Inspection {
+  const base = inspectVersionedSystemState(value, SCHEMA_VERSION_V7, context, objectiveCatalog);
+  if (!base.ok) {
+    return base;
+  }
+  if (!isRecord(value) || 'items' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 7.');
+  }
+  return { ok: true, state: { ...base.state, schemaVersion: SCHEMA_VERSION_V7 } };
+}
+
+function inspectV8(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV8Inspection {
+  const base = inspectVersionedSystemState(value, SCHEMA_VERSION_V8, context, objectiveCatalog);
+  if (!base.ok) {
+    return base;
+  }
+  if (!isRecord(value) || 'lingering' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 8.');
+  }
+  const items = inspectItemsAgainstInventory(value.items, base.state.inventory, INITIAL_ITEMS);
+  if (!items.ok) {
+    return fail(items.reason);
+  }
+  return { ok: true, state: { ...base.state, schemaVersion: SCHEMA_VERSION_V8, items: items.value } };
+}
+
+function inspectV9(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV9Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V9 || 'garden' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 9.');
+  }
+  const { lingering: lingeringRaw, ...rest } = value;
+  const previous = inspectV8({ ...rest, schemaVersion: SCHEMA_VERSION_V8 }, context, objectiveCatalog);
+  if (!previous.ok) {
+    return previous;
+  }
+  const lingering = inspectPersistentConditions(lingeringRaw);
+  if (!lingering.ok) {
+    return fail(lingering.reason);
+  }
+  return { ok: true, state: { ...previous.state, schemaVersion: SCHEMA_VERSION_V9, lingering: lingering.value } };
+}
+
+function inspectV10(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV10Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V10 || (isRecord(value.sandbox) && 'npcs' in value.sandbox)) {
+    return fail('O salvamento usa um contrato incompatível com o schema 10.');
+  }
+  const { garden: gardenRaw, ...rest } = value;
+  const previous = inspectV9({ ...rest, schemaVersion: SCHEMA_VERSION_V9 }, context, objectiveCatalog);
+  if (!previous.ok) {
+    return previous;
+  }
+  const garden = inspectGardenState(gardenRaw);
+  if (!garden.ok) {
+    return fail(garden.reason);
+  }
+  return { ok: true, state: { ...previous.state, schemaVersion: SCHEMA_VERSION_V10, garden: garden.value } };
+}
+
+function inspectVersionedSystemState(
+  value: unknown,
+  schemaVersion: typeof SCHEMA_VERSION_V7 | typeof SCHEMA_VERSION_V8,
+  context: SandboxContext | undefined,
+  objectiveCatalog: IndexedObjectives | undefined,
+): GameStateV7Inspection {
+  if (!isRecord(value)) {
+    return fail('O salvamento não contém um objeto válido.');
+  }
+  if (value.schemaVersion !== schemaVersion) {
+    return fail('O salvamento está incompleto.');
+  }
+  const shared = readCurrentShared(value);
+  if (!shared.ok) {
+    return shared;
+  }
+  if ('currentEventId' in value) {
+    return fail('O salvamento usa o contrato antigo de evento atual.');
+  }
+  const session = readNarrativeSession(value, shared.value.status);
+  if (!session.ok) {
+    return session;
+  }
+  const sandbox = inspectSandboxState(value.sandbox, context);
+  if (!sandbox.ok) {
+    return fail(sandbox.reason);
+  }
+  const resolvedContext = requireContext(context);
+  const catalog = requireObjectiveCatalog(objectiveCatalog);
+  const objectives = inspectObjectivesState(value.objectives, catalog);
+  if (!objectives.ok) {
+    return fail(objectives.reason);
+  }
+  const system = inspectSkillsProgress(value.system, INITIAL_SKILLS);
+  if (!system.ok) {
+    return fail(system.reason);
+  }
+  const synchronizedPresences = synchronizeDiscoveredPresences(
+    resolvedContext.presences,
+    sandbox.value.presences,
+    sandbox.value.exploration,
+  ).current;
+  return {
+    ok: true,
+    state: {
+      schemaVersion: SCHEMA_VERSION_V7,
+      ...shared.value,
+      narrativeSession: session.value,
+      sandbox: {
+        ...sandbox.value,
+        presences: reconcileConsumedWorldPresenceResolutions(
+          resolvedContext.presences,
+          synchronizedPresences,
+          shared.value.flags,
+        ),
+      },
+      objectives: objectives.value,
+      system: system.value,
     },
   };
 }

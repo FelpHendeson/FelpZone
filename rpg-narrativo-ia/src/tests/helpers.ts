@@ -8,6 +8,10 @@ import {
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
   SCHEMA_VERSION_V6,
+  SCHEMA_VERSION_V7,
+  SCHEMA_VERSION_V8,
+  SCHEMA_VERSION_V9,
+  SCHEMA_VERSION_V10,
   type GameState,
 } from '../core/state';
 import type { Campaign, StoryEvent } from '../core/events';
@@ -25,8 +29,8 @@ export function serializedState(): Record<string, unknown> {
 
 export function asV1(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  stripCurrentContracts(raw);
   removeThirst(raw);
-  delete raw.system;
   delete raw.objectives;
   delete raw.sandbox;
   delete raw.narrativeSession;
@@ -37,8 +41,8 @@ export function asV1(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV2(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  stripCurrentContracts(raw);
   removeThirst(raw);
-  delete raw.system;
   delete raw.objectives;
   delete raw.narrativeSession;
   raw.schemaVersion = SCHEMA_VERSION_V2;
@@ -48,8 +52,8 @@ export function asV2(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV3(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  stripCurrentContracts(raw);
   removeThirst(raw);
-  delete raw.system;
   delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V3;
   if (isRecord(raw.sandbox)) {
@@ -60,8 +64,8 @@ export function asV3(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV4(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  stripCurrentContracts(raw);
   removeThirst(raw);
-  delete raw.system;
   delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V4;
   return raw;
@@ -69,7 +73,7 @@ export function asV4(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV5(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
-  delete raw.system;
+  stripCurrentContracts(raw);
   delete raw.objectives;
   raw.schemaVersion = SCHEMA_VERSION_V5;
   return raw;
@@ -77,9 +81,61 @@ export function asV5(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV6(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
-  delete raw.system;
+  stripCurrentContracts(raw);
   raw.schemaVersion = SCHEMA_VERSION_V6;
   return raw;
+}
+
+export function asV7(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.items;
+  delete raw.lingering;
+  delete raw.garden;
+  if (isRecord(raw.sandbox)) {
+    delete raw.sandbox.npcs;
+  }
+  raw.schemaVersion = SCHEMA_VERSION_V7;
+  return raw;
+}
+
+export function asV8(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.lingering;
+  delete raw.garden;
+  if (isRecord(raw.sandbox)) {
+    delete raw.sandbox.npcs;
+  }
+  raw.schemaVersion = SCHEMA_VERSION_V8;
+  return raw;
+}
+
+export function asV9(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.garden;
+  if (isRecord(raw.sandbox)) {
+    delete raw.sandbox.npcs;
+  }
+  raw.schemaVersion = SCHEMA_VERSION_V9;
+  return raw;
+}
+
+export function asV10(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  if (isRecord(raw.sandbox)) {
+    delete raw.sandbox.npcs;
+  }
+  raw.schemaVersion = SCHEMA_VERSION_V10;
+  return raw;
+}
+
+function stripCurrentContracts(raw: Record<string, unknown>): void {
+  delete raw.system;
+  delete raw.items;
+  delete raw.lingering;
+  delete raw.garden;
+  if (isRecord(raw.sandbox)) {
+    delete raw.sandbox.npcs;
+  }
 }
 
 function removeThirst(raw: Record<string, unknown>): void {

@@ -8,7 +8,9 @@ const SANDBOX_ITEM_NAMES: Record<string, string> = {
   'horned-rabbit-bones': 'Ossos de coelho chifrudo',
   'agua-limpa': 'Água limpa',
   'fruto-desconhecido': 'Fruto desconhecido',
-  'galho-resistente': 'Galho resistente',
+  'predator-fang': 'Presa do predador',
+  'improvised-tool': 'Ferramenta improvisada',
+  'improvised-salve': 'Unguento improvisado',
 };
 
 const STATION_NAMES: Record<string, string> = {

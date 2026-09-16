@@ -1,5 +1,6 @@
 import { firstDayCampaign } from '../../campaigns/first-day';
 import { CombatError, INITIAL_COMBAT, validateEncounterDiscoveries } from '../combat';
+import { INITIAL_ITEMS } from '../items';
 import {
   INITIAL_RECIPES,
   INITIAL_STRUCTURES,
@@ -54,7 +55,7 @@ export function createSandboxContext(
       encounterIds: new Set(INITIAL_COMBAT.encounters.map((encounter) => encounter.id)),
     });
     const resources = indexResourceDefinitions(INITIAL_RESOURCE_NODES, INITIAL_POPULATIONS, map, exploration);
-    const crafting = indexCraftingDefinitions(INITIAL_RECIPES, INITIAL_STRUCTURES);
+    const crafting = indexCraftingDefinitions(INITIAL_RECIPES, INITIAL_STRUCTURES, INITIAL_ITEMS);
     const presences = indexPresenceCatalog(INITIAL_PRESENCE_CATALOG, map, exploration);
     const presenceInteractions = indexPresenceInteractionCatalog(
       INITIAL_PRESENCE_INTERACTIONS,

@@ -13,7 +13,10 @@ export const INITIAL_MASTERY_CATALOG = {
       id: 'attentive-awakening',
       level: 2,
       requirements: [{ type: 'skill.proficiency', skillId: 'sharpened-senses', minimum: 3 }],
-      reveals: [{ type: 'training.available', methodId: 'body-reinforcement-routine' }],
+      reveals: [
+        { type: 'training.available', methodId: 'body-reinforcement-routine' },
+        { type: 'garden.cultivation-points', amount: 1 },
+      ],
     },
   ],
 } as const satisfies MasteryCatalog;
