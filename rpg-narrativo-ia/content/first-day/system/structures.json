@@ -1,0 +1,12 @@
+[
+  {
+    "id": "campfire",
+    "name": "Fogueira",
+    "tags": [
+      "heat",
+      "cooking"
+    ],
+    "uniquePerLocation": true,
+    "activeByDefault": true
+  }
+]

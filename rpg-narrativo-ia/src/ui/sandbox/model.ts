@@ -242,27 +242,27 @@ export function buildExplorationView(
     })),
     resources: visibleResources(state, context, location.id),
     recipes: visibleRecipes(state, context),
-    inventory: copyInventory(state.inventory, state),
+    inventory: copyInventory(state.inventory, state, context),
     equipment: EQUIPMENT_SLOTS.map((slot) => {
       const itemId = state.items.equipment[slot];
       return {
         slot,
         label: EQUIPMENT_SLOT_LABELS[slot],
         itemId,
-        itemName: itemId ? sandboxItemName(itemId) : null,
+        itemName: itemId ? sandboxItemName(itemId, context.items) : null,
       };
     }),
     preparation: state.items.preparation.slots.map((slot) => ({
       index: slot.index,
       itemId: slot.itemId,
-      itemName: slot.itemId ? sandboxItemName(slot.itemId) : null,
+      itemName: slot.itemId ? sandboxItemName(slot.itemId, context.items) : null,
     })),
     lingering: state.lingering.entries.map((entry) => ({
       conditionId: entry.conditionId,
       name: INITIAL_CONDITIONS.conditionById.get(entry.conditionId)?.name ?? entry.conditionId,
       remainingPeriods: entry.remainingPeriods,
     })),
-    knownNpcs: visibleNpcs(state),
+    knownNpcs: visibleNpcs(state, context),
     presences: visiblePresences(state, context, location.id),
     needs: buildNeedsPresentation(state.attributes),
     rest: buildRestView(state, location.id),
@@ -318,7 +318,7 @@ function visibleResources(state: GameState, context: SandboxContext, locationId:
       maxCollectable: access.maxCollectable,
       yields: node.yields.map((entry) => ({
         itemId: entry.itemId,
-        name: sandboxItemName(entry.itemId),
+        name: sandboxItemName(entry.itemId, context.items),
         quantityPerUnit: entry.quantityPerUnit,
       })),
       costPeriods: getCollectionCost(context.resources, node.id).periods,
@@ -376,16 +376,16 @@ function visibleRecipes(state: GameState, context: SandboxContext): RecipeView[]
       name: recipe.name,
       ingredients: recipe.inputs.map((entry) => ({
         itemId: entry.itemId,
-        name: sandboxItemName(entry.itemId),
+        name: sandboxItemName(entry.itemId, context.items),
         quantity: entry.quantity,
       })),
       products: (recipe.outputs ?? []).map((entry) => ({
         itemId: entry.itemId,
-        name: sandboxItemName(entry.itemId),
+        name: sandboxItemName(entry.itemId, context.items),
         quantity: entry.quantity,
       })),
       structureName: structure?.name,
-      stationTags: (recipe.requiredStationTags ?? []).map(sandboxStationName),
+      stationTags: (recipe.requiredStationTags ?? []).map((tag) => sandboxStationName(tag, context.stationLabels)),
       costPeriods: access.timeCost.periods,
       craftable: access.craftable,
       blockedReason: access.blockedReason,
@@ -401,10 +401,11 @@ const EQUIPMENT_SLOT_LABELS: Record<EquipmentSlot, string> = {
   accessory: 'Acessório',
 };
 
-function copyInventory(items: readonly InventoryItem[], state: GameState): InventoryViewItem[] {
+function copyInventory(items: readonly InventoryItem[], state: GameState, context: SandboxContext): InventoryViewItem[] {
   const snapshot = attributesToNeedsSnapshot(state.attributes);
+  const catalog = context.items ?? INITIAL_ITEMS;
   return items.map((item) => {
-    const definition = INITIAL_ITEMS.byId.get(item.itemId);
+    const definition = catalog.byId.get(item.itemId);
     const equipped = EQUIPMENT_SLOTS.some((slot) => state.items.equipment[slot] === item.itemId);
     const preparedSlots = state.items.preparation.slots
       .filter((slot) => slot.itemId === item.itemId)
@@ -416,7 +417,7 @@ function copyInventory(items: readonly InventoryItem[], state: GameState): Inven
       availableQuantity(items, state.items, item.itemId) > 0;
     return {
       itemId: item.itemId,
-      name: sandboxItemName(item.itemId),
+      name: sandboxItemName(item.itemId, catalog),
       quantity: item.quantity,
       kind: definition?.kind ?? 'unknown',
       description: definition?.description,
@@ -432,12 +433,17 @@ function copyInventory(items: readonly InventoryItem[], state: GameState): Inven
   });
 }
 
-function visibleNpcs(state: GameState): DerivedNpcView[] {
+function visibleNpcs(state: GameState, context: SandboxContext): DerivedNpcView[] {
   const discovered = new Set(state.sandbox.navigation.discoveredLocationIds);
+  const catalog = context.npcs ?? INITIAL_NPCS;
   const views: DerivedNpcView[] = [];
-  for (const npc of INITIAL_NPCS.npcs) {
-    const view = deriveNpcAt(INITIAL_NPCS, state.sandbox.npcs, npc.id, state.world.period, (locationId) =>
-      discovered.has(locationId),
+  for (const npc of catalog.npcs) {
+    const view = deriveNpcAt(
+      catalog,
+      state.sandbox.npcs ?? { entries: [] },
+      npc.id,
+      state.world.period,
+      (locationId) => discovered.has(locationId),
     );
     if (view) {
       views.push(view);
@@ -492,10 +498,8 @@ function visiblePresences(state: GameState, context: SandboxContext, locationId:
       imageLabel: known.entity.image?.label ?? known.entity.name,
       status: known.status,
       statusLabel: PRESENCE_STATUS_LABELS[known.status],
-      hint:
-        known.entity.id === 'mira-vale'
-          ? visibleNpcs(state).find((npc) => npc.npcId === 'mira-vale' && npc.locationId === locationId)?.hint
-          : undefined,
+      hint: visibleNpcs(state, context).find((npc) => npc.npcId === known.entity.id && npc.locationId === locationId)
+        ?.hint,
       interactions: listKnownPresenceInteractions(
         context.presences,
         context.presenceInteractions,

@@ -546,6 +546,11 @@ function inspectEffect(value: unknown, reason: string): PresenceInspection<GameE
       return { ok: true, value: { type: 'progression.title', titleId: value.titleId } };
     case 'game.complete':
       return { ok: true, value: { type: 'game.complete' } };
+    case 'npc.rememberFact':
+      if (typeof value.npcId !== 'string' || value.npcId.trim() === '' || typeof value.factId !== 'string' || value.factId.trim() === '') {
+        return fail(reason);
+      }
+      return { ok: true, value: { type: 'npc.rememberFact', npcId: value.npcId, factId: value.factId } };
     default:
       return fail(reason);
   }
@@ -726,6 +731,8 @@ function copyEffect(effect: GameEffect): GameEffect {
       return { type: 'progression.title', titleId: effect.titleId };
     case 'game.complete':
       return { type: 'game.complete' };
+    case 'npc.rememberFact':
+      return { type: 'npc.rememberFact', npcId: effect.npcId, factId: effect.factId };
   }
 }
 
@@ -835,6 +842,8 @@ function sameEffect(left: GameEffect, right: unknown): boolean {
       return right.titleId === left.titleId;
     case 'game.complete':
       return true;
+    case 'npc.rememberFact':
+      return right.npcId === left.npcId && right.factId === left.factId;
   }
 }
 

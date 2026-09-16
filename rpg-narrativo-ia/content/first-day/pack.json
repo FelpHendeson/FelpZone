@@ -1,0 +1,29 @@
+{
+  "id": "first-day",
+  "startingLocationId": "awakening-clearing",
+  "files": {
+    "map": "world/map.json",
+    "exploration": "world/exploration.json",
+    "populations": "world/populations.json",
+    "resourceNodes": "world/resource-nodes.json",
+    "presences": "world/presences.json",
+    "presenceInteractions": "world/presence-interactions.json",
+    "npcs": "world/npcs.json",
+    "energetics": "system/energetics.json",
+    "skills": "system/skills.json",
+    "training": "system/training.json",
+    "mastery": "system/mastery.json",
+    "garden": "system/garden.json",
+    "items": "system/items.json",
+    "conditions": "system/conditions.json",
+    "combat": "system/combat.json",
+    "craftingRecipes": "system/recipes.json",
+    "craftingStructures": "system/structures.json",
+    "objectives": "campaign/objectives.json",
+    "campaign": "campaign/campaign.json",
+    "events": "campaign/events.json",
+    "worldTriggers": "campaign/world-triggers.json",
+    "firstPriorityTrigger": "campaign/first-priority-trigger.json",
+    "labels": "ui/labels.json"
+  }
+}

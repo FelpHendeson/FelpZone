@@ -1,0 +1,166 @@
+[
+  {
+    "locationId": "awakening-clearing",
+    "progressPerAction": 10,
+    "timeCost": {
+      "periods": 1
+    },
+    "discoveries": [
+      {
+        "id": "awakening-site",
+        "kind": "landmark",
+        "revealAt": 10,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Marca do despertar"
+      },
+      {
+        "id": "first-priority-event",
+        "kind": "event",
+        "revealAt": 10,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Sinais de outra sobrevivente"
+      },
+      {
+        "id": "path-great-tree",
+        "kind": "passage",
+        "revealAt": 20,
+        "completionWeight": 1,
+        "targetId": "great-tree",
+        "unlockTarget": true,
+        "once": true,
+        "name": "Passagem para a Grande Árvore"
+      },
+      {
+        "id": "fallen-sticks",
+        "kind": "resourceNode",
+        "revealAt": 25,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Gravetos caídos"
+      },
+      {
+        "id": "wary-predator-tracks",
+        "kind": "creatureHabitat",
+        "revealAt": 30,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Rastros do predador"
+      },
+      {
+        "id": "path-spring-lake",
+        "kind": "passage",
+        "revealAt": 40,
+        "completionWeight": 1,
+        "targetId": "spring-lake",
+        "unlockTarget": true,
+        "once": true,
+        "name": "Passagem para a Nascente"
+      },
+      {
+        "id": "torn-cloth",
+        "kind": "item",
+        "revealAt": 50,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Pano rasgado"
+      },
+      {
+        "id": "path-dense-woods",
+        "kind": "passage",
+        "revealAt": 60,
+        "completionWeight": 1,
+        "targetId": "dense-woods",
+        "unlockTarget": true,
+        "once": true,
+        "name": "Passagem para a Mata Densa"
+      }
+    ]
+  },
+  {
+    "locationId": "great-tree",
+    "progressPerAction": 10,
+    "timeCost": {
+      "periods": 1
+    },
+    "discoveries": [
+      {
+        "id": "great-tree-trunk",
+        "kind": "landmark",
+        "revealAt": 15,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Tronco da Grande Árvore"
+      },
+      {
+        "id": "bark-markings",
+        "kind": "landmark",
+        "revealAt": 40,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Marcas na casca"
+      }
+    ]
+  },
+  {
+    "locationId": "spring-lake",
+    "progressPerAction": 10,
+    "timeCost": {
+      "periods": 1
+    },
+    "discoveries": [
+      {
+        "id": "spring-source",
+        "kind": "landmark",
+        "revealAt": 10,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Olho d’água"
+      },
+      {
+        "id": "spring-water",
+        "kind": "resourceNode",
+        "revealAt": 30,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Nascente"
+      }
+    ]
+  },
+  {
+    "locationId": "dense-woods",
+    "progressPerAction": 10,
+    "timeCost": {
+      "periods": 1
+    },
+    "discoveries": [
+      {
+        "id": "dense-undergrowth",
+        "kind": "landmark",
+        "revealAt": 20,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Sub-bosque denso"
+      },
+      {
+        "id": "horned-rabbit-tracks",
+        "kind": "creatureHabitat",
+        "revealAt": 40,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Rastros de coelho chifrudo"
+      },
+      {
+        "id": "hidden-cave",
+        "kind": "subarea",
+        "revealAt": 90,
+        "completionWeight": 2,
+        "targetId": "hidden-cave",
+        "unlockTarget": true,
+        "once": true,
+        "name": "Caverna Oculta"
+      }
+    ]
+  }
+]

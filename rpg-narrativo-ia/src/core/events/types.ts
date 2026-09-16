@@ -11,7 +11,8 @@ export type GameEffect =
   | { type: 'world.period'; period: DayPeriod }
   | { type: 'progression.ability'; abilityId: string }
   | { type: 'progression.title'; titleId: string }
-  | { type: 'game.complete' };
+  | { type: 'game.complete' }
+  | { type: 'npc.rememberFact'; npcId: string; factId: string };
 
 export type GameCondition =
   | { type: 'flag.is'; flag: string; value: boolean }

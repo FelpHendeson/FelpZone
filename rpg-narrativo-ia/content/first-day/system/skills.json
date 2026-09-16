@@ -1,0 +1,53 @@
+{
+  "paths": [
+    {
+      "id": "body-reinforcement",
+      "name": "Reforço do Corpo",
+      "description": "Aplicações interiorizadas do Númen para fortalecer sentidos, resistência e movimento.",
+      "field": "corpo"
+    },
+    {
+      "id": "numen-manifestation",
+      "name": "Manifestação de Númen",
+      "description": "Aplicações exteriorizadas do Númen que projetam técnica e efeitos no mundo.",
+      "field": "poder"
+    }
+  ],
+  "skills": [
+    {
+      "id": "sharpened-senses",
+      "name": "Sentidos Aguçados",
+      "description": "Percepção reforçada pelo Númen que revela detalhes e sinais do ambiente.",
+      "pathId": "body-reinforcement",
+      "requires": []
+    },
+    {
+      "id": "steady-body",
+      "name": "Corpo Firme",
+      "description": "Resistência interiorizada que sustenta esforço prolongado com menos desgaste.",
+      "pathId": "body-reinforcement",
+      "requires": [
+        "sharpened-senses"
+      ]
+    },
+    {
+      "id": "guiding-spark",
+      "name": "Fagulha Condutora",
+      "description": "Primeira manifestação exteriorizada do Númen, uma centelha controlada de energia.",
+      "pathId": "numen-manifestation",
+      "requires": [
+        "steady-body"
+      ]
+    },
+    {
+      "id": "sensing-guard",
+      "name": "Sentinela Interior",
+      "description": "Técnica híbrida que une percepção e resistência num reflexo de guarda.",
+      "pathId": "body-reinforcement",
+      "requires": [
+        "steady-body"
+      ],
+      "hiddenUntilKnown": true
+    }
+  ]
+}

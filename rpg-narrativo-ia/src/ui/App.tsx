@@ -1,5 +1,4 @@
-import { firstDayCampaign } from '../campaigns/first-day';
-import { FIRST_DAY_WORLD_TRIGGERS } from '../campaigns/first-day/world-triggers';
+import { loadFirstDayWorld } from '../modules/content';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import {
   INITIAL_COMBAT,
@@ -12,7 +11,7 @@ import { describeMasteryProgress } from '../modules/system-interface';
 import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
-import { createSandboxContext, type SandboxContext } from '../modules/sandbox';
+import { createSandboxContextFromWorld, type SandboxContext } from '../modules/sandbox';
 import type { SandboxAction } from '../modules/sandbox-actions';
 import { ConfirmDialog } from './components/ConfirmDialog';
 import { CreateCharacterScreen } from './screens/CreateCharacterScreen';
@@ -27,7 +26,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 type Screen = 'start' | 'create' | 'game' | 'exploration' | 'summary';
 type ConfirmKind = 'none' | 'new-game' | 'delete' | 'restart';
 
-const campaign = firstDayCampaign;
+const world = loadFirstDayWorld();
+const campaign = world.campaign;
+const worldTriggers = world.worldTriggers.definitions;
 
 function bindLoadResult(result: LoadResult): LoadResult {
   if (result.status !== 'ok') {
@@ -76,7 +77,7 @@ function createBrowserPersistence(context: SandboxContext): GamePersistence {
 }
 
 export function App() {
-  const sandboxContext = useMemo(() => createSandboxContext(), []);
+  const sandboxContext = useMemo(() => createSandboxContextFromWorld(world), []);
   const persistence = useMemo(() => createBrowserPersistence(sandboxContext), [sandboxContext]);
   const [loadResult, setLoadResult] = useState<LoadResult>(() => bindLoadResult(persistence.load()));
   const [screen, setScreen] = useState<Screen>('start');
@@ -172,7 +173,7 @@ export function App() {
     try {
       const attempt = commitSandboxAction(state, action, sandboxContext, {
         campaign,
-        catalog: FIRST_DAY_WORLD_TRIGGERS,
+        catalog: worldTriggers,
         persist,
       });
       if (!attempt.ok) {
@@ -203,7 +204,7 @@ export function App() {
       const resolution = buildCombatResolution(finalState, getEncounter(INITIAL_COMBAT, encounterId));
       const attempt = commitSandboxAction(state, { type: 'combat.resolve', resolution }, sandboxContext, {
         campaign,
-        catalog: FIRST_DAY_WORLD_TRIGGERS,
+        catalog: worldTriggers,
         persist,
       });
       if (!attempt.ok) {

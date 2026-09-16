@@ -2,7 +2,9 @@
 
 ## Campanhas como dados
 
-Cada evento deve possuir identificador estável, texto, condições, escolhas e transição. O formato definitivo pode usar TypeScript ou JSON validado; priorize segurança de tipos e mensagens claras para conteúdo inválido.
+Cada evento deve possuir identificador estável, texto, condições, escolhas e transição. O primeiro dia está em JSON validado em `content/first-day/`. O motor trata o pack como entrada hostil.
+
+Evite colocar funções, JSX ou lógica específica da interface nos arquivos de campanha. Autoria: [pack first-day](../content/first-day/README.md) e [Motor e pack de mundo](CONTENT-PACK.md).
 
 Exemplo conceitual:
 

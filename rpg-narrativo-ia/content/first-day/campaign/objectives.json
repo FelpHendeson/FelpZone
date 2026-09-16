@@ -1,0 +1,92 @@
+{
+  "objectives": [
+    {
+      "id": "first-steps",
+      "title": "Primeiros passos",
+      "description": "Transforme o despertar solitário nos primeiros sinais de sobrevivência e companhia.",
+      "kind": "main",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "progression.ability.selected"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "choose-ability",
+          "title": "Escolha uma capacidade inicial",
+          "criteria": [
+            {
+              "type": "progression.ability.selected"
+            }
+          ]
+        },
+        {
+          "id": "explore-awakening-clearing",
+          "title": "Explore a Clareira do Despertar",
+          "criteria": [
+            {
+              "type": "exploration.discovery.revealed",
+              "discoveryId": "awakening-site"
+            }
+          ]
+        },
+        {
+          "id": "find-spring",
+          "title": "Encontre a nascente",
+          "criteria": [
+            {
+              "type": "exploration.discovery.revealed",
+              "discoveryId": "spring-source"
+            }
+          ]
+        },
+        {
+          "id": "build-campfire",
+          "title": "Construa uma fogueira",
+          "criteria": [
+            {
+              "type": "crafting.structure.active",
+              "structureId": "campfire"
+            }
+          ]
+        },
+        {
+          "id": "prepare-meal",
+          "title": "Prepare uma refeição",
+          "criteria": [
+            {
+              "type": "inventory.item.quantity",
+              "itemId": "cooked-horned-rabbit-meat",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "id": "investigate-signs",
+          "title": "Investigue os sinais de outra pessoa",
+          "criteria": [
+            {
+              "type": "presence.discovered",
+              "presenceId": "mira-awakening-clearing"
+            }
+          ]
+        },
+        {
+          "id": "meet-mira",
+          "title": "Conheça Mira",
+          "criteria": [
+            {
+              "type": "presence.resolved",
+              "presenceId": "mira-awakening-clearing"
+            }
+          ]
+        }
+      ],
+      "completionText": "Você já não está apenas reagindo ao Reset: encontrou meios de sobreviver e outra pessoa neste mundo."
+    }
+  ]
+}

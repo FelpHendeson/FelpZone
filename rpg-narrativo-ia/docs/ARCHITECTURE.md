@@ -101,7 +101,10 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os m�
 - `combat`: cataloga ações, combatentes e encontros; cria o estado de combate; resolve turnos por velocidade com efeitos declarativos (dano, cura, escudo); decide a ação do oponente por regras determinísticas; deriva o desfecho e seus efeitos para o `GameState`. Funções puras, sem componentes React.
 - `mastery`: cataloga regras de prática e marcos de nível; transforma evidências verificadas (treino concluído, vitória de combate) em incrementos de proficiência; avalia marcos de forma pura e idempotente e produz um `MasteryResult`. Não acessa React, relógio, persistência nem internos de combate/treino.
 - `narrative`: resolução do evento atual e transições.
-- `campaigns`: dados específicos de cada campanha.
+- `content`: fontes de pack (`JsonPackSource`, `MemorySource`, `RemoteSource`) e `composeWorld`.
+- `campaigns`: adapters da campanha `first-day` sobre o pack JSON.
+- `campaigns`: adapters da campanha `first-day` sobre o pack JSON.
+- `content`: `ContentSource`, `composeWorld` e o pack empacotado; não executa código do arquivo.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.
 - `ui`: apresentação e captura de ações.
 

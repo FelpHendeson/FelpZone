@@ -136,7 +136,7 @@ export function executeSandboxAction(
   options: SandboxActionOptions = {},
 ): SandboxActionResult {
   const context = requireContext(options.context);
-  const objectiveCatalog = options.objectives ?? INITIAL_OBJECTIVES;
+  const objectiveCatalog = options.objectives ?? context.objectives ?? INITIAL_OBJECTIVES;
   const previous = requireGameState(state, context, objectiveCatalog);
   if (previous.status !== 'playing') {
     throw new SandboxActionError('A partida já foi concluída e não aceita novas ações.');
@@ -725,16 +725,22 @@ function executePrimary(
     state,
   );
 
-  const afterEffects = applyEffects(state, plan.effects);
+  const interactionEffects = plan.effects;
+  const afterEffects = applyEffects(
+    state,
+    interactionEffects.filter((effect) => effect.type !== 'npc.rememberFact'),
+  );
   let nextPresences = copyPresenceState(presences);
   if (plan.resolvesPresence) {
     nextPresences = resolvePresence(context.presences, nextPresences, action.presenceId);
   }
 
+  const npcCatalog = context.npcs ?? INITIAL_NPCS;
   let npcs = copyNpcsState(state.sandbox.npcs ?? createInitialNpcsState());
-  if (action.presenceId === 'mira-awakening-clearing' && action.interactionId === 'talk-mira-awakening-clearing') {
-    npcs = rememberNpcFact(INITIAL_NPCS, npcs, 'mira-vale', 'mira-first-talk');
-    npcs = rememberNpcFact(INITIAL_NPCS, npcs, 'mira-vale', 'mira-seeks-water');
+  for (const effect of interactionEffects) {
+    if (effect.type === 'npc.rememberFact') {
+      npcs = rememberNpcFact(npcCatalog, npcs, effect.npcId, effect.factId);
+    }
   }
 
   return {

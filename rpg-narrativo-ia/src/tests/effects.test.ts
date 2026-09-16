@@ -123,4 +123,10 @@ describe('efeitos', () => {
     expect(advanced.world).toEqual({ day: 3, period: 'entardecer' });
     expect(afternoon).toEqual(snapshot);
   });
+
+  it('npc.rememberFact não é aplicado pelo núcleo sem o catálogo de NPCs', () => {
+    expect(() =>
+      applyEffects(baseState(), [{ type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' }]),
+    ).toThrow(EngineError);
+  });
 });

@@ -278,6 +278,8 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ## Horizonte depois do Sistema 17
 
+O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda, o save permanece schema 11 e uma fonte remota futura reusa o mesmo `composeWorld`. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
+
 ### Outras direções definidas pelo autor
 
 - interagir com elementos do cenário além de coleta, crafting e presenças;

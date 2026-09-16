@@ -88,6 +88,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 15 — Condições, elementos e combate | **Implementado e consolidado (15.1–15.7)** | Sangramento, exposição, ferida persistente, matriz Físico/Brasas/Água, `ember-cut` do predador e schema 9. | Sem chance oculta, posicionamento, grupos ou fórmulas definitivas. |
 | Sistema 16 — Jardim de habilidades | **Implementado e consolidado (16.1–16.7)** | Receita `Sentinela Interior`, pontos de cultivo no marco de nível 2, ação `garden.cultivate` e schema 10. | Sem geração procedural, sacrifício, reversão ou IA. |
 | Sistema 17 — NPCs persistentes, agenda e mundo vivo | **Implementado e consolidado (17.1–17.7)** | Mira conhecida após a conversa inicial, agenda por período, fatos fechados e `sandbox.npcs` no schema 11. | Sem simulação contínua, IA generativa, economia ou administração. |
+| Motor e pack de mundo | **Implementado** | `ContentSource`, `composeWorld` e pack JSON `first-day`. O motor valida catálogos hostis; a UI lê nomes do índice. `RemoteSource` reusa o mesmo compose. | Sem CMS, banco real, editor no jogo ou mudança de schema. |
 
 ## Próximos sistemas especificados
 

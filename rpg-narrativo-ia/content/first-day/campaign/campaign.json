@@ -1,0 +1,106 @@
+{
+  "id": "first-day",
+  "title": "O primeiro dia",
+  "firstEventId": "awakening",
+  "items": [
+    {
+      "id": "agua-limpa",
+      "name": "Água limpa",
+      "description": "Um pouco de água encontrada em uma pedra oca. Cabe em duas mãos."
+    },
+    {
+      "id": "fruto-desconhecido",
+      "name": "Fruto desconhecido",
+      "description": "Polpa densa, cheiro doce. Ninguém ensinou se isso alimenta ou engana."
+    },
+    {
+      "id": "galho-resistente",
+      "name": "Galho resistente",
+      "description": "Madeira viva, mais dura do que deveria. Serve como apoio ou defesa improvisada."
+    }
+  ],
+  "abilities": [
+    {
+      "id": "olhar-atento",
+      "name": "Olhar Atento",
+      "description": "A cautela aumenta. Ameaças e detalhes aparecem antes de chegar perto."
+    },
+    {
+      "id": "resiliencia",
+      "name": "Resiliência",
+      "description": "Saúde e energia aumentam. O corpo aguenta melhor o primeiro dia."
+    },
+    {
+      "id": "voz-calma",
+      "name": "Voz Calma",
+      "description": "A humanidade aumenta. Outras pessoas tendem a baixar a guarda perto de você."
+    }
+  ],
+  "npcs": [
+    {
+      "id": "mira-vale",
+      "name": "Mira Vale"
+    }
+  ],
+  "titles": [
+    {
+      "id": "mao-partilhada",
+      "name": "Mão Partilhada",
+      "description": "Você dividiu o pouco que tinha e passou a primeira noite ao lado de outra pessoa.",
+      "conditions": [
+        {
+          "type": "flag.is",
+          "flag": "moral.shared",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "camp.together",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "gesto-tardio",
+      "name": "Gesto Tardio",
+      "description": "A primeira recusa não foi a última palavra. Você tentou reparar o dia.",
+      "conditions": [
+        {
+          "type": "flag.is",
+          "flag": "moral.repaired",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "caminho-solitario",
+      "name": "Caminho Solitário",
+      "description": "Você concluiu o primeiro dia sem dividir o fogo com ninguém.",
+      "conditions": [
+        {
+          "type": "flag.is",
+          "flag": "camp.alone",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "primeiro-abrigo",
+      "name": "Primeiro Abrigo",
+      "description": "Houve um teto improvisado e outra voz por perto quando a noite chegou.",
+      "conditions": [
+        {
+          "type": "flag.is",
+          "flag": "camp.together",
+          "value": true
+        }
+      ]
+    },
+    {
+      "id": "despertar",
+      "name": "Despertar",
+      "description": "Você sobreviveu ao primeiro dia. O resto ainda não tem nome.",
+      "conditions": []
+    }
+  ]
+}

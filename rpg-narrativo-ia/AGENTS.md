@@ -6,7 +6,7 @@ Antes de implementar, leia o `README.md` e todos os documentos em `docs/`.
 
 A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da evolução sandbox e as Fatias 7.1 a 7.5 estão implementadas. O marco mínimo do Sistema 7 foi atingido: o jogador encontra a criatura e Mira por uma ação no mundo e retorna ao sandbox.
 
-Os Sistemas 1 a 17 estão implementados e consolidados. O Sistema 13 — Progressão por prática e recompensas do Sistema — entrega prática por treino e vitória no módulo `mastery`. Os Sistemas 14 a 17 avançam o save até o schema 11: itens e preparação, condições e elementos, Jardim de habilidades e NPCs persistentes.
+Os Sistemas 1 a 17 estão implementados e consolidados. O Sistema 13 — Progressão por prática e recompensas do Sistema — entrega prática por treino e vitória no módulo `mastery`. Os Sistemas 14 a 17 avançam o save até o schema 11: itens e preparação, condições e elementos, Jardim de habilidades e NPCs persistentes. O primeiro dia vive no pack JSON `content/first-day/`; o motor valida o conteúdo na borda e não persiste catálogo. Leia [Motor e pack de mundo](docs/CONTENT-PACK.md).
 
 Leia [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md) e [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md) antes de propor código. Números, nomes e conteúdo continuam protótipos.
 

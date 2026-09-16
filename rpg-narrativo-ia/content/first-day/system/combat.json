@@ -1,0 +1,133 @@
+{
+  "actions": [
+    {
+      "id": "attack",
+      "name": "Golpe",
+      "description": "Um golpe direto e confiável.",
+      "speed": 10,
+      "target": "opponent",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "guard",
+      "name": "Postura Defensiva",
+      "description": "Prepara-se para absorver o próximo dano.",
+      "speed": 14,
+      "target": "self",
+      "effects": [
+        {
+          "type": "guard",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "id": "focus-strike",
+      "name": "Golpe Preciso",
+      "description": "Usa os Sentidos Aguçados para acertar um ponto vulnerável.",
+      "speed": 8,
+      "target": "opponent",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 9
+        }
+      ],
+      "skillId": "sharpened-senses"
+    },
+    {
+      "id": "mend",
+      "name": "Estancar Ferida",
+      "description": "A resistência do Corpo Firme permite conter o próprio sangramento.",
+      "speed": 12,
+      "target": "self",
+      "effects": [
+        {
+          "type": "heal",
+          "amount": 6
+        },
+        {
+          "type": "condition.cleanse",
+          "count": 1,
+          "conditionId": "bleeding"
+        }
+      ],
+      "skillId": "steady-body"
+    },
+    {
+      "id": "ember-cut",
+      "name": "Corte em Brasa",
+      "description": "O predador rasga e deixa uma ferida aberta.",
+      "speed": 9,
+      "target": "opponent",
+      "elementId": "embers",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 4
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "bleeding",
+          "duration": 2,
+          "potency": 1
+        }
+      ]
+    },
+    {
+      "id": "warding-focus",
+      "name": "Guarda Sentinela",
+      "description": "A Sentinela Interior ergue um reflexo de proteção.",
+      "speed": 13,
+      "target": "self",
+      "effects": [
+        {
+          "type": "guard",
+          "amount": 8
+        },
+        {
+          "type": "condition.cleanse",
+          "count": 1
+        }
+      ],
+      "skillId": "sensing-guard"
+    }
+  ],
+  "combatants": [
+    {
+      "id": "wary-predator",
+      "name": "Predador Arisco",
+      "maxHealth": 18,
+      "actionIds": [
+        "attack",
+        "guard",
+        "ember-cut"
+      ],
+      "defenseElementId": "embers"
+    }
+  ],
+  "encounters": [
+    {
+      "id": "clearing-predator",
+      "locationId": "awakening-clearing",
+      "opponentId": "wary-predator",
+      "name": "Predador Arisco",
+      "description": "Uma criatura esguia rosna entre a vegetação, medindo se você é presa ou ameaça.",
+      "timeCost": {
+        "periods": 1
+      },
+      "requiredDiscoveryIds": [
+        "wary-predator-tracks"
+      ],
+      "reward": {
+        "itemId": "predator-fang",
+        "quantity": 1
+      }
+    }
+  ]
+}

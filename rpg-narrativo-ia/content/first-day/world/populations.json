@@ -1,0 +1,10 @@
+[
+  {
+    "id": "horned-rabbits",
+    "speciesId": "horned-rabbit",
+    "carryingCapacity": 8,
+    "recoveryPerDay": 2,
+    "warningThreshold": 4,
+    "criticalThreshold": 2
+  }
+]

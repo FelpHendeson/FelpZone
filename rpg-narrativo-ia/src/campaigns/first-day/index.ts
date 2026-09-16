@@ -1,16 +1,10 @@
 import type { Campaign } from '../../core/events';
-import { abilities, items, npcs, titles } from './catalog';
-import { events } from './events';
+import catalog from '../../../content/first-day/campaign/campaign.json' with { type: 'json' };
+import events from '../../../content/first-day/campaign/events.json' with { type: 'json' };
 
 export const firstDayCampaign: Campaign = {
-  id: 'first-day',
-  title: 'O primeiro dia',
-  firstEventId: 'awakening',
-  events,
-  items,
-  abilities,
-  npcs,
-  titles,
+  ...(catalog as Omit<Campaign, 'events'>),
+  events: events as Campaign['events'],
 };
 
 export function findItem(campaign: Campaign, itemId: string) {

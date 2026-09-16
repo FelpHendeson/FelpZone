@@ -19,6 +19,7 @@ export type DiscoveryKind = (typeof DISCOVERY_KINDS)[number];
 export interface DiscoveryDefinition {
   id: string;
   kind: DiscoveryKind;
+  name?: string;
   revealAt: number;
   completionWeight: number;
   conditions?: GameCondition[];

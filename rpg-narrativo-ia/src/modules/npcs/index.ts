@@ -2,6 +2,7 @@ import type { DayPeriod } from '../../core/state/types';
 import { DAY_PERIODS } from '../../core/state/types';
 import { NpcError } from './errors';
 import { INITIAL_NPC_CATALOG } from './initial-npcs';
+import map from '../../../content/first-day/world/map.json' with { type: 'json' };
 import type {
   DerivedNpcView,
   IndexedNpcs,
@@ -26,7 +27,7 @@ export type {
   NpcStateEntry,
 } from './types';
 
-export const INITIAL_NPCS = indexNpcCatalog(INITIAL_NPC_CATALOG);
+export const INITIAL_NPCS = indexNpcCatalog(INITIAL_NPC_CATALOG, new Set(collectLocationIds(map)));
 
 export function inspectNpcCatalog(value: unknown, locationIds: ReadonlySet<string>): NpcInspection<IndexedNpcs> {
   if (!isRecord(value) || !Array.isArray(value.npcs) || !Array.isArray(value.schedules) || !Array.isArray(value.facts)) {
@@ -87,11 +88,24 @@ export function inspectNpcCatalog(value: unknown, locationIds: ReadonlySet<strin
   const facts: NpcMemoryFactDefinition[] = [];
   const factIds = new Set<string>();
   for (const entry of value.facts) {
-    if (!isRecord(entry) || !nonEmpty(entry.id) || factIds.has(entry.id) || !nonEmpty(entry.npcId) || !npcIds.has(entry.npcId) || !nonEmpty(entry.summary)) {
+    if (
+      !isRecord(entry) ||
+      !nonEmpty(entry.id) ||
+      factIds.has(entry.id) ||
+      !nonEmpty(entry.npcId) ||
+      !npcIds.has(entry.npcId) ||
+      !nonEmpty(entry.summary) ||
+      (entry.locationHint !== undefined && typeof entry.locationHint !== 'boolean')
+    ) {
       return fail('O fato de memória é inválido.');
     }
     factIds.add(entry.id);
-    facts.push({ id: entry.id, npcId: entry.npcId, summary: entry.summary });
+    facts.push({
+      id: entry.id,
+      npcId: entry.npcId,
+      summary: entry.summary,
+      ...(entry.locationHint === true ? { locationHint: true } : {}),
+    });
   }
 
   return {
@@ -107,9 +121,8 @@ export function inspectNpcCatalog(value: unknown, locationIds: ReadonlySet<strin
   };
 }
 
-export function indexNpcCatalog(value: unknown, locationIds?: ReadonlySet<string>): IndexedNpcs {
-  const locations = locationIds ?? new Set(['awakening-clearing', 'spring-lake', 'dense-woods', 'great-tree', 'hidden-cave']);
-  const inspected = inspectNpcCatalog(value, locations);
+export function indexNpcCatalog(value: unknown, locationIds: ReadonlySet<string>): IndexedNpcs {
+  const inspected = inspectNpcCatalog(value, locationIds);
   if (!inspected.ok) {
     throw new NpcError(inspected.reason);
   }
@@ -247,7 +260,7 @@ export function deriveNpcAt(
       availability,
       presence: 'absent',
       knownFactIds: [...entry.memoryFactIds],
-      hint: entry.memoryFactIds.includes('mira-seeks-water') ? 'Costuma buscar água pela manhã.' : undefined,
+      hint: locationHintFor(catalog, entry),
     };
   }
   const presence =
@@ -259,8 +272,22 @@ export function deriveNpcAt(
     availability,
     presence,
     knownFactIds: [...entry.memoryFactIds],
-    hint: entry.memoryFactIds.includes('mira-seeks-water') ? 'Costuma buscar água pela manhã.' : undefined,
+    hint: locationHintFor(catalog, entry),
   };
+}
+
+function locationHintFor(catalog: IndexedNpcs, entry: NpcStateEntry): string | undefined {
+  for (const factId of entry.memoryFactIds) {
+    const fact = catalog.factById.get(factId);
+    if (fact?.locationHint) {
+      return fact.summary;
+    }
+  }
+  return undefined;
+}
+
+function collectLocationIds(node: { id: string; children?: readonly { id: string; children?: readonly unknown[] }[] }): string[] {
+  return [node.id, ...(node.children ?? []).flatMap((child) => collectLocationIds(child as typeof node))];
 }
 
 function isPeriod(value: unknown): value is DayPeriod {

@@ -1,4 +1,5 @@
 import { firstDayCampaign } from '../../campaigns/first-day';
+import labels from '../../../content/first-day/ui/labels.json' with { type: 'json' };
 import { CombatError, INITIAL_COMBAT, validateEncounterDiscoveries } from '../combat';
 import { INITIAL_ITEMS } from '../items';
 import {
@@ -35,8 +36,39 @@ import {
 } from '../resources';
 import { INITIAL_SKILLS } from '../skills';
 import { INITIAL_TRAINING } from '../training';
+import { INITIAL_NPCS } from '../npcs';
+import { INITIAL_OBJECTIVES } from '../objectives';
+import type { IndexedWorld } from '../content';
 import { inspectSandboxContext } from './context-validation';
 import { SandboxError, type SandboxContext, type SandboxState } from './types';
+
+export function createSandboxContextFromWorld(
+  world: IndexedWorld,
+  startingLocationId: string = world.startingLocationId,
+): SandboxContext {
+  if (typeof startingLocationId !== 'string' || startingLocationId.trim() === '') {
+    throw new SandboxError('A localização inicial não existe.');
+  }
+  if (!world.map.locations.has(startingLocationId)) {
+    throw new SandboxError('A localização inicial não existe.');
+  }
+
+  return {
+    startingLocationId,
+    map: world.map,
+    exploration: world.exploration,
+    resources: world.resources,
+    crafting: world.crafting,
+    presences: world.presences,
+    presenceInteractions: world.presenceInteractions,
+    campaign: world.campaign,
+    npcs: world.npcs,
+    items: world.items,
+    objectives: world.objectives,
+    worldTriggers: world.worldTriggers,
+    stationLabels: world.stationLabels,
+  };
+}
 
 export function createSandboxContext(
   startingLocationId: string = DEFAULT_STARTING_LOCATION_ID,
@@ -71,6 +103,11 @@ export function createSandboxContext(
       crafting,
       presences,
       presenceInteractions,
+      campaign: firstDayCampaign,
+      npcs: INITIAL_NPCS,
+      items: INITIAL_ITEMS,
+      objectives: INITIAL_OBJECTIVES,
+      stationLabels: labels.stations,
     };
   } catch (error) {
     if (error instanceof NavigationError || error instanceof CombatError || error instanceof MasteryError) {

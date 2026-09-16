@@ -1,5 +1,5 @@
 export { inspectSandboxContext } from './context-validation';
-export { createInitialSandboxState, createSandboxContext } from './initial-sandbox';
+export { createInitialSandboxState, createSandboxContext, createSandboxContextFromWorld } from './initial-sandbox';
 export { inspectSandboxState, inspectLegacySandboxState } from './validation';
 export { SandboxError } from './types';
 export type {

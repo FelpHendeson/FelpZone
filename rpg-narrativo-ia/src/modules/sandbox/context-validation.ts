@@ -4,6 +4,7 @@ import { inspectNavigationMap } from '../navigation';
 import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
 import { inspectResourceDefinitions } from '../resources';
 import { firstDayCampaign } from '../../campaigns/first-day';
+import type { Campaign } from '../../core/events';
 import type { SandboxContext, SandboxContextInspection } from './types';
 
 export function inspectSandboxContext(value: unknown): SandboxContextInspection {
@@ -77,10 +78,12 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     return fail('O catálogo de interações é inválido.');
   }
 
+  const campaign = isRecord(value.campaign) ? (value.campaign as unknown as Campaign) : firstDayCampaign;
+
   const presenceInteractions = inspectPresenceInteractionCatalog(
     { interactions: value.presenceInteractions.interactions },
     presences.value,
-    firstDayCampaign,
+    campaign,
   );
   if (!presenceInteractions.ok) {
     return fail(presenceInteractions.reason);
@@ -94,7 +97,30 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     crafting: crafting.value,
     presences: presences.value,
     presenceInteractions: presenceInteractions.value,
+    campaign,
   };
+
+  if (isRecord(value.npcs)) {
+    context.npcs = value.npcs as unknown as SandboxContext['npcs'];
+  }
+  if (isRecord(value.items)) {
+    context.items = value.items as unknown as SandboxContext['items'];
+  }
+  if (isRecord(value.objectives)) {
+    context.objectives = value.objectives as unknown as SandboxContext['objectives'];
+  }
+  if (isRecord(value.worldTriggers)) {
+    context.worldTriggers = value.worldTriggers as unknown as SandboxContext['worldTriggers'];
+  }
+  if (isRecord(value.stationLabels)) {
+    const stations: Record<string, string> = {};
+    for (const [key, label] of Object.entries(value.stationLabels)) {
+      if (typeof key === 'string' && typeof label === 'string') {
+        stations[key] = label;
+      }
+    }
+    context.stationLabels = stations;
+  }
 
   return { ok: true, value: context };
 }

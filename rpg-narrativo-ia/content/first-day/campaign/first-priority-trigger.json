@@ -1,0 +1,9 @@
+{
+  "id": "first-priority",
+  "source": {
+    "type": "discovery.revealed",
+    "discoveryId": "first-priority-event"
+  },
+  "campaignId": "first-day",
+  "eventId": "first-priority"
+}

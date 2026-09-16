@@ -5,6 +5,7 @@ import { bindSavedState } from '../core/engine';
 import { MISSING_MATERIALS_REASON } from '../modules/crafting';
 import { itemQuantity } from '../modules/inventory';
 import { getResourceNode } from '../modules/resources';
+import { INITIAL_ITEMS } from '../modules/items';
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction, type SandboxAction } from '../modules/sandbox-actions';
 import { worldTriggerConsumedFlag } from '../modules/world-events';
@@ -176,8 +177,8 @@ describe('superfície mobile do sandbox', () => {
     const revealed = exploreTimes(start, 3);
     expect(resourceIds(revealed)).toEqual(['fallen-sticks']);
     expect(viewOf(revealed).resources[0]?.name).toBe('Gravetos caídos');
-    expect(sandboxItemName('fallen-branch')).toBe('Graveto');
-    expect(sandboxItemName('item-desconhecido')).toBe('item-desconhecido');
+    expect(sandboxItemName('fallen-branch', INITIAL_ITEMS)).toBe('Graveto');
+    expect(sandboxItemName('item-desconhecido', INITIAL_ITEMS)).toBe('item-desconhecido');
   });
 
   it('coleta atualiza inventário, disponibilidade e relógio', () => {

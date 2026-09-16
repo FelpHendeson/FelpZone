@@ -520,6 +520,10 @@ function inspectDiscovery(
     }
   }
 
+  if (value.name !== undefined && (typeof value.name !== 'string' || value.name.trim() === '')) {
+    return fail('O nome da descoberta é inválido.');
+  }
+
   const discovery: DiscoveryDefinition = {
     id: value.id,
     kind: value.kind,
@@ -527,6 +531,10 @@ function inspectDiscovery(
     completionWeight: value.completionWeight,
     once: true,
   };
+
+  if (typeof value.name === 'string') {
+    discovery.name = value.name;
+  }
 
   if (conditions) {
     discovery.conditions = conditions;
@@ -809,6 +817,10 @@ function copyDiscovery(discovery: DiscoveryDefinition): DiscoveryDefinition {
     completionWeight: discovery.completionWeight,
     once: true,
   };
+
+  if (discovery.name !== undefined) {
+    copied.name = discovery.name;
+  }
 
   if (discovery.conditions) {
     copied.conditions = copyConditions(discovery.conditions);

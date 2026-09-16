@@ -1,22 +1,4 @@
+import raw from '../../../content/first-day/system/garden.json' with { type: 'json' };
 import type { GardenCatalog } from './types';
 
-export const INITIAL_GARDEN_CATALOG = {
-  recipes: [
-    {
-      id: 'inner-sentinel',
-      name: 'Sentinela Interior',
-      description: 'Integra Sentidos Aguçados e Corpo Firme numa técnica híbrida de guarda perceptiva.',
-      sourceSkillIds: ['sharpened-senses', 'steady-body'],
-      requirements: [
-        { type: 'skill.known', skillId: 'sharpened-senses' },
-        { type: 'skill.known', skillId: 'steady-body' },
-        { type: 'skill.proficiency', skillId: 'sharpened-senses', minimum: 3 },
-        { type: 'level.minimum', level: 2 },
-      ],
-      cost: { cultivationPoints: 1, timeCost: { periods: 2 } },
-      resultSkillId: 'sensing-guard',
-      initialProficiency: 1,
-      visibility: { type: 'perceived-when-sources-known' },
-    },
-  ],
-} as const satisfies GardenCatalog;
+export const INITIAL_GARDEN_CATALOG = raw as GardenCatalog;

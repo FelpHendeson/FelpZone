@@ -46,8 +46,9 @@ Leia nesta ordem:
 26. [Condições, elementos e aprofundamento do combate](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md): Sistema 15 implementado e consolidado nas Fatias 15.1 a 15.7.
 27. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 implementado e consolidado nas Fatias 16.1 a 16.7.
 28. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
-29. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e sequência aprovada até o Sistema 17.
-30. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+29. [Motor e pack de mundo](docs/CONTENT-PACK.md): o código conhece leis; o primeiro dia entra como JSON validado.
+30. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e sequência aprovada até o Sistema 17.
+31. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -76,10 +77,12 @@ A partida fica em `localStorage` neste navegador. Não há login, backend nem ch
 ## Estrutura implementada
 
 ```text
+content/
+└── first-day/        # pack JSON do mundo (mapa, sistema, campanha)
 src/
 ├── core/             # estado, condições, efeitos e motor imutável
-├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos, energéticos, habilidades, treino, interface do Sistema, combate, maestria e narrativa
-├── campaigns/        # dados da campanha do primeiro dia
+├── modules/          # personagem, progressão, inventário, relações, mundo, horário, ciclo diário, navegação, exploração, recursos, crafting, sandbox, ações, gatilhos, presenças, objetivos, energéticos, habilidades, treino, interface do Sistema, combate, maestria, conteúdo e narrativa
+├── campaigns/        # adapters da campanha do primeiro dia sobre o pack JSON
 ├── infrastructure/   # persistência com schemaVersion
 ├── ui/               # HUD, superfícies contextuais, telas mobile-first e placeholders
 └── tests/            # testes automatizados do núcleo
@@ -105,7 +108,7 @@ As Fatias 12.8 a 12.12 estão implementadas: a ameaça só aparece após a desco
 
 O Sistema 13 — Progressão por prática e recompensas do Sistema — está **implementado e consolidado nas Fatias 13.1 a 13.7**. O módulo `mastery` conecta treino e o uso verificado de habilidades em vitórias a proficiência, marcos de nível e revelação de métodos, tudo na mesma transação atômica, sem introduzir experiência genérica, equipamentos ou Jardim. Consulte [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md).
 
-Os Sistemas 14 a 17 estão **implementados e consolidados**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; e NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md) e [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
+Os Sistemas 14 a 17 estão **implementados e consolidados**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; e NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11. O primeiro dia (mapa, habilidades, eventos, Mira) vive no pack JSON `content/first-day/`; o motor valida o pack na borda e não persiste catálogo. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md), [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md) e [Motor e pack de mundo](docs/CONTENT-PACK.md).
 
 ## Decisões já tomadas
 

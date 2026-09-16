@@ -135,7 +135,7 @@ function buildLocations(state: GameState, context: SandboxContext): JournalLocat
         }
         return {
           id: discovery.id,
-          name: sandboxDiscoveryName(discovery.id),
+          name: sandboxDiscoveryName(discovery.id, context.exploration),
           kind: discovery.kind,
         };
       }),

@@ -21,13 +21,13 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       const progress = result.detail.result.location.current.progress;
       parts.push(`Exploração +${gained}% (agora ${progress}%).`);
       for (const discovery of result.detail.result.discoveries) {
-        parts.push(`Descoberta: ${sandboxDiscoveryName(discovery.id)}.`);
+        parts.push(`Descoberta: ${sandboxDiscoveryName(discovery.id, context.exploration)}.`);
       }
       break;
     }
     case 'resource.collect': {
       for (const yieldEntry of result.detail.result.yields) {
-        parts.push(`Coletou ${yieldEntry.quantity}× ${sandboxItemName(yieldEntry.itemId)}.`);
+        parts.push(`Coletou ${yieldEntry.quantity}× ${sandboxItemName(yieldEntry.itemId, context.items)}.`);
       }
       break;
     }
@@ -40,7 +40,7 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       }
 
       for (const produced of crafted.produced) {
-        parts.push(`Fabricou ${produced.quantity}× ${sandboxItemName(produced.itemId)}.`);
+        parts.push(`Fabricou ${produced.quantity}× ${sandboxItemName(produced.itemId, context.items)}.`);
       }
 
       if (!crafted.structure && crafted.produced.length === 0) {
@@ -54,7 +54,7 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       break;
     }
     case 'needs.consume': {
-      parts.push(`Consumiu ${sandboxItemName(result.detail.plan.itemId)}.`);
+      parts.push(`Consumiu ${sandboxItemName(result.detail.plan.itemId, context.items)}.`);
       appendNeedEffects(parts, result.detail.plan.appliedEffects);
       break;
     }
@@ -78,7 +78,7 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       break;
     }
     case 'equipment.equip': {
-      parts.push(`Equipou ${sandboxItemName(result.action.type === 'equipment.equip' ? result.action.itemId : '')}.`);
+      parts.push(`Equipou ${sandboxItemName(result.action.type === 'equipment.equip' ? result.action.itemId : '', context.items)}.`);
       break;
     }
     case 'equipment.unequip': {
@@ -86,7 +86,7 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       break;
     }
     case 'preparation.assign': {
-      parts.push(`Preparou ${sandboxItemName(result.action.type === 'preparation.assign' ? result.action.itemId : '')}.`);
+      parts.push(`Preparou ${sandboxItemName(result.action.type === 'preparation.assign' ? result.action.itemId : '', context.items)}.`);
       break;
     }
     case 'preparation.clear': {
@@ -111,7 +111,7 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
   }
 
   if (result.synchronization.revealedDiscoveryIds.length > 0) {
-    const names = result.synchronization.revealedDiscoveryIds.map(sandboxDiscoveryName);
+    const names = result.synchronization.revealedDiscoveryIds.map((id) => sandboxDiscoveryName(id, context.exploration));
     parts.push(`Reavaliações: ${names.join(', ')}.`);
   }
 

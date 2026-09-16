@@ -72,6 +72,8 @@ export function applyEffect(state: GameState, effect: GameEffect): GameState {
         status: 'completed',
         narrativeSession: null,
       };
+    case 'npc.rememberFact':
+      throw new EngineError('O efeito npc.rememberFact exige o catálogo de NPCs do sandbox.');
   }
 }
 

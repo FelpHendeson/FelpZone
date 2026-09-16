@@ -33,6 +33,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - As Fatias 12.8 a 12.12 estão implementadas e consolidadas em `docs/SYSTEM-12-CONSOLIDATION.md`: descoberta da ameaça, saúde persistente, custo temporal único, consequência atômica e consolidação visual.
 - O Sistema 13 — Progressão por prática e recompensas do Sistema — está implementado e consolidado nas Fatias 13.1 a 13.7 (módulo `mastery`, prática por vitória, marcos de nível e requisitos de treino). Fonte: `docs/SYSTEM-PRACTICE-PROGRESSION.md`.
 - Os Sistemas 14 a 17 estão implementados e consolidados: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11.
+- O primeiro dia (mapa, habilidades, eventos, Mira) vive no pack JSON `content/first-day/`. O módulo `content` valida o pack na borda (`ContentSource` / `composeWorld`). O save não persiste catálogo.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina

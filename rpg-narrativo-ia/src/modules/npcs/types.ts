@@ -35,6 +35,7 @@ export interface NpcMemoryFactDefinition {
   id: string;
   npcId: string;
   summary: string;
+  locationHint?: boolean;
 }
 
 export interface NpcCatalog {

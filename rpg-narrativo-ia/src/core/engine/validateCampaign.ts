@@ -195,6 +195,11 @@ function validateEffect(
       return [];
     case 'game.complete':
       return [];
+    case 'npc.rememberFact':
+      if (effect.npcId.trim() === '' || effect.factId.trim() === '') {
+        return [`${prefix} possui fato de NPC inválido.`];
+      }
+      return [];
   }
 }
 

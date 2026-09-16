@@ -444,7 +444,10 @@ describe('planejamento puro de interação', () => {
       interactionId: 'talk-mira-awakening-clearing',
       presenceId: 'mira-awakening-clearing',
       timeCost: { periods: 1 },
-      effects: [],
+      effects: [
+        { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' },
+        { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },
+      ],
       narrative: { campaignId: 'first-day', eventId: 'first-priority' },
       resolvesPresence: true,
     });
