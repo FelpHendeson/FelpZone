@@ -16,6 +16,8 @@ import {
   type CombatState,
   type EncounterDefinition,
 } from '../../modules/combat';
+import { INITIAL_ITEMS } from '../../modules/items';
+import { buildCombatLoadout } from '../../modules/equipment';
 import { CombatScreen } from './CombatScreen';
 import { AppDialog } from '../components/AppDialog';
 import { AttributeSummary } from '../components/AttributeSummary';
@@ -31,7 +33,6 @@ import {
   formatPeriodCost,
   type DestinationView,
   type ExplorationView,
-  type InventoryViewItem,
   type NeedEffectView,
   type PresenceView,
   type RecipeView,
@@ -75,10 +76,13 @@ export function ExplorationScreen({
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
       ?? INITIAL_COMBAT.encounters.find((entry) => entry.id === combatEncounterId);
+    const portrait = buildCombatLoadout(INITIAL_ITEMS, state.items);
     const initialCombat = createCombat(INITIAL_COMBAT, combatEncounterId, {
       playerName: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
       playerMaxHealth: state.attributes.saude,
+      loadout: portrait.loadout,
+      prepared: portrait.prepared,
     });
     return (
       <CombatScreen
@@ -138,7 +142,7 @@ export function ExplorationScreen({
               onTrackJourney={setTrackedJourneyId}
             />
           ) : null}
-          {activeTab === 'inventory' ? <InventoryPanel items={view.inventory} onAction={onAction} /> : null}
+          {activeTab === 'inventory' ? <InventoryPanel view={view} onAction={onAction} /> : null}
 
           <AppDialog
             open={actionsOpen}
@@ -256,6 +260,19 @@ function WorldPanel({
 
       <div className="world-context-grid">
         <PresenceSection presences={view.presences} onAction={onAction} />
+        {view.knownNpcs.length > 0 ? <KnownNpcSection npcs={view.knownNpcs} locationId={view.location.id} /> : null}
+        {view.lingering.length > 0 ? (
+          <section className="lingering-section" aria-label="Condições persistentes">
+            <span className="section-kicker">Feridas que permanecem</span>
+            <ul className="lingering-list">
+              {view.lingering.map((entry) => (
+                <li key={entry.conditionId}>
+                  {entry.name} · {entry.remainingPeriods} período{entry.remainingPeriods === 1 ? '' : 's'}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
         <ThreatSection encounters={encounters} blockedReason={fightBlockedReason} onFight={onFight} />
         <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
       </div>
@@ -381,6 +398,7 @@ function PresenceCard({
         {presence.trust !== undefined ? (
           <p className="presence-card__trust">Confiança: {presence.trust}</p>
         ) : null}
+        {presence.hint ? <p className="presence-card__hint">{presence.hint}</p> : null}
         {resolved ? (
           <p className="presence-card__resolved">Ocorrência concluída.</p>
         ) : (
@@ -669,7 +687,40 @@ function RecipeCard({ recipe, onAction }: { recipe: RecipeView; onAction: (actio
   );
 }
 
-function InventoryPanel({ items, onAction }: { items: InventoryViewItem[]; onAction: (action: SandboxAction) => void }) {
+function KnownNpcSection({
+  npcs,
+  locationId,
+}: {
+  npcs: ExplorationView['knownNpcs'];
+  locationId: string;
+}) {
+  const here = npcs.filter((npc) => npc.locationId === locationId && npc.presence !== 'absent' && npc.presence !== 'departed');
+  const hints = npcs.flatMap((npc) => (npc.hint ? [npc.hint] : []));
+  if (here.length === 0 && hints.length === 0) {
+    return null;
+  }
+  return (
+    <section className="known-npc-section" aria-label="Pessoas conhecidas">
+      {here.map((npc) => (
+        <p key={npc.npcId} className="known-npc-line">
+          {npc.name} · {npc.presence === 'present-available' ? 'disponível' : 'ocupada'}
+        </p>
+      ))}
+      {hints.map((hint) => (
+        <p key={hint} className="presence-card__hint">{hint}</p>
+      ))}
+    </section>
+  );
+}
+
+function InventoryPanel({ view, onAction }: { view: ExplorationView; onAction: (action: SandboxAction) => void }) {
+  const [pending, setPending] = useState<
+    | { type: 'equipment.equip'; itemId: string; name: string }
+    | { type: 'preparation.assign'; slot: number; itemId: string; name: string }
+    | null
+  >(null);
+  const emptyPrep = view.preparation.find((slot) => slot.itemId === null);
+
   return (
     <div className="tab-panel">
       <header className="panel-heading panel-heading--split">
@@ -677,10 +728,45 @@ function InventoryPanel({ items, onAction }: { items: InventoryViewItem[]; onAct
           <span className="section-kicker">Pertences carregados</span>
           <h1>Mochila</h1>
         </div>
-        <span className="inventory-total">{items.reduce((total, item) => total + item.quantity, 0)} itens</span>
+        <span className="inventory-total">{view.inventory.reduce((total, item) => total + item.quantity, 0)} itens</span>
       </header>
 
-      {items.length === 0 ? (
+      <section className="loadout-board" aria-label="Preparação e equipamento">
+        <div>
+          <span className="section-kicker">Preparação</span>
+          <ul className="loadout-slots">
+            {view.preparation.map((slot) => (
+              <li key={slot.index}>
+                <strong>{slot.index + 1}</strong>
+                <span>{slot.itemName ?? '—'}</span>
+                {slot.itemId ? (
+                  <button type="button" className="button button--compact" onClick={() => onAction({ type: 'preparation.clear', slot: slot.index })}>
+                    Remover
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <div>
+          <span className="section-kicker">Equipado</span>
+          <ul className="loadout-slots">
+            {view.equipment.map((slot) => (
+              <li key={slot.slot}>
+                <strong>{slot.label}</strong>
+                <span>{slot.itemName ?? '—'}</span>
+                {slot.itemId ? (
+                  <button type="button" className="button button--compact" onClick={() => onAction({ type: 'equipment.unequip', slot: slot.slot })}>
+                    Desequipar
+                  </button>
+                ) : null}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {view.inventory.length === 0 ? (
         <div className="empty-state empty-state--large">
           <span aria-hidden="true">▣</span>
           <strong>Sua mochila está vazia</strong>
@@ -688,7 +774,7 @@ function InventoryPanel({ items, onAction }: { items: InventoryViewItem[]; onAct
         </div>
       ) : (
         <ul className="inventory-grid">
-          {items.map((item) => (
+          {view.inventory.map((item) => (
             <li key={item.itemId} className={item.consumable ? 'inventory-grid__item inventory-grid__item--consumable' : 'inventory-grid__item'}>
               <span className="inventory-grid__icon" aria-hidden="true">{itemGlyph(item.itemId)}</span>
               <strong>{item.name}</strong>
@@ -705,10 +791,50 @@ function InventoryPanel({ items, onAction }: { items: InventoryViewItem[]; onAct
                   </button>
                 </>
               ) : null}
+              {item.canEquip ? (
+                <button
+                  type="button"
+                  className="button button--compact inventory-grid__consume"
+                  onClick={() => setPending({ type: 'equipment.equip', itemId: item.itemId, name: item.name })}
+                >
+                  Equipar
+                </button>
+              ) : null}
+              {item.canPrepare && emptyPrep ? (
+                <button
+                  type="button"
+                  className="button button--compact inventory-grid__consume"
+                  onClick={() => setPending({ type: 'preparation.assign', slot: emptyPrep.index, itemId: item.itemId, name: item.name })}
+                >
+                  Preparar
+                </button>
+              ) : null}
             </li>
           ))}
         </ul>
       )}
+
+      <ConfirmDialog
+        open={pending !== null}
+        title={pending?.type === 'equipment.equip' ? `Equipar ${pending.name}` : pending ? `Preparar ${pending.name}` : ''}
+        message={
+          pending?.type === 'equipment.equip'
+            ? 'Isso substitui o equipamento atual deste espaço.'
+            : pending
+              ? 'O consumível fica reservado para o próximo confronto.'
+              : ''
+        }
+        confirmLabel="Confirmar"
+        onConfirm={() => {
+          if (pending?.type === 'equipment.equip') {
+            onAction({ type: 'equipment.equip', itemId: pending.itemId });
+          } else if (pending?.type === 'preparation.assign') {
+            onAction({ type: 'preparation.assign', slot: pending.slot, itemId: pending.itemId });
+          }
+          setPending(null);
+        }}
+        onCancel={() => setPending(null)}
+      />
     </div>
   );
 }
@@ -739,6 +865,8 @@ function SystemPanel({
   onAction: (action: SandboxAction) => void;
 }) {
   const [pending, setPending] = useState<SystemTrainingView | null>(null);
+  const [pendingGarden, setPendingGarden] = useState<string | null>(null);
+  const gardenRecipe = status.garden.recipes.find((recipe) => recipe.id === pendingGarden);
 
   return (
     <div className="tab-panel system-panel">
@@ -873,6 +1001,49 @@ function SystemPanel({
             )}
           </div>
         </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">❀</span>
+            <span><strong>Jardim</strong><small>{status.garden.cultivationPoints} ponto{status.garden.cultivationPoints === 1 ? '' : 's'} de cultivo</small></span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.garden.recipes.length === 0 ? (
+              <EmptyAction message="Nenhuma integração percebida no Jardim." />
+            ) : (
+              <div className="action-card-list">
+                {status.garden.recipes.map((recipe) => (
+                  <article key={recipe.id} className={recipe.visibility === 'available' ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{recipe.name ?? 'Integração percebida'}</h3>
+                        <span>{recipe.visibility === 'cultivated' ? 'Cultivada' : recipe.visibility === 'available' ? 'Disponível' : 'Percebida'}</span>
+                      </div>
+                      {recipe.description ? <p>{recipe.description}</p> : <p>Os requisitos desta integração ainda não estão claros.</p>}
+                      {recipe.cost ? (
+                        <p className="training-requirements">
+                          Custa {recipe.cost.cultivationPoints} ponto{recipe.cost.cultivationPoints === 1 ? '' : 's'} · {formatPeriodCost(recipe.cost.timeCost.periods)}
+                        </p>
+                      ) : null}
+                      <div className="action-card__footer">
+                        <small>{recipe.requirementsMet === false ? 'Requisitos em aberto' : recipe.visibility === 'cultivated' ? 'Já integrada' : 'Integração irreversível neste recorte'}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={recipe.visibility !== 'available' || !recipe.requirementsMet}
+                          onClick={() => setPendingGarden(recipe.id)}
+                        >
+                          Cultivar integração
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+          </div>
+        </details>
       </div>
 
       <ConfirmDialog
@@ -891,6 +1062,23 @@ function SystemPanel({
           }
         }}
         onCancel={() => setPending(null)}
+      />
+      <ConfirmDialog
+        open={pendingGarden !== null}
+        title={gardenRecipe?.name ? `Cultivar: ${gardenRecipe.name}` : 'Cultivar integração'}
+        message={
+          gardenRecipe?.cost
+            ? `Custa ${gardenRecipe.cost.cultivationPoints} ponto${gardenRecipe.cost.cultivationPoints === 1 ? '' : 's'} de cultivo e ${formatPeriodCost(gardenRecipe.cost.timeCost.periods)}. A integração é permanente neste recorte.`
+            : 'A integração consome cultivo e tempo.'
+        }
+        confirmLabel="Confirmar cultivo"
+        onConfirm={() => {
+          if (pendingGarden) {
+            onAction({ type: 'garden.cultivate', recipeId: pendingGarden });
+            setPendingGarden(null);
+          }
+        }}
+        onCancel={() => setPendingGarden(null)}
       />
     </div>
   );

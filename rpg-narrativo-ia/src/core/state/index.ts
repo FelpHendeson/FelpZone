@@ -5,6 +5,10 @@ import { createInitialProgression } from '../../modules/progression';
 import { createInitialSandboxState, type SandboxContext } from '../../modules/sandbox';
 import { createInitialObjectivesState, INITIAL_OBJECTIVES, type IndexedObjectives } from '../../modules/objectives';
 import { createInitialSkillsProgress, INITIAL_SKILLS } from '../../modules/skills';
+import { createInitialItemsState } from '../../modules/items';
+import { createInitialLingering } from '../../modules/conditions';
+import { createInitialGardenState } from '../../modules/garden';
+import { createInitialNpcsState } from '../../modules/npcs';
 import { createInitialWorld } from '../../modules/world';
 
 export function createInitialState(
@@ -29,9 +33,12 @@ export function createInitialState(
     history: [],
     world: createInitialWorld(),
     progression: createInitialProgression(),
-    sandbox: createInitialSandboxState(sandboxContext),
+    sandbox: { ...createInitialSandboxState(sandboxContext), npcs: createInitialNpcsState() },
     objectives: createInitialObjectivesState(objectiveCatalog),
     system: createInitialSkillsProgress(INITIAL_SKILLS),
+    items: createInitialItemsState(),
+    lingering: createInitialLingering(),
+    garden: createInitialGardenState(),
     updatedAt: now(),
   };
 }
@@ -48,6 +55,10 @@ export {
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
   SCHEMA_VERSION_V6,
+  SCHEMA_VERSION_V7,
+  SCHEMA_VERSION_V8,
+  SCHEMA_VERSION_V9,
+  SCHEMA_VERSION_V10,
   MIGRATED_CAMPAIGN_ID,
 } from './types';
 export {
@@ -58,12 +69,20 @@ export {
   inspectGameStateV4,
   inspectGameStateV5,
   inspectGameStateV6,
+  inspectGameStateV7,
+  inspectGameStateV8,
+  inspectGameStateV9,
+  inspectGameStateV10,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
   migrateGameStateV4,
   migrateGameStateV5,
   migrateGameStateV6,
+  migrateGameStateV7,
+  migrateGameStateV8,
+  migrateGameStateV9,
+  migrateGameStateV10,
 } from './validateGameState';
 export type {
   GameStateInspection,
@@ -73,6 +92,10 @@ export type {
   GameStateV4Inspection,
   GameStateV5Inspection,
   GameStateV6Inspection,
+  GameStateV7Inspection,
+  GameStateV8Inspection,
+  GameStateV9Inspection,
+  GameStateV10Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
@@ -93,6 +116,10 @@ export type {
   GameStateV4,
   GameStateV5,
   GameStateV6,
+  GameStateV7,
+  GameStateV8,
+  GameStateV9,
+  GameStateV10,
   GameStatus,
   HistoryEntry,
   InventoryItem,

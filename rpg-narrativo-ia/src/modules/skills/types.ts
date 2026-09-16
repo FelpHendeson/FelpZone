@@ -13,6 +13,7 @@ export interface SkillDefinition {
   description: string;
   pathId: string;
   requires: string[];
+  hiddenUntilKnown?: boolean;
 }
 
 export interface SkillsCatalog {

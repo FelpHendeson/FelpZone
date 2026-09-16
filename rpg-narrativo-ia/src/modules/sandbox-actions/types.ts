@@ -18,6 +18,10 @@ import type { TimeCost } from '../time';
 import type { TrainingPlan } from '../training';
 import type { CombatResolution } from '../combat';
 import type { MasteryResult } from '../mastery';
+import type { EquipmentSlot } from '../items';
+import type { GardenPlan } from '../garden';
+import type { EquipmentChangeResult } from '../equipment';
+import type { PreparationChangeResult } from '../preparation';
 
 export type SandboxAction =
   | {
@@ -56,6 +60,27 @@ export type SandboxAction =
   | {
       type: 'combat.resolve';
       resolution: CombatResolution;
+    }
+  | {
+      type: 'equipment.equip';
+      itemId: string;
+    }
+  | {
+      type: 'equipment.unequip';
+      slot: EquipmentSlot;
+    }
+  | {
+      type: 'preparation.assign';
+      slot: number;
+      itemId: string;
+    }
+  | {
+      type: 'preparation.clear';
+      slot: number;
+    }
+  | {
+      type: 'garden.cultivate';
+      recipeId: string;
     };
 
 export type SandboxActionDetail =
@@ -67,7 +92,12 @@ export type SandboxActionDetail =
   | { type: 'needs.consume'; plan: NeedsConsumptionPlan }
   | { type: 'needs.rest'; plan: NeedsRestPlan }
   | { type: 'training.train'; plan: TrainingPlan }
-  | { type: 'combat.resolve'; resolution: CombatResolution };
+  | { type: 'combat.resolve'; resolution: CombatResolution }
+  | { type: 'equipment.equip'; result: EquipmentChangeResult }
+  | { type: 'equipment.unequip'; result: EquipmentChangeResult }
+  | { type: 'preparation.assign'; result: PreparationChangeResult }
+  | { type: 'preparation.clear'; result: PreparationChangeResult }
+  | { type: 'garden.cultivate'; plan: GardenPlan };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];

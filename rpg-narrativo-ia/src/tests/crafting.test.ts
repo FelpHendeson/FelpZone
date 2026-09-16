@@ -148,7 +148,12 @@ describe('crafting, estruturas e cozinha', () => {
     const definitions = worldCrafting();
     const state = createInitialCrafting(definitions);
 
-    expect(state.knownRecipeIds).toEqual(['build-campfire', 'cook-horned-rabbit-meat']);
+    expect(state.knownRecipeIds).toEqual([
+      'build-campfire',
+      'cook-horned-rabbit-meat',
+      'craft-improvised-tool',
+      'craft-improvised-salve',
+    ]);
     expect(state.structures).toEqual([]);
     expect(getRecipe(definitions, 'build-campfire').discovery).toEqual({ type: 'known' });
     expect(getStructureDefinition(definitions, 'campfire')).toEqual({
@@ -167,7 +172,12 @@ describe('crafting, estruturas e cozinha', () => {
     ]);
     const state = createInitialCrafting(definitions);
 
-    expect(state.knownRecipeIds).toEqual(['build-campfire', 'cook-horned-rabbit-meat']);
+    expect(state.knownRecipeIds).toEqual([
+      'build-campfire',
+      'cook-horned-rabbit-meat',
+      'craft-improvised-tool',
+      'craft-improvised-salve',
+    ]);
     expect(state.knownRecipeIds).not.toContain('secret-cord');
   });
 
@@ -773,7 +783,12 @@ describe('crafting, estruturas e cozinha', () => {
     const access = inspectRecipeAccess(map, navigation, definitions, state, inventory, 'build-campfire');
     expect(access.craftable).toBe(false);
     expect(access.missingInputs).toEqual([{ itemId: 'fallen-branch', quantity: 1 }]);
-    expect(state.knownRecipeIds).toEqual(['build-campfire', 'cook-horned-rabbit-meat']);
+    expect(state.knownRecipeIds).toEqual([
+      'build-campfire',
+      'cook-horned-rabbit-meat',
+      'craft-improvised-tool',
+      'craft-improvised-salve',
+    ]);
     expect(state.structures).toEqual([]);
     expect(inventory).toEqual([{ itemId: 'fallen-branch', quantity: 2 }]);
     expect(navigation.currentLocationId).toBe(START);

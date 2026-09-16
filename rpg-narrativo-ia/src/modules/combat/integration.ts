@@ -1,17 +1,21 @@
 import type { GameEffect } from '../../core/events';
 import { CombatError } from './errors';
 import type {
+  CombatLoadoutSnapshot,
   CombatResolution,
   CombatState,
   EncounterDefinition,
   IndexedCombat,
+  PreparedConsumableState,
 } from './types';
-import { createCombat, resolveTurn } from './engine';
+import { createCombat, emptyCombatLoadout, resolveTurn } from './engine';
 
 export interface VerifyCombatResolutionOptions {
   playerName?: string;
   knownSkillIds?: readonly string[];
   playerMaxHealth: number;
+  loadout?: CombatLoadoutSnapshot;
+  prepared?: readonly PreparedConsumableState[];
 }
 
 export function combatEncounterResolvedFlag(encounterId: string): string {
@@ -72,6 +76,12 @@ export function buildCombatResolution(state: CombatState, encounter: EncounterDe
     entryHealth: state.player.maxHealth,
     remainingHealth: state.player.health,
     playerActionIds,
+    usedPrepared: (state.usedPrepared ?? []).map((entry) => ({ ...entry })),
+    equipment: {
+      'main-hand': state.loadout?.equipment['main-hand'] ?? null,
+      body: state.loadout?.equipment.body ?? null,
+      accessory: state.loadout?.equipment.accessory ?? null,
+    },
   };
 }
 
@@ -90,7 +100,13 @@ export function verifyCombatResolution(
     throw new CombatError('A resolução de combate não corresponde ao estado atual do mundo.');
   }
 
-  let replayed = createCombat(catalog, encounter.id, options);
+  let replayed = createCombat(catalog, encounter.id, {
+    playerName: options.playerName,
+    knownSkillIds: options.knownSkillIds,
+    playerMaxHealth: options.playerMaxHealth,
+    loadout: options.loadout ?? emptyCombatLoadout(),
+    prepared: options.prepared ?? [],
+  });
   for (const actionId of resolution.playerActionIds) {
     if (replayed.outcome !== 'ongoing') {
       throw new CombatError('A sequência de combate continua depois de um desfecho terminal.');
@@ -103,7 +119,9 @@ export function verifyCombatResolution(
     verified.outcome !== resolution.outcome ||
     verified.turns !== resolution.turns ||
     verified.entryHealth !== resolution.entryHealth ||
-    verified.remainingHealth !== resolution.remainingHealth
+    verified.remainingHealth !== resolution.remainingHealth ||
+    JSON.stringify(verified.usedPrepared) !== JSON.stringify(resolution.usedPrepared ?? []) ||
+    JSON.stringify(verified.equipment) !== JSON.stringify(resolution.equipment ?? emptyCombatLoadout().equipment)
   ) {
     throw new CombatError('A resolução de combate não corresponde à sequência de ações informada.');
   }
@@ -169,5 +187,6 @@ function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
     ...encounter,
     timeCost: { ...encounter.timeCost },
     requiredDiscoveryIds: [...encounter.requiredDiscoveryIds],
+    ...(encounter.reward ? { reward: { ...encounter.reward } } : {}),
   };
 }

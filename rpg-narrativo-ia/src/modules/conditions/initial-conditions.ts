@@ -1,0 +1,58 @@
+import type { ConditionsCatalog } from './types';
+
+export const INITIAL_CONDITIONS_CATALOG = {
+  elements: [
+    { id: 'physical', name: 'Físico', description: 'Impacto direto, sem afinidade especial.' },
+    { id: 'embers', name: 'Brasas', description: 'Calor residual do Númen exteriorizado.' },
+    { id: 'water', name: 'Água', description: 'Umidade e frio aplicados com controle.' },
+  ],
+  interactions: [
+    { sourceElementId: 'physical', targetElementId: 'physical', multiplier: 1, label: 'neutral' },
+    { sourceElementId: 'physical', targetElementId: 'embers', multiplier: 1, label: 'neutral' },
+    { sourceElementId: 'physical', targetElementId: 'water', multiplier: 1, label: 'neutral' },
+    { sourceElementId: 'embers', targetElementId: 'physical', multiplier: 1, label: 'neutral' },
+    { sourceElementId: 'embers', targetElementId: 'embers', multiplier: 1, label: 'neutral' },
+    { sourceElementId: 'embers', targetElementId: 'water', multiplier: 0.5, label: 'resisted' },
+    { sourceElementId: 'water', targetElementId: 'physical', multiplier: 1, label: 'neutral' },
+    { sourceElementId: 'water', targetElementId: 'embers', multiplier: 1.5, label: 'effective' },
+    { sourceElementId: 'water', targetElementId: 'water', multiplier: 1, label: 'neutral' },
+  ],
+  conditions: [
+    {
+      id: 'bleeding',
+      name: 'Sangramento',
+      description: 'Ferida aberta que causa dano no fim do turno.',
+      stacking: 'refresh',
+      timing: 'turn-end',
+      lingering: false,
+      effects: [{ type: 'damage', amount: 2 }],
+    },
+    {
+      id: 'exposed',
+      name: 'Exposto',
+      description: 'A defesa falhou; o próximo dano recebido aumenta.',
+      stacking: 'refresh',
+      timing: 'on-action',
+      lingering: false,
+      effects: [{ type: 'combat.value.modify', target: 'damage', amount: 2 }],
+    },
+    {
+      id: 'hindered',
+      name: 'Impedido',
+      description: 'O corpo trava e impede ações de cura.',
+      stacking: 'none',
+      timing: 'on-action',
+      lingering: false,
+      effects: [{ type: 'action.block', category: 'heal' }],
+    },
+    {
+      id: 'lingering-wound',
+      name: 'Ferida persistente',
+      description: 'Um corte que continua doendo depois do confronto.',
+      stacking: 'refresh',
+      timing: 'turn-end',
+      lingering: true,
+      effects: [{ type: 'damage', amount: 1 }],
+    },
+  ],
+} as const satisfies ConditionsCatalog;

@@ -40,10 +40,10 @@ describe('Fatia 13.4 — nível por marco e requisitos de treino', () => {
       state = executeSandboxAction(state, { type: 'training.train', methodId: 'focused-perception-drill' }, { now }).current;
     }
     expect(state.system.level).toBe(2);
-    expect(state.schemaVersion).toBe(7);
+    expect(state.schemaVersion).toBe(11);
 
     const afterRoutine = executeSandboxAction(state, { type: 'training.train', methodId: 'body-reinforcement-routine' }, { now }).current;
     expect(isSkillKnown(afterRoutine.system, 'steady-body')).toBe(true);
-    expect(afterRoutine.schemaVersion).toBe(7);
+    expect(afterRoutine.schemaVersion).toBe(11);
   });
 });

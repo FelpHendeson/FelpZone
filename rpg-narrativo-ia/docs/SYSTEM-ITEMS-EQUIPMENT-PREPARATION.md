@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e especificado pelo autor em 15 de setembro de 2026. Implementação ainda não iniciada.**
+**Aprovado, especificado e implementado pelo autor em 15 de setembro de 2026.**
 
 O Sistema 14 transforma materiais e objetos do inventário em decisões de preparação. O jogador poderá fabricar ou obter itens determinísticos, equipá-los, preparar um conjunto limitado de consumíveis e usar essa preparação no mundo e no combate.
 

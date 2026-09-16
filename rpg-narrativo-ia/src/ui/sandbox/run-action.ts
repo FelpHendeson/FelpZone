@@ -122,6 +122,7 @@ function resolvePresencesForWorldTrigger(
         state.sandbox.presences,
         trigger.source.discoveryId,
       ),
+      npcs: state.sandbox.npcs,
     },
   };
 }

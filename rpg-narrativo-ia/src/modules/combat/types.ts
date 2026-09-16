@@ -1,13 +1,16 @@
 import type { TimeCost } from '../time';
+import type { EquipmentState } from '../items';
 
-export const COMBAT_EFFECT_TYPES = ['damage', 'heal', 'guard'] as const;
+export const COMBAT_EFFECT_TYPES = ['damage', 'heal', 'guard', 'condition.apply', 'condition.cleanse'] as const;
 
 export type CombatEffectType = (typeof COMBAT_EFFECT_TYPES)[number];
 
 export type CombatEffect =
   | { type: 'damage'; amount: number }
   | { type: 'heal'; amount: number }
-  | { type: 'guard'; amount: number };
+  | { type: 'guard'; amount: number }
+  | { type: 'condition.apply'; conditionId: string; duration: number; potency: number }
+  | { type: 'condition.cleanse'; count: number; conditionId?: string };
 
 export const COMBAT_TARGETS = ['opponent', 'self'] as const;
 
@@ -21,6 +24,7 @@ export interface CombatActionDefinition {
   target: CombatTarget;
   effects: CombatEffect[];
   skillId?: string;
+  elementId?: string;
 }
 
 export interface CombatantTemplate {
@@ -28,6 +32,7 @@ export interface CombatantTemplate {
   name: string;
   maxHealth: number;
   actionIds: string[];
+  defenseElementId?: string;
 }
 
 export interface EncounterDefinition {
@@ -38,6 +43,23 @@ export interface EncounterDefinition {
   description: string;
   timeCost: TimeCost;
   requiredDiscoveryIds: string[];
+  reward?: { itemId: string; quantity: number };
+}
+
+export const PREPARED_ACTION_PREFIX = 'prepared:';
+
+export interface CombatLoadoutSnapshot {
+  equipment: EquipmentState;
+  prepared: readonly { index: number; itemId: string }[];
+  modifiers: { damage: number; guard: number; healing: number };
+  grantedActionIds: readonly string[];
+}
+
+export interface PreparedConsumableState {
+  index: number;
+  itemId: string;
+  name: string;
+  heal: number;
 }
 
 export interface CombatCatalog {
@@ -66,6 +88,8 @@ export interface CombatantState {
   health: number;
   guard: number;
   actionIds: string[];
+  conditions: import('../conditions').ActiveCondition[];
+  defenseElementId?: string;
 }
 
 export interface CombatLogEntry {
@@ -82,6 +106,9 @@ export interface CombatState {
   opponent: CombatantState;
   log: CombatLogEntry[];
   outcome: CombatOutcome;
+  loadout: CombatLoadoutSnapshot;
+  prepared: PreparedConsumableState[];
+  usedPrepared: { slot: number; itemId: string }[];
 }
 
 export interface CombatResolution {
@@ -91,6 +118,8 @@ export interface CombatResolution {
   entryHealth: number;
   remainingHealth: number;
   playerActionIds: string[];
+  usedPrepared: { slot: number; itemId: string }[];
+  equipment: EquipmentState;
 }
 
 export const FLEE_ACTION_ID = 'flee';

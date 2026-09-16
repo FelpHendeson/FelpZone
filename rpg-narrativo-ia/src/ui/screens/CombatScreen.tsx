@@ -5,10 +5,12 @@ import {
   listPlayerActions,
   resolveTurn,
   type CombatActionDefinition,
+  type CombatEffect,
   type CombatantState,
   type CombatOutcome,
   type CombatState,
 } from '../../modules/combat';
+import { INITIAL_CONDITIONS } from '../../modules/conditions';
 
 interface CombatScreenProps {
   initialState: CombatState;
@@ -91,6 +93,9 @@ export function CombatScreen({ initialState, encounterName, onFinish }: CombatSc
 
 function CombatantCard({ combatant, role }: { combatant: CombatantState; role: 'player' | 'opponent' }) {
   const ratio = Math.max(0, Math.round((combatant.health / combatant.maxHealth) * 100));
+  const defenseName = combatant.defenseElementId
+    ? INITIAL_CONDITIONS.elementById.get(combatant.defenseElementId)?.name
+    : undefined;
   return (
     <article className={`combatant-card combatant-card--${role}`}>
       <div className="combatant-card__head">
@@ -102,23 +107,41 @@ function CombatantCard({ combatant, role }: { combatant: CombatantState; role: '
       <div className="combatant-health" aria-label={`${combatant.health} de ${combatant.maxHealth} de vida`}>
         <span style={{ width: `${ratio}%` }} />
       </div>
+      {defenseName ? <p className="combatant-card__guard">Afinidade conhecida: {defenseName}</p> : null}
       {combatant.guard > 0 ? <p className="combatant-card__guard">Escudo: {combatant.guard}</p> : null}
+      {combatant.conditions.length > 0 ? (
+        <ul className="combat-condition-list" aria-label="Condições ativas">
+          {combatant.conditions.map((entry) => (
+            <li key={entry.conditionId}>
+              {INITIAL_CONDITIONS.conditionById.get(entry.conditionId)?.name ?? entry.conditionId}
+              {' · '}
+              {entry.remainingTurns} turno{entry.remainingTurns === 1 ? '' : 's'}
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </article>
   );
 }
 
 function describeAction(action: CombatActionDefinition): string {
-  return action.effects
-    .map((effect) => {
-      if (effect.type === 'damage') {
-        return `${effect.amount} de dano`;
-      }
-      if (effect.type === 'heal') {
-        return `cura ${effect.amount}`;
-      }
-      return `escudo ${effect.amount}`;
-    })
-    .join(', ');
+  return action.effects.map(describeEffect).join(', ');
+}
+
+function describeEffect(effect: CombatEffect): string {
+  if (effect.type === 'damage') {
+    return `${effect.amount} de dano`;
+  }
+  if (effect.type === 'heal') {
+    return `cura ${effect.amount}`;
+  }
+  if (effect.type === 'guard') {
+    return `escudo ${effect.amount}`;
+  }
+  if (effect.type === 'condition.apply') {
+    return `aplica ${INITIAL_CONDITIONS.conditionById.get(effect.conditionId)?.name ?? 'condição'}`;
+  }
+  return 'alivia condição';
 }
 
 function outcomeTitle(outcome: CombatOutcome): string {

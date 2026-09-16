@@ -36,4 +36,25 @@ export const INITIAL_RECIPES: readonly RecipeDefinition[] = [
     timeCost: { periods: 1 },
     discovery: { type: 'known' },
   },
+  {
+    id: 'craft-improvised-tool',
+    name: 'Fabricar ferramenta improvisada',
+    kind: 'item',
+    inputs: [
+      { itemId: 'fallen-branch', quantity: 2 },
+      { itemId: 'horned-rabbit-bones', quantity: 1 },
+    ],
+    outputs: [{ itemId: 'improvised-tool', quantity: 1 }],
+    timeCost: { periods: 1 },
+    discovery: { type: 'known' },
+  },
+  {
+    id: 'craft-improvised-salve',
+    name: 'Preparar unguento improvisado',
+    kind: 'item',
+    inputs: [{ itemId: 'horned-rabbit-hide', quantity: 1 }],
+    outputs: [{ itemId: 'improvised-salve', quantity: 1 }],
+    timeCost: { periods: 1 },
+    discovery: { type: 'known' },
+  },
 ];

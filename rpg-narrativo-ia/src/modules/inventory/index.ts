@@ -35,7 +35,7 @@ export function removeItem(items: InventoryItem[], itemId: string, quantity: num
     .filter((item) => item.quantity > 0);
 }
 
-export function itemQuantity(items: InventoryItem[], itemId: string): number {
+export function itemQuantity(items: readonly InventoryItem[], itemId: string): number {
   return items.find((item) => item.itemId === itemId)?.quantity ?? 0;
 }
 

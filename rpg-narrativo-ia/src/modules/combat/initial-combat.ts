@@ -36,8 +36,35 @@ export const INITIAL_COMBAT_CATALOG = {
       description: 'A resistência do Corpo Firme permite conter o próprio sangramento.',
       speed: 12,
       target: 'self',
-      effects: [{ type: 'heal', amount: 6 }],
+      effects: [
+        { type: 'heal', amount: 6 },
+        { type: 'condition.cleanse', count: 1, conditionId: 'bleeding' },
+      ],
       skillId: 'steady-body',
+    },
+    {
+      id: 'ember-cut',
+      name: 'Corte em Brasa',
+      description: 'O predador rasga e deixa uma ferida aberta.',
+      speed: 9,
+      target: 'opponent',
+      elementId: 'embers',
+      effects: [
+        { type: 'damage', amount: 4 },
+        { type: 'condition.apply', conditionId: 'bleeding', duration: 2, potency: 1 },
+      ],
+    },
+    {
+      id: 'warding-focus',
+      name: 'Guarda Sentinela',
+      description: 'A Sentinela Interior ergue um reflexo de proteção.',
+      speed: 13,
+      target: 'self',
+      effects: [
+        { type: 'guard', amount: 8 },
+        { type: 'condition.cleanse', count: 1 },
+      ],
+      skillId: 'sensing-guard',
     },
   ],
   combatants: [
@@ -45,7 +72,8 @@ export const INITIAL_COMBAT_CATALOG = {
       id: 'wary-predator',
       name: 'Predador Arisco',
       maxHealth: 18,
-      actionIds: ['attack', 'guard'],
+      actionIds: ['attack', 'guard', 'ember-cut'],
+      defenseElementId: 'embers',
     },
   ],
   encounters: [
@@ -57,6 +85,7 @@ export const INITIAL_COMBAT_CATALOG = {
       description: 'Uma criatura esguia rosna entre a vegetação, medindo se você é presa ou ameaça.',
       timeCost: { periods: 1 },
       requiredDiscoveryIds: ['wary-predator-tracks'],
+      reward: { itemId: 'predator-fang', quantity: 1 },
     },
   ],
 } as const satisfies CombatCatalog;

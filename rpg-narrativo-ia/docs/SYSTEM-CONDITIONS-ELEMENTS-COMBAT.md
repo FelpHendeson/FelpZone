@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e especificado pelo autor em 15 de setembro de 2026. Implementação posterior à consolidação do Sistema 14.**
+**Aprovado, especificado e implementado pelo autor em 15 de setembro de 2026.**
 
 O Sistema 15 aprofunda o combate determinístico com condições temporárias, afinidades elementais e novas escolhas de resposta. Ele reutiliza ações, habilidades, equipamento e preparação sem substituir o motor do Sistema 12.
 

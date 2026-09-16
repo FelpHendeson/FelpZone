@@ -2838,6 +2838,72 @@ button:disabled {
   color: var(--accent-system);
 }
 
+.combat-condition-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.combat-condition-list > li {
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--bg-choice);
+}
+
+.loadout-board {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.loadout-slots {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.loadout-slots > li {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: center;
+  min-height: 48px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+}
+
+.loadout-slots > li > strong {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.presence-card__hint,
+.known-npc-line,
+.lingering-list {
+  margin: 8px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.lingering-list {
+  list-style: none;
+  padding: 0;
+}
+
+@media (min-width: 720px) {
+  .loadout-board {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
 .combat-log {
   background: var(--bg-soft);
   border: 1px solid var(--border);

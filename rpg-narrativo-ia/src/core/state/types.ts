@@ -1,6 +1,10 @@
 import type { SandboxCoreState, SandboxState } from '../../modules/sandbox/types';
 import type { ObjectivesState } from '../../modules/objectives/types';
 import type { SkillsProgressState } from '../../modules/skills/types';
+import type { ItemsState } from '../../modules/items/types';
+import type { PersistentConditionState } from '../../modules/conditions/types';
+import type { GardenState } from '../../modules/garden/types';
+import type { NPCsState } from '../../modules/npcs/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
 export const SCHEMA_VERSION_V1 = 1 as const;
@@ -9,7 +13,11 @@ export const SCHEMA_VERSION_V3 = 3 as const;
 export const SCHEMA_VERSION_V4 = 4 as const;
 export const SCHEMA_VERSION_V5 = 5 as const;
 export const SCHEMA_VERSION_V6 = 6 as const;
-export const SCHEMA_VERSION = 7 as const;
+export const SCHEMA_VERSION_V7 = 7 as const;
+export const SCHEMA_VERSION_V8 = 8 as const;
+export const SCHEMA_VERSION_V9 = 9 as const;
+export const SCHEMA_VERSION_V10 = 10 as const;
+export const SCHEMA_VERSION = 11 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
@@ -131,10 +139,51 @@ export interface GameStateV6 extends SharedState<Attributes> {
   objectives: ObjectivesState;
 }
 
-export interface GameState extends SharedState<Attributes> {
-  schemaVersion: typeof SCHEMA_VERSION;
+export interface GameStateV7 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V7;
   narrativeSession: NarrativeSession | null;
   sandbox: SandboxState;
   objectives: ObjectivesState;
   system: SkillsProgressState;
+}
+
+export interface GameStateV8 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V8;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState;
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+}
+
+export interface GameStateV9 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V9;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState;
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+}
+
+export interface GameStateV10 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V10;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState;
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+}
+
+export interface GameState extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
 }

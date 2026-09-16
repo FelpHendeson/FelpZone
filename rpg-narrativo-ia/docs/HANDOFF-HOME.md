@@ -32,7 +32,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7 (motor de turno determinístico, IA de oponente por regras, encontro jogável no mundo e desfecho aplicado ao `GameState`). O contrato está em `docs/SYSTEM-ACTION-COMBAT.md`. Balanceamento definitivo, posicionamento, grupos e simulação autônoma irrestrita permanecem fora do escopo.
 - As Fatias 12.8 a 12.12 estão implementadas e consolidadas em `docs/SYSTEM-12-CONSOLIDATION.md`: descoberta da ameaça, saúde persistente, custo temporal único, consequência atômica e consolidação visual.
 - O Sistema 13 — Progressão por prática e recompensas do Sistema — está implementado e consolidado nas Fatias 13.1 a 13.7 (módulo `mastery`, prática por vitória, marcos de nível e requisitos de treino). Fonte: `docs/SYSTEM-PRACTICE-PROGRESSION.md`.
-- Os Sistemas 14 a 17 estão especificados, nesta ordem: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. Ainda não há implementação dessas etapas.
+- Os Sistemas 14 a 17 estão implementados e consolidados: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
 ## Como preparar a máquina
@@ -112,7 +112,7 @@ Estado conhecido:
 - o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
 - Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; os próximos contratos estão em `SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md`, `SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md`, `SYSTEM-SKILL-GARDEN.md` e `SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md`.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/SYSTEM-PRACTICE-PROGRESSION.md`, as especificações dos Sistemas 14 a 17 e `docs/ROADMAP.md`. Os Sistemas 1 a 13 estão implementados e consolidados. O próximo eixo é o Sistema 14; não antecipe os seguintes.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/ROADMAP.md` e as especificações dos Sistemas 14 a 17. Os Sistemas 1 a 17 estão implementados e consolidados. Novos eixos precisam de especificação e autorização explícitas.
 
 Execute:
 
@@ -141,4 +141,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Os Sistemas 11, 12 e 13 estão completos dentro do recorte aprovado. Os Sistemas 14 a 17 estão especificados e ordenados, mas ainda não implementados. O próximo passo técnico é o Sistema 14; cada etapa posterior depende da consolidação da anterior. Balanceamento definitivo, posicionamento, grupos e comportamento autônomo irrestrito permanecem fora do escopo.
+Os Sistemas 1 a 17 estão completos dentro do recorte aprovado. O save atual é o schema 11. Novos eixos precisam de especificação e autorização explícitas. Balanceamento definitivo, posicionamento, grupos e comportamento autônomo irrestrito permanecem fora do escopo.

@@ -1,5 +1,6 @@
 import type { ApplicationField, EnergyKind } from '../energetics';
 import type { SkillTree } from '../skills';
+import type { GardenRecipeView } from '../garden';
 
 export interface SystemEnergyView {
   id: EnergyKind;
@@ -54,4 +55,8 @@ export interface SystemStatusView {
   tree: SkillTree;
   trainings: SystemTrainingView[];
   nextMilestone: SystemMilestoneView | null;
+  garden: {
+    cultivationPoints: number;
+    recipes: GardenRecipeView[];
+  };
 }

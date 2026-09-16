@@ -95,7 +95,7 @@ export function validateMasteryReferences(catalog: IndexedMastery, references: M
       }
     }
     for (const reveal of milestone.reveals) {
-      if (!references.trainingMethodIds.has(reveal.methodId)) {
+      if (reveal.type === 'training.available' && !references.trainingMethodIds.has(reveal.methodId)) {
         throw new MasteryError(`O marco ${milestone.id} revela um método de treino inexistente.`);
       }
     }
@@ -167,7 +167,14 @@ function inspectMilestone(
   const reveals: MasteryReveal[] = [];
   const revealedMethods = new Set<string>();
   for (const entry of value.reveals) {
-    if (!isRecord(entry) || entry.type !== 'training.available' || !nonEmpty(entry.methodId) || revealedMethods.has(entry.methodId)) {
+    if (!isRecord(entry)) {
+      return fail('Uma revelação do marco é inválida ou duplicada.');
+    }
+    if (entry.type === 'garden.cultivation-points' && positiveSafeInteger(entry.amount)) {
+      reveals.push({ type: 'garden.cultivation-points', amount: entry.amount });
+      continue;
+    }
+    if (entry.type !== 'training.available' || !nonEmpty(entry.methodId) || revealedMethods.has(entry.methodId)) {
       return fail('Uma revelação do marco é inválida ou duplicada.');
     }
     revealedMethods.add(entry.methodId);

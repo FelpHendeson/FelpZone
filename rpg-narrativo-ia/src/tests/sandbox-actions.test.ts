@@ -386,6 +386,13 @@ function freezeState(state: GameState): GameState {
         discoveredPresenceIds: Object.freeze([...state.sandbox.presences.discoveredPresenceIds]),
         resolvedPresenceIds: Object.freeze([...state.sandbox.presences.resolvedPresenceIds]),
       }),
+      npcs: Object.freeze({
+        entries: Object.freeze(
+          (state.sandbox.npcs?.entries ?? []).map((entry) =>
+            Object.freeze({ ...entry, memoryFactIds: Object.freeze([...entry.memoryFactIds]) }),
+          ),
+        ),
+      }),
     }),
   }) as GameState;
 }

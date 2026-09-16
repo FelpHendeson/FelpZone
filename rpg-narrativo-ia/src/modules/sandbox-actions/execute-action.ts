@@ -20,7 +20,7 @@ import {
   type ExplorationState,
 } from '../exploration';
 import { moveToLocation, NavigationError, type NavigationState } from '../navigation';
-import { canRemoveItem, removeItem } from '../inventory';
+import { addItem, canRemoveItem, removeItem } from '../inventory';
 import {
   INITIAL_OBJECTIVES,
   ObjectiveError,
@@ -58,7 +58,14 @@ import {
   type PresenceInteractionPlan,
   type PresenceState,
 } from '../presences';
-import { INITIAL_SKILLS, type SkillsProgressState } from '../skills';
+import {
+  INITIAL_SKILLS,
+  SkillError,
+  getSkillProficiency,
+  increaseSkillProficiency,
+  learnSkill,
+  type SkillsProgressState,
+} from '../skills';
 import {
   INITIAL_TRAINING,
   TrainingError,
@@ -75,6 +82,43 @@ import {
   type CombatResolution,
 } from '../combat';
 import { INITIAL_MASTERY, MasteryError, applyMastery, type MasteryResult } from '../mastery';
+import {
+  canAcceptQuantity,
+  copyItemsState,
+  createInitialItemsState,
+  EQUIPMENT_SLOTS,
+  INITIAL_ITEMS,
+  ItemError,
+  type ItemsState,
+} from '../items';
+import { EquipmentError, buildCombatLoadout, equipItem, unequipSlot } from '../equipment';
+import { PreparationError, assignPreparation, clearPreparation, consumePreparedSlot } from '../preparation';
+import {
+  ConditionError,
+  INITIAL_CONDITIONS,
+  advanceLingering,
+  copyPersistentConditions,
+  createInitialLingering,
+  type PersistentConditionState,
+} from '../conditions';
+import {
+  GardenError,
+  INITIAL_GARDEN,
+  applyGardenPlan,
+  copyGardenState,
+  createInitialGardenState,
+  grantCultivationPoints,
+  planGardenCultivation,
+  type GardenState,
+} from '../garden';
+import {
+  NpcError,
+  copyNpcsState,
+  createInitialNpcsState,
+  rememberNpcFact,
+  INITIAL_NPCS,
+  type NPCsState,
+} from '../npcs';
 import type { TimeCost } from '../time';
 import { timeStateToWorld, worldToTimeState, WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -126,6 +170,9 @@ function runTransaction(
   const executed = executePrimary(previous, action, context, initialTime);
   const detail = executed.detail;
   const timeCost = { periods: executed.timeCost.periods };
+  if (executed.mastery && executed.mastery.grantedCultivationPoints > 0) {
+    executed.garden = grantCultivationPoints(executed.garden, executed.mastery.grantedCultivationPoints);
+  }
 
   let navigation = executed.navigation;
   let exploration = executed.exploration;
@@ -133,6 +180,10 @@ function runTransaction(
   let crafting = executed.crafting;
   let presences = executed.presences;
   const inventory = executed.inventory;
+  const items = executed.items;
+  let lingering = executed.lingering;
+  const garden = executed.garden;
+  const npcs = executed.npcs;
 
   // Efeitos declarativos da ação são aplicados antes do custo temporal dela.
   const dayCycle = advanceDayCycle(worldToTimeState(executed.world), timeCost);
@@ -150,11 +201,18 @@ function runTransaction(
     resources = synchronizeResourceRenewal(context.resources, resources, dayCycle.time.current);
   }
   const resourcesAfterRenewal = copyResources(resources);
+  if (clockAdvanced) {
+    const lingeringDamage = lingeringWorldDamage(lingering, timeCost.periods);
+    lingering = advanceLingering(INITIAL_CONDITIONS, lingering, timeCost.periods);
+    if (lingeringDamage > 0) {
+      attributes.saude = Math.max(1, attributes.saude - lingeringDamage);
+    }
+  }
 
   const conditionSource = buildConditionSource(previous, {
     world,
     inventory,
-    sandbox: { navigation, exploration, resources, crafting, presences },
+    sandbox: { navigation, exploration, resources, crafting, presences, npcs },
     attributes,
     flags: executed.flags,
     relationships: executed.relationships,
@@ -182,7 +240,7 @@ function runTransaction(
     buildConditionSource(previous, {
       world,
       inventory,
-      sandbox: { navigation, exploration, resources, crafting, presences },
+      sandbox: { navigation, exploration, resources, crafting, presences, npcs },
       attributes,
       flags: executed.flags,
       relationships: executed.relationships,
@@ -198,13 +256,16 @@ function runTransaction(
   let candidate = buildGameState(previous, {
     world,
     inventory,
-    sandbox: { navigation, exploration, resources, crafting, presences },
+    sandbox: { navigation, exploration, resources, crafting, presences, npcs },
     updatedAt,
     attributes,
     flags: executed.flags,
     relationships: executed.relationships,
     progression: executed.progression,
     system: executed.system,
+    items,
+    lingering,
+    garden,
     status: executed.status,
     narrativeSession: executed.narrativeSession,
   });
@@ -259,6 +320,7 @@ function copyMasteryResult(result: MasteryResult): MasteryResult {
     proficiencyGains: result.proficiencyGains.map((gain) => ({ ...gain })),
     reachedMilestoneIds: [...result.reachedMilestoneIds],
     revealedTrainingIds: [...result.revealedTrainingIds],
+    grantedCultivationPoints: result.grantedCultivationPoints,
   };
 }
 
@@ -277,6 +339,10 @@ function executePrimary(
   crafting: GameState['sandbox']['crafting'];
   presences: PresenceState;
   inventory: InventoryItem[];
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  npcs: NPCsState;
   attributes: Attributes;
   flags: Record<string, boolean>;
   relationships: Relationship[];
@@ -302,6 +368,10 @@ function executePrimary(
       titleIds: [...state.progression.titleIds],
     },
     system: copySystem(state.system),
+    items: copyItemsState(state.items ?? createInitialItemsState()),
+    lingering: copyPersistentConditions(state.lingering ?? createInitialLingering()),
+    garden: copyGardenState(state.garden ?? createInitialGardenState()),
+    npcs: copyNpcsState(state.sandbox.npcs ?? createInitialNpcsState()),
     status: state.status,
     narrativeSession: copyNarrativeSession(state.narrativeSession),
     world: { day: state.world.day, period: state.world.period },
@@ -471,10 +541,13 @@ function executePrimary(
     if (state.attributes.saude < 1) {
       throw new SandboxActionError('Você está ferido demais para concluir um confronto.');
     }
+    const portrait = buildCombatLoadout(INITIAL_ITEMS, state.items ?? createInitialItemsState());
     const resolution = verifyCombatResolution(INITIAL_COMBAT, action.resolution, encounter, {
       playerName: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
       playerMaxHealth: state.attributes.saude,
+      loadout: portrait.loadout,
+      prepared: portrait.prepared,
     });
     const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude));
 
@@ -490,6 +563,35 @@ function executePrimary(
       system = mastery.current;
     }
 
+    let nextInventory = copyInventory(afterEffects.inventory);
+    let nextItems = copyItemsState(state.items ?? createInitialItemsState());
+    for (const used of resolution.usedPrepared) {
+      if (!canRemoveItem(nextInventory, used.itemId, 1)) {
+        throw new SandboxActionError('O consumível preparado não pôde ser consumido.');
+      }
+      nextInventory = removeItem(nextInventory, used.itemId, 1);
+      nextItems = consumePreparedSlot(nextItems, used.slot);
+    }
+    if (resolution.outcome === 'victory' && encounter.reward) {
+      if (
+        !canAcceptQuantity(
+          INITIAL_ITEMS,
+          nextInventory,
+          encounter.reward.itemId,
+          encounter.reward.quantity,
+        )
+      ) {
+        throw new SandboxActionError('A recompensa não cabe no inventário.');
+      }
+      nextInventory = addItem(nextInventory, encounter.reward.itemId, encounter.reward.quantity);
+    }
+    let lingering = copyPersistentConditions(state.lingering ?? createInitialLingering());
+    if (resolution.outcome === 'defeat') {
+      lingering = {
+        entries: [{ conditionId: 'lingering-wound', remainingPeriods: 2, potency: 1 }],
+      };
+    }
+
     return {
       detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
       timeCost: { periods: encounter.timeCost.periods },
@@ -498,7 +600,7 @@ function executePrimary(
       resources,
       crafting,
       presences,
-      inventory: copyInventory(afterEffects.inventory),
+      inventory: nextInventory,
       attributes: { ...afterEffects.attributes },
       flags: { ...afterEffects.flags },
       relationships: afterEffects.relationships.map((entry) => ({
@@ -510,10 +612,106 @@ function executePrimary(
         titleIds: [...afterEffects.progression.titleIds],
       },
       system: copySystem(system),
+      items: nextItems,
+      lingering,
+      garden: copyGardenState(state.garden ?? createInitialGardenState()),
+      npcs: copyNpcsState(state.sandbox.npcs ?? createInitialNpcsState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
       world: { day: afterEffects.world.day, period: afterEffects.world.period },
       mastery,
+    };
+  }
+
+  if (action.type === 'equipment.equip') {
+    const result = equipItem(INITIAL_ITEMS, unchanged.items, inventory, action.itemId);
+    return {
+      detail: { type: 'equipment.equip', result },
+      timeCost: { periods: 0 },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      items: result.current,
+    };
+  }
+
+  if (action.type === 'equipment.unequip') {
+    const result = unequipSlot(unchanged.items, action.slot);
+    return {
+      detail: { type: 'equipment.unequip', result },
+      timeCost: { periods: 0 },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      items: result.current,
+    };
+  }
+
+  if (action.type === 'preparation.assign') {
+    const result = assignPreparation(INITIAL_ITEMS, unchanged.items, inventory, action.slot, action.itemId);
+    return {
+      detail: { type: 'preparation.assign', result },
+      timeCost: { periods: 0 },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      items: result.current,
+    };
+  }
+
+  if (action.type === 'preparation.clear') {
+    const result = clearPreparation(unchanged.items, action.slot);
+    return {
+      detail: { type: 'preparation.clear', result },
+      timeCost: { periods: 0 },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      items: result.current,
+    };
+  }
+
+  if (action.type === 'garden.cultivate') {
+    const plan = planGardenCultivation(INITIAL_GARDEN, INITIAL_SKILLS, unchanged.system, unchanged.garden, action.recipeId);
+    const nextGarden = applyGardenPlan(unchanged.garden, plan);
+    let nextSystem = learnSkill(INITIAL_SKILLS, unchanged.system, plan.resultSkillId);
+    const currentProficiency = getSkillProficiency(nextSystem, plan.resultSkillId);
+    if (plan.initialProficiency > currentProficiency) {
+      nextSystem = increaseSkillProficiency(
+        INITIAL_SKILLS,
+        nextSystem,
+        plan.resultSkillId,
+        plan.initialProficiency - currentProficiency,
+      );
+    }
+    return {
+      detail: { type: 'garden.cultivate', plan },
+      timeCost: { periods: plan.cost.timeCost.periods },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      garden: nextGarden,
+      system: copySystem(nextSystem),
     };
   }
 
@@ -531,6 +729,12 @@ function executePrimary(
   let nextPresences = copyPresenceState(presences);
   if (plan.resolvesPresence) {
     nextPresences = resolvePresence(context.presences, nextPresences, action.presenceId);
+  }
+
+  let npcs = copyNpcsState(state.sandbox.npcs ?? createInitialNpcsState());
+  if (action.presenceId === 'mira-awakening-clearing' && action.interactionId === 'talk-mira-awakening-clearing') {
+    npcs = rememberNpcFact(INITIAL_NPCS, npcs, 'mira-vale', 'mira-first-talk');
+    npcs = rememberNpcFact(INITIAL_NPCS, npcs, 'mira-vale', 'mira-seeks-water');
   }
 
   return {
@@ -554,6 +758,10 @@ function executePrimary(
       titleIds: [...afterEffects.progression.titleIds],
     },
     system: copySystem(state.system),
+    items: copyItemsState(state.items ?? createInitialItemsState()),
+    lingering: copyPersistentConditions(state.lingering ?? createInitialLingering()),
+    garden: copyGardenState(state.garden ?? createInitialGardenState()),
+    npcs,
     status: afterEffects.status,
     narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
     world: { day: afterEffects.world.day, period: afterEffects.world.period },
@@ -686,8 +894,58 @@ function requireAction(value: unknown): SandboxAction {
         entryHealth: resolution.entryHealth as number,
         remainingHealth: resolution.remainingHealth as number,
         playerActionIds: [...resolution.playerActionIds] as string[],
+        usedPrepared: Array.isArray(resolution.usedPrepared)
+          ? resolution.usedPrepared.map((entry) => {
+              if (!isRecord(entry) || typeof entry.slot !== 'number' || typeof entry.itemId !== 'string') {
+                throw new SandboxActionError('A resolução de combate é inválida.');
+              }
+              return { slot: entry.slot, itemId: entry.itemId };
+            })
+          : [],
+        equipment: isRecord(resolution.equipment)
+          ? {
+              'main-hand': typeof resolution.equipment['main-hand'] === 'string' ? resolution.equipment['main-hand'] : null,
+              body: typeof resolution.equipment.body === 'string' ? resolution.equipment.body : null,
+              accessory: typeof resolution.equipment.accessory === 'string' ? resolution.equipment.accessory : null,
+            }
+          : { 'main-hand': null, body: null, accessory: null },
       },
     };
+  }
+
+  if (value.type === 'equipment.equip') {
+    if (typeof value.itemId !== 'string' || value.itemId.trim() === '') {
+      throw new SandboxActionError('O equipamento é inválido.');
+    }
+    return { type: 'equipment.equip', itemId: value.itemId };
+  }
+
+  if (value.type === 'equipment.unequip') {
+    if (!EQUIPMENT_SLOTS.includes(value.slot as (typeof EQUIPMENT_SLOTS)[number])) {
+      throw new SandboxActionError('O espaço de equipamento é inválido.');
+    }
+    return { type: 'equipment.unequip', slot: value.slot as (typeof EQUIPMENT_SLOTS)[number] };
+  }
+
+  if (value.type === 'preparation.assign') {
+    if (typeof value.itemId !== 'string' || value.itemId.trim() === '' || !Number.isInteger(value.slot)) {
+      throw new SandboxActionError('A preparação é inválida.');
+    }
+    return { type: 'preparation.assign', slot: value.slot as number, itemId: value.itemId };
+  }
+
+  if (value.type === 'preparation.clear') {
+    if (!Number.isInteger(value.slot)) {
+      throw new SandboxActionError('A preparação é inválida.');
+    }
+    return { type: 'preparation.clear', slot: value.slot as number };
+  }
+
+  if (value.type === 'garden.cultivate') {
+    if (typeof value.recipeId !== 'string' || value.recipeId.trim() === '') {
+      throw new SandboxActionError('A receita do Jardim é inválida.');
+    }
+    return { type: 'garden.cultivate', recipeId: value.recipeId };
   }
 
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
@@ -701,6 +959,12 @@ function copyResolution(resolution: CombatResolution): CombatResolution {
     entryHealth: resolution.entryHealth,
     remainingHealth: resolution.remainingHealth,
     playerActionIds: [...resolution.playerActionIds],
+    usedPrepared: (resolution.usedPrepared ?? []).map((entry) => ({ ...entry })),
+    equipment: {
+      'main-hand': resolution.equipment?.['main-hand'] ?? null,
+      body: resolution.equipment?.body ?? null,
+      accessory: resolution.equipment?.accessory ?? null,
+    },
   };
 }
 
@@ -720,6 +984,10 @@ interface GameStatePatch {
   relationships?: Relationship[];
   progression?: ProgressionState;
   system?: SkillsProgressState;
+  items?: ItemsState;
+  lingering?: PersistentConditionState;
+  garden?: GardenState;
+  npcs?: NPCsState;
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
   updatedAt?: string;
@@ -750,6 +1018,7 @@ function buildGameState(base: GameState, patch: GameStatePatch & { updatedAt: st
       resources: copyResources(patch.sandbox.resources),
       crafting: copyCrafting(patch.sandbox.crafting),
       presences: copyPresenceState(patch.sandbox.presences),
+      npcs: copyNpcsState(patch.npcs ?? patch.sandbox.npcs ?? base.sandbox.npcs ?? createInitialNpcsState()),
     },
     objectives: {
       entries: base.objectives.entries.map((entry) => ({
@@ -759,6 +1028,9 @@ function buildGameState(base: GameState, patch: GameStatePatch & { updatedAt: st
       })),
     },
     system: copySystem(patch.system ?? base.system),
+    items: copyItemsState(patch.items ?? base.items ?? createInitialItemsState()),
+    lingering: copyPersistentConditions(patch.lingering ?? base.lingering ?? createInitialLingering()),
+    garden: copyGardenState(patch.garden ?? base.garden ?? createInitialGardenState()),
     updatedAt: patch.updatedAt,
   };
 }
@@ -801,6 +1073,26 @@ function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'combat.resolve') {
     return { type: 'combat.resolve', resolution: copyResolution(action.resolution) };
+  }
+
+  if (action.type === 'equipment.equip') {
+    return { type: 'equipment.equip', itemId: action.itemId };
+  }
+
+  if (action.type === 'equipment.unequip') {
+    return { type: 'equipment.unequip', slot: action.slot };
+  }
+
+  if (action.type === 'preparation.assign') {
+    return { type: 'preparation.assign', slot: action.slot, itemId: action.itemId };
+  }
+
+  if (action.type === 'preparation.clear') {
+    return { type: 'preparation.clear', slot: action.slot };
+  }
+
+  if (action.type === 'garden.cultivate') {
+    return { type: 'garden.cultivate', recipeId: action.recipeId };
   }
 
   return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
@@ -967,6 +1259,26 @@ function nonNegativeSafeInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
+function lingeringWorldDamage(state: PersistentConditionState, periods: number): number {
+  if (!Number.isSafeInteger(periods) || periods <= 0) {
+    return 0;
+  }
+  let damage = 0;
+  for (const entry of state.entries) {
+    const definition = INITIAL_CONDITIONS.conditionById.get(entry.conditionId);
+    if (!definition?.lingering) {
+      continue;
+    }
+    const ticks = Math.min(periods, entry.remainingPeriods);
+    for (const effect of definition.effects) {
+      if (effect.type === 'damage') {
+        damage += effect.amount * Math.max(1, entry.potency) * ticks;
+      }
+    }
+  }
+  return damage;
+}
+
 function distinctCombatSkills(actionIds: readonly string[]): string[] {
   const skills: string[] = [];
   const seen = new Set<string>();
@@ -997,8 +1309,15 @@ function rethrowDomain(error: unknown): never {
     error instanceof NeedsError ||
     error instanceof ObjectiveError ||
     error instanceof TrainingError ||
+    error instanceof SkillError ||
     error instanceof CombatError ||
     error instanceof MasteryError ||
+    error instanceof ItemError ||
+    error instanceof EquipmentError ||
+    error instanceof PreparationError ||
+    error instanceof ConditionError ||
+    error instanceof GardenError ||
+    error instanceof NpcError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

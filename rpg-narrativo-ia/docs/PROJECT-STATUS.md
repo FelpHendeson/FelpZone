@@ -69,7 +69,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 7, migrações v1–v6, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 11, migrações v1–v10, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -83,16 +83,15 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 10 — Objetivos, jornadas e diário | **Implementado e consolidado** | Fatias 10.1–10.5: catálogo, dez critérios, schema 6, sincronização após ações/escolhas, diário mobile e jornada `Primeiros passos` ponta a ponta. | O acompanhamento não persiste por decisão do recorte; não há recompensas automáticas. |
 | Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão | **Implementado e consolidado (Fatias 11.1 a 11.7)** | Vocabulário de Eteris/Númen e Corpo/Poder; catálogos de habilidades, caminhos e treino; `GameState.system` no schema 7; ação de treino com custo temporal único; Árvore de habilidades com sigilo; aba mobile `Sistema` com Status e confirmação de treino. | Balanceamento, Jardim e conteúdo definitivo seguem fora do escopo; números e nomes são protótipos. |
 | Sistema 12 — Banco de ações e combate | **Implementado e consolidado (12.1–12.12)** | Catálogos, motor determinístico, IA por regras, habilidades liberando ações e encontro jogável; a consolidação (12.8–12.12) adiciona ameaça gatilhada por descoberta, vitalidade vinda da saúde do mundo, custo temporal único e desfecho aplicado como uma transação atômica (tempo, necessidades, saúde, flag, recompensa). | Posicionamento, status ricos, grupos, balanceamento definitivo e itens seguem fora do escopo. |
-| Sistema 13 — Progressão por prática e recompensas | **Implementado e consolidado (13.1–13.7)** | Treino e vitórias verificadas desenvolvem proficiências; marcos dão significado ao nível e revelam métodos na mesma transação. | Equipamentos, Jardim e fórmulas definitivas ficaram fora do recorte. |
+| Sistema 13 — Progressão por prática e recompensas | **Implementado e consolidado (13.1–13.7)** | Treino e vitórias verificadas desenvolvem proficiências; marcos dão significado ao nível e revelam métodos na mesma transação. | Fórmulas definitivas ficaram fora do recorte. |
+| Sistema 14 — Itens, equipamentos e preparação | **Implementado e consolidado (14.1–14.7)** | Catálogo de itens, loadout de 3 espaços, 2 reservas de combate, receitas de ferramenta/unguento, recompensa fixa do predador e `GameState.items` no schema 8. | Sem raridade, peso, durabilidade, comércio ou loot aleatório. |
+| Sistema 15 — Condições, elementos e combate | **Implementado e consolidado (15.1–15.7)** | Sangramento, exposição, ferida persistente, matriz Físico/Brasas/Água, `ember-cut` do predador e schema 9. | Sem chance oculta, posicionamento, grupos ou fórmulas definitivas. |
+| Sistema 16 — Jardim de habilidades | **Implementado e consolidado (16.1–16.7)** | Receita `Sentinela Interior`, pontos de cultivo no marco de nível 2, ação `garden.cultivate` e schema 10. | Sem geração procedural, sacrifício, reversão ou IA. |
+| Sistema 17 — NPCs persistentes, agenda e mundo vivo | **Implementado e consolidado (17.1–17.7)** | Mira conhecida após a conversa inicial, agenda por período, fatos fechados e `sandbox.npcs` no schema 11. | Sem simulação contínua, IA generativa, economia ou administração. |
 
 ## Próximos sistemas especificados
 
-| Sistema | Situação | Direção aprovada | Limite atual |
-| --- | --- | --- | --- |
-| Sistema 14 — Itens, equipamentos e preparação | **Especificado; próximo a implementar** | Loadout, consumíveis preparados, benefícios declarativos e recompensas materiais determinísticas. | Sem raridade, peso, durabilidade, comércio ou loot aleatório. |
-| Sistema 15 — Condições, elementos e combate | **Especificado; depende do Sistema 14** | Condições por turno, afinidades elementais e respostas determinísticas de item ou habilidade. | Sem chance oculta, posicionamento, grupos ou fórmulas definitivas. |
-| Sistema 16 — Jardim de habilidades | **Especificado; depende do Sistema 15** | Receitas curadas, não destrutivas e sigilosas produzem técnicas híbridas por cultivo. | Sem geração procedural, sacrifício, reversão ou IA. |
-| Sistema 17 — NPCs persistentes, agenda e mundo vivo | **Especificado; depende do Sistema 16** | Estado mínimo, agenda por período, memória fechada e presenças derivadas. | Sem simulação contínua, IA generativa, economia ou administração. |
+Os Sistemas 14 a 17 foram implementados. Novos eixos precisam de especificação e autorização explícitas antes de entrar no código.
 
 ## Conteúdo que permanece como protótipo
 
@@ -110,7 +109,7 @@ Esses elementos podem ser usados para testar contratos sem se tornarem automatic
 
 ## Direções futuras já definidas pelo autor
 
-Estas metas fazem parte da visão. Os Sistemas 11 a 13 estão consolidados; os Sistemas 14 a 17 possuem especificações próprias e devem ser implementados na ordem aprovada:
+Estas metas fazem parte da visão. Os Sistemas 11 a 17 estão consolidados:
 
 ### Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão
 
@@ -132,19 +131,19 @@ O próximo eixo aprovado conecta o fortalecimento do Sistema 11 ao combate do Si
 
 O primeiro ciclo protótipo usa `Sentidos Aguçados`, `Golpe Preciso`, nível 2, `Rotina de Reforço do Corpo`, `Corpo Firme` e `Estancar Ferida`. Valores e limiares não são balanceamento definitivo. O eixo está implementado e consolidado nas Fatias 13.1 a 13.7. Consulte [Sistema 13 — Progressão por prática e recompensas do Sistema](SYSTEM-PRACTICE-PROGRESSION.md).
 
-### Sistema 14 — Itens, equipamentos e preparação — especificado
+### Sistema 14 — Itens, equipamentos e preparação — implementado
 
-Transforma posse em decisões de loadout e preparação, conecta crafting a equipamentos e consumíveis e admite somente recompensas materiais determinísticas no primeiro recorte. Consulte [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md).
+Loadout, consumíveis preparados, benefícios declarativos e recompensas materiais determinísticas. Consulte [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md).
 
-### Sistema 15 — Condições, elementos e aprofundamento do combate — especificado
+### Sistema 15 — Condições, elementos e aprofundamento do combate — implementado
 
 Adiciona condições por turno, matriz elemental explícita, limpeza e consequências persistentes limitadas, preservando replay e ausência de aleatoriedade oculta. Consulte [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md).
 
-### Sistema 16 — Jardim de habilidades — especificado
+### Sistema 16 — Jardim de habilidades — implementado
 
 Integra habilidades conhecidas por receitas curadas, não destrutivas e sigilosas. Um recurso de cultivo nasce somente de marcos explícitos e a técnica híbrida volta ao ciclo normal de prática. Consulte [Sistema 16](SYSTEM-SKILL-GARDEN.md).
 
-### Sistema 17 — NPCs persistentes, agenda e mundo vivo — especificado
+### Sistema 17 — NPCs persistentes, agenda e mundo vivo — implementado
 
 Introduz estado mínimo de NPC, agenda por período, memória de fatos fechados e presenças derivadas. A simulação avança somente pelo relógio canônico. Consulte [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
 
@@ -217,10 +216,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 13 estão implementados e consolidados. Os Sistemas 14 a 17 estão especificados na ordem aprovada.** O próximo trabalho é o Sistema 14; os seguintes só começam depois da consolidação da dependência anterior. Consulte [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](SYSTEM-SKILL-GARDEN.md) e [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
+**Os Sistemas 1 a 17 estão implementados e consolidados.** O save atual é o schema 11. Novos eixos precisam de especificação e autorização explícitas antes de entrar no código. Consulte [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](SYSTEM-SKILL-GARDEN.md) e [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
 
-Antes da próxima implementação:
+Antes de um novo eixo:
 
-1. implementar e consolidar o Sistema 14 antes do Sistema 15;
+1. especificar o contrato e obter autorização explícita;
 2. preservar determinismo, aplicação única de tempo, sigilo e atomicidade em cada evolução de schema proposta;
 3. não transformar detalhes fora das especificações — fórmulas definitivas, raças, posicionamento, economia ou simulação autônoma — em requisitos.

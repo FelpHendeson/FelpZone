@@ -6,6 +6,10 @@ import {
   SCHEMA_VERSION_V4,
   SCHEMA_VERSION_V5,
   SCHEMA_VERSION_V6,
+  SCHEMA_VERSION_V7,
+  SCHEMA_VERSION_V8,
+  SCHEMA_VERSION_V9,
+  SCHEMA_VERSION_V10,
   inspectGameState,
   inspectGameStateV1,
   inspectGameStateV2,
@@ -13,12 +17,20 @@ import {
   inspectGameStateV4,
   inspectGameStateV5,
   inspectGameStateV6,
+  inspectGameStateV7,
+  inspectGameStateV8,
+  inspectGameStateV9,
+  inspectGameStateV10,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
   migrateGameStateV4,
   migrateGameStateV5,
   migrateGameStateV6,
+  migrateGameStateV7,
+  migrateGameStateV8,
+  migrateGameStateV9,
+  migrateGameStateV10,
   type GameState,
 } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
@@ -177,7 +189,7 @@ export function parseGameState(
       }
 
       const migrated = inspectGameState(
-        migrateGameStateV6(previous.state, objectiveCatalog),
+        migrateGameStateV6(previous.state, objectiveCatalog, context),
         context,
         objectiveCatalog,
       );
@@ -185,6 +197,54 @@ export function parseGameState(
         return { status: 'corrupt', reason: migrated.reason };
       }
 
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V7) {
+      const previous = inspectGameStateV7(parsed, context, objectiveCatalog);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+      const migrated = inspectGameState(migrateGameStateV7(previous.state, context, objectiveCatalog), context, objectiveCatalog);
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V8) {
+      const previous = inspectGameStateV8(parsed, context, objectiveCatalog);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+      const migrated = inspectGameState(migrateGameStateV8(previous.state, context, objectiveCatalog), context, objectiveCatalog);
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V9) {
+      const previous = inspectGameStateV9(parsed, context, objectiveCatalog);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+      const migrated = inspectGameState(migrateGameStateV9(previous.state, context, objectiveCatalog), context, objectiveCatalog);
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V10) {
+      const previous = inspectGameStateV10(parsed, context, objectiveCatalog);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+      const migrated = inspectGameState(migrateGameStateV10(previous.state, context, objectiveCatalog), context, objectiveCatalog);
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
       return { status: 'ok', state: migrated.state };
     }
 

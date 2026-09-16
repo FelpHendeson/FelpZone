@@ -7,6 +7,7 @@ import type {
   PresenceState,
 } from '../presences/types';
 import type { IndexedResources, ResourcesState } from '../resources/types';
+import type { NPCsState } from '../npcs/types';
 
 export class SandboxError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -24,6 +25,7 @@ export interface SandboxCoreState {
 
 export interface SandboxState extends SandboxCoreState {
   presences: PresenceState;
+  npcs?: NPCsState;
 }
 
 export interface SandboxContext {

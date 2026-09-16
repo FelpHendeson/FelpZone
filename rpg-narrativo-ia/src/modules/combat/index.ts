@@ -1,4 +1,5 @@
 import { INITIAL_SKILLS, hasSkill, type IndexedSkills } from '../skills';
+import { INITIAL_CONDITIONS } from '../conditions';
 import { CombatError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_COMBAT_CATALOG } from './initial-combat';
@@ -17,6 +18,7 @@ export { CombatError } from './errors';
 export {
   chooseOpponentAction,
   createCombat,
+  emptyCombatLoadout,
   listPlayerActions,
   resolveTurn,
   type CreateCombatOptions,
@@ -123,6 +125,7 @@ function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
     ...encounter,
     timeCost: { ...encounter.timeCost },
     requiredDiscoveryIds: [...encounter.requiredDiscoveryIds],
+    ...(encounter.reward ? { reward: { ...encounter.reward } } : {}),
   };
 }
 
@@ -157,6 +160,9 @@ function inspectAction(
   if (value.skillId !== undefined && (!nonEmpty(value.skillId) || !hasSkill(skills, value.skillId))) {
     return fail('A ação de combate referencia uma habilidade inexistente.');
   }
+  if (value.elementId !== undefined && (!nonEmpty(value.elementId) || !INITIAL_CONDITIONS.elementById.has(value.elementId))) {
+    return fail('A ação de combate referencia um elemento inexistente.');
+  }
 
   return {
     ok: true,
@@ -168,12 +174,40 @@ function inspectAction(
       target: value.target,
       effects,
       ...(value.skillId === undefined ? {} : { skillId: value.skillId }),
+      ...(nonEmpty(value.elementId) ? { elementId: value.elementId } : {}),
     },
   };
 }
 
 function inspectEffect(value: unknown): CombatInspection<CombatEffect> {
-  if (!isRecord(value) || !includes(COMBAT_EFFECT_TYPES, value.type) || !positiveSafeInteger(value.amount)) {
+  if (!isRecord(value) || !includes(COMBAT_EFFECT_TYPES, value.type)) {
+    return fail('O efeito da ação de combate é inválido.');
+  }
+  if (value.type === 'condition.apply') {
+    if (
+      !nonEmpty(value.conditionId) ||
+      !INITIAL_CONDITIONS.conditionById.has(value.conditionId) ||
+      !positiveSafeInteger(value.duration) ||
+      !positiveSafeInteger(value.potency)
+    ) {
+      return fail('A aplicação de condição é inválida.');
+    }
+    return { ok: true, value: { type: 'condition.apply', conditionId: value.conditionId, duration: value.duration, potency: value.potency } };
+  }
+  if (value.type === 'condition.cleanse') {
+    if (!positiveSafeInteger(value.count)) {
+      return fail('A limpeza de condição é inválida.');
+    }
+    return {
+      ok: true,
+      value: {
+        type: 'condition.cleanse',
+        count: value.count,
+        ...(nonEmpty(value.conditionId) ? { conditionId: value.conditionId } : {}),
+      },
+    };
+  }
+  if (!positiveSafeInteger(value.amount)) {
     return fail('O efeito da ação de combate é inválido.');
   }
   return { ok: true, value: { type: value.type, amount: value.amount } };
@@ -206,7 +240,20 @@ function inspectCombatant(
     ids.push(id);
   }
 
-  return { ok: true, value: { id: value.id, name: value.name, maxHealth: value.maxHealth, actionIds: ids } };
+  if (value.defenseElementId !== undefined && (!nonEmpty(value.defenseElementId) || !INITIAL_CONDITIONS.elementById.has(value.defenseElementId))) {
+    return fail('O combatente referencia um elemento de defesa inexistente.');
+  }
+
+  return {
+    ok: true,
+    value: {
+      id: value.id,
+      name: value.name,
+      maxHealth: value.maxHealth,
+      actionIds: ids,
+      ...(value.defenseElementId ? { defenseElementId: value.defenseElementId } : {}),
+    },
+  };
 }
 
 function inspectEncounter(
@@ -236,6 +283,10 @@ function inspectEncounter(
   if (!requirements.ok) {
     return requirements;
   }
+  const reward = inspectReward(value.reward);
+  if (!reward.ok) {
+    return reward;
+  }
 
   return {
     ok: true,
@@ -247,8 +298,19 @@ function inspectEncounter(
       description: value.description,
       timeCost: { periods: value.timeCost.periods },
       requiredDiscoveryIds: requirements.value,
+      ...(reward.value ? { reward: reward.value } : {}),
     },
   };
+}
+
+function inspectReward(value: unknown): CombatInspection<{ itemId: string; quantity: number } | undefined> {
+  if (value === undefined) {
+    return { ok: true, value: undefined };
+  }
+  if (!isRecord(value) || !nonEmpty(value.itemId) || !positiveSafeInteger(value.quantity)) {
+    return fail('A recompensa do encontro é inválida.');
+  }
+  return { ok: true, value: { itemId: value.itemId, quantity: value.quantity } };
 }
 
 function inspectRequiredDiscoveries(value: unknown): CombatInspection<string[]> {
@@ -287,6 +349,7 @@ function freezeCatalog(
         ...encounter,
         timeCost: Object.freeze({ ...encounter.timeCost }),
         requiredDiscoveryIds: Object.freeze([...encounter.requiredDiscoveryIds]) as unknown as string[],
+        ...(encounter.reward ? { reward: Object.freeze({ ...encounter.reward }) } : {}),
       }),
     ),
   );
@@ -361,6 +424,7 @@ export {
   COMBAT_OUTCOMES,
   COMBAT_TARGETS,
   FLEE_ACTION_ID,
+  PREPARED_ACTION_PREFIX,
 } from './types';
 
 export { INITIAL_COMBAT_CATALOG, PLAYER_COMBAT_MAX_HEALTH } from './initial-combat';
@@ -380,4 +444,6 @@ export type {
   CombatTarget,
   EncounterDefinition,
   IndexedCombat,
+  CombatLoadoutSnapshot,
+  PreparedConsumableState,
 } from './types';

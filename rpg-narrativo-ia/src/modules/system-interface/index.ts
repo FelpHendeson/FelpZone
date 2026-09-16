@@ -24,6 +24,10 @@ import {
   type MasteryRequirement,
   type MasteryResult,
 } from '../mastery';
+import {
+  INITIAL_GARDEN,
+  deriveGardenRecipes,
+} from '../garden';
 import type {
   SystemMilestoneView,
   SystemSkillView,
@@ -43,6 +47,10 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
     tree: deriveSkillTree(INITIAL_SKILLS, progress),
     trainings: buildTrainings(progress),
     nextMilestone: buildNextMilestone(progress),
+    garden: {
+      cultivationPoints: state.garden.cultivationPoints,
+      recipes: deriveGardenRecipes(INITIAL_GARDEN, INITIAL_SKILLS, progress, state.garden),
+    },
   };
 }
 
@@ -91,6 +99,9 @@ export function describeMasteryProgress(result: MasteryResult): string {
     if (method) {
       parts.push(`Nova orientação do Sistema: ${method.name}.`);
     }
+  }
+  if (result.grantedCultivationPoints > 0) {
+    parts.push(`O Jardim recebeu ${result.grantedCultivationPoints} ponto${result.grantedCultivationPoints === 1 ? '' : 's'} de cultivo.`);
   }
   return parts.join(' ');
 }

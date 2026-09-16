@@ -2,7 +2,7 @@
 
 ## Estado da decisão
 
-**Aprovado e especificado pelo autor em 15 de setembro de 2026. Implementação posterior à consolidação do Sistema 15.**
+**Aprovado, especificado e implementado pelo autor em 15 de setembro de 2026.**
 
 O Jardim é a superfície do Sistema dedicada a integrar caminhos. Enquanto a Árvore mostra habilidades, requisitos e progressões reconhecidas, o Jardim permite cultivar combinações autorizadas entre habilidades conhecidas para produzir técnicas híbridas declaradas em catálogo.
 
