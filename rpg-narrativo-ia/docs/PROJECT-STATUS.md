@@ -27,6 +27,8 @@ As decisões abaixo foram definidas pelo autor:
 - os sistemas são especificados, implementados, testados e consolidados separadamente antes de uma integração maior;
 - o Sistema é uma interface diegética: menus, mensagens e ações podem representar o personagem consultando e operando essa ferramenta dentro do mundo;
 - conteúdo de habilidades, personagens e história deve permanecer modular, validado e substituível sem reescrever o motor;
+- o jogo é um motor de mundos: sistemas são blocos reutilizáveis, packs configuram leis e conteúdo e campanhas vestem esse motor com histórias;
+- o mesmo personagem deve poder viver, crescer, pertencer e liderar, conciliando aventura, relações, família, profissão, comércio e construção social;
 - depois de uma abertura dirigida, o jogador deve ganhar liberdade para explorar, mapear o mundo e encontrar conteúdo por suas próprias ações;
 - narrativa e escolhas devem surgir durante encontros, diálogos, descobertas e outros acontecimentos, em vez de formarem o único loop do jogo.
 
@@ -44,7 +46,7 @@ As decisões abaixo foram definidas pelo autor:
 - A trajetória pode misturar aventura, drama, fantasia e ficção especulativa; o tom deve responder às decisões do jogador.
 - A causa do Reset, a origem do Sistema e o desenvolvimento amplo da trama continuam **em discussão** e devem ser construídos em conjunto.
 
-Assentamentos e facções estão confirmados como parte do universo narrativo. Um sistema de administração de assentamento, diplomacia ou facções jogáveis **ainda não foi discutido nem aprovado**.
+Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram definidos e especificados nos Sistemas 28 e 29, mas ainda não foram implementados.
 
 ## Metas de experiência definidas
 
@@ -59,7 +61,11 @@ O resultado desejado pelo autor é um jogador que:
 7. transforma materiais por crafting e cozinha;
 8. encontra NPCs ou criaturas e, então, entra em diálogos, narrativa e escolhas;
 9. pode avançar uma rota principal ou procurar conteúdo opcional e conclusão de áreas;
-10. retorna à exploração depois das sessões narrativas.
+10. retorna à exploração depois das sessões narrativas;
+11. desenvolve relações, vínculos, família e um lar ao longo do calendário;
+12. pode pertencer e liderar grupos, guildas, clãs, assentamentos ou facções;
+13. segue trajetórias sociais e econômicas, como cidadão, artesão, comerciante ou nobre;
+14. desenvolve poder, combate e reconhecimento sem ser obrigado a abandonar a vida civil.
 
 O formato exato de “100%” global, de rotas e de campanha está **em discussão**. Hoje existem progresso local e conclusão agregada de zona, não um sistema completo de conclusão do mundo.
 
@@ -92,7 +98,22 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 
 ## Próximos sistemas especificados
 
-Os Sistemas 14 a 17 foram implementados. Novos eixos precisam de especificação e autorização explícitas antes de entrar no código.
+Os Sistemas 18 a 29 foram definidos e especificados em 17 de setembro de 2026. **Nenhum deles está implementado.** A ordem e as dependências estão no [Roadmap](ROADMAP.md), e a regra arquitetural comum está em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
+
+| Sistema | Estado | Núcleo do contrato |
+| --- | --- | --- |
+| 18 — Cenário interativo | **Especificado; não implementado** | Descobrir, examinar e alterar pontos de interesse declarativos. |
+| 19 — Relacionamentos | **Especificado; não implementado** | Relações direcionais, dimensões e vínculos explícitos com agência. |
+| 20 — Registro e rankings | **Especificado; não implementado** | Política de acesso, registro, patentes, rankings e títulos separados. |
+| 21 — Grupos e organizações | **Especificado; não implementado** | Filiação, cargos, permissões, parties, guildas, clãs e base para facções. |
+| 22 — Númen e execução avançada | **Especificado; não implementado** | Reservas, custos, fases, velocidade, recarga e interrupção. |
+| 23 — Companheiros e combate coletivo | **Especificado; não implementado** | Equipes, papéis, táticas, agência e consequências de grupo. |
+| 24 — Calendário e ciclo de vida | **Especificado; não implementado** | Calendários configuráveis, idade, estágios e processos longos. |
+| 25 — Família, lar e linhagem | **Especificado; não implementado** | Parceria, parentesco, responsáveis, dependentes e residência. |
+| 26 — Profissões e posição social | **Especificado; não implementado** | Profissão, cidadania, ofício, títulos, reputação e permissões. |
+| 27 — Economia e propriedade | **Especificado; não implementado** | Moedas, estoques, comércio atômico e direitos de propriedade. |
+| 28 — Bases e assentamentos | **Especificado; não implementado** | Reivindicação, projetos, estruturas, moradores e produção. |
+| 29 — Facções e política | **Especificado; não implementado** | Relações diplomáticas, representação, acordos, leis e influência. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -156,7 +177,7 @@ O Sistema 8 representa entidades, presenças descobertas por local, disponibilid
 
 ### Interações com elementos do cenário
 
-O jogador deverá interagir com elementos e pessoas presentes na localização, além de navegar e explorar. Coleta e crafting já cobrem parte disso, mas ainda não existe um sistema genérico de objetos interativos.
+O jogador deverá interagir com elementos e pessoas presentes na localização, além de navegar e explorar. Coleta e crafting já cobrem parte disso, mas ainda não existe um sistema genérico de objetos interativos. O contrato agora está em [Sistema 18](SYSTEM-18-INTERACTABLE-WORLD.md).
 
 ### Expansão de exploração, recursos, crafting e cozinha
 
@@ -168,7 +189,11 @@ O jogador deve poder avançar a trama principal, desenvolver encontros e descobr
 
 ### Assentamentos, facções e novos modelos de sociedade
 
-São parte confirmada do mundo e da trama futura. Mecânicas de construção, administração, reputação, política, território ou guerra não foram definidas.
+São parte confirmada do mundo e da trama futura. Construção, administração, território e política receberam contratos nos [Sistemas 28](SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md) e [29](SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md). Guerra em massa continua em discussão.
+
+### Vida, poder, pertencimento e liderança
+
+O motor deve permitir que a mesma trajetória combine vida familiar, crescimento de poder, participação em grupos e construção social. Relacionamentos, registro e rankings, organizações, Númen avançado, party, ciclo de vida, família, profissões, economia, assentamentos e política estão especificados nos Sistemas 19 a 29. Eles são blocos combináveis, não modos excludentes.
 
 ## Ideias em discussão, sem compromisso de implementação
 
@@ -183,6 +208,9 @@ São parte confirmada do mundo e da trama futura. Mecânicas de construção, ad
 - rotas principais e opcionais com métricas próprias;
 - itens e áreas bônus encontrados dentro de áreas exploráveis;
 - aprofundamento de caça e manejo ecológico além da coleta abstrata.
+- guerra territorial e batalhas em massa;
+- morte permanente, herança de protagonista e múltiplas gerações jogáveis;
+- simulação ampla de oferta, demanda, eleições e comportamento político autônomo.
 
 Esses tópicos podem virar sistemas, conteúdo simples ou ser descartados. Precisam ser discutidos antes de entrarem no roadmap aprovado.
 
@@ -191,12 +219,9 @@ Esses tópicos podem virar sistemas, conteúdo simples ou ser descartados. Preci
 Os itens abaixo apareceram como possibilidades técnicas ou foram inferidos pelos agentes, mas não foram definidos pelo autor:
 
 - comportamento autônomo de criaturas fora do combate;
-- grupo ou sistema de companheiros;
 - consequências irreversíveis de sobrevivência, como morte permanente, perda de save ou bloqueio total de ações;
 - clima, estações e efeitos ambientais;
 - durabilidade, qualidade, combustível consumível e ferramentas especializadas além do Sistema 14;
-- comércio, mercado e economia;
-- administração jogável de assentamentos ou facções;
 - viagem rápida, portais e conexões especiais;
 - geração procedural;
 - multiplayer, conta, backend ou sincronização em nuvem;
@@ -204,7 +229,7 @@ Os itens abaixo apareceram como possibilidades técnicas ou foram inferidos pelo
 - editor de campanhas;
 - arte final e estilo visual definitivo.
 
-Não crie numeração de sistema, contrato, schema ou prompt de implementação para esses itens até que o autor os discuta e autorize.
+Não crie numeração de sistema, contrato, schema ou prompt de implementação para esses itens até que o autor os discuta e autorize. Esta restrição não se aplica aos Sistemas 18 a 29, que já possuem especificações próprias, mas ainda não estão implementados.
 
 ## Decisões negativas atuais
 
@@ -217,10 +242,10 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 17 estão implementados e consolidados.** O save atual é o schema 11. Novos eixos precisam de especificação e autorização explícitas antes de entrar no código. Consulte [Sistema 14](SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](SYSTEM-SKILL-GARDEN.md) e [Sistema 17](SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md).
+**Os Sistemas 1 a 17 estão implementados e consolidados.** O save atual é o schema 11. **Os Sistemas 18 a 29 estão especificados e não implementados.** O próximo desenvolvimento deve começar pelo Sistema 18 e respeitar a ordem de dependências do [Roadmap](ROADMAP.md).
 
 Antes de um novo eixo:
 
-1. especificar o contrato e obter autorização explícita;
+1. escolher uma única etapa especificada e obter autorização explícita para implementá-la;
 2. preservar determinismo, aplicação única de tempo, sigilo e atomicidade em cada evolução de schema proposta;
-3. não transformar detalhes fora das especificações — fórmulas definitivas, raças, posicionamento, economia ou simulação autônoma — em requisitos.
+3. não transformar detalhes fora das especificações — fórmulas definitivas, raças concretas, posicionamento, guerra ou simulação autônoma — em requisitos.

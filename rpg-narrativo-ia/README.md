@@ -21,34 +21,47 @@ Leia nesta ordem:
 1. [Continuação em outro computador](docs/HANDOFF-HOME.md): estado atual e prompt pronto para contextualizar um novo chat.
 2. [Estado, metas e horizonte](docs/PROJECT-STATUS.md): fonte de verdade sobre o que foi definido, implementado, está em discussão ou ainda não foi decidido.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
-4. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
-5. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
-6. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
-7. [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md): hierarquia visual, navegação e regras de densidade da interface jogável.
-8. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
-9. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
-10. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
-11. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): eventos de período e dia derivados do relógio, já implementado.
-12. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
-13. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
-14. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
-15. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
-16. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
-17. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
-18. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
-19. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
-20. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
-21. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 implementado e consolidado nas Fatias 11.1 a 11.7.
-22. [Banco de ações e combate](docs/SYSTEM-ACTION-COMBAT.md): Sistema 12 implementado e consolidado nas Fatias 12.1 a 12.7.
-23. [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md): Fatias 12.8 a 12.12 implementadas — descoberta, saúde, tempo, consequências atômicas e UI de combate.
-24. [Progressão por prática e recompensas do Sistema](docs/SYSTEM-PRACTICE-PROGRESSION.md): Sistema 13 implementado e consolidado nas Fatias 13.1 a 13.7.
-25. [Itens, equipamentos e preparação](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md): Sistema 14 implementado e consolidado nas Fatias 14.1 a 14.7.
-26. [Condições, elementos e aprofundamento do combate](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md): Sistema 15 implementado e consolidado nas Fatias 15.1 a 15.7.
-27. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 implementado e consolidado nas Fatias 16.1 a 16.7.
-28. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
-29. [Motor e pack de mundo](docs/CONTENT-PACK.md): o código conhece leis; o primeiro dia entra como JSON validado.
-30. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas e sequência aprovada até o Sistema 17.
-31. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
+4. [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md): sistemas como blocos, packs como configuração e campanhas como histórias.
+5. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
+6. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
+7. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
+8. [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md): hierarquia visual, navegação e regras de densidade da interface jogável.
+9. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
+10. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
+11. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
+12. [Ciclo diário](docs/SYSTEM-DAY-CYCLE.md): eventos de período e dia derivados do relógio, já implementado.
+13. [Navegação hierárquica](docs/SYSTEM-NAVIGATION.md): mapa aninhado, posição e movimento entre pai, filhos e irmãos, já implementado.
+14. [Exploração e descobertas](docs/SYSTEM-EXPLORATION.md): percentual por local e revelação determinística de conteúdo, já implementado.
+15. [Recursos e ecologia](docs/SYSTEM-RESOURCES.md): coleta, renovação e risco de esgotamento, já implementado.
+16. [Crafting e cozinha](docs/SYSTEM-CRAFTING.md): receitas, estruturas locais e transformação de materiais, já implementado.
+17. [Integração explorável](docs/SYSTEM-INTEGRATION.md): estado composto, persistência, superfície mobile e primeiro encontro acionado pelo mundo.
+18. [Presenças e interações](docs/SYSTEM-PRESENCES.md): Sistema 8 aprovado e implementado nas Fatias 8.1 a 8.6.
+19. [Consolidação dos Sistemas 1 a 8](docs/SYSTEMS-1-8-CONSOLIDATION.md): revisão integrada, gates e ponto seguro de continuidade.
+20. [Necessidades e sobrevivência leve](docs/SYSTEM-NEEDS.md): Sistema 9 implementado e consolidado nas Fatias 9.1 a 9.5.
+21. [Objetivos, jornadas e registro de descobertas](docs/SYSTEM-OBJECTIVES.md): Sistema 10 implementado e consolidado nas Fatias 10.1 a 10.5.
+22. [Núcleo do Sistema, Eteris, Númen e Progressão](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md): Sistema 11 implementado e consolidado nas Fatias 11.1 a 11.7.
+23. [Banco de ações e combate](docs/SYSTEM-ACTION-COMBAT.md): Sistema 12 implementado e consolidado nas Fatias 12.1 a 12.7.
+24. [Consolidação do Sistema 12](docs/SYSTEM-12-CONSOLIDATION.md): Fatias 12.8 a 12.12 implementadas — descoberta, saúde, tempo, consequências atômicas e UI de combate.
+25. [Progressão por prática e recompensas do Sistema](docs/SYSTEM-PRACTICE-PROGRESSION.md): Sistema 13 implementado e consolidado nas Fatias 13.1 a 13.7.
+26. [Itens, equipamentos e preparação](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md): Sistema 14 implementado e consolidado nas Fatias 14.1 a 14.7.
+27. [Condições, elementos e aprofundamento do combate](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md): Sistema 15 implementado e consolidado nas Fatias 15.1 a 15.7.
+28. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 implementado e consolidado nas Fatias 16.1 a 16.7.
+29. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
+30. [Motor e pack de mundo](docs/CONTENT-PACK.md): o código conhece leis; o primeiro dia entra como JSON validado.
+31. [Cenário interativo e pontos de interesse](docs/SYSTEM-18-INTERACTABLE-WORLD.md): Sistema 18 especificado e ainda não implementado.
+32. [Relacionamentos e vínculos persistentes](docs/SYSTEM-19-RELATIONSHIPS.md): Sistema 19 especificado e ainda não implementado.
+33. [Registro do Sistema, patentes e rankings](docs/SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md): Sistema 20 especificado e ainda não implementado.
+34. [Grupos e organizações](docs/SYSTEM-21-GROUPS-ORGANIZATIONS.md): Sistema 21 especificado e ainda não implementado.
+35. [Númen avançado, habilidades e execução](docs/SYSTEM-22-ADVANCED-NUMEN-SKILLS.md): Sistema 22 especificado e ainda não implementado.
+36. [Party, companheiros e combate coletivo](docs/SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md): Sistema 23 especificado e ainda não implementado.
+37. [Calendário de longo prazo e ciclo de vida](docs/SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md): Sistema 24 especificado e ainda não implementado.
+38. [Família, lar e linhagem](docs/SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md): Sistema 25 especificado e ainda não implementado.
+39. [Profissões, cidadania e posição social](docs/SYSTEM-26-PROFESSIONS-CITIZENSHIP-STATUS.md): Sistema 26 especificado e ainda não implementado.
+40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 especificado e ainda não implementado.
+41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 especificado e ainda não implementado.
+42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 especificado e ainda não implementado.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 17 e programa especificado dos Sistemas 18 a 29.
+44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
 
@@ -110,6 +123,8 @@ O Sistema 13 — Progressão por prática e recompensas do Sistema — está **i
 
 Os Sistemas 14 a 17 estão **implementados e consolidados**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; e NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11. O primeiro dia (mapa, habilidades, eventos, Mira) vive no pack JSON `content/first-day/`; o motor valida o pack na borda e não persiste catálogo. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md), [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md) e [Motor e pack de mundo](docs/CONTENT-PACK.md).
 
+Os Sistemas 18 a 29 estão **especificados e ainda não implementados**. Eles consolidam o projeto como motor de mundo e cobrem cenário interativo, relações, rankings, organizações, Númen avançado, combate coletivo, calendário, família, profissões, economia, assentamentos e política. Consulte [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md) e [Roadmap](docs/ROADMAP.md).
+
 ## Decisões já tomadas
 
 - React, TypeScript e Vite.
@@ -128,7 +143,7 @@ Os Sistemas 14 a 17 estão **implementados e consolidados**: itens/equipamentos/
 - Só existe a campanha do primeiro dia.
 - O salvamento local usa `schemaVersion: 11`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, `sandbox.npcs`, `items`, `lingering`, `garden`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v10 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Balanceamento definitivo ainda não existe no código; o Jardim está implementado no Sistema 16, e nomes, números e conteúdo permanecem protótipos.
-- Fora da implementação atual: persistência de combate em andamento, posicionamento, grupos, facções e assentamentos administráveis, mapa aberto, geração procedural, editor e qualquer serviço pago.
+- Fora da implementação atual: Sistemas 18 a 29, persistência de combate em andamento, posicionamento, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
 - O Sistema 8 está implementado. As Fatias 8.1 a 8.6 existem no código: catálogo, sincronização, planejamento, save schema 4, orquestração de `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo.

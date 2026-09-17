@@ -6,6 +6,19 @@ Criar um RPG narrativo sandbox no qual o jogador administra seu tempo, percorre 
 
 O projeto deve poder receber novas campanhas, módulos e sistemas sem reescrever o núcleo.
 
+Ele deve ser entendido como um **motor de mundos jogáveis**. Sistemas são blocos reutilizáveis; packs de conteúdo configuram as leis e peças de um universo; campanhas contam histórias por cima desse mundo. A campanha `first-day` é o conjunto de teste atual, não a definição rígida de tudo que o motor poderá representar. Consulte [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
+
+## Fantasias de trajetória
+
+O mesmo personagem deve poder combinar, sem escolher um modo exclusivo:
+
+- **viver:** relações, família, filhos, lar e passagem do tempo;
+- **crescer:** treino, habilidades, Númen, combate, patentes e rankings;
+- **pertencer:** party, companheiros, família, guilda, clã ou facção;
+- **liderar e construir:** profissão, comércio, cidadania, nobreza, base, território e assentamento.
+
+Essas trajetórias compartilham o mesmo relógio, mundo e elenco. O objetivo é permitir tanto uma vida civil profunda quanto uma aventura de fortalecimento, e todas as combinações entre elas.
+
 ## Estrutura da experiência
 
 O início é dirigido: criação do personagem, despertar, apresentação do Reset, introdução ao Sistema e escolha da capacidade inicial. Depois disso, o jogador recebe liberdade para explorar.
@@ -37,11 +50,13 @@ A premissa e o protótipo atuais tratam o protagonista como humano. Permitir que
 
 ## O Sistema
 
-Todos os humanos possuem o Sistema; o protagonista não é escolhido por exclusividade.
+No cânone do pack `first-day`, todos os humanos possuem o Sistema; o protagonista não é escolhido por exclusividade.
 
 O Sistema é uma interface existente dentro do mundo. Menus, mensagens e ações apresentadas pela aplicação podem representar o próprio personagem consultando ou operando essa ferramenta. Status, habilidades, jornadas, mapa conhecido, receitas, registros e títulos ganham assim função mecânica e narrativa ao mesmo tempo.
 
-O Sistema reage às ações, registra conhecimentos e pode oferecer orientação ou métodos de desenvolvimento, mas não deve remover a autonomia do jogador. A origem e as intenções do Sistema permanecem um mistério narrativo. Estender o Sistema a todas as raças ou seres continua **em discussão**; o cânone confirmado abrange toda a humanidade.
+O Sistema reage às ações, registra conhecimentos e pode oferecer orientação ou métodos de desenvolvimento, mas não deve remover a autonomia do jogador. A origem e as intenções do Sistema permanecem um mistério narrativo.
+
+No nível do motor, a política de acesso será configurável pelo pack: universal, despertar, seleção, herança, concessão ou restrição. Essa capacidade futura não altera o cânone atual. Raças não humanas concretas e a escolha de um protagonista não humano continuam **em discussão**.
 
 ## Eteris, Númen e progressão
 
@@ -55,11 +70,17 @@ A Árvore de habilidades apresenta desenvolvimento e caminhos conhecidos. O Jard
 
 O núcleo está implementado no Sistema 11, a progressão por prática no Sistema 13 e o primeiro contrato do Jardim está implementado no [Sistema 16](SYSTEM-SKILL-GARDEN.md).
 
-## Combate futuro
+## Combate e expansão futura
 
-O combate deverá reutilizar habilidades físicas e mágicas por um banco de ações declarativo: condições de ativação, custos, tempo de execução, efeitos e encadeamentos são preparados antes de cada turno e resolvidos pelo motor. O contrato não pode presumir que todo oponente seja um monstro; pessoas e criaturas também podem participar.
+O combate implementado reutiliza habilidades físicas e mágicas por um banco de ações declarativo e determinístico. Condições de ativação, custos, velocidade, alvos e efeitos são resolvidos pelo motor. O contrato não presume que todo oponente seja um monstro; pessoas e criaturas participam pela mesma base.
 
-Combate ainda não está implementado. Atributos, fórmulas, comportamento de oponentes e consequências de vitória, fuga ou derrota permanecem em discussão e receberão especificação própria depois da fundação do Sistema 11.
+Os próximos contratos aprofundam reservas de Númen, fases de preparação/execução/recuperação, interrupção e combate coletivo com companheiros. Fórmulas definitivas e posicionamento espacial continuam fora do recorte. Consulte [Sistema 22](SYSTEM-22-ADVANCED-NUMEN-SKILLS.md) e [Sistema 23](SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md).
+
+## Vida e sociedade
+
+O mundo não deve servir apenas como corredor entre combates. Personagens poderão manter relações persistentes, formar família e lar, envelhecer por estágios, exercer profissões, comerciar, conquistar cidadania ou títulos e participar de organizações.
+
+Em escala crescente, o jogador poderá administrar uma base, território ou assentamento e agir politicamente por uma facção. Essas possibilidades são sistemas do mundo, não finais exclusivos: um líder pode continuar explorando, treinando e cuidando da família.
 
 ## Tom
 

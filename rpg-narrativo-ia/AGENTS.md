@@ -8,6 +8,8 @@ A Fase 2 — consolidação do motor — está concluída. As etapas 1 a 6 da ev
 
 Os Sistemas 1 a 17 estão implementados e consolidados. O Sistema 13 — Progressão por prática e recompensas do Sistema — entrega prática por treino e vitória no módulo `mastery`. Os Sistemas 14 a 17 avançam o save até o schema 11: itens e preparação, condições e elementos, Jardim de habilidades e NPCs persistentes. O primeiro dia vive no pack JSON `content/first-day/`; o motor valida o conteúdo na borda e não persiste catálogo. Leia [Motor e pack de mundo](docs/CONTENT-PACK.md).
 
+Os Sistemas 18 a 29 estão **especificados e não implementados**. Eles formam o programa de cenário interativo, relacionamentos, Registro e rankings, organizações, Númen avançado, party e combate coletivo, calendário, família, profissões, economia, assentamentos e política. Antes de trabalhar neles, leia [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md), [Roadmap](docs/ROADMAP.md) e a spec da etapa autorizada. Não implemente mais de um sistema nem antecipe uma dependência.
+
 Leia [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md) e [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md) antes de propor código. Números, nomes e conteúdo continuam protótipos.
 
 O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **implementado e consolidado nas Fatias 11.1 a 11.7** nos módulos `energetics`, `skills`, `training` e `system-interface`: vocabulário energético, catálogos validados, `GameState.system` no schema 7, ação de treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Números, nomes e conteúdo de habilidades são protótipos. O combate já reutiliza os contratos públicos do Sistema 11, mas fórmulas e balanceamento definitivo continuam sem aprovação.
@@ -26,7 +28,7 @@ A interface jogável foi consolidada sob o princípio **aventura primeiro, dados
 - Prefira funções puras para condições, escolhas e efeitos.
 - Salve uma versão do esquema junto com a partida para permitir migrações futuras.
 - Inclua testes para regras e efeitos centrais.
-- Não expanda facções, assentamentos, combate complexo ou geração procedural além do exigido pelo MVP.
+- Não expanda facções, assentamentos, combate complexo ou geração procedural além da etapa explicitamente autorizada e de sua spec.
 - Trate dados persistidos e conteúdo de campanha como entradas não confiáveis e valide-os nas fronteiras.
 - Toda nova garantia do motor deve possuir teste automatizado que falhe sem a correção.
 - Preserve os rótulos de decisão de `docs/PROJECT-STATUS.md`: hipótese de agente não é requisito de produto.
@@ -40,6 +42,8 @@ A interface jogável foi consolidada sob o princípio **aventura primeiro, dados
 - Não invente atributos, fórmulas definitivas, curvas, velocidade de conjuração, raças ou consequências fora das especificações. Equipamentos, condições, Jardim e agenda obedecem estritamente aos contratos dos Sistemas 14 a 17.
 - Separe catálogos de habilidades, personagens e campanhas do estado persistido; prefira dados declarativos validados e nunca código executável em JSON.
 - O cânone atual garante Sistema a todos os humanos. Protagonista não humano, raças não humanas concretas e Sistema universal para todos os seres permanecem em discussão.
+- Preserve a diferença entre cânone e capacidade do motor: o `first-day` mantém Sistema para todos os humanos; o Sistema 20 especifica políticas configuráveis para packs futuros, sem retcon automático.
+- Preserve a arquitetura LEGO: leis reutilizáveis pertencem ao motor, entidades e parâmetros pertencem ao pack, acontecimentos pertencem à campanha e o save guarda somente IDs e estado mutável.
 - O contrato de combatente do Sistema 12 não equivale oponente a monstro: pessoas e criaturas compartilham o mesmo contrato, diferindo apenas por conteúdo.
 - Preserve as Fatias 12.8 a 12.12: revele ameaças somente por pré-requisitos declarativos, derive a vitalidade do jogador da `saude` atual e persista somente um resultado terminal verificável.
 - Um confronto completo cobra o tempo exatamente uma vez no desfecho; turnos individuais nunca avançam o relógio.

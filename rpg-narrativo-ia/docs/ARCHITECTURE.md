@@ -12,6 +12,22 @@ React apresenta o estado e envia ações. O motor em TypeScript decide regras e 
 Interface → ação → motor → módulos/regras → novo estado → persistência → interface
 ```
 
+O projeto segue a arquitetura descrita em [Visão do motor de mundo](WORLD-ENGINE-VISION.md):
+
+```text
+leis reutilizáveis do motor
+            ↓
+pack validado configura o mundo
+            ↓
+campanha referencia o pack e conta histórias
+            ↓
+save registra somente a partida do jogador
+            ↓
+interface apresenta ações e resultados
+```
+
+Uma regra reutilizável pertence a um módulo. Uma criatura, profissão, moeda, organização ou cena pertence ao pack. Um acontecimento específico pertence à campanha. O save guarda IDs e estado mutável, nunca uma cópia do catálogo.
+
 Na evolução sandbox, a aplicação alternará entre modos explícitos:
 
 ```ts
@@ -73,7 +89,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os módulos das Etapas 1 a 10 estão implementados. O Sistema 11 implementou `modules/energetics/`, `modules/skills/`, `modules/training/` e `modules/system-interface/`: catálogos validados, o estado de progressão persistido, a ação de treino, a Árvore de habilidades e a derivação do Status diegético.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os módulos dos Sistemas 1 a 17 estão implementados. Os Sistemas 18 a 29 possuem especificações, mas suas pastas só devem nascer na respectiva implementação autorizada.
 
 ## Responsabilidades
 
@@ -102,7 +118,6 @@ A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os m�
 - `mastery`: cataloga regras de prática e marcos de nível; transforma evidências verificadas (treino concluído, vitória de combate) em incrementos de proficiência; avalia marcos de forma pura e idempotente e produz um `MasteryResult`. Não acessa React, relógio, persistência nem internos de combate/treino.
 - `narrative`: resolução do evento atual e transições.
 - `content`: fontes de pack (`JsonPackSource`, `MemorySource`, `RemoteSource`) e `composeWorld`.
-- `campaigns`: adapters da campanha `first-day` sobre o pack JSON.
 - `campaigns`: adapters da campanha `first-day` sobre o pack JSON.
 - `content`: `ContentSource`, `composeWorld` e o pack empacotado; não executa código do arquivo.
 - `persistence`: adaptação entre o estado e armazenamento do navegador.

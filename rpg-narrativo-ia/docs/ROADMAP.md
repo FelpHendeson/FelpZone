@@ -276,35 +276,73 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 - **17.6** — Mira e interface mobile;
 - **17.7** — ciclo ponta a ponta e consolidação.
 
-## Horizonte depois do Sistema 17
+## Programa especificado depois do Sistema 17
 
 O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda, o save permanece schema 11 e uma fonte remota futura reusa o mesmo `composeWorld`. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
 
-### Outras direções definidas pelo autor
+Em 17 de setembro de 2026, o autor definiu o projeto como um **motor de mundos jogáveis**: sistemas reutilizáveis formam os blocos; packs configuram as leis e o conteúdo; campanhas contam histórias por cima deles. A arquitetura e os critérios permanentes estão em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
 
-- interagir com elementos do cenário além de coleta, crafting e presenças;
-- ampliar exploração, passagens, áreas bônus, recursos, crafting e cozinha;
-- permitir trama principal, conteúdo opcional e alguma forma futura de conclusão de áreas ou rotas;
-- desenvolver assentamentos, facções e modelos de sociedade como partes do universo narrativo.
+As etapas abaixo estão **especificadas, mas ainda não implementadas**. A ordem reduz retrabalho entre dependências. Cada sistema continua exigindo implementação fatiada, revisão e gates próprios.
 
-### Em discussão
+### Etapa 18 — Cenário interativo e pontos de interesse
+
+Objetos descobertos em locais ganham estado e ações declarativas, sem se confundir com recursos, estruturas ou presenças. Fonte: [Sistema 18](SYSTEM-18-INTERACTABLE-WORLD.md).
+
+### Etapa 19 — Relacionamentos e vínculos persistentes
+
+Relações direcionais, multidimensionais e vínculos explícitos sustentam amizade, rivalidade, mentoria e romance com agência dos NPCs. Fonte: [Sistema 19](SYSTEM-19-RELATIONSHIPS.md).
+
+### Etapa 20 — Registro do Sistema, patentes e rankings
+
+Políticas configuráveis de acesso ao Sistema, registro diegético e separação entre nível, patente, ranking, título e cargo social. O `first-day` mantém acesso universal para humanos. Fonte: [Sistema 20](SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md).
+
+### Etapa 21 — Grupos e organizações
+
+Filiação, cargos e permissões formam a base comum de parties, guildas, clãs e facções. Fonte: [Sistema 21](SYSTEM-21-GROUPS-ORGANIZATIONS.md).
+
+### Etapa 22 — Númen avançado, habilidades e execução
+
+Reservas, custos, fases de preparação/execução/recuperação, velocidade, recarga e interrupção aprofundam o banco de ações. Fonte: [Sistema 22](SYSTEM-22-ADVANCED-NUMEN-SKILLS.md).
+
+### Etapa 23 — Party, companheiros e combate coletivo
+
+Equipes, alvos múltiplos, papéis, táticas e agência de companheiros ampliam o combate determinístico. Fonte: [Sistema 23](SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md).
+
+### Etapa 24 — Calendário de longo prazo e ciclo de vida
+
+Meses, ciclos, anos, idade e estágios de vida criam a base temporal para família, profissão e projetos longos. Fonte: [Sistema 24](SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md).
+
+### Etapa 25 — Família, lar e linhagem
+
+Parceria, parentesco, responsáveis, dependentes, residência e crescimento por estágios sustentam trajetórias de vida. Fonte: [Sistema 25](SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md).
+
+### Etapa 26 — Profissões, cidadania e posição social
+
+Profissão, cidadania, ofício, título e reputação tornam possíveis trajetórias de artesão, comerciante, cidadão, autoridade ou nobre. Fonte: [Sistema 26](SYSTEM-26-PROFESSIONS-CITIZENSHIP-STATUS.md).
+
+### Etapa 27 — Economia, comércio e propriedade
+
+Moedas, estoques, preços declarativos, transações atômicas e direitos de propriedade formam a base econômica. Fonte: [Sistema 27](SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md).
+
+### Etapa 28 — Bases, territórios e assentamentos
+
+Reivindicações, projetos, estruturas, moradores, funções e produção limitada permitem construir e administrar. Fonte: [Sistema 28](SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md).
+
+### Etapa 29 — Facções, diplomacia e poder político
+
+Relações institucionais, representação, acordos, leis e influência conectam organizações e territórios. Fonte: [Sistema 29](SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md).
+
+### Ideias que continuam em discussão
 
 - minijogos de treino, interação ou experimentação;
-- fórmulas definitivas de nível, proficiência, Eteris, Númen e velocidade de conjuração;
-- protagonista não humano, raças não humanas concretas e extensão do Sistema a todos os seres;
+- fórmulas e números definitivos de nível, proficiência, Eteris, Númen e velocidade;
+- protagonista não humano e raças não humanas concretas;
 - expansão do mapa visual para visão regional ou global;
-- notificações mais amplas do Sistema além do feedback de jornadas;
-- formato de rotas e de conclusão global.
+- formato de rotas, finais e conclusão global;
+- comportamento autônomo de criaturas fora de eventos e agendas;
+- clima, viagem rápida, guerra em massa e morte permanente.
 
-### Ainda não discutido / sem certeza de implementação
-
-- comportamento autônomo de criaturas fora do combate;
-- grupo ou companheiros;
-- clima, economia, comércio ou viagem rápida;
-- administração jogável de assentamentos ou facções;
-- geração procedural, backend, sincronização, monetização e editor.
-
-Nenhum item do horizonte autoriza implementação por si só.
+Geração procedural, backend, sincronização, monetização e editor continuam sem autorização. Uma spec autoriza planejamento; não transforma sua implementação em concluída nem permite desenvolver várias etapas simultaneamente.
 
 ## Regra de entrada de um sistema
 

@@ -106,14 +106,15 @@ Estado conhecido:
 - a Fatia 8.6 valida Mira e o coelho chifrudo ponta a ponta e reconcilia saves que já consumiram o gatilho da Clareira;
 - presença e interação com NPCs e criaturas são metas definidas pelo autor;
 - o estado mínimo de ocorrências descobertas e resolvidas foi aprovado no Sistema 8;
-- `NPCState` mínimo e agendas determinísticas estão especificados para o Sistema 17; comportamento autônomo irrestrito continua fora do escopo;
+- `NPCState` mínimo e agendas determinísticas estão implementados no Sistema 17; comportamento autônomo irrestrito continua fora do escopo;
 - os Sistemas 1 a 10 estão consolidados;
 - os Sistemas 11 e 12 estão implementados e consolidados;
 - o Sistema 13 está implementado e consolidado nas Fatias 13.1 a 13.7;
 - o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
-- Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo; os próximos contratos estão em `SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md`, `SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md`, `SYSTEM-SKILL-GARDEN.md` e `SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md`.
+- Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo;
+- os Sistemas 18 a 29 estão especificados e não implementados, cobrindo cenário interativo, relações, rankings, organizações, Númen avançado, combate coletivo, calendário, família, profissões, economia, assentamentos e política.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/PROJECT-STATUS.md`, `docs/ROADMAP.md` e as especificações dos Sistemas 14 a 17. Os Sistemas 1 a 17 estão implementados e consolidados. Novos eixos precisam de especificação e autorização explícitas.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/WORLD-ENGINE-VISION.md`, `docs/PROJECT-STATUS.md`, `docs/ROADMAP.md` e a especificação exata da etapa autorizada. Os Sistemas 1 a 17 estão implementados e consolidados; os Sistemas 18 a 29 estão especificados, mas nenhum deles está implementado. Não antecipe etapas nem desenvolva mais de um sistema ao mesmo tempo.
 
 Execute:
 
@@ -131,7 +132,7 @@ Se precisar confirmar a base antes da discussão, revise especialmente:
 - saves com `world.trigger.first-priority.consumed` não duplicam o encontro;
 - overflow horizontal, alvos de 48 px e retorno da narrativa.
 
-Não invente atributos, fórmulas, raças, fusões, minijogos ou regras de combate além do contrato aprovado. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes.
+Não invente atributos, fórmulas, raças, fusões, minijogos ou regras além do contrato aprovado. Preserve a classificação de `PROJECT-STATUS.md`: direções definidas, ideias em discussão e hipóteses sem certeza não são requisitos equivalentes. Preserve também a separação entre motor, pack, campanha e save.
 
 Preserve o ciclo de trabalho:
 
@@ -142,4 +143,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Os Sistemas 1 a 17 estão completos dentro do recorte aprovado. O save atual é o schema 11. Novos eixos precisam de especificação e autorização explícitas. Balanceamento definitivo, posicionamento, grupos e comportamento autônomo irrestrito permanecem fora do escopo.
+Os Sistemas 1 a 17 estão completos dentro do recorte aprovado. O save atual é o schema 11. Os Sistemas 18 a 29 estão especificados e aguardam implementação fatiada, começando pelo Sistema 18. Balanceamento definitivo, posicionamento, guerra em massa e comportamento autônomo irrestrito permanecem fora do escopo.
