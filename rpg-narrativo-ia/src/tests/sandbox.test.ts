@@ -653,7 +653,7 @@ function mutableMap<K, V>(value: ReadonlyMap<K, V>): Map<K, V> {
 
 function expectInspected(value: unknown): SandboxContext {
   const inspected = inspectSandboxContext(value);
-  expect(inspected.ok).toBe(true);
+  expect(inspected.ok, inspected.ok ? undefined : inspected.reason).toBe(true);
   if (!inspected.ok) {
     throw new Error(inspected.reason);
   }
@@ -805,6 +805,27 @@ describe('reconstrução e normalização do SandboxContext', () => {
     expect(inspected.crafting.byStructure.has('hacked')).toBe(false);
     expect(inspected.crafting.byRecipe.has('craft-test-cord')).toBe(true);
     expect(inspected.crafting.byStructure.has('test-bench')).toBe(true);
+  });
+
+  it('rejeita crafting que referencia item ausente do catálogo fornecido', () => {
+    const source = createSandboxContext();
+    const invalid: SandboxContext = {
+      ...source,
+      crafting: {
+        ...source.crafting,
+        recipes: source.crafting.recipes.map((recipe, index) =>
+          index === 0 ? { ...recipe, inputs: [{ itemId: 'ghost-item', quantity: 1 }] } : recipe,
+        ),
+      },
+    };
+
+    expect(inspectSandboxContext(invalid).ok).toBe(false);
+  });
+
+  it('rejeita campanha e rótulos opcionais malformados', () => {
+    const source = createSandboxContext();
+    expect(inspectSandboxContext({ ...source, campaign: { id: 'incompleta' } }).ok).toBe(false);
+    expect(inspectSandboxContext({ ...source, stationLabels: { campfire: '' } }).ok).toBe(false);
   });
 
   it('recursos são reconstruídos contra a exploração normalizada', () => {

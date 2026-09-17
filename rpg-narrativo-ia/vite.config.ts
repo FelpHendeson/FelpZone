@@ -48,6 +48,20 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
+  build: {
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: 'react-vendor',
+              test: /node_modules[\\/]react(?:-dom)?[\\/]/,
+            },
+          ],
+        },
+      },
+    },
+  },
   test: {
     environment: 'node',
     include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],

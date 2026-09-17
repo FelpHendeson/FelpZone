@@ -22,7 +22,7 @@ import {
   type ObjectiveCatalog,
   type ObjectiveCriterion,
 } from '../modules/objectives';
-import { asV1, asV2, asV3, asV4, asV5, freshState, now } from './helpers';
+import { asV1, asV2, asV3, asV4, asV5, asV10, freshState, now } from './helpers';
 
 const OBJECTIVES: ObjectiveCatalog = {
   objectives: [
@@ -239,6 +239,17 @@ describe('Fatia 10.2 — schema 6 e migração', () => {
       status: 'ok',
       state,
     });
+  });
+
+  it('migração v10 para v11 não progride objetivos apenas por carregar o save', () => {
+    const initial = stateWithCatalog();
+    const raw = asV10({ ...initial, flags: { 'other.human': true } }, catalog);
+    const loaded = parseGameState(JSON.stringify(raw), undefined, catalog);
+
+    expect(loaded.status).toBe('ok');
+    if (loaded.status === 'ok') {
+      expect(loaded.state.objectives).toEqual(initial.objectives);
+    }
   });
 
   it('rejeita schema atual sem objetivos ou com progresso malformado', () => {

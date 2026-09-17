@@ -58,6 +58,7 @@ export interface NPCsState {
 }
 
 export interface IndexedNpcs {
+  readonly locationIds: readonly string[];
   readonly npcs: readonly NpcDefinition[];
   readonly schedules: readonly NpcScheduleDefinition[];
   readonly facts: readonly NpcMemoryFactDefinition[];

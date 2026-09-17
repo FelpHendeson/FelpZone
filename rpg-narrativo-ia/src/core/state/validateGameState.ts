@@ -346,20 +346,17 @@ export function migrateGameStateV9(
 export function migrateGameStateV10(
   state: GameStateV10,
   _context?: SandboxContext,
-  objectiveCatalog?: IndexedObjectives,
+  _objectiveCatalog?: IndexedObjectives,
 ): GameState {
-  const catalog = requireObjectiveCatalog(objectiveCatalog);
-  const candidate: GameState = {
+  void _context;
+  void _objectiveCatalog;
+  return {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
     sandbox: {
       ...state.sandbox,
       npcs: createInitialNpcsState(),
     },
-  };
-  return {
-    ...candidate,
-    objectives: synchronizeObjectives(catalog, candidate.objectives, candidate).current,
   };
 }
 
@@ -639,7 +636,12 @@ function inspectCurrent(
   if (!system.ok) {
     return fail(system.reason);
   }
-  const items = inspectItemsAgainstInventory(value.items, shared.value.inventory, INITIAL_ITEMS);
+  const items = inspectItemsAgainstInventory(
+    value.items,
+    shared.value.inventory,
+    resolvedContext.items ?? INITIAL_ITEMS,
+    resolvedContext.items !== undefined,
+  );
   if (!items.ok) {
     return fail(items.reason);
   }
@@ -651,7 +653,10 @@ function inspectCurrent(
   if (!garden.ok) {
     return fail(garden.reason);
   }
-  const npcs = inspectNpcsState(isRecord(value.sandbox) ? value.sandbox.npcs : undefined);
+  const npcs = inspectNpcsState(
+    isRecord(value.sandbox) ? value.sandbox.npcs : undefined,
+    resolvedContext.npcs,
+  );
   if (!npcs.ok) {
     return fail(npcs.reason);
   }
@@ -779,7 +784,13 @@ function inspectV8(
   if (!isRecord(value) || 'lingering' in value) {
     return fail('O salvamento usa um contrato incompatível com o schema 8.');
   }
-  const items = inspectItemsAgainstInventory(value.items, base.state.inventory, INITIAL_ITEMS);
+  const resolvedContext = requireContext(context);
+  const items = inspectItemsAgainstInventory(
+    value.items,
+    base.state.inventory,
+    resolvedContext.items ?? INITIAL_ITEMS,
+    resolvedContext.items !== undefined,
+  );
   if (!items.ok) {
     return fail(items.reason);
   }

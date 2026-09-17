@@ -1,8 +1,12 @@
 import { inspectCraftingDefinitions } from '../crafting';
 import { inspectExplorationDefinitions } from '../exploration';
+import { inspectItemsCatalog } from '../items';
 import { inspectNavigationMap } from '../navigation';
+import { inspectNpcCatalog } from '../npcs';
+import { inspectObjectiveCatalog } from '../objectives';
 import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
 import { inspectResourceDefinitions } from '../resources';
+import { inspectWorldTriggerCatalog } from '../world-events';
 import { firstDayCampaign } from '../../campaigns/first-day';
 import type { Campaign } from '../../core/events';
 import type { SandboxContext, SandboxContextInspection } from './types';
@@ -56,7 +60,12 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     return fail('As definições de crafting são inválidas.');
   }
 
-  const crafting = inspectCraftingDefinitions(value.crafting.recipes, value.crafting.structures);
+  const items = value.items === undefined ? undefined : inspectItemsCatalog(value.items);
+  if (items && !items.ok) {
+    return fail(items.reason);
+  }
+
+  const crafting = inspectCraftingDefinitions(value.crafting.recipes, value.crafting.structures, items?.value);
   if (!crafting.ok) {
     return fail(crafting.reason);
   }
@@ -78,12 +87,15 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     return fail('O catálogo de interações é inválido.');
   }
 
-  const campaign = isRecord(value.campaign) ? (value.campaign as unknown as Campaign) : firstDayCampaign;
+  const campaign = inspectCampaign(value.campaign);
+  if (!campaign.ok) {
+    return fail(campaign.reason);
+  }
 
   const presenceInteractions = inspectPresenceInteractionCatalog(
     { interactions: value.presenceInteractions.interactions },
     presences.value,
-    campaign,
+    campaign.value,
   );
   if (!presenceInteractions.ok) {
     return fail(presenceInteractions.reason);
@@ -97,36 +109,115 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     crafting: crafting.value,
     presences: presences.value,
     presenceInteractions: presenceInteractions.value,
-    campaign,
+    campaign: campaign.value,
   };
 
-  if (isRecord(value.npcs)) {
-    context.npcs = value.npcs as unknown as SandboxContext['npcs'];
+  if (value.npcs !== undefined) {
+    const npcs = inspectNpcCatalog(value.npcs, new Set(map.value.locations.keys()));
+    if (!npcs.ok) {
+      return fail(npcs.reason);
+    }
+    context.npcs = npcs.value;
   }
-  if (isRecord(value.items)) {
-    context.items = value.items as unknown as SandboxContext['items'];
+  if (items) {
+    context.items = items.value;
   }
-  if (isRecord(value.objectives)) {
-    context.objectives = value.objectives as unknown as SandboxContext['objectives'];
+  if (value.objectives !== undefined) {
+    const objectives = inspectObjectiveCatalog(value.objectives);
+    if (!objectives.ok) {
+      return fail(objectives.reason);
+    }
+    context.objectives = objectives.value;
   }
-  if (isRecord(value.worldTriggers)) {
-    context.worldTriggers = value.worldTriggers as unknown as SandboxContext['worldTriggers'];
+  if (value.worldTriggers !== undefined) {
+    if (!isRecord(value.worldTriggers) || !Array.isArray(value.worldTriggers.definitions)) {
+      return fail('O catálogo de gatilhos narrativos é inválido.');
+    }
+    const worldTriggers = inspectWorldTriggerCatalog(value.worldTriggers.definitions, {
+      campaign: campaign.value,
+      exploration: exploration.value,
+    });
+    if (!worldTriggers.ok) {
+      return fail(worldTriggers.reason);
+    }
+    context.worldTriggers = worldTriggers.value;
+  }
+  if (value.stationLabels !== undefined && !isRecord(value.stationLabels)) {
+    return fail('Os rótulos de estação são inválidos.');
   }
   if (isRecord(value.stationLabels)) {
     const stations: Record<string, string> = {};
     for (const [key, label] of Object.entries(value.stationLabels)) {
-      if (typeof key === 'string' && typeof label === 'string') {
-        stations[key] = label;
+      if (key.trim() === '' || typeof label !== 'string' || label.trim() === '') {
+        return fail('Os rótulos de estação são inválidos.');
       }
+      stations[key] = label;
     }
-    context.stationLabels = stations;
+    context.stationLabels = Object.freeze(stations);
   }
 
   return { ok: true, value: context };
 }
 
+function inspectCampaign(value: unknown): { ok: true; value: Campaign } | { ok: false; reason: string } {
+  if (value === undefined) {
+    return { ok: true, value: firstDayCampaign };
+  }
+  if (
+    !isRecord(value) ||
+    !nonEmpty(value.id) ||
+    !nonEmpty(value.title) ||
+    !nonEmpty(value.firstEventId) ||
+    !Array.isArray(value.events) ||
+    value.events.length > 2_048 ||
+    !Array.isArray(value.items) ||
+    !Array.isArray(value.abilities) ||
+    !Array.isArray(value.npcs) ||
+    !Array.isArray(value.titles)
+  ) {
+    return { ok: false, reason: 'A campanha do sandbox é inválida.' };
+  }
+  const eventIds = new Set<string>();
+  for (const event of value.events) {
+    if (
+      !isRecord(event) ||
+      !nonEmpty(event.id) ||
+      eventIds.has(event.id) ||
+      !nonEmpty(event.title) ||
+      !nonEmpty(event.body) ||
+      !Array.isArray(event.choices) ||
+      event.choices.length > 256
+    ) {
+      return { ok: false, reason: 'A campanha do sandbox é inválida.' };
+    }
+    const choiceIds = new Set<string>();
+    for (const choice of event.choices) {
+      if (
+        !isRecord(choice) ||
+        !nonEmpty(choice.id) ||
+        choiceIds.has(choice.id) ||
+        !nonEmpty(choice.label) ||
+        !isRecord(choice.transition) ||
+        !Array.isArray(choice.effects)
+      ) {
+        return { ok: false, reason: 'A campanha do sandbox é inválida.' };
+      }
+      choiceIds.add(choice.id);
+    }
+    eventIds.add(event.id);
+  }
+  if (!eventIds.has(value.firstEventId)) {
+    return { ok: false, reason: 'A campanha do sandbox é inválida.' };
+  }
+  return { ok: true, value: value as unknown as Campaign };
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function nonEmpty(value: unknown): value is string {
+  return typeof value === 'string' && value.trim().length > 0;
 }
 
 function fail(reason: string): SandboxContextInspection {

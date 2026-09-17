@@ -1,6 +1,7 @@
 import type { DayPeriod } from '../../core/state/types';
 import { DAY_PERIODS } from '../../core/state/types';
 import { NpcError } from './errors';
+import { ImmutableIndex } from './immutable-index';
 import { INITIAL_NPC_CATALOG } from './initial-npcs';
 import map from '../../../content/first-day/world/map.json' with { type: 'json' };
 import type {
@@ -80,7 +81,8 @@ export function inspectNpcCatalog(value: unknown, locationIds: ReadonlySet<strin
   }
 
   for (const npc of npcs) {
-    if (!scheduleIds.has(npc.defaultScheduleId)) {
+    const schedule = schedules.find((entry) => entry.id === npc.defaultScheduleId);
+    if (!schedule || schedule.npcId !== npc.id) {
       return fail('O NPC referencia uma agenda inexistente.');
     }
   }
@@ -108,15 +110,26 @@ export function inspectNpcCatalog(value: unknown, locationIds: ReadonlySet<strin
     });
   }
 
+  const frozenNpcs = Object.freeze(npcs.map((npc) => Object.freeze({ ...npc })));
+  const frozenSchedules = Object.freeze(
+    schedules.map((schedule) =>
+      Object.freeze({
+        ...schedule,
+        entries: Object.freeze(schedule.entries.map((entry) => Object.freeze({ ...entry }))),
+      }),
+    ),
+  );
+  const frozenFacts = Object.freeze(facts.map((fact) => Object.freeze({ ...fact })));
   return {
     ok: true,
     value: Object.freeze({
-      npcs: Object.freeze(npcs.map((npc) => Object.freeze(npc))),
-      schedules: Object.freeze(schedules.map((schedule) => Object.freeze({ ...schedule, entries: Object.freeze(schedule.entries.map((entry) => Object.freeze(entry))) }))),
-      facts: Object.freeze(facts.map((fact) => Object.freeze(fact))),
-      npcById: new Map(npcs.map((npc) => [npc.id, npc] as const)),
-      scheduleById: new Map(schedules.map((schedule) => [schedule.id, schedule] as const)),
-      factById: new Map(facts.map((fact) => [fact.id, fact] as const)),
+      locationIds: Object.freeze([...locationIds]),
+      npcs: frozenNpcs,
+      schedules: frozenSchedules,
+      facts: frozenFacts,
+      npcById: new ImmutableIndex(frozenNpcs.map((npc) => [npc.id, npc] as const)),
+      scheduleById: new ImmutableIndex(frozenSchedules.map((schedule) => [schedule.id, schedule] as const)),
+      factById: new ImmutableIndex(frozenFacts.map((fact) => [fact.id, fact] as const)),
     }),
   };
 }
@@ -151,6 +164,21 @@ export function inspectNpcsState(value: unknown, catalog: IndexedNpcs = INITIAL_
     if (typeof entry.known !== 'boolean') {
       return fail('O reconhecimento do NPC é inválido.');
     }
+    if (
+      entry.locationOverrideId !== null &&
+      (!nonEmpty(entry.locationOverrideId) || !catalog.locationIds.includes(entry.locationOverrideId))
+    ) {
+      return fail('A localização alternativa do NPC é inválida.');
+    }
+    if (entry.scheduleOverrideId !== null) {
+      if (!nonEmpty(entry.scheduleOverrideId)) {
+        return fail('A agenda alternativa do NPC é inválida.');
+      }
+      const override = catalog.scheduleById.get(entry.scheduleOverrideId);
+      if (!override || override.npcId !== npcId) {
+        return fail('A agenda alternativa do NPC é inválida.');
+      }
+    }
     const facts: string[] = [];
     const seenFacts = new Set<string>();
     if (!Array.isArray(entry.memoryFactIds)) {
@@ -172,9 +200,9 @@ export function inspectNpcsState(value: unknown, catalog: IndexedNpcs = INITIAL_
       npcId,
       known: entry.known,
       status,
-      locationOverrideId: typeof entry.locationOverrideId === 'string' ? entry.locationOverrideId : null,
+      locationOverrideId: entry.locationOverrideId,
       memoryFactIds: facts,
-      scheduleOverrideId: typeof entry.scheduleOverrideId === 'string' ? entry.scheduleOverrideId : null,
+      scheduleOverrideId: entry.scheduleOverrideId,
     });
   }
   return { ok: true, value: { entries } };
@@ -256,8 +284,8 @@ export function deriveNpcAt(
     return {
       npcId,
       name: npc.name,
-      locationId,
-      availability,
+      locationId: '',
+      availability: 'hidden',
       presence: 'absent',
       knownFactIds: [...entry.memoryFactIds],
       hint: locationHintFor(catalog, entry),

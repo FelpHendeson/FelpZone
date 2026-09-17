@@ -225,7 +225,33 @@ export function inspectItemsAgainstInventory(
   state: unknown,
   inventory: readonly InventoryItem[],
   catalog: IndexedItems = INITIAL_ITEMS,
+  validateInventoryCatalog = true,
 ): ItemsInspection<ItemsState> {
+  if (!Array.isArray(inventory) || inventory.length > MAX_ITEMS) {
+    return fail('O inventário excede os limites permitidos.');
+  }
+  const seenInventory = new Set<string>();
+  for (const entry of inventory) {
+    if (
+      !isRecord(entry) ||
+      !nonEmpty(entry.itemId) ||
+      seenInventory.has(entry.itemId) ||
+      !positiveSafeInteger(entry.quantity)
+    ) {
+      return fail('O inventário possui uma entrada inválida ou duplicada.');
+    }
+    if (validateInventoryCatalog) {
+      const definition = catalog.byId.get(entry.itemId);
+      if (!definition) {
+        return fail('O inventário referencia um item inexistente.');
+      }
+      if (entry.quantity > definition.stackLimit) {
+        return fail('O inventário excede o limite de pilha de um item.');
+      }
+    }
+    seenInventory.add(entry.itemId);
+  }
+
   const inspected = inspectItemsState(state, catalog);
   if (!inspected.ok) {
     return inspected;

@@ -1,4 +1,5 @@
 import { ConditionError } from './errors';
+import { ImmutableIndex } from './immutable-index';
 import { INITIAL_CONDITIONS_CATALOG } from './initial-conditions';
 import {
   AFFINITY_LABELS,
@@ -53,29 +54,34 @@ export function inspectConditionsCatalog(value: unknown): ConditionsInspection<I
 
   const interactions: ElementInteractionDefinition[] = [];
   const pairs = new Set<string>();
-  for (const source of elementIds) {
-    for (const target of elementIds) {
-      const found = (value.interactions as unknown[]).find((entry) => {
-        return isRecord(entry) && entry.sourceElementId === source && entry.targetElementId === target;
-      });
-      if (!found || !isRecord(found) || !includes(AFFINITY_LABELS, found.label)) {
-        return fail('Toda combinação elemental precisa de uma relação explícita.');
-      }
-      if (typeof found.multiplier !== 'number' || !(found.multiplier > 0) || found.multiplier > 4) {
-        return fail('O multiplicador elemental é inválido.');
-      }
-      const key = `${source}>${target}`;
-      if (pairs.has(key)) {
-        return fail('A relação elemental está duplicada.');
-      }
-      pairs.add(key);
-      interactions.push({
-        sourceElementId: source,
-        targetElementId: target,
-        multiplier: found.multiplier,
-        label: found.label,
-      });
+  for (const entry of value.interactions) {
+    if (
+      !isRecord(entry) ||
+      !nonEmpty(entry.sourceElementId) ||
+      !elementIds.has(entry.sourceElementId) ||
+      !nonEmpty(entry.targetElementId) ||
+      !elementIds.has(entry.targetElementId) ||
+      !includes(AFFINITY_LABELS, entry.label)
+    ) {
+      return fail('A relação elemental é inválida.');
     }
+    if (typeof entry.multiplier !== 'number' || !(entry.multiplier > 0) || entry.multiplier > 4) {
+      return fail('O multiplicador elemental é inválido.');
+    }
+    const key = `${entry.sourceElementId}>${entry.targetElementId}`;
+    if (pairs.has(key)) {
+      return fail('A relação elemental está duplicada.');
+    }
+    pairs.add(key);
+    interactions.push({
+      sourceElementId: entry.sourceElementId,
+      targetElementId: entry.targetElementId,
+      multiplier: entry.multiplier,
+      label: entry.label,
+    });
+  }
+  if (pairs.size !== elementIds.size ** 2) {
+    return fail('Toda combinação elemental precisa de uma relação explícita.');
   }
 
   const conditions: ConditionDefinition[] = [];
@@ -89,9 +95,9 @@ export function inspectConditionsCatalog(value: unknown): ConditionsInspection<I
     conditions.push(inspected.value);
   }
 
-  const elementById = new Map(elements.map((entry) => [entry.id, Object.freeze(entry)] as const));
-  const conditionById = new Map(conditions.map((entry) => [entry.id, freezeCondition(entry)] as const));
-  const interactionByPair = new Map(
+  const elementById = new ImmutableIndex(elements.map((entry) => [entry.id, Object.freeze(entry)] as const));
+  const conditionById = new ImmutableIndex(conditions.map((entry) => [entry.id, freezeCondition(entry)] as const));
+  const interactionByPair = new ImmutableIndex(
     interactions.map((entry) => [`${entry.sourceElementId}>${entry.targetElementId}`, Object.freeze(entry)] as const),
   );
 

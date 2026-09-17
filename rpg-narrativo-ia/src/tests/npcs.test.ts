@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { INITIAL_NPCS, createInitialNpcsState, deriveNpcAt, rememberNpcFact } from '../modules/npcs';
+import {
+  INITIAL_NPCS,
+  INITIAL_NPC_CATALOG,
+  NpcError,
+  createInitialNpcsState,
+  deriveNpcAt,
+  inspectNpcCatalog,
+  inspectNpcsState,
+  rememberNpcFact,
+} from '../modules/npcs';
 
 describe('Fatias 17.1 a 17.3 — NPCs persistentes', () => {
   it('não deriva Mira desconhecida', () => {
@@ -24,6 +33,38 @@ describe('Fatias 17.1 a 17.3 — NPCs persistentes', () => {
 
     const nightUnknownPlace = deriveNpcAt(INITIAL_NPCS, withHint, 'mira-vale', 'noite', () => false);
     expect(nightUnknownPlace?.presence).toBe('absent');
-    expect(nightUnknownPlace?.locationId).toBe('awakening-clearing');
+    expect(nightUnknownPlace?.locationId).toBe('');
+    expect(nightUnknownPlace?.availability).toBe('hidden');
+  });
+
+  it('rejeita overrides forjados e mantém os índices imutáveis', () => {
+    const known = rememberNpcFact(INITIAL_NPCS, createInitialNpcsState(), 'mira-vale', 'mira-first-talk');
+    expect(
+      inspectNpcsState({
+        entries: [{ ...known.entries[0], locationOverrideId: 'ghost-place' }],
+      }).ok,
+    ).toBe(false);
+    expect(
+      inspectNpcsState({
+        entries: [{ ...known.entries[0], scheduleOverrideId: 'ghost-schedule' }],
+      }).ok,
+    ).toBe(false);
+    expect(() => (INITIAL_NPCS.npcById as Map<string, never>).clear()).toThrow(NpcError);
+  });
+
+  it('rejeita agenda padrão pertencente a outro NPC', () => {
+    const catalog = {
+      ...structuredClone(INITIAL_NPC_CATALOG),
+      npcs: [
+        ...INITIAL_NPC_CATALOG.npcs,
+        {
+          id: 'impostor',
+          entityId: 'impostor-entity',
+          name: 'Impostor',
+          defaultScheduleId: INITIAL_NPC_CATALOG.npcs[0].defaultScheduleId,
+        },
+      ],
+    };
+    expect(inspectNpcCatalog(catalog, new Set(INITIAL_NPCS.locationIds)).ok).toBe(false);
   });
 });

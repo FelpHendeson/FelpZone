@@ -1,5 +1,6 @@
 import { INITIAL_SKILLS, hasSkill, type IndexedSkills } from '../skills';
 import { INITIAL_CONDITIONS } from '../conditions';
+import { INITIAL_ITEMS, type IndexedItems } from '../items';
 import { CombatError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_COMBAT_CATALOG } from './initial-combat';
@@ -34,9 +35,13 @@ export {
   type VerifyCombatResolutionOptions,
 } from './integration';
 
-export const INITIAL_COMBAT = indexCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS);
+export const INITIAL_COMBAT = indexCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS, INITIAL_ITEMS);
 
-export function inspectCombatCatalog(value: unknown, skills: IndexedSkills): CombatInspection<IndexedCombat> {
+export function inspectCombatCatalog(
+  value: unknown,
+  skills: IndexedSkills,
+  items: IndexedItems = INITIAL_ITEMS,
+): CombatInspection<IndexedCombat> {
   if (
     !isRecord(value) ||
     !Array.isArray(value.actions) ||
@@ -71,7 +76,7 @@ export function inspectCombatCatalog(value: unknown, skills: IndexedSkills): Com
   const encounters: EncounterDefinition[] = [];
   const encounterIds = new Set<string>();
   for (const entry of value.encounters) {
-    const inspected = inspectEncounter(entry, encounterIds, combatantIds);
+    const inspected = inspectEncounter(entry, encounterIds, combatantIds, items);
     if (!inspected.ok) {
       return inspected;
     }
@@ -82,8 +87,12 @@ export function inspectCombatCatalog(value: unknown, skills: IndexedSkills): Com
   return { ok: true, value: freezeCatalog(actions, combatants, encounters) };
 }
 
-export function indexCombatCatalog(value: unknown, skills: IndexedSkills): IndexedCombat {
-  const inspected = inspectCombatCatalog(value, skills);
+export function indexCombatCatalog(
+  value: unknown,
+  skills: IndexedSkills,
+  items: IndexedItems = INITIAL_ITEMS,
+): IndexedCombat {
+  const inspected = inspectCombatCatalog(value, skills, items);
   if (!inspected.ok) {
     throw new CombatError(inspected.reason);
   }
@@ -260,6 +269,7 @@ function inspectEncounter(
   value: unknown,
   existing: ReadonlySet<string>,
   combatantIds: ReadonlySet<string>,
+  items: IndexedItems,
 ): CombatInspection<EncounterDefinition> {
   if (
     !isRecord(value) ||
@@ -283,7 +293,7 @@ function inspectEncounter(
   if (!requirements.ok) {
     return requirements;
   }
-  const reward = inspectReward(value.reward);
+  const reward = inspectReward(value.reward, items);
   if (!reward.ok) {
     return reward;
   }
@@ -303,12 +313,19 @@ function inspectEncounter(
   };
 }
 
-function inspectReward(value: unknown): CombatInspection<{ itemId: string; quantity: number } | undefined> {
+function inspectReward(
+  value: unknown,
+  items: IndexedItems,
+): CombatInspection<{ itemId: string; quantity: number } | undefined> {
   if (value === undefined) {
     return { ok: true, value: undefined };
   }
   if (!isRecord(value) || !nonEmpty(value.itemId) || !positiveSafeInteger(value.quantity)) {
     return fail('A recompensa do encontro é inválida.');
+  }
+  const item = items.byId.get(value.itemId);
+  if (!item || value.quantity > item.stackLimit) {
+    return fail('A recompensa do encontro referencia um item inexistente ou excede seu limite de pilha.');
   }
   return { ok: true, value: { itemId: value.itemId, quantity: value.quantity } };
 }

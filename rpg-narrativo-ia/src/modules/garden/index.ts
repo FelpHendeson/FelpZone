@@ -1,5 +1,7 @@
 import { getSkillProficiency, isSkillKnown, INITIAL_SKILLS, type IndexedSkills, type SkillsProgressState } from '../skills';
+import { INITIAL_MASTERY } from '../mastery';
 import { GardenError } from './errors';
+import { ImmutableIndex } from './immutable-index';
 import { INITIAL_GARDEN_CATALOG } from './initial-garden';
 import type {
   GardenInspection,
@@ -26,16 +28,22 @@ export type {
   IndexedGarden,
 } from './types';
 
-export const INITIAL_GARDEN = indexGardenCatalog(INITIAL_GARDEN_CATALOG, INITIAL_SKILLS);
+const INITIAL_MILESTONE_IDS = new Set(INITIAL_MASTERY.milestones.map((milestone) => milestone.id));
 
-export function inspectGardenCatalog(value: unknown, skills: IndexedSkills): GardenInspection<IndexedGarden> {
+export const INITIAL_GARDEN = indexGardenCatalog(INITIAL_GARDEN_CATALOG, INITIAL_SKILLS, INITIAL_MILESTONE_IDS);
+
+export function inspectGardenCatalog(
+  value: unknown,
+  skills: IndexedSkills,
+  milestoneIds: ReadonlySet<string> = INITIAL_MILESTONE_IDS,
+): GardenInspection<IndexedGarden> {
   if (!isRecord(value) || !Array.isArray(value.recipes)) {
     return fail('O catálogo do Jardim é inválido.');
   }
   const recipes: GardenRecipeDefinition[] = [];
   const ids = new Set<string>();
   for (const entry of value.recipes) {
-    const inspected = inspectRecipe(entry, ids, skills);
+    const inspected = inspectRecipe(entry, ids, skills, milestoneIds);
     if (!inspected.ok) {
       return inspected;
     }
@@ -46,13 +54,17 @@ export function inspectGardenCatalog(value: unknown, skills: IndexedSkills): Gar
     ok: true,
     value: Object.freeze({
       recipes: Object.freeze(recipes.map(freezeRecipe)),
-      recipeById: new Map(recipes.map((recipe) => [recipe.id, freezeRecipe(recipe)] as const)),
+      recipeById: new ImmutableIndex(recipes.map((recipe) => [recipe.id, freezeRecipe(recipe)] as const)),
     }),
   };
 }
 
-export function indexGardenCatalog(value: unknown, skills: IndexedSkills): IndexedGarden {
-  const inspected = inspectGardenCatalog(value, skills);
+export function indexGardenCatalog(
+  value: unknown,
+  skills: IndexedSkills,
+  milestoneIds: ReadonlySet<string> = INITIAL_MILESTONE_IDS,
+): IndexedGarden {
+  const inspected = inspectGardenCatalog(value, skills, milestoneIds);
   if (!inspected.ok) {
     throw new GardenError(inspected.reason);
   }
@@ -93,7 +105,11 @@ export function grantCultivationPoints(state: GardenState, amount: number): Gard
   if (!Number.isSafeInteger(amount) || amount < 0) {
     throw new GardenError('A concessão de pontos de cultivo é inválida.');
   }
-  return { cultivationPoints: state.cultivationPoints + amount, completedRecipeIds: [...state.completedRecipeIds] };
+  const cultivationPoints = state.cultivationPoints + amount;
+  if (!Number.isSafeInteger(cultivationPoints)) {
+    throw new GardenError('A concessão de pontos de cultivo excede os limites permitidos.');
+  }
+  return { cultivationPoints, completedRecipeIds: [...state.completedRecipeIds] };
 }
 
 export function deriveGardenRecipes(
@@ -139,8 +155,8 @@ export function planGardenCultivation(
   reachedMilestoneIds: readonly string[] = [],
 ): GardenPlan {
   const recipe = catalog.recipeById.get(recipeId);
-  if (!recipe) {
-    throw new GardenError('A receita do Jardim não existe.');
+  if (!recipe || visibilityFor(recipe, progress, state, reachedMilestoneIds) === 'hidden') {
+    throw new GardenError('Esta integração ainda não está disponível.');
   }
   if (state.completedRecipeIds.includes(recipeId)) {
     throw new GardenError('Esta integração já foi cultivada.');
@@ -213,6 +229,7 @@ function inspectRecipe(
   value: unknown,
   existing: ReadonlySet<string>,
   skills: IndexedSkills,
+  milestoneIds: ReadonlySet<string>,
 ): GardenInspection<GardenRecipeDefinition> {
   if (!isRecord(value) || !nonEmpty(value.id) || existing.has(value.id) || !nonEmpty(value.name) || !nonEmpty(value.description)) {
     return fail('A receita do Jardim é inválida.');
@@ -221,10 +238,12 @@ function inspectRecipe(
     return fail('A receita do Jardim precisa de ao menos duas habilidades de origem.');
   }
   const sourceSkillIds: string[] = [];
+  const seenSources = new Set<string>();
   for (const id of value.sourceSkillIds) {
-    if (typeof id !== 'string' || !skills.skillById.has(id)) {
+    if (typeof id !== 'string' || seenSources.has(id) || !skills.skillById.has(id)) {
       return fail('A receita do Jardim referencia uma habilidade inexistente.');
     }
+    seenSources.add(id);
     sourceSkillIds.push(id);
   }
   if (typeof value.resultSkillId !== 'string' || !skills.skillById.has(value.resultSkillId)) {
@@ -241,6 +260,20 @@ function inspectRecipe(
   if (!positiveSafeInteger(value.initialProficiency)) {
     return fail('A proficiência inicial do Jardim é inválida.');
   }
+  if (!Array.isArray(value.requirements)) {
+    return fail('Os requisitos do Jardim são inválidos.');
+  }
+  const requirements: GardenRequirement[] = [];
+  for (const requirement of value.requirements) {
+    const inspected = inspectRequirement(requirement, skills, milestoneIds);
+    if (!inspected.ok) {
+      return inspected;
+    }
+    requirements.push(inspected.value);
+  }
+  if (!isRecord(value.visibility) || !isVisibilityRule(value.visibility.type)) {
+    return fail('A regra de visibilidade do Jardim é inválida.');
+  }
   return {
     ok: true,
     value: {
@@ -248,13 +281,45 @@ function inspectRecipe(
       name: value.name,
       description: value.description,
       sourceSkillIds,
-      requirements: Array.isArray(value.requirements) ? (value.requirements as GardenRequirement[]) : [],
+      requirements,
       cost: { cultivationPoints: value.cost.cultivationPoints, timeCost: { periods: value.cost.timeCost.periods } },
       resultSkillId: value.resultSkillId,
       initialProficiency: value.initialProficiency,
-      visibility: isRecord(value.visibility) ? (value.visibility as GardenRecipeDefinition['visibility']) : { type: 'available-when-requirements-met' },
+      visibility: { type: value.visibility.type },
     },
   };
+}
+
+function inspectRequirement(
+  value: unknown,
+  skills: IndexedSkills,
+  milestoneIds: ReadonlySet<string>,
+): GardenInspection<GardenRequirement> {
+  if (!isRecord(value)) {
+    return fail('Os requisitos do Jardim são inválidos.');
+  }
+  if (value.type === 'skill.known' && nonEmpty(value.skillId) && skills.skillById.has(value.skillId)) {
+    return { ok: true, value: { type: 'skill.known', skillId: value.skillId } };
+  }
+  if (
+    value.type === 'skill.proficiency' &&
+    nonEmpty(value.skillId) &&
+    skills.skillById.has(value.skillId) &&
+    positiveSafeInteger(value.minimum)
+  ) {
+    return { ok: true, value: { type: 'skill.proficiency', skillId: value.skillId, minimum: value.minimum } };
+  }
+  if (value.type === 'level.minimum' && positiveSafeInteger(value.level)) {
+    return { ok: true, value: { type: 'level.minimum', level: value.level } };
+  }
+  if (value.type === 'milestone.reached' && nonEmpty(value.milestoneId) && milestoneIds.has(value.milestoneId)) {
+    return { ok: true, value: { type: 'milestone.reached', milestoneId: value.milestoneId } };
+  }
+  return fail('Os requisitos do Jardim são inválidos.');
+}
+
+function isVisibilityRule(value: unknown): value is GardenRecipeDefinition['visibility']['type'] {
+  return value === 'always-hidden' || value === 'perceived-when-sources-known' || value === 'available-when-requirements-met';
 }
 
 function freezeRecipe(recipe: GardenRecipeDefinition): GardenRecipeDefinition {

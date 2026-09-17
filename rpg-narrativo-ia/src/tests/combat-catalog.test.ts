@@ -91,6 +91,16 @@ describe('Fatia 12.1 — catálogo de combate', () => {
     expect(inspectCombatCatalog(INITIAL_COMBAT_CATALOG, INITIAL_SKILLS).ok).toBe(true);
     expect(INITIAL_COMBAT.encounters.length).toBeGreaterThan(0);
   });
+
+  it('rejeita recompensas que não pertencem ao catálogo de itens', () => {
+    const unknownReward = catalog();
+    unknownReward.encounters[0].reward = { itemId: 'ghost-item', quantity: 1 };
+    expect(inspectCombatCatalog(unknownReward, INITIAL_SKILLS).ok).toBe(false);
+
+    const excessiveReward = catalog();
+    excessiveReward.encounters[0].reward = { itemId: 'improvised-tool', quantity: 2 };
+    expect(inspectCombatCatalog(excessiveReward, INITIAL_SKILLS).ok).toBe(false);
+  });
 });
 
 function source(): CombatActionDefinition {

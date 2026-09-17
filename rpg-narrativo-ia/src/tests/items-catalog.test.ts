@@ -80,6 +80,11 @@ describe('Fatia 14.1 — catálogo puro de itens', () => {
         ],
       ).ok,
     ).toBe(true);
+    expect(inspectItemsAgainstInventory(empty, [{ itemId: 'ghost-item', quantity: 1 }]).ok).toBe(false);
+    const branch = getItem(INITIAL_ITEMS, 'fallen-branch');
+    expect(
+      inspectItemsAgainstInventory(empty, [{ itemId: branch.id, quantity: branch.stackLimit + 1 }]).ok,
+    ).toBe(false);
     expect(
       reservedQuantity(
         {
