@@ -74,19 +74,20 @@ const JOURNAL: JournalView = {
 };
 
 describe('Fatia 10.4 — superfície de Jornadas e Diário', () => {
-  it('consolida a navegação principal em quatro destinos acessíveis', () => {
+  it('distribui a navegação principal em cinco destinos focados', () => {
     const html = renderToStaticMarkup(
       <BottomNavigation active="journal" inventoryCount={2} onChange={() => undefined} />,
     );
 
-    expect(html.match(/<button/g)).toHaveLength(4);
+    expect(html.match(/<button/g)).toHaveLength(5);
     expect(html).toContain('aria-label="Navegação da partida"');
     expect(html).toContain('aria-current="page"');
     expect(html).toContain('Jornadas');
-    expect(html).toContain('Sistema');
+    expect(html).toContain('Personagem');
+    expect(html).toContain('Menu');
     expect(html).not.toContain('Ações');
-    expect(html).not.toContain('>Eu<');
-    expect(html).toContain('style="--bottom-navigation-items:4"');
+    expect(html).not.toContain('>Sistema<');
+    expect(html).toContain('style="--bottom-navigation-items:5"');
   });
 
   it('separa jornadas, mostra progresso textual e oferece acompanhamento não persistido', () => {

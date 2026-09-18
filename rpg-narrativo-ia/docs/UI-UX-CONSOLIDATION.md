@@ -1,5 +1,7 @@
 # Consolidação de UI/UX
 
+> Esta foi a primeira consolidação visual. A distribuição atual em cinco destinos e telas de domínio está documentada em [UI/UX 2.0 — Navegação por focos](UI-UX-2-NAVIGATION.md).
+
 ## Estado da decisão
 
 Esta apresentação está **implementada como protótipo**. Ela consolida os Sistemas 1 a 11 sem criar novas regras de jogo. Arte, ícones, tipografia, balanceamento e identidade visual definitiva ainda podem mudar.
@@ -45,7 +47,7 @@ A ordem visual deve acompanhar o raciocínio do jogador:
 | **Mundo** | Local atual, exploração, orientação, jornada acompanhada, rotas e presenças. |
 | **Jornadas** | Objetivos, locais registrados, presenças conhecidas e histórico narrativo. |
 | **Mochila** | Itens carregados e consumo de itens já permitido pelo domínio. |
-| **Sistema** | Identidade, condição, relações, Eteris, Númen, habilidades, caminhos e treino. |
+| **Sistema** | Identidade, condição, relações, Eteris, Númen, habilidades, caminhos e treino. Esta responsabilidade foi posteriormente dividida entre `Personagem`, `Pessoas e criaturas` e a central `Menu`. |
 
 `Ações` deixa de ser um destino permanente: descanso, coleta e fabricação pertencem ao local e abrem por **Ações locais**. A antiga aba `Eu` deixa de competir com a fantasia do jogo; seus dados passam a compor a interface diegética do `Sistema`.
 

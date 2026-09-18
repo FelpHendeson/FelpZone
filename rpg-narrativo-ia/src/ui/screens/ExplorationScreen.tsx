@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { findNpc } from '../../campaigns/first-day';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
@@ -59,6 +59,18 @@ interface ExplorationScreenProps {
   onExit: () => void;
 }
 
+type GameView = GameTab | 'map' | 'people' | 'progression' | 'registry' | 'society' | 'domain';
+
+function bottomTabFor(view: GameView): GameTab {
+  if (view === 'map' || view === 'people') {
+    return 'world';
+  }
+  if (view === 'progression' || view === 'registry' || view === 'society' || view === 'domain') {
+    return 'menu';
+  }
+  return view;
+}
+
 export function ExplorationScreen({
   state,
   campaign,
@@ -69,7 +81,7 @@ export function ExplorationScreen({
   onResolveCombat,
   onExit,
 }: ExplorationScreenProps) {
-  const [activeTab, setActiveTab] = useState<GameTab>('world');
+  const [activeView, setActiveView] = useState<GameView>('world');
   const [actionsOpen, setActionsOpen] = useState(false);
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
@@ -86,6 +98,10 @@ export function ExplorationScreen({
   );
   const fightBlockedReason =
     state.attributes.saude < 1 ? 'Você está ferido demais para enfrentar uma ameaça agora.' : undefined;
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [activeView]);
 
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
@@ -122,6 +138,7 @@ export function ExplorationScreen({
   }
 
   const view = buildExplorationView(state, campaign, context);
+  const status = buildSystemStatus(state, context);
   const journal = buildJournalView(state, context);
   const trackedJourney = journal.journeys.find(
     (journey) => journey.id === trackedJourneyId && journey.status === 'active',
@@ -139,7 +156,7 @@ export function ExplorationScreen({
       <div className="exploration-content">
         {feedback ? <WorldFeedback message={feedback} /> : null}
         <fieldset className="sandbox-action-surface" disabled={actionPending} aria-busy={actionPending}>
-          {activeTab === 'world' ? (
+          {activeView === 'world' ? (
             <WorldPanel
               view={view}
               trackedJourney={trackedJourney}
@@ -148,27 +165,50 @@ export function ExplorationScreen({
               onAction={onAction}
               onFight={setCombatEncounterId}
               onOpenActions={() => setActionsOpen(true)}
-              onOpenJournal={() => setActiveTab('journal')}
+              onOpenJournal={() => setActiveView('journal')}
+              onNavigate={setActiveView}
             />
           ) : null}
-          {activeTab === 'system' ? (
+          {activeView === 'map' ? (
+            <DetailScreen title="Mapa" eyebrow="Mundo conhecido" onBack={() => setActiveView('world')}>
+              <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
+            </DetailScreen>
+          ) : null}
+          {activeView === 'people' ? (
+            <PeoplePanel view={view} onAction={onAction} onBack={() => setActiveView('world')} />
+          ) : null}
+          {activeView === 'character' ? (
+            <CharacterPanel status={status} state={state} campaign={campaign} abilityName={view.abilityName} />
+          ) : null}
+          {activeView === 'progression' ? (
             <SystemPanel
-              status={buildSystemStatus(state, context)}
-              state={state}
+              section="progression"
+              status={status}
               campaign={campaign}
-              abilityName={view.abilityName}
-              bonds={view.bonds}
               onAction={onAction}
+              onBack={() => setActiveView('menu')}
             />
           ) : null}
-          {activeTab === 'journal' ? (
+          {activeView === 'registry' || activeView === 'society' || activeView === 'domain' ? (
+            <SystemPanel
+              section={activeView}
+              status={status}
+              campaign={campaign}
+              onAction={onAction}
+              onBack={() => setActiveView('menu')}
+            />
+          ) : null}
+          {activeView === 'journal' ? (
             <JournalPanel
               view={journal}
               trackedJourneyId={trackedJourneyId}
               onTrackJourney={setTrackedJourneyId}
             />
           ) : null}
-          {activeTab === 'inventory' ? <InventoryPanel view={view} onAction={onAction} /> : null}
+          {activeView === 'inventory' ? <InventoryPanel view={view} onAction={onAction} /> : null}
+          {activeView === 'menu' ? (
+            <GameMenuPanel status={status} view={view} onNavigate={setActiveView} />
+          ) : null}
 
           <AppDialog
             open={actionsOpen}
@@ -180,7 +220,11 @@ export function ExplorationScreen({
         </fieldset>
       </div>
 
-      <BottomNavigation active={activeTab} inventoryCount={view.inventory.length} onChange={setActiveTab} />
+      <BottomNavigation
+        active={bottomTabFor(activeView)}
+        inventoryCount={view.inventory.length}
+        onChange={setActiveView}
+      />
     </main>
   );
 }
@@ -221,6 +265,7 @@ function WorldPanel({
   onFight,
   onOpenActions,
   onOpenJournal,
+  onNavigate,
 }: {
   view: ExplorationView;
   trackedJourney?: JournalJourneyView;
@@ -230,6 +275,7 @@ function WorldPanel({
   onFight: (encounterId: string) => void;
   onOpenActions: () => void;
   onOpenJournal: () => void;
+  onNavigate: (view: GameView) => void;
 }) {
   return (
     <div className="world-panel">
@@ -285,9 +331,8 @@ function WorldPanel({
       ) : null}
 
       <div className="world-context-grid">
-        <PresenceSection presences={view.presences} onAction={onAction} />
+        <WorldShortcuts view={view} onNavigate={onNavigate} />
         <InteractableSection interactables={view.interactables} onAction={onAction} />
-        {view.knownNpcs.length > 0 ? <KnownNpcSection npcs={view.knownNpcs} locationId={view.location.id} /> : null}
         {view.lingering.length > 0 ? (
           <section className="lingering-section" aria-label="Condições persistentes">
             <span className="section-kicker">Feridas que permanecem</span>
@@ -301,7 +346,246 @@ function WorldPanel({
           </section>
         ) : null}
         <ThreatSection encounters={encounters} blockedReason={fightBlockedReason} onFight={onFight} />
-        <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
+      </div>
+    </div>
+  );
+}
+
+function WorldShortcuts({ view, onNavigate }: { view: ExplorationView; onNavigate: (view: GameView) => void }) {
+  const peopleHere = view.presences.length;
+  return (
+    <section className="world-shortcuts" aria-labelledby="world-shortcuts-title">
+      <div className="section-heading">
+        <div>
+          <span className="section-kicker">Escolha seu foco</span>
+          <h2 id="world-shortcuts-title">Ao seu redor</h2>
+        </div>
+      </div>
+      <div className="hub-card-grid hub-card-grid--compact">
+        <button type="button" className="hub-card" onClick={() => onNavigate('map')}>
+          <span className="hub-card__icon" aria-hidden="true">⌖</span>
+          <span><strong>Mapa</strong><small>{view.destinations.length} rota{view.destinations.length === 1 ? '' : 's'} conhecida{view.destinations.length === 1 ? '' : 's'}</small></span>
+          <span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('people')}>
+          <span className="hub-card__icon" aria-hidden="true">♙</span>
+          <span><strong>Pessoas e criaturas</strong><small>{peopleHere === 0 ? 'Ninguém visível agora' : `${peopleHere} presença${peopleHere === 1 ? '' : 's'} neste local`}</small></span>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function DetailScreen({
+  title,
+  eyebrow,
+  onBack,
+  children,
+}: {
+  title: string;
+  eyebrow: string;
+  onBack: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className="tab-panel detail-screen">
+      <header className="detail-screen__header">
+        <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${title}`}>
+          <span aria-hidden="true">←</span>
+        </button>
+        <div>
+          <span className="section-kicker">{eyebrow}</span>
+          <h1>{title}</h1>
+        </div>
+      </header>
+      {children}
+    </div>
+  );
+}
+
+function PeoplePanel({
+  view,
+  onAction,
+  onBack,
+}: {
+  view: ExplorationView;
+  onAction: (action: SandboxAction) => void;
+  onBack: () => void;
+}) {
+  return (
+    <DetailScreen title="Pessoas e criaturas" eyebrow={view.location.name} onBack={onBack}>
+      <p className="detail-screen__intro">Encontros do local, pessoas conhecidas e vínculos ficam reunidos aqui.</p>
+      <PresenceSection presences={view.presences} onAction={onAction} />
+      {view.knownNpcs.length > 0 ? <KnownNpcSection npcs={view.knownNpcs} locationId={view.location.id} /> : null}
+      <RelationshipSection bonds={view.bonds} onAction={onAction} />
+    </DetailScreen>
+  );
+}
+
+function RelationshipSection({
+  bonds,
+  onAction,
+}: {
+  bonds: BondCharacterView[];
+  onAction: (action: SandboxAction) => void;
+}) {
+  return (
+    <section className="relationship-section" aria-labelledby="relationships-title">
+      <div className="section-heading">
+        <div>
+          <span className="section-kicker">Laços persistentes</span>
+          <h2 id="relationships-title">Relacionamentos</h2>
+        </div>
+        <span className="section-count">{bonds.length}</span>
+      </div>
+      {bonds.length === 0 ? <EmptyAction message="Nenhum relacionamento foi revelado." /> : (
+        <div className="relationship-card-list">
+          {bonds.map((bond) => (
+            <article key={bond.npcId} className="relationship-card">
+              <header>
+                <span className="relationship-list__avatar" aria-hidden="true">♙</span>
+                <div><strong>{bond.name}</strong><small>{bond.namedBonds.map((item) => item.name).join(' · ') || 'Vínculo em formação'}</small></div>
+              </header>
+              <div className="relationship-card__metrics">
+                {bond.outgoing.map((dimension) => <span key={`out-${dimension.dimensionId}`}>{dimension.name}: {dimension.value}</span>)}
+                {bond.incoming.map((dimension) => <span key={`in-${dimension.dimensionId}`}>{dimension.name} recebida: {dimension.value}</span>)}
+              </div>
+              <BondActionGroup label="Relação" actions={bond.actions} actionType="bond.act" onAction={onAction} />
+              <BondActionGroup label="Grupos" actions={bond.organizationActions} actionType="organization.act" onAction={onAction} />
+              <BondActionGroup label="Família" actions={bond.familyActions} actionType="family.act" onAction={onAction} />
+              <BondActionGroup label="Vida civil" actions={bond.civicActions} actionType="civic.act" onAction={onAction} />
+              <BondActionGroup label="Comércio" actions={bond.economyActions} actionType="economy.act" onAction={onAction} />
+              <BondActionGroup label="Território" actions={bond.settlementActions} actionType="settlement.act" onAction={onAction} />
+              <BondActionGroup label="Política" actions={bond.politicsActions} actionType="politics.act" onAction={onAction} />
+            </article>
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
+type BondActionType = 'bond.act' | 'organization.act' | 'family.act' | 'civic.act' | 'economy.act' | 'settlement.act' | 'politics.act';
+
+function toBondSandboxAction(type: BondActionType, actionId: string): SandboxAction {
+  switch (type) {
+    case 'bond.act': return { type, actionId };
+    case 'organization.act': return { type, actionId };
+    case 'family.act': return { type, actionId };
+    case 'civic.act': return { type, actionId };
+    case 'economy.act': return { type, actionId };
+    case 'settlement.act': return { type, actionId };
+    case 'politics.act': return { type, actionId };
+  }
+}
+
+function BondActionGroup({
+  label,
+  actions,
+  actionType,
+  onAction,
+}: {
+  label: string;
+  actions: BondCharacterView['actions'];
+  actionType: BondActionType;
+  onAction: (action: SandboxAction) => void;
+}) {
+  if (actions.length === 0) return null;
+  return (
+    <details className="relationship-action-group">
+      <summary><span>{label}</span><small>{actions.length} aç{actions.length === 1 ? 'ão' : 'ões'}</small><span aria-hidden="true">⌄</span></summary>
+      <div className="relationship-action-group__body">
+        {actions.map((action) => (
+          <button
+            key={action.actionId}
+            type="button"
+            className="button button--compact"
+            disabled={!action.available}
+            title={action.blockedReason ?? action.hint}
+            onClick={() => onAction(toBondSandboxAction(actionType, action.actionId))}
+          >
+            {action.label}<small>{action.blockedReason ?? formatPeriodCost(action.costPeriods)}</small>
+          </button>
+        ))}
+      </div>
+    </details>
+  );
+}
+
+function CharacterPanel({
+  status,
+  state,
+  campaign,
+  abilityName,
+}: {
+  status: SystemStatusView;
+  state: GameState;
+  campaign: Campaign;
+  abilityName: string;
+}) {
+  return (
+    <div className="tab-panel character-panel">
+      <header className="character-hero">
+        <span className="character-hero__avatar" aria-hidden="true">♙</span>
+        <div><span className="section-kicker">Sobrevivente</span><h1>{status.characterName}</h1><p>{abilityName}</p></div>
+        <span className="system-console__level">Nível <strong>{status.level}</strong></span>
+      </header>
+      <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} />
+      <section className="system-calendar" aria-label="Calendário pessoal">
+        <span className="section-kicker">Linha da vida</span>
+        <p><strong>{status.calendar.dateLabel}</strong><span>{status.calendar.ageYears} anos · {status.calendar.stageName}</span></p>
+        {status.calendar.upcoming.length > 0 ? (
+          <ul className="system-note-list">{status.calendar.upcoming.map((entry) => <li key={entry.id}><strong>{entry.label}</strong><p>{entry.hint} {entry.dueLabel}.</p></li>)}</ul>
+        ) : <EmptyAction message="Nenhum marco pessoal próximo." />}
+      </section>
+      {status.nextMilestone ? (
+        <section className="system-milestone" aria-label="Próximo marco">
+          <span className="section-kicker">Próximo marco · Nível {status.nextMilestone.level}</span>
+          <ul className="system-milestone__list">{status.nextMilestone.requirements.map((requirement) => <li key={requirement.text} className={requirement.met ? 'is-met' : undefined}><span aria-hidden="true">{requirement.met ? '✓' : '○'}</span> {requirement.text}</li>)}</ul>
+        </section>
+      ) : null}
+    </div>
+  );
+}
+
+function GameMenuPanel({
+  status,
+  view,
+  onNavigate,
+}: {
+  status: SystemStatusView;
+  view: ExplorationView;
+  onNavigate: (view: GameView) => void;
+}) {
+  const activeOrganizations = status.organizations.length;
+  const activeCivic = status.civic.filter((entry) => entry.active).length;
+  return (
+    <div className="tab-panel menu-panel">
+      <header className="panel-heading">
+        <span className="section-kicker">Central do Sistema</span>
+        <h1>Menu</h1>
+        <p>Abra somente o domínio que você quer consultar ou desenvolver agora.</p>
+      </header>
+      <div className="hub-card-grid">
+        <button type="button" className="hub-card hub-card--featured" onClick={() => onNavigate('progression')}>
+          <span className="hub-card__icon" aria-hidden="true">❖</span><span><strong>Progressão</strong><small>{status.knownSkills.length} habilidades · {status.trainings.length} treinos</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('registry')}>
+          <span className="hub-card__icon" aria-hidden="true">▣</span><span><strong>Registro</strong><small>{status.registry.patents.filter((entry) => entry.granted).length} patentes · rankings e títulos</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('society')}>
+          <span className="hub-card__icon" aria-hidden="true">⚑</span><span><strong>Sociedade</strong><small>{activeOrganizations} grupos · {activeCivic} posições ativas</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('domain')}>
+          <span className="hub-card__icon" aria-hidden="true">⌂</span><span><strong>Domínio</strong><small>{status.settlements.claims.length} territórios · economia e política</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('people')}>
+          <span className="hub-card__icon" aria-hidden="true">♙</span><span><strong>Relacionamentos</strong><small>{view.bonds.length} vínculo{view.bonds.length === 1 ? '' : 's'} conhecido{view.bonds.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('map')}>
+          <span className="hub-card__icon" aria-hidden="true">⌖</span><span><strong>Mapa completo</strong><small>{view.destinations.length} rotas a partir de {view.location.name}</small></span><span aria-hidden="true">→</span>
+        </button>
       </div>
     </div>
   );
@@ -939,87 +1223,44 @@ function NeedEffectList({ effects, compact = false }: { effects: NeedEffectView[
 }
 
 function SystemPanel({
+  section,
   status,
-  state,
   campaign,
-  abilityName,
-  bonds,
   onAction,
+  onBack,
 }: {
+  section: 'progression' | 'registry' | 'society' | 'domain';
   status: SystemStatusView;
-  state: GameState;
   campaign: Campaign;
-  abilityName: string;
-  bonds: BondCharacterView[];
   onAction: (action: SandboxAction) => void;
+  onBack: () => void;
 }) {
   const [pending, setPending] = useState<SystemTrainingView | null>(null);
   const [pendingGarden, setPendingGarden] = useState<string | null>(null);
   const [pendingPatent, setPendingPatent] = useState<string | null>(null);
   const gardenRecipe = status.garden.recipes.find((recipe) => recipe.id === pendingGarden);
   const patent = status.registry.patents.find((entry) => entry.id === pendingPatent);
+  const sectionCopy = {
+    progression: { eyebrow: 'Fortalecimento', title: 'Progressão', description: 'Eteris, Númen, habilidades, treino e Jardim.' },
+    registry: { eyebrow: 'Reconhecimento do Sistema', title: 'Registro', description: 'Patentes, classificações e posições reconhecidas.' },
+    society: { eyebrow: 'Vida compartilhada', title: 'Sociedade', description: 'Grupos, família, profissões e cidadania.' },
+    domain: { eyebrow: 'Construção de poder', title: 'Domínio', description: 'Economia, propriedades, territórios e política.' },
+  }[section];
 
   return (
     <div className="tab-panel system-panel">
       <header className="system-console">
-        <span className="system-console__mark" aria-hidden="true">❖</span>
+        <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${sectionCopy.title}`}><span aria-hidden="true">←</span></button>
         <div>
-          <span className="section-kicker">Sistema conectado</span>
-          <h1>{status.characterName}</h1>
-          <p>Conhecimento, condição e desenvolvimento reunidos em uma única interface.</p>
+          <span className="section-kicker">{sectionCopy.eyebrow}</span>
+          <h1>{sectionCopy.title}</h1>
+          <p>{sectionCopy.description}</p>
         </div>
         <span className="system-console__level">Nível <strong>{status.level}</strong></span>
       </header>
 
-      <section className="system-calendar" aria-label="Calendário">
-        <span className="section-kicker">Contagem do Reset</span>
-        <p>
-          <strong>{status.calendar.dateLabel}</strong>
-          <span>
-            {status.calendar.ageYears} anos · {status.calendar.stageName}
-          </span>
-        </p>
-        {status.calendar.upcoming.length === 0 ? (
-          <EmptyAction message="Nenhum compromisso de calendário à vista." />
-        ) : (
-          <ul className="system-note-list">
-            {status.calendar.upcoming.map((entry) => (
-              <li key={entry.id}>
-                <strong>{entry.label}</strong>
-                <p>
-                  {entry.hint} {entry.dueLabel}.
-                </p>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      {status.nextMilestone ? (
-        <section className="system-milestone" aria-label="Próximo marco">
-          <span className="section-kicker">Próximo marco · Nível {status.nextMilestone.level}</span>
-          <ul className="system-milestone__list">
-            {status.nextMilestone.requirements.map((requirement) => (
-              <li key={requirement.text} className={requirement.met ? 'is-met' : undefined}>
-                <span aria-hidden="true">{requirement.met ? '✓' : '○'}</span> {requirement.text}
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
-
       <div className="system-disclosure-list">
-        <details className="system-disclosure" open>
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">♙</span>
-            <span><strong>Identidade e condição</strong><small>{abilityName}</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} bonds={bonds} onAction={onAction} />
-          </div>
-        </details>
-
+        {section === 'progression' ? <>
         <details className="system-disclosure">
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">∞</span>
@@ -1168,6 +1409,8 @@ function SystemPanel({
           </div>
         </details>
 
+        </> : null}
+        {section === 'registry' ? <>
         <details className="system-disclosure">
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">▣</span>
@@ -1250,6 +1493,8 @@ function SystemPanel({
           </div>
         </details>
 
+        </> : null}
+        {section === 'society' ? <>
         <details className="system-disclosure">
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚑</span>
@@ -1451,6 +1696,8 @@ function SystemPanel({
           </div>
         </details>
 
+        </> : null}
+        {section === 'domain' ? <>
         <details className="system-disclosure">
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚖</span>
@@ -1673,6 +1920,7 @@ function SystemPanel({
             ) : null}
           </div>
         </details>
+        </> : null}
       </div>
 
       <ConfirmDialog
@@ -1734,14 +1982,10 @@ function SystemIdentity({
   state,
   campaign,
   abilityName,
-  bonds,
-  onAction,
 }: {
   state: GameState;
   campaign: Campaign;
   abilityName: string;
-  bonds: BondCharacterView[];
-  onAction: (action: SandboxAction) => void;
 }) {
   return (
     <div className="system-identity">
@@ -1750,106 +1994,9 @@ function SystemIdentity({
         <div><span className="section-kicker">Sobrevivente</span><strong>{state.character.firstName} {state.character.lastName}</strong><small>{abilityName}</small></div>
       </div>
       <AttributeSummary attributes={state.attributes} />
-      <div className="section-heading"><h2>Relações</h2><span className="section-count">{bonds.length}</span></div>
-      {bonds.length === 0 ? <EmptyAction message="Nenhum relacionamento foi revelado." /> : (
-        <ul className="relationship-list">
-          {bonds.map((bond) => (
-            <li key={bond.npcId}>
-              <span className="relationship-list__avatar" aria-hidden="true">♙</span>
-              <div>
-                <strong>{bond.name}</strong>
-                {bond.outgoing.map((dimension) => (
-                  <span key={`out-${dimension.dimensionId}`}>{dimension.name} (você): {dimension.value}</span>
-                ))}
-                {bond.incoming.map((dimension) => (
-                  <span key={`in-${dimension.dimensionId}`}>{dimension.name} (dela): {dimension.value}</span>
-                ))}
-                {bond.namedBonds.map((named) => (
-                  <span key={named.bondId}>{named.name}</span>
-                ))}
-                {bond.actions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'bond.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-                {bond.organizationActions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'organization.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-                {bond.familyActions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'family.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-                {bond.civicActions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'civic.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-                {bond.economyActions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'economy.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-                {bond.settlementActions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'settlement.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-                {bond.politicsActions.map((action) => (
-                  <button
-                    key={action.actionId}
-                    type="button"
-                    className="button button--compact"
-                    disabled={!action.available}
-                    onClick={() => onAction({ type: 'politics.act', actionId: action.actionId })}
-                  >
-                    {action.label}
-                  </button>
-                ))}
-              </div>
-            </li>
-          ))}
-        </ul>
-      )}
       {state.relationships.length > 0 ? (
+        <section className="character-trust" aria-labelledby="character-trust-title">
+          <div className="section-heading"><h2 id="character-trust-title">Confiança</h2><span className="section-count">{state.relationships.length}</span></div>
         <ul className="relationship-list" aria-label="Confiança residual">
           {state.relationships.map((relationship) => (
             <li key={relationship.characterId}>
@@ -1859,6 +2006,7 @@ function SystemIdentity({
             </li>
           ))}
         </ul>
+        </section>
       ) : null}
     </div>
   );

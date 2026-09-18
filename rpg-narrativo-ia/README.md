@@ -26,6 +26,7 @@ Leia nesta ordem:
 6. [Arquitetura](docs/ARCHITECTURE.md): módulos, responsabilidades e fluxo de dados.
 7. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
 8. [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md): hierarquia visual, navegação e regras de densidade da interface jogável.
+   - [UI/UX 2.0 — Navegação por focos](docs/UI-UX-2-NAVIGATION.md): cinco destinos principais e telas separadas por domínio.
 9. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
 10. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
 11. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.

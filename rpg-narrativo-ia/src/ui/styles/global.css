@@ -2633,6 +2633,282 @@ button:disabled {
   margin-top: 0;
 }
 
+/* UI/UX 2.0 — focused destinations and domain hubs */
+.detail-screen,
+.character-panel,
+.menu-panel {
+  width: min(100%, 46rem);
+  margin-inline: auto;
+}
+
+.detail-screen__header,
+.character-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: linear-gradient(145deg, rgba(20, 31, 37, 0.98), rgba(10, 17, 21, 0.98));
+}
+
+.detail-screen__header h1,
+.character-hero h1 {
+  margin: 2px 0 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-story);
+  font-size: clamp(1.25rem, 5vw, 1.7rem);
+}
+
+.detail-screen__intro {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.back-button {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid rgba(131, 203, 234, 0.26);
+  border-radius: 14px;
+  background: rgba(131, 203, 234, 0.08);
+  color: var(--accent-system);
+  font: inherit;
+  font-size: 1.15rem;
+  cursor: pointer;
+}
+
+.back-button:hover,
+.back-button:focus-visible {
+  border-color: var(--accent-system);
+  background: rgba(131, 203, 234, 0.15);
+}
+
+.hub-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.hub-card-grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.hub-card {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  min-height: 82px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(22, 35, 41, 0.98), rgba(12, 20, 24, 0.98));
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.hub-card--featured {
+  border-color: rgba(131, 203, 234, 0.38);
+  background: linear-gradient(145deg, rgba(34, 80, 95, 0.35), rgba(12, 20, 24, 0.98));
+}
+
+.hub-card:hover,
+.hub-card:focus-visible {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+
+.hub-card > span:nth-child(2) {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.hub-card strong,
+.hub-card small {
+  overflow-wrap: anywhere;
+}
+
+.hub-card small {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.hub-card__icon {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: rgba(53, 185, 140, 0.1);
+  color: var(--accent);
+  font-size: 1rem;
+}
+
+.world-shortcuts,
+.relationship-section {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-elevated);
+}
+
+.character-hero {
+  border-color: rgba(131, 203, 234, 0.34);
+  background: linear-gradient(135deg, rgba(35, 91, 111, 0.28), rgba(12, 20, 24, 0.98));
+}
+
+.character-hero__avatar {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border: 1px solid rgba(131, 203, 234, 0.38);
+  border-radius: 16px;
+  color: var(--accent-system);
+  font-size: 1.3rem;
+}
+
+.character-hero p {
+  margin: 3px 0 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.character-panel > .system-identity {
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg-elevated);
+}
+
+.character-panel .system-identity__profile {
+  display: none;
+}
+
+.character-trust {
+  display: grid;
+  gap: 8px;
+}
+
+.relationship-card-list {
+  display: grid;
+  gap: 10px;
+}
+
+.relationship-card {
+  display: grid;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 15px;
+  background: rgba(8, 15, 18, 0.58);
+}
+
+.relationship-card > header {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr);
+  align-items: center;
+  gap: 9px;
+}
+
+.relationship-card > header > div {
+  display: grid;
+  gap: 2px;
+}
+
+.relationship-card > header small,
+.relationship-card__metrics {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.relationship-card__metrics {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.relationship-card__metrics span {
+  padding: 5px 8px;
+  border-radius: 999px;
+  background: rgba(53, 185, 140, 0.08);
+}
+
+.relationship-action-group {
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 12px;
+}
+
+.relationship-action-group > summary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  min-height: 46px;
+  padding: 8px 10px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.relationship-action-group > summary::-webkit-details-marker {
+  display: none;
+}
+
+.relationship-action-group > summary > span:first-child {
+  color: var(--text-muted);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.relationship-action-group > summary small {
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.relationship-action-group[open] > summary {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.relationship-action-group__body {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  padding: 8px;
+}
+
+.relationship-action-group .button {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  height: auto;
+  min-height: 48px;
+  white-space: normal;
+}
+
+.relationship-action-group .button small {
+  overflow-wrap: anywhere;
+  color: currentColor;
+  font-size: 0.65rem;
+  opacity: 0.7;
+}
+
 .bottom-nav {
   width: min(calc(100% - 24px), 30rem);
   min-height: 66px;
@@ -2642,7 +2918,8 @@ button:disabled {
 
 .bottom-nav__item {
   min-height: 52px;
-  font-size: 0.72rem;
+  padding-inline: 3px;
+  font-size: 0.66rem;
 }
 
 .bottom-nav__item--active {
@@ -2651,6 +2928,23 @@ button:disabled {
 }
 
 @media (max-width: 24rem) {
+  .hub-card-grid,
+  .hub-card-grid--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .hub-card {
+    min-height: 68px;
+  }
+
+  .relationship-action-group__body {
+    grid-template-columns: 1fr;
+  }
+
+  .bottom-nav__label {
+    font-size: 0.58rem;
+  }
+
   .game-hud__identity {
     grid-template-columns: auto minmax(3.5rem, 1fr) minmax(8.2rem, 9.4rem);
   }
@@ -2697,6 +2991,20 @@ button:disabled {
 }
 
 @media (max-width: 21rem) {
+  .bottom-nav {
+    width: calc(100% - 8px);
+    gap: 1px;
+    padding: 4px;
+  }
+
+  .bottom-nav__item {
+    padding-inline: 1px;
+  }
+
+  .bottom-nav__label {
+    font-size: 0.54rem;
+  }
+
   .game-hud .avatar-placeholder {
     display: none;
   }

@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 
-export type GameTab = 'world' | 'journal' | 'inventory' | 'system';
+export type GameTab = 'world' | 'journal' | 'character' | 'inventory' | 'menu';
 
 interface BottomNavigationProps {
   active: GameTab;
@@ -11,8 +11,9 @@ interface BottomNavigationProps {
 const ITEMS: Array<{ id: GameTab; icon: string; label: string }> = [
   { id: 'world', icon: '◉', label: 'Mundo' },
   { id: 'journal', icon: '⌖', label: 'Jornadas' },
+  { id: 'character', icon: '♙', label: 'Personagem' },
   { id: 'inventory', icon: '▣', label: 'Mochila' },
-  { id: 'system', icon: '❖', label: 'Sistema' },
+  { id: 'menu', icon: '☰', label: 'Menu' },
 ];
 
 export function BottomNavigation({ active, inventoryCount, onChange }: BottomNavigationProps) {

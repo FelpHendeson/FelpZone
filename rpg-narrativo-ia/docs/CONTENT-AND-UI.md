@@ -50,7 +50,7 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 - cena dominante com imagem ou placeholder;
 - apresentação própria de encontro narrativo, com retrato opcional;
 - texto e escolhas em cartões de leitura;
-- acesso persistente a Mundo, Jornadas, Mochila e Sistema pela barra inferior;
+- acesso persistente a Mundo, Jornadas, Personagem, Mochila e Menu pela barra inferior;
 - identidade, condição, relações, energéticos, habilidades e treino reunidos no Sistema diegético;
 - conteúdo detalhado recolhido até ser solicitado pelo jogador.
 
@@ -66,7 +66,8 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 - mochila usa uma grade visual de itens;
 - Jornadas agrupa objetivos e registros do mundo em seções expansíveis;
 - Sistema agrupa ficha, condição, relações, Eteris, Númen, habilidades e treino;
-- a navegação inferior alterna entre Mundo, Jornadas, Mochila e Sistema;
+- a navegação inferior alterna entre Mundo, Jornadas, Personagem, Mochila e Menu;
+- mapa, pessoas, progressão, Registro, sociedade e domínio usam telas focadas abertas por contexto;
 - descobertas e resultados ganham feedback destacado sem criar novas regras de domínio.
 
 ### Resumo
@@ -133,7 +134,7 @@ Os textos definitivos serão escritos depois que o motor aceitar uma campanha m�
 
 ## Evolução sandbox
 
-A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. A revisão posterior de UI/UX preserva esse contrato e o apresenta por HUD, cena, mapa adjacente, painéis e navegação inferior. A Fatia 8.5 acrescenta a seção “Presenças neste local” no painel Mundo, alimentada pelo view-model; a tela continua lendo o `GameState` e disparando ações do sandbox. Apresentação não decide regra de jogo.
+A Fatia 7.4 transforma a exploração em um loop jogável mobile: destinos visíveis, explorar o local, coletar pontos revelados e fabricar receitas conhecidas. A UI/UX 2.0 preserva esse contrato e o apresenta por HUD, cena, telas focadas e navegação inferior. Presenças e mapa saem do fluxo longo de Mundo e ganham superfícies próprias, ainda alimentadas pelo mesmo view-model; a interface continua lendo o `GameState` e disparando ações do sandbox. Apresentação não decide regra de jogo.
 
 A Fatia 7.5 abre a sessão narrativa pelo gatilho de descoberta quando o catálogo ativo contém essa ligação. A Fatia 8.6 desligou essa ligação na campanha `first-day`: a interface reutiliza `GameScreen` só depois de o jogador conversar com Mira. Não há uma segunda tela de diálogo. Ao terminar `night-together` ou `night-alone`, o jogador volta à mesma exploração. Saves `completed` antigos continuam abrindo o resumo.
 

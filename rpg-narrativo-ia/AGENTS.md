@@ -14,7 +14,7 @@ Leia [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs
 
 O Sistema 11 — Núcleo do Sistema, Eteris, Númen e Progressão — está **implementado e consolidado nas Fatias 11.1 a 11.7** nos módulos `energetics`, `skills`, `training` e `system-interface`: vocabulário energético, catálogos validados, `GameState.system` no schema 7, ação de treino com custo temporal único, Árvore de habilidades com sigilo e a aba mobile `Sistema`. Leia [Sistema 11](docs/SYSTEM-ETERIS-NUMEN-PROGRESSION.md), [Estado, metas e horizonte](docs/PROJECT-STATUS.md) e [Roadmap](docs/ROADMAP.md) antes de propor código. Números, nomes e conteúdo de habilidades são protótipos. O combate já reutiliza os contratos públicos do Sistema 11, mas fórmulas e balanceamento definitivo continuam sem aprovação.
 
-A interface jogável foi consolidada sob o princípio **aventura primeiro, dados sob demanda**. A navegação persistente possui quatro destinos — `Mundo`, `Jornadas`, `Mochila` e `Sistema` — enquanto ações locais aparecem em um painel contextual. Preserve essa hierarquia e consulte [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md) antes de acrescentar novas superfícies.
+A interface jogável segue o princípio **aventura primeiro, dados sob demanda**. A navegação persistente possui cinco destinos — `Mundo`, `Jornadas`, `Personagem`, `Mochila` e `Menu` — e abre telas focadas para mapa, pessoas, progressão, Registro, sociedade e domínio. Ações locais continuam contextuais. Preserve essa hierarquia e consulte [UI/UX 2.0](docs/UI-UX-2-NAVIGATION.md) antes de acrescentar novas superfícies.
 
 ## Regras obrigatórias
 
