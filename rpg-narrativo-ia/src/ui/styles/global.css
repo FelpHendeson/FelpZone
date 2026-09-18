@@ -3364,3 +3364,305 @@ button:disabled {
 .combat-result strong {
   font-size: 1.2rem;
 }
+
+/* Visual rework — distinct places, dossiers and system domains */
+.screen--exploration::before {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background:
+    radial-gradient(circle at 15% 5%, rgba(53, 185, 140, 0.08), transparent 28rem),
+    radial-gradient(circle at 88% 32%, rgba(91, 148, 188, 0.07), transparent 32rem),
+    linear-gradient(180deg, #081014, #090e12 72%);
+  content: '';
+  pointer-events: none;
+}
+
+.hud-vitals__item {
+  position: relative;
+  overflow: hidden;
+}
+
+.hud-vitals__meter {
+  position: absolute;
+  right: 4px;
+  bottom: 2px;
+  left: 4px;
+  height: 2px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.hud-vitals__meter > span {
+  display: block;
+  width: var(--vital-value);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent);
+}
+
+.hud-vitals__item--urgent .hud-vitals__meter > span,
+.hud-vitals__item--critical .hud-vitals__meter > span {
+  background: var(--warning);
+}
+
+.location-hero__badges {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  left: 14px;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.location-hero__badges span {
+  padding: 5px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  background: rgba(6, 13, 16, 0.72);
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+}
+
+.detail-screen,
+.system-panel,
+.character-panel,
+.menu-panel,
+.tab-panel:has(> .panel-heading--split) {
+  position: relative;
+  isolation: isolate;
+}
+
+.detail-screen::before,
+.system-panel::before,
+.character-panel::before,
+.menu-panel::before,
+.tab-panel:has(> .panel-heading--split)::before {
+  position: absolute;
+  inset: -12px;
+  z-index: -1;
+  border-radius: 28px;
+  background: radial-gradient(circle at top right, rgba(131, 203, 234, 0.08), transparent 25rem);
+  content: '';
+  pointer-events: none;
+}
+
+.detail-screen--world::before {
+  background:
+    radial-gradient(circle at 85% 4%, rgba(53, 185, 140, 0.16), transparent 23rem),
+    linear-gradient(180deg, rgba(14, 34, 30, 0.34), transparent 28rem);
+}
+
+.detail-screen--social::before {
+  background:
+    radial-gradient(circle at 85% 4%, rgba(214, 142, 115, 0.15), transparent 23rem),
+    linear-gradient(180deg, rgba(54, 28, 27, 0.22), transparent 28rem);
+}
+
+.detail-screen--world .detail-screen__header {
+  border-color: rgba(53, 185, 140, 0.4);
+  background: linear-gradient(135deg, rgba(24, 78, 62, 0.42), rgba(10, 18, 20, 0.98));
+}
+
+.detail-screen--social .detail-screen__header {
+  border-color: rgba(214, 142, 115, 0.38);
+  background: linear-gradient(135deg, rgba(76, 40, 37, 0.46), rgba(12, 18, 21, 0.98));
+}
+
+.detail-screen--social .back-button,
+.detail-screen--social .section-kicker {
+  color: #dda184;
+}
+
+.menu-panel .panel-heading {
+  min-height: 9rem;
+  padding: 22px;
+  border: 1px solid rgba(131, 203, 234, 0.32);
+  border-radius: 22px;
+  background:
+    linear-gradient(105deg, rgba(11, 22, 28, 0.96), rgba(21, 53, 65, 0.72)),
+    var(--bg-elevated);
+}
+
+.menu-panel .panel-heading::after {
+  position: absolute;
+  right: 24px;
+  align-self: center;
+  color: rgba(131, 203, 234, 0.12);
+  font-size: 4.5rem;
+  content: '❖';
+}
+
+.menu-panel .panel-heading > * {
+  position: relative;
+  z-index: 1;
+}
+
+.hub-card {
+  position: relative;
+  overflow: hidden;
+  transition: border-color 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+}
+
+.hub-card::after {
+  position: absolute;
+  inset: auto -20% -85% 35%;
+  height: 130%;
+  border-radius: 50%;
+  background: rgba(53, 185, 140, 0.06);
+  content: '';
+  pointer-events: none;
+}
+
+.hub-card--progression {
+  border-color: rgba(131, 203, 234, 0.35);
+  background: linear-gradient(145deg, rgba(31, 80, 98, 0.45), rgba(11, 19, 24, 0.98));
+}
+
+.hub-card--registry {
+  border-color: rgba(202, 179, 102, 0.26);
+  background: linear-gradient(145deg, rgba(71, 61, 27, 0.33), rgba(12, 19, 23, 0.98));
+}
+
+.hub-card--society,
+.hub-card--relationships,
+.hub-card--family {
+  border-color: rgba(214, 142, 115, 0.25);
+  background: linear-gradient(145deg, rgba(69, 39, 39, 0.34), rgba(12, 19, 23, 0.98));
+}
+
+.hub-card--domain {
+  border-color: rgba(139, 153, 113, 0.28);
+  background: linear-gradient(145deg, rgba(45, 58, 32, 0.36), rgba(12, 19, 23, 0.98));
+}
+
+.system-panel--progression::before {
+  background: radial-gradient(circle at 85% 5%, rgba(131, 203, 234, 0.16), transparent 26rem);
+}
+
+.system-panel--registry::before {
+  background: radial-gradient(circle at 85% 5%, rgba(202, 179, 102, 0.14), transparent 26rem);
+}
+
+.system-panel--society::before,
+.system-panel--family::before {
+  background: radial-gradient(circle at 85% 5%, rgba(214, 142, 115, 0.14), transparent 26rem);
+}
+
+.system-panel--domain::before {
+  background: radial-gradient(circle at 85% 5%, rgba(139, 153, 113, 0.16), transparent 26rem);
+}
+
+.system-panel--registry .system-console {
+  border-color: rgba(202, 179, 102, 0.4);
+  background: linear-gradient(135deg, rgba(76, 64, 25, 0.38), rgba(12, 20, 24, 0.98));
+}
+
+.system-panel--society .system-console,
+.system-panel--family .system-console {
+  border-color: rgba(214, 142, 115, 0.38);
+  background: linear-gradient(135deg, rgba(78, 42, 39, 0.38), rgba(12, 20, 24, 0.98));
+}
+
+.system-panel--domain .system-console {
+  border-color: rgba(139, 153, 113, 0.38);
+  background: linear-gradient(135deg, rgba(46, 63, 36, 0.4), rgba(12, 20, 24, 0.98));
+}
+
+.inventory-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: rgba(8, 14, 18, 0.76);
+}
+
+.inventory-tabs__item {
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  min-width: 0;
+  min-height: 52px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+.inventory-tabs__item small {
+  color: inherit;
+  font-size: 0.63rem;
+}
+
+.inventory-tabs__item--active {
+  background: rgba(53, 185, 140, 0.14);
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(53, 185, 140, 0.2);
+}
+
+.world-map {
+  position: relative;
+  overflow: hidden;
+}
+
+.world-map::after {
+  position: absolute;
+  inset: 5rem -4rem -6rem 55%;
+  z-index: 0;
+  border: 1px solid rgba(53, 185, 140, 0.06);
+  border-radius: 50%;
+  content: '';
+  pointer-events: none;
+}
+
+.world-map > * {
+  position: relative;
+  z-index: 1;
+}
+
+.map-route-list {
+  position: relative;
+}
+
+.map-route-list::before {
+  position: absolute;
+  top: 2.5rem;
+  bottom: 2.5rem;
+  left: 16px;
+  width: 1px;
+  background: linear-gradient(var(--accent), rgba(53, 185, 140, 0.05));
+  content: '';
+}
+
+@media (max-width: 36rem) {
+  .menu-panel .panel-heading {
+    min-height: auto;
+    padding: 17px;
+  }
+
+  .menu-panel .panel-heading::after {
+    font-size: 3.2rem;
+  }
+
+  .inventory-tabs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .inventory-tabs__item {
+    min-height: 46px;
+  }
+}

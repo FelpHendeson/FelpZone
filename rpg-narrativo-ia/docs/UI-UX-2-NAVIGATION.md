@@ -29,7 +29,7 @@ A UI/UX 2.0 separa consulta de ação e distribui cada fantasia do jogador em um
 | **Mundo** | Onde estou e o que posso fazer agora? |
 | **Jornadas** | O que estou tentando alcançar e o que já descobri? |
 | **Personagem** | Quem sou, qual é minha condição e qual é meu próximo marco? |
-| **Mochila** | O que carrego, equipei e preparei? |
+| **Mochila** | O que carrego, equipei e preparei? A tela separa visão geral, consumíveis, equipamentos e materiais. |
 | **Menu** | Qual domínio mais profundo quero consultar? |
 
 O rodapé possui somente destinos frequentes. Telas especializadas usam um cabeçalho de retorno e mantêm o rodapé como âncora.
@@ -39,7 +39,7 @@ O rodapé possui somente destinos frequentes. Telas especializadas usam um cabe�
 `Mundo` mantém o local atual, a principal ação de exploração, as ações locais, a jornada acompanhada, pontos de interesse e ameaças. Dois atalhos abrem superfícies próprias:
 
 - **Mapa:** posição atual, hierarquia de rotas, bloqueios e custo de deslocamento;
-- **Pessoas e criaturas:** presenças do local, disponibilidade, agenda percebida, vínculos e ações sociais.
+- **Pessoas e criaturas:** presenças do local, disponibilidade, agenda percebida e interações imediatas.
 
 O mapa permanece vertical e não depende de gesto horizontal. Relacionamentos não aparecem misturados aos atributos do personagem.
 
@@ -58,13 +58,15 @@ Menu
 │   └── patentes, rankings e reconhecimento
 ├── Sociedade
 │   ├── grupos e party
-│   ├── família e lar
 │   └── ocupação e cidadania
+├── Relacionamentos
+│   └── vínculos e ações sociais persistentes
+├── Família e lar
+│   └── parentesco, casa, linhagem e marcos de vida
 ├── Domínio
 │   ├── comércio e propriedade
 │   ├── base e território
 │   └── facções e diplomacia
-├── Relacionamentos
 └── Mapa completo
 ```
 
@@ -81,6 +83,21 @@ Cada tela profunda reutiliza os mesmos contratos do motor. O React somente apres
 - voltar de uma tela especializada preserva a partida e não produz ação de motor;
 - todos os destinos devem funcionar a partir de 320 px sem rolagem horizontal obrigatória;
 - botões mantêm rótulo textual, foco visível e alvo confortável para toque.
+
+## Linguagem visual por domínio
+
+- `Mundo` usa verdes e profundidade de cena;
+- `Pessoas`, `Relacionamentos` e `Família` usam tons quentes;
+- `Progressão` e a interface do Sistema usam azuis;
+- `Registro` usa detalhes dourados;
+- `Domínio` usa tons terrosos;
+- a Mochila usa abas em grade, sem carrossel ou gesto horizontal obrigatório.
+
+Essas diferenças servem à orientação espacial do jogador. Elas não representam regras ou estados adicionais.
+
+## Atualização da PWA
+
+O service worker reivindica clientes, remove caches antigos e ativa novas versões sem permanecer indefinidamente em espera. O registro consulta atualizações ao abrir e periodicamente enquanto a aplicação estiver ativa.
 
 ## Limites
 

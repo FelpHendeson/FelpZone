@@ -16,7 +16,7 @@ import {
   type CombatState,
   type EncounterDefinition,
 } from '../../modules/combat';
-import { INITIAL_ITEMS } from '../../modules/items';
+import { INITIAL_ITEMS, type ItemKind } from '../../modules/items';
 import { INITIAL_ORGANIZATIONS } from '../../modules/organizations';
 import {
   INITIAL_PARTY,
@@ -59,13 +59,13 @@ interface ExplorationScreenProps {
   onExit: () => void;
 }
 
-type GameView = GameTab | 'map' | 'people' | 'progression' | 'registry' | 'society' | 'domain';
+type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain';
 
 function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'progression' || view === 'registry' || view === 'society' || view === 'domain') {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain') {
     return 'menu';
   }
   return view;
@@ -170,12 +170,15 @@ export function ExplorationScreen({
             />
           ) : null}
           {activeView === 'map' ? (
-            <DetailScreen title="Mapa" eyebrow="Mundo conhecido" onBack={() => setActiveView('world')}>
+            <DetailScreen title="Mapa" eyebrow="Mundo conhecido" tone="world" onBack={() => setActiveView('world')}>
               <LocationMap destinations={view.destinations} currentName={view.location.name} onAction={onAction} />
             </DetailScreen>
           ) : null}
           {activeView === 'people' ? (
             <PeoplePanel view={view} onAction={onAction} onBack={() => setActiveView('world')} />
+          ) : null}
+          {activeView === 'relationships' ? (
+            <RelationshipsPanel bonds={view.bonds} onAction={onAction} onBack={() => setActiveView('menu')} />
           ) : null}
           {activeView === 'character' ? (
             <CharacterPanel status={status} state={state} campaign={campaign} abilityName={view.abilityName} />
@@ -189,7 +192,7 @@ export function ExplorationScreen({
               onBack={() => setActiveView('menu')}
             />
           ) : null}
-          {activeView === 'registry' || activeView === 'society' || activeView === 'domain' ? (
+          {activeView === 'registry' || activeView === 'society' || activeView === 'family' || activeView === 'domain' ? (
             <SystemPanel
               section={activeView}
               status={status}
@@ -282,6 +285,10 @@ function WorldPanel({
       <section className="location-hero" aria-labelledby="current-location-title">
         <ImagePlaceholder kind="scene" label={view.location.imageLabel} className="location-hero__image" />
         <div className="location-hero__shade" aria-hidden="true" />
+        <div className="location-hero__badges" aria-label="Estado do local">
+          <span>Zona descoberta</span>
+          <span>Sistema ativo</span>
+        </div>
         <div className="location-hero__content">
           <p className="location-hero__kicker">Local atual</p>
           <h1 id="current-location-title">{view.location.name}</h1>
@@ -380,16 +387,18 @@ function WorldShortcuts({ view, onNavigate }: { view: ExplorationView; onNavigat
 function DetailScreen({
   title,
   eyebrow,
+  tone = 'system',
   onBack,
   children,
 }: {
   title: string;
   eyebrow: string;
+  tone?: 'world' | 'social' | 'system';
   onBack: () => void;
   children: ReactNode;
 }) {
   return (
-    <div className="tab-panel detail-screen">
+    <div className={`tab-panel detail-screen detail-screen--${tone}`}>
       <header className="detail-screen__header">
         <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${title}`}>
           <span aria-hidden="true">←</span>
@@ -414,11 +423,27 @@ function PeoplePanel({
   onBack: () => void;
 }) {
   return (
-    <DetailScreen title="Pessoas e criaturas" eyebrow={view.location.name} onBack={onBack}>
-      <p className="detail-screen__intro">Encontros do local, pessoas conhecidas e vínculos ficam reunidos aqui.</p>
+    <DetailScreen title="Pessoas e criaturas" eyebrow={view.location.name} tone="social" onBack={onBack}>
+      <p className="detail-screen__intro">Quem está ao seu alcance agora, o que está fazendo e como pode interagir com você.</p>
       <PresenceSection presences={view.presences} onAction={onAction} />
       {view.knownNpcs.length > 0 ? <KnownNpcSection npcs={view.knownNpcs} locationId={view.location.id} /> : null}
-      <RelationshipSection bonds={view.bonds} onAction={onAction} />
+    </DetailScreen>
+  );
+}
+
+function RelationshipsPanel({
+  bonds,
+  onAction,
+  onBack,
+}: {
+  bonds: BondCharacterView[];
+  onAction: (action: SandboxAction) => void;
+  onBack: () => void;
+}) {
+  return (
+    <DetailScreen title="Relacionamentos" eyebrow="Laços e convivência" tone="social" onBack={onBack}>
+      <p className="detail-screen__intro">Acompanhe vínculos persistentes e escolha como aprofundar cada relação.</p>
+      <RelationshipSection bonds={bonds} onAction={onAction} />
     </DetailScreen>
   );
 }
@@ -568,20 +593,23 @@ function GameMenuPanel({
         <p>Abra somente o domínio que você quer consultar ou desenvolver agora.</p>
       </header>
       <div className="hub-card-grid">
-        <button type="button" className="hub-card hub-card--featured" onClick={() => onNavigate('progression')}>
+        <button type="button" className="hub-card hub-card--featured hub-card--progression" onClick={() => onNavigate('progression')}>
           <span className="hub-card__icon" aria-hidden="true">❖</span><span><strong>Progressão</strong><small>{status.knownSkills.length} habilidades · {status.trainings.length} treinos</small></span><span aria-hidden="true">→</span>
         </button>
-        <button type="button" className="hub-card" onClick={() => onNavigate('registry')}>
+        <button type="button" className="hub-card hub-card--registry" onClick={() => onNavigate('registry')}>
           <span className="hub-card__icon" aria-hidden="true">▣</span><span><strong>Registro</strong><small>{status.registry.patents.filter((entry) => entry.granted).length} patentes · rankings e títulos</small></span><span aria-hidden="true">→</span>
         </button>
-        <button type="button" className="hub-card" onClick={() => onNavigate('society')}>
+        <button type="button" className="hub-card hub-card--society" onClick={() => onNavigate('society')}>
           <span className="hub-card__icon" aria-hidden="true">⚑</span><span><strong>Sociedade</strong><small>{activeOrganizations} grupos · {activeCivic} posições ativas</small></span><span aria-hidden="true">→</span>
         </button>
-        <button type="button" className="hub-card" onClick={() => onNavigate('domain')}>
+        <button type="button" className="hub-card hub-card--domain" onClick={() => onNavigate('domain')}>
           <span className="hub-card__icon" aria-hidden="true">⌂</span><span><strong>Domínio</strong><small>{status.settlements.claims.length} territórios · economia e política</small></span><span aria-hidden="true">→</span>
         </button>
-        <button type="button" className="hub-card" onClick={() => onNavigate('people')}>
+        <button type="button" className="hub-card hub-card--relationships" onClick={() => onNavigate('relationships')}>
           <span className="hub-card__icon" aria-hidden="true">♙</span><span><strong>Relacionamentos</strong><small>{view.bonds.length} vínculo{view.bonds.length === 1 ? '' : 's'} conhecido{view.bonds.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card hub-card--family" onClick={() => onNavigate('family')}>
+          <span className="hub-card__icon" aria-hidden="true">♡</span><span><strong>Família e lar</strong><small>{status.family.length} pessoa{status.family.length === 1 ? '' : 's'} reconhecida{status.family.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">→</span>
         </button>
         <button type="button" className="hub-card" onClick={() => onNavigate('map')}>
           <span className="hub-card__icon" aria-hidden="true">⌖</span><span><strong>Mapa completo</strong><small>{view.destinations.length} rotas a partir de {view.location.name}</small></span><span aria-hidden="true">→</span>
@@ -1085,12 +1113,20 @@ function KnownNpcSection({
 }
 
 function InventoryPanel({ view, onAction }: { view: ExplorationView; onAction: (action: SandboxAction) => void }) {
+  const [filter, setFilter] = useState<'all' | ItemKind>('all');
   const [pending, setPending] = useState<
     | { type: 'equipment.equip'; itemId: string; name: string }
     | { type: 'preparation.assign'; slot: number; itemId: string; name: string }
     | null
   >(null);
   const emptyPrep = view.preparation.find((slot) => slot.itemId === null);
+  const filteredInventory = filter === 'all' ? view.inventory : view.inventory.filter((item) => item.kind === filter);
+  const filters: Array<{ id: 'all' | ItemKind; label: string }> = [
+    { id: 'all', label: 'Visão geral' },
+    { id: 'consumable', label: 'Consumíveis' },
+    { id: 'equipment', label: 'Equipamentos' },
+    { id: 'material', label: 'Materiais' },
+  ];
 
   return (
     <div className="tab-panel">
@@ -1102,7 +1138,23 @@ function InventoryPanel({ view, onAction }: { view: ExplorationView; onAction: (
         <span className="inventory-total">{view.inventory.reduce((total, item) => total + item.quantity, 0)} itens</span>
       </header>
 
-      <section className="loadout-board" aria-label="Preparação e equipamento">
+      <nav className="inventory-tabs" aria-label="Categorias da mochila">
+        {filters.map((entry) => (
+          <button
+            key={entry.id}
+            type="button"
+            className={filter === entry.id ? 'inventory-tabs__item inventory-tabs__item--active' : 'inventory-tabs__item'}
+            aria-pressed={filter === entry.id}
+            onClick={() => setFilter(entry.id)}
+          >
+            {entry.label}
+            <small>{entry.id === 'all' ? view.inventory.length : view.inventory.filter((item) => item.kind === entry.id).length}</small>
+          </button>
+        ))}
+      </nav>
+
+      {filter !== 'material' ? <section className="loadout-board" aria-label="Preparação e equipamento">
+        {filter === 'all' || filter === 'consumable' ? (
         <div>
           <span className="section-kicker">Preparação</span>
           <ul className="loadout-slots">
@@ -1119,6 +1171,8 @@ function InventoryPanel({ view, onAction }: { view: ExplorationView; onAction: (
             ))}
           </ul>
         </div>
+        ) : null}
+        {filter === 'all' || filter === 'equipment' ? (
         <div>
           <span className="section-kicker">Equipado</span>
           <ul className="loadout-slots">
@@ -1135,17 +1189,18 @@ function InventoryPanel({ view, onAction }: { view: ExplorationView; onAction: (
             ))}
           </ul>
         </div>
-      </section>
+        ) : null}
+      </section> : null}
 
-      {view.inventory.length === 0 ? (
+      {filteredInventory.length === 0 ? (
         <div className="empty-state empty-state--large">
           <span aria-hidden="true">▣</span>
-          <strong>Sua mochila está vazia</strong>
-          <p>Explore o mundo e revele pontos de coleta para encontrar materiais.</p>
+          <strong>{view.inventory.length === 0 ? 'Sua mochila está vazia' : 'Nada nesta categoria'}</strong>
+          <p>{view.inventory.length === 0 ? 'Explore o mundo e revele pontos de coleta para encontrar materiais.' : 'Os itens de outras categorias continuam guardados.'}</p>
         </div>
       ) : (
         <ul className="inventory-grid">
-          {view.inventory.map((item) => (
+          {filteredInventory.map((item) => (
             <li key={item.itemId} className={item.consumable ? 'inventory-grid__item inventory-grid__item--consumable' : 'inventory-grid__item'}>
               <span className="inventory-grid__icon" aria-hidden="true">{itemGlyph(item.itemId)}</span>
               <strong>{item.name}</strong>
@@ -1229,7 +1284,7 @@ function SystemPanel({
   onAction,
   onBack,
 }: {
-  section: 'progression' | 'registry' | 'society' | 'domain';
+  section: 'progression' | 'registry' | 'society' | 'family' | 'domain';
   status: SystemStatusView;
   campaign: Campaign;
   onAction: (action: SandboxAction) => void;
@@ -1243,12 +1298,13 @@ function SystemPanel({
   const sectionCopy = {
     progression: { eyebrow: 'Fortalecimento', title: 'Progressão', description: 'Eteris, Númen, habilidades, treino e Jardim.' },
     registry: { eyebrow: 'Reconhecimento do Sistema', title: 'Registro', description: 'Patentes, classificações e posições reconhecidas.' },
-    society: { eyebrow: 'Vida compartilhada', title: 'Sociedade', description: 'Grupos, família, profissões e cidadania.' },
+    society: { eyebrow: 'Vida compartilhada', title: 'Sociedade', description: 'Grupos, companheiros, profissões e cidadania.' },
+    family: { eyebrow: 'Laços de vida', title: 'Família e lar', description: 'Parentesco, casa, linhagem e os marcos de uma vida compartilhada.' },
     domain: { eyebrow: 'Construção de poder', title: 'Domínio', description: 'Economia, propriedades, territórios e política.' },
   }[section];
 
   return (
-    <div className="tab-panel system-panel">
+    <div className={`tab-panel system-panel system-panel--${section}`}>
       <header className="system-console">
         <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${sectionCopy.title}`}><span aria-hidden="true">←</span></button>
         <div>
@@ -1579,6 +1635,8 @@ function SystemPanel({
           </div>
         </details>
 
+        </> : null}
+        {section === 'family' ? <>
         <details className="system-disclosure">
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⌂</span>
@@ -1637,6 +1695,8 @@ function SystemPanel({
           </div>
         </details>
 
+        </> : null}
+        {section === 'society' ? <>
         <details className="system-disclosure">
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚖</span>

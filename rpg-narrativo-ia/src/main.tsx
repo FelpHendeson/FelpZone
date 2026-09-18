@@ -4,7 +4,18 @@ import { registerSW } from 'virtual:pwa-register';
 import { App } from './ui/App';
 import './ui/styles/global.css';
 
-registerSW({ immediate: true });
+const updateServiceWorker = registerSW({
+  immediate: true,
+  onNeedRefresh() {
+    void updateServiceWorker(true);
+  },
+  onRegisteredSW(_serviceWorkerUrl, registration) {
+    void registration?.update();
+    window.setInterval(() => {
+      void registration?.update();
+    }, 60 * 60 * 1000);
+  },
+});
 
 const root = document.getElementById('root');
 

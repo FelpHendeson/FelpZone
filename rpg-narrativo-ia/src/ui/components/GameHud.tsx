@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react';
 import type { Attributes } from '../../core/state';
 import { buildNeedsPresentation } from '../needs/presentation';
 
@@ -34,10 +35,12 @@ export function GameHud({ characterName, worldLabel, attributes, onExit }: GameH
               className={`hud-vitals__item hud-vitals__item--${need.band}`}
               data-need={need.id}
               title={`${need.label}: ${need.bandLabel}`}
+              style={{ '--vital-value': `${need.value}%` } as CSSProperties}
             >
               <span aria-hidden="true">{need.icon}</span>
               <strong>{need.value}</strong>
               <small>{need.bandLabel}</small>
+              <span className="hud-vitals__meter" aria-hidden="true"><span /></span>
               <span className="sr-only">{need.label}</span>
             </li>
           ))}
