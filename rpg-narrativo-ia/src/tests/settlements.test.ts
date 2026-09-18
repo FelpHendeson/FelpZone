@@ -11,7 +11,7 @@ import {
   planSettlementAction,
 } from '../modules/settlements';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV21, freshState } from './helpers';
+import { asV21, freshState, keepNpcAtCurrentLocation } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -30,7 +30,10 @@ function befriendMira(): GameState {
     { campaign: firstDayCampaign },
   ).current;
   const honored = executeSandboxAction(talked, { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
-  return executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current;
+  return keepNpcAtCurrentLocation(
+    executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current,
+    'mira-vale',
+  );
 }
 
 function claimCache(state: GameState): GameState {
@@ -50,7 +53,9 @@ describe('Sistema 28 — bases, territórios e assentamentos', () => {
     const ready = claimCache(befriendMira());
     expect(() => planSettlementAction(INITIAL_SETTLEMENTS, ready.settlements, 'start-lean-to', ready)).toThrow(SettlementError);
 
-    const claimed = executeSandboxAction(ready, { type: 'settlement.act', actionId: 'claim-awakening-camp' }).current;
+    const claimResult = executeSandboxAction(ready, { type: 'settlement.act', actionId: 'claim-awakening-camp' });
+    const claimed = claimResult.current;
+    expect(claimResult.feedback).toBe(INITIAL_SETTLEMENTS.actionById.get('claim-awakening-camp')?.feedback);
     expect(claimed.settlements.claims).toEqual([{ territoryId: 'awakening-camp', claimantId: 'player' }]);
 
     const started = executeSandboxAction(claimed, { type: 'settlement.act', actionId: 'start-lean-to' }).current;

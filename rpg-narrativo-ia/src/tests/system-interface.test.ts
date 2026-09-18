@@ -2,6 +2,12 @@ import { describe, expect, it } from 'vitest';
 import { buildSystemStatus } from '../modules/system-interface';
 import { executeSandboxAction } from '../modules/sandbox-actions';
 import { type GameState } from '../core/state';
+import { startGame } from '../core/engine';
+import { loadFirstDayWorld } from '../modules/content';
+import { createSandboxContextFromWorld } from '../modules/sandbox';
+import { indexExecutionCatalog } from '../modules/execution';
+import { indexRegistryCatalog } from '../modules/registry';
+import { indexEconomyCatalog } from '../modules/economy';
 import { freshState, now } from './helpers';
 
 function exploring(): GameState {
@@ -68,5 +74,47 @@ describe('Fatia 11.5 — Status diegético derivado', () => {
   it('não vaza habilidades ainda ocultas no Status inicial', () => {
     const serialized = JSON.stringify(buildSystemStatus(exploring()));
     expect(serialized).not.toContain('Fagulha Condutora');
+  });
+
+  it('inicializa e exibe os catálogos do pack ativo, sem recorrer ao first-day global', () => {
+    const world = loadFirstDayWorld();
+    const execution = indexExecutionCatalog({
+      reserves: world.execution.reserves.map((reserve) => ({ ...reserve, max: 37 })),
+      limits: { ...world.execution.limits },
+      modifierFields: [...world.execution.modifierFields],
+      skillModifiers: world.execution.skillModifiers.map((modifier) => ({ ...modifier })),
+    });
+    const registry = indexRegistryCatalog({
+      policy: { kind: 'restriction', eligibleSpecies: ['human'] },
+      rankings: world.registry.rankings,
+      patents: world.registry.patents,
+    });
+    const economy = indexEconomyCatalog({
+      currencies: world.economy.currencies,
+      properties: world.economy.properties,
+      offers: world.economy.offers.map((offer) =>
+        offer.id === 'buy-improvised-tool' ? { ...offer, stock: 4 } : offer,
+      ),
+      npcDecisions: world.economy.npcDecisions,
+      actions: world.economy.actions,
+    });
+    const customWorld = { ...world, execution, registry, economy };
+    const context = createSandboxContextFromWorld(customWorld);
+    const state = startGame(
+      { firstName: 'Lia', lastName: 'Nunes' },
+      customWorld.campaign,
+      now,
+      context,
+      customWorld.objectives,
+    );
+    const status = buildSystemStatus(state, context);
+
+    expect(state.execution.reserves).toEqual([{ energyId: 'numen', current: 37 }]);
+    expect(state.registry.accessGranted).toBe(false);
+    expect(state.economy.stocks.find((stock) => stock.offerId === 'buy-improvised-tool')?.remaining).toBe(4);
+    expect(status.execution.reserves).toEqual([
+      expect.objectContaining({ energyId: 'numen', current: 37, max: 37 }),
+    ]);
+    expect(status.registry.accessGranted).toBe(false);
   });
 });

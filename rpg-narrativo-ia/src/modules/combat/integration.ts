@@ -176,13 +176,14 @@ function isPositiveSafeInteger(value: number): boolean {
 }
 
 function terminalOutcomeMatches(state: CombatState): boolean {
+  const enemies = [state.opponent, ...(state.foes ?? [])];
   if (state.outcome === 'victory') {
-    return state.player.health > 0 && state.opponent.health === 0;
+    return state.player.health > 0 && enemies.every((enemy) => enemy.health === 0);
   }
   if (state.outcome === 'defeat') {
-    return state.player.health === 0 && state.opponent.health > 0;
+    return state.player.health === 0 && enemies.some((enemy) => enemy.health > 0);
   }
-  return state.player.health > 0 && state.opponent.health > 0;
+  return state.player.health > 0 && enemies.some((enemy) => enemy.health > 0);
 }
 
 function extractPlayerActionIds(state: CombatState): string[] {

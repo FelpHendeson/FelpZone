@@ -455,7 +455,16 @@ function runTransaction(
     dayCycle: copyDayCycle(dayCycle),
     needsWear: copyNeedsWearSummary(needsWear.summary),
     detail,
-    feedback: executed.plan?.feedback ?? executed.interactablePlan?.feedback ?? executed.bondPlan?.feedback ?? executed.organizationPlan?.feedback ?? executed.familyPlan?.feedback ?? executed.civicPlan?.feedback ?? executed.economyPlan?.feedback,
+    feedback:
+      executed.plan?.feedback ??
+      executed.interactablePlan?.feedback ??
+      executed.bondPlan?.feedback ??
+      executed.organizationPlan?.feedback ??
+      executed.familyPlan?.feedback ??
+      executed.civicPlan?.feedback ??
+      executed.economyPlan?.feedback ??
+      executed.settlementPlan?.feedback ??
+      executed.politicsPlan?.feedback,
     synchronization: summarizeSynchronization({
       previousExploration: previous.sandbox.exploration,
       currentExploration: current.sandbox.exploration,
@@ -758,7 +767,7 @@ function executePrimary(
       execution: state.execution ?? createInitialExecutionState(),
       allies,
     });
-    const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude));
+    const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude), context.bonds);
 
     let system = afterEffects.system;
     let mastery: MasteryResult | undefined;
@@ -968,7 +977,7 @@ function executePrimary(
       }
       worldEffects.push(effect);
     }
-    const afterEffects = worldEffects.length > 0 ? applyEffects(state, worldEffects) : state;
+    const afterEffects = worldEffects.length > 0 ? applyEffects(state, worldEffects, context.bonds) : state;
     return {
       detail: { type: 'interactable.interact', plan: interactablePlan },
       timeCost: { periods: interactablePlan.timeCost.periods },
@@ -1030,6 +1039,7 @@ function executePrimary(
 
   if (action.type === 'organization.act') {
     const catalog = context.organizations ?? INITIAL_ORGANIZATIONS;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const organizationPlan = planOrganizationAction(catalog, unchanged.organizations, action.actionId, state);
     const nextOrganizations = applyOrganizationActionPlan(catalog, unchanged.organizations, organizationPlan);
     const worldEffects: GameEffect[] = [];
@@ -1038,7 +1048,7 @@ function executePrimary(
         worldEffects.push(effect);
       }
     }
-    const afterEffects = applyEffects({ ...state, organizations: nextOrganizations }, worldEffects);
+    const afterEffects = applyEffects({ ...state, organizations: nextOrganizations }, worldEffects, context.bonds);
     return {
       detail: { type: 'organization.act', plan: organizationPlan },
       timeCost: { periods: organizationPlan.timeCost.periods },
@@ -1083,6 +1093,7 @@ function executePrimary(
 
   if (action.type === 'family.act') {
     const catalog = context.family ?? INITIAL_FAMILY;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const familyPlan = planFamilyAction(catalog, unchanged.family, action.actionId, state);
     const nextFamily = applyFamilyActionPlan(catalog, unchanged.family, familyPlan);
     const worldEffects: GameEffect[] = [];
@@ -1091,7 +1102,7 @@ function executePrimary(
         worldEffects.push(effect);
       }
     }
-    const afterEffects = applyEffects({ ...state, family: nextFamily }, worldEffects);
+    const afterEffects = applyEffects({ ...state, family: nextFamily }, worldEffects, context.bonds);
     return {
       detail: { type: 'family.act', plan: familyPlan },
       timeCost: { periods: familyPlan.timeCost.periods },
@@ -1136,6 +1147,7 @@ function executePrimary(
 
   if (action.type === 'civic.act') {
     const catalog = context.civic ?? INITIAL_CIVIC;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const civicPlan = planCivicAction(catalog, unchanged.civic, action.actionId, state);
     const nextCivic = applyCivicActionPlan(catalog, unchanged.civic, civicPlan);
     const worldEffects: GameEffect[] = [];
@@ -1144,7 +1156,7 @@ function executePrimary(
         worldEffects.push(effect);
       }
     }
-    const afterEffects = applyEffects({ ...state, civic: nextCivic }, worldEffects);
+    const afterEffects = applyEffects({ ...state, civic: nextCivic }, worldEffects, context.bonds);
     return {
       detail: { type: 'civic.act', plan: civicPlan },
       timeCost: { periods: civicPlan.timeCost.periods },
@@ -1189,6 +1201,7 @@ function executePrimary(
 
   if (action.type === 'economy.act') {
     const catalog = context.economy ?? INITIAL_ECONOMY;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const economyPlan = planEconomyAction(catalog, unchanged.economy, action.actionId, state);
     const nextEconomy = applyEconomyActionPlan(catalog, unchanged.economy, economyPlan);
     let nextInventory = copyInventory(state.inventory);
@@ -1202,7 +1215,7 @@ function executePrimary(
         continue;
       }
       if (effect.type === 'economy.add-item') {
-        if (!canAcceptQuantity(INITIAL_ITEMS, nextInventory, effect.itemId, effect.quantity)) {
+        if (!canAcceptQuantity(context.items ?? INITIAL_ITEMS, nextInventory, effect.itemId, effect.quantity)) {
           throw new SandboxActionError('A mercadoria não cabe no inventário.');
         }
         nextInventory = addItem(nextInventory, effect.itemId, effect.quantity);
@@ -1212,7 +1225,11 @@ function executePrimary(
         worldEffects.push(effect);
       }
     }
-    const afterEffects = applyEffects({ ...state, economy: nextEconomy, inventory: nextInventory }, worldEffects);
+    const afterEffects = applyEffects(
+      { ...state, economy: nextEconomy, inventory: nextInventory },
+      worldEffects,
+      context.bonds,
+    );
     return {
       detail: { type: 'economy.act', plan: economyPlan },
       timeCost: { periods: economyPlan.timeCost.periods },
@@ -1257,6 +1274,7 @@ function executePrimary(
 
   if (action.type === 'settlement.act') {
     const catalog = context.settlements ?? INITIAL_SETTLEMENTS;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const settlementPlan = planSettlementAction(catalog, unchanged.settlements, action.actionId, state);
     const nextSettlements = applySettlementActionPlan(catalog, unchanged.settlements, settlementPlan);
     let nextInventory = copyInventory(state.inventory);
@@ -1270,7 +1288,7 @@ function executePrimary(
         continue;
       }
       if (effect.type === 'settlement.withdraw-item') {
-        if (!canAcceptQuantity(INITIAL_ITEMS, nextInventory, effect.itemId, effect.quantity)) {
+        if (!canAcceptQuantity(context.items ?? INITIAL_ITEMS, nextInventory, effect.itemId, effect.quantity)) {
           throw new SandboxActionError('O item da base não cabe no inventário.');
         }
         nextInventory = addItem(nextInventory, effect.itemId, effect.quantity);
@@ -1283,6 +1301,7 @@ function executePrimary(
     const afterEffects = applyEffects(
       { ...state, settlements: nextSettlements, inventory: nextInventory },
       worldEffects,
+      context.bonds,
     );
     return {
       detail: { type: 'settlement.act', plan: settlementPlan },
@@ -1328,6 +1347,7 @@ function executePrimary(
 
   if (action.type === 'politics.act') {
     const catalog = context.politics ?? INITIAL_POLITICS;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const politicsPlan = planPoliticsAction(catalog, unchanged.politics, action.actionId, state);
     const nextPolitics = applyPoliticsActionPlan(catalog, unchanged.politics, politicsPlan);
     const worldEffects: GameEffect[] = [];
@@ -1336,7 +1356,7 @@ function executePrimary(
         worldEffects.push(effect);
       }
     }
-    const afterEffects = applyEffects({ ...state, politics: nextPolitics }, worldEffects);
+    const afterEffects = applyEffects({ ...state, politics: nextPolitics }, worldEffects, context.bonds);
     return {
       detail: { type: 'politics.act', plan: politicsPlan },
       timeCost: { periods: politicsPlan.timeCost.periods },
@@ -1381,6 +1401,7 @@ function executePrimary(
 
   if (action.type === 'bond.act') {
     const catalog = context.bonds ?? INITIAL_BONDS;
+    requireNpcPresent(context, state, catalog.actionById.get(action.actionId)?.npcId);
     const bondPlan = planBondAction(catalog, unchanged.bonds, action.actionId, state);
     const nextBonds = applyBondActionPlan(catalog, unchanged.bonds, bondPlan);
     const worldEffects: GameEffect[] = [];
@@ -1390,7 +1411,11 @@ function executePrimary(
       }
       worldEffects.push(effect);
     }
-    const afterEffects = applyEffects({ ...state, bonds: nextBonds }, worldEffects.filter((effect) => effect.type !== 'npc.rememberFact'));
+    const afterEffects = applyEffects(
+      { ...state, bonds: nextBonds },
+      worldEffects.filter((effect) => effect.type !== 'npc.rememberFact'),
+      context.bonds,
+    );
     const npcCatalog = context.npcs ?? INITIAL_NPCS;
     let npcs = copyNpcsState(state.sandbox.npcs ?? createInitialNpcsState());
     for (const effect of bondPlan.effects) {
@@ -1454,6 +1479,7 @@ function executePrimary(
   const afterEffects = applyEffects(
     state,
     interactionEffects.filter((effect) => effect.type !== 'npc.rememberFact'),
+    context.bonds,
   );
   let nextPresences = copyPresenceState(presences);
   if (plan.resolvesPresence) {
@@ -1508,6 +1534,21 @@ function executePrimary(
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
     world: { day: afterEffects.world.day, period: afterEffects.world.period },
   };
+}
+
+function requireNpcPresent(context: SandboxContext, state: GameState, npcId: string | undefined): void {
+  if (!npcId) {
+    return;
+  }
+  const catalog = context.npcs ?? INITIAL_NPCS;
+  const npc = catalog.npcById.get(npcId);
+  const npcState = (state.sandbox.npcs ?? createInitialNpcsState()).entries.find((entry) => entry.npcId === npcId);
+  const schedule = npc ? catalog.scheduleById.get(npcState?.scheduleOverrideId ?? npc.defaultScheduleId) : undefined;
+  const scheduled = schedule?.entries.find((entry) => entry.period === state.world.period)?.locationId;
+  const locationId = npcState?.locationOverrideId ?? scheduled ?? schedule?.fallbackLocationId;
+  if (!npc || npcState?.status === 'departed' || locationId !== state.sandbox.navigation.currentLocationId) {
+    throw new SandboxActionError('O NPC não está disponível neste local agora.');
+  }
 }
 
 function requireContext(value: SandboxContext | undefined): SandboxContext {

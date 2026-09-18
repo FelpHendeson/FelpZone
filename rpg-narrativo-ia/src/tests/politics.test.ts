@@ -11,7 +11,7 @@ import {
   planPoliticsAction,
 } from '../modules/politics';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV22, freshState } from './helpers';
+import { asV22, freshState, keepNpcAtCurrentLocation } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -30,7 +30,10 @@ function befriendMira(): GameState {
     { campaign: firstDayCampaign },
   ).current;
   const honored = executeSandboxAction(talked, { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
-  return executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current;
+  return keepNpcAtCurrentLocation(
+    executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current,
+    'mira-vale',
+  );
 }
 
 function claimCamp(state: GameState): GameState {
@@ -53,7 +56,9 @@ describe('Sistema 29 — facções, diplomacia e poder político', () => {
     expect(() => planPoliticsAction(INITIAL_POLITICS, friends.politics, 'propose-shared-watch', friends)).toThrow(PoliticsError);
 
     const camp = claimCamp(friends);
-    const mandated = executeSandboxAction(camp, { type: 'politics.act', actionId: 'take-camp-mandate' }).current;
+    const mandateResult = executeSandboxAction(camp, { type: 'politics.act', actionId: 'take-camp-mandate' });
+    const mandated = mandateResult.current;
+    expect(mandateResult.feedback).toBe(INITIAL_POLITICS.actionById.get('take-camp-mandate')?.feedback);
     expect(mandated.politics.mandates).toEqual([
       { actorId: 'player', factionId: 'camp-circle', officeId: 'envoy' },
     ]);

@@ -35,6 +35,21 @@ export function freshState(): GameState {
   return startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
 }
 
+export function keepNpcAtCurrentLocation(state: GameState, npcId: string): GameState {
+  const entries = (state.sandbox.npcs?.entries ?? []).map((entry) =>
+    entry.npcId === npcId
+      ? { ...entry, locationOverrideId: state.sandbox.navigation.currentLocationId }
+      : { ...entry },
+  );
+  return {
+    ...state,
+    sandbox: {
+      ...state.sandbox,
+      npcs: { entries },
+    },
+  };
+}
+
 export function serializedState(): Record<string, unknown> {
   return JSON.parse(serializeGameState(freshState())) as Record<string, unknown>;
 }

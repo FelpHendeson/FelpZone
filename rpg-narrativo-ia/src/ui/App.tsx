@@ -139,7 +139,7 @@ export function App() {
   }
 
   function handleCreate(firstName: string, lastName: string) {
-    const next = startGame(normalizeIdentity(firstName, lastName), campaign);
+    const next = startGame(normalizeIdentity(firstName, lastName), campaign, undefined, sandboxContext, world.objectives);
     persist(next);
     setError(null);
     setFeedback(null);
@@ -152,7 +152,7 @@ export function App() {
     }
 
     try {
-      const next = applyChoice(state, campaign, choiceId);
+      const next = applyChoice(state, campaign, choiceId, undefined, world.objectives, sandboxContext);
       persist(next);
       setError(null);
       setFeedback(null);

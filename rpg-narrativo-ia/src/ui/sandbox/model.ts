@@ -654,7 +654,17 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
   }
   const views: BondCharacterView[] = [];
   for (const npc of npcs.npcs) {
-    const actions = listKnownBondActions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, state, npc.id);
+    const npcView = deriveNpcAt(
+      npcs,
+      state.sandbox.npcs ?? { entries: [] },
+      npc.id,
+      state.world.period,
+      (locationId) => state.sandbox.navigation.discoveredLocationIds.includes(locationId),
+    );
+    const canInteract = npcView?.locationId === state.sandbox.navigation.currentLocationId;
+    const actions = canInteract
+      ? listKnownBondActions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, state, npc.id)
+      : [];
     if (!knownIds.has(npc.id) && actions.length === 0) {
       continue;
     }
@@ -672,7 +682,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         available: entry.available,
         blockedReason: entry.blockedReason,
       })),
-      organizationActions: listKnownOrganizationActions(
+      organizationActions: canInteract ? listKnownOrganizationActions(
         context.organizations ?? INITIAL_ORGANIZATIONS,
         state.organizations ?? { entries: [], consumedActionIds: [] },
         state,
@@ -684,8 +694,8 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         costPeriods: entry.action.timeCost.periods,
         available: entry.available,
         blockedReason: entry.blockedReason,
-      })),
-      familyActions: listKnownFamilyActions(
+      })) : [],
+      familyActions: canInteract ? listKnownFamilyActions(
         context.family ?? INITIAL_FAMILY,
         state.family ?? { ties: [], households: [], stageMarks: [], consumedActionIds: [] },
         state,
@@ -697,8 +707,8 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         costPeriods: entry.action.timeCost.periods,
         available: entry.available,
         blockedReason: entry.blockedReason,
-      })),
-      civicActions: listKnownCivicActions(
+      })) : [],
+      civicActions: canInteract ? listKnownCivicActions(
         context.civic ?? INITIAL_CIVIC,
         state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] },
         state,
@@ -710,8 +720,8 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         costPeriods: entry.action.timeCost.periods,
         available: entry.available,
         blockedReason: entry.blockedReason,
-      })),
-      economyActions: listKnownEconomyActions(
+      })) : [],
+      economyActions: canInteract ? listKnownEconomyActions(
         context.economy ?? INITIAL_ECONOMY,
         state.economy ?? createInitialEconomyState(),
         state,
@@ -723,8 +733,8 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         costPeriods: entry.action.timeCost.periods,
         available: entry.available,
         blockedReason: entry.blockedReason,
-      })),
-      settlementActions: listKnownSettlementActions(
+      })) : [],
+      settlementActions: canInteract ? listKnownSettlementActions(
         context.settlements ?? INITIAL_SETTLEMENTS,
         state.settlements ?? createInitialSettlementsState(),
         state,
@@ -736,8 +746,8 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         costPeriods: entry.action.timeCost.periods,
         available: entry.available,
         blockedReason: entry.blockedReason,
-      })),
-      politicsActions: listKnownPoliticsActions(
+      })) : [],
+      politicsActions: canInteract ? listKnownPoliticsActions(
         context.politics ?? INITIAL_POLITICS,
         state.politics ?? createInitialPoliticsState(),
         state,
@@ -749,7 +759,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         costPeriods: entry.action.timeCost.periods,
         available: entry.available,
         blockedReason: entry.blockedReason,
-      })),
+      })) : [],
     });
   }
   return views;

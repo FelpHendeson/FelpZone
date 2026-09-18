@@ -10,6 +10,8 @@ import type { IndexedEconomy } from '../economy/types';
 import type { IndexedSettlements } from '../settlements/types';
 import type { IndexedPolitics } from '../politics/types';
 import type { IndexedRegistry } from '../registry/types';
+import type { IndexedExecution } from '../execution/types';
+import type { IndexedParty } from '../party/types';
 import type { IndexedInteractables, InteractablesState } from '../interactables/types';
 import type { IndexedItems } from '../items/types';
 import type { IndexedMap, NavigationState } from '../navigation/types';
@@ -61,6 +63,8 @@ export interface SandboxContext {
   settlements?: IndexedSettlements;
   politics?: IndexedPolitics;
   registry?: IndexedRegistry;
+  execution?: IndexedExecution;
+  party?: IndexedParty;
   campaign?: Campaign;
   npcs?: IndexedNpcs;
   items?: IndexedItems;

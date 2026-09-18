@@ -1092,11 +1092,11 @@ function inspectCurrent(
   if (!organizations.ok) {
     return fail(organizations.reason);
   }
-  const execution = inspectExecutionState(value.execution);
+  const execution = inspectExecutionState(value.execution, resolvedContext.execution);
   if (!execution.ok) {
     return fail(execution.reason);
   }
-  const party = inspectPartyState(value.party);
+  const party = inspectPartyState(value.party, resolvedContext.party);
   if (!party.ok) {
     return fail(party.reason);
   }
@@ -1112,15 +1112,15 @@ function inspectCurrent(
   if (!civic.ok) {
     return fail(civic.reason);
   }
-  const economy = inspectEconomyState(value.economy);
+  const economy = inspectEconomyState(value.economy, resolvedContext.economy);
   if (!economy.ok) {
     return fail(economy.reason);
   }
-  const settlements = inspectSettlementsState(value.settlements);
+  const settlements = inspectSettlementsState(value.settlements, resolvedContext.settlements);
   if (!settlements.ok) {
     return fail(settlements.reason);
   }
-  const politics = inspectPoliticsState(value.politics);
+  const politics = inspectPoliticsState(value.politics, resolvedContext.politics);
   if (!politics.ok) {
     return fail(politics.reason);
   }

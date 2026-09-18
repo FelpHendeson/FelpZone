@@ -62,6 +62,22 @@ describe('Fatia 12.9 — ponte de vitalidade e resolução terminal', () => {
     expect(() => buildCombatResolution(terminal, { ...encounter, id: 'outro' })).toThrow(CombatError);
   });
 
+  it('aceita derrota coletiva quando o oponente principal cai, mas outro inimigo permanece', () => {
+    const encounter = getEncounter(INITIAL_COMBAT, 'clearing-pair');
+    const combat = createCombat(INITIAL_COMBAT, encounter.id, { playerMaxHealth: 80 });
+    const terminal: CombatState = {
+      ...combat,
+      turn: 1,
+      outcome: 'defeat',
+      player: { ...combat.player, health: 0 },
+      opponent: { ...combat.opponent, health: 0 },
+      foes: combat.foes.map((foe, index) => ({ ...foe, health: index === 0 ? 1 : 0 })),
+      log: [{ turn: 1, actorId: combat.player.id, actionId: combat.player.actionIds[0], text: 'Ação final.' }],
+    };
+
+    expect(buildCombatResolution(terminal, encounter).outcome).toBe('defeat');
+  });
+
   it('vitória e fuga persistem a saúde restante, sem cura grátis acima da entrada', () => {
     const encounter = getEncounter(INITIAL_COMBAT, 'clearing-predator');
     const terminal = fightTo('victory', 80);

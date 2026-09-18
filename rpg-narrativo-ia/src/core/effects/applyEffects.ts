@@ -5,14 +5,27 @@ import { changeAttribute } from '../../modules/character';
 import { addItem, canRemoveItem, removeItem } from '../../modules/inventory';
 import { grantAbility, grantTitle } from '../../modules/progression';
 import { changeRelationship } from '../../modules/relationships';
-import { applyBondDomainEffects, INITIAL_BONDS, createInitialBondsState } from '../../modules/bonds';
+import {
+  applyBondDomainEffects,
+  INITIAL_BONDS,
+  createInitialBondsState,
+  type IndexedBonds,
+} from '../../modules/bonds';
 import { advancePeriodTo } from '../../modules/world';
 
-export function applyEffects(state: GameState, effects: GameEffect[]): GameState {
-  return effects.reduce(applyEffect, state);
+export function applyEffects(
+  state: GameState,
+  effects: GameEffect[],
+  bonds: IndexedBonds = INITIAL_BONDS,
+): GameState {
+  return effects.reduce((current, effect) => applyEffect(current, effect, bonds), state);
 }
 
-export function applyEffect(state: GameState, effect: GameEffect): GameState {
+export function applyEffect(
+  state: GameState,
+  effect: GameEffect,
+  bonds: IndexedBonds = INITIAL_BONDS,
+): GameState {
   switch (effect.type) {
     case 'attribute.change':
       assertFinite(effect.amount, `Variação inválida para o atributo ${effect.attribute}.`);
@@ -79,7 +92,7 @@ export function applyEffect(state: GameState, effect: GameEffect): GameState {
     case 'bond.form':
       return {
         ...state,
-        bonds: applyBondDomainEffects(INITIAL_BONDS, state.bonds ?? createInitialBondsState(), state, [effect]),
+        bonds: applyBondDomainEffects(bonds, state.bonds ?? createInitialBondsState(), state, [effect]),
       };
   }
 }

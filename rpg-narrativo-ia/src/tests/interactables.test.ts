@@ -71,6 +71,37 @@ describe('Sistema 18 — cenário interativo', () => {
     if (!inspected.ok) {
       expect(inspected.reason).toMatch(/passagem inexistente/);
     }
+
+    const invalidItem = inspectInteractableCatalog(
+      {
+        interactables: [
+          {
+            id: 'cache',
+            locationId: 'great-tree',
+            discoveryId: 'bark-markings',
+            name: 'Cache',
+            description: 'Um teste.',
+            initialStageId: 'closed',
+            stages: [{ id: 'closed', name: 'Fechado', description: 'Fechado.' }],
+            facts: [],
+          },
+        ],
+        actions: [
+          {
+            id: 'take-ghost-item',
+            interactableId: 'cache',
+            stageId: 'closed',
+            label: 'Pegar',
+            timeCost: { periods: 1 },
+            effects: [{ type: 'inventory.add', itemId: 'ghost-item', quantity: 1 }],
+          },
+        ],
+      },
+      world.map,
+      world.exploration,
+      world.items,
+    );
+    expect(invalidItem.ok).toBe(false);
   });
 
   it('não lista nem revela o objeto antes da descoberta', () => {

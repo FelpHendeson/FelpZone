@@ -11,7 +11,7 @@ import {
   planEconomyAction,
 } from '../modules/economy';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV20, freshState } from './helpers';
+import { asV20, freshState, keepNpcAtCurrentLocation } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -30,7 +30,10 @@ function befriendMira(): GameState {
     { campaign: firstDayCampaign },
   ).current;
   const honored = executeSandboxAction(talked, { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
-  return executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current;
+  return keepNpcAtCurrentLocation(
+    executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current,
+    'mira-vale',
+  );
 }
 
 describe('Sistema 27 — economia, comércio e propriedade', () => {
@@ -82,5 +85,25 @@ describe('Sistema 27 — economia, comércio e propriedade', () => {
     const missing = JSON.parse(serializeGameState(freshState())) as Record<string, unknown>;
     delete missing.economy;
     expect(parseGameState(JSON.stringify(missing)).status).toBe('corrupt');
+  });
+
+  it('bloqueia uma ação de NPC quando ele está em outro local', () => {
+    const friends = keepNpcAtCurrentLocation(befriendMira(), 'mira-vale');
+    const remote: GameState = {
+      ...friends,
+      inventory: addItem([], 'fallen-branch', 1),
+      sandbox: {
+        ...friends.sandbox,
+        npcs: {
+          entries: (friends.sandbox.npcs?.entries ?? []).map((entry) =>
+            entry.npcId === 'mira-vale' ? { ...entry, locationOverrideId: 'spring-lake' } : entry,
+          ),
+        },
+      },
+    };
+
+    expect(() =>
+      executeSandboxAction(remote, { type: 'economy.act', actionId: 'sell-fallen-branch' }),
+    ).toThrow('O NPC não está disponível neste local agora.');
   });
 });

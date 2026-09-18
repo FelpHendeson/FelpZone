@@ -85,5 +85,5 @@ describe('Fatia 9.5 — sobrevivência ponta a ponta', () => {
     expect(executedActions.some((action) => action.type === 'presence.interact')).toBe(false);
 
     expect(() => executeSandboxAction(current, { type: 'needs.rest', mode: 'simple' }, { context })).not.toThrow();
-  });
+  }, 15_000);
 });

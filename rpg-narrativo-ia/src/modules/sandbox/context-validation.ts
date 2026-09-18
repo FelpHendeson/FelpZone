@@ -7,6 +7,8 @@ import { inspectEconomyCatalog, INITIAL_ECONOMY } from '../economy';
 import { inspectSettlementsCatalog, INITIAL_SETTLEMENTS } from '../settlements';
 import { inspectPoliticsCatalog, INITIAL_POLITICS } from '../politics';
 import { inspectRegistryCatalog, INITIAL_REGISTRY } from '../registry';
+import { inspectExecutionCatalog, INITIAL_EXECUTION } from '../execution';
+import { inspectPartyCatalog, INITIAL_PARTY } from '../party';
 import { inspectCraftingDefinitions } from '../crafting';
 import { inspectExplorationDefinitions } from '../exploration';
 import { inspectInteractableCatalog } from '../interactables';
@@ -123,13 +125,18 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
   };
 
   if (value.interactables !== undefined) {
-    const interactables = inspectInteractableCatalog(value.interactables, map.value, exploration.value);
+    const interactables = inspectInteractableCatalog(value.interactables, map.value, exploration.value, items?.value);
     if (!interactables.ok) {
       return fail(interactables.reason);
     }
     context.interactables = interactables.value;
   } else {
-    const interactables = inspectInteractableCatalog({ interactables: [], actions: [] }, map.value, exploration.value);
+    const interactables = inspectInteractableCatalog(
+      { interactables: [], actions: [] },
+      map.value,
+      exploration.value,
+      items?.value,
+    );
     if (!interactables.ok) {
       return fail(interactables.reason);
     }
@@ -224,6 +231,26 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     context.registry = registry.value;
   } else {
     context.registry = INITIAL_REGISTRY;
+  }
+
+  if (value.execution !== undefined) {
+    const execution = inspectExecutionCatalog(value.execution);
+    if (!execution.ok) {
+      return fail(execution.reason);
+    }
+    context.execution = execution.value;
+  } else {
+    context.execution = INITIAL_EXECUTION;
+  }
+
+  if (value.party !== undefined) {
+    const party = inspectPartyCatalog(value.party);
+    if (!party.ok) {
+      return fail(party.reason);
+    }
+    context.party = party.value;
+  } else {
+    context.party = INITIAL_PARTY;
   }
 
   if (value.npcs !== undefined) {

@@ -29,6 +29,8 @@ import { INITIAL_ECONOMY } from '../economy';
 import { INITIAL_SETTLEMENTS } from '../settlements';
 import { INITIAL_POLITICS } from '../politics';
 import { INITIAL_REGISTRY } from '../registry';
+import { INITIAL_EXECUTION } from '../execution';
+import { INITIAL_PARTY } from '../party';
 import {
   INITIAL_INTERACTABLE_CATALOG,
   createInitialInteractablesState,
@@ -85,6 +87,8 @@ export function createSandboxContextFromWorld(
     settlements: world.settlements,
     politics: world.politics,
     registry: world.registry,
+    execution: world.execution,
+    party: world.party,
     campaign: world.campaign,
     npcs: world.npcs,
     items: world.items,
@@ -118,7 +122,7 @@ export function createSandboxContext(
       presences,
       firstDayCampaign,
     );
-    const interactables = indexInteractableCatalog(INITIAL_INTERACTABLE_CATALOG, map, exploration);
+    const interactables = indexInteractableCatalog(INITIAL_INTERACTABLE_CATALOG, map, exploration, INITIAL_ITEMS);
 
     return {
       startingLocationId,
@@ -138,6 +142,8 @@ export function createSandboxContext(
       settlements: INITIAL_SETTLEMENTS,
       politics: INITIAL_POLITICS,
       registry: INITIAL_REGISTRY,
+      execution: INITIAL_EXECUTION,
+      party: INITIAL_PARTY,
       campaign: firstDayCampaign,
       npcs: INITIAL_NPCS,
       items: INITIAL_ITEMS,

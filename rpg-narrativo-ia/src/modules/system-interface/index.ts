@@ -32,6 +32,7 @@ import {
   INITIAL_REGISTRY,
   listVisibleRankings,
   planPatentClaim,
+  type IndexedRegistry,
 } from '../registry';
 import { INITIAL_ORGANIZATIONS, listKnownOrganizationActions, listOrganizationViews } from '../organizations';
 import { INITIAL_PARTY, listPartyViews } from '../party';
@@ -41,6 +42,7 @@ import {
   deriveActorAge,
   describeCalendarDate,
   listUpcomingCalendarEvents,
+  type IndexedCalendar,
 } from '../calendar';
 import { INITIAL_FAMILY, listFamilyViews, listKnownFamilyActions } from '../family';
 import { INITIAL_CIVIC, listCivicViews, listKnownCivicActions } from '../civic';
@@ -58,6 +60,7 @@ import {
   listPoliticsViews,
 } from '../politics';
 import { INITIAL_EXECUTION } from '../execution';
+import type { SandboxContext } from '../sandbox';
 import type {
   SystemMilestoneView,
   SystemSkillView,
@@ -65,8 +68,18 @@ import type {
   SystemTrainingView,
 } from './types';
 
-export function buildSystemStatus(state: GameState): SystemStatusView {
+export function buildSystemStatus(state: GameState, context?: SandboxContext): SystemStatusView {
   const progress = state.system;
+  const registryCatalog = context?.registry ?? INITIAL_REGISTRY;
+  const organizationCatalog = context?.organizations ?? INITIAL_ORGANIZATIONS;
+  const partyCatalog = context?.party ?? INITIAL_PARTY;
+  const calendarCatalog = context?.calendar ?? INITIAL_CALENDAR;
+  const familyCatalog = context?.family ?? INITIAL_FAMILY;
+  const civicCatalog = context?.civic ?? INITIAL_CIVIC;
+  const economyCatalog = context?.economy ?? INITIAL_ECONOMY;
+  const settlementsCatalog = context?.settlements ?? INITIAL_SETTLEMENTS;
+  const politicsCatalog = context?.politics ?? INITIAL_POLITICS;
+  const executionCatalog = context?.execution ?? INITIAL_EXECUTION;
 
   return {
     characterName: `${state.character.firstName} ${state.character.lastName}`.trim(),
@@ -81,24 +94,24 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
       cultivationPoints: state.garden.cultivationPoints,
       recipes: deriveGardenRecipes(INITIAL_GARDEN, INITIAL_SKILLS, progress, state.garden),
     },
-    registry: buildRegistryView(state),
-    organizations: listOrganizationViews(INITIAL_ORGANIZATIONS, state.organizations ?? { entries: [], consumedActionIds: [] }),
+    registry: buildRegistryView(state, registryCatalog),
+    organizations: listOrganizationViews(organizationCatalog, state.organizations ?? { entries: [], consumedActionIds: [] }),
     party: listPartyViews(
-      INITIAL_PARTY,
-      INITIAL_ORGANIZATIONS,
+      partyCatalog,
+      organizationCatalog,
       state.organizations ?? { entries: [], consumedActionIds: [] },
       state.party ?? { tacticId: null, vitals: [] },
     ),
-    calendar: buildCalendarView(state),
+    calendar: buildCalendarView(state, calendarCatalog),
     family: listFamilyViews(
-      INITIAL_FAMILY,
+      familyCatalog,
       state.family ?? { ties: [], households: [], stageMarks: [], consumedActionIds: [] },
-      INITIAL_CALENDAR,
+      calendarCatalog,
       state.world.day,
       (actorId) => (actorId === 'player' ? statusName(state) : actorId === 'mira-vale' ? 'Mira Vale' : actorId === 'rowan-vale' ? 'Rowan Vale' : actorId),
     ),
     familyActions: listKnownFamilyActions(
-      INITIAL_FAMILY,
+      familyCatalog,
       state.family ?? { ties: [], households: [], stageMarks: [], consumedActionIds: [] },
       state,
     )
@@ -111,9 +124,9 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
-    civic: listCivicViews(INITIAL_CIVIC, state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] }),
+    civic: listCivicViews(civicCatalog, state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] }),
     civicActions: listKnownCivicActions(
-      INITIAL_CIVIC,
+      civicCatalog,
       state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] },
       state,
     )
@@ -126,10 +139,10 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
-    economy: listEconomyViews(INITIAL_ECONOMY, state.economy ?? createInitialEconomyState()),
+    economy: listEconomyViews(economyCatalog, state.economy ?? createInitialEconomyState(economyCatalog)),
     economyActions: listKnownEconomyActions(
-      INITIAL_ECONOMY,
-      state.economy ?? createInitialEconomyState(),
+      economyCatalog,
+      state.economy ?? createInitialEconomyState(economyCatalog),
       state,
     )
       .filter((entry) => !entry.action.npcId)
@@ -141,9 +154,9 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
-    settlements: listSettlementViews(INITIAL_SETTLEMENTS, state.settlements ?? createInitialSettlementsState()),
+    settlements: listSettlementViews(settlementsCatalog, state.settlements ?? createInitialSettlementsState()),
     settlementActions: listKnownSettlementActions(
-      INITIAL_SETTLEMENTS,
+      settlementsCatalog,
       state.settlements ?? createInitialSettlementsState(),
       state,
     )
@@ -156,9 +169,9 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
-    politics: listPoliticsViews(INITIAL_POLITICS, state.politics ?? createInitialPoliticsState()),
+    politics: listPoliticsViews(politicsCatalog, state.politics ?? createInitialPoliticsState()),
     politicsActions: listKnownPoliticsActions(
-      INITIAL_POLITICS,
+      politicsCatalog,
       state.politics ?? createInitialPoliticsState(),
       state,
     )
@@ -172,7 +185,7 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
     execution: {
-      reserves: INITIAL_EXECUTION.reserves.map((entry) => ({
+      reserves: executionCatalog.reserves.map((entry) => ({
         energyId: entry.energyId,
         name: entry.name,
         current: state.execution?.reserves.find((reserve) => reserve.energyId === entry.energyId)?.current ?? entry.max,
@@ -180,7 +193,7 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
       })),
     },
     organizationActions: listKnownOrganizationActions(
-      INITIAL_ORGANIZATIONS,
+      organizationCatalog,
       state.organizations ?? { entries: [], consumedActionIds: [] },
       state,
     )
@@ -196,8 +209,7 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
   };
 }
 
-function buildRegistryView(state: GameState): SystemStatusView['registry'] {
-  const catalog = INITIAL_REGISTRY;
+function buildRegistryView(state: GameState, catalog: IndexedRegistry): SystemStatusView['registry'] {
   const registry = state.registry ?? { accessGranted: false, patentIds: [], recognizedRankingIds: [] };
   if (!registry.accessGranted) {
     return { accessGranted: false, patents: [], rankings: [] };
@@ -231,8 +243,7 @@ function statusName(state: GameState): string {
   return `${state.character.firstName} ${state.character.lastName}`.trim();
 }
 
-function buildCalendarView(state: GameState): SystemStatusView['calendar'] {
-  const catalog = INITIAL_CALENDAR;
+function buildCalendarView(state: GameState, catalog: IndexedCalendar): SystemStatusView['calendar'] {
   const calendar = state.calendar ?? { consumedEventIds: [] };
   const life = deriveActorAge(catalog, PLAYER_CALENDAR_ACTOR_ID, state.world.day);
   return {

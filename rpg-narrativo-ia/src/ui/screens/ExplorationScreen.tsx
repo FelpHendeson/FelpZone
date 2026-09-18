@@ -153,7 +153,7 @@ export function ExplorationScreen({
           ) : null}
           {activeTab === 'system' ? (
             <SystemPanel
-              status={buildSystemStatus(state)}
+              status={buildSystemStatus(state, context)}
               state={state}
               campaign={campaign}
               abilityName={view.abilityName}

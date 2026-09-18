@@ -88,7 +88,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       'O catálogo de interações é inválido.',
     );
     const interactables = unwrap(
-      inspectInteractableCatalog(raw.interactables, map, exploration),
+      inspectInteractableCatalog(raw.interactables, map, exploration, items),
       'O catálogo de pontos de interesse é inválido.',
     );
     const bonds = unwrap(inspectBondCatalog(raw.bonds), 'O catálogo de relacionamentos é inválido.');

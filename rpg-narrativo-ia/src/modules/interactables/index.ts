@@ -2,6 +2,7 @@ import { evaluateConditions, type GameCondition, type GameEffect, type ImageRefe
 import { isAttributeId, isDayPeriod, type GameState } from '../../core/state/types';
 import type { ExplorationState, IndexedExploration } from '../exploration';
 import type { IndexedMap } from '../navigation';
+import { INITIAL_ITEMS, type IndexedItems } from '../items';
 import { isSkillKnown } from '../skills';
 import { InteractableError } from './errors';
 import { ImmutableIndex } from './immutable-index';
@@ -49,6 +50,7 @@ export function inspectInteractableCatalog(
   value: unknown,
   map: IndexedMap,
   exploration: IndexedExploration,
+  items: IndexedItems = INITIAL_ITEMS,
 ): InteractableInspectionResult<IndexedInteractables> {
   if (!isRecord(value) || !Array.isArray(value.interactables) || !Array.isArray(value.actions)) {
     return fail('O catálogo de pontos de interesse é inválido.');
@@ -69,7 +71,7 @@ export function inspectInteractableCatalog(
   const actions: InteractableActionDefinition[] = [];
   const actionById = new Map<string, InteractableActionDefinition>();
   for (const entry of value.actions) {
-    const inspected = inspectAction(entry, byId, actionById, map);
+    const inspected = inspectAction(entry, byId, actionById, map, items);
     if (!inspected.ok) {
       return inspected;
     }
@@ -85,8 +87,9 @@ export function indexInteractableCatalog(
   value: unknown,
   map: IndexedMap,
   exploration: IndexedExploration,
+  items: IndexedItems = INITIAL_ITEMS,
 ): IndexedInteractables {
-  const inspected = inspectInteractableCatalog(value, map, exploration);
+  const inspected = inspectInteractableCatalog(value, map, exploration, items);
   if (!inspected.ok) {
     throw new InteractableError(inspected.reason);
   }
@@ -406,6 +409,7 @@ function inspectAction(
   interactables: ReadonlyMap<string, InteractableDefinition>,
   actionById: ReadonlyMap<string, InteractableActionDefinition>,
   map: IndexedMap,
+  items: IndexedItems,
 ): InteractableInspectionResult<InteractableActionDefinition> {
   if (!isRecord(value) || !nonEmpty(value.id) || actionById.has(value.id)) {
     return fail('A ação do ponto de interesse é inválida.');
@@ -432,11 +436,11 @@ function inspectAction(
   if (!isRecord(value.timeCost) || !positiveSafeInteger(value.timeCost.periods)) {
     return fail(`O custo temporal da ação ${value.id} é inválido.`);
   }
-  const requirements = inspectRequirements(value.requirements, value.id);
+  const requirements = inspectRequirements(value.requirements, value.id, items);
   if (!requirements.ok) {
     return requirements;
   }
-  const effects = inspectEffects(value.effects, definition, map, value.id);
+  const effects = inspectEffects(value.effects, definition, map, value.id, items);
   if (!effects.ok) {
     return effects;
   }
@@ -460,6 +464,7 @@ function inspectAction(
 function inspectRequirements(
   value: unknown,
   actionId: string,
+  items: IndexedItems,
 ): InteractableInspectionResult<InteractableRequirement[] | undefined> {
   if (value === undefined) {
     return { ok: true, value: undefined };
@@ -469,7 +474,7 @@ function inspectRequirements(
   }
   const requirements: InteractableRequirement[] = [];
   for (const entry of value) {
-    const inspected = inspectRequirement(entry, actionId);
+    const inspected = inspectRequirement(entry, actionId, items);
     if (!inspected.ok) {
       return inspected;
     }
@@ -481,6 +486,7 @@ function inspectRequirements(
 function inspectRequirement(
   value: unknown,
   actionId: string,
+  items: IndexedItems,
 ): InteractableInspectionResult<InteractableRequirement> {
   if (!isRecord(value) || typeof value.type !== 'string') {
     return fail(`Os requisitos da ação ${actionId} são inválidos.`);
@@ -497,7 +503,7 @@ function inspectRequirement(
     }
     return { ok: true, value: { type: 'period.is', period: value.period } };
   }
-  return inspectGameCondition(value, `Os requisitos da ação ${actionId} são inválidos.`);
+  return inspectGameCondition(value, `Os requisitos da ação ${actionId} são inválidos.`, items);
 }
 
 function inspectEffects(
@@ -505,13 +511,14 @@ function inspectEffects(
   definition: InteractableDefinition,
   map: IndexedMap,
   actionId: string,
+  items: IndexedItems,
 ): InteractableInspectionResult<InteractableEffect[]> {
   if (!Array.isArray(value) || value.length === 0) {
     return fail(`Os efeitos da ação ${actionId} são inválidos.`);
   }
   const effects: InteractableEffect[] = [];
   for (const entry of value) {
-    const inspected = inspectEffect(entry, definition, map, actionId);
+    const inspected = inspectEffect(entry, definition, map, actionId, items);
     if (!inspected.ok) {
       return inspected;
     }
@@ -525,6 +532,7 @@ function inspectEffect(
   definition: InteractableDefinition,
   map: IndexedMap,
   actionId: string,
+  items: IndexedItems,
 ): InteractableInspectionResult<InteractableEffect> {
   if (!isRecord(value) || typeof value.type !== 'string') {
     return fail(`Os efeitos da ação ${actionId} são inválidos.`);
@@ -547,10 +555,14 @@ function inspectEffect(
     }
     return { ok: true, value: { type: value.type, locationId: value.locationId } };
   }
-  return inspectGameEffect(value, `Os efeitos da ação ${actionId} são inválidos.`);
+  return inspectGameEffect(value, `Os efeitos da ação ${actionId} são inválidos.`, items);
 }
 
-function inspectGameCondition(value: Record<string, unknown>, reason: string): InteractableInspectionResult<GameCondition> {
+function inspectGameCondition(
+  value: Record<string, unknown>,
+  reason: string,
+  items: IndexedItems,
+): InteractableInspectionResult<GameCondition> {
   switch (value.type) {
     case 'flag.is':
       if (!nonEmpty(value.flag) || typeof value.value !== 'boolean') {
@@ -564,7 +576,11 @@ function inspectGameCondition(value: Record<string, unknown>, reason: string): I
       }
       return { ok: true, value: { type: value.type, attribute: value.attribute, amount: value.amount } };
     case 'inventory.has':
-      if (!nonEmpty(value.itemId) || (value.quantity !== undefined && !positiveSafeInteger(value.quantity))) {
+      if (
+        !nonEmpty(value.itemId) ||
+        !items.byId.has(value.itemId) ||
+        (value.quantity !== undefined && !positiveSafeInteger(value.quantity))
+      ) {
         return fail(reason);
       }
       return {
@@ -584,7 +600,11 @@ function inspectGameCondition(value: Record<string, unknown>, reason: string): I
   }
 }
 
-function inspectGameEffect(value: Record<string, unknown>, reason: string): InteractableInspectionResult<GameEffect> {
+function inspectGameEffect(
+  value: Record<string, unknown>,
+  reason: string,
+  items: IndexedItems,
+): InteractableInspectionResult<GameEffect> {
   switch (value.type) {
     case 'flag.set':
       if (!nonEmpty(value.flag) || typeof value.value !== 'boolean') {
@@ -593,7 +613,7 @@ function inspectGameEffect(value: Record<string, unknown>, reason: string): Inte
       return { ok: true, value: { type: 'flag.set', flag: value.flag, value: value.value } };
     case 'inventory.add':
     case 'inventory.remove':
-      if (!nonEmpty(value.itemId) || !positiveSafeInteger(value.quantity)) {
+      if (!nonEmpty(value.itemId) || !items.byId.has(value.itemId) || !positiveSafeInteger(value.quantity)) {
         return fail(reason);
       }
       return { ok: true, value: { type: value.type, itemId: value.itemId, quantity: value.quantity } };

@@ -5,11 +5,18 @@ import { appendHistory } from '../../modules/narrative';
 import { INITIAL_OBJECTIVES, synchronizeObjectives, type IndexedObjectives } from '../../modules/objectives';
 import { createInitialState, defaultNow } from '../state';
 import type { CharacterIdentity, GameState } from '../state/types';
+import type { SandboxContext } from '../../modules/sandbox';
 import { EngineError } from './errors';
 import { requireEvent, resolveTransition } from './resolveTransition';
 
-export function startGame(character: CharacterIdentity, campaign: Campaign, now = defaultNow): GameState {
-  return createInitialState(character, campaign, now);
+export function startGame(
+  character: CharacterIdentity,
+  campaign: Campaign,
+  now = defaultNow,
+  sandboxContext?: SandboxContext,
+  objectiveCatalog: IndexedObjectives = INITIAL_OBJECTIVES,
+): GameState {
+  return createInitialState(character, campaign, now, sandboxContext, objectiveCatalog);
 }
 
 export function getCurrentEvent(state: GameState, campaign: Campaign): StoryEvent {
@@ -40,6 +47,7 @@ export function applyChoice(
   choiceId: string,
   now = defaultNow,
   objectiveCatalog: IndexedObjectives = INITIAL_OBJECTIVES,
+  sandboxContext?: SandboxContext,
 ): GameState {
   if (state.status !== 'playing') {
     throw new EngineError('A partida já foi concluída e não aceita novas escolhas.');
@@ -61,7 +69,7 @@ export function applyChoice(
     throw new EngineError(`A escolha ${choiceId} não está disponível no estado atual.`);
   }
 
-  const withEffects = applyEffects(state, choice.effects);
+  const withEffects = applyEffects(state, choice.effects, sandboxContext?.bonds);
   const withHistory: GameState = {
     ...withEffects,
     history: appendHistory(withEffects.history, {

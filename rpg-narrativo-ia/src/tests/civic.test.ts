@@ -10,7 +10,7 @@ import {
   planCivicAction,
 } from '../modules/civic';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV19, freshState } from './helpers';
+import { asV19, freshState, keepNpcAtCurrentLocation } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -29,7 +29,10 @@ function befriendMira(): GameState {
     { campaign: firstDayCampaign },
   ).current;
   const honored = executeSandboxAction(talked, { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
-  return executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current;
+  return keepNpcAtCurrentLocation(
+    executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current,
+    'mira-vale',
+  );
 }
 
 describe('Sistema 26 — profissões, cidadania e posição social', () => {

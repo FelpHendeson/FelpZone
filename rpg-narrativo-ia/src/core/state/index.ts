@@ -2,7 +2,7 @@ import type { CharacterIdentity, GameState } from './types';
 import { SCHEMA_VERSION } from './types';
 import { createInitialAttributes } from '../../modules/character';
 import { createInitialProgression } from '../../modules/progression';
-import { createInitialSandboxState, type SandboxContext } from '../../modules/sandbox';
+import { createInitialSandboxState, createSandboxContext, type SandboxContext } from '../../modules/sandbox';
 import { createInitialObjectivesState, INITIAL_OBJECTIVES, type IndexedObjectives } from '../../modules/objectives';
 import { createInitialSkillsProgress, INITIAL_SKILLS } from '../../modules/skills';
 import { createInitialItemsState } from '../../modules/items';
@@ -30,6 +30,7 @@ export function createInitialState(
   sandboxContext?: SandboxContext,
   objectiveCatalog: IndexedObjectives = INITIAL_OBJECTIVES,
 ): GameState {
+  const context = sandboxContext ?? createSandboxContext();
   return {
     schemaVersion: SCHEMA_VERSION,
     status: 'playing',
@@ -46,7 +47,7 @@ export function createInitialState(
     world: createInitialWorld(),
     progression: createInitialProgression(),
     sandbox: {
-      ...createInitialSandboxState(sandboxContext),
+      ...createInitialSandboxState(context),
       npcs: createInitialNpcsState(),
       interactables: createInitialInteractablesState(),
     },
@@ -56,14 +57,14 @@ export function createInitialState(
     lingering: createInitialLingering(),
     garden: createInitialGardenState(),
     bonds: createInitialBondsState(),
-    registry: createInitialRegistryState(),
+    registry: createInitialRegistryState(context.registry),
     organizations: createInitialOrganizationsState(),
-    execution: createInitialExecutionState(),
+    execution: createInitialExecutionState(context.execution),
     party: createInitialPartyState(),
     calendar: createInitialCalendarState(),
     family: createInitialFamilyState(),
     civic: createInitialCivicState(),
-    economy: createInitialEconomyState(),
+    economy: createInitialEconomyState(context.economy),
     settlements: createInitialSettlementsState(),
     politics: createInitialPoliticsState(),
     updatedAt: now(),
