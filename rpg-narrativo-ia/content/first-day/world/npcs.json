@@ -5,6 +5,12 @@
       "entityId": "mira-vale",
       "name": "Mira Vale",
       "defaultScheduleId": "mira-routine"
+    },
+    {
+      "id": "rowan-vale",
+      "entityId": "rowan-vale",
+      "name": "Rowan Vale",
+      "defaultScheduleId": "rowan-routine"
     }
   ],
   "schedules": [
@@ -44,6 +50,43 @@
           "availability": "hidden"
         }
       ]
+    },
+    {
+      "id": "rowan-routine",
+      "npcId": "rowan-vale",
+      "fallbackLocationId": "awakening-clearing",
+      "entries": [
+        {
+          "period": "alvorecer",
+          "locationId": "awakening-clearing",
+          "availability": "available"
+        },
+        {
+          "period": "manha",
+          "locationId": "awakening-clearing",
+          "availability": "available"
+        },
+        {
+          "period": "meio-dia",
+          "locationId": "awakening-clearing",
+          "availability": "available"
+        },
+        {
+          "period": "tarde",
+          "locationId": "awakening-clearing",
+          "availability": "available"
+        },
+        {
+          "period": "entardecer",
+          "locationId": "awakening-clearing",
+          "availability": "available"
+        },
+        {
+          "period": "noite",
+          "locationId": "awakening-clearing",
+          "availability": "hidden"
+        }
+      ]
     }
   ],
   "facts": [
@@ -57,6 +100,21 @@
       "npcId": "mira-vale",
       "summary": "Costuma buscar água pela manhã.",
       "locationHint": true
+    },
+    {
+      "id": "mira-promise-honored",
+      "npcId": "mira-vale",
+      "summary": "Você cumpriu a promessa que fez a ela."
+    },
+    {
+      "id": "mira-promise-broken",
+      "npcId": "mira-vale",
+      "summary": "Você deixou de cumprir o combinado."
+    },
+    {
+      "id": "mira-friendship-named",
+      "npcId": "mira-vale",
+      "summary": "Vocês nomearam a amizade em voz alta."
     }
   ]
 }

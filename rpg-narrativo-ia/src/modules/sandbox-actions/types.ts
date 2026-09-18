@@ -20,6 +20,15 @@ import type { CombatResolution } from '../combat';
 import type { MasteryResult } from '../mastery';
 import type { EquipmentSlot } from '../items';
 import type { GardenPlan } from '../garden';
+import type { InteractableActionPlan } from '../interactables';
+import type { BondActionPlan } from '../bonds';
+import type { RegistryPatentPlan } from '../registry';
+import type { OrganizationActionPlan } from '../organizations';
+import type { FamilyActionPlan } from '../family';
+import type { CivicActionPlan } from '../civic';
+import type { EconomyActionPlan } from '../economy';
+import type { SettlementActionPlan } from '../settlements';
+import type { PoliticsActionPlan } from '../politics';
 import type { EquipmentChangeResult } from '../equipment';
 import type { PreparationChangeResult } from '../preparation';
 
@@ -81,6 +90,43 @@ export type SandboxAction =
   | {
       type: 'garden.cultivate';
       recipeId: string;
+    }
+  | {
+      type: 'interactable.interact';
+      interactableId: string;
+      actionId: string;
+    }
+  | {
+      type: 'bond.act';
+      actionId: string;
+    }
+  | {
+      type: 'registry.claim';
+      patentId: string;
+    }
+  | {
+      type: 'organization.act';
+      actionId: string;
+    }
+  | {
+      type: 'family.act';
+      actionId: string;
+    }
+  | {
+      type: 'civic.act';
+      actionId: string;
+    }
+  | {
+      type: 'economy.act';
+      actionId: string;
+    }
+  | {
+      type: 'settlement.act';
+      actionId: string;
+    }
+  | {
+      type: 'politics.act';
+      actionId: string;
     };
 
 export type SandboxActionDetail =
@@ -97,7 +143,16 @@ export type SandboxActionDetail =
   | { type: 'equipment.unequip'; result: EquipmentChangeResult }
   | { type: 'preparation.assign'; result: PreparationChangeResult }
   | { type: 'preparation.clear'; result: PreparationChangeResult }
-  | { type: 'garden.cultivate'; plan: GardenPlan };
+  | { type: 'garden.cultivate'; plan: GardenPlan }
+  | { type: 'interactable.interact'; plan: InteractableActionPlan }
+  | { type: 'bond.act'; plan: BondActionPlan }
+  | { type: 'registry.claim'; plan: RegistryPatentPlan }
+  | { type: 'organization.act'; plan: OrganizationActionPlan }
+  | { type: 'family.act'; plan: FamilyActionPlan }
+  | { type: 'civic.act'; plan: CivicActionPlan }
+  | { type: 'economy.act'; plan: EconomyActionPlan }
+  | { type: 'settlement.act'; plan: SettlementActionPlan }
+  | { type: 'politics.act'; plan: PoliticsActionPlan };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];

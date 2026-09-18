@@ -28,6 +28,36 @@ import {
   INITIAL_GARDEN,
   deriveGardenRecipes,
 } from '../garden';
+import {
+  INITIAL_REGISTRY,
+  listVisibleRankings,
+  planPatentClaim,
+} from '../registry';
+import { INITIAL_ORGANIZATIONS, listKnownOrganizationActions, listOrganizationViews } from '../organizations';
+import { INITIAL_PARTY, listPartyViews } from '../party';
+import {
+  INITIAL_CALENDAR,
+  PLAYER_CALENDAR_ACTOR_ID,
+  deriveActorAge,
+  describeCalendarDate,
+  listUpcomingCalendarEvents,
+} from '../calendar';
+import { INITIAL_FAMILY, listFamilyViews, listKnownFamilyActions } from '../family';
+import { INITIAL_CIVIC, listCivicViews, listKnownCivicActions } from '../civic';
+import { INITIAL_ECONOMY, createInitialEconomyState, listEconomyViews, listKnownEconomyActions } from '../economy';
+import {
+  INITIAL_SETTLEMENTS,
+  createInitialSettlementsState,
+  listKnownSettlementActions,
+  listSettlementViews,
+} from '../settlements';
+import {
+  INITIAL_POLITICS,
+  createInitialPoliticsState,
+  listKnownPoliticsActions,
+  listPoliticsViews,
+} from '../politics';
+import { INITIAL_EXECUTION } from '../execution';
 import type {
   SystemMilestoneView,
   SystemSkillView,
@@ -51,6 +81,165 @@ export function buildSystemStatus(state: GameState): SystemStatusView {
       cultivationPoints: state.garden.cultivationPoints,
       recipes: deriveGardenRecipes(INITIAL_GARDEN, INITIAL_SKILLS, progress, state.garden),
     },
+    registry: buildRegistryView(state),
+    organizations: listOrganizationViews(INITIAL_ORGANIZATIONS, state.organizations ?? { entries: [], consumedActionIds: [] }),
+    party: listPartyViews(
+      INITIAL_PARTY,
+      INITIAL_ORGANIZATIONS,
+      state.organizations ?? { entries: [], consumedActionIds: [] },
+      state.party ?? { tacticId: null, vitals: [] },
+    ),
+    calendar: buildCalendarView(state),
+    family: listFamilyViews(
+      INITIAL_FAMILY,
+      state.family ?? { ties: [], households: [], stageMarks: [], consumedActionIds: [] },
+      INITIAL_CALENDAR,
+      state.world.day,
+      (actorId) => (actorId === 'player' ? statusName(state) : actorId === 'mira-vale' ? 'Mira Vale' : actorId === 'rowan-vale' ? 'Rowan Vale' : actorId),
+    ),
+    familyActions: listKnownFamilyActions(
+      INITIAL_FAMILY,
+      state.family ?? { ties: [], households: [], stageMarks: [], consumedActionIds: [] },
+      state,
+    )
+      .filter((entry) => !entry.action.npcId)
+      .map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
+      })),
+    civic: listCivicViews(INITIAL_CIVIC, state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] }),
+    civicActions: listKnownCivicActions(
+      INITIAL_CIVIC,
+      state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] },
+      state,
+    )
+      .filter((entry) => !entry.action.npcId)
+      .map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
+      })),
+    economy: listEconomyViews(INITIAL_ECONOMY, state.economy ?? createInitialEconomyState()),
+    economyActions: listKnownEconomyActions(
+      INITIAL_ECONOMY,
+      state.economy ?? createInitialEconomyState(),
+      state,
+    )
+      .filter((entry) => !entry.action.npcId)
+      .map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
+      })),
+    settlements: listSettlementViews(INITIAL_SETTLEMENTS, state.settlements ?? createInitialSettlementsState()),
+    settlementActions: listKnownSettlementActions(
+      INITIAL_SETTLEMENTS,
+      state.settlements ?? createInitialSettlementsState(),
+      state,
+    )
+      .filter((entry) => !entry.action.npcId)
+      .map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
+      })),
+    politics: listPoliticsViews(INITIAL_POLITICS, state.politics ?? createInitialPoliticsState()),
+    politicsActions: listKnownPoliticsActions(
+      INITIAL_POLITICS,
+      state.politics ?? createInitialPoliticsState(),
+      state,
+    )
+      .filter((entry) => !entry.action.npcId)
+      .map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
+      })),
+    execution: {
+      reserves: INITIAL_EXECUTION.reserves.map((entry) => ({
+        energyId: entry.energyId,
+        name: entry.name,
+        current: state.execution?.reserves.find((reserve) => reserve.energyId === entry.energyId)?.current ?? entry.max,
+        max: entry.max,
+      })),
+    },
+    organizationActions: listKnownOrganizationActions(
+      INITIAL_ORGANIZATIONS,
+      state.organizations ?? { entries: [], consumedActionIds: [] },
+      state,
+    )
+      .filter((entry) => !entry.action.npcId)
+      .map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
+      })),
+  };
+}
+
+function buildRegistryView(state: GameState): SystemStatusView['registry'] {
+  const catalog = INITIAL_REGISTRY;
+  const registry = state.registry ?? { accessGranted: false, patentIds: [], recognizedRankingIds: [] };
+  if (!registry.accessGranted) {
+    return { accessGranted: false, patents: [], rankings: [] };
+  }
+  return {
+    accessGranted: true,
+    patents: catalog.patents.map((patent) => {
+      const granted = registry.patentIds.includes(patent.id);
+      let claimable = false;
+      if (!granted) {
+        try {
+          planPatentClaim(catalog, registry, state, patent.id);
+          claimable = true;
+        } catch {
+          claimable = false;
+        }
+      }
+      return {
+        id: patent.id,
+        name: patent.name,
+        description: patent.description,
+        granted,
+        claimable,
+      };
+    }),
+    rankings: listVisibleRankings(catalog, registry, state),
+  };
+}
+
+function statusName(state: GameState): string {
+  return `${state.character.firstName} ${state.character.lastName}`.trim();
+}
+
+function buildCalendarView(state: GameState): SystemStatusView['calendar'] {
+  const catalog = INITIAL_CALENDAR;
+  const calendar = state.calendar ?? { consumedEventIds: [] };
+  const life = deriveActorAge(catalog, PLAYER_CALENDAR_ACTOR_ID, state.world.day);
+  return {
+    dateLabel: describeCalendarDate(catalog, state.world.day),
+    ageYears: life.ageYears,
+    stageName: life.stageName,
+    upcoming: listUpcomingCalendarEvents(catalog, state.world.day, calendar),
   };
 }
 

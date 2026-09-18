@@ -3,6 +3,16 @@ import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
 import { INITIAL_OBJECTIVES, type IndexedObjectives } from '../../modules/objectives';
 import { PresenceError, resolvePresencesRevealedByDiscovery } from '../../modules/presences';
+import { InteractableError } from '../../modules/interactables';
+import { BondError } from '../../modules/bonds';
+import { RegistryError } from '../../modules/registry';
+import { OrganizationError } from '../../modules/organizations';
+import { FamilyError } from '../../modules/family';
+import { CivicError } from '../../modules/civic';
+import { EconomyError } from '../../modules/economy';
+import { SettlementError } from '../../modules/settlements';
+import { PoliticsError } from '../../modules/politics';
+import { PartyError } from '../../modules/party';
 import type { SandboxContext } from '../../modules/sandbox';
 import {
   SandboxActionError,
@@ -87,6 +97,16 @@ export function attemptSandboxAction(
       caught instanceof SandboxActionError ||
       caught instanceof WorldEventError ||
       caught instanceof PresenceError ||
+      caught instanceof InteractableError ||
+      caught instanceof BondError ||
+      caught instanceof RegistryError ||
+      caught instanceof OrganizationError ||
+      caught instanceof FamilyError ||
+      caught instanceof CivicError ||
+      caught instanceof EconomyError ||
+      caught instanceof SettlementError ||
+      caught instanceof PoliticsError ||
+      caught instanceof PartyError ||
       caught instanceof EngineError
         ? caught.message
         : caught instanceof Error
@@ -123,6 +143,7 @@ function resolvePresencesForWorldTrigger(
         trigger.source.discoveryId,
       ),
       npcs: state.sandbox.npcs,
+      interactables: state.sandbox.interactables,
     },
   };
 }

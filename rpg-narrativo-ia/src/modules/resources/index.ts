@@ -1400,6 +1400,16 @@ function copyCondition(condition: GameCondition): GameCondition {
         : { type: 'inventory.has', itemId: condition.itemId, quantity: condition.quantity };
     case 'relationship.min':
       return { type: 'relationship.min', characterId: condition.characterId, amount: condition.amount };
+    case 'bond.dimension.min':
+      return {
+        type: 'bond.dimension.min',
+        fromId: condition.fromId,
+        toId: condition.toId,
+        dimensionId: condition.dimensionId,
+        amount: condition.amount,
+      };
+    case 'bond.exists':
+      return { type: 'bond.exists', fromId: condition.fromId, toId: condition.toId, bondId: condition.bondId };
   }
 }
 

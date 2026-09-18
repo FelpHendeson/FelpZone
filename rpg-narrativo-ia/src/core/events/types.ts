@@ -12,14 +12,18 @@ export type GameEffect =
   | { type: 'progression.ability'; abilityId: string }
   | { type: 'progression.title'; titleId: string }
   | { type: 'game.complete' }
-  | { type: 'npc.rememberFact'; npcId: string; factId: string };
+  | { type: 'npc.rememberFact'; npcId: string; factId: string }
+  | { type: 'bond.shift'; fromId: string; toId: string; dimensionId: string; delta: number }
+  | { type: 'bond.form'; bondId: string; fromId: string; toId: string };
 
 export type GameCondition =
   | { type: 'flag.is'; flag: string; value: boolean }
   | { type: 'attribute.min'; attribute: AttributeId; amount: number }
   | { type: 'attribute.max'; attribute: AttributeId; amount: number }
   | { type: 'inventory.has'; itemId: string; quantity?: number }
-  | { type: 'relationship.min'; characterId: string; amount: number };
+  | { type: 'relationship.min'; characterId: string; amount: number }
+  | { type: 'bond.dimension.min'; fromId: string; toId: string; dimensionId: string; amount: number }
+  | { type: 'bond.exists'; fromId: string; toId: string; bondId: string };
 
 export type ImageKind = 'scene' | 'portrait' | 'icon';
 

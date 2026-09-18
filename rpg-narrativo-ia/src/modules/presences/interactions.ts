@@ -733,6 +733,16 @@ function copyEffect(effect: GameEffect): GameEffect {
       return { type: 'game.complete' };
     case 'npc.rememberFact':
       return { type: 'npc.rememberFact', npcId: effect.npcId, factId: effect.factId };
+    case 'bond.shift':
+      return {
+        type: 'bond.shift',
+        fromId: effect.fromId,
+        toId: effect.toId,
+        dimensionId: effect.dimensionId,
+        delta: effect.delta,
+      };
+    case 'bond.form':
+      return { type: 'bond.form', bondId: effect.bondId, fromId: effect.fromId, toId: effect.toId };
   }
 }
 
@@ -753,6 +763,16 @@ function copyCondition(condition: GameCondition): GameCondition {
         : { type: 'inventory.has', itemId: condition.itemId, quantity: condition.quantity };
     case 'relationship.min':
       return { type: 'relationship.min', characterId: condition.characterId, amount: condition.amount };
+    case 'bond.dimension.min':
+      return {
+        type: 'bond.dimension.min',
+        fromId: condition.fromId,
+        toId: condition.toId,
+        dimensionId: condition.dimensionId,
+        amount: condition.amount,
+      };
+    case 'bond.exists':
+      return { type: 'bond.exists', fromId: condition.fromId, toId: condition.toId, bondId: condition.bondId };
   }
 }
 
@@ -804,6 +824,15 @@ function sameCondition(left: GameCondition, right: unknown): boolean {
       return right.itemId === left.itemId && right.quantity === left.quantity;
     case 'relationship.min':
       return right.characterId === left.characterId && right.amount === left.amount;
+    case 'bond.dimension.min':
+      return (
+        right.fromId === left.fromId &&
+        right.toId === left.toId &&
+        right.dimensionId === left.dimensionId &&
+        right.amount === left.amount
+      );
+    case 'bond.exists':
+      return right.fromId === left.fromId && right.toId === left.toId && right.bondId === left.bondId;
   }
 }
 
@@ -844,6 +873,15 @@ function sameEffect(left: GameEffect, right: unknown): boolean {
       return true;
     case 'npc.rememberFact':
       return right.npcId === left.npcId && right.factId === left.factId;
+    case 'bond.shift':
+      return (
+        right.fromId === left.fromId &&
+        right.toId === left.toId &&
+        right.dimensionId === left.dimensionId &&
+        right.delta === left.delta
+      );
+    case 'bond.form':
+      return right.bondId === left.bondId && right.fromId === left.fromId && right.toId === left.toId;
   }
 }
 

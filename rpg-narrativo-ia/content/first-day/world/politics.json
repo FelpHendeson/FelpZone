@@ -1,0 +1,125 @@
+{
+  "factions": [
+    {
+      "id": "camp-circle",
+      "name": "Círculo do Acampamento",
+      "description": "Facção política do acampamento reivindicado, distinta do grupo de aventura."
+    },
+    {
+      "id": "clearing-circle",
+      "name": "Círculo da Clareira",
+      "description": "Facção local que Mira representa. Nem todo grupo é uma facção."
+    }
+  ],
+  "stances": [
+    { "id": "wary", "name": "Cautelosa" },
+    { "id": "cordial", "name": "Cordial" },
+    { "id": "strained", "name": "Tensa" }
+  ],
+  "offices": [
+    {
+      "id": "envoy",
+      "name": "Enviado",
+      "factionId": "camp-circle",
+      "description": "Mandato para propor acordos em nome do acampamento."
+    }
+  ],
+  "agreements": [
+    {
+      "id": "shared-watch-pact",
+      "name": "Pacto de vigia compartilhada",
+      "fromFactionId": "camp-circle",
+      "toFactionId": "clearing-circle",
+      "description": "Reconhece vigia mútua sem fundir as duas facções."
+    }
+  ],
+  "laws": [
+    {
+      "id": "clearing-shared-watch",
+      "name": "Vigia reconhecida na Clareira",
+      "jurisdictionLocationId": "awakening-clearing",
+      "description": "A lei só vale no local declarado."
+    }
+  ],
+  "npcDecisions": [
+    {
+      "npcId": "mira-vale",
+      "intent": "accept-agreement",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    },
+    {
+      "npcId": "mira-vale",
+      "intent": "refuse-agreement",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    }
+  ],
+  "actions": [
+    {
+      "id": "take-camp-mandate",
+      "label": "Assumir o mandato do acampamento",
+      "hint": "Sem reivindicação territorial não há representação política.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "flag.is", "flag": "settlement.awakening-camp.claimed", "value": true }
+      ],
+      "effects": [
+        { "type": "politics.grant-mandate", "actorId": "player", "factionId": "camp-circle", "officeId": "envoy" },
+        { "type": "flag.set", "flag": "politics.camp-mandate.granted", "value": true }
+      ],
+      "feedback": "Você passa a representar o acampamento. Isso não decide pela Clareira."
+    },
+    {
+      "id": "propose-shared-watch",
+      "label": "Propor vigia compartilhada a Mira",
+      "hint": "Só um enviado com mandato propõe o acordo.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "politics.has-mandate", "factionId": "camp-circle", "officeId": "envoy" }
+      ],
+      "effects": [
+        { "type": "politics.propose-agreement", "agreementId": "shared-watch-pact" },
+        { "type": "flag.set", "flag": "politics.shared-watch.proposed", "value": true }
+      ],
+      "feedback": "A proposta existe. Ainda não criou obrigação nem mudou a relação."
+    },
+    {
+      "id": "mira-accept-watch-pact",
+      "label": "Aceitar o pacto pela Clareira",
+      "hint": "Mira só aceita com mandato válido e amizade.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "politics.agreement-status", "agreementId": "shared-watch-pact", "status": "proposed" }
+      ],
+      "effects": [
+        { "type": "politics.accept-agreement", "agreementId": "shared-watch-pact" },
+        { "type": "politics.set-stance", "fromFactionId": "camp-circle", "toFactionId": "clearing-circle", "stanceId": "cordial" },
+        { "type": "politics.set-stance", "fromFactionId": "clearing-circle", "toFactionId": "camp-circle", "stanceId": "wary" },
+        { "type": "politics.enact-law", "lawId": "clearing-shared-watch" },
+        { "type": "politics.add-influence", "factionId": "camp-circle", "amount": 1 },
+        { "type": "flag.set", "flag": "politics.shared-watch.active", "value": true }
+      ],
+      "feedback": "O pacto vale. A Clareira segue cautelosa; o acampamento fica cordial."
+    },
+    {
+      "id": "mira-refuse-watch-pact",
+      "label": "Recusar o pacto pela Clareira",
+      "hint": "A recusa também é atômica: nada fica pela metade.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "politics.agreement-status", "agreementId": "shared-watch-pact", "status": "proposed" }
+      ],
+      "effects": [
+        { "type": "politics.refuse-agreement", "agreementId": "shared-watch-pact" },
+        { "type": "politics.set-stance", "fromFactionId": "clearing-circle", "toFactionId": "camp-circle", "stanceId": "strained" },
+        { "type": "flag.set", "flag": "politics.shared-watch.refused", "value": true }
+      ],
+      "feedback": "Mira recusa. Nenhuma lei ou obrigação nasce desta recusa."
+    }
+  ]
+}

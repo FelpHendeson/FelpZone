@@ -1,6 +1,6 @@
 # Sistema 20 — Registro do Sistema, patentes e rankings
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 20.1 a 20.7 em 17 de setembro de 2026.
 
 ## Objetivo
 
@@ -27,6 +27,8 @@ No `first-day`, a política continua sendo acesso universal para humanos. Outras
 O pack pode declarar registros, categorias de patente, definições de ranking, métricas válidas, escopo, desempate, visibilidade e recompensas referenciadas. O estado registra acesso, reconhecimentos obtidos e snapshots mínimos quando um ranking não puder ser derivado do estado atual.
 
 Rankings só consomem métricas canônicas produzidas pelos respectivos sistemas. A UI não informa pontuação, posição, patente ou recompensa.
+
+A versão definitiva do schema é `schemaVersion: 14`. Saves v1–v13 migram com `registry` inicial: acesso segundo a política atual do pack, sem patentes nem rankings reconhecidos. O save guarda só `accessGranted`, `patentIds` e `recognizedRankingIds`; competidores e catálogo permanecem no pack.
 
 ## Integrações
 

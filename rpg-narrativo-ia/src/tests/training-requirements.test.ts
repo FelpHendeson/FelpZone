@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type GameState } from '../core/state';
+import { SCHEMA_VERSION, type GameState } from '../core/state';
 import { getSkillProficiency, isSkillKnown } from '../modules/skills';
 import { executeSandboxAction, SandboxActionError } from '../modules/sandbox-actions';
 import { freshState, now } from './helpers';
@@ -40,10 +40,10 @@ describe('Fatia 13.4 — nível por marco e requisitos de treino', () => {
       state = executeSandboxAction(state, { type: 'training.train', methodId: 'focused-perception-drill' }, { now }).current;
     }
     expect(state.system.level).toBe(2);
-    expect(state.schemaVersion).toBe(11);
+    expect(state.schemaVersion).toBe(SCHEMA_VERSION);
 
     const afterRoutine = executeSandboxAction(state, { type: 'training.train', methodId: 'body-reinforcement-routine' }, { now }).current;
     expect(isSkillKnown(afterRoutine.system, 'steady-body')).toBe(true);
-    expect(afterRoutine.schemaVersion).toBe(11);
+    expect(afterRoutine.schemaVersion).toBe(SCHEMA_VERSION);
   });
 });

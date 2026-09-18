@@ -32,7 +32,7 @@ Este documento serve como contexto para abrir um novo chat de desenvolvimento de
 - O Sistema 12 — Banco de ações e combate — está implementado e consolidado nas Fatias 12.1 a 12.7 (motor de turno determinístico, IA de oponente por regras, encontro jogável no mundo e desfecho aplicado ao `GameState`). O contrato está em `docs/SYSTEM-ACTION-COMBAT.md`. Balanceamento definitivo, posicionamento, grupos e simulação autônoma irrestrita permanecem fora do escopo.
 - As Fatias 12.8 a 12.12 estão implementadas e consolidadas em `docs/SYSTEM-12-CONSOLIDATION.md`: descoberta da ameaça, saúde persistente, custo temporal único, consequência atômica e consolidação visual.
 - O Sistema 13 — Progressão por prática e recompensas do Sistema — está implementado e consolidado nas Fatias 13.1 a 13.7 (módulo `mastery`, prática por vitória, marcos de nível e requisitos de treino). Fonte: `docs/SYSTEM-PRACTICE-PROGRESSION.md`.
-- Os Sistemas 14 a 17 estão implementados e consolidados: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11.
+- Os Sistemas 14 a 29 estão implementados e consolidados: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo; pontos de interesse; relacionamentos direcionais; Registro, patentes e rankings; grupos e organizações; Númen avançado com fases, custo e interrupção; party e combate coletivo; calendário e ciclo de vida; família, lar e linhagem; profissões e cidadania; economia e propriedade; bases e assentamentos; facções e política. O save atual é o schema 23.
 - O primeiro dia (mapa, habilidades, eventos, Mira) vive no pack JSON `content/first-day/`. O módulo `content` valida o pack na borda (`ContentSource` / `composeWorld`). O save não persiste catálogo.
 - `docs/PROJECT-STATUS.md` é a fonte principal para separar decisões do autor, protótipos, temas em discussão e hipóteses dos agentes.
 
@@ -112,9 +112,9 @@ Estado conhecido:
 - o Sistema 13 está implementado e consolidado nas Fatias 13.1 a 13.7;
 - o Sistema é uma interface diegética; Eteris é energia ambiental e Númen é Eteris interiorizado e individualizado;
 - Status, nível, proficiências, treino temporal e Árvore fazem parte do eixo;
-- os Sistemas 18 a 29 estão especificados e não implementados, cobrindo cenário interativo, relações, rankings, organizações, Númen avançado, combate coletivo, calendário, família, profissões, economia, assentamentos e política.
+- os Sistemas 24 a 29 estão implementados e consolidados, cobrindo calendário, família, profissões, economia, assentamentos e política.
 
-Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/WORLD-ENGINE-VISION.md`, `docs/PROJECT-STATUS.md`, `docs/ROADMAP.md` e a especificação exata da etapa autorizada. Os Sistemas 1 a 17 estão implementados e consolidados; os Sistemas 18 a 29 estão especificados, mas nenhum deles está implementado. Não antecipe etapas nem desenvolva mais de um sistema ao mesmo tempo.
+Sua primeira tarefa é confirmar que a branch está atualizada e ler `docs/WORLD-ENGINE-VISION.md`, `docs/PROJECT-STATUS.md`, `docs/ROADMAP.md` e a especificação exata da etapa autorizada. Os Sistemas 1 a 29 estão implementados e consolidados. Não antecipe etapas nem desenvolva mais de um sistema ao mesmo tempo.
 
 Execute:
 
@@ -143,4 +143,4 @@ Não faça push sem minha autorização. Preserve alterações existentes e mant
 
 ## Próxima decisão
 
-Os Sistemas 1 a 17 estão completos dentro do recorte aprovado. O save atual é o schema 11. Os Sistemas 18 a 29 estão especificados e aguardam implementação fatiada, começando pelo Sistema 18. Balanceamento definitivo, posicionamento, guerra em massa e comportamento autônomo irrestrito permanecem fora do escopo.
+Os Sistemas 1 a 29 estão completos dentro do recorte aprovado. O save atual é o schema 23. Balanceamento definitivo, posicionamento, guerra em massa e comportamento autônomo irrestrito permanecem fora do escopo.

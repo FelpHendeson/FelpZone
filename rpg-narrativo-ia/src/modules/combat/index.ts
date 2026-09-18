@@ -1,3 +1,10 @@
+import { isApplicationField, isEnergyKind } from '../energetics';
+import {
+  DEFAULT_ACTION_PHASES,
+  INITIAL_EXECUTION,
+  type ActionCost,
+  type ActionPhases,
+} from '../execution';
 import { INITIAL_SKILLS, hasSkill, type IndexedSkills } from '../skills';
 import { INITIAL_CONDITIONS } from '../conditions';
 import { INITIAL_ITEMS, type IndexedItems } from '../items';
@@ -6,11 +13,13 @@ import { ImmutableIndex } from './immutable-index';
 import { INITIAL_COMBAT_CATALOG } from './initial-combat';
 import {
   COMBAT_EFFECT_TYPES,
+  COMBAT_RANGES,
   COMBAT_TARGETS,
   type CombatActionDefinition,
   type CombatantTemplate,
   type CombatEffect,
   type CombatInspection,
+  type CombatRange,
   type EncounterDefinition,
   type IndexedCombat,
 } from './types';
@@ -20,8 +29,10 @@ export {
   chooseOpponentAction,
   createCombat,
   emptyCombatLoadout,
+  listPlayerActionViews,
   listPlayerActions,
   resolveTurn,
+  type AllySnapshot,
   type CreateCombatOptions,
 } from './engine';
 export {
@@ -134,6 +145,7 @@ function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
     ...encounter,
     timeCost: { ...encounter.timeCost },
     requiredDiscoveryIds: [...encounter.requiredDiscoveryIds],
+    ...(encounter.additionalOpponentIds ? { additionalOpponentIds: [...encounter.additionalOpponentIds] } : {}),
     ...(encounter.reward ? { reward: { ...encounter.reward } } : {}),
   };
 }
@@ -172,6 +184,30 @@ function inspectAction(
   if (value.elementId !== undefined && (!nonEmpty(value.elementId) || !INITIAL_CONDITIONS.elementById.has(value.elementId))) {
     return fail('A ação de combate referencia um elemento inexistente.');
   }
+  if (value.classification !== undefined && !isApplicationField(value.classification)) {
+    return fail('A classificação da ação de combate é inválida.');
+  }
+  if (value.originEnergyId !== undefined && !isEnergyKind(value.originEnergyId)) {
+    return fail('A origem energética da ação de combate é inválida.');
+  }
+  const range = inspectRange(value.range, value.target);
+  if (!range.ok) {
+    return range;
+  }
+  const phases = inspectPhases(value.phases);
+  if (!phases.ok) {
+    return phases;
+  }
+  const cost = inspectCost(value.cost);
+  if (!cost.ok) {
+    return cost;
+  }
+  if (value.cooldown !== undefined && !nonNegativeSafeInteger(value.cooldown)) {
+    return fail('A recarga da ação de combate é inválida.');
+  }
+  if (value.interruptible !== undefined && typeof value.interruptible !== 'boolean') {
+    return fail('A interrupção da ação de combate é inválida.');
+  }
 
   return {
     ok: true,
@@ -182,8 +218,15 @@ function inspectAction(
       speed: value.speed,
       target: value.target,
       effects,
+      phases: phases.value,
+      range: range.value,
       ...(value.skillId === undefined ? {} : { skillId: value.skillId }),
       ...(nonEmpty(value.elementId) ? { elementId: value.elementId } : {}),
+      ...(value.classification ? { classification: value.classification } : {}),
+      ...(value.originEnergyId ? { originEnergyId: value.originEnergyId } : {}),
+      ...(cost.value ? { cost: cost.value } : {}),
+      ...(value.cooldown ? { cooldown: value.cooldown } : {}),
+      ...(value.interruptible ? { interruptible: true } : {}),
     },
   };
 }
@@ -191,6 +234,9 @@ function inspectAction(
 function inspectEffect(value: unknown): CombatInspection<CombatEffect> {
   if (!isRecord(value) || !includes(COMBAT_EFFECT_TYPES, value.type)) {
     return fail('O efeito da ação de combate é inválido.');
+  }
+  if (value.type === 'interrupt') {
+    return { ok: true, value: { type: 'interrupt' } };
   }
   if (value.type === 'condition.apply') {
     if (
@@ -298,6 +344,14 @@ function inspectEncounter(
     return reward;
   }
 
+  const additional = inspectAdditionalOpponents(value.additionalOpponentIds, combatantIds, value.opponentId);
+  if (!additional.ok) {
+    return additional;
+  }
+  if (value.requiredOrganizationId !== undefined && !nonEmpty(value.requiredOrganizationId)) {
+    return fail('A organização exigida pelo encontro é inválida.');
+  }
+
   return {
     ok: true,
     value: {
@@ -308,9 +362,34 @@ function inspectEncounter(
       description: value.description,
       timeCost: { periods: value.timeCost.periods },
       requiredDiscoveryIds: requirements.value,
+      ...(additional.value.length > 0 ? { additionalOpponentIds: additional.value } : {}),
+      ...(nonEmpty(value.requiredOrganizationId) ? { requiredOrganizationId: value.requiredOrganizationId } : {}),
       ...(reward.value ? { reward: reward.value } : {}),
     },
   };
+}
+
+function inspectAdditionalOpponents(
+  value: unknown,
+  combatantIds: ReadonlySet<string>,
+  primaryId: string,
+): CombatInspection<string[]> {
+  if (value === undefined) {
+    return { ok: true, value: [] };
+  }
+  if (!Array.isArray(value)) {
+    return fail('Os oponentes adicionais do encontro são inválidos.');
+  }
+  const seen = new Set<string>([primaryId]);
+  const ids: string[] = [];
+  for (const entry of value) {
+    if (!nonEmpty(entry) || seen.has(entry) || !combatantIds.has(entry)) {
+      return fail('Os oponentes adicionais do encontro são inválidos.');
+    }
+    seen.add(entry);
+    ids.push(entry);
+  }
+  return { ok: true, value: ids };
 }
 
 function inspectReward(
@@ -366,6 +445,9 @@ function freezeCatalog(
         ...encounter,
         timeCost: Object.freeze({ ...encounter.timeCost }),
         requiredDiscoveryIds: Object.freeze([...encounter.requiredDiscoveryIds]) as unknown as string[],
+        ...(encounter.additionalOpponentIds
+          ? { additionalOpponentIds: Object.freeze([...encounter.additionalOpponentIds]) as unknown as string[] }
+          : {}),
         ...(encounter.reward ? { reward: Object.freeze({ ...encounter.reward }) } : {}),
       }),
     ),
@@ -384,6 +466,8 @@ function freezeCatalog(
 function freezeAction(action: CombatActionDefinition): CombatActionDefinition {
   return Object.freeze({
     ...action,
+    phases: Object.freeze({ ...(action.phases ?? DEFAULT_ACTION_PHASES) }),
+    ...(action.cost ? { cost: Object.freeze({ ...action.cost }) } : {}),
     effects: Object.freeze(action.effects.map((effect) => Object.freeze({ ...effect }))) as unknown as CombatEffect[],
   });
 }
@@ -391,6 +475,8 @@ function freezeAction(action: CombatActionDefinition): CombatActionDefinition {
 function copyAction(action: CombatActionDefinition): CombatActionDefinition {
   return {
     ...action,
+    phases: { ...(action.phases ?? DEFAULT_ACTION_PHASES) },
+    ...(action.cost ? { cost: { ...action.cost } } : {}),
     effects: action.effects.map((effect) => ({ ...effect })),
   };
 }
@@ -424,6 +510,56 @@ function nonEmpty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
+function inspectPhases(value: unknown): CombatInspection<ActionPhases> {
+  if (value === undefined) {
+    return { ok: true, value: { ...DEFAULT_ACTION_PHASES } };
+  }
+  if (
+    !isRecord(value) ||
+    !nonNegativeSafeInteger(value.prepare) ||
+    !nonNegativeSafeInteger(value.execute) ||
+    !nonNegativeSafeInteger(value.recover)
+  ) {
+    return fail('As fases da ação de combate são inválidas.');
+  }
+  if (value.execute < INITIAL_EXECUTION.limits.minExecute) {
+    return fail('As fases da ação de combate são inválidas.');
+  }
+  return {
+    ok: true,
+    value: { prepare: value.prepare, execute: value.execute, recover: value.recover },
+  };
+}
+
+function inspectCost(value: unknown): CombatInspection<ActionCost | undefined> {
+  if (value === undefined) {
+    return { ok: true, value: undefined };
+  }
+  if (
+    !isRecord(value) ||
+    !isEnergyKind(value.energyId) ||
+    !INITIAL_EXECUTION.reserveByEnergyId.has(value.energyId) ||
+    !nonNegativeSafeInteger(value.amount)
+  ) {
+    return fail('O custo da ação de combate é inválido.');
+  }
+  return { ok: true, value: { energyId: value.energyId, amount: value.amount } };
+}
+
+function inspectRange(value: unknown, target: unknown): CombatInspection<CombatRange> {
+  if (value === undefined) {
+    return { ok: true, value: target === 'self' ? 'self' : 'melee' };
+  }
+  if (!includes(COMBAT_RANGES, value)) {
+    return fail('O alcance da ação de combate é inválido.');
+  }
+  return { ok: true, value };
+}
+
+function nonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+}
+
 function positiveSafeInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
 }
@@ -439,6 +575,7 @@ function fail<T>(reason: string): CombatInspection<T> {
 export {
   COMBAT_EFFECT_TYPES,
   COMBAT_OUTCOMES,
+  COMBAT_RANGES,
   COMBAT_TARGETS,
   FLEE_ACTION_ID,
   PREPARED_ACTION_PREFIX,
@@ -448,6 +585,7 @@ export { INITIAL_COMBAT_CATALOG, PLAYER_COMBAT_MAX_HEALTH } from './initial-comb
 
 export type {
   CombatActionDefinition,
+  CombatActionView,
   CombatantState,
   CombatantTemplate,
   CombatCatalog,

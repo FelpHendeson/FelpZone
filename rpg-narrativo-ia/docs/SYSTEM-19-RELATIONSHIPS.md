@@ -1,6 +1,6 @@
 # Sistema 19 — Relacionamentos e vínculos persistentes
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 19.1 a 19.7 em 17 de setembro de 2026.
 
 ## Objetivo
 
@@ -20,6 +20,8 @@ Permitir relações consistentes que se transformem com convivência, escolhas e
 O pack declara dimensões, limites, vínculos possíveis, requisitos de transição, modificadores e textos de apresentação. O estado registra pares de atores, valores atuais, vínculos ativos e marcos relacionais já consumidos.
 
 Efeitos de relação referenciam ator, alvo, dimensão e variação permitida. A UI nunca envia o novo valor final. O motor limita os valores, verifica o contexto e produz um resultado auditável.
+
+A versão definitiva do schema é `schemaVersion: 13`. Saves v1–v12 migram com `bonds` vazio, sem conceder dimensões, vínculos ou a promessa de Mira.
 
 ## Integrações
 

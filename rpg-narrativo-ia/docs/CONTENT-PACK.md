@@ -1,6 +1,6 @@
 # Motor e pack de mundo
 
-O código do motor (Aincrad) conhece **leis e vocabulário**. O primeiro dia — mapa, habilidades, Jardim, desbloqueios, Mira, combate, jornadas e eventos — entra como **pack de conteúdo**. O save continua só com IDs e progresso (schema 11). Catálogo não é persistido.
+O código do motor (Aincrad) conhece **leis e vocabulário**. O primeiro dia — mapa, habilidades, Jardim, desbloqueios, Mira, combate, jornadas e eventos — entra como **pack de conteúdo**. O save continua só com IDs e progresso (schema 23). Catálogo não é persistido.
 
 Esta fatia não numerada como sistema: é o contrato de conteúdo sobre o motor já consolidado.
 
@@ -15,8 +15,8 @@ Permanece no código:
 
 Vira pack `first-day` em `content/first-day/`:
 
-- mundo: mapa, exploração, recursos, crafting, presenças, interações, NPCs/agenda;
-- sistema: energéticos, habilidades, treino, maestria, Jardim, itens, condições, combate;
+- mundo: mapa, exploração, recursos, crafting, presenças, interações, pontos de interesse, relacionamentos, organizações, party, calendário, família, cidadania, economia, assentamentos, política, NPCs/agenda;
+- sistema: energéticos, habilidades, treino, maestria, Jardim, itens, condições, combate, execução, Registro;
 - campanha: eventos, capacidades iniciais, NPCs narrativos, gatilhos de mundo, jornadas;
 - rótulos de estação usados só na apresentação.
 

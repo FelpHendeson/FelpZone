@@ -7,6 +7,7 @@ import {
   type CombatState,
   type IndexedCombat,
 } from '../modules/combat';
+import { createInitialExecutionState } from '../modules/execution';
 
 function catalog(): IndexedCombat {
   return indexCombatCatalog(
@@ -27,16 +28,40 @@ function catalog(): IndexedCombat {
 }
 
 function state(opponentActionIds: string[], health: number, maxHealth = 20): CombatState {
+  const execution = createInitialExecutionState();
   return {
     encounterId: 'enc',
     turn: 0,
-    player: { id: 'player', name: 'Ana', maxHealth: 20, health: 20, guard: 0, actionIds: ['attack'], conditions: [] },
-    opponent: { id: 'beast', name: 'Fera', maxHealth, health, guard: 0, actionIds: opponentActionIds, conditions: [] },
+    player: {
+      id: 'player',
+      name: 'Ana',
+      maxHealth: 20,
+      health: 20,
+      guard: 0,
+      actionIds: ['attack'],
+      conditions: [],
+      execution,
+    },
+    opponent: {
+      id: 'beast',
+      name: 'Fera',
+      maxHealth,
+      health,
+      guard: 0,
+      actionIds: opponentActionIds,
+      conditions: [],
+      execution: createInitialExecutionState(),
+    },
     log: [],
     outcome: 'ongoing',
     loadout: emptyCombatLoadout(),
     prepared: [],
     usedPrepared: [],
+    entryExecution: execution,
+    knownSkillIds: [],
+    allies: [],
+    foes: [],
+    companionOrderLog: [],
   };
 }
 

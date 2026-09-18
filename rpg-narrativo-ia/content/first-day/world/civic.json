@@ -1,0 +1,172 @@
+{
+  "scopes": [
+    { "id": "awakening-clearing", "name": "Clareira do Despertar" }
+  ],
+  "authorities": [
+    {
+      "id": "mira-vale",
+      "name": "Mira Vale",
+      "scopeIds": ["awakening-clearing"],
+      "permissions": ["grant-citizenship", "revoke-citizenship", "grant-profession"]
+    }
+  ],
+  "citizenships": [
+    {
+      "id": "clearing-resident",
+      "name": "Residente da Clareira",
+      "scopeId": "awakening-clearing",
+      "permissions": ["clearing-gather"]
+    }
+  ],
+  "professions": [
+    {
+      "id": "clearing-forager",
+      "name": "Coletor da Clareira",
+      "incompatibleProfessionIds": ["clearing-warden"]
+    },
+    {
+      "id": "clearing-warden",
+      "name": "Guarda da Clareira",
+      "incompatibleProfessionIds": ["clearing-forager"]
+    }
+  ],
+  "titles": [],
+  "offices": [],
+  "npcDecisions": [
+    {
+      "npcId": "mira-vale",
+      "intent": "grant-citizenship",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    },
+    {
+      "npcId": "mira-vale",
+      "intent": "grant-profession",
+      "requirements": [{ "type": "flag.is", "flag": "civic.clearing-resident.granted", "value": true }]
+    },
+    {
+      "npcId": "mira-vale",
+      "intent": "revoke-citizenship",
+      "requirements": [{ "type": "flag.is", "flag": "civic.clearing-resident.granted", "value": true }]
+    }
+  ],
+  "actions": [
+    {
+      "id": "request-clearing-citizenship",
+      "label": "Pedir residência na Clareira",
+      "hint": "Mira reconhece a residência. Cidadania não é patente nem ranking.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }],
+      "effects": [
+        {
+          "type": "civic.grant",
+          "kind": "citizenship",
+          "definitionId": "clearing-resident",
+          "actorId": "player",
+          "scopeId": "awakening-clearing",
+          "authorityId": "mira-vale"
+        },
+        { "type": "flag.set", "flag": "civic.clearing-resident.granted", "value": true }
+      ],
+      "feedback": "Mira reconhece você como residente da Clareira. O privilégio vale só neste lugar."
+    },
+    {
+      "id": "start-forager-profession",
+      "label": "Começar o ofício de coletor",
+      "hint": "A residência reconhece o ofício. Progresso virá de prática verificável.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "civic.has-grant", "kind": "citizenship", "definitionId": "clearing-resident", "active": true }
+      ],
+      "effects": [
+        {
+          "type": "civic.grant",
+          "kind": "profession",
+          "definitionId": "clearing-forager",
+          "actorId": "player",
+          "scopeId": "awakening-clearing",
+          "authorityId": "mira-vale"
+        },
+        { "type": "flag.set", "flag": "civic.clearing-forager.started", "value": true }
+      ],
+      "feedback": "Você passa a ser reconhecido como coletor da Clareira. Isso não é nível do Sistema."
+    },
+    {
+      "id": "start-warden-profession",
+      "label": "Assumir a guarda da Clareira",
+      "hint": "Ofício incompatível com o de coletor.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "civic.has-grant", "kind": "citizenship", "definitionId": "clearing-resident", "active": true }
+      ],
+      "effects": [
+        {
+          "type": "civic.grant",
+          "kind": "profession",
+          "definitionId": "clearing-warden",
+          "actorId": "player",
+          "scopeId": "awakening-clearing",
+          "authorityId": "mira-vale"
+        }
+      ],
+      "feedback": "A guarda da Clareira não combina com o ofício de coletor."
+    },
+    {
+      "id": "practice-foraging",
+      "label": "Praticar coleta reconhecida",
+      "hint": "Registra prática profissional com fonte reproduzível.",
+      "timeCost": { "periods": 1 },
+      "once": false,
+      "requirements": [
+        { "type": "civic.has-grant", "kind": "profession", "definitionId": "clearing-forager", "active": true }
+      ],
+      "effects": [
+        { "type": "civic.practice", "professionId": "clearing-forager", "amount": 1, "source": "practice-foraging" }
+      ],
+      "feedback": "A prática de coleta fica registrada. Não veio de um número informado na interface."
+    },
+    {
+      "id": "use-clearing-gather-right",
+      "label": "Usar o direito de coleta da Clareira",
+      "hint": "Só funciona no escopo que concedeu a residência.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "civic.has-permission", "permissionId": "clearing-gather", "scopeId": "awakening-clearing" },
+        { "type": "location.is", "locationId": "awakening-clearing" }
+      ],
+      "effects": [
+        { "type": "civic.use-permission", "permissionId": "clearing-gather", "scopeId": "awakening-clearing" },
+        { "type": "flag.set", "flag": "civic.clearing-gather.used", "value": true }
+      ],
+      "feedback": "O direito de residente vale aqui. Fora da Clareira, a permissão não se aplica."
+    },
+    {
+      "id": "revoke-clearing-citizenship",
+      "label": "Devolver a residência reconhecida",
+      "hint": "A revogação guarda o histórico e retira o privilégio.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "civic.has-grant", "kind": "citizenship", "definitionId": "clearing-resident", "active": true }
+      ],
+      "effects": [
+        {
+          "type": "civic.revoke",
+          "kind": "citizenship",
+          "definitionId": "clearing-resident",
+          "actorId": "player",
+          "authorityId": "mira-vale"
+        },
+        { "type": "flag.set", "flag": "civic.clearing-resident.granted", "value": false }
+      ],
+      "feedback": "A residência é revogada. O registro permanece; o privilégio de coleta, não."
+    }
+  ]
+}

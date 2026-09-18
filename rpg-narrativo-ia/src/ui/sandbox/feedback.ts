@@ -97,6 +97,30 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       parts.push('O Jardim integrou uma técnica híbrida.');
       break;
     }
+    case 'interactable.interact': {
+      parts.push(result.feedback ?? result.detail.plan.feedback ?? result.detail.plan.actionId);
+      break;
+    }
+    case 'bond.act': {
+      parts.push(result.feedback ?? result.detail.plan.feedback ?? result.detail.plan.actionId);
+      break;
+    }
+    case 'registry.claim': {
+      parts.push('O Registro concedeu uma patente.');
+      break;
+    }
+    case 'organization.act': {
+      parts.push(result.feedback ?? result.detail.plan.feedback ?? result.detail.plan.actionId);
+      break;
+    }
+    case 'family.act':
+    case 'civic.act':
+    case 'economy.act':
+    case 'settlement.act':
+    case 'politics.act': {
+      parts.push(result.feedback ?? result.detail.plan.feedback ?? result.detail.plan.actionId);
+      break;
+    }
   }
 
   if (result.timeCost.periods > 0) {

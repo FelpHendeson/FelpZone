@@ -393,6 +393,50 @@ function freezeState(state: GameState): GameState {
           ),
         ),
       }),
+      interactables: Object.freeze({
+        objects: Object.freeze(
+          (state.sandbox.interactables?.objects ?? []).map((entry) =>
+            Object.freeze({
+              ...entry,
+              consumedActionIds: Object.freeze([...entry.consumedActionIds]),
+              revealedFactIds: Object.freeze([...entry.revealedFactIds]),
+            }),
+          ),
+        ),
+      }),
+    }),
+    bonds: Object.freeze({
+      edges: Object.freeze(
+        (state.bonds?.edges ?? []).map((edge) =>
+          Object.freeze({
+            ...edge,
+            values: Object.freeze({ ...edge.values }),
+            bondIds: Object.freeze([...edge.bondIds]),
+            consumedMilestoneIds: Object.freeze([...edge.consumedMilestoneIds]),
+          }),
+        ),
+      ),
+      consumedActionIds: Object.freeze([...(state.bonds?.consumedActionIds ?? [])]),
+    }),
+    registry: Object.freeze({
+      accessGranted: state.registry?.accessGranted ?? false,
+      patentIds: Object.freeze([...(state.registry?.patentIds ?? [])]),
+      recognizedRankingIds: Object.freeze([...(state.registry?.recognizedRankingIds ?? [])]),
+    }),
+    organizations: Object.freeze({
+      entries: Object.freeze(
+        (state.organizations?.entries ?? []).map((entry) =>
+          Object.freeze({
+            ...entry,
+            members: Object.freeze(entry.members.map((member) => Object.freeze({ ...member }))),
+          }),
+        ),
+      ),
+      consumedActionIds: Object.freeze([...(state.organizations?.consumedActionIds ?? [])]),
+    }),
+    party: Object.freeze({
+      tacticId: state.party?.tacticId ?? null,
+      vitals: Object.freeze((state.party?.vitals ?? []).map((entry) => Object.freeze({ ...entry }))),
     }),
   }) as GameState;
 }

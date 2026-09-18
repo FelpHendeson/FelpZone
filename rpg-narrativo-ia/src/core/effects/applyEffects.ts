@@ -5,6 +5,7 @@ import { changeAttribute } from '../../modules/character';
 import { addItem, canRemoveItem, removeItem } from '../../modules/inventory';
 import { grantAbility, grantTitle } from '../../modules/progression';
 import { changeRelationship } from '../../modules/relationships';
+import { applyBondDomainEffects, INITIAL_BONDS, createInitialBondsState } from '../../modules/bonds';
 import { advancePeriodTo } from '../../modules/world';
 
 export function applyEffects(state: GameState, effects: GameEffect[]): GameState {
@@ -74,6 +75,12 @@ export function applyEffect(state: GameState, effect: GameEffect): GameState {
       };
     case 'npc.rememberFact':
       throw new EngineError('O efeito npc.rememberFact exige o catálogo de NPCs do sandbox.');
+    case 'bond.shift':
+    case 'bond.form':
+      return {
+        ...state,
+        bonds: applyBondDomainEffects(INITIAL_BONDS, state.bonds ?? createInitialBondsState(), state, [effect]),
+      };
   }
 }
 

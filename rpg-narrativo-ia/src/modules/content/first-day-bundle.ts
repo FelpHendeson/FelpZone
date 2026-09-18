@@ -6,6 +6,8 @@ import worldTriggers from '../../../content/first-day/campaign/world-triggers.js
 import pack from '../../../content/first-day/pack.json' with { type: 'json' };
 import combat from '../../../content/first-day/system/combat.json' with { type: 'json' };
 import conditions from '../../../content/first-day/system/conditions.json' with { type: 'json' };
+import execution from '../../../content/first-day/system/execution.json' with { type: 'json' };
+import registry from '../../../content/first-day/system/registry.json' with { type: 'json' };
 import energetics from '../../../content/first-day/system/energetics.json' with { type: 'json' };
 import garden from '../../../content/first-day/system/garden.json' with { type: 'json' };
 import items from '../../../content/first-day/system/items.json' with { type: 'json' };
@@ -16,6 +18,16 @@ import structures from '../../../content/first-day/system/structures.json' with 
 import training from '../../../content/first-day/system/training.json' with { type: 'json' };
 import labels from '../../../content/first-day/ui/labels.json' with { type: 'json' };
 import exploration from '../../../content/first-day/world/exploration.json' with { type: 'json' };
+import bonds from '../../../content/first-day/world/bonds.json' with { type: 'json' };
+import organizations from '../../../content/first-day/world/organizations.json' with { type: 'json' };
+import party from '../../../content/first-day/world/party.json' with { type: 'json' };
+import calendar from '../../../content/first-day/world/calendar.json' with { type: 'json' };
+import family from '../../../content/first-day/world/family.json' with { type: 'json' };
+import civic from '../../../content/first-day/world/civic.json' with { type: 'json' };
+import economy from '../../../content/first-day/world/economy.json' with { type: 'json' };
+import settlements from '../../../content/first-day/world/settlements.json' with { type: 'json' };
+import politics from '../../../content/first-day/world/politics.json' with { type: 'json' };
+import interactables from '../../../content/first-day/world/interactables.json' with { type: 'json' };
 import map from '../../../content/first-day/world/map.json' with { type: 'json' };
 import npcs from '../../../content/first-day/world/npcs.json' with { type: 'json' };
 import populations from '../../../content/first-day/world/populations.json' with { type: 'json' };
@@ -33,6 +45,17 @@ export function assembleFirstDayRaw(): unknown {
     resourceNodes,
     presences,
     presenceInteractions,
+    interactables,
+    bonds,
+    organizations,
+    party,
+    calendar,
+    family,
+    civic,
+    economy,
+    settlements,
+    politics,
+    registry,
     npcs,
     energetics,
     skills,
@@ -41,6 +64,7 @@ export function assembleFirstDayRaw(): unknown {
     garden,
     items,
     conditions,
+    execution,
     combat,
     craftingRecipes: recipes,
     craftingStructures: structures,

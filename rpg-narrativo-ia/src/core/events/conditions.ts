@@ -18,6 +18,19 @@ export function evaluateCondition(condition: GameCondition, state: GameState): b
       const relation = state.relationships.find((entry) => entry.characterId === condition.characterId);
       return (relation?.trust ?? 0) >= condition.amount;
     }
+    case 'bond.dimension.min': {
+      const edge = state.bonds?.edges.find((entry) => entry.fromId === condition.fromId && entry.toId === condition.toId);
+      return (edge?.values[condition.dimensionId] ?? 0) >= condition.amount;
+    }
+    case 'bond.exists':
+      return (
+        state.bonds?.edges.some(
+          (entry) =>
+            entry.fromId === condition.fromId &&
+            entry.toId === condition.toId &&
+            entry.bondIds.includes(condition.bondId),
+        ) ?? false
+      );
   }
 }
 

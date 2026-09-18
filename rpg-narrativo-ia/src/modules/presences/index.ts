@@ -1316,6 +1316,16 @@ function copyCondition(condition: GameCondition): GameCondition {
         : { type: 'inventory.has', itemId: condition.itemId, quantity: condition.quantity };
     case 'relationship.min':
       return { type: 'relationship.min', characterId: condition.characterId, amount: condition.amount };
+    case 'bond.dimension.min':
+      return {
+        type: 'bond.dimension.min',
+        fromId: condition.fromId,
+        toId: condition.toId,
+        dimensionId: condition.dimensionId,
+        amount: condition.amount,
+      };
+    case 'bond.exists':
+      return { type: 'bond.exists', fromId: condition.fromId, toId: condition.toId, bondId: condition.bondId };
   }
 }
 
@@ -1411,6 +1421,15 @@ function sameCondition(left: GameCondition, right: unknown): boolean {
       return right.itemId === left.itemId && right.quantity === left.quantity;
     case 'relationship.min':
       return right.characterId === left.characterId && right.amount === left.amount;
+    case 'bond.dimension.min':
+      return (
+        right.fromId === left.fromId &&
+        right.toId === left.toId &&
+        right.dimensionId === left.dimensionId &&
+        right.amount === left.amount
+      );
+    case 'bond.exists':
+      return right.fromId === left.fromId && right.toId === left.toId && right.bondId === left.bondId;
   }
 }
 

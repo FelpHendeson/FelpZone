@@ -48,16 +48,16 @@ Leia nesta ordem:
 28. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 implementado e consolidado nas Fatias 16.1 a 16.7.
 29. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
 30. [Motor e pack de mundo](docs/CONTENT-PACK.md): o código conhece leis; o primeiro dia entra como JSON validado.
-31. [Cenário interativo e pontos de interesse](docs/SYSTEM-18-INTERACTABLE-WORLD.md): Sistema 18 especificado e ainda não implementado.
-32. [Relacionamentos e vínculos persistentes](docs/SYSTEM-19-RELATIONSHIPS.md): Sistema 19 especificado e ainda não implementado.
-33. [Registro do Sistema, patentes e rankings](docs/SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md): Sistema 20 especificado e ainda não implementado.
-34. [Grupos e organizações](docs/SYSTEM-21-GROUPS-ORGANIZATIONS.md): Sistema 21 especificado e ainda não implementado.
-35. [Númen avançado, habilidades e execução](docs/SYSTEM-22-ADVANCED-NUMEN-SKILLS.md): Sistema 22 especificado e ainda não implementado.
-36. [Party, companheiros e combate coletivo](docs/SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md): Sistema 23 especificado e ainda não implementado.
-37. [Calendário de longo prazo e ciclo de vida](docs/SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md): Sistema 24 especificado e ainda não implementado.
-38. [Família, lar e linhagem](docs/SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md): Sistema 25 especificado e ainda não implementado.
-39. [Profissões, cidadania e posição social](docs/SYSTEM-26-PROFESSIONS-CITIZENSHIP-STATUS.md): Sistema 26 especificado e ainda não implementado.
-40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 especificado e ainda não implementado.
+31. [Cenário interativo e pontos de interesse](docs/SYSTEM-18-INTERACTABLE-WORLD.md): Sistema 18 implementado e consolidado nas Fatias 18.1 a 18.7.
+32. [Relacionamentos e vínculos persistentes](docs/SYSTEM-19-RELATIONSHIPS.md): Sistema 19 implementado e consolidado nas Fatias 19.1 a 19.7.
+33. [Registro do Sistema, patentes e rankings](docs/SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md): Sistema 20 implementado e consolidado nas Fatias 20.1 a 20.7.
+34. [Grupos e organizações](docs/SYSTEM-21-GROUPS-ORGANIZATIONS.md): Sistema 21 implementado e consolidado nas Fatias 21.1 a 21.7.
+35. [Númen avançado, habilidades e execução](docs/SYSTEM-22-ADVANCED-NUMEN-SKILLS.md): Sistema 22 implementado e consolidado nas Fatias 22.1 a 22.7.
+36. [Party, companheiros e combate coletivo](docs/SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md): Sistema 23 implementado e consolidado nas Fatias 23.1 a 23.7.
+37. [Calendário de longo prazo e ciclo de vida](docs/SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md): Sistema 24 implementado e consolidado nas Fatias 24.1 a 24.7.
+38. [Família, lar e linhagem](docs/SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md): Sistema 25 implementado e consolidado nas Fatias 25.1 a 25.7.
+39. [Profissões, cidadania e posição social](docs/SYSTEM-26-PROFESSIONS-CITIZENSHIP-STATUS.md): Sistema 26 implementado e consolidado nas Fatias 26.1 a 26.7.
+40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 especificado e ainda não implementado.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 especificado e ainda não implementado.
 43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 17 e programa especificado dos Sistemas 18 a 29.
@@ -121,9 +121,9 @@ As Fatias 12.8 a 12.12 estão implementadas: a ameaça só aparece após a desco
 
 O Sistema 13 — Progressão por prática e recompensas do Sistema — está **implementado e consolidado nas Fatias 13.1 a 13.7**. O módulo `mastery` conecta treino e o uso verificado de habilidades em vitórias a proficiência, marcos de nível e revelação de métodos, tudo na mesma transação atômica, sem introduzir experiência genérica, equipamentos ou Jardim. Consulte [Sistema 13](docs/SYSTEM-PRACTICE-PROGRESSION.md).
 
-Os Sistemas 14 a 17 estão **implementados e consolidados**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; e NPCs persistentes/agenda/mundo vivo. O save atual é o schema 11. O primeiro dia (mapa, habilidades, eventos, Mira) vive no pack JSON `content/first-day/`; o motor valida o pack na borda e não persiste catálogo. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md), [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md) e [Motor e pack de mundo](docs/CONTENT-PACK.md).
+Os Sistemas 14 a 29 estão **implementados e consolidados**: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo; pontos de interesse; relacionamentos direcionais; Registro/patentes/rankings; grupos/organizações; Númen avançado com fases, custo e interrupção; party e combate coletivo; calendário e ciclo de vida; família, lar e linhagem; profissões e cidadania; economia e propriedade; bases e assentamentos; facções e política. O save atual é o schema 23. O primeiro dia (mapa, habilidades, eventos, Mira) vive no pack JSON `content/first-day/`; o motor valida o pack na borda e não persiste catálogo. Consulte [Sistema 14](docs/SYSTEM-ITEMS-EQUIPMENT-PREPARATION.md), [Sistema 15](docs/SYSTEM-CONDITIONS-ELEMENTS-COMBAT.md), [Sistema 16](docs/SYSTEM-SKILL-GARDEN.md), [Sistema 17](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md), [Sistema 18](docs/SYSTEM-18-INTERACTABLE-WORLD.md), [Sistema 19](docs/SYSTEM-19-RELATIONSHIPS.md), [Sistema 20](docs/SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md), [Sistema 21](docs/SYSTEM-21-GROUPS-ORGANIZATIONS.md), [Sistema 22](docs/SYSTEM-22-ADVANCED-NUMEN-SKILLS.md), [Sistema 23](docs/SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md), [Sistema 24](docs/SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md), [Sistema 25](docs/SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md) e [Motor e pack de mundo](docs/CONTENT-PACK.md).
 
-Os Sistemas 18 a 29 estão **especificados e ainda não implementados**. Eles consolidam o projeto como motor de mundo e cobrem cenário interativo, relações, rankings, organizações, Númen avançado, combate coletivo, calendário, família, profissões, economia, assentamentos e política. Consulte [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md) e [Roadmap](docs/ROADMAP.md).
+O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do recorte aprovado. Consulte [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md) e [Roadmap](docs/ROADMAP.md).
 
 ## Decisões já tomadas
 
@@ -141,16 +141,16 @@ Os Sistemas 18 a 29 estão **especificados e ainda não implementados**. Eles co
 - Textos e nomes ainda são provisórios.
 - Cenas, retratos e ícones são placeholders locais, sem arte final.
 - Só existe a campanha do primeiro dia.
-- O salvamento local usa `schemaVersion: 11`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, `sandbox.npcs`, `items`, `lingering`, `garden`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v10 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
+- O salvamento local usa `schemaVersion: 23`, persiste `sede`, `narrativeSession` (nula na exploração livre), `sandbox.presences`, `sandbox.npcs`, `sandbox.interactables`, `items`, `lingering`, `garden`, `bonds`, `registry`, `organizations`, `execution`, `party`, `calendar`, `family`, `civic`, `economy`, `settlements`, `politics`, o progresso mínimo de objetivos e o estado de progressão do Sistema (`system`: nível e proficiências por habilidade). Valida sandbox, objetivos e progressão contra seus catálogos e migra saves v1 a v22 válidos na leitura, sem regravar o `localStorage` até o próximo `save`. Contextos, mapas, textos, critérios, índices e definições não entram no JSON. Falha de forma controlada se a versão for incompatível ou se a estrutura interna estiver malformada.
 - Balanceamento definitivo ainda não existe no código; o Jardim está implementado no Sistema 16, e nomes, números e conteúdo permanecem protótipos.
-- Fora da implementação atual: Sistemas 18 a 29, persistência de combate em andamento, posicionamento, mapa aberto, geração procedural, editor e qualquer serviço pago.
+- Fora da implementação atual: persistência de combate em andamento, posicionamento, mapa aberto, geração procedural, editor e qualquer serviço pago.
 - A instalação PWA e o modo offline dependem de HTTPS ou `localhost`.
 - A evolução sandbox tem horário, data, ciclo diário, navegação, exploração, recursos, crafting, estado integrado persistido, orquestrador de ações, superfície mobile e o mecanismo genérico de gatilhos de mundo.
 - O Sistema 8 está implementado. As Fatias 8.1 a 8.6 existem no código: catálogo, sincronização, planejamento, save schema 4, orquestração de `presence.interact`, interface mobile e conteúdo jogável de Mira e do coelho chifrudo.
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 807 testes, incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 11, migrações v1–v10, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica), o ciclo de progressão por prática do Sistema 13 e os Sistemas 14 a 17 (loadout, condições, Jardim e NPCs persistentes).
+- `npm test`: testes incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 23, migrações v1–v22, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica), o ciclo de progressão por prática do Sistema 13, os Sistemas 14 a 17 (loadout, condições, Jardim e NPCs persistentes), o ciclo da Grande Árvore do Sistema 18, os vínculos direcionais do Sistema 19, o Registro do Sistema 20, os grupos do Sistema 21, a execução avançada do Sistema 22, a party coletiva do Sistema 23, o calendário do Sistema 24, a família do Sistema 25, a cidadania do Sistema 26, a economia do Sistema 27, os assentamentos do Sistema 28 e a diplomacia do Sistema 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.

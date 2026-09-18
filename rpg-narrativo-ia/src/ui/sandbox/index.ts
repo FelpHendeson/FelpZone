@@ -6,6 +6,8 @@ export type {
   EquipmentSlotView,
   ExplorationView,
   InventoryViewItem,
+  InteractableView,
+  BondCharacterView,
   LingeringView,
   NeedEffectView,
   PreparationSlotView,

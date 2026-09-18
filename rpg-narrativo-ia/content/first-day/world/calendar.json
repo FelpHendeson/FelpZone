@@ -1,0 +1,54 @@
+{
+  "id": "reset-reckoning",
+  "name": "Contagem do Reset",
+  "epochLabel": "após o Reset",
+  "daysPerCycle": 3,
+  "cycles": [
+    { "id": "ember", "name": "Brasa", "seasonId": "dry" },
+    { "id": "ash", "name": "Cinza", "seasonId": "dry" },
+    { "id": "rain", "name": "Chuva", "seasonId": "wet" },
+    { "id": "root", "name": "Raiz", "seasonId": "wet" }
+  ],
+  "seasons": [
+    { "id": "dry", "name": "Estação seca" },
+    { "id": "wet", "name": "Estação úmida" }
+  ],
+  "lifeStages": [
+    { "id": "youth", "name": "Juventude", "minAgeYears": 0, "maxAgeYears": 17 },
+    { "id": "adult", "name": "Maioridade", "minAgeYears": 18 }
+  ],
+  "origins": [
+    { "actorId": "player", "originDay": -215 },
+    { "actorId": "mira-vale", "originDay": -251 },
+    { "actorId": "rowan-vale", "originDay": -119 }
+  ],
+  "events": [
+    {
+      "id": "cycle-watch",
+      "kind": "appointment",
+      "label": "Vigília da virada",
+      "hint": "Um compromisso da Clareira na mudança de ciclo.",
+      "trigger": { "type": "cycle.started" },
+      "once": true,
+      "effects": [{ "type": "flag.set", "flag": "calendar.cycle-watch.kept", "value": true }]
+    },
+    {
+      "id": "clearing-renewal",
+      "kind": "renewal",
+      "label": "Ronda da Clareira",
+      "hint": "A ronda se renova a cada ciclo.",
+      "trigger": { "type": "cycle.started" },
+      "once": false,
+      "effects": [{ "type": "flag.set", "flag": "calendar.clearing-watch.renewed", "value": true }]
+    },
+    {
+      "id": "year-tenure",
+      "kind": "process",
+      "label": "Marco do ano",
+      "hint": "Um processo longo marca cada virada de ano.",
+      "trigger": { "type": "year.started" },
+      "once": false,
+      "effects": [{ "type": "flag.set", "flag": "calendar.year-tenure.marked", "value": true }]
+    }
+  ]
+}

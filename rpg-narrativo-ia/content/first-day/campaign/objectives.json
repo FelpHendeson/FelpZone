@@ -87,6 +87,90 @@
         }
       ],
       "completionText": "Você já não está apenas reagindo ao Reset: encontrou meios de sobreviver e outra pessoa neste mundo."
+    },
+    {
+      "id": "great-tree-marks",
+      "title": "Marcas da Grande Árvore",
+      "description": "Os sulcos no tronco escondem um padrão que pode abrir um caminho.",
+      "kind": "side",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "exploration.discovery.revealed",
+            "discoveryId": "bark-markings"
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "examine-marks",
+          "title": "Examine as marcas no tronco",
+          "criteria": [
+            {
+              "type": "interactable.fact.revealed",
+              "interactableId": "great-tree-bark-marks",
+              "factId": "pattern-noticed"
+            }
+          ]
+        },
+        {
+          "id": "follow-pattern",
+          "title": "Siga o padrão até o oco",
+          "criteria": [
+            {
+              "type": "interactable.fact.revealed",
+              "interactableId": "great-tree-bark-marks",
+              "factId": "hollow-hint"
+            }
+          ]
+        }
+      ],
+      "completionText": "O oco entre as raízes deixou de ser um segredo da casca."
+    },
+    {
+      "id": "mira-bonds",
+      "title": "A palavra dada a Mira",
+      "description": "Uma promessa e um vínculo só existem se forem escolhidos, não se um número cruzar um limite.",
+      "kind": "side",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "flag.is",
+            "flag": "mira.promise.made",
+            "value": true
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "settle-promise",
+          "title": "Cumpra ou quebre a promessa",
+          "criteria": [
+            {
+              "type": "flag.is",
+              "flag": "mira.promise.settled",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "name-friendship",
+          "title": "Nomeie a amizade, se ela aceitar",
+          "criteria": [
+            {
+              "type": "bond.exists",
+              "fromId": "player",
+              "toId": "mira-vale",
+              "bondId": "mira-friendship"
+            }
+          ]
+        }
+      ],
+      "completionText": "A amizade com Mira passou a ter nome. Confiança e afinidade continuam caminhos distintos."
     }
   ]
 }

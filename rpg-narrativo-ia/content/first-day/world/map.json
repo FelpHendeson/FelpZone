@@ -38,7 +38,23 @@
           },
           "travelCost": {
             "periods": 1
-          }
+          },
+          "children": [
+            {
+              "id": "great-tree-hollow",
+              "name": "Oco da Grande Árvore",
+              "description": "Uma fenda baixa entre as raízes, fácil de ignorar até ser apontada.",
+              "image": {
+                "kind": "scene",
+                "label": "Oco da Grande Árvore"
+              },
+              "travelCost": {
+                "periods": 1
+              },
+              "visibility": "hidden",
+              "lockedReason": "O oco permanece encoberto até o padrão nas marcas ser lido."
+            }
+          ]
         },
         {
           "id": "spring-lake",

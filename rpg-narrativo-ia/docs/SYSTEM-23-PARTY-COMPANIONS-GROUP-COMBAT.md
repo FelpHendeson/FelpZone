@@ -1,6 +1,6 @@
 # Sistema 23 — Party, companheiros e combate coletivo
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 23.1 a 23.7 em 18 de setembro de 2026.
 
 ## Objetivo
 
@@ -14,6 +14,12 @@ Permitir que o jogador explore e lute ao lado de personagens persistentes, forma
 - O jogador define ordens permitidas ou uma tática; não controla decisões que o companheiro recusaria segundo as regras de agência.
 - A primeira versão usa posições e alvos abstratos, sem grade espacial.
 - Saúde, condições, prática, relações e resultados persistentes são resolvidos em uma única transação terminal.
+
+## Contrato implementado
+
+A versão definitiva do schema é `schemaVersion: 17`. `GameState.party` guarda só `tacticId` e vitalidade por ator. A composição da party continua em `organizations` do tipo `party`. Saves v1–v16 migram com party vazia. A UI envia `actionId` do jogador e orientações de catálogo (`npcId` + `actionId`); o motor monta a fila, escolhe alvos abstratos e cobra o tempo uma vez no `combat.resolve`.
+
+O confronto `clearing-predator` permanece 1v1. `clearing-pair` exige o Grupo da Clareira, coloca Mira como aliada e adiciona o Predador Menor. Companheiros recusam orientações se não estiverem ativos ou se o requisito de flag falhar.
 
 ## Contrato conceitual
 

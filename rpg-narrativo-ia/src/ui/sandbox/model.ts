@@ -1,6 +1,6 @@
 import type { Campaign, ImageKind } from '../../core/events';
 import type { GameState, InventoryItem } from '../../core/state';
-import { findAbility } from '../../campaigns/first-day';
+import { findAbility, findNpc } from '../../campaigns/first-day';
 import { fullName } from '../../modules/character';
 import {
   MAX_EXPLORATION_PROGRESS,
@@ -12,6 +12,27 @@ import {
   listVisibleDestinations,
   type LocationRelation,
 } from '../../modules/navigation';
+import {
+  listKnownInteractablesAtLocation,
+} from '../../modules/interactables';
+import {
+  INITIAL_BONDS,
+  PLAYER_ACTOR_ID,
+  listKnownBondActions,
+  listRevealedDimensions,
+  listRevealedNamedBonds,
+} from '../../modules/bonds';
+import {
+  INITIAL_ORGANIZATIONS,
+  listKnownOrganizationActions,
+  listOrganizationViews,
+  type OrganizationView,
+} from '../../modules/organizations';
+import { INITIAL_FAMILY, listKnownFamilyActions } from '../../modules/family';
+import { INITIAL_CIVIC, listKnownCivicActions } from '../../modules/civic';
+import { INITIAL_ECONOMY, createInitialEconomyState, listKnownEconomyActions } from '../../modules/economy';
+import { INITIAL_SETTLEMENTS, createInitialSettlementsState, listKnownSettlementActions } from '../../modules/settlements';
+import { INITIAL_POLITICS, createInitialPoliticsState, listKnownPoliticsActions } from '../../modules/politics';
 import {
   listKnownPresenceInteractions,
   listKnownPresencesAtLocation,
@@ -43,6 +64,7 @@ import {
 } from '../../modules/needs';
 import type { SandboxContext } from '../../modules/sandbox';
 import { describeWorld } from '../../modules/world';
+import { describeCalendarDate, INITIAL_CALENDAR } from '../../modules/calendar';
 import { sandboxItemName, sandboxStationName } from './labels';
 import { attributesToNeedsSnapshot, buildNeedsPresentation, type NeedPresentation } from '../needs/presentation';
 
@@ -154,6 +176,50 @@ export interface PresenceView {
   interactions: PresenceInteractionView[];
 }
 
+export interface InteractableActionView {
+  actionId: string;
+  label: string;
+  hint?: string;
+  costPeriods: number;
+  available: boolean;
+  blockedReason?: string;
+}
+
+export interface InteractableView {
+  interactableId: string;
+  name: string;
+  description: string;
+  stageName: string;
+  stageDescription: string;
+  imageLabel: string;
+  facts: string[];
+  actions: InteractableActionView[];
+}
+
+export interface BondActionView {
+  actionId: string;
+  label: string;
+  hint?: string;
+  costPeriods: number;
+  available: boolean;
+  blockedReason?: string;
+}
+
+export interface BondCharacterView {
+  npcId: string;
+  name: string;
+  outgoing: { dimensionId: string; name: string; value: number }[];
+  incoming: { dimensionId: string; name: string; value: number }[];
+  namedBonds: { bondId: string; name: string; description: string }[];
+  actions: BondActionView[];
+  organizationActions: BondActionView[];
+  familyActions: BondActionView[];
+  civicActions: BondActionView[];
+  economyActions: BondActionView[];
+  settlementActions: BondActionView[];
+  politicsActions: BondActionView[];
+}
+
 export interface ExplorationView {
   characterName: string;
   worldLabel: string;
@@ -177,6 +243,9 @@ export interface ExplorationView {
   lingering: LingeringView[];
   knownNpcs: DerivedNpcView[];
   presences: PresenceView[];
+  interactables: InteractableView[];
+  bonds: BondCharacterView[];
+  organizations: OrganizationView[];
   needs: NeedPresentation[];
   rest: RestView;
 }
@@ -219,7 +288,7 @@ export function buildExplorationView(
 
   return {
     characterName: fullName(state.character),
-    worldLabel: describeWorld(state.world),
+    worldLabel: `${describeWorld(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`,
     abilityName: ability?.name ?? 'Nenhuma',
     location: {
       id: location.id,
@@ -264,6 +333,9 @@ export function buildExplorationView(
     })),
     knownNpcs: visibleNpcs(state, context),
     presences: visiblePresences(state, context, location.id),
+    interactables: visibleInteractables(state, context, location.id),
+    bonds: visibleBonds(state, context, campaign),
+    organizations: listOrganizationViews(context.organizations ?? INITIAL_ORGANIZATIONS, state.organizations ?? { entries: [], consumedActionIds: [] }),
     needs: buildNeedsPresentation(state.attributes),
     rest: buildRestView(state, location.id),
   };
@@ -534,4 +606,151 @@ function visiblePresences(state: GameState, context: SandboxContext, locationId:
 
     return view;
   });
+}
+
+function visibleInteractables(state: GameState, context: SandboxContext, locationId: string): InteractableView[] {
+  if (!context.interactables) {
+    return [];
+  }
+  return listKnownInteractablesAtLocation(
+    context.interactables,
+    state.sandbox.interactables ?? { objects: [] },
+    locationId,
+    state,
+  ).map((known) => ({
+    interactableId: known.definition.id,
+    name: known.definition.name,
+    description: known.definition.description,
+    stageName: known.stage.name,
+    stageDescription: known.stage.description,
+    imageLabel: known.definition.image?.label ?? known.definition.name,
+    facts: known.revealedFacts.map((fact) => fact.text),
+    actions: known.actions.map((entry) => ({
+      actionId: entry.action.id,
+      label: entry.action.label,
+      hint: entry.action.hint,
+      costPeriods: entry.action.timeCost.periods,
+      available: entry.available,
+      blockedReason: entry.blockedReason,
+    })),
+  }));
+}
+
+function visibleBonds(state: GameState, context: SandboxContext, campaign: Campaign): BondCharacterView[] {
+  const catalog = context.bonds ?? INITIAL_BONDS;
+  const npcs = context.npcs ?? INITIAL_NPCS;
+  const knownIds = new Set(
+    (state.sandbox.npcs?.entries ?? [])
+      .filter((entry) => entry.known)
+      .map((entry) => entry.npcId),
+  );
+  for (const edge of state.bonds?.edges ?? []) {
+    if (edge.fromId !== PLAYER_ACTOR_ID) {
+      knownIds.add(edge.fromId);
+    }
+    if (edge.toId !== PLAYER_ACTOR_ID) {
+      knownIds.add(edge.toId);
+    }
+  }
+  const views: BondCharacterView[] = [];
+  for (const npc of npcs.npcs) {
+    const actions = listKnownBondActions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, state, npc.id);
+    if (!knownIds.has(npc.id) && actions.length === 0) {
+      continue;
+    }
+    views.push({
+      npcId: npc.id,
+      name: findNpc(campaign, npc.id)?.name ?? npc.name,
+      outgoing: listRevealedDimensions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, PLAYER_ACTOR_ID, npc.id),
+      incoming: listRevealedDimensions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, npc.id, PLAYER_ACTOR_ID),
+      namedBonds: listRevealedNamedBonds(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, PLAYER_ACTOR_ID, npc.id),
+      actions: actions.map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+      organizationActions: listKnownOrganizationActions(
+        context.organizations ?? INITIAL_ORGANIZATIONS,
+        state.organizations ?? { entries: [], consumedActionIds: [] },
+        state,
+        npc.id,
+      ).map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+      familyActions: listKnownFamilyActions(
+        context.family ?? INITIAL_FAMILY,
+        state.family ?? { ties: [], households: [], stageMarks: [], consumedActionIds: [] },
+        state,
+        npc.id,
+      ).map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+      civicActions: listKnownCivicActions(
+        context.civic ?? INITIAL_CIVIC,
+        state.civic ?? { grants: [], progress: [], usedPermissionIds: [], consumedActionIds: [] },
+        state,
+        npc.id,
+      ).map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+      economyActions: listKnownEconomyActions(
+        context.economy ?? INITIAL_ECONOMY,
+        state.economy ?? createInitialEconomyState(),
+        state,
+        npc.id,
+      ).map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+      settlementActions: listKnownSettlementActions(
+        context.settlements ?? INITIAL_SETTLEMENTS,
+        state.settlements ?? createInitialSettlementsState(),
+        state,
+        npc.id,
+      ).map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+      politicsActions: listKnownPoliticsActions(
+        context.politics ?? INITIAL_POLITICS,
+        state.politics ?? createInitialPoliticsState(),
+        state,
+        npc.id,
+      ).map((entry) => ({
+        actionId: entry.action.id,
+        label: entry.action.label,
+        hint: entry.action.hint,
+        costPeriods: entry.action.timeCost.periods,
+        available: entry.available,
+        blockedReason: entry.blockedReason,
+      })),
+    });
+  }
+  return views;
 }

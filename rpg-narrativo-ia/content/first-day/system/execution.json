@@ -1,0 +1,30 @@
+{
+  "reserves": [
+    {
+      "energyId": "numen",
+      "max": 10,
+      "name": "Reserva de Númen",
+      "description": "Númen interiorizado disponível para técnicas de Poder. Técnicas impossíveis não consomem esta reserva."
+    }
+  ],
+  "limits": {
+    "minPrepare": 0,
+    "minExecute": 1,
+    "minRecover": 0,
+    "minTotal": 1
+  },
+  "modifierFields": [
+    "phases.prepare",
+    "phases.execute",
+    "phases.recover",
+    "cost.amount",
+    "cooldown",
+    "speed"
+  ],
+  "skillModifiers": [
+    {
+      "skillId": "steady-body",
+      "prepare": -1
+    }
+  ]
+}

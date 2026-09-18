@@ -1,6 +1,6 @@
 # Sistema 21 — Grupos e organizações
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 21.1 a 21.7 em 17 de setembro de 2026.
 
 ## Objetivo
 
@@ -20,6 +20,8 @@ Oferecer um contrato único para o personagem pertencer, criar e liderar estrutu
 O catálogo descreve a organização, seu tipo, cargos, permissões válidas, requisitos de entrada e transições de filiação. O estado registra membros, cargos, estado da filiação, fatos de fundação e mudanças de liderança.
 
 Comandos verificam a identidade do autor, a permissão exigida e a transição pedida. O cliente solicita uma intenção; o motor decide se ela é válida.
+
+A versão definitiva do schema é `schemaVersion: 15`. Saves v1–v14 migram com `organizations` vazio. O save guarda só IDs de instância, cargos, estados de filiação e ações consumidas; nomes e permissões permanecem no pack. A UI envia apenas `organization.act` com `actionId`. Filiação de NPC exige decisão declarada no catálogo.
 
 ## Integrações
 

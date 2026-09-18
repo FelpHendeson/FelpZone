@@ -99,6 +99,7 @@ export function buildCombatLoadout(catalog: IndexedItems, state: ItemsState) {
         guard: equipmentModifier(grants, 'guard'),
         healing: equipmentModifier(grants, 'healing'),
       },
+      executionModifiers: { prepare: 0, execute: 0, recover: 0, cost: 0, cooldown: 0, speed: 0 },
       grantedActionIds: grantedActionIds(grants),
     },
     prepared: state.preparation.slots.flatMap((slot) => {

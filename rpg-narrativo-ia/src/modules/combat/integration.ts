@@ -1,4 +1,5 @@
 import type { GameEffect } from '../../core/events';
+import { copyExecutionState, createInitialExecutionState } from '../execution';
 import { CombatError } from './errors';
 import type {
   CombatLoadoutSnapshot,
@@ -16,6 +17,8 @@ export interface VerifyCombatResolutionOptions {
   playerMaxHealth: number;
   loadout?: CombatLoadoutSnapshot;
   prepared?: readonly PreparedConsumableState[];
+  execution?: import('../execution').ExecutionState;
+  allies?: import('./engine').AllySnapshot[];
 }
 
 export function combatEncounterResolvedFlag(encounterId: string): string {
@@ -27,12 +30,18 @@ export function listAvailableEncounters(
   locationId: string,
   flags: Readonly<Record<string, boolean>>,
   revealedDiscoveryIds: readonly string[] = [],
+  activeOrganizationIds: readonly string[] = [],
 ): EncounterDefinition[] {
   const revealed = new Set(revealedDiscoveryIds);
+  const organizations = new Set(activeOrganizationIds);
   return catalog.encounters
     .filter((encounter) => encounter.locationId === locationId)
     .filter((encounter) => flags[combatEncounterResolvedFlag(encounter.id)] !== true)
     .filter((encounter) => encounter.requiredDiscoveryIds.every((id) => revealed.has(id)))
+    .filter(
+      (encounter) =>
+        encounter.requiredOrganizationId === undefined || organizations.has(encounter.requiredOrganizationId),
+    )
     .map((encounter) => copyEncounter(encounter));
 }
 
@@ -82,6 +91,10 @@ export function buildCombatResolution(state: CombatState, encounter: EncounterDe
       body: state.loadout?.equipment.body ?? null,
       accessory: state.loadout?.equipment.accessory ?? null,
     },
+    entryExecution: copyExecutionState(state.entryExecution ?? createInitialExecutionState()),
+    remainingExecution: copyExecutionState(state.player.execution ?? createInitialExecutionState()),
+    companionOrders: (state.companionOrderLog ?? []).map((turn) => turn.map((entry) => ({ ...entry }))),
+    allyVitals: (state.allies ?? []).map((ally) => ({ actorId: ally.id, health: ally.health })),
   };
 }
 
@@ -106,12 +119,18 @@ export function verifyCombatResolution(
     playerMaxHealth: options.playerMaxHealth,
     loadout: options.loadout ?? emptyCombatLoadout(),
     prepared: options.prepared ?? [],
+    execution: options.execution ?? resolution.entryExecution ?? createInitialExecutionState(),
+    allies: options.allies ?? [],
   });
-  for (const actionId of resolution.playerActionIds) {
+  const orderLog = resolution.companionOrders ?? [];
+  if (orderLog.length !== 0 && orderLog.length !== resolution.playerActionIds.length) {
+    throw new CombatError('A resolução de combate não corresponde à sequência de ações informada.');
+  }
+  for (const [index, actionId] of resolution.playerActionIds.entries()) {
     if (replayed.outcome !== 'ongoing') {
       throw new CombatError('A sequência de combate continua depois de um desfecho terminal.');
     }
-    replayed = resolveTurn(catalog, replayed, actionId);
+    replayed = resolveTurn(catalog, replayed, actionId, orderLog[index] ?? []);
   }
 
   const verified = buildCombatResolution(replayed, encounter);
@@ -121,7 +140,10 @@ export function verifyCombatResolution(
     verified.entryHealth !== resolution.entryHealth ||
     verified.remainingHealth !== resolution.remainingHealth ||
     JSON.stringify(verified.usedPrepared) !== JSON.stringify(resolution.usedPrepared ?? []) ||
-    JSON.stringify(verified.equipment) !== JSON.stringify(resolution.equipment ?? emptyCombatLoadout().equipment)
+    JSON.stringify(verified.equipment) !== JSON.stringify(resolution.equipment ?? emptyCombatLoadout().equipment) ||
+    JSON.stringify(verified.remainingExecution) !== JSON.stringify(resolution.remainingExecution ?? createInitialExecutionState()) ||
+    JSON.stringify(verified.companionOrders) !== JSON.stringify(resolution.companionOrders ?? verified.companionOrders) ||
+    JSON.stringify(verified.allyVitals) !== JSON.stringify(resolution.allyVitals ?? verified.allyVitals)
   ) {
     throw new CombatError('A resolução de combate não corresponde à sequência de ações informada.');
   }
@@ -187,6 +209,7 @@ function copyEncounter(encounter: EncounterDefinition): EncounterDefinition {
     ...encounter,
     timeCost: { ...encounter.timeCost },
     requiredDiscoveryIds: [...encounter.requiredDiscoveryIds],
+    ...(encounter.additionalOpponentIds ? { additionalOpponentIds: [...encounter.additionalOpponentIds] } : {}),
     ...(encounter.reward ? { reward: { ...encounter.reward } } : {}),
   };
 }

@@ -3,12 +3,24 @@ import { inspectConditionsCatalog } from '../conditions';
 import { inspectCraftingDefinitions } from '../crafting';
 import { inspectEnergeticsCatalog } from '../energetics';
 import { inspectExplorationDefinitions } from '../exploration';
+import { inspectExecutionCatalog, validateExecutionReferences } from '../execution';
 import { inspectGardenCatalog } from '../garden';
 import { inspectItemsCatalog } from '../items';
 import { inspectMasteryCatalog, validateMasteryReferences } from '../mastery';
 import { inspectNavigationMap } from '../navigation';
 import { inspectNpcCatalog } from '../npcs';
 import { inspectObjectiveCatalog } from '../objectives';
+import { inspectBondCatalog } from '../bonds';
+import { inspectOrganizationCatalog } from '../organizations';
+import { inspectPartyCatalog } from '../party';
+import { inspectCalendarCatalog } from '../calendar';
+import { inspectFamilyCatalog } from '../family';
+import { inspectCivicCatalog } from '../civic';
+import { inspectEconomyCatalog } from '../economy';
+import { inspectSettlementsCatalog } from '../settlements';
+import { inspectPoliticsCatalog } from '../politics';
+import { inspectRegistryCatalog } from '../registry';
+import { inspectInteractableCatalog } from '../interactables';
 import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
 import { inspectResourceDefinitions } from '../resources';
 import { inspectSkillsCatalog, type IndexedSkills } from '../skills';
@@ -36,6 +48,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
     const training = unwrap(inspectTrainingCatalog(raw.training, skills), 'O catálogo de treinamentos é inválido.');
     const items = unwrap(inspectItemsCatalog(raw.items), 'O catálogo de itens é inválido.');
     const conditions = unwrap(inspectConditionsCatalog(raw.conditions), 'O catálogo de condições é inválido.');
+    const execution = unwrap(inspectExecutionCatalog(raw.execution), 'O catálogo de execução é inválido.');
     const mastery = unwrap(inspectMasteryCatalog(raw.mastery), 'O catálogo de maestria é inválido.');
     const garden = unwrap(
       inspectGardenCatalog(raw.garden, skills, new Set(mastery.milestones.map((milestone) => milestone.id))),
@@ -51,6 +64,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       'As definições de exploração são inválidas.',
     );
     validateEncounterDiscoveries(combat, new Set(exploration.byDiscovery.keys()));
+    validateExecutionReferences(execution, new Set(skills.skills.map((skill) => skill.id)));
     validateMasteryReferences(mastery, {
       skillIds: new Set(skills.skills.map((skill) => skill.id)),
       trainingMethodIds: new Set(training.methods.map((method) => method.id)),
@@ -73,7 +87,27 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       inspectPresenceInteractionCatalog(raw.presenceInteractions, presences, campaign),
       'O catálogo de interações é inválido.',
     );
+    const interactables = unwrap(
+      inspectInteractableCatalog(raw.interactables, map, exploration),
+      'O catálogo de pontos de interesse é inválido.',
+    );
+    const bonds = unwrap(inspectBondCatalog(raw.bonds), 'O catálogo de relacionamentos é inválido.');
+    const organizations = unwrap(inspectOrganizationCatalog(raw.organizations), 'O catálogo de organizações é inválido.');
+    const registry = unwrap(inspectRegistryCatalog(raw.registry), 'O catálogo do Registro é inválido.');
     const npcs = unwrap(inspectNpcCatalog(raw.npcs, new Set(map.locations.keys())), 'O catálogo de NPCs é inválido.');
+    const party = unwrap(inspectPartyCatalog(raw.party), 'O catálogo de party é inválido.');
+    const calendar = unwrap(inspectCalendarCatalog(raw.calendar), 'O catálogo de calendário é inválido.');
+    const family = unwrap(inspectFamilyCatalog(raw.family), 'O catálogo de família é inválido.');
+    validateFamilyWorld(family, map, npcs);
+    const civic = unwrap(inspectCivicCatalog(raw.civic), 'O catálogo cívico é inválido.');
+    validateCivicWorld(civic, map, npcs);
+    const economy = unwrap(inspectEconomyCatalog(raw.economy), 'O catálogo econômico é inválido.');
+    validateEconomyWorld(economy, map, npcs, items);
+    const settlements = unwrap(inspectSettlementsCatalog(raw.settlements), 'O catálogo de assentamentos é inválido.');
+    validateSettlementsWorld(settlements, map, npcs, items, economy);
+    const politics = unwrap(inspectPoliticsCatalog(raw.politics), 'O catálogo político é inválido.');
+    validatePoliticsWorld(politics, map, npcs);
+    validatePartyWorld(party, combat, npcs, organizations);
     const objectives = unwrap(inspectObjectiveCatalog(raw.objectives), 'O catálogo de jornadas é inválido.');
     const worldTriggers = unwrap(
       inspectWorldTriggerCatalog(raw.worldTriggers, { campaign, exploration }),
@@ -93,6 +127,17 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       crafting,
       presences,
       presenceInteractions,
+      interactables,
+      bonds,
+      organizations,
+      party,
+      calendar,
+      family,
+      civic,
+      economy,
+      settlements,
+      politics,
+      registry,
       combat,
       mastery,
       skills,
@@ -101,6 +146,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       garden,
       items,
       conditions,
+      execution,
       npcs,
       objectives,
       worldTriggers,
@@ -136,6 +182,144 @@ function inspectFirstPriorityTrigger(value: unknown): IndexedWorld['firstPriorit
     eventId: value.eventId,
     source: { type: 'discovery.revealed', discoveryId: value.source.discoveryId },
   };
+}
+
+function validatePartyWorld(
+  party: IndexedWorld['party'],
+  combat: IndexedWorld['combat'],
+  npcs: IndexedWorld['npcs'],
+  organizations: IndexedWorld['organizations'],
+): void {
+  for (const companion of party.companions) {
+    if (!npcs.npcById.has(companion.npcId)) {
+      throw new ContentError('O companheiro referencia um NPC inexistente.');
+    }
+    for (const actionId of companion.actionIds) {
+      if (!combat.actionById.has(actionId)) {
+        throw new ContentError('O companheiro referencia uma ação de combate inexistente.');
+      }
+    }
+  }
+  for (const encounter of combat.encounters) {
+    if (encounter.requiredOrganizationId && !organizations.organizationById.has(encounter.requiredOrganizationId)) {
+      throw new ContentError('O encontro referencia uma organização inexistente.');
+    }
+  }
+}
+
+function validateFamilyWorld(
+  family: IndexedWorld['family'],
+  map: IndexedWorld['map'],
+  npcs: IndexedWorld['npcs'],
+): void {
+  for (const household of family.households) {
+    if (!map.locations.has(household.locationId)) {
+      throw new ContentError('O lar referencia uma localização inexistente.');
+    }
+  }
+  for (const action of family.actions) {
+    if (action.npcId && !npcs.npcById.has(action.npcId)) {
+      throw new ContentError('A ação de família referencia um NPC inexistente.');
+    }
+  }
+}
+
+function validateCivicWorld(
+  civic: IndexedWorld['civic'],
+  map: IndexedWorld['map'],
+  npcs: IndexedWorld['npcs'],
+): void {
+  for (const scope of civic.scopes) {
+    if (!map.locations.has(scope.id)) {
+      throw new ContentError('O escopo cívico referencia uma localização inexistente.');
+    }
+  }
+  for (const authority of civic.authorities) {
+    if (!npcs.npcById.has(authority.id)) {
+      throw new ContentError('A autoridade cívica referencia um NPC inexistente.');
+    }
+  }
+  for (const action of civic.actions) {
+    if (action.npcId && !npcs.npcById.has(action.npcId)) {
+      throw new ContentError('A ação cívica referencia um NPC inexistente.');
+    }
+  }
+}
+
+function validateEconomyWorld(
+  economy: IndexedWorld['economy'],
+  map: IndexedWorld['map'],
+  npcs: IndexedWorld['npcs'],
+  items: IndexedWorld['items'],
+): void {
+  for (const property of economy.properties) {
+    if (!map.locations.has(property.locationId)) {
+      throw new ContentError('A propriedade referencia uma localização inexistente.');
+    }
+  }
+  for (const offer of economy.offers) {
+    if (!items.byId.has(offer.itemId)) {
+      throw new ContentError('A oferta referencia um item inexistente.');
+    }
+  }
+  for (const action of economy.actions) {
+    if (action.npcId && !npcs.npcById.has(action.npcId)) {
+      throw new ContentError('A ação econômica referencia um NPC inexistente.');
+    }
+  }
+}
+
+function validateSettlementsWorld(
+  settlements: IndexedWorld['settlements'],
+  map: IndexedWorld['map'],
+  npcs: IndexedWorld['npcs'],
+  items: IndexedWorld['items'],
+  economy: IndexedWorld['economy'],
+): void {
+  for (const territory of settlements.territories) {
+    if (!map.locations.has(territory.locationId)) {
+      throw new ContentError('O território referencia uma localização inexistente.');
+    }
+    if (!economy.propertyById.has(territory.requiredPropertyId)) {
+      throw new ContentError('O território referencia uma propriedade inexistente.');
+    }
+  }
+  for (const project of settlements.projects) {
+    for (const cost of project.costs) {
+      if (!items.byId.has(cost.itemId)) {
+        throw new ContentError('O projeto referencia um item inexistente.');
+      }
+    }
+  }
+  for (const recipe of settlements.recipes) {
+    for (const entry of [...recipe.inputs, ...recipe.outputs]) {
+      if (!items.byId.has(entry.itemId)) {
+        throw new ContentError('A receita produtiva referencia um item inexistente.');
+      }
+    }
+  }
+  for (const action of settlements.actions) {
+    if (action.npcId && !npcs.npcById.has(action.npcId)) {
+      throw new ContentError('A ação de assentamento referencia um NPC inexistente.');
+    }
+  }
+}
+
+function validatePoliticsWorld(
+  politics: IndexedWorld['politics'],
+  map: IndexedWorld['map'],
+  npcs: IndexedWorld['npcs'],
+): void {
+  for (const law of politics.laws) {
+    if (!map.locations.has(law.jurisdictionLocationId)) {
+      throw new ContentError('A lei referencia uma jurisdição inexistente.');
+    }
+  }
+  for (const action of politics.actions) {
+    if (action.npcId && !npcs.npcById.has(action.npcId)) {
+      throw new ContentError('A ação política referencia um NPC inexistente.');
+    }
+  }
 }
 
 function inspectStationLabels(value: unknown): Readonly<Record<string, string>> {

@@ -17,6 +17,12 @@ import {
   type EncounterDefinition,
 } from '../../modules/combat';
 import { INITIAL_ITEMS } from '../../modules/items';
+import { INITIAL_ORGANIZATIONS } from '../../modules/organizations';
+import {
+  INITIAL_PARTY,
+  allySnapshots,
+  listCompanionOrderViews,
+} from '../../modules/party';
 import { buildCombatLoadout } from '../../modules/equipment';
 import { CombatScreen } from './CombatScreen';
 import { AppDialog } from '../components/AppDialog';
@@ -33,6 +39,8 @@ import {
   formatPeriodCost,
   type DestinationView,
   type ExplorationView,
+  type InteractableView,
+  type BondCharacterView,
   type NeedEffectView,
   type PresenceView,
   type RecipeView,
@@ -69,7 +77,13 @@ export function ExplorationScreen({
   const revealedDiscoveryIds =
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
       ?.revealedDiscoveryIds ?? [];
-  const encounters = listAvailableEncounters(INITIAL_COMBAT, currentLocationId, state.flags, revealedDiscoveryIds);
+  const encounters = listAvailableEncounters(
+    INITIAL_COMBAT,
+    currentLocationId,
+    state.flags,
+    revealedDiscoveryIds,
+    state.organizations.entries.map((entry) => entry.id),
+  );
   const fightBlockedReason =
     state.attributes.saude < 1 ? 'Você está ferido demais para enfrentar uma ameaça agora.' : undefined;
 
@@ -77,17 +91,28 @@ export function ExplorationScreen({
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
       ?? INITIAL_COMBAT.encounters.find((entry) => entry.id === combatEncounterId);
     const portrait = buildCombatLoadout(INITIAL_ITEMS, state.items);
+    const allies =
+      encounter?.requiredOrganizationId === undefined
+        ? []
+        : allySnapshots(INITIAL_PARTY, INITIAL_ORGANIZATIONS, state.organizations, state.party);
     const initialCombat = createCombat(INITIAL_COMBAT, combatEncounterId, {
       playerName: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
       playerMaxHealth: state.attributes.saude,
       loadout: portrait.loadout,
       prepared: portrait.prepared,
+      execution: state.execution,
+      allies,
     });
     return (
       <CombatScreen
         initialState={initialCombat}
         encounterName={encounter?.name ?? 'Confronto'}
+        orderViews={
+          allies.length === 0
+            ? []
+            : listCompanionOrderViews(INITIAL_PARTY, INITIAL_ORGANIZATIONS, state.organizations, state)
+        }
         onFinish={(finalState) => {
           onResolveCombat(combatEncounterId, finalState);
           setCombatEncounterId(null);
@@ -132,6 +157,7 @@ export function ExplorationScreen({
               state={state}
               campaign={campaign}
               abilityName={view.abilityName}
+              bonds={view.bonds}
               onAction={onAction}
             />
           ) : null}
@@ -260,6 +286,7 @@ function WorldPanel({
 
       <div className="world-context-grid">
         <PresenceSection presences={view.presences} onAction={onAction} />
+        <InteractableSection interactables={view.interactables} onAction={onAction} />
         {view.knownNpcs.length > 0 ? <KnownNpcSection npcs={view.knownNpcs} locationId={view.location.id} /> : null}
         {view.lingering.length > 0 ? (
           <section className="lingering-section" aria-label="Condições persistentes">
@@ -318,6 +345,66 @@ function ThreatSection({
             >
               Enfrentar
             </button>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function InteractableSection({
+  interactables,
+  onAction,
+}: {
+  interactables: InteractableView[];
+  onAction: (action: SandboxAction) => void;
+}) {
+  if (interactables.length === 0) {
+    return null;
+  }
+
+  return (
+    <section className="presence-section" aria-labelledby="interactables-title">
+      <div className="section-heading">
+        <div>
+          <span className="section-kicker">O que dá para examinar</span>
+          <h2 id="interactables-title">Pontos de interesse</h2>
+        </div>
+        <span className="section-count">{interactables.length}</span>
+      </div>
+      <div className="presence-card-list">
+        {interactables.map((interactable) => (
+          <article key={interactable.interactableId} className="presence-card">
+            <div className="presence-card__body">
+              <div className="presence-card__title">
+                <h3>{interactable.name}</h3>
+                <p className="presence-card__meta">{interactable.stageName}</p>
+              </div>
+              <p>{interactable.stageDescription}</p>
+              {interactable.facts.map((fact) => (
+                <p key={fact}>{fact}</p>
+              ))}
+              <div className="presence-card__actions">
+                {interactable.actions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--action"
+                    disabled={!action.available}
+                    onClick={() =>
+                      onAction({
+                        type: 'interactable.interact',
+                        interactableId: interactable.interactableId,
+                        actionId: action.actionId,
+                      })
+                    }
+                  >
+                    {action.label}
+                    <small>{action.blockedReason ?? formatPeriodCost(action.costPeriods)}</small>
+                  </button>
+                ))}
+              </div>
+            </div>
           </article>
         ))}
       </div>
@@ -856,17 +943,21 @@ function SystemPanel({
   state,
   campaign,
   abilityName,
+  bonds,
   onAction,
 }: {
   status: SystemStatusView;
   state: GameState;
   campaign: Campaign;
   abilityName: string;
+  bonds: BondCharacterView[];
   onAction: (action: SandboxAction) => void;
 }) {
   const [pending, setPending] = useState<SystemTrainingView | null>(null);
   const [pendingGarden, setPendingGarden] = useState<string | null>(null);
+  const [pendingPatent, setPendingPatent] = useState<string | null>(null);
   const gardenRecipe = status.garden.recipes.find((recipe) => recipe.id === pendingGarden);
+  const patent = status.registry.patents.find((entry) => entry.id === pendingPatent);
 
   return (
     <div className="tab-panel system-panel">
@@ -879,6 +970,30 @@ function SystemPanel({
         </div>
         <span className="system-console__level">Nível <strong>{status.level}</strong></span>
       </header>
+
+      <section className="system-calendar" aria-label="Calendário">
+        <span className="section-kicker">Contagem do Reset</span>
+        <p>
+          <strong>{status.calendar.dateLabel}</strong>
+          <span>
+            {status.calendar.ageYears} anos · {status.calendar.stageName}
+          </span>
+        </p>
+        {status.calendar.upcoming.length === 0 ? (
+          <EmptyAction message="Nenhum compromisso de calendário à vista." />
+        ) : (
+          <ul className="system-note-list">
+            {status.calendar.upcoming.map((entry) => (
+              <li key={entry.id}>
+                <strong>{entry.label}</strong>
+                <p>
+                  {entry.hint} {entry.dueLabel}.
+                </p>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {status.nextMilestone ? (
         <section className="system-milestone" aria-label="Próximo marco">
@@ -901,7 +1016,7 @@ function SystemPanel({
             <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
           </summary>
           <div className="system-disclosure__body">
-            <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} />
+            <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} bonds={bonds} onAction={onAction} />
           </div>
         </details>
 
@@ -915,6 +1030,14 @@ function SystemPanel({
             <ul className="system-note-list">
               {status.energies.map((energy) => (
                 <li key={energy.id}><strong>{energy.name}</strong><p>{energy.description}</p></li>
+              ))}
+              {status.execution.reserves.map((reserve) => (
+                <li key={reserve.energyId}>
+                  <strong>{reserve.name}</strong>
+                  <p>
+                    {reserve.current}/{reserve.max} disponível
+                  </p>
+                </li>
               ))}
             </ul>
             <ul className="system-chip-list" aria-label="Campos de aplicação">
@@ -1044,6 +1167,512 @@ function SystemPanel({
             )}
           </div>
         </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">▣</span>
+            <span>
+              <strong>Registro</strong>
+              <small>
+                {status.registry.accessGranted
+                  ? `${status.registry.rankings.length} ranking${status.registry.rankings.length === 1 ? '' : 's'} visíve${status.registry.rankings.length === 1 ? 'l' : 'is'}`
+                  : 'Acesso não concedido'}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {!status.registry.accessGranted ? (
+              <EmptyAction message="O Registro ainda não reconhece este usuário." />
+            ) : (
+              <>
+                {status.registry.rankings.length === 0 ? (
+                  <EmptyAction message="Nenhum ranking reconhecido neste recorte." />
+                ) : (
+                  <div className="action-card-list">
+                    {status.registry.rankings.map((ranking) => (
+                      <article key={ranking.rankingId} className="action-card">
+                        <div className="action-card__body">
+                          <div className="action-card__title">
+                            <h3>{ranking.name}</h3>
+                            <span>{ranking.scope}</span>
+                          </div>
+                          <p>{ranking.description}</p>
+                          <p className="training-requirements">
+                            {ranking.metricLabel}
+                            {ranking.playerPosition ? ` · posição ${ranking.playerPosition}` : ''}
+                          </p>
+                          <ol className="registry-standings" aria-label={`Classificação de ${ranking.name}`}>
+                            {ranking.standings.map((standing) => (
+                              <li key={standing.actorId} className={standing.isPlayer ? 'is-player' : undefined}>
+                                <span>
+                                  {standing.position}. {standing.name}
+                                </span>
+                                <span>{standing.score}</span>
+                              </li>
+                            ))}
+                          </ol>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+                {status.registry.patents.length === 0 ? (
+                  <EmptyAction message="Nenhuma patente declarada neste pack." />
+                ) : (
+                  <div className="action-card-list">
+                    {status.registry.patents.map((entry) => (
+                      <article key={entry.id} className={entry.claimable || entry.granted ? 'action-card' : 'action-card action-card--blocked'}>
+                        <div className="action-card__body">
+                          <div className="action-card__title">
+                            <h3>{entry.name}</h3>
+                            <span>{entry.granted ? 'Concedida' : entry.claimable ? 'Reivindicável' : 'Requisitos em aberto'}</span>
+                          </div>
+                          <p>{entry.description}</p>
+                          <div className="action-card__footer">
+                            <small>{entry.granted ? 'Já registrada neste recorte' : 'A patente não substitui o nível'}</small>
+                            <button
+                              type="button"
+                              className="button button--compact"
+                              disabled={!entry.claimable}
+                              onClick={() => setPendingPatent(entry.id)}
+                            >
+                              Reivindicar patente
+                            </button>
+                          </div>
+                        </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⚑</span>
+            <span>
+              <strong>Grupos</strong>
+              <small>
+                {status.organizations.length === 1
+                  ? '1 organização ativa'
+                  : `${status.organizations.length} organizações ativas`}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.organizations.length === 0 ? (
+              <EmptyAction message="Nenhum grupo ativo neste recorte." />
+            ) : (
+              <div className="action-card-list">
+                {status.organizations.map((organization) => (
+                  <article key={organization.id} className="action-card">
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{organization.name}</h3>
+                        <span>{organization.typeName}</span>
+                      </div>
+                      <p>{organization.description}</p>
+                      <ul className="registry-standings" aria-label={`Membros de ${organization.name}`}>
+                        {organization.members.map((member) => (
+                          <li key={member.actorId} className={member.isPlayer ? 'is-player' : undefined}>
+                            <span>{member.isPlayer ? 'Você' : findNpc(campaign, member.actorId)?.name ?? member.actorId}</span>
+                            <span>
+                              {member.roleName} · {member.membershipName}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+            {status.party.some((member) => !member.isPlayer) ? (
+              <ul className="registry-standings" aria-label="Companhia ativa">
+                {status.party
+                  .filter((member) => !member.isPlayer)
+                  .map((member) => (
+                    <li key={member.actorId}>
+                      <span>{member.name}</span>
+                      <span>
+                        {member.roleName} · {member.health}/{member.maxHealth}
+                      </span>
+                    </li>
+                  ))}
+              </ul>
+            ) : null}
+            {status.organizationActions.length > 0 ? (
+              <div className="action-card-list">
+                {status.organizationActions.map((action) => (
+                  <article key={action.actionId} className={action.available ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{action.label}</h3>
+                        <span>{action.available ? 'Disponível' : 'Bloqueada'}</span>
+                      </div>
+                      <p>{action.hint}</p>
+                      <div className="action-card__footer">
+                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={!action.available}
+                          onClick={() => onAction({ type: 'organization.act', actionId: action.actionId })}
+                        >
+                          Executar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⌂</span>
+            <span>
+              <strong>Família e lar</strong>
+              <small>
+                {status.family.length === 1 ? '1 pessoa reconhecida' : `${status.family.length} pessoas reconhecidas`}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.family.length === 0 ? (
+              <EmptyAction message="Nenhuma estrutura familiar neste recorte." />
+            ) : (
+              <ul className="registry-standings" aria-label="Família e lar">
+                {status.family.map((member) => (
+                  <li key={member.actorId} className={member.isPlayer ? 'is-player' : undefined}>
+                    <span>{member.isPlayer ? 'Você' : member.name}</span>
+                    <span>
+                      {[member.kinshipName, member.householdName, member.stageName]
+                        .filter(Boolean)
+                        .join(' · ') || 'Sem parentesco declarado'}
+                      {member.ageYears !== undefined ? ` · ${member.ageYears} anos` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {status.familyActions.length > 0 ? (
+              <div className="action-card-list">
+                {status.familyActions.map((action) => (
+                  <article key={action.actionId} className={action.available ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{action.label}</h3>
+                        <span>{action.available ? 'Disponível' : 'Bloqueada'}</span>
+                      </div>
+                      <p>{action.hint}</p>
+                      <div className="action-card__footer">
+                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={!action.available}
+                          onClick={() => onAction({ type: 'family.act', actionId: action.actionId })}
+                        >
+                          Executar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⚖</span>
+            <span>
+              <strong>Ocupação e cidadania</strong>
+              <small>
+                {status.civic.filter((entry) => entry.active).length === 1
+                  ? '1 concessão ativa'
+                  : `${status.civic.filter((entry) => entry.active).length} concessões ativas`}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.civic.length === 0 ? (
+              <EmptyAction message="Nenhuma cidadania ou ofício reconhecido neste recorte." />
+            ) : (
+              <ul className="registry-standings" aria-label="Ocupação e cidadania">
+                {status.civic.map((entry) => (
+                  <li key={`${entry.kind}:${entry.definitionId}:${entry.active ? 'active' : 'revoked'}`}>
+                    <span>{entry.name}</span>
+                    <span>
+                      {[entry.kind === 'citizenship' ? 'Cidadania' : entry.kind === 'profession' ? 'Profissão' : entry.kind, entry.scopeName, entry.active ? 'Ativa' : 'Revogada']
+                        .join(' · ')}
+                      {entry.progress !== undefined ? ` · prática ${entry.progress}` : ''}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {status.civicActions.length > 0 ? (
+              <div className="action-card-list">
+                {status.civicActions.map((action) => (
+                  <article key={action.actionId} className={action.available ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{action.label}</h3>
+                        <span>{action.available ? 'Disponível' : 'Bloqueada'}</span>
+                      </div>
+                      <p>{action.hint}</p>
+                      <div className="action-card__footer">
+                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={!action.available}
+                          onClick={() => onAction({ type: 'civic.act', actionId: action.actionId })}
+                        >
+                          Executar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⚖</span>
+            <span>
+              <strong>Comércio e propriedade</strong>
+              <small>
+                {status.economy.wallets.length === 0
+                  ? 'sem saldo'
+                  : status.economy.wallets.map((wallet) => `${wallet.amount} ${wallet.name}`).join(' · ')}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.economy.wallets.length === 0 && status.economy.properties.length === 0 ? (
+              <EmptyAction message="Nenhuma transação ou direito de uso neste recorte." />
+            ) : (
+              <ul className="registry-standings" aria-label="Comércio e propriedade">
+                {status.economy.wallets.map((wallet) => (
+                  <li key={wallet.currencyId}>
+                    <span>{wallet.name}</span>
+                    <span>{wallet.amount}</span>
+                  </li>
+                ))}
+                {status.economy.properties.map((property) => (
+                  <li key={property.propertyId}>
+                    <span>{property.name}</span>
+                    <span>Direito de uso</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {status.economyActions.length > 0 ? (
+              <div className="action-card-list">
+                {status.economyActions.map((action) => (
+                  <article key={action.actionId} className={action.available ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{action.label}</h3>
+                        <span>{action.available ? 'Disponível' : 'Bloqueada'}</span>
+                      </div>
+                      <p>{action.hint}</p>
+                      <div className="action-card__footer">
+                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={!action.available}
+                          onClick={() => onAction({ type: 'economy.act', actionId: action.actionId })}
+                        >
+                          Executar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⌂</span>
+            <span>
+              <strong>Base e território</strong>
+              <small>
+                {status.settlements.claims.length === 0
+                  ? 'sem reivindicação'
+                  : status.settlements.structures.length === 0
+                    ? 'acampamento reivindicado'
+                    : `${status.settlements.structures.length} estrutura${status.settlements.structures.length === 1 ? '' : 's'}`}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.settlements.claims.length === 0 && status.settlements.projects.length === 0 ? (
+              <EmptyAction message="Nenhuma base administrável neste recorte." />
+            ) : (
+              <ul className="registry-standings" aria-label="Base e território">
+                {status.settlements.claims.map((claim) => (
+                  <li key={claim.territoryId}>
+                    <span>{claim.name}</span>
+                    <span>Reivindicado</span>
+                  </li>
+                ))}
+                {status.settlements.structures.map((structure) => (
+                  <li key={`${structure.territoryName}-${structure.structureTypeId}`}>
+                    <span>{structure.name}</span>
+                    <span>{structure.territoryName}</span>
+                  </li>
+                ))}
+                {status.settlements.projects.map((project) => (
+                  <li key={project.projectId}>
+                    <span>{project.label}</span>
+                    <span>{project.remainingPeriods} período{project.remainingPeriods === 1 ? '' : 's'}</span>
+                  </li>
+                ))}
+                {status.settlements.storage.map((entry) => (
+                  <li key={`${entry.territoryId}-${entry.itemId}`}>
+                    <span>Estoque {entry.itemId}</span>
+                    <span>{entry.quantity}/{entry.capacity}</span>
+                  </li>
+                ))}
+                {status.settlements.assignments.map((assignment) => (
+                  <li key={`${assignment.npcId}-${assignment.roleName}`}>
+                    <span>{assignment.roleName}</span>
+                    <span>{assignment.npcId}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {status.settlementActions.length > 0 ? (
+              <div className="action-card-list">
+                {status.settlementActions.map((action) => (
+                  <article key={action.actionId} className={action.available ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{action.label}</h3>
+                        <span>{action.available ? 'Disponível' : 'Bloqueada'}</span>
+                      </div>
+                      <p>{action.hint}</p>
+                      <div className="action-card__footer">
+                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={!action.available}
+                          onClick={() => onAction({ type: 'settlement.act', actionId: action.actionId })}
+                        >
+                          Executar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </details>
+
+        <details className="system-disclosure">
+          <summary>
+            <span className="system-disclosure__icon" aria-hidden="true">⚑</span>
+            <span>
+              <strong>Facções e diplomacia</strong>
+              <small>
+                {status.politics.mandates.length === 0
+                  ? 'sem mandato'
+                  : status.politics.agreements.find((entry) => entry.status === 'active')
+                    ? 'pacto ativo'
+                    : 'mandato em vigor'}
+              </small>
+            </span>
+            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div className="system-disclosure__body">
+            {status.politics.mandates.length === 0 && status.politics.agreements.length === 0 ? (
+              <EmptyAction message="Nenhuma facção ou acordo neste recorte." />
+            ) : (
+              <ul className="registry-standings" aria-label="Facções e diplomacia">
+                {status.politics.mandates.map((mandate) => (
+                  <li key={`${mandate.factionName}-${mandate.officeName}`}>
+                    <span>{mandate.officeName}</span>
+                    <span>{mandate.factionName}</span>
+                  </li>
+                ))}
+                {status.politics.relations.map((relation) => (
+                  <li key={`${relation.fromName}-${relation.toName}`}>
+                    <span>{relation.fromName} → {relation.toName}</span>
+                    <span>{relation.stanceName}</span>
+                  </li>
+                ))}
+                {status.politics.agreements.map((agreement) => (
+                  <li key={agreement.agreementId}>
+                    <span>{agreement.name}</span>
+                    <span>{agreement.status}</span>
+                  </li>
+                ))}
+                {status.politics.laws.map((law) => (
+                  <li key={law.lawId}>
+                    <span>{law.name}</span>
+                    <span>{law.jurisdictionLocationId}</span>
+                  </li>
+                ))}
+                {status.politics.influence.map((entry) => (
+                  <li key={entry.factionName}>
+                    <span>{entry.factionName}</span>
+                    <span>{entry.amount}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {status.politicsActions.length > 0 ? (
+              <div className="action-card-list">
+                {status.politicsActions.map((action) => (
+                  <article key={action.actionId} className={action.available ? 'action-card' : 'action-card action-card--blocked'}>
+                    <div className="action-card__body">
+                      <div className="action-card__title">
+                        <h3>{action.label}</h3>
+                        <span>{action.available ? 'Disponível' : 'Bloqueada'}</span>
+                      </div>
+                      <p>{action.hint}</p>
+                      <div className="action-card__footer">
+                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <button
+                          type="button"
+                          className="button button--compact"
+                          disabled={!action.available}
+                          onClick={() => onAction({ type: 'politics.act', actionId: action.actionId })}
+                        >
+                          Executar
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </details>
       </div>
 
       <ConfirmDialog
@@ -1080,6 +1709,23 @@ function SystemPanel({
         }}
         onCancel={() => setPendingGarden(null)}
       />
+      <ConfirmDialog
+        open={pendingPatent !== null}
+        title={patent?.name ? `Reivindicar: ${patent.name}` : 'Reivindicar patente'}
+        message={
+          patent
+            ? `${patent.description} A patente permanece separada do nível, do ranking e de qualquer título.`
+            : 'O Registro avalia os requisitos desta patente.'
+        }
+        confirmLabel="Confirmar reivindicação"
+        onConfirm={() => {
+          if (pendingPatent) {
+            onAction({ type: 'registry.claim', patentId: pendingPatent });
+            setPendingPatent(null);
+          }
+        }}
+        onCancel={() => setPendingPatent(null)}
+      />
     </div>
   );
 }
@@ -1088,10 +1734,14 @@ function SystemIdentity({
   state,
   campaign,
   abilityName,
+  bonds,
+  onAction,
 }: {
   state: GameState;
   campaign: Campaign;
   abilityName: string;
+  bonds: BondCharacterView[];
+  onAction: (action: SandboxAction) => void;
 }) {
   return (
     <div className="system-identity">
@@ -1100,18 +1750,116 @@ function SystemIdentity({
         <div><span className="section-kicker">Sobrevivente</span><strong>{state.character.firstName} {state.character.lastName}</strong><small>{abilityName}</small></div>
       </div>
       <AttributeSummary attributes={state.attributes} />
-      <div className="section-heading"><h2>Relações</h2><span className="section-count">{state.relationships.length}</span></div>
-      {state.relationships.length === 0 ? <EmptyAction message="Nenhum vínculo foi formado." /> : (
+      <div className="section-heading"><h2>Relações</h2><span className="section-count">{bonds.length}</span></div>
+      {bonds.length === 0 ? <EmptyAction message="Nenhum relacionamento foi revelado." /> : (
         <ul className="relationship-list">
-          {state.relationships.map((relationship) => (
-            <li key={relationship.characterId}>
+          {bonds.map((bond) => (
+            <li key={bond.npcId}>
               <span className="relationship-list__avatar" aria-hidden="true">♙</span>
-              <div><strong>{findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}</strong><span>Confiança</span></div>
-              <strong>{relationship.trust}</strong>
+              <div>
+                <strong>{bond.name}</strong>
+                {bond.outgoing.map((dimension) => (
+                  <span key={`out-${dimension.dimensionId}`}>{dimension.name} (você): {dimension.value}</span>
+                ))}
+                {bond.incoming.map((dimension) => (
+                  <span key={`in-${dimension.dimensionId}`}>{dimension.name} (dela): {dimension.value}</span>
+                ))}
+                {bond.namedBonds.map((named) => (
+                  <span key={named.bondId}>{named.name}</span>
+                ))}
+                {bond.actions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'bond.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+                {bond.organizationActions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'organization.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+                {bond.familyActions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'family.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+                {bond.civicActions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'civic.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+                {bond.economyActions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'economy.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+                {bond.settlementActions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'settlement.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+                {bond.politicsActions.map((action) => (
+                  <button
+                    key={action.actionId}
+                    type="button"
+                    className="button button--compact"
+                    disabled={!action.available}
+                    onClick={() => onAction({ type: 'politics.act', actionId: action.actionId })}
+                  >
+                    {action.label}
+                  </button>
+                ))}
+              </div>
             </li>
           ))}
         </ul>
       )}
+      {state.relationships.length > 0 ? (
+        <ul className="relationship-list" aria-label="Confiança residual">
+          {state.relationships.map((relationship) => (
+            <li key={relationship.characterId}>
+              <span className="relationship-list__avatar" aria-hidden="true">♙</span>
+              <div><strong>{findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}</strong><span>Confiança residual</span></div>
+              <strong>{relationship.trust}</strong>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </div>
   );
 }

@@ -1,5 +1,15 @@
+import { inspectBondCatalog, INITIAL_BONDS } from '../bonds';
+import { inspectOrganizationCatalog, INITIAL_ORGANIZATIONS } from '../organizations';
+import { inspectCalendarCatalog, INITIAL_CALENDAR } from '../calendar';
+import { inspectFamilyCatalog, INITIAL_FAMILY } from '../family';
+import { inspectCivicCatalog, INITIAL_CIVIC } from '../civic';
+import { inspectEconomyCatalog, INITIAL_ECONOMY } from '../economy';
+import { inspectSettlementsCatalog, INITIAL_SETTLEMENTS } from '../settlements';
+import { inspectPoliticsCatalog, INITIAL_POLITICS } from '../politics';
+import { inspectRegistryCatalog, INITIAL_REGISTRY } from '../registry';
 import { inspectCraftingDefinitions } from '../crafting';
 import { inspectExplorationDefinitions } from '../exploration';
+import { inspectInteractableCatalog } from '../interactables';
 import { inspectItemsCatalog } from '../items';
 import { inspectNavigationMap } from '../navigation';
 import { inspectNpcCatalog } from '../npcs';
@@ -111,6 +121,110 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     presenceInteractions: presenceInteractions.value,
     campaign: campaign.value,
   };
+
+  if (value.interactables !== undefined) {
+    const interactables = inspectInteractableCatalog(value.interactables, map.value, exploration.value);
+    if (!interactables.ok) {
+      return fail(interactables.reason);
+    }
+    context.interactables = interactables.value;
+  } else {
+    const interactables = inspectInteractableCatalog({ interactables: [], actions: [] }, map.value, exploration.value);
+    if (!interactables.ok) {
+      return fail(interactables.reason);
+    }
+    context.interactables = interactables.value;
+  }
+
+  if (value.bonds !== undefined) {
+    const bonds = inspectBondCatalog(value.bonds);
+    if (!bonds.ok) {
+      return fail(bonds.reason);
+    }
+    context.bonds = bonds.value;
+  } else {
+    context.bonds = INITIAL_BONDS;
+  }
+
+  if (value.organizations !== undefined) {
+    const organizations = inspectOrganizationCatalog(value.organizations);
+    if (!organizations.ok) {
+      return fail(organizations.reason);
+    }
+    context.organizations = organizations.value;
+  } else {
+    context.organizations = INITIAL_ORGANIZATIONS;
+  }
+
+  if (value.calendar !== undefined) {
+    const calendar = inspectCalendarCatalog(value.calendar);
+    if (!calendar.ok) {
+      return fail(calendar.reason);
+    }
+    context.calendar = calendar.value;
+  } else {
+    context.calendar = INITIAL_CALENDAR;
+  }
+
+  if (value.family !== undefined) {
+    const family = inspectFamilyCatalog(value.family);
+    if (!family.ok) {
+      return fail(family.reason);
+    }
+    context.family = family.value;
+  } else {
+    context.family = INITIAL_FAMILY;
+  }
+
+  if (value.civic !== undefined) {
+    const civic = inspectCivicCatalog(value.civic);
+    if (!civic.ok) {
+      return fail(civic.reason);
+    }
+    context.civic = civic.value;
+  } else {
+    context.civic = INITIAL_CIVIC;
+  }
+
+  if (value.economy !== undefined) {
+    const economy = inspectEconomyCatalog(value.economy);
+    if (!economy.ok) {
+      return fail(economy.reason);
+    }
+    context.economy = economy.value;
+  } else {
+    context.economy = INITIAL_ECONOMY;
+  }
+
+  if (value.settlements !== undefined) {
+    const settlements = inspectSettlementsCatalog(value.settlements);
+    if (!settlements.ok) {
+      return fail(settlements.reason);
+    }
+    context.settlements = settlements.value;
+  } else {
+    context.settlements = INITIAL_SETTLEMENTS;
+  }
+
+  if (value.politics !== undefined) {
+    const politics = inspectPoliticsCatalog(value.politics);
+    if (!politics.ok) {
+      return fail(politics.reason);
+    }
+    context.politics = politics.value;
+  } else {
+    context.politics = INITIAL_POLITICS;
+  }
+
+  if (value.registry !== undefined) {
+    const registry = inspectRegistryCatalog(value.registry);
+    if (!registry.ok) {
+      return fail(registry.reason);
+    }
+    context.registry = registry.value;
+  } else {
+    context.registry = INITIAL_REGISTRY;
+  }
 
   if (value.npcs !== undefined) {
     const npcs = inspectNpcCatalog(value.npcs, new Set(map.value.locations.keys()));

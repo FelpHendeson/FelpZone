@@ -75,7 +75,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 11, migrações v1–v10, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 23, migrações v1–v22, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -94,26 +94,38 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | Sistema 15 — Condições, elementos e combate | **Implementado e consolidado (15.1–15.7)** | Sangramento, exposição, ferida persistente, matriz Físico/Brasas/Água, `ember-cut` do predador e schema 9. | Sem chance oculta, posicionamento, grupos ou fórmulas definitivas. |
 | Sistema 16 — Jardim de habilidades | **Implementado e consolidado (16.1–16.7)** | Receita `Sentinela Interior`, pontos de cultivo no marco de nível 2, ação `garden.cultivate` e schema 10. | Sem geração procedural, sacrifício, reversão ou IA. |
 | Sistema 17 — NPCs persistentes, agenda e mundo vivo | **Implementado e consolidado (17.1–17.7)** | Mira conhecida após a conversa inicial, agenda por período, fatos fechados e `sandbox.npcs` no schema 11. | Sem simulação contínua, IA generativa, economia ou administração. |
+| Sistema 18 — Cenário interativo | **Implementado e consolidado (18.1–18.7)** | Marcas da Grande Árvore, `sandbox.interactables` e schema 12. | Sem física, minijogos ou construção. |
+| Sistema 19 — Relacionamentos | **Implementado e consolidado (19.1–19.7)** | Dimensões direcionais, vínculo explícito de amizade com Mira e `GameState.bonds` no schema 13. | Sem casamento, IA conversacional ou remoção de agência. |
+| Sistema 20 — Registro e rankings | **Implementado e consolidado (20.1–20.7)** | Política universal para humanos, rankings locais derivados, patente `clearing-scout` por reivindicação e `GameState.registry` no schema 14. | Sem placar online, economia de ranking ou fórmula universal de poder. |
+| Sistema 21 — Grupos e organizações | **Implementado e consolidado (21.1–21.7)** | Grupo da Clareira com Mira, cargos/permissões declarados e `GameState.organizations` no schema 15. | Sem tesouro, território, diplomacia ou combate em grupo — o combate coletivo ficou no Sistema 23. |
+| Sistema 22 — Númen e execução avançada | **Implementado e consolidado (22.1–22.7)** | Reservas de Númen, fases, recarga, interrupção determinística e `GameState.execution` no schema 16. | Sem fórmulas definitivas, tempo real, grade ou criação livre de feitiços. |
+| Sistema 23 — Party, companheiros e combate coletivo | **Implementado e consolidado (23.1–23.7)** | Party sobre o grupo da Clareira, Mira como aliada, segundo oponente e `GameState.party` no schema 17. | Sem grade espacial, exércitos, PvP ou controle irrestrito de NPCs. |
+| Sistema 24 — Calendário e ciclo de vida | **Implementado e consolidado (24.1–24.7)** | Contagem do Reset compacta, idade derivada, fronteiras idempotentes e `GameState.calendar` no schema 18. | Sem clima, astronomia, tempo real ou morte por velhice. |
+| Sistema 25 — Família, lar e linhagem | **Implementado e consolidado (25.1–25.7)** | Parceria com Mira, acampamento compartilhado, Rowan como dependente e `GameState.family` no schema 19. | Sem gravidez simulada, herança econômica ou árvore infinita. |
+| Sistema 26 — Profissões e cidadania | **Implementado e consolidado (26.1–26.7)** | Residência da Clareira, ofício de coletor, prática verificável e `GameState.civic` no schema 20. | Sem mercado, construção, política entre facções ou simulação de emprego de NPCs. |
+| Sistema 27 — Economia e propriedade | **Implementado e consolidado (27.1–27.7)** | Marcas de brasa, venda/compra atômica com Mira, esconderijo como direito e `GameState.economy` no schema 21. | Sem inflação, bolsa, leilão ou monetização. |
+| Sistema 28 — Bases e assentamentos | **Implementado e consolidado (28.1–28.7)** | Acampamento da Clareira, abrigo com custo/tempo, vigia de Mira, produção limitada e `GameState.settlements` no schema 22. | Sem cidade, guerra territorial, grade ou automação infinita. |
+| Sistema 29 — Facções e política | **Implementado e consolidado (29.1–29.7)** | Mandato do acampamento, pacto assimétrico com a Clareira, lei local e `GameState.politics` no schema 23. | Sem exércitos, eleição em tempo real ou vitória política única. |
 | Motor e pack de mundo | **Implementado** | `ContentSource`, `composeWorld` e pack JSON `first-day`. O motor valida catálogos hostis; a UI lê nomes do índice. `RemoteSource` reusa o mesmo compose. | Sem CMS, banco real, editor no jogo ou mudança de schema. |
 
 ## Próximos sistemas especificados
 
-Os Sistemas 18 a 29 foram definidos e especificados em 17 de setembro de 2026. **Nenhum deles está implementado.** A ordem e as dependências estão no [Roadmap](ROADMAP.md), e a regra arquitetural comum está em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
+Os Sistemas 18 a 29 foram definidos e especificados em 17 de setembro de 2026. **Os Sistemas 18 a 29 estão implementados.** A ordem e as dependências estão no [Roadmap](ROADMAP.md), e a regra arquitetural comum está em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
 
 | Sistema | Estado | Núcleo do contrato |
 | --- | --- | --- |
-| 18 — Cenário interativo | **Especificado; não implementado** | Descobrir, examinar e alterar pontos de interesse declarativos. |
-| 19 — Relacionamentos | **Especificado; não implementado** | Relações direcionais, dimensões e vínculos explícitos com agência. |
-| 20 — Registro e rankings | **Especificado; não implementado** | Política de acesso, registro, patentes, rankings e títulos separados. |
-| 21 — Grupos e organizações | **Especificado; não implementado** | Filiação, cargos, permissões, parties, guildas, clãs e base para facções. |
-| 22 — Númen e execução avançada | **Especificado; não implementado** | Reservas, custos, fases, velocidade, recarga e interrupção. |
-| 23 — Companheiros e combate coletivo | **Especificado; não implementado** | Equipes, papéis, táticas, agência e consequências de grupo. |
-| 24 — Calendário e ciclo de vida | **Especificado; não implementado** | Calendários configuráveis, idade, estágios e processos longos. |
-| 25 — Família, lar e linhagem | **Especificado; não implementado** | Parceria, parentesco, responsáveis, dependentes e residência. |
-| 26 — Profissões e posição social | **Especificado; não implementado** | Profissão, cidadania, ofício, títulos, reputação e permissões. |
-| 27 — Economia e propriedade | **Especificado; não implementado** | Moedas, estoques, comércio atômico e direitos de propriedade. |
-| 28 — Bases e assentamentos | **Especificado; não implementado** | Reivindicação, projetos, estruturas, moradores e produção. |
-| 29 — Facções e política | **Especificado; não implementado** | Relações diplomáticas, representação, acordos, leis e influência. |
+| 18 — Cenário interativo | **Implementado e consolidado (18.1–18.7)** | Descobrir, examinar e alterar pontos de interesse declarativos. |
+| 19 — Relacionamentos | **Implementado e consolidado (19.1–19.7)** | Relações direcionais, dimensões e vínculos explícitos com agência. |
+| 20 — Registro e rankings | **Implementado e consolidado (20.1–20.7)** | Política de acesso, registro, patentes, rankings e títulos separados. |
+| 21 — Grupos e organizações | **Implementado e consolidado (21.1–21.7)** | Filiação, cargos, permissões, parties, guildas, clãs e base para facções. |
+| 22 — Númen e execução avançada | **Implementado e consolidado (22.1–22.7)** | Reservas, custos, fases, velocidade, recarga e interrupção. |
+| 23 — Companheiros e combate coletivo | **Implementado e consolidado (23.1–23.7)** | Equipes, papéis, táticas, agência e consequências de grupo. |
+| 24 — Calendário e ciclo de vida | **Implementado e consolidado (24.1–24.7)** | Calendários configuráveis, idade, estágios e processos longos. |
+| 25 — Família, lar e linhagem | **Implementado e consolidado (25.1–25.7)** | Parceria, parentesco, responsáveis, dependentes e residência. |
+| 26 — Profissões e posição social | **Implementado e consolidado (26.1–26.7)** | Profissão, cidadania, ofício, títulos, reputação e permissões. |
+| 27 — Economia e propriedade | **Implementado e consolidado (27.1–27.7)** | Moedas, estoques, comércio atômico e direitos de propriedade. |
+| 28 — Bases e assentamentos | **Implementado e consolidado (28.1–28.7)** | Reivindicação, projetos, estruturas, moradores e produção. |
+| 29 — Facções e política | **Implementado e consolidado (29.1–29.7)** | Relações diplomáticas, representação, acordos, leis e influência. |
 
 ## Conteúdo que permanece como protótipo
 
@@ -229,7 +241,7 @@ Os itens abaixo apareceram como possibilidades técnicas ou foram inferidos pelo
 - editor de campanhas;
 - arte final e estilo visual definitivo.
 
-Não crie numeração de sistema, contrato, schema ou prompt de implementação para esses itens até que o autor os discuta e autorize. Esta restrição não se aplica aos Sistemas 18 a 29, que já possuem especificações próprias, mas ainda não estão implementados.
+Não crie numeração de sistema, contrato, schema ou prompt de implementação para esses itens até que o autor os discuta e autorize. Esta restrição não se aplica aos Sistemas 18 a 29, que já possuem especificações próprias; os Sistemas 18 a 21 já foram implementados.
 
 ## Decisões negativas atuais
 
@@ -242,7 +254,7 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 17 estão implementados e consolidados.** O save atual é o schema 11. **Os Sistemas 18 a 29 estão especificados e não implementados.** O próximo desenvolvimento deve começar pelo Sistema 18 e respeitar a ordem de dependências do [Roadmap](ROADMAP.md).
+**Os Sistemas 1 a 29 estão implementados e consolidados.** O save atual é o schema 23. O programa de mundo especificado em 17 de setembro de 2026 está completo dentro do recorte aprovado.
 
 Antes de um novo eixo:
 

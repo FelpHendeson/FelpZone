@@ -12,6 +12,7 @@ import {
   resolveTurn,
   type CombatState,
 } from '../modules/combat';
+import { createInitialExecutionState } from '../modules/execution';
 import { freshState } from './helpers';
 
 function exploring(saude = 80): GameState {
@@ -84,6 +85,10 @@ describe('Fatia 12.9 — ponte de vitalidade e resolução terminal', () => {
       playerActionIds: ['attack', 'attack', 'attack'],
       usedPrepared: [],
       equipment: { 'main-hand': null, body: null, accessory: null },
+      entryExecution: createInitialExecutionState(),
+      remainingExecution: createInitialExecutionState(),
+      companionOrders: [],
+      allyVitals: [],
     };
     const before = exploring(80);
     const after = applyEffects(before, combatResolutionEffects(resolution, before.attributes.saude));

@@ -12,6 +12,18 @@ import {
   SCHEMA_VERSION_V8,
   SCHEMA_VERSION_V9,
   SCHEMA_VERSION_V10,
+  SCHEMA_VERSION_V11,
+  SCHEMA_VERSION_V12,
+  SCHEMA_VERSION_V13,
+  SCHEMA_VERSION_V14,
+  SCHEMA_VERSION_V15,
+  SCHEMA_VERSION_V16,
+  SCHEMA_VERSION_V17,
+  SCHEMA_VERSION_V18,
+  SCHEMA_VERSION_V19,
+  SCHEMA_VERSION_V20,
+  SCHEMA_VERSION_V21,
+  SCHEMA_VERSION_V22,
   type GameState,
 } from '../core/state';
 import type { Campaign, StoryEvent } from '../core/events';
@@ -91,8 +103,20 @@ export function asV7(state: GameState, objectiveCatalog?: IndexedObjectives): Re
   delete raw.items;
   delete raw.lingering;
   delete raw.garden;
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.npcs;
+    delete raw.sandbox.interactables;
   }
   raw.schemaVersion = SCHEMA_VERSION_V7;
   return raw;
@@ -102,8 +126,20 @@ export function asV8(state: GameState, objectiveCatalog?: IndexedObjectives): Re
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   delete raw.lingering;
   delete raw.garden;
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.npcs;
+    delete raw.sandbox.interactables;
   }
   raw.schemaVersion = SCHEMA_VERSION_V8;
   return raw;
@@ -112,8 +148,20 @@ export function asV8(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 export function asV9(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
   delete raw.garden;
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.npcs;
+    delete raw.sandbox.interactables;
   }
   raw.schemaVersion = SCHEMA_VERSION_V9;
   return raw;
@@ -121,10 +169,174 @@ export function asV9(state: GameState, objectiveCatalog?: IndexedObjectives): Re
 
 export function asV10(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
   const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.npcs;
+    delete raw.sandbox.interactables;
   }
   raw.schemaVersion = SCHEMA_VERSION_V10;
+  return raw;
+}
+
+export function asV11(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  if (isRecord(raw.sandbox)) {
+    delete raw.sandbox.interactables;
+  }
+  raw.schemaVersion = SCHEMA_VERSION_V11;
+  return raw;
+}
+
+export function asV12(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V12;
+  return raw;
+}
+
+export function asV13(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V13;
+  return raw;
+}
+
+export function asV14(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V14;
+  return raw;
+}
+
+export function asV15(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V15;
+  return raw;
+}
+
+export function asV16(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V16;
+  return raw;
+}
+
+export function asV17(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V17;
+  return raw;
+}
+
+export function asV18(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V18;
+  return raw;
+}
+
+export function asV19(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V19;
+  return raw;
+}
+
+export function asV20(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V20;
+  return raw;
+}
+
+export function asV21(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.settlements;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V21;
+  return raw;
+}
+
+export function asV22(state: GameState, objectiveCatalog?: IndexedObjectives): Record<string, unknown> {
+  const raw = JSON.parse(serializeGameState(state, undefined, objectiveCatalog)) as Record<string, unknown>;
+  delete raw.politics;
+  raw.schemaVersion = SCHEMA_VERSION_V22;
   return raw;
 }
 
@@ -135,7 +347,19 @@ function stripCurrentContracts(raw: Record<string, unknown>): void {
   delete raw.garden;
   if (isRecord(raw.sandbox)) {
     delete raw.sandbox.npcs;
+    delete raw.sandbox.interactables;
   }
+  delete raw.bonds;
+  delete raw.registry;
+  delete raw.organizations;
+  delete raw.execution;
+  delete raw.party;
+  delete raw.calendar;
+  delete raw.family;
+  delete raw.civic;
+  delete raw.economy;
+  delete raw.settlements;
+  delete raw.politics;
 }
 
 function removeThirst(raw: Record<string, unknown>): void {

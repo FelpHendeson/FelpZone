@@ -1,6 +1,14 @@
 # Sistema 28 — Bases, territórios e assentamentos
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 28.1 a 28.7.
+
+## Objetivo
+
+Permitir que abrigo vire base, propriedade vire território e um conjunto de pessoas e estruturas forme um assentamento administrável. O jogador pode construir, organizar e liderar sem que o jogo se transforme em uma planilha desconectada do mundo.
+
+## Implementação
+
+A versão definitiva do schema é `schemaVersion: 22`. `GameState.settlements` guarda reivindicações, estruturas concluídas, projetos, estoque da base, atribuições e ações consumidas. Construção impossível não consome recurso nem tempo. Produção só corre quando o relógio da ação avança, respeita capacidade declarada e não duplica na recarga. Autoridade vem da reivindicação; Mira só assume a vigia com consentimento. Local, propriedade, território e lar permanecem distintos.
 
 ## Objetivo
 

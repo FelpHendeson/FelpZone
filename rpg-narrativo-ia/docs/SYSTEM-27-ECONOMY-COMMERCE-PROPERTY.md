@@ -1,6 +1,14 @@
 # Sistema 27 — Economia, comércio e propriedade
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 27.1 a 27.7.
+
+## Objetivo
+
+Permitir obter, trocar, vender e administrar bens de modo consistente, sustentando as fantasias de comerciante, artesão, proprietário e gestor sem criar uma economia global incontrolável.
+
+## Implementação
+
+A versão definitiva do schema é `schemaVersion: 21`. `GameState.economy` guarda carteiras em unidades inteiras, estoques finitos, direitos de propriedade e ações consumidas. Preços vêm da oferta declarada; a UI não envia valor. Vender um graveto, comprar a ferramenta de estoque 1 e receber o esconderijo da Clareira formam uma transação atômica por ação. Propriedade não é item nem lar.
 
 ## Objetivo
 

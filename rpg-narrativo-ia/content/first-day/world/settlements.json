@@ -1,0 +1,151 @@
+{
+  "territories": [
+    {
+      "id": "awakening-camp",
+      "name": "Acampamento da Clareira",
+      "locationId": "awakening-clearing",
+      "requiredPropertyId": "clearing-cache",
+      "description": "Um recorte administrável distinto do local, da propriedade e do lar."
+    }
+  ],
+  "structureTypes": [
+    {
+      "id": "lean-to",
+      "name": "Abrigo improvisado",
+      "storageCapacity": 3,
+      "description": "Um teto baixo que guarda pouco e marca a base."
+    }
+  ],
+  "projects": [
+    {
+      "id": "raise-lean-to",
+      "label": "Erguer o abrigo",
+      "territoryId": "awakening-camp",
+      "structureTypeId": "lean-to",
+      "durationPeriods": 2,
+      "costs": [{ "itemId": "fallen-branch", "quantity": 2 }]
+    }
+  ],
+  "roles": [
+    {
+      "id": "watcher",
+      "name": "Vigia do acampamento",
+      "exclusive": true
+    }
+  ],
+  "recipes": [
+    {
+      "id": "camp-forage",
+      "structureTypeId": "lean-to",
+      "roleId": "watcher",
+      "intervalPeriods": 1,
+      "inputs": [],
+      "outputs": [{ "itemId": "fallen-branch", "quantity": 1 }]
+    }
+  ],
+  "npcDecisions": [
+    {
+      "npcId": "mira-vale",
+      "intent": "assign-role",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    }
+  ],
+  "actions": [
+    {
+      "id": "claim-awakening-camp",
+      "label": "Reivindicar o acampamento",
+      "hint": "A autoridade vem do direito de uso, não de abrir uma tela.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "location.is", "locationId": "awakening-clearing" },
+        { "type": "settlement.owns-property", "propertyId": "clearing-cache" }
+      ],
+      "effects": [
+        { "type": "settlement.claim", "territoryId": "awakening-camp", "claimantId": "player" },
+        { "type": "flag.set", "flag": "settlement.awakening-camp.claimed", "value": true }
+      ],
+      "feedback": "O acampamento passa a ser um território seu. Isso não cria uma cidade."
+    },
+    {
+      "id": "start-lean-to",
+      "label": "Iniciar o abrigo",
+      "hint": "Sem autoridade e sem reivindicação o projeto nem começa.",
+      "timeCost": { "periods": 1 },
+      "once": false,
+      "requirements": [
+        { "type": "location.is", "locationId": "awakening-clearing" },
+        { "type": "settlement.has-authority", "territoryId": "awakening-camp" }
+      ],
+      "effects": [
+        { "type": "settlement.start-project", "projectId": "raise-lean-to" },
+        { "type": "flag.set", "flag": "settlement.lean-to.started", "value": true }
+      ],
+      "feedback": "O projeto existe. Ainda falta entregar material e esperar o tempo declarado."
+    },
+    {
+      "id": "supply-lean-to",
+      "label": "Entregar gravetos ao abrigo",
+      "hint": "Sem o material a construção não consome tempo nem inventário.",
+      "timeCost": { "periods": 1 },
+      "once": false,
+      "requirements": [
+        { "type": "settlement.has-authority", "territoryId": "awakening-camp" },
+        { "type": "settlement.project-active", "projectId": "raise-lean-to" },
+        { "type": "settlement.has-item", "itemId": "fallen-branch", "quantity": 1 }
+      ],
+      "effects": [
+        { "type": "settlement.supply-project", "projectId": "raise-lean-to", "itemId": "fallen-branch", "quantity": 1 }
+      ],
+      "feedback": "O material sai da mochila e entra no projeto na mesma transação."
+    },
+    {
+      "id": "cancel-lean-to",
+      "label": "Cancelar o abrigo",
+      "hint": "Só quem administra o território cancela o projeto.",
+      "timeCost": { "periods": 1 },
+      "once": false,
+      "requirements": [
+        { "type": "settlement.has-authority", "territoryId": "awakening-camp" },
+        { "type": "settlement.project-active", "projectId": "raise-lean-to" }
+      ],
+      "effects": [
+        { "type": "settlement.cancel-project", "projectId": "raise-lean-to" },
+        { "type": "flag.set", "flag": "settlement.lean-to.started", "value": false }
+      ],
+      "feedback": "O projeto some. O material já entregue não volta sozinho."
+    },
+    {
+      "id": "assign-mira-watcher",
+      "label": "Pedir que Mira vigie o acampamento",
+      "hint": "Ela precisa consentir e o abrigo precisa existir.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "settlement.has-authority", "territoryId": "awakening-camp" },
+        { "type": "settlement.structure-complete", "territoryId": "awakening-camp", "structureTypeId": "lean-to" }
+      ],
+      "effects": [
+        { "type": "settlement.assign-role", "territoryId": "awakening-camp", "npcId": "mira-vale", "roleId": "watcher" },
+        { "type": "flag.set", "flag": "settlement.mira.watcher", "value": true }
+      ],
+      "feedback": "Mira assume a vigia. Um NPC não ocupa dois postos exclusivos."
+    },
+    {
+      "id": "withdraw-camp-branch",
+      "label": "Retirar um graveto do estoque",
+      "hint": "O estoque da base não é inventário nem propriedade.",
+      "timeCost": { "periods": 1 },
+      "once": false,
+      "requirements": [
+        { "type": "settlement.has-authority", "territoryId": "awakening-camp" },
+        { "type": "settlement.storage-has", "territoryId": "awakening-camp", "itemId": "fallen-branch", "quantity": 1 }
+      ],
+      "effects": [
+        { "type": "settlement.withdraw-item", "territoryId": "awakening-camp", "itemId": "fallen-branch", "quantity": 1 }
+      ],
+      "feedback": "Um graveto sai do estoque da base e volta para a mochila."
+    }
+  ]
+}

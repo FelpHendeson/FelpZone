@@ -43,6 +43,11 @@
           "type": "npc.rememberFact",
           "npcId": "mira-vale",
           "factId": "mira-seeks-water"
+        },
+        {
+          "type": "flag.set",
+          "flag": "mira.promise.made",
+          "value": true
         }
       ]
     },

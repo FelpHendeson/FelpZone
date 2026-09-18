@@ -200,6 +200,22 @@ function validateEffect(
         return [`${prefix} possui fato de NPC inválido.`];
       }
       return [];
+    case 'bond.shift':
+      if (
+        effect.fromId.trim() === '' ||
+        effect.toId.trim() === '' ||
+        effect.fromId === effect.toId ||
+        effect.dimensionId.trim() === '' ||
+        !Number.isInteger(effect.delta)
+      ) {
+        return [`${prefix} possui variação de relacionamento inválida.`];
+      }
+      return [];
+    case 'bond.form':
+      if (effect.bondId.trim() === '' || effect.fromId.trim() === '' || effect.toId.trim() === '' || effect.fromId === effect.toId) {
+        return [`${prefix} possui vínculo inválido.`];
+      }
+      return [];
   }
 }
 
@@ -239,6 +255,21 @@ function validateConditions(
       case 'relationship.min':
         if (!npcIds.has(condition.characterId) || !Number.isFinite(condition.amount)) {
           errors.push(`A ${context} de ${ownerId} possui relação inválida.`);
+        }
+        break;
+      case 'bond.dimension.min':
+        if (
+          condition.fromId.trim() === '' ||
+          condition.toId.trim() === '' ||
+          condition.dimensionId.trim() === '' ||
+          !Number.isInteger(condition.amount)
+        ) {
+          errors.push(`A ${context} de ${ownerId} possui dimensão de relacionamento inválida.`);
+        }
+        break;
+      case 'bond.exists':
+        if (condition.fromId.trim() === '' || condition.toId.trim() === '' || condition.bondId.trim() === '') {
+          errors.push(`A ${context} de ${ownerId} possui vínculo inválido.`);
         }
         break;
     }

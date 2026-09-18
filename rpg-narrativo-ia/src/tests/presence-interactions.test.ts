@@ -447,6 +447,7 @@ describe('planejamento puro de interação', () => {
       effects: [
         { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' },
         { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },
+        { type: 'flag.set', flag: 'mira.promise.made', value: true },
       ],
       narrative: { campaignId: 'first-day', eventId: 'first-priority' },
       resolvesPresence: true,

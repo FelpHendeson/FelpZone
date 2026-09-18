@@ -1,0 +1,35 @@
+{
+  "tactics": [
+    {
+      "id": "focus-threat",
+      "name": "Concentrar na ameaça",
+      "description": "A orientação padrão pede que o grupo trate o oponente mais próximo como prioridade, sem grade espacial."
+    }
+  ],
+  "companions": [
+    {
+      "npcId": "mira-vale",
+      "name": "Mira Vale",
+      "maxHealth": 16,
+      "actionIds": ["attack", "guard"]
+    }
+  ],
+  "companionOrders": [
+    {
+      "id": "mira-strike",
+      "npcId": "mira-vale",
+      "label": "Pedir que Mira ataque",
+      "hint": "Mira só aceita se estiver ativa no grupo da Clareira.",
+      "actionId": "attack",
+      "requirements": [{ "type": "flag.is", "flag": "clearing-party.formed", "value": true }]
+    },
+    {
+      "id": "mira-guard",
+      "npcId": "mira-vale",
+      "label": "Pedir que Mira se proteja",
+      "hint": "Uma orientação defensiva; Mira recusa se não pertencer ao grupo.",
+      "actionId": "guard",
+      "requirements": [{ "type": "flag.is", "flag": "clearing-party.formed", "value": true }]
+    }
+  ]
+}

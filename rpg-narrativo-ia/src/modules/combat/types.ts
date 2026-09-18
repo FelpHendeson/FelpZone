@@ -1,7 +1,9 @@
+import type { ApplicationField, EnergyKind } from '../energetics';
+import type { ActionCost, ActionPhases, ExecutionModifiers, ExecutionState } from '../execution';
 import type { TimeCost } from '../time';
 import type { EquipmentState } from '../items';
 
-export const COMBAT_EFFECT_TYPES = ['damage', 'heal', 'guard', 'condition.apply', 'condition.cleanse'] as const;
+export const COMBAT_EFFECT_TYPES = ['damage', 'heal', 'guard', 'condition.apply', 'condition.cleanse', 'interrupt'] as const;
 
 export type CombatEffectType = (typeof COMBAT_EFFECT_TYPES)[number];
 
@@ -10,11 +12,16 @@ export type CombatEffect =
   | { type: 'heal'; amount: number }
   | { type: 'guard'; amount: number }
   | { type: 'condition.apply'; conditionId: string; duration: number; potency: number }
-  | { type: 'condition.cleanse'; count: number; conditionId?: string };
+  | { type: 'condition.cleanse'; count: number; conditionId?: string }
+  | { type: 'interrupt' };
 
 export const COMBAT_TARGETS = ['opponent', 'self'] as const;
 
 export type CombatTarget = (typeof COMBAT_TARGETS)[number];
+
+export const COMBAT_RANGES = ['self', 'melee', 'reach'] as const;
+
+export type CombatRange = (typeof COMBAT_RANGES)[number];
 
 export interface CombatActionDefinition {
   id: string;
@@ -25,6 +32,13 @@ export interface CombatActionDefinition {
   effects: CombatEffect[];
   skillId?: string;
   elementId?: string;
+  classification?: ApplicationField;
+  originEnergyId?: EnergyKind;
+  range?: CombatRange;
+  phases?: ActionPhases;
+  cost?: ActionCost;
+  cooldown?: number;
+  interruptible?: boolean;
 }
 
 export interface CombatantTemplate {
@@ -39,6 +53,8 @@ export interface EncounterDefinition {
   id: string;
   locationId: string;
   opponentId: string;
+  additionalOpponentIds?: string[];
+  requiredOrganizationId?: string;
   name: string;
   description: string;
   timeCost: TimeCost;
@@ -52,6 +68,7 @@ export interface CombatLoadoutSnapshot {
   equipment: EquipmentState;
   prepared: readonly { index: number; itemId: string }[];
   modifiers: { damage: number; guard: number; healing: number };
+  executionModifiers: ExecutionModifiers;
   grantedActionIds: readonly string[];
 }
 
@@ -90,6 +107,7 @@ export interface CombatantState {
   actionIds: string[];
   conditions: import('../conditions').ActiveCondition[];
   defenseElementId?: string;
+  execution: ExecutionState;
 }
 
 export interface CombatLogEntry {
@@ -109,6 +127,11 @@ export interface CombatState {
   loadout: CombatLoadoutSnapshot;
   prepared: PreparedConsumableState[];
   usedPrepared: { slot: number; itemId: string }[];
+  entryExecution: ExecutionState;
+  knownSkillIds: string[];
+  allies: CombatantState[];
+  foes: CombatantState[];
+  companionOrderLog: { actorId: string; actionId: string }[][];
 }
 
 export interface CombatResolution {
@@ -120,6 +143,20 @@ export interface CombatResolution {
   playerActionIds: string[];
   usedPrepared: { slot: number; itemId: string }[];
   equipment: EquipmentState;
+  entryExecution: ExecutionState;
+  remainingExecution: ExecutionState;
+  companionOrders: { actorId: string; actionId: string }[][];
+  allyVitals: { actorId: string; health: number }[];
+}
+
+export interface CombatActionView {
+  action: CombatActionDefinition;
+  available: boolean;
+  blockedReason?: string;
+  phases: ActionPhases;
+  readyTick: number;
+  cost?: ActionCost;
+  cooldown: number;
 }
 
 export const FLEE_ACTION_ID = 'flee';

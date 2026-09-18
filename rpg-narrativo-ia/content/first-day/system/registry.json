@@ -1,0 +1,44 @@
+{
+  "policy": {
+    "kind": "universal",
+    "eligibleSpecies": ["human"]
+  },
+  "rankings": [
+    {
+      "id": "local-exploration",
+      "name": "Exploração da Clareira",
+      "description": "Quem mapeou o chão recém-formado ao redor do despertar.",
+      "category": "exploration",
+      "scope": "awakening-clearing",
+      "metric": { "type": "exploration.progress", "locationId": "awakening-clearing" },
+      "visibility": "known",
+      "competitors": [
+        { "actorId": "faded-trail", "name": "Trilha apagada", "score": 20 },
+        { "actorId": "old-marks", "name": "Marcas antigas", "score": 45 }
+      ]
+    },
+    {
+      "id": "local-combat",
+      "name": "Ameaça da Clareira",
+      "description": "Quem enfrentou o predador que marca o primeiro dia.",
+      "category": "combat",
+      "scope": "awakening-clearing",
+      "metric": { "type": "combat.victory", "encounterId": "clearing-predator" },
+      "visibility": "known",
+      "competitors": [
+        { "actorId": "wary-tracks", "name": "Rastros cautelosos", "score": 0 }
+      ]
+    }
+  ],
+  "patents": [
+    {
+      "id": "clearing-scout",
+      "name": "Batedor da Clareira",
+      "description": "Patente local por leitura do terreno, não um sinônimo de nível.",
+      "requirements": [
+        { "type": "ranking.position.max", "rankingId": "local-exploration", "position": 2 },
+        { "type": "exploration.progress.min", "locationId": "awakening-clearing", "amount": 30 }
+      ]
+    }
+  ]
+}

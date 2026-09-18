@@ -286,51 +286,51 @@ As etapas abaixo estão **especificadas, mas ainda não implementadas**. A ordem
 
 ### Etapa 18 — Cenário interativo e pontos de interesse
 
-Objetos descobertos em locais ganham estado e ações declarativas, sem se confundir com recursos, estruturas ou presenças. Fonte: [Sistema 18](SYSTEM-18-INTERACTABLE-WORLD.md).
+**Implementada e consolidada nas Fatias 18.1 a 18.7.** Objetos descobertos em locais ganham estado e ações declarativas, sem se confundir com recursos, estruturas ou presenças. O save evolui para schema 12. Fonte: [Sistema 18](SYSTEM-18-INTERACTABLE-WORLD.md).
 
 ### Etapa 19 — Relacionamentos e vínculos persistentes
 
-Relações direcionais, multidimensionais e vínculos explícitos sustentam amizade, rivalidade, mentoria e romance com agência dos NPCs. Fonte: [Sistema 19](SYSTEM-19-RELATIONSHIPS.md).
+**Implementada e consolidada nas Fatias 19.1 a 19.7.** Relações direcionais, dimensões e vínculos explícitos sustentam amizade, rivalidade, mentoria e romance com agência dos NPCs. O save evolui para schema 13. Fonte: [Sistema 19](SYSTEM-19-RELATIONSHIPS.md).
 
 ### Etapa 20 — Registro do Sistema, patentes e rankings
 
-Políticas configuráveis de acesso ao Sistema, registro diegético e separação entre nível, patente, ranking, título e cargo social. O `first-day` mantém acesso universal para humanos. Fonte: [Sistema 20](SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md).
+**Implementada e consolidada nas Fatias 20.1 a 20.7.** Políticas configuráveis de acesso ao Sistema, registro diegético e separação entre nível, patente, ranking, título e cargo social. O `first-day` mantém acesso universal para humanos. O save evolui para schema 14. Fonte: [Sistema 20](SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md).
 
 ### Etapa 21 — Grupos e organizações
 
-Filiação, cargos e permissões formam a base comum de parties, guildas, clãs e facções. Fonte: [Sistema 21](SYSTEM-21-GROUPS-ORGANIZATIONS.md).
+**Implementada e consolidada nas Fatias 21.1 a 21.7.** Filiação, cargos e permissões formam a base comum de parties, guildas, clãs e facções. O save evolui para schema 15. Fonte: [Sistema 21](SYSTEM-21-GROUPS-ORGANIZATIONS.md).
 
 ### Etapa 22 — Númen avançado, habilidades e execução
 
-Reservas, custos, fases de preparação/execução/recuperação, velocidade, recarga e interrupção aprofundam o banco de ações. Fonte: [Sistema 22](SYSTEM-22-ADVANCED-NUMEN-SKILLS.md).
+**Implementada e consolidada nas Fatias 22.1 a 22.7.** Reservas, custos, fases de preparação/execução/recuperação, velocidade, recarga e interrupção aprofundam o banco de ações. O save evolui para schema 16. Fonte: [Sistema 22](SYSTEM-22-ADVANCED-NUMEN-SKILLS.md).
 
 ### Etapa 23 — Party, companheiros e combate coletivo
 
-Equipes, alvos múltiplos, papéis, táticas e agência de companheiros ampliam o combate determinístico. Fonte: [Sistema 23](SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md).
+**Implementada e consolidada nas Fatias 23.1 a 23.7.** Equipes, alvos múltiplos, papéis, táticas e agência de companheiros ampliam o combate determinístico. O save evolui para schema 17. Fonte: [Sistema 23](SYSTEM-23-PARTY-COMPANIONS-GROUP-COMBAT.md).
 
 ### Etapa 24 — Calendário de longo prazo e ciclo de vida
 
-Meses, ciclos, anos, idade e estágios de vida criam a base temporal para família, profissão e projetos longos. Fonte: [Sistema 24](SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md).
+**Implementada e consolidada nas Fatias 24.1 a 24.7.** Meses, ciclos, anos, idade e estágios de vida criam a base temporal para família, profissão e projetos longos. O save evolui para schema 18. Fonte: [Sistema 24](SYSTEM-24-LONG-TERM-CALENDAR-LIFE-CYCLE.md).
 
 ### Etapa 25 — Família, lar e linhagem
 
-Parceria, parentesco, responsáveis, dependentes, residência e crescimento por estágios sustentam trajetórias de vida. Fonte: [Sistema 25](SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md).
+**Implementada e consolidada nas Fatias 25.1 a 25.7.** Parceria, parentesco, responsáveis, dependentes, residência e crescimento por estágios sustentam trajetórias de vida. O save evolui para schema 19. Fonte: [Sistema 25](SYSTEM-25-FAMILY-HOUSEHOLD-LINEAGE.md).
 
 ### Etapa 26 — Profissões, cidadania e posição social
 
-Profissão, cidadania, ofício, título e reputação tornam possíveis trajetórias de artesão, comerciante, cidadão, autoridade ou nobre. Fonte: [Sistema 26](SYSTEM-26-PROFESSIONS-CITIZENSHIP-STATUS.md).
+**Implementada e consolidada nas Fatias 26.1 a 26.7.** Profissão, cidadania, ofício, título e reputação tornam possíveis trajetórias de artesão, comerciante, cidadão, autoridade ou nobre. O save evolui para schema 20. Fonte: [Sistema 26](SYSTEM-26-PROFESSIONS-CITIZENSHIP-STATUS.md).
 
 ### Etapa 27 — Economia, comércio e propriedade
 
-Moedas, estoques, preços declarativos, transações atômicas e direitos de propriedade formam a base econômica. Fonte: [Sistema 27](SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md).
+**Implementada e consolidada nas Fatias 27.1 a 27.7.** Moedas, estoques, preços declarativos, transações atômicas e direitos de propriedade formam a base econômica. O save evolui para schema 21. Fonte: [Sistema 27](SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md).
 
 ### Etapa 28 — Bases, territórios e assentamentos
 
-Reivindicações, projetos, estruturas, moradores, funções e produção limitada permitem construir e administrar. Fonte: [Sistema 28](SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md).
+**Implementada e consolidada nas Fatias 28.1 a 28.7.** Reivindicações, projetos, estruturas, moradores, funções e produção limitada permitem construir e administrar. O save evolui para schema 22. Fonte: [Sistema 28](SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md).
 
 ### Etapa 29 — Facções, diplomacia e poder político
 
-Relações institucionais, representação, acordos, leis e influência conectam organizações e territórios. Fonte: [Sistema 29](SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md).
+**Implementada e consolidada nas Fatias 29.1 a 29.7.** Relações institucionais, representação, acordos, leis e influência conectam organizações e territórios. O save evolui para schema 23. Fonte: [Sistema 29](SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md).
 
 ### Ideias que continuam em discussão
 

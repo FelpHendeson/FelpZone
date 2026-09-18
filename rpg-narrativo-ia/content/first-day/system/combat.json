@@ -96,6 +96,33 @@
         }
       ],
       "skillId": "sensing-guard"
+    },
+    {
+      "id": "numen-spark",
+      "name": "Centelha de Númen",
+      "description": "Técnica de Poder mais lenta: concentra Númen, dispara uma centelha e precisa se recompor.",
+      "speed": 6,
+      "target": "opponent",
+      "classification": "poder",
+      "originEnergyId": "numen",
+      "range": "reach",
+      "phases": {
+        "prepare": 2,
+        "execute": 1,
+        "recover": 1
+      },
+      "cost": {
+        "energyId": "numen",
+        "amount": 4
+      },
+      "cooldown": 1,
+      "interruptible": true,
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 12
+        }
+      ]
     }
   ],
   "combatants": [
@@ -107,6 +134,16 @@
         "attack",
         "guard",
         "ember-cut"
+      ],
+      "defenseElementId": "embers"
+    },
+    {
+      "id": "wary-scout",
+      "name": "Predador Menor",
+      "maxHealth": 10,
+      "actionIds": [
+        "attack",
+        "guard"
       ],
       "defenseElementId": "embers"
     }
@@ -128,6 +165,21 @@
         "itemId": "predator-fang",
         "quantity": 1
       }
+    },
+    {
+      "id": "clearing-pair",
+      "locationId": "awakening-clearing",
+      "opponentId": "wary-predator",
+      "additionalOpponentIds": ["wary-scout"],
+      "requiredOrganizationId": "clearing-party",
+      "name": "Predadores da Clareira",
+      "description": "Dois predadores flanqueiam o grupo. Mira só entra neste confronto se estiver ativa na companhia.",
+      "timeCost": {
+        "periods": 1
+      },
+      "requiredDiscoveryIds": [
+        "wary-predator-tracks"
+      ]
     }
   ]
 }

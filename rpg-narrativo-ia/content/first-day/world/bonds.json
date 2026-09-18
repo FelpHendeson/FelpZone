@@ -1,0 +1,73 @@
+{
+  "dimensions": [
+    { "id": "trust", "name": "Confiança", "minimum": 0, "maximum": 100 },
+    { "id": "affinity", "name": "Afinidade", "minimum": 0, "maximum": 100 }
+  ],
+  "bonds": [
+    {
+      "id": "mira-friendship",
+      "name": "Amizade",
+      "description": "Um vínculo explícito de companhia, não um número cruzando um limite.",
+      "requirements": [
+        { "type": "dimension.min", "actorId": "player", "targetId": "mira-vale", "dimensionId": "trust", "amount": 20 },
+        { "type": "dimension.min", "actorId": "mira-vale", "targetId": "player", "dimensionId": "affinity", "amount": 10 },
+        { "type": "flag.is", "flag": "mira.promise.honored", "value": true }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "honor-mira-promise",
+      "npcId": "mira-vale",
+      "label": "Cumprir a promessa",
+      "hint": "Honrar o combinado com Mira.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "flag.is", "flag": "mira.promise.made", "value": true },
+        { "type": "flag.is", "flag": "mira.promise.settled", "value": false }
+      ],
+      "effects": [
+        { "type": "bond.shift", "fromId": "player", "toId": "mira-vale", "dimensionId": "trust", "delta": 25 },
+        { "type": "bond.shift", "fromId": "mira-vale", "toId": "player", "dimensionId": "affinity", "delta": 15 },
+        { "type": "flag.set", "flag": "mira.promise.honored", "value": true },
+        { "type": "flag.set", "flag": "mira.promise.settled", "value": true },
+        { "type": "npc.rememberFact", "npcId": "mira-vale", "factId": "mira-promise-honored" }
+      ],
+      "feedback": "Mira relaxa os ombros. A confiança que você deposita nela e o gosto que ela tem pela sua companhia não sobem juntos."
+    },
+    {
+      "id": "break-mira-promise",
+      "npcId": "mira-vale",
+      "label": "Quebrar a promessa",
+      "hint": "Deixar o combinado de lado.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "flag.is", "flag": "mira.promise.made", "value": true },
+        { "type": "flag.is", "flag": "mira.promise.settled", "value": false }
+      ],
+      "effects": [
+        { "type": "bond.shift", "fromId": "player", "toId": "mira-vale", "dimensionId": "trust", "delta": 5 },
+        { "type": "flag.set", "flag": "mira.promise.broken", "value": true },
+        { "type": "flag.set", "flag": "mira.promise.settled", "value": true },
+        { "type": "npc.rememberFact", "npcId": "mira-vale", "factId": "mira-promise-broken" }
+      ],
+      "feedback": "A conversa esfria. Você ainda mede a própria confiança; o que Mira sente permanece opaco."
+    },
+    {
+      "id": "form-mira-friendship",
+      "npcId": "mira-vale",
+      "label": "Propor amizade",
+      "hint": "Nomear o vínculo somente se Mira e a história permitirem.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "effects": [
+        { "type": "bond.form", "bondId": "mira-friendship", "fromId": "player", "toId": "mira-vale" },
+        { "type": "flag.set", "flag": "mira.friendship.formed", "value": true },
+        { "type": "npc.rememberFact", "npcId": "mira-vale", "factId": "mira-friendship-named" }
+      ],
+      "feedback": "Mira aceita o nome da relação. Não foi o número que decidiu; foi a escolha dela e a sua."
+    }
+  ]
+}

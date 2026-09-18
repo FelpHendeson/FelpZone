@@ -1,6 +1,14 @@
 # Sistema 29 — Facções, diplomacia e poder político
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 29.1 a 29.7.
+
+## Objetivo
+
+Fazer organizações e assentamentos coexistirem em um mundo político: formar alianças, rivalidades, acordos, leis e disputas de influência que reconheçam o jogador como membro, representante, nobre ou líder.
+
+## Implementação
+
+A versão definitiva do schema é `schemaVersion: 23`. `GameState.politics` guarda mandatos, relações direcionais, acordos, leis, influência e ações consumidas. Sem mandato o jogador não decide pela facção. Aceite e recusa são transações atômicas; a relação A→B pode diferir de B→A; a lei só existe na jurisdição declarada.
 
 ## Objetivo
 

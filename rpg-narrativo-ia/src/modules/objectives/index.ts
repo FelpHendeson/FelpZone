@@ -235,6 +235,27 @@ export function evaluateObjectiveCriterion(criterion: ObjectiveCriterion, state:
       return state.sandbox.presences.discoveredPresenceIds.includes(criterion.presenceId);
     case 'presence.resolved':
       return state.sandbox.presences.resolvedPresenceIds.includes(criterion.presenceId);
+    case 'interactable.fact.revealed':
+      return (
+        state.sandbox.interactables?.objects
+          .find((entry) => entry.interactableId === criterion.interactableId)
+          ?.revealedFactIds.includes(criterion.factId) ?? false
+      );
+    case 'bond.exists':
+      return (
+        state.bonds?.edges.some(
+          (entry) =>
+            entry.fromId === criterion.fromId &&
+            entry.toId === criterion.toId &&
+            entry.bondIds.includes(criterion.bondId),
+        ) ?? false
+      );
+    case 'bond.dimension.min':
+      return (
+        (state.bonds?.edges.find((entry) => entry.fromId === criterion.fromId && entry.toId === criterion.toId)?.values[
+          criterion.dimensionId
+        ] ?? 0) >= criterion.amount
+      );
     case 'flag.is':
       return (state.flags[criterion.flag] ?? false) === criterion.value;
     case 'world.day.min':
@@ -435,6 +456,41 @@ function inspectCriterion(value: unknown): ObjectiveInspection<ObjectiveCriterio
     case 'presence.discovered':
     case 'presence.resolved':
       return stringCriterion(value, 'presenceId', value.type);
+    case 'interactable.fact.revealed':
+      if (!nonEmpty(value.interactableId) || !nonEmpty(value.factId)) {
+        return fail('O critério de ponto de interesse é inválido.');
+      }
+      return {
+        ok: true,
+        value: { type: value.type, interactableId: value.interactableId, factId: value.factId },
+      };
+    case 'bond.exists':
+      if (!nonEmpty(value.fromId) || !nonEmpty(value.toId) || !nonEmpty(value.bondId)) {
+        return fail('O critério de vínculo é inválido.');
+      }
+      return {
+        ok: true,
+        value: { type: value.type, fromId: value.fromId, toId: value.toId, bondId: value.bondId },
+      };
+    case 'bond.dimension.min':
+      if (
+        !nonEmpty(value.fromId) ||
+        !nonEmpty(value.toId) ||
+        !nonEmpty(value.dimensionId) ||
+        !Number.isInteger(value.amount)
+      ) {
+        return fail('O critério de relacionamento é inválido.');
+      }
+      return {
+        ok: true,
+        value: {
+          type: value.type,
+          fromId: value.fromId,
+          toId: value.toId,
+          dimensionId: value.dimensionId,
+          amount: value.amount as number,
+        },
+      };
     case 'inventory.item.quantity':
       if (!nonEmpty(value.itemId) || !positiveSafeInteger(value.quantity)) {
         return fail('O critério de quantidade de item é inválido.');

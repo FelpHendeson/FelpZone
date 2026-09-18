@@ -1,0 +1,100 @@
+{
+  "currencies": [
+    { "id": "ember-mark", "name": "Marca de brasa" }
+  ],
+  "properties": [
+    {
+      "id": "clearing-cache",
+      "name": "Esconderijo da Clareira",
+      "locationId": "awakening-clearing",
+      "description": "Um recanto de uso reconhecido, distinto de lar, inventário e território."
+    }
+  ],
+  "offers": [
+    {
+      "id": "sell-fallen-branch",
+      "kind": "sell",
+      "itemId": "fallen-branch",
+      "quantity": 1,
+      "currencyId": "ember-mark",
+      "price": 2,
+      "stock": null
+    },
+    {
+      "id": "buy-improvised-tool",
+      "kind": "buy",
+      "itemId": "improvised-tool",
+      "quantity": 1,
+      "currencyId": "ember-mark",
+      "price": 2,
+      "stock": 1
+    }
+  ],
+  "npcDecisions": [
+    {
+      "npcId": "mira-vale",
+      "intent": "trade",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    },
+    {
+      "npcId": "mira-vale",
+      "intent": "grant-property",
+      "requirements": [{ "type": "flag.is", "flag": "economy.improvised-tool.bought", "value": true }]
+    }
+  ],
+  "actions": [
+    {
+      "id": "sell-fallen-branch",
+      "label": "Vender um graveto para Mira",
+      "hint": "O preço vem da oferta declarada. A interface não informa o valor.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": false,
+      "requirements": [
+        { "type": "flag.is", "flag": "mira.friendship.formed", "value": true },
+        { "type": "economy.has-item", "itemId": "fallen-branch", "quantity": 1 }
+      ],
+      "effects": [
+        { "type": "economy.remove-item", "itemId": "fallen-branch", "quantity": 1 },
+        { "type": "economy.credit", "currencyId": "ember-mark", "amount": 2 },
+        { "type": "flag.set", "flag": "economy.fallen-branch.sold", "value": true }
+      ],
+      "feedback": "Mira troca o graveto por duas marcas de brasa. Nada foi criado do nada."
+    },
+    {
+      "id": "buy-improvised-tool",
+      "label": "Comprar a ferramenta de Mira",
+      "hint": "Estoque limitado. Repetir a confirmação não duplica a compra.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "flag.is", "flag": "mira.friendship.formed", "value": true },
+        { "type": "economy.has-balance", "currencyId": "ember-mark", "amount": 2 }
+      ],
+      "effects": [
+        { "type": "economy.debit", "currencyId": "ember-mark", "amount": 2 },
+        { "type": "economy.add-item", "itemId": "improvised-tool", "quantity": 1 },
+        { "type": "economy.consume-stock", "offerId": "buy-improvised-tool", "amount": 1 },
+        { "type": "flag.set", "flag": "economy.improvised-tool.bought", "value": true }
+      ],
+      "feedback": "A ferramenta sai do estoque de Mira e entra na sua mochila na mesma transação."
+    },
+    {
+      "id": "claim-clearing-cache",
+      "label": "Receber o direito ao esconderijo",
+      "hint": "Propriedade é um direito, não um item nem um lar.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [
+        { "type": "flag.is", "flag": "economy.improvised-tool.bought", "value": true }
+      ],
+      "effects": [
+        { "type": "economy.grant-property", "propertyId": "clearing-cache", "ownerId": "player" },
+        { "type": "flag.set", "flag": "economy.clearing-cache.claimed", "value": true }
+      ],
+      "feedback": "Você passa a ter o direito de usar o esconderijo. Isso não transfere o acampamento."
+    }
+  ]
+}

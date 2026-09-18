@@ -35,8 +35,9 @@ describe('pack de mundo e ContentSource', () => {
     expect(world.presenceInteractions.byId.get('talk-mira-awakening-clearing')?.effects).toEqual([
       { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' },
       { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },
+      { type: 'flag.set', flag: 'mira.promise.made', value: true },
     ]);
-    expect(SCHEMA_VERSION).toBe(11);
+    expect(SCHEMA_VERSION).toBe(23);
 
     const hostile = structuredClone(assembleFirstDayRaw()) as { skills: { skills: unknown[] } };
     hostile.skills.skills = [];

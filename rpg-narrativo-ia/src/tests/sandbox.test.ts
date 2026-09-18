@@ -100,7 +100,7 @@ describe('estado integrado e persistência principal', () => {
     expect(sandbox).not.toHaveProperty('map');
     expect(sandbox).not.toHaveProperty('definitions');
     expect(JSON.stringify(raw)).not.toContain('DaylightPhase');
-    expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'navigation', 'npcs', 'presences', 'resources']);
+    expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'interactables', 'navigation', 'npcs', 'presences', 'resources']);
     expect(state.world).toEqual(timeStateToWorld(createInitialTime()));
   });
 

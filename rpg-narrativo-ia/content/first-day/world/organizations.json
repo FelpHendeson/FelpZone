@@ -1,0 +1,91 @@
+{
+  "membershipStates": [
+    { "id": "invited", "name": "Convidado" },
+    { "id": "active", "name": "Ativo" },
+    { "id": "left", "name": "Desligado" }
+  ],
+  "types": [
+    {
+      "id": "party",
+      "name": "Grupo de aventura",
+      "description": "Companhia temporária, distinta de família, guilda ou facção.",
+      "roles": [
+        {
+          "id": "leader",
+          "name": "Guia",
+          "permissions": ["invite", "assign-role", "remove-member", "disband", "leave"]
+        },
+        {
+          "id": "scout",
+          "name": "Batedor",
+          "permissions": ["leave"]
+        },
+        {
+          "id": "companion",
+          "name": "Companheiro",
+          "permissions": ["leave"]
+        }
+      ]
+    }
+  ],
+  "organizations": [
+    {
+      "id": "clearing-party",
+      "typeId": "party",
+      "name": "Grupo da Clareira",
+      "description": "Um pequeno grupo para o primeiro dia, sem tesouro nem território."
+    }
+  ],
+  "npcDecisions": [
+    {
+      "npcId": "mira-vale",
+      "intent": "join",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    }
+  ],
+  "actions": [
+    {
+      "id": "propose-mira-party",
+      "label": "Propor um grupo",
+      "hint": "Convidar Mira para uma companhia temporária.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }],
+      "effects": [
+        { "type": "organization.create", "organizationId": "clearing-party" },
+        { "type": "organization.join", "organizationId": "clearing-party", "actorId": "player", "roleId": "leader", "membershipId": "active" },
+        { "type": "organization.join", "organizationId": "clearing-party", "actorId": "mira-vale", "roleId": "companion", "membershipId": "active" },
+        { "type": "flag.set", "flag": "clearing-party.formed", "value": true }
+      ],
+      "feedback": "Mira aceita caminhar com você. O cargo dela não é patente nem nível."
+    },
+    {
+      "id": "assign-mira-scout",
+      "label": "Pedir que Mira batede o caminho",
+      "hint": "Atribuir o cargo de batedor permitido pelo grupo.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "clearing-party.formed", "value": true }],
+      "effects": [
+        { "type": "organization.assign", "organizationId": "clearing-party", "actorId": "mira-vale", "roleId": "scout" },
+        { "type": "flag.set", "flag": "clearing-party.mira-scout", "value": true }
+      ],
+      "feedback": "Mira assume o papel de batedora. A autoridade veio do cargo, não de um título social."
+    },
+    {
+      "id": "disband-clearing-party",
+      "label": "Encerrar o grupo",
+      "hint": "Dissolver a companhia temporária.",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "clearing-party.formed", "value": true }],
+      "effects": [
+        { "type": "organization.disband", "organizationId": "clearing-party" },
+        { "type": "flag.set", "flag": "clearing-party.disbanded", "value": true }
+      ],
+      "feedback": "O grupo se dissolve. Ninguém herda território nem tesouro."
+    }
+  ]
+}

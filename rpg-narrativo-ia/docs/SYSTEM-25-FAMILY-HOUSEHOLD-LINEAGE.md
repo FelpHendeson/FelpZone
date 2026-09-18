@@ -1,10 +1,14 @@
 # Sistema 25 — Família, lar e linhagem
 
-> **Estado:** desejado pelo autor e especificado em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 25.1 a 25.7.
 
 ## Objetivo
 
 Sustentar a fantasia de vida: construir parceria, formar uma família, cuidar de filhos ou dependentes, compartilhar um lar e deixar uma linhagem, sem transformar NPCs em recompensas ou remover sua agência.
+
+## Implementação
+
+A versão definitiva do schema é `schemaVersion: 19`. `GameState.family` guarda laços, lares, marcos de estágio e ações consumidas. Parentesco, lar e vínculo afetivo permanecem contratos distintos. Rowan é um ator persistente, nunca um item. Crescimento usa a idade canônica do calendário e é idempotente.
 
 ## Distinções obrigatórias
 

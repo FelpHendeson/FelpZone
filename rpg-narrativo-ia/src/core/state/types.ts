@@ -5,6 +5,18 @@ import type { ItemsState } from '../../modules/items/types';
 import type { PersistentConditionState } from '../../modules/conditions/types';
 import type { GardenState } from '../../modules/garden/types';
 import type { NPCsState } from '../../modules/npcs/types';
+import type { InteractablesState } from '../../modules/interactables/types';
+import type { BondsState } from '../../modules/bonds/types';
+import type { RegistryState } from '../../modules/registry/types';
+import type { OrganizationsState } from '../../modules/organizations/types';
+import type { ExecutionState } from '../../modules/execution/types';
+import type { PartyState } from '../../modules/party/types';
+import type { CalendarState } from '../../modules/calendar/types';
+import type { FamilyState } from '../../modules/family/types';
+import type { CivicState } from '../../modules/civic/types';
+import type { EconomyState } from '../../modules/economy/types';
+import type { SettlementsState } from '../../modules/settlements/types';
+import type { PoliticsState } from '../../modules/politics/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
 export const SCHEMA_VERSION_V1 = 1 as const;
@@ -17,7 +29,19 @@ export const SCHEMA_VERSION_V7 = 7 as const;
 export const SCHEMA_VERSION_V8 = 8 as const;
 export const SCHEMA_VERSION_V9 = 9 as const;
 export const SCHEMA_VERSION_V10 = 10 as const;
-export const SCHEMA_VERSION = 11 as const;
+export const SCHEMA_VERSION_V11 = 11 as const;
+export const SCHEMA_VERSION_V12 = 12 as const;
+export const SCHEMA_VERSION_V13 = 13 as const;
+export const SCHEMA_VERSION_V14 = 14 as const;
+export const SCHEMA_VERSION_V15 = 15 as const;
+export const SCHEMA_VERSION_V16 = 16 as const;
+export const SCHEMA_VERSION_V17 = 17 as const;
+export const SCHEMA_VERSION_V18 = 18 as const;
+export const SCHEMA_VERSION_V19 = 19 as const;
+export const SCHEMA_VERSION_V20 = 20 as const;
+export const SCHEMA_VERSION_V21 = 21 as const;
+export const SCHEMA_VERSION_V22 = 22 as const;
+export const SCHEMA_VERSION = 23 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
@@ -177,8 +201,8 @@ export interface GameStateV10 extends SharedState<Attributes> {
   garden: GardenState;
 }
 
-export interface GameState extends SharedState<Attributes> {
-  schemaVersion: typeof SCHEMA_VERSION;
+export interface GameStateV11 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V11;
   narrativeSession: NarrativeSession | null;
   sandbox: SandboxState & { npcs: NPCsState };
   objectives: ObjectivesState;
@@ -186,4 +210,202 @@ export interface GameState extends SharedState<Attributes> {
   items: ItemsState;
   lingering: PersistentConditionState;
   garden: GardenState;
+}
+
+export interface GameStateV12 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V12;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+}
+
+export interface GameStateV13 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V13;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+}
+
+export interface GameStateV14 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V14;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+}
+
+export interface GameStateV15 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V15;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+}
+
+export interface GameStateV16 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V16;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+}
+
+export interface GameStateV17 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V17;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+}
+
+export interface GameStateV18 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V18;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+}
+
+export interface GameStateV19 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V19;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+  family: FamilyState;
+}
+
+export interface GameStateV20 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V20;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+  family: FamilyState;
+  civic: CivicState;
+}
+
+export interface GameStateV21 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V21;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+  family: FamilyState;
+  civic: CivicState;
+  economy: EconomyState;
+}
+
+export interface GameStateV22 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V22;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+  family: FamilyState;
+  civic: CivicState;
+  economy: EconomyState;
+  settlements: SettlementsState;
+}
+
+export interface GameState extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+  family: FamilyState;
+  civic: CivicState;
+  economy: EconomyState;
+  settlements: SettlementsState;
+  politics: PoliticsState;
 }

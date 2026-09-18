@@ -1,0 +1,80 @@
+{
+  "kinshipTypes": [
+    { "id": "partner", "name": "Parceria", "exclusive": true, "symmetric": true },
+    { "id": "parent", "name": "Responsável", "exclusive": false, "symmetric": false },
+    { "id": "child", "name": "Dependente", "exclusive": false, "symmetric": false }
+  ],
+  "households": [
+    {
+      "id": "clearing-camp",
+      "name": "Acampamento da Clareira",
+      "locationId": "awakening-clearing",
+      "description": "Um lar compartilhado, distinto de propriedade e de grupo de aventura."
+    }
+  ],
+  "npcDecisions": [
+    {
+      "npcId": "mira-vale",
+      "intent": "partner",
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }]
+    },
+    {
+      "npcId": "mira-vale",
+      "intent": "household",
+      "requirements": [{ "type": "flag.is", "flag": "family.mira-partnership.formed", "value": true }]
+    },
+    {
+      "npcId": "mira-vale",
+      "intent": "ward",
+      "requirements": [{ "type": "flag.is", "flag": "family.clearing-camp.founded", "value": true }]
+    }
+  ],
+  "actions": [
+    {
+      "id": "form-mira-partnership",
+      "label": "Propor uma parceria de vida",
+      "hint": "Mira só aceita se a amizade já existir. Parceria não é vínculo afetivo nem posse.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }],
+      "effects": [
+        { "type": "kinship.form", "fromId": "player", "toId": "mira-vale", "kinshipTypeId": "partner" },
+        { "type": "flag.set", "flag": "family.mira-partnership.formed", "value": true }
+      ],
+      "feedback": "Mira aceita a parceria. O sentimento continua no vínculo; o parentesco agora é explícito."
+    },
+    {
+      "id": "found-clearing-camp",
+      "label": "Fundar o acampamento compartilhado",
+      "hint": "Um lar comum na Clareira, sem transferir propriedade.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "family.mira-partnership.formed", "value": true }],
+      "effects": [
+        { "type": "household.found", "householdId": "clearing-camp", "residentIds": ["player", "mira-vale"] },
+        { "type": "flag.set", "flag": "family.clearing-camp.founded", "value": true }
+      ],
+      "feedback": "O acampamento passa a ser o lar de vocês dois. Morar junto não cria parentesco novo."
+    },
+    {
+      "id": "shelter-rowan",
+      "label": "Acolher Rowan",
+      "hint": "Assumir responsabilidade por um dependente de conteúdo, que permanece um ator.",
+      "npcId": "mira-vale",
+      "timeCost": { "periods": 1 },
+      "once": true,
+      "requirements": [{ "type": "flag.is", "flag": "family.clearing-camp.founded", "value": true }],
+      "effects": [
+        { "type": "kinship.form", "fromId": "player", "toId": "rowan-vale", "kinshipTypeId": "parent" },
+        { "type": "kinship.form", "fromId": "mira-vale", "toId": "rowan-vale", "kinshipTypeId": "parent" },
+        { "type": "kinship.form", "fromId": "rowan-vale", "toId": "player", "kinshipTypeId": "child" },
+        { "type": "kinship.form", "fromId": "rowan-vale", "toId": "mira-vale", "kinshipTypeId": "child" },
+        { "type": "household.assign", "householdId": "clearing-camp", "actorId": "rowan-vale", "role": "resident" },
+        { "type": "flag.set", "flag": "family.rowan.sheltered", "value": true }
+      ],
+      "feedback": "Rowan passa a viver no acampamento. Ele não é um item; a responsabilidade é de vocês dois."
+    }
+  ]
+}

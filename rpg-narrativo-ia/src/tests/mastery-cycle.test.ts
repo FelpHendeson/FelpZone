@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { type GameState } from '../core/state';
+import { SCHEMA_VERSION, type GameState } from '../core/state';
 import { parseGameState, serializeGameState } from '../infrastructure/persistence';
 import {
   INITIAL_COMBAT,
@@ -76,6 +76,6 @@ describe('Fatia 13.6 — ciclo jogável de progressão ponta a ponta', () => {
     expect(listPlayerActions(INITIAL_COMBAT, combat).map((action) => action.id)).toContain('mend');
 
     // O schema não muda em todo o ciclo.
-    expect(state.schemaVersion).toBe(11);
+    expect(state.schemaVersion).toBe(SCHEMA_VERSION);
   });
 });

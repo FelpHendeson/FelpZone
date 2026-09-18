@@ -9,7 +9,7 @@ import { asV7, asV8, asV9, asV10, freshState } from './helpers';
 describe('Persistência dos Sistemas 14 a 17 — schema 11', () => {
   it('novas partidas começam no schema 11 com estados vazios', () => {
     const state = freshState();
-    expect(SCHEMA_VERSION).toBe(11);
+    expect(SCHEMA_VERSION).toBe(23);
     expect(state.items).toEqual(createInitialItemsState());
     expect(state.lingering.entries).toEqual([]);
     expect(state.garden).toEqual({ cultivationPoints: 0, completedRecipeIds: [] });
@@ -25,7 +25,7 @@ describe('Persistência dos Sistemas 14 a 17 — schema 11', () => {
     const loaded = parseGameState(JSON.stringify(downgrade(freshState())));
     expect(loaded.status).toBe('ok');
     if (loaded.status === 'ok') {
-      expect(loaded.state.schemaVersion).toBe(11);
+      expect(loaded.state.schemaVersion).toBe(SCHEMA_VERSION);
       expect(loaded.state.items.equipment['main-hand']).toBeNull();
       expect(loaded.state.garden.cultivationPoints).toBe(0);
       expect(loaded.state.sandbox.npcs.entries).toEqual([]);

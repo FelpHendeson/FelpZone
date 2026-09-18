@@ -15,6 +15,9 @@ export type ObjectiveCriterion =
   | { type: 'crafting.structure.active'; structureId: string; locationId?: string }
   | { type: 'presence.discovered'; presenceId: string }
   | { type: 'presence.resolved'; presenceId: string }
+  | { type: 'interactable.fact.revealed'; interactableId: string; factId: string }
+  | { type: 'bond.exists'; fromId: string; toId: string; bondId: string }
+  | { type: 'bond.dimension.min'; fromId: string; toId: string; dimensionId: string; amount: number }
   | { type: 'flag.is'; flag: string; value: boolean }
   | { type: 'world.day.min'; day: number };
 

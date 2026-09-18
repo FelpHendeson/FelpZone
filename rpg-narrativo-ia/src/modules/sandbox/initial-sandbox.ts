@@ -20,6 +20,20 @@ import {
   createInitialNavigation,
   indexNavigationMap,
 } from '../navigation';
+import { INITIAL_BONDS } from '../bonds';
+import { INITIAL_ORGANIZATIONS } from '../organizations';
+import { INITIAL_CALENDAR } from '../calendar';
+import { INITIAL_FAMILY } from '../family';
+import { INITIAL_CIVIC } from '../civic';
+import { INITIAL_ECONOMY } from '../economy';
+import { INITIAL_SETTLEMENTS } from '../settlements';
+import { INITIAL_POLITICS } from '../politics';
+import { INITIAL_REGISTRY } from '../registry';
+import {
+  INITIAL_INTERACTABLE_CATALOG,
+  createInitialInteractablesState,
+  indexInteractableCatalog,
+} from '../interactables';
 import {
   INITIAL_PRESENCE_CATALOG,
   INITIAL_PRESENCE_INTERACTIONS,
@@ -61,6 +75,16 @@ export function createSandboxContextFromWorld(
     crafting: world.crafting,
     presences: world.presences,
     presenceInteractions: world.presenceInteractions,
+    interactables: world.interactables,
+    bonds: world.bonds,
+    organizations: world.organizations,
+    calendar: world.calendar,
+    family: world.family,
+    civic: world.civic,
+    economy: world.economy,
+    settlements: world.settlements,
+    politics: world.politics,
+    registry: world.registry,
     campaign: world.campaign,
     npcs: world.npcs,
     items: world.items,
@@ -94,6 +118,7 @@ export function createSandboxContext(
       presences,
       firstDayCampaign,
     );
+    const interactables = indexInteractableCatalog(INITIAL_INTERACTABLE_CATALOG, map, exploration);
 
     return {
       startingLocationId,
@@ -103,6 +128,16 @@ export function createSandboxContext(
       crafting,
       presences,
       presenceInteractions,
+      interactables,
+      bonds: INITIAL_BONDS,
+      organizations: INITIAL_ORGANIZATIONS,
+      calendar: INITIAL_CALENDAR,
+      family: INITIAL_FAMILY,
+      civic: INITIAL_CIVIC,
+      economy: INITIAL_ECONOMY,
+      settlements: INITIAL_SETTLEMENTS,
+      politics: INITIAL_POLITICS,
+      registry: INITIAL_REGISTRY,
       campaign: firstDayCampaign,
       npcs: INITIAL_NPCS,
       items: INITIAL_ITEMS,
@@ -131,5 +166,6 @@ export function createInitialSandboxState(context: SandboxContext = createSandbo
     resources: createInitialResources(current.resources),
     crafting: createInitialCrafting(current.crafting),
     presences: createInitialPresenceState(current.presences),
+    interactables: createInitialInteractablesState(),
   };
 }

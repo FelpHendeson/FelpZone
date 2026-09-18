@@ -9,9 +9,25 @@ import {
   tickConditions,
 } from '../conditions';
 import {
+  canPayCost,
+  collectExecutionModifiers,
+  copyExecutionState,
+  createInitialExecutionState,
+  DEFAULT_ACTION_PHASES,
+  emptyExecutionModifiers,
+  INITIAL_EXECUTION,
+  payCost,
+  resolveActionTiming,
+  setCooldown,
+  tickCooldowns,
+  type ExecutionState,
+  type ResolvedActionTiming,
+} from '../execution';
+import {
   FLEE_ACTION_ID,
   PREPARED_ACTION_PREFIX,
   type CombatActionDefinition,
+  type CombatActionView,
   type CombatantState,
   type CombatEffect,
   type CombatLoadoutSnapshot,
@@ -21,12 +37,22 @@ import {
   type PreparedConsumableState,
 } from './types';
 
+export interface AllySnapshot {
+  id: string;
+  name: string;
+  maxHealth: number;
+  health?: number;
+  actionIds: readonly string[];
+}
+
 export interface CreateCombatOptions {
   playerName?: string;
   knownSkillIds?: readonly string[];
   playerMaxHealth?: number;
   loadout?: CombatLoadoutSnapshot;
   prepared?: readonly PreparedConsumableState[];
+  execution?: ExecutionState;
+  allies?: readonly AllySnapshot[];
 }
 
 export function emptyCombatLoadout(): CombatLoadoutSnapshot {
@@ -34,6 +60,7 @@ export function emptyCombatLoadout(): CombatLoadoutSnapshot {
     equipment: { 'main-hand': null, body: null, accessory: null },
     prepared: [],
     modifiers: { damage: 0, guard: 0, healing: 0 },
+    executionModifiers: emptyExecutionModifiers(),
     grantedActionIds: [],
   };
 }
@@ -52,7 +79,8 @@ export function createCombat(
     throw new CombatError('O combatente do encontro não existe.');
   }
 
-  const known = new Set(options.knownSkillIds ?? []);
+  const knownSkillIds = [...(options.knownSkillIds ?? [])];
+  const known = new Set(knownSkillIds);
   const loadout = copyLoadout(options.loadout ?? emptyCombatLoadout());
   const prepared = (options.prepared ?? []).map((entry) => ({ ...entry }));
   const playerActionIds = catalog.actions
@@ -72,6 +100,19 @@ export function createCombat(
     throw new CombatError('A vitalidade inicial do jogador é inválida.');
   }
 
+  const playerExecution = copyExecutionState(options.execution ?? createInitialExecutionState());
+  const opponentExecution = createInitialExecutionState();
+  const opponent = createCombatantFromTemplate(template, opponentExecution);
+  const foes = (encounter.additionalOpponentIds ?? []).map((id) => {
+    const extra = catalog.combatantById.get(id);
+    if (!extra) {
+      throw new CombatError('O combatente adicional do encontro não existe.');
+    }
+    return createCombatantFromTemplate(extra, createInitialExecutionState());
+  });
+  const allies = (options.allies ?? []).map((ally) => createAllyCombatant(ally));
+  assertUniqueCombatantIds(['player', opponent.id, ...allies.map((entry) => entry.id), ...foes.map((entry) => entry.id)]);
+
   return {
     encounterId,
     turn: 0,
@@ -83,22 +124,19 @@ export function createCombat(
       guard: 0,
       actionIds: playerActionIds,
       conditions: [],
+      execution: playerExecution,
     },
-    opponent: {
-      id: template.id,
-      name: template.name,
-      maxHealth: template.maxHealth,
-      health: template.maxHealth,
-      guard: 0,
-      actionIds: [...template.actionIds],
-      conditions: [],
-      ...(template.defenseElementId ? { defenseElementId: template.defenseElementId } : {}),
-    },
+    opponent,
     log: [],
     outcome: 'ongoing',
     loadout,
     prepared,
     usedPrepared: [],
+    entryExecution: copyExecutionState(playerExecution),
+    knownSkillIds,
+    allies,
+    foes,
+    companionOrderLog: [],
   };
 }
 
@@ -106,12 +144,41 @@ export function listPlayerActions(catalog: IndexedCombat, state: CombatState): C
   return state.player.actionIds.map((id) => requireAction(catalog, state, id));
 }
 
-export function chooseOpponentAction(catalog: IndexedCombat, state: CombatState): string {
-  const opponent = state.opponent;
-  const available = opponent.actionIds.map((id) => requireAction(catalog, state, id));
+export function listPlayerActionViews(catalog: IndexedCombat, state: CombatState): CombatActionView[] {
+  const modifiers = playerModifiers(state);
+  return state.player.actionIds.map((id) => {
+    const action = requireAction(catalog, state, id);
+    const timing = timingFor(action, modifiers);
+    const blocked = describeBlockedAction(state.player, action, timing, 'player');
+    return {
+      action,
+      available: blocked === undefined,
+      ...(blocked ? { blockedReason: blocked } : {}),
+      phases: timing.phases,
+      readyTick: timing.readyTick,
+      ...(timing.cost ? { cost: timing.cost } : {}),
+      cooldown: timing.cooldown,
+    };
+  });
+}
+
+export function chooseOpponentAction(catalog: IndexedCombat, state: CombatState): string | null {
+  return chooseCombatantAction(catalog, state, state.opponent, state.player);
+}
+
+function chooseCombatantAction(
+  catalog: IndexedCombat,
+  state: CombatState,
+  actor: CombatantState,
+  foe: CombatantState,
+): string | null {
+  const available = listUsableActions(catalog, state, actor, actor.id === 'player' ? 'player' : 'opponent');
+  if (available.length === 0) {
+    return null;
+  }
 
   const heal = available.find((action) => totalOf(action, 'heal') > 0);
-  if (heal && opponent.health <= Math.floor(opponent.maxHealth * 0.3)) {
+  if (heal && actor.health <= Math.floor(actor.maxHealth * 0.3)) {
     return heal.id;
   }
 
@@ -120,7 +187,7 @@ export function chooseOpponentAction(catalog: IndexedCombat, state: CombatState)
       if (effect.type !== 'condition.apply') {
         return false;
       }
-      return !state.player.conditions.some((entry) => entry.conditionId === effect.conditionId);
+      return !foe.conditions.some((entry) => entry.conditionId === effect.conditionId);
     }),
   );
   if (applying) {
@@ -137,7 +204,12 @@ export function chooseOpponentAction(catalog: IndexedCombat, state: CombatState)
   return available[0].id;
 }
 
-export function resolveTurn(catalog: IndexedCombat, state: CombatState, playerActionId: string): CombatState {
+export function resolveTurn(
+  catalog: IndexedCombat,
+  state: CombatState,
+  playerActionId: string,
+  companionOrders: readonly { actorId: string; actionId: string }[] = [],
+): CombatState {
   if (state.outcome !== 'ongoing') {
     throw new CombatError('O combate já terminou.');
   }
@@ -146,51 +218,173 @@ export function resolveTurn(catalog: IndexedCombat, state: CombatState, playerAc
   const log = state.log.map((entry) => ({ ...entry }));
   let prepared = state.prepared.map((entry) => ({ ...entry }));
   const usedPrepared = state.usedPrepared.map((entry) => ({ ...entry }));
+  const player = copyCombatant(state.player);
+  const opponent = copyCombatant(state.opponent);
+  const allies = (state.allies ?? []).map(copyCombatant);
+  const foes = (state.foes ?? []).map(copyCombatant);
+  const orders = inspectCompanionOrders(companionOrders);
 
   if (playerActionId === FLEE_ACTION_ID) {
+    tickAllCooldowns([player, opponent, ...allies, ...foes]);
     log.push({ turn, actorId: 'player', actionId: FLEE_ACTION_ID, text: `${state.player.name} recua do confronto.` });
-    return { ...cloneState(state), turn, log, prepared, usedPrepared, outcome: 'fled' };
+    return finishTurn(state, {
+      turn,
+      player,
+      opponent,
+      allies,
+      foes,
+      log,
+      prepared,
+      usedPrepared,
+      outcome: 'fled',
+      companionOrderLog: appendOrders(state, orders),
+    });
   }
 
   if (!state.player.actionIds.includes(playerActionId)) {
     throw new CombatError('A ação de combate não está disponível.');
   }
 
-  const playerAction = requireAction(catalog, state, playerActionId);
-  const opponentAction = requireAction(catalog, state, chooseOpponentAction(catalog, state));
-
-  const player = copyCombatant(state.player);
-  const opponent = copyCombatant(state.opponent);
-
-  const startTick = tickConditions(INITIAL_CONDITIONS, player.conditions, 'turn-start');
-  player.conditions = startTick.conditions;
-  player.health = Math.max(0, player.health - startTick.damage);
-  const opponentStart = tickConditions(INITIAL_CONDITIONS, opponent.conditions, 'turn-start');
-  opponent.conditions = opponentStart.conditions;
-  opponent.health = Math.max(0, opponent.health - opponentStart.damage);
-
-  if (isActionBlocked(INITIAL_CONDITIONS, player.conditions, actionCategory(playerAction))) {
-    throw new CombatError('Uma condição impede esta ação.');
+  applyStartTicks([player, opponent, ...allies, ...foes]);
+  if (player.health <= 0 || living(enemiesOf(opponent, foes)).length === 0) {
+    applyEndTicks([player, opponent, ...allies, ...foes]);
+    return finishTurn(state, {
+      turn,
+      player,
+      opponent,
+      allies,
+      foes,
+      log,
+      prepared,
+      usedPrepared,
+      outcome: deriveOutcome(player, opponent, foes),
+      companionOrderLog: appendOrders(state, orders),
+    });
   }
 
-  const order = [
-    { who: 'player' as const, action: playerAction },
-    { who: 'opponent' as const, action: opponentAction },
-  ].sort((left, right) => right.action.speed - left.action.speed || (left.who === 'player' ? -1 : 1));
+  const playerAction = requireAction(catalog, state, playerActionId);
+  const playerTiming = timingFor(playerAction, playerModifiers(state));
+  const blocked = describeBlockedAction(player, playerAction, playerTiming, 'player');
+  if (blocked) {
+    throw new CombatError(blocked);
+  }
+  assertValidTarget(playerAction, player, opponent, allies, foes);
 
-  for (const step of order) {
-    const actor = step.who === 'player' ? player : opponent;
-    if (actor.health <= 0) {
+  const actors = new Map<string, CombatantState>(
+    [player, opponent, ...allies, ...foes].map((entry) => [entry.id, entry]),
+  );
+  const steps: TimelineStep[] = [
+    { actorId: player.id, side: 'ally', action: playerAction, timing: playerTiming },
+  ];
+
+  for (const order of orders) {
+    const ally = allies.find((entry) => entry.id === order.actorId);
+    if (!ally || ally.health <= 0) {
+      throw new CombatError('O companheiro não pode receber esta orientação.');
+    }
+    if (!ally.actionIds.includes(order.actionId)) {
+      throw new CombatError('A orientação de companheiro não está disponível.');
+    }
+    const action = requireAction(catalog, state, order.actionId);
+    const timing = timingFor(action, emptyExecutionModifiers());
+    const orderBlocked = describeBlockedAction(ally, action, timing, 'ally');
+    if (orderBlocked) {
+      throw new CombatError(orderBlocked);
+    }
+    assertValidTarget(action, ally, opponent, allies, foes);
+    steps.push({ actorId: ally.id, side: 'ally', action, timing });
+  }
+
+  const orderedAllies = new Set(orders.map((entry) => entry.actorId));
+  for (const ally of living(allies)) {
+    if (orderedAllies.has(ally.id)) {
       continue;
     }
-    const foe = step.who === 'player' ? opponent : player;
-    const target = step.action.target === 'self' ? actor : foe;
-    const modifiers = step.who === 'player' ? state.loadout.modifiers : { damage: 0, guard: 0, healing: 0 };
-    const text = applyAction(step.action, actor, target, modifiers);
-    log.push({ turn, actorId: actor.id, actionId: step.action.id, text: `${actor.name}: ${text}` });
+    const snapshot: CombatState = { ...state, player, opponent, allies, foes };
+    const actionId = chooseCombatantAction(catalog, snapshot, ally, firstLiving(enemiesOf(opponent, foes)) ?? opponent);
+    if (!actionId) {
+      continue;
+    }
+    const action = requireAction(catalog, state, actionId);
+    steps.push({ actorId: ally.id, side: 'ally', action, timing: timingFor(action, emptyExecutionModifiers()) });
   }
 
-  if (playerActionId.startsWith(PREPARED_ACTION_PREFIX)) {
+  for (const foe of living([opponent, ...foes])) {
+    const snapshot: CombatState = { ...state, player, opponent, allies, foes };
+    const actionId = chooseCombatantAction(catalog, snapshot, foe, firstLiving([player, ...allies]) ?? player);
+    if (!actionId) {
+      continue;
+    }
+    const action = requireAction(catalog, state, actionId);
+    const timing = timingFor(action, emptyExecutionModifiers());
+    if (describeBlockedAction(foe, action, timing, 'opponent')) {
+      throw new CombatError('A IA tentou uma ação indisponível.');
+    }
+    steps.push({ actorId: foe.id, side: 'foe', action, timing });
+  }
+
+  for (const step of steps) {
+    const actor = actors.get(step.actorId);
+    if (!actor) {
+      throw new CombatError('O combatente da fila não existe.');
+    }
+    actor.execution = payCost(actor.execution, step.timing.cost);
+  }
+
+  const interrupted = new Set<string>();
+  const ordered = [...steps].sort(compareTimeline);
+
+  for (const step of ordered) {
+    const actor = actors.get(step.actorId);
+    if (!actor) {
+      continue;
+    }
+    if (actor.health <= 0 || interrupted.has(step.actorId)) {
+      if (interrupted.has(step.actorId)) {
+        log.push({
+          turn,
+          actorId: actor.id,
+          actionId: step.action.id,
+          text: `${actor.name}: ${step.action.name} foi interrompida na preparação.`,
+        });
+      }
+      continue;
+    }
+    const opposing = step.side === 'ally' ? living(enemiesOf(opponent, foes)) : living([player, ...allies]);
+    const target = step.action.target === 'self' ? actor : opposing[0];
+    if (!target) {
+      continue;
+    }
+    const modifiers = step.actorId === player.id ? state.loadout.modifiers : { damage: 0, guard: 0, healing: 0 };
+    const text = applyAction(step.action, actor, target, modifiers);
+    log.push({ turn, actorId: actor.id, actionId: step.action.id, text: `${actor.name}: ${text}` });
+
+    for (const other of ordered) {
+      if (other.side === step.side || interrupted.has(other.actorId) || other.timing.readyTick <= step.timing.readyTick) {
+        continue;
+      }
+      if (canInterrupt(step.action, other.action)) {
+        interrupted.add(other.actorId);
+      }
+    }
+  }
+
+  const usedThisTurn = new Map<string, string[]>();
+  for (const step of steps) {
+    const actor = actors.get(step.actorId);
+    if (!actor) {
+      continue;
+    }
+    if (step.timing.cooldown > 0) {
+      actor.execution = setCooldown(actor.execution, step.action.id, step.timing.cooldown);
+      usedThisTurn.set(step.actorId, [...(usedThisTurn.get(step.actorId) ?? []), step.action.id]);
+    }
+  }
+  for (const combatant of [player, opponent, ...allies, ...foes]) {
+    combatant.execution = tickCooldowns(combatant.execution, usedThisTurn.get(combatant.id) ?? []);
+  }
+
+  if (playerActionId.startsWith(PREPARED_ACTION_PREFIX) && !interrupted.has(player.id)) {
     const slot = Number(playerActionId.slice(PREPARED_ACTION_PREFIX.length));
     const used = prepared.find((entry) => entry.index === slot);
     if (!used) {
@@ -201,23 +395,79 @@ export function resolveTurn(catalog: IndexedCombat, state: CombatState, playerAc
     player.actionIds = player.actionIds.filter((id) => id !== playerActionId);
   }
 
-  const playerEnd = tickConditions(INITIAL_CONDITIONS, player.conditions, 'turn-end');
-  player.conditions = playerEnd.conditions;
-  player.health = Math.max(0, player.health - playerEnd.damage);
-  const opponentEnd = tickConditions(INITIAL_CONDITIONS, opponent.conditions, 'turn-end');
-  opponent.conditions = opponentEnd.conditions;
-  opponent.health = Math.max(0, opponent.health - opponentEnd.damage);
+  applyEndTicks([player, opponent, ...allies, ...foes]);
 
-  return {
-    ...cloneState(state),
+  return finishTurn(state, {
     turn,
     player,
     opponent,
+    allies,
+    foes,
     log,
     prepared,
     usedPrepared,
-    outcome: deriveOutcome(player, opponent),
-  };
+    outcome: deriveOutcome(player, opponent, foes),
+    companionOrderLog: appendOrders(state, orders),
+  });
+}
+
+function listUsableActions(
+  catalog: IndexedCombat,
+  state: CombatState,
+  actor: CombatantState,
+  who: 'player' | 'opponent' | 'ally',
+): CombatActionDefinition[] {
+  const modifiers = who === 'player' ? playerModifiers(state) : emptyExecutionModifiers();
+  return actor.actionIds
+    .map((id) => requireAction(catalog, state, id))
+    .filter((action) => describeBlockedAction(actor, action, timingFor(action, modifiers), who) === undefined);
+}
+
+function describeBlockedAction(
+  actor: CombatantState,
+  action: CombatActionDefinition,
+  timing: ResolvedActionTiming,
+  who: 'player' | 'opponent' | 'ally',
+): string | undefined {
+  if (isActionBlocked(INITIAL_CONDITIONS, actor.conditions, actionCategory(action))) {
+    return who === 'opponent' ? 'Uma condição impede a ação do oponente.' : 'Uma condição impede esta ação.';
+  }
+  const remaining = actor.execution.cooldowns.find((entry) => entry.actionId === action.id)?.remaining ?? 0;
+  if (remaining > 0) {
+    return 'A ação ainda está em recarga.';
+  }
+  if (!canPayCost(actor.execution, timing.cost)) {
+    return 'A reserva de Númen é insuficiente.';
+  }
+  return undefined;
+}
+
+function playerModifiers(state: CombatState) {
+  return collectExecutionModifiers(
+    INITIAL_EXECUTION,
+    state.knownSkillIds,
+    state.loadout.executionModifiers,
+  );
+}
+
+function timingFor(action: CombatActionDefinition, modifiers: ReturnType<typeof playerModifiers>): ResolvedActionTiming {
+  return resolveActionTiming(
+    {
+      phases: action.phases ?? DEFAULT_ACTION_PHASES,
+      speed: action.speed,
+      cost: action.cost,
+      cooldown: action.cooldown,
+    },
+    modifiers,
+    INITIAL_EXECUTION.limits,
+  );
+}
+
+function canInterrupt(actorAction: CombatActionDefinition, preparing: CombatActionDefinition): boolean {
+  if (!preparing.interruptible) {
+    return false;
+  }
+  return actorAction.effects.some((effect) => effect.type === 'damage' || effect.type === 'interrupt');
 }
 
 function applyAction(
@@ -228,6 +478,10 @@ function applyAction(
 ): string {
   const parts: string[] = [];
   for (const effect of action.effects) {
+    if (effect.type === 'interrupt') {
+      parts.push(`${action.name} tenta interromper a preparação`);
+      continue;
+    }
     if (effect.type === 'damage') {
       const affinity = resolveAffinity(action.elementId, target.defenseElementId);
       const incoming = conditionValueModifier(target.conditions, 'damage');
@@ -295,8 +549,8 @@ function actionCategory(action: CombatActionDefinition): 'heal' | 'damage' | 'gu
   return 'damage';
 }
 
-function deriveOutcome(player: CombatantState, opponent: CombatantState): CombatOutcome {
-  if (opponent.health <= 0) {
+function deriveOutcome(player: CombatantState, opponent: CombatantState, foes: CombatantState[]): CombatOutcome {
+  if (living(enemiesOf(opponent, foes)).length === 0) {
     return 'victory';
   }
   if (player.health <= 0) {
@@ -325,6 +579,8 @@ function requireAction(catalog: IndexedCombat, state: CombatState, actionId: str
       speed: 16,
       target: 'self',
       effects: [{ type: 'heal', amount: prepared.heal }],
+      phases: { ...DEFAULT_ACTION_PHASES },
+      range: 'self',
     };
   }
   const action = catalog.actionById.get(actionId);
@@ -339,6 +595,7 @@ function copyCombatant(state: CombatantState): CombatantState {
     ...state,
     actionIds: [...state.actionIds],
     conditions: (state.conditions ?? []).map((entry) => ({ ...entry })),
+    execution: copyExecutionState(state.execution ?? createInitialExecutionState()),
   };
 }
 
@@ -347,6 +604,7 @@ function copyLoadout(loadout: CombatLoadoutSnapshot): CombatLoadoutSnapshot {
     equipment: { ...loadout.equipment },
     prepared: loadout.prepared.map((entry) => ({ ...entry })),
     modifiers: { ...loadout.modifiers },
+    executionModifiers: { ...(loadout.executionModifiers ?? emptyExecutionModifiers()) },
     grantedActionIds: [...(loadout.grantedActionIds ?? [])],
   };
 }
@@ -362,5 +620,177 @@ function cloneState(state: CombatState): CombatState {
     loadout: copyLoadout(state.loadout),
     prepared: state.prepared.map((entry) => ({ ...entry })),
     usedPrepared: state.usedPrepared.map((entry) => ({ ...entry })),
+    entryExecution: copyExecutionState(state.entryExecution ?? createInitialExecutionState()),
+    knownSkillIds: [...(state.knownSkillIds ?? [])],
+    allies: (state.allies ?? []).map(copyCombatant),
+    foes: (state.foes ?? []).map(copyCombatant),
+    companionOrderLog: (state.companionOrderLog ?? []).map((turn) => turn.map((entry) => ({ ...entry }))),
   };
+}
+
+interface TimelineStep {
+  actorId: string;
+  side: 'ally' | 'foe';
+  action: CombatActionDefinition;
+  timing: ResolvedActionTiming;
+}
+
+interface TurnPatch {
+  turn: number;
+  player: CombatantState;
+  opponent: CombatantState;
+  allies: CombatantState[];
+  foes: CombatantState[];
+  log: CombatState['log'];
+  prepared: CombatState['prepared'];
+  usedPrepared: CombatState['usedPrepared'];
+  outcome: CombatState['outcome'];
+  companionOrderLog: CombatState['companionOrderLog'];
+}
+
+function finishTurn(state: CombatState, patch: TurnPatch): CombatState {
+  return {
+    ...cloneState(state),
+    ...patch,
+  };
+}
+
+function createCombatantFromTemplate(
+  template: { id: string; name: string; maxHealth: number; actionIds: readonly string[]; defenseElementId?: string },
+  execution: ExecutionState,
+): CombatantState {
+  return {
+    id: template.id,
+    name: template.name,
+    maxHealth: template.maxHealth,
+    health: template.maxHealth,
+    guard: 0,
+    actionIds: [...template.actionIds],
+    conditions: [],
+    execution,
+    ...(template.defenseElementId ? { defenseElementId: template.defenseElementId } : {}),
+  };
+}
+
+function createAllyCombatant(ally: AllySnapshot): CombatantState {
+  if (!Number.isSafeInteger(ally.maxHealth) || ally.maxHealth < 1) {
+    throw new CombatError('A vitalidade do companheiro é inválida.');
+  }
+  const health = ally.health ?? ally.maxHealth;
+  if (!Number.isSafeInteger(health) || health < 1 || health > ally.maxHealth) {
+    throw new CombatError('A vitalidade do companheiro é inválida.');
+  }
+  if (ally.actionIds.length === 0 || ally.actionIds.some((id) => typeof id !== 'string' || id.trim() === '')) {
+    throw new CombatError('O companheiro precisa declarar ações válidas.');
+  }
+  return {
+    id: ally.id,
+    name: ally.name,
+    maxHealth: ally.maxHealth,
+    health,
+    guard: 0,
+    actionIds: [...ally.actionIds],
+    conditions: [],
+    execution: createInitialExecutionState(),
+  };
+}
+
+function assertUniqueCombatantIds(ids: string[]): void {
+  const seen = new Set<string>();
+  for (const id of ids) {
+    if (!id.trim() || seen.has(id)) {
+      throw new CombatError('Um ator não pode ocupar duas equipes.');
+    }
+    seen.add(id);
+  }
+}
+
+function inspectCompanionOrders(
+  value: readonly { actorId: string; actionId: string }[],
+): { actorId: string; actionId: string }[] {
+  const seen = new Set<string>();
+  const orders: { actorId: string; actionId: string }[] = [];
+  for (const entry of value) {
+    if (!entry.actorId.trim() || !entry.actionId.trim() || seen.has(entry.actorId)) {
+      throw new CombatError('A orientação de companheiro é inválida.');
+    }
+    seen.add(entry.actorId);
+    orders.push({ actorId: entry.actorId, actionId: entry.actionId });
+  }
+  return orders;
+}
+
+function appendOrders(
+  state: CombatState,
+  orders: { actorId: string; actionId: string }[],
+): { actorId: string; actionId: string }[][] {
+  return [...(state.companionOrderLog ?? []).map((turn) => turn.map((entry) => ({ ...entry }))), orders.map((entry) => ({ ...entry }))];
+}
+
+function applyStartTicks(combatants: CombatantState[]): void {
+  for (const combatant of combatants) {
+    const ticked = tickConditions(INITIAL_CONDITIONS, combatant.conditions, 'turn-start');
+    combatant.conditions = ticked.conditions;
+    combatant.health = Math.max(0, combatant.health - ticked.damage);
+  }
+}
+
+function applyEndTicks(combatants: CombatantState[]): void {
+  for (const combatant of combatants) {
+    const ticked = tickConditions(INITIAL_CONDITIONS, combatant.conditions, 'turn-end');
+    combatant.conditions = ticked.conditions;
+    combatant.health = Math.max(0, combatant.health - ticked.damage);
+  }
+}
+
+function tickAllCooldowns(combatants: CombatantState[]): void {
+  for (const combatant of combatants) {
+    combatant.execution = tickCooldowns(combatant.execution);
+  }
+}
+
+function living(combatants: CombatantState[]): CombatantState[] {
+  return combatants.filter((entry) => entry.health > 0);
+}
+
+function enemiesOf(opponent: CombatantState, foes: CombatantState[]): CombatantState[] {
+  return [opponent, ...foes];
+}
+
+function firstLiving(combatants: CombatantState[]): CombatantState | undefined {
+  return living(combatants)[0];
+}
+
+function assertValidTarget(
+  action: CombatActionDefinition,
+  _actor: CombatantState,
+  opponent: CombatantState,
+  _allies: CombatantState[],
+  foes: CombatantState[],
+): void {
+  void _actor;
+  void _allies;
+  if (action.target === 'self') {
+    return;
+  }
+  const enemies = living(enemiesOf(opponent, foes));
+  if (enemies.length === 0) {
+    throw new CombatError('O alvo desta ação é inválido.');
+  }
+}
+
+function compareTimeline(left: TimelineStep, right: TimelineStep): number {
+  if (left.timing.readyTick !== right.timing.readyTick) {
+    return left.timing.readyTick - right.timing.readyTick;
+  }
+  if (left.timing.speed !== right.timing.speed) {
+    return right.timing.speed - left.timing.speed;
+  }
+  if (left.actorId === 'player') {
+    return -1;
+  }
+  if (right.actorId === 'player') {
+    return 1;
+  }
+  return left.actorId.localeCompare(right.actorId);
 }

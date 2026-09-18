@@ -1,4 +1,5 @@
 import type { Campaign } from '../../core/events';
+import type { IndexedExecution } from '../execution/types';
 import type { IndexedCombat } from '../combat/types';
 import type { IndexedConditions } from '../conditions/types';
 import type { IndexedCrafting } from '../crafting/types';
@@ -10,6 +11,17 @@ import type { IndexedMastery } from '../mastery/types';
 import type { IndexedMap } from '../navigation/types';
 import type { IndexedNpcs } from '../npcs/types';
 import type { IndexedObjectives } from '../objectives/types';
+import type { IndexedBonds } from '../bonds/types';
+import type { IndexedOrganizations } from '../organizations/types';
+import type { IndexedParty } from '../party/types';
+import type { IndexedCalendar } from '../calendar/types';
+import type { IndexedFamily } from '../family/types';
+import type { IndexedCivic } from '../civic/types';
+import type { IndexedEconomy } from '../economy/types';
+import type { IndexedSettlements } from '../settlements/types';
+import type { IndexedPolitics } from '../politics/types';
+import type { IndexedRegistry } from '../registry/types';
+import type { IndexedInteractables } from '../interactables/types';
 import type { IndexedPresenceInteractions, IndexedPresences } from '../presences/types';
 import type { IndexedResources } from '../resources/types';
 import type { IndexedSkills } from '../skills/types';
@@ -32,6 +44,17 @@ export interface IndexedWorld {
   readonly crafting: IndexedCrafting;
   readonly presences: IndexedPresences;
   readonly presenceInteractions: IndexedPresenceInteractions;
+  readonly interactables: IndexedInteractables;
+  readonly bonds: IndexedBonds;
+  readonly organizations: IndexedOrganizations;
+  readonly party: IndexedParty;
+  readonly calendar: IndexedCalendar;
+  readonly family: IndexedFamily;
+  readonly civic: IndexedCivic;
+  readonly economy: IndexedEconomy;
+  readonly settlements: IndexedSettlements;
+  readonly politics: IndexedPolitics;
+  readonly registry: IndexedRegistry;
   readonly combat: IndexedCombat;
   readonly mastery: IndexedMastery;
   readonly skills: IndexedSkills;
@@ -40,6 +63,7 @@ export interface IndexedWorld {
   readonly garden: IndexedGarden;
   readonly items: IndexedItems;
   readonly conditions: IndexedConditions;
+  readonly execution: IndexedExecution;
   readonly npcs: IndexedNpcs;
   readonly objectives: IndexedObjectives;
   readonly worldTriggers: IndexedWorldTriggers;
@@ -54,6 +78,17 @@ export const PACK_FILE_KEYS = [
   'resourceNodes',
   'presences',
   'presenceInteractions',
+  'interactables',
+  'bonds',
+  'organizations',
+  'party',
+  'calendar',
+  'family',
+  'civic',
+  'economy',
+  'settlements',
+  'politics',
+  'registry',
   'npcs',
   'energetics',
   'skills',
@@ -62,6 +97,7 @@ export const PACK_FILE_KEYS = [
   'garden',
   'items',
   'conditions',
+  'execution',
   'combat',
   'craftingRecipes',
   'craftingStructures',

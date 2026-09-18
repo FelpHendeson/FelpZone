@@ -1,6 +1,14 @@
 # Sistema 26 — Profissões, cidadania e posição social
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 26.1 a 26.7.
+
+## Objetivo
+
+Permitir trajetórias que não dependem da aventura: o jogador pode tornar-se artesão, comerciante, cidadão, autoridade ou nobre conforme as regras do mundo, acumulando deveres, privilégios e reconhecimento.
+
+## Implementação
+
+A versão definitiva do schema é `schemaVersion: 20`. `GameState.civic` guarda concessões, progresso profissional verificado, permissões usadas e ações consumidas. Cidadania, ofício, título, reputação e patente do Sistema permanecem contratos distintos. Mira concede residência na Clareira; a prática de coletor é reproduzível; o benefício de coleta só vale no escopo que o concedeu. A revogação preserva o histórico e retira o privilégio.
 
 ## Objetivo
 

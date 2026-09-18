@@ -1,6 +1,6 @@
 # Sistema 22 — Númen avançado, habilidades e execução
 
-> **Estado:** definido conceitualmente e especificado em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 22.1 a 22.7 em 18 de setembro de 2026.
 
 ## Objetivo
 
@@ -26,7 +26,9 @@ Dar profundidade ao fortalecimento do personagem usando Eteris e Númen como lei
 
 Uma definição de habilidade deve conseguir declarar classificação, origem energética, fases, custo, alvo, alcance abstrato, requisitos, condições de interrupção, recarga e efeitos. Modificadores só podem atuar sobre campos registrados e dentro de limites definidos.
 
-O estado mutável contém reservas atuais, recargas, canalizações e consequências persistentes necessárias. O catálogo e as fórmulas não são copiados para o save.
+O estado mutável contém reservas atuais, recargas e consequências persistentes necessárias. Canalização de preparação ocorre no relógio abstrato do combate e não é copiada para o save. O catálogo e as fórmulas não são copiados para o save.
+
+A versão definitiva do schema é `schemaVersion: 16`. Saves v1–v15 migram com reserva de Númen cheia e sem recargas. A UI envia apenas o `actionId`; fases, custo, ordem e interrupção saem do motor.
 
 ## Integrações
 

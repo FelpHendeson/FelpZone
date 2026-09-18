@@ -1,6 +1,16 @@
 import type { Campaign } from '../../core/events';
 import type { CraftingState, IndexedCrafting } from '../crafting/types';
 import type { ExplorationState, IndexedExploration } from '../exploration/types';
+import type { IndexedBonds } from '../bonds/types';
+import type { IndexedOrganizations } from '../organizations/types';
+import type { IndexedCalendar } from '../calendar/types';
+import type { IndexedFamily } from '../family/types';
+import type { IndexedCivic } from '../civic/types';
+import type { IndexedEconomy } from '../economy/types';
+import type { IndexedSettlements } from '../settlements/types';
+import type { IndexedPolitics } from '../politics/types';
+import type { IndexedRegistry } from '../registry/types';
+import type { IndexedInteractables, InteractablesState } from '../interactables/types';
 import type { IndexedItems } from '../items/types';
 import type { IndexedMap, NavigationState } from '../navigation/types';
 import type { IndexedNpcs, NPCsState } from '../npcs/types';
@@ -30,6 +40,7 @@ export interface SandboxCoreState {
 export interface SandboxState extends SandboxCoreState {
   presences: PresenceState;
   npcs?: NPCsState;
+  interactables?: InteractablesState;
 }
 
 export interface SandboxContext {
@@ -40,6 +51,16 @@ export interface SandboxContext {
   crafting: IndexedCrafting;
   presences: IndexedPresences;
   presenceInteractions: IndexedPresenceInteractions;
+  interactables?: IndexedInteractables;
+  bonds?: IndexedBonds;
+  organizations?: IndexedOrganizations;
+  calendar?: IndexedCalendar;
+  family?: IndexedFamily;
+  civic?: IndexedCivic;
+  economy?: IndexedEconomy;
+  settlements?: IndexedSettlements;
+  politics?: IndexedPolitics;
+  registry?: IndexedRegistry;
   campaign?: Campaign;
   npcs?: IndexedNpcs;
   items?: IndexedItems;

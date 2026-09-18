@@ -40,6 +40,22 @@ import {
 import { createInitialGardenState, inspectGardenState } from '../../modules/garden';
 import { createInitialNpcsState, inspectNpcsState } from '../../modules/npcs';
 import {
+  createInitialInteractablesState,
+  inspectInteractablesState,
+  synchronizeDiscoveredInteractables,
+} from '../../modules/interactables';
+import { createInitialBondsState, inspectBondsState } from '../../modules/bonds';
+import { createInitialRegistryState, inspectRegistryState } from '../../modules/registry';
+import { createInitialOrganizationsState, inspectOrganizationsState } from '../../modules/organizations';
+import { createInitialExecutionState, inspectExecutionState } from '../../modules/execution';
+import { createInitialPartyState, inspectPartyState } from '../../modules/party';
+import { createInitialCalendarState, inspectCalendarState } from '../../modules/calendar';
+import { createInitialFamilyState, inspectFamilyState } from '../../modules/family';
+import { createInitialCivicState, inspectCivicState } from '../../modules/civic';
+import { createInitialEconomyState, inspectEconomyState } from '../../modules/economy';
+import { createInitialSettlementsState, inspectSettlementsState } from '../../modules/settlements';
+import { createInitialPoliticsState, inspectPoliticsState } from '../../modules/politics';
+import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
   MIGRATED_CAMPAIGN_ID,
@@ -54,6 +70,18 @@ import {
   SCHEMA_VERSION_V8,
   SCHEMA_VERSION_V9,
   SCHEMA_VERSION_V10,
+  SCHEMA_VERSION_V11,
+  SCHEMA_VERSION_V12,
+  SCHEMA_VERSION_V13,
+  SCHEMA_VERSION_V14,
+  SCHEMA_VERSION_V15,
+  SCHEMA_VERSION_V16,
+  SCHEMA_VERSION_V17,
+  SCHEMA_VERSION_V18,
+  SCHEMA_VERSION_V19,
+  SCHEMA_VERSION_V20,
+  SCHEMA_VERSION_V21,
+  SCHEMA_VERSION_V22,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -66,6 +94,18 @@ import {
   type GameStateV8,
   type GameStateV9,
   type GameStateV10,
+  type GameStateV11,
+  type GameStateV12,
+  type GameStateV13,
+  type GameStateV14,
+  type GameStateV15,
+  type GameStateV16,
+  type GameStateV17,
+  type GameStateV18,
+  type GameStateV19,
+  type GameStateV20,
+  type GameStateV21,
+  type GameStateV22,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -112,6 +152,54 @@ export type GameStateV9Inspection =
 
 export type GameStateV10Inspection =
   | { ok: true; state: GameStateV10 }
+  | { ok: false; reason: string };
+
+export type GameStateV11Inspection =
+  | { ok: true; state: GameStateV11 }
+  | { ok: false; reason: string };
+
+export type GameStateV12Inspection =
+  | { ok: true; state: GameStateV12 }
+  | { ok: false; reason: string };
+
+export type GameStateV13Inspection =
+  | { ok: true; state: GameStateV13 }
+  | { ok: false; reason: string };
+
+export type GameStateV14Inspection =
+  | { ok: true; state: GameStateV14 }
+  | { ok: false; reason: string };
+
+export type GameStateV15Inspection =
+  | { ok: true; state: GameStateV15 }
+  | { ok: false; reason: string };
+
+export type GameStateV16Inspection =
+  | { ok: true; state: GameStateV16 }
+  | { ok: false; reason: string };
+
+export type GameStateV17Inspection =
+  | { ok: true; state: GameStateV17 }
+  | { ok: false; reason: string };
+
+export type GameStateV18Inspection =
+  | { ok: true; state: GameStateV18 }
+  | { ok: false; reason: string };
+
+export type GameStateV19Inspection =
+  | { ok: true; state: GameStateV19 }
+  | { ok: false; reason: string };
+
+export type GameStateV20Inspection =
+  | { ok: true; state: GameStateV20 }
+  | { ok: false; reason: string };
+
+export type GameStateV21Inspection =
+  | { ok: true; state: GameStateV21 }
+  | { ok: false; reason: string };
+
+export type GameStateV22Inspection =
+  | { ok: true; state: GameStateV22 }
   | { ok: false; reason: string };
 
 export function inspectGameState(
@@ -221,6 +309,150 @@ export function inspectGameStateV10(
 ): GameStateV10Inspection {
   try {
     return inspectV10(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV11(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV11Inspection {
+  try {
+    return inspectV11(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV12(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV12Inspection {
+  try {
+    return inspectV12(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV13(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV13Inspection {
+  try {
+    return inspectV13(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV14(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV14Inspection {
+  try {
+    return inspectV14(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV15(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV15Inspection {
+  try {
+    return inspectV15(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV16(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV16Inspection {
+  try {
+    return inspectV16(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV17(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV17Inspection {
+  try {
+    return inspectV17(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV18(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV18Inspection {
+  try {
+    return inspectV18(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV19(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV19Inspection {
+  try {
+    return inspectV19(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV20(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV20Inspection {
+  try {
+    return inspectV20(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV21(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV21Inspection {
+  try {
+    return inspectV21(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV22(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV22Inspection {
+  try {
+    return inspectV22(value, context, objectiveCatalog);
   } catch {
     return { ok: false, reason: 'O salvamento está corrompido.' };
   }
@@ -345,6 +577,204 @@ export function migrateGameStateV9(
 
 export function migrateGameStateV10(
   state: GameStateV10,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV11(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V11,
+      sandbox: {
+        ...state.sandbox,
+        npcs: createInitialNpcsState(),
+      },
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV11(
+  state: GameStateV11,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV12(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V12,
+      sandbox: {
+        ...state.sandbox,
+        interactables: createInitialInteractablesState(),
+      },
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV12(
+  state: GameStateV12,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV13(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V13,
+      bonds: createInitialBondsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV13(
+  state: GameStateV13,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV14(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V14,
+      registry: createInitialRegistryState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV14(
+  state: GameStateV14,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV15(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V15,
+      organizations: createInitialOrganizationsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV15(
+  state: GameStateV15,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV16(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V16,
+      execution: createInitialExecutionState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV16(
+  state: GameStateV16,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV17(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V17,
+      party: createInitialPartyState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV17(
+  state: GameStateV17,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV18(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V18,
+      calendar: createInitialCalendarState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV18(
+  state: GameStateV18,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV19(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V19,
+      family: createInitialFamilyState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV19(
+  state: GameStateV19,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV20(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V20,
+      civic: createInitialCivicState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV20(
+  state: GameStateV20,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV21(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V21,
+      economy: createInitialEconomyState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV21(
+  state: GameStateV21,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV22(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V22,
+      settlements: createInitialSettlementsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV22(
+  state: GameStateV22,
   _context?: SandboxContext,
   _objectiveCatalog?: IndexedObjectives,
 ): GameState {
@@ -353,10 +783,7 @@ export function migrateGameStateV10(
   return {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
-    sandbox: {
-      ...state.sandbox,
-      npcs: createInitialNpcsState(),
-    },
+    politics: createInitialPoliticsState(),
   };
 }
 
@@ -653,6 +1080,50 @@ function inspectCurrent(
   if (!garden.ok) {
     return fail(garden.reason);
   }
+  const bonds = inspectBondsState(value.bonds, resolvedContext.bonds);
+  if (!bonds.ok) {
+    return fail(bonds.reason);
+  }
+  const registry = inspectRegistryState(value.registry, resolvedContext.registry);
+  if (!registry.ok) {
+    return fail(registry.reason);
+  }
+  const organizations = inspectOrganizationsState(value.organizations, resolvedContext.organizations);
+  if (!organizations.ok) {
+    return fail(organizations.reason);
+  }
+  const execution = inspectExecutionState(value.execution);
+  if (!execution.ok) {
+    return fail(execution.reason);
+  }
+  const party = inspectPartyState(value.party);
+  if (!party.ok) {
+    return fail(party.reason);
+  }
+  const calendar = inspectCalendarState(value.calendar);
+  if (!calendar.ok) {
+    return fail(calendar.reason);
+  }
+  const family = inspectFamilyState(value.family);
+  if (!family.ok) {
+    return fail(family.reason);
+  }
+  const civic = inspectCivicState(value.civic);
+  if (!civic.ok) {
+    return fail(civic.reason);
+  }
+  const economy = inspectEconomyState(value.economy);
+  if (!economy.ok) {
+    return fail(economy.reason);
+  }
+  const settlements = inspectSettlementsState(value.settlements);
+  if (!settlements.ok) {
+    return fail(settlements.reason);
+  }
+  const politics = inspectPoliticsState(value.politics);
+  if (!politics.ok) {
+    return fail(politics.reason);
+  }
   const npcs = inspectNpcsState(
     isRecord(value.sandbox) ? value.sandbox.npcs : undefined,
     resolvedContext.npcs,
@@ -660,9 +1131,24 @@ function inspectCurrent(
   if (!npcs.ok) {
     return fail(npcs.reason);
   }
+  if (!resolvedContext.interactables) {
+    return fail('O catálogo de pontos de interesse é inválido.');
+  }
+  const interactablesInspected = inspectInteractablesState(
+    isRecord(value.sandbox) ? value.sandbox.interactables : undefined,
+    resolvedContext.interactables,
+  );
+  if (!interactablesInspected.ok) {
+    return fail(interactablesInspected.reason);
+  }
   const synchronizedPresences = synchronizeDiscoveredPresences(
     resolvedContext.presences,
     sandbox.value.presences,
+    sandbox.value.exploration,
+  ).current;
+  const synchronizedInteractables = synchronizeDiscoveredInteractables(
+    resolvedContext.interactables,
+    interactablesInspected.value,
     sandbox.value.exploration,
   ).current;
 
@@ -680,12 +1166,24 @@ function inspectCurrent(
           shared.value.flags,
         ),
         npcs: npcs.value,
+        interactables: synchronizedInteractables,
       },
       objectives: objectives.value,
       system: system.value,
       items: items.value,
       lingering: lingering.value,
       garden: garden.value,
+      bonds: bonds.value,
+      registry: registry.value,
+      organizations: organizations.value,
+      execution: execution.value,
+      party: party.value,
+      calendar: calendar.value,
+      family: family.value,
+      civic: civic.value,
+      economy: economy.value,
+      settlements: settlements.value,
+      politics: politics.value,
     },
   };
 }
@@ -835,6 +1333,516 @@ function inspectV10(
     return fail(garden.reason);
   }
   return { ok: true, state: { ...previous.state, schemaVersion: SCHEMA_VERSION_V10, garden: garden.value } };
+}
+
+function inspectV11(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV11Inspection {
+  if (
+    !isRecord(value) ||
+    value.schemaVersion !== SCHEMA_VERSION_V11 ||
+    (isRecord(value.sandbox) && 'interactables' in value.sandbox)
+  ) {
+    return fail('O salvamento usa um contrato incompatível com o schema 11.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      sandbox: isRecord(value.sandbox) ? { ...value.sandbox, interactables: { objects: [] } } : value.sandbox,
+      bonds: { edges: [], consumedActionIds: [] },
+      registry: createInitialRegistryState(),
+      organizations: createInitialOrganizationsState(),
+      execution: createInitialExecutionState(),
+      party: createInitialPartyState(),
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { interactables: _ignored, ...sandbox } = inspected.state.sandbox;
+  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _ignored;
+  void _bonds;
+  void _registry;
+  void _organizations;
+  void _execution;
+  void _party;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V11,
+      sandbox,
+    },
+  };
+}
+
+function inspectV12(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV12Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V12 || 'bonds' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 12.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      bonds: { edges: [], consumedActionIds: [] },
+      registry: createInitialRegistryState(),
+      organizations: createInitialOrganizationsState(),
+      execution: createInitialExecutionState(),
+      party: createInitialPartyState(),
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _bonds;
+  void _registry;
+  void _organizations;
+  void _execution;
+  void _party;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V12,
+    },
+  };
+}
+
+function inspectV13(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV13Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V13 || 'registry' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 13.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      registry: createInitialRegistryState(),
+      organizations: createInitialOrganizationsState(),
+      execution: createInitialExecutionState(),
+      party: createInitialPartyState(),
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _registry;
+  void _organizations;
+  void _execution;
+  void _party;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V13,
+    },
+  };
+}
+
+function inspectV14(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV14Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V14 || 'organizations' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 14.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      organizations: createInitialOrganizationsState(),
+      execution: createInitialExecutionState(),
+      party: createInitialPartyState(),
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _organizations;
+  void _execution;
+  void _party;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V14,
+    },
+  };
+}
+
+function inspectV15(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV15Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V15 || 'execution' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 15.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      execution: createInitialExecutionState(),
+      party: createInitialPartyState(),
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _execution;
+  void _party;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V15,
+    },
+  };
+}
+
+function inspectV16(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV16Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V16 || 'party' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 16.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      party: createInitialPartyState(),
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _party;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V16,
+    },
+  };
+}
+
+function inspectV17(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV17Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V17 || 'calendar' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 17.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      calendar: createInitialCalendarState(),
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _calendar;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V17,
+    },
+  };
+}
+
+function inspectV18(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV18Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V18 || 'family' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 18.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      family: createInitialFamilyState(),
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _family;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V18,
+    },
+  };
+}
+
+function inspectV19(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV19Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V19 || 'civic' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 19.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      civic: createInitialCivicState(),
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _civic;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V19,
+    },
+  };
+}
+
+function inspectV20(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV20Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V20 || 'economy' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 20.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      economy: createInitialEconomyState(),
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { economy: _economy, settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _economy;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V20,
+    },
+  };
+}
+
+function inspectV21(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV21Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V21 || 'settlements' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 21.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      settlements: createInitialSettlementsState(),
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { settlements: _settlements, politics: _politics, ...rest } = inspected.state;
+  void _settlements;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V21,
+    },
+  };
+}
+
+function inspectV22(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV22Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V22 || 'politics' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 22.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { politics: _politics, ...rest } = inspected.state;
+  void _politics;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V22,
+    },
+  };
 }
 
 function inspectVersionedSystemState(

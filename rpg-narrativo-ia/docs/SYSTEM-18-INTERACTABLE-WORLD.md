@@ -1,6 +1,6 @@
 # Sistema 18 — Cenário interativo e pontos de interesse
 
-> **Estado:** definido e especificado pelo autor em 17 de setembro de 2026. Ainda não implementado.
+> **Estado:** implementado e consolidado nas Fatias 18.1 a 18.7 em 17 de setembro de 2026.
 
 ## Objetivo
 
@@ -26,7 +26,7 @@ O catálogo deve conseguir expressar:
 - requisitos, custo temporal e efeitos permitidos;
 - consequências narrativas ou desbloqueios referenciados por ID.
 
-O save guarda somente o estado mutável do objeto: descoberta, estágio atual, ações únicas consumidas e fatos revelados. A versão definitiva do schema só será atribuída na fatia de persistência.
+A versão definitiva do schema é `schemaVersion: 12`. Saves v1–v11 migram com lista vazia de objetos, sem conceder descobertas.
 
 ## Integrações
 

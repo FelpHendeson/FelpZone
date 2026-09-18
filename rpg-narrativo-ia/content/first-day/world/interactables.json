@@ -1,0 +1,103 @@
+{
+  "interactables": [
+    {
+      "id": "great-tree-bark-marks",
+      "locationId": "great-tree",
+      "discoveryId": "bark-markings",
+      "name": "Marcas no tronco",
+      "description": "Sulcos antigos percorrem a casca da Grande Árvore.",
+      "initialStageId": "untouched",
+      "image": {
+        "kind": "scene",
+        "label": "Marcas no tronco"
+      },
+      "stages": [
+        {
+          "id": "untouched",
+          "name": "Intocadas",
+          "description": "As marcas ainda não foram examinadas de perto."
+        },
+        {
+          "id": "examined",
+          "name": "Examinadas",
+          "description": "Os sulcos formam um padrão deliberado."
+        },
+        {
+          "id": "deciphered",
+          "name": "Decifradas",
+          "description": "As marcas apontam para um oco na raiz."
+        }
+      ],
+      "facts": [
+        {
+          "id": "pattern-noticed",
+          "text": "As marcas não são acidentes da casca."
+        },
+        {
+          "id": "hollow-hint",
+          "text": "Há um oco encoberto entre as raízes."
+        }
+      ]
+    }
+  ],
+  "actions": [
+    {
+      "id": "examine-bark-marks",
+      "interactableId": "great-tree-bark-marks",
+      "stageId": "untouched",
+      "label": "Examinar marcas",
+      "hint": "Olhar de perto os sulcos no tronco.",
+      "timeCost": {
+        "periods": 1
+      },
+      "once": true,
+      "effects": [
+        {
+          "type": "interactable.setStage",
+          "stageId": "examined"
+        },
+        {
+          "type": "interactable.revealFact",
+          "factId": "pattern-noticed"
+        }
+      ],
+      "feedback": "Os sulcos formam um padrão deliberado, ainda fechado demais para seguir."
+    },
+    {
+      "id": "decipher-bark-marks",
+      "interactableId": "great-tree-bark-marks",
+      "stageId": "examined",
+      "label": "Decifrar o padrão",
+      "hint": "Usar os sentidos aguçados para ler o traçado.",
+      "timeCost": {
+        "periods": 1
+      },
+      "once": true,
+      "requirements": [
+        {
+          "type": "skill.known",
+          "skillId": "sharpened-senses"
+        }
+      ],
+      "effects": [
+        {
+          "type": "interactable.setStage",
+          "stageId": "deciphered"
+        },
+        {
+          "type": "interactable.revealFact",
+          "factId": "hollow-hint"
+        },
+        {
+          "type": "navigation.unlock",
+          "locationId": "great-tree-hollow"
+        },
+        {
+          "type": "navigation.discover",
+          "locationId": "great-tree-hollow"
+        }
+      ],
+      "feedback": "O padrão aponta para um oco encoberto entre as raízes da Grande Árvore."
+    }
+  ]
+}
