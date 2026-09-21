@@ -416,7 +416,14 @@ export function playChoices(
 }
 
 export function playFirstDay(choiceIds: string[]): GameState {
-  return playChoices(freshState(), choiceIds);
+  let state = playChoices(freshState(), choiceIds);
+  if (state.narrativeSession?.eventId === 'eteris-introduction') {
+    state = applyChoice(state, firstDayCampaign, 'eteris-pressure', now);
+  }
+  if (state.narrativeSession?.eventId === 'numen-introduction') {
+    state = applyChoice(state, firstDayCampaign, 'numen-follow-guidance', now);
+  }
+  return state;
 }
 
 export function continueAfterIntro(introChoices: string[], restChoices: string[]): GameState {
