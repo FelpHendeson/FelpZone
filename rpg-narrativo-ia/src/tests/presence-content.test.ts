@@ -9,7 +9,7 @@ import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { createMemoryPersistence, parseGameState, serializeGameState } from '../infrastructure/persistence';
 import { buildExplorationView, commitSandboxAction } from '../ui/sandbox';
 import { toAppScreen } from '../ui/routing';
-import { asV3, playChoices, playFirstDay } from './helpers';
+import { asV3, playChoices, playFirstDay, revealMiraForTest } from './helpers';
 
 const context = createSandboxContext();
 const consumedFlag = worldTriggerConsumedFlag('first-priority');
@@ -58,50 +58,41 @@ function talkMira(state: GameState) {
 }
 
 describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
-  it('Mira não aparece antes da descoberta e explorar não abre narrativa', () => {
+  it('Mira não aparece antes dos sinais avançados e explorar não abre narrativa', () => {
     const start = enterExploration();
     expect(viewOf(start).presences).toEqual([]);
 
-    const revealed = mustCommit(start, { type: 'exploration.explore' });
-    const mira = viewOf(revealed.current).presences[0];
+    const early = exploreTimes(start, 4);
+    expect(early.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
+    expect(early.narrativeSession).toBeNull();
 
-    expect(revealed.openedTrigger).toBeUndefined();
-    expect(revealed.current.narrativeSession).toBeNull();
-    expect(toAppScreen(revealed.current)).toBe('exploration');
-    expect(mira?.presenceId).toBe('mira-awakening-clearing');
-    expect(mira?.status).toBe('available');
-    expect(mira?.interactions.some((interaction) => interaction.interactionId === 'talk-mira-awakening-clearing')).toBe(
-      true,
-    );
+    const revealed = exploreTimes(early, 1);
+    expect(revealed.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
+    expect(revealed.narrativeSession).toBeNull();
+    expect(toAppScreen(revealed)).toBe('exploration');
   });
 
   it('conversar abre exatamente uma sessão, aplica o custo uma vez e devolve ao mesmo local', () => {
-    const revealed = mustCommit(enterExploration(), { type: 'exploration.explore' }).current;
+    const revealed = revealMiraForTest(enterExploration());
     const location = revealed.sandbox.navigation.currentLocationId;
     const worldBefore = { ...revealed.world };
     const historyBefore = revealed.history.length;
 
     const talked = talkMira(revealed);
     expect(talked.result.timeCost).toEqual({ periods: 1 });
-    expect(talked.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
+    expect(talked.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'survivor-meet' });
     expect(talked.current.world).not.toEqual(worldBefore);
     expect(toAppScreen(talked.current)).toBe('game');
 
-    const firstChoice = playChoices(talked.current, ['seek-water']);
-    expect(firstChoice.world).toEqual(talked.current.world);
-
-    const returned = playChoices(firstChoice, [
-      'alert-hide',
+    const returned = playChoices(talked.current, [
       'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
+      'share-information',
     ]);
 
     expect(returned.narrativeSession).toBeNull();
     expect(returned.sandbox.navigation.currentLocationId).toBe(location);
     expect(returned.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
-    expect(returned.flags['camp.together']).toBe(true);
+    expect(returned.flags['mira.shared-information']).toBe(true);
     expect(returned.relationships.some((entry) => entry.characterId === 'mira-vale')).toBe(true);
     expect(returned.history.length).toBeGreaterThan(historyBefore);
     expect(viewOf(returned).presences[0]?.status).toBe('resolved');
@@ -119,7 +110,7 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
   });
 
   it('observar Mira permanece no sandbox e não resolve a presença', () => {
-    const revealed = mustCommit(enterExploration(), { type: 'exploration.explore' }).current;
+    const revealed = revealMiraForTest(enterExploration());
     const observed = mustCommit(revealed, {
       type: 'presence.interact',
       presenceId: 'mira-awakening-clearing',
@@ -192,14 +183,10 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
   });
 
   it('save e reload preservam descobertas, resoluções e o fluxo sandbox anterior', () => {
-    const revealed = mustCommit(enterExploration(), { type: 'exploration.explore' }).current;
+    const revealed = revealMiraForTest(enterExploration());
     const returned = playChoices(talkMira(revealed).current, [
-      'seek-water',
-      'alert-hide',
-      'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
+      'meet-distance',
+      'share-information',
     ]);
     const persistence = createMemoryPersistence(undefined, context);
     persistence.save(returned);
@@ -227,7 +214,7 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
   });
 
   it('saves migrados com o gatilho já consumido não duplicam o primeiro encontro', () => {
-    const revealed = mustCommit(enterExploration(), { type: 'exploration.explore' }).current;
+    const revealed = revealMiraForTest(enterExploration());
     const flagged = {
       ...revealed,
       flags: { ...revealed.flags, [consumedFlag]: true },
@@ -239,9 +226,8 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
       throw new Error('save inválido');
     }
 
-    expect(migrated.state.sandbox.presences.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
-    expect(migrated.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
-    expect(viewOf(migrated.state).presences[0]?.status).toBe('resolved');
+    expect(migrated.state.sandbox.presences.discoveredPresenceIds).toEqual([]);
+    expect(migrated.state.sandbox.presences.resolvedPresenceIds).toEqual([]);
 
     const talk = commit(migrated.state, {
       type: 'presence.interact',
@@ -260,8 +246,8 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
     expect(roundtrip.status).toBe('ok');
     if (roundtrip.status === 'ok') {
       expect(inspectGameState(roundtrip.state, context).ok).toBe(true);
-      expect(roundtrip.state.sandbox.presences.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
-      expect(roundtrip.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+      expect(roundtrip.state.sandbox.presences.discoveredPresenceIds).toEqual([]);
+      expect(roundtrip.state.sandbox.presences.resolvedPresenceIds).toEqual([]);
     }
   });
 });
