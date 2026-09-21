@@ -12,7 +12,7 @@ import { executeSandboxAction, SandboxActionError } from '../modules/sandbox-act
 import { indexPresenceInteractionCatalog } from '../modules/presences';
 import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { commitSandboxAction } from '../ui/sandbox';
-import { asV1, asV2, asV3, playChoices, playFirstDay } from './helpers';
+import { asV1, asV2, asV3, playChoices, playFirstDay, revealMiraForTest } from './helpers';
 
 const STAMP = '2026-09-04T12:00:00.000Z';
 const context = createSandboxContext();
@@ -32,7 +32,7 @@ function inspectOrThrow(state: GameState): GameState {
 }
 
 function revealMira(state: GameState): GameState {
-  return executeSandboxAction(state, { type: 'exploration.explore' }, { context, now: () => STAMP }).current;
+  return revealMiraForTest(state);
 }
 
 function withRabbit(state: GameState): GameState {
@@ -114,8 +114,8 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
       return;
     }
 
-    expect(migrated.state.sandbox.presences.discoveredPresenceIds).toEqual(['mira-awakening-clearing']);
-    expect(migrated.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+    expect(migrated.state.sandbox.presences.discoveredPresenceIds).toEqual([]);
+    expect(migrated.state.sandbox.presences.resolvedPresenceIds).toEqual([]);
     expect(migrated.state.flags[worldTriggerConsumedFlag('first-priority')]).toBe(true);
 
     const reloaded = parseGameState(
@@ -127,12 +127,26 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     );
     expect(reloaded.status).toBe('ok');
     if (reloaded.status === 'ok') {
-      expect(reloaded.state.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
+      expect(reloaded.state.sandbox.presences.resolvedPresenceIds).toEqual([]);
     }
   });
 
   it('sincroniza descobertas antigas na migração v3', () => {
-    const revealed = revealMira(exploring());
+    const base = exploring();
+    const revealed = inspectOrThrow({
+      ...revealMira(base),
+      sandbox: {
+        ...revealMira(base).sandbox,
+        exploration: {
+          locations: [{
+            locationId: 'awakening-clearing',
+            progress: 50,
+            revealedDiscoveryIds: ['mira-nearby'],
+            explorationCount: 5,
+          }],
+        },
+      },
+    });
     expect(revealed.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
 
     const v3 = asV3(revealed);
@@ -261,7 +275,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     );
 
     expect(result.timeCost).toEqual({ periods: 1 });
-    expect(result.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
+    expect(result.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'survivor-meet' });
     expect(result.current.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(result.current.sandbox.navigation.currentLocationId).toBe(location);
     expect(result.detail.type).toBe('presence.interact');
@@ -397,17 +411,13 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     }
 
     expect(talk.openedTrigger).toBeUndefined();
-    expect(talk.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
+    expect(talk.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'survivor-meet' });
     expect(talk.current.flags[worldTriggerConsumedFlag('first-priority')]).toBeUndefined();
     expect(talk.current.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
 
     const returned = playChoices(talk.current, [
-      'seek-water',
-      'alert-hide',
       'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
+      'share-information',
     ]);
     const next = commitSandboxAction(
       returned,
@@ -448,7 +458,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
 
     expect(opened.openedTrigger).toBeUndefined();
     expect(opened.current.narrativeSession).toBeNull();
-    expect(opened.current.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
+    expect(opened.current.sandbox.presences.discoveredPresenceIds).toEqual([]);
     expect(opened.current.sandbox.presences.resolvedPresenceIds).toEqual([]);
 
     const talked = commitSandboxAction(
