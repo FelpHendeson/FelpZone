@@ -84,7 +84,7 @@ describe('Fatia E — jornada principal do primeiro dia', () => {
     ]);
     expect(getObjectiveStatus(INITIAL_OBJECTIVES, state.objectives, 'first-steps')).toBe('completed');
     expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
-    expect(state.sandbox.crafting.activeStructures).toEqual([]);
+    expect(state.sandbox.crafting.structures).toEqual([]);
     expect(state.inventory.some((entry) => entry.itemId === 'cooked-horned-rabbit-meat')).toBe(false);
 
     const journal = buildJournalView(state, context);
@@ -110,7 +110,7 @@ describe('Fatia E — jornada principal do primeiro dia', () => {
       ).current;
     }
 
-    expect(listKnownObjectives(INITIAL_OBJECTIVES, state.objectives).map((objective) => objective.id)).toContain(
+    expect(listKnownObjectives(INITIAL_OBJECTIVES, state.objectives).map((entry) => entry.objective.id)).toContain(
       'camp-comfort',
     );
     expect(getObjectiveStatus(INITIAL_OBJECTIVES, state.objectives, 'camp-comfort')).toBe('active');
