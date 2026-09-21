@@ -123,7 +123,7 @@ Não colocar texto canônico de tutorial dentro dos componentes.
 
 ---
 
-# 4. Marcos narrativos
+# 4. Marcos narrativos — **implementados**
 
 Ampliar `world-events`.
 
@@ -142,7 +142,7 @@ Não implementar fontes futuras sem necessidade.
 
 ---
 
-# 5. Objetivos — critério de habilidade
+# 5. Objetivos — critério de habilidade — **implementado**
 
 Adicionar ao Sistema 10:
 
@@ -443,7 +443,7 @@ Alterações de texto continuam sem exigir código.
 - popup;
 - testes.
 
-## Fatia C — Critério + triggers
+## Fatia C — Critério + triggers — **implementada**
 
 - objetivo `system.skill.proficiency.min`;
 - world trigger `system.skill.proficiency.min`;
