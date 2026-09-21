@@ -14,6 +14,15 @@ export function evaluateCondition(condition: GameCondition, state: GameState): b
       const item = state.inventory.find((entry) => entry.itemId === condition.itemId);
       return (item?.quantity ?? 0) >= needed;
     }
+    case 'crafting.structure.active': {
+      const locationId = condition.locationId ?? state.sandbox.navigation.currentLocationId;
+      return state.sandbox.crafting.structures.some(
+        (entry) =>
+          entry.structureId === condition.structureId &&
+          entry.locationId === locationId &&
+          entry.active,
+      );
+    }
     case 'relationship.min': {
       const relation = state.relationships.find((entry) => entry.characterId === condition.characterId);
       return (relation?.trust ?? 0) >= condition.amount;
