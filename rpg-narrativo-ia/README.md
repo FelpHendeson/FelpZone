@@ -67,7 +67,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; o save atual está no schema 25 após as Fatias A e B da revisão narrativa do Dia 1.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; o save atual está no schema 25 após as Fatias A e B, e a Fatia C já conecta gameplay real a marcos narrativos.
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -157,7 +157,7 @@ O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do r
 
 ## O que foi validado nesta entrega
 
-- `npm test`: testes incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 25, migrações v1–v24, diário, superfície mobile, necessidades, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica), o ciclo de progressão por prática do Sistema 13, os Sistemas 14 a 17 (loadout, condições, Jardim e NPCs persistentes), o ciclo da Grande Árvore do Sistema 18, os vínculos direcionais do Sistema 19, o Registro do Sistema 20, os grupos do Sistema 21, a execução avançada do Sistema 22, a party coletiva do Sistema 23, o calendário do Sistema 24, a família do Sistema 25, a cidadania do Sistema 26, a economia do Sistema 27, os assentamentos do Sistema 28 e a diplomacia do Sistema 29.
+- `npm test`: testes incluindo a jornada `Primeiros passos`, o fluxo jogável de Mira e do coelho, persistência schema 25, migrações v1–v24, diário, superfície mobile, necessidades, critérios por proficiência, marcos narrativos por habilidade/dia, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica), o ciclo de progressão por prática do Sistema 13, os Sistemas 14 a 17 (loadout, condições, Jardim e NPCs persistentes), o ciclo da Grande Árvore do Sistema 18, os vínculos direcionais do Sistema 19, o Registro do Sistema 20, os grupos do Sistema 21, a execução avançada do Sistema 22, a party coletiva do Sistema 23, o calendário do Sistema 24, a família do Sistema 25, a cidadania do Sistema 26, a economia do Sistema 27, os assentamentos do Sistema 28 e a diplomacia do Sistema 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Explorar a Clareira do Despertar revela Mira sem abrir narrativa; conversar inicia `first-priority` e devolve o jogador ao sandbox depois da noite.
