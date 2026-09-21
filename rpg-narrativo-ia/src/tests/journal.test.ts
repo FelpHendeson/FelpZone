@@ -143,7 +143,7 @@ describe('Fatia 10.3 — diário derivado', () => {
         progress: 10,
         discoveries: [
           { id: 'awakening-site', name: 'Marca do despertar', kind: 'landmark' },
-          { id: 'first-priority-event', name: 'Sinais de outra sobrevivente', kind: 'event' },
+          { id: 'first-priority-event', name: 'Leitura inicial da clareira', kind: 'landmark' },
         ],
       }),
     ]);
