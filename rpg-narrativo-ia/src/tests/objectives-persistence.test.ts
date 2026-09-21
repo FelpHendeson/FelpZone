@@ -232,7 +232,7 @@ describe('Fatia 10.2 — critérios e sincronização', () => {
 describe('Fatia 10.2 — schema 6 e migração', () => {
   it('cria e persiste o estado de objetivos no schema atual', () => {
     const state = stateWithCatalog();
-    expect(SCHEMA_VERSION).toBe(23);
+    expect(SCHEMA_VERSION).toBe(24);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.objectives).toEqual(createInitialObjectivesState(catalog));
     expect(parseGameState(serializeGameState(state, undefined, catalog), undefined, catalog)).toEqual({
