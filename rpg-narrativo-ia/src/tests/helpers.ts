@@ -477,7 +477,20 @@ export function playFirstDay(choiceIds: string[]): GameState {
 }
 
 export function continueAfterIntro(introChoices: string[], restChoices: string[]): GameState {
-  return playChoices(reopenNarrativeSession(playFirstDay(introChoices), 'first-priority'), restChoices);
+  let state = reopenNarrativeSession(playFirstDay(introChoices), 'first-priority');
+  for (const choiceId of restChoices) {
+    if (!state.narrativeSession) {
+      if (choiceId.startsWith('meet-')) {
+        state = reopenNarrativeSession(state, 'survivor-meet');
+      } else if (choiceId === 'accept-shelter' || choiceId === 'decline-shelter') {
+        state = reopenNarrativeSession(state, state.flags['moral.shared'] ? 'dusk-trusted' : 'dusk-wary');
+      } else if (choiceId === 'repair-offer' || choiceId === 'stay-apart' || choiceId === 'walk-away') {
+        state = reopenNarrativeSession(state, 'dusk-wary');
+      }
+    }
+    state = applyChoice(state, firstDayCampaign, choiceId, now);
+  }
+  return state;
 }
 
 export function stubCampaign(overrides: Partial<Campaign> = {}): Campaign {
