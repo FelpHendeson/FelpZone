@@ -617,7 +617,7 @@ describe('sincronização com descobertas', () => {
     const result = synchronizeDiscoveredPresences(
       catalog,
       freezeState(createInitialPresenceState(catalog)),
-      freezeExploration(explorationAt(START, ['mira-nearby'], 50)),
+      freezeExploration(explorationAt(START, ['first-priority-event'], 10)),
     );
 
     expect(result.newlyDiscoveredPresenceIds).toEqual(['mira-first', 'mira-second']);
@@ -723,7 +723,7 @@ describe('sincronização com descobertas', () => {
       hidden,
       freezeExploration(
         explorationState([
-          locationExploration(START, ['mira-nearby'], 50),
+          locationExploration(START, ['first-priority-event'], 10),
           locationExploration('dense-woods', ['horned-rabbit-tracks'], 40),
         ]),
       ),
@@ -767,7 +767,7 @@ describe('sincronização com descobertas', () => {
     const result = synchronizeDiscoveredPresences(
       catalog,
       freezeState(createInitialPresenceState(catalog)),
-      freezeExploration(explorationAt(START, ['mira-nearby'], 50)),
+      freezeExploration(explorationAt(START, ['first-priority-event'], 10)),
     );
 
     expect(result.newlyDiscoveredPresenceIds).toEqual(['mira-conditional']);
