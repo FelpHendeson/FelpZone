@@ -7,7 +7,7 @@ import {
   type CombatState,
 } from '../modules/combat';
 import { describeMasteryProgress } from '../modules/system-interface';
-import type { GameState } from '../core/state';
+import type { CharacterSex, GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
 import { createSandboxContextFromWorld, type SandboxContext } from '../modules/sandbox';
@@ -138,8 +138,14 @@ export function App() {
     setScreen('create');
   }
 
-  function handleCreate(firstName: string, lastName: string) {
-    const next = startGame(normalizeIdentity(firstName, lastName), campaign, undefined, sandboxContext, world.objectives);
+  function handleCreate(firstName: string, lastName: string, sex: Exclude<CharacterSex, 'unspecified'>) {
+    const next = startGame(
+      { ...normalizeIdentity(firstName, lastName), sex },
+      campaign,
+      undefined,
+      sandboxContext,
+      world.objectives,
+    );
     persist(next);
     setError(null);
     setFeedback(null);
