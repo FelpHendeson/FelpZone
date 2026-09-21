@@ -20,7 +20,15 @@
         "revealAt": 10,
         "completionWeight": 1,
         "once": true,
-        "name": "Sinais de outra sobrevivente"
+        "name": "A urgência do primeiro dia"
+      },
+      {
+        "id": "human-footprints",
+        "kind": "landmark",
+        "revealAt": 20,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Pegadas humanas recentes"
       },
       {
         "id": "path-great-tree",
@@ -49,6 +57,14 @@
         "name": "Rastros do predador"
       },
       {
+        "id": "human-cut-branch",
+        "kind": "landmark",
+        "revealAt": 35,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Ramo cortado de propósito"
+      },
+      {
         "id": "path-spring-lake",
         "kind": "passage",
         "revealAt": 40,
@@ -57,6 +73,14 @@
         "unlockTarget": true,
         "once": true,
         "name": "Passagem para a Nascente"
+      },
+      {
+        "id": "mira-nearby",
+        "kind": "event",
+        "revealAt": 50,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Movimento humano além das pedras"
       },
       {
         "id": "torn-cloth",
