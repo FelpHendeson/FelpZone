@@ -45,6 +45,12 @@ As decisões abaixo foram definidas pelo autor:
 - O jogador define nome e sobrenome de um jovem que acabara de atingir a maioridade e desperta sozinho, sem familiares ou aliados.
 - A trajetória pode misturar aventura, drama, fantasia e ficção especulativa; o tom deve responder às decisões do jogador.
 - A causa do Reset, a origem do Sistema e o desenvolvimento amplo da trama continuam **em discussão** e devem ser construídos em conjunto.
+- A distribuição humana após o Reset preserva correlação geográfica em grande escala: pessoas antes próximas tendem a cair na mesma Zona de Transposição, mas são dispersas internamente de forma parcialmente aleatória.
+- O primeiro grande arco cobre os sete primeiros dias, durante os quais sobreviventes próximos se encontram, um assentamento começa a surgir e o jogador pode integrar-se a ele ou seguir outro caminho.
+- Etéris e Númen devem ser apresentados em conceito e prática já no primeiro dia; no sétimo, o Registro regional revela diferenças extremas de crescimento e amplia a pressão por cooperação, alianças e organização política.
+- Tutorial contextual e Central de Ajuda diegética do Sistema fazem parte da direção definida; atividades/trabalhos cotidianos do assentamento são uma extensão mecânica desejada a ser especificada antes de implementação.
+
+A fundação narrativa detalhada está em [Fundação narrativa — Reset](NARRATIVE-FOUNDATION.md). Nomes de região, elenco inicial, números de ranking e ordem fina dos acontecimentos continuam provisórios para playtest.
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
