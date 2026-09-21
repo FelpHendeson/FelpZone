@@ -26,6 +26,7 @@ import { inspectObjectiveCatalog } from '../objectives';
 import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
 import { inspectResourceDefinitions } from '../resources';
 import { inspectWorldTriggerCatalog } from '../world-events';
+import { inspectGuidanceCatalog, INITIAL_GUIDANCE } from '../guidance';
 import { firstDayCampaign } from '../../campaigns/first-day';
 import type { Campaign } from '../../core/events';
 import type { SandboxContext, SandboxContextInspection } from './types';
@@ -366,6 +367,16 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     }
     context.worldTriggers = worldTriggers.value;
   }
+  if (value.guidance !== undefined) {
+    const guidance = inspectGuidanceCatalog(value.guidance);
+    if (!guidance.ok) {
+      return fail(guidance.reason);
+    }
+    context.guidance = guidance.value;
+  } else {
+    context.guidance = INITIAL_GUIDANCE;
+  }
+
   if (value.stationLabels !== undefined && !isRecord(value.stationLabels)) {
     return fail('Os rótulos de estação são inválidos.');
   }
