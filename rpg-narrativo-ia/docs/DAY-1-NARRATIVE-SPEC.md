@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificado em 21 de setembro de 2026. Implementado até a Fatia E; a primeira noite adaptativa e a transição ao Dia 2 permanecem na Fatia F.**
+**Especificado em 21 de setembro de 2026. Implementado até a Fatia F, incluindo primeira noite adaptativa e transição canônica ao Dia 2; resta a Fatia G de playtest e ajuste fino.**
 
 Este documento transforma a [Fundação narrativa](NARRATIVE-FOUNDATION.md) em uma primeira fatia jogável concreta.
 
