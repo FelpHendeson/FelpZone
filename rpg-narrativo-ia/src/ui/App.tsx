@@ -20,7 +20,7 @@ import { GameScreen } from './screens/GameScreen';
 import { StartScreen } from './screens/StartScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { hasActiveNarrativeSession, toAppScreen } from './routing';
-import { commitSandboxAction } from './sandbox';
+import { commitSandboxAction, resolveWorldNarrativeState } from './sandbox';
 import { mergeFeedback, type FeedbackEntry, type WorldFeedbackView } from './sandbox/feedback';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -159,11 +159,13 @@ export function App() {
     }
 
     try {
-      const next = applyChoice(state, campaign, choiceId, undefined, world.objectives, sandboxContext);
-      persist(next);
+      const prepared = resolveWorldNarrativeState(state, sandboxContext, campaign, worldTriggers).current;
+      const transitioned = applyChoice(prepared, campaign, choiceId, undefined, world.objectives, sandboxContext);
+      const resolved = resolveWorldNarrativeState(transitioned, sandboxContext, campaign, worldTriggers);
+      persist(resolved.current);
       setError(null);
       setFeedback(null);
-      setScreen(toAppScreen(next));
+      setScreen(toAppScreen(resolved.current));
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Não foi possível aplicar a escolha.');
     }
