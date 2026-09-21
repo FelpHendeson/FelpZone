@@ -4,7 +4,7 @@
       "id": "mira-vale",
       "kind": "npc",
       "name": "Mira Vale",
-      "description": "Uma sobrevivente da mesma idade, encontrada depois do Reset.",
+      "description": "Uma jovem sobrevivente da mesma região de transposição. Mantém distância e toma decisões próprias.",
       "image": {
         "kind": "portrait",
         "label": "Mira Vale"
@@ -26,7 +26,7 @@
       "id": "mira-awakening-clearing",
       "entityId": "mira-vale",
       "locationId": "awakening-clearing",
-      "discoveryId": "first-priority-event",
+      "discoveryId": "mira-nearby",
       "resolvable": true
     },
     {
