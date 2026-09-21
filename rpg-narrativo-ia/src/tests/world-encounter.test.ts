@@ -48,7 +48,7 @@ function openEncounter(state: ReturnType<typeof playFirstDay>) {
 }
 
 describe('catálogo de gatilhos de mundo', () => {
-  it('aceita o catálogo vazio da campanha e preserva o mecanismo genérico', () => {
+  it('aceita o marco energético da campanha e preserva o mecanismo genérico de descoberta', () => {
     const empty = inspectWorldTriggerCatalog(catalog, {
       campaign: firstDayCampaign,
       exploration: context.exploration,
@@ -62,7 +62,15 @@ describe('catálogo de gatilhos de mundo', () => {
 
     expect(empty.ok).toBe(true);
     if (empty.ok) {
-      expect(empty.value.definitions).toHaveLength(0);
+      expect(empty.value.definitions).toHaveLength(1);
+      expect(empty.value.definitions[0]).toMatchObject({
+        id: 'first-numen-practice',
+        source: {
+          type: 'system.skill.proficiency.min',
+          skillId: 'sharpened-senses',
+          amount: 1,
+        },
+      });
     }
 
     expect(mechanism.ok).toBe(true);
