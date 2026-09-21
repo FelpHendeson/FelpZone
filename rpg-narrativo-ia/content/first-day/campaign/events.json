@@ -134,8 +134,8 @@
   },
   {
     "id": "choose-ability",
-    "title": "Capacidade inicial",
-    "body": "O Sistema não escolhe por você. Três caminhos se abrem, cada um com uma vantagem clara. Só um cabe neste primeiro dia.\n\nO resto, se existir, virá depois — das decisões, não de um destino escrito.",
+    "title": "Aptidão inicial",
+    "body": "O Sistema não escolhe uma classe por você. Três aptidões aparecem como inclinações para este começo — vantagens, não destinos.\n\nNada aqui diz o que seu Númen poderá se tornar. Isso dependerá do que você fizer depois.",
     "image": {
       "kind": "scene",
       "label": "Escolha de capacidade"
@@ -171,7 +171,8 @@
           }
         ],
         "transition": {
-          "type": "returnToExploration"
+          "type": "event",
+          "eventId": "eteris-introduction"
         }
       },
       {
@@ -209,7 +210,8 @@
           }
         ],
         "transition": {
-          "type": "returnToExploration"
+          "type": "event",
+          "eventId": "eteris-introduction"
         }
       },
       {
@@ -241,6 +243,124 @@
             "topicId": "journeys"
           }
         ],
+        "transition": {
+          "type": "event",
+          "eventId": "eteris-introduction"
+        }
+      }
+    ]
+  },
+  {
+    "id": "eteris-introduction",
+    "title": "Algo além do corpo",
+    "body": "Quando a escolha termina, o painel não desaparece.\n\nUma nova orientação ocupa a superfície translúcida:\n\n**ETÉRIS — energia presente no ambiente e no próprio mundo.**\n\nA instrução seguinte parece simples demais:\n\n> Pare por um instante. Não procure um objeto. Procure a diferença entre o que pertence ao seu corpo e o que existe ao redor dele.\n\nVocê fica imóvel. Não surge luz nem voz. Ainda assim, alguma coisa começa a se destacar do vento, da terra e do espaço entre as árvores.",
+    "image": {
+      "kind": "scene",
+      "label": "Primeira percepção da Etéris"
+    },
+    "choices": [
+      {
+        "id": "eteris-pressure",
+        "label": "A sensação parece uma pressão invisível",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "energetics.sensation.pressure",
+            "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "eteris"
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "numen-introduction"
+        }
+      },
+      {
+        "id": "eteris-warmth",
+        "label": "A sensação lembra calor sem fonte",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "energetics.sensation.warmth",
+            "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "eteris"
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "numen-introduction"
+        }
+      },
+      {
+        "id": "eteris-vibration",
+        "label": "A sensação lembra uma vibração quase silenciosa",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "energetics.sensation.vibration",
+            "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "eteris"
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "numen-introduction"
+        }
+      }
+    ]
+  },
+  {
+    "id": "numen-introduction",
+    "title": "Númen",
+    "body": "O Sistema responde à percepção com outra definição curta:\n\n**NÚMEN — Etéris assimilada por um ser vivo, interiorizada e individualizada.**\n\nVocê percebe então que parte daquela presença não está apenas fora. Existe algo acompanhando sua respiração, o pulso e a tensão dos músculos — parecido com a Etéris, mas inequivocamente seu.\n\nA orientação não promete poder instantâneo. Ela oferece um método:\n\n**Treino de Percepção Focada** — use o Númen para aguçar a leitura do ambiente e aprenda a reconhecer sua circulação.\n\nO restante depende de prática.",
+    "image": {
+      "kind": "scene",
+      "label": "Primeira percepção do Númen"
+    },
+    "choices": [
+      {
+        "id": "numen-follow-guidance",
+        "label": "Guardar a orientação e praticar no mundo",
+        "notable": true,
+        "effects": [
+          {
+            "type": "guidance.unlock",
+            "topicId": "numen"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "training"
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "first-numen-practice",
+    "title": "A primeira circulação",
+    "canStartSession": true,
+    "body": "Depois de insistir na orientação, a diferença finalmente deixa de ser apenas teoria.\n\nO Númen acompanha sua atenção. Por um instante, sons se separam melhor, pequenas mudanças do vento ficam mais fáceis de notar e o terreno parece oferecer mais informação do que oferecia antes.\n\nNão foi uma transformação súbita. Você não recebeu domínio de nada.\n\nMas agora sabe que a circulação responde à prática — e que **Sentidos Aguçados** deixou de ser apenas um nome no Sistema.",
+    "image": {
+      "kind": "scene",
+      "label": "Primeira prática real de Númen"
+    },
+    "choices": [
+      {
+        "id": "first-numen-practice-continue",
+        "label": "Voltar a observar o mundo",
+        "effects": [],
         "transition": {
           "type": "returnToExploration"
         }
