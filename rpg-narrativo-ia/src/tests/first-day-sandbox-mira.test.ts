@@ -10,6 +10,7 @@ const world = loadFirstDayWorld();
 const campaign = world.campaign;
 const context = createSandboxContextFromWorld(world);
 const triggers = world.worldTriggers.definitions;
+const sliceETriggers = triggers.filter((trigger) => !['first-night', 'day-two-start'].includes(trigger.id));
 
 function newGame() {
   return startGame(
@@ -38,7 +39,7 @@ function finishEnergyIntro() {
     { type: 'training.train', methodId: 'focused-perception-drill' },
     context,
     campaign,
-    triggers,
+    sliceETriggers,
     world.objectives,
   );
   expect(trained.ok).toBe(true);
@@ -54,7 +55,7 @@ function finishEnergyIntro() {
     world.objectives,
     context,
   );
-  return resolveWorldNarrativeState(returned, context, campaign, triggers).current;
+  return resolveWorldNarrativeState(returned, context, campaign, sliceETriggers).current;
 }
 
 function act(state: ReturnType<typeof finishEnergyIntro>, action: Parameters<typeof attemptSandboxAction>[1]) {
