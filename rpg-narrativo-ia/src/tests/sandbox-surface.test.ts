@@ -91,7 +91,7 @@ describe('superfície mobile do sandbox', () => {
     expect(destinationIds(start)).not.toContain('horned-rabbit-forest');
 
     const afterTwo = exploreTimes(start, 2);
-    expect(destinationIds(afterTwo)).toEqual(['great-tree']);
+    expect(destinationIds(afterTwo)).toEqual(['great-tree', 'spring-lake']);
     expect(destinationIds(afterTwo)).toContain('spring-lake');
     expect(destinationIds(afterTwo)).not.toContain('dense-woods');
     expect(destinationIds(afterTwo)).not.toContain('hidden-cave');
