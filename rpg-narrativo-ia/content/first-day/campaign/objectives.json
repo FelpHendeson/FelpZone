@@ -2,8 +2,8 @@
   "objectives": [
     {
       "id": "first-steps",
-      "title": "Primeiros passos",
-      "description": "Transforme o despertar solitário nos primeiros sinais de sobrevivência e companhia.",
+      "title": "Primeiro dia",
+      "description": "Aprenda o mínimo para agir no novo mundo, garanta água e confirme que você não foi a única pessoa trazida para esta região.",
       "kind": "main",
       "stepMode": "sequential",
       "activation": {
@@ -17,7 +17,7 @@
       "steps": [
         {
           "id": "choose-ability",
-          "title": "Escolha uma capacidade inicial",
+          "title": "Escolha uma aptidão inicial",
           "criteria": [
             {
               "type": "progression.ability.selected"
@@ -25,8 +25,19 @@
           ]
         },
         {
+          "id": "first-numen-practice",
+          "title": "Faça sua primeira prática de Númen",
+          "criteria": [
+            {
+              "type": "system.skill.proficiency.min",
+              "skillId": "sharpened-senses",
+              "amount": 1
+            }
+          ]
+        },
+        {
           "id": "explore-awakening-clearing",
-          "title": "Explore a Clareira do Despertar",
+          "title": "Reconheça a Clareira do Despertar",
           "criteria": [
             {
               "type": "exploration.discovery.revealed",
@@ -35,15 +46,45 @@
           ]
         },
         {
-          "id": "find-spring",
-          "title": "Encontre a nascente",
+          "id": "secure-water",
+          "title": "Garanta água para continuar",
           "criteria": [
             {
-              "type": "exploration.discovery.revealed",
-              "discoveryId": "spring-source"
+              "type": "inventory.item.quantity",
+              "itemId": "agua-limpa",
+              "quantity": 1
             }
           ]
         },
+        {
+          "id": "investigate-signs",
+          "title": "Encontre sinais de outra pessoa",
+          "criteria": [
+            {
+              "type": "exploration.discovery.revealed",
+              "discoveryId": "human-footprints"
+            }
+          ]
+        }
+      ],
+      "completionText": "Você já consegue agir neste mundo e confirmou uma coisa importante: há outra pessoa por perto. Procurá-la ou não continua sendo escolha sua."
+    },
+    {
+      "id": "camp-comfort",
+      "title": "Conforto improvisado",
+      "description": "Fogo e comida tornam o primeiro dia menos hostil, mas não são obrigação para seguir a história.",
+      "kind": "side",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "exploration.discovery.revealed",
+            "discoveryId": "fallen-sticks"
+          }
+        ]
+      },
+      "steps": [
         {
           "id": "build-campfire",
           "title": "Construa uma fogueira",
@@ -64,20 +105,29 @@
               "quantity": 1
             }
           ]
-        },
+        }
+      ],
+      "completionText": "Você transformou recursos dispersos em um pouco de conforto. Isso ajuda, mas nunca foi a única forma de sobreviver."
+    },
+    {
+      "id": "other-survivor",
+      "title": "Outra sobrevivente",
+      "description": "Você encontrou sinais claros de alguém por perto. Aproximar-se ou evitar contato são escolhas válidas.",
+      "kind": "side",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "presence.discovered",
+            "presenceId": "mira-awakening-clearing"
+          }
+        ]
+      },
+      "steps": [
         {
-          "id": "investigate-signs",
-          "title": "Investigue os sinais de outra pessoa",
-          "criteria": [
-            {
-              "type": "presence.discovered",
-              "presenceId": "mira-awakening-clearing"
-            }
-          ]
-        },
-        {
-          "id": "meet-mira",
-          "title": "Conheça Mira",
+          "id": "decide-contact",
+          "title": "Decida como lidar com a sobrevivente",
           "criteria": [
             {
               "type": "presence.resolved",
@@ -86,7 +136,7 @@
           ]
         }
       ],
-      "completionText": "Você já não está apenas reagindo ao Reset: encontrou meios de sobreviver e outra pessoa neste mundo."
+      "completionText": "Você tomou uma decisão sobre o primeiro contato. O mundo continua independentemente de ter escolhido companhia."
     },
     {
       "id": "great-tree-marks",
