@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   listUnlockedGuidanceTopics,
   type GuidanceState,
@@ -21,21 +21,13 @@ export function GuidancePanel({
 }) {
   const topics = useMemo(() => listUnlockedGuidanceTopics(catalog, state), [catalog, state]);
   const fallbackId = topics[0]?.id ?? null;
-  const [selectedId, setSelectedId] = useState<string | null>(
-    initialTopicId && topics.some((topic) => topic.id === initialTopicId) ? initialTopicId : fallbackId,
-  );
-
-  useEffect(() => {
-    if (initialTopicId && topics.some((topic) => topic.id === initialTopicId)) {
-      setSelectedId(initialTopicId);
-    } else if (selectedId && !topics.some((topic) => topic.id === selectedId)) {
-      setSelectedId(fallbackId);
-    } else if (!selectedId && fallbackId) {
-      setSelectedId(fallbackId);
-    }
-  }, [fallbackId, initialTopicId, selectedId, topics]);
-
-  const selected = topics.find((topic) => topic.id === selectedId) ?? null;
+  const initialSelectedId =
+    initialTopicId && topics.some((topic) => topic.id === initialTopicId) ? initialTopicId : fallbackId;
+  const [selectedId, setSelectedId] = useState<string | null>(initialSelectedId);
+  const effectiveSelectedId = selectedId && topics.some((topic) => topic.id === selectedId)
+    ? selectedId
+    : initialSelectedId;
+  const selected = topics.find((topic) => topic.id === effectiveSelectedId) ?? null;
   const seen = new Set(state.seenTopicIds);
 
   return (
