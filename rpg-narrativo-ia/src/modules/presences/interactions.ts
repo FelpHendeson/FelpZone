@@ -729,6 +729,8 @@ function copyEffect(effect: GameEffect): GameEffect {
       return { type: 'progression.ability', abilityId: effect.abilityId };
     case 'progression.title':
       return { type: 'progression.title', titleId: effect.titleId };
+    case 'guidance.unlock':
+      return { type: 'guidance.unlock', topicId: effect.topicId };
     case 'game.complete':
       return { type: 'game.complete' };
     case 'npc.rememberFact':
@@ -869,6 +871,8 @@ function sameEffect(left: GameEffect, right: unknown): boolean {
       return right.abilityId === left.abilityId;
     case 'progression.title':
       return right.titleId === left.titleId;
+    case 'guidance.unlock':
+      return right.topicId === left.topicId;
     case 'game.complete':
       return true;
     case 'npc.rememberFact':
