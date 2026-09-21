@@ -563,8 +563,7 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "survivor-meet"
+          "type": "returnToExploration"
         }
       },
       {
@@ -592,8 +591,7 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "survivor-meet"
+          "type": "returnToExploration"
         }
       },
       {
@@ -638,8 +636,7 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "survivor-meet"
+          "type": "returnToExploration"
         }
       }
     ]
@@ -685,8 +682,7 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "survivor-meet"
+          "type": "returnToExploration"
         }
       },
       {
@@ -733,8 +729,7 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "survivor-meet"
+          "type": "returnToExploration"
         }
       },
       {
@@ -779,16 +774,15 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "survivor-meet"
+          "type": "returnToExploration"
         }
       }
     ]
   },
   {
     "id": "survivor-meet",
-    "title": "Outra voz",
-    "body": "Depois da criatura, o vale parece menor. Então alguém tosse.\n\nÉ uma jovem, mais ou menos da sua idade, mãos vazias, ombros tensos. Ela não aponta arma porque não há arma. Só a distância entre dois desconhecidos.\n\n— Mira Vale — diz ela, como quem testa se o próprio nome ainda funciona. — Se você também acordou sozinho, não preciso inventar história.",
+    "title": "A pessoa por trás dos sinais",
+    "body": "As pegadas, o ramo cortado e o movimento entre as pedras finalmente apontam para alguém.\n\nUma jovem ergue as mãos vazias quando percebe que foi vista. Ela parece tão cansada quanto alerta.\n\n— Mira — diz, sem se aproximar. — Mira Vale.\n\nEla também tem um Sistema. Isso fica evidente quando seus olhos acompanham algo que não está fisicamente no ar entre vocês. Mas ela não parece saber muito mais do que você.",
     "image": {
       "kind": "scene",
       "label": "Encontro na clareira"
@@ -801,18 +795,18 @@
       {
         "id": "meet-open",
         "label": "Aproximar-se com as mãos visíveis",
-        "hint": "A confiança de Mira aumenta.",
+        "hint": "Você assume um risco pequeno para deixar claro que não quer confronto.",
         "notable": true,
         "effects": [
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": 12
+            "amount": 10
           },
           {
             "type": "attribute.change",
             "attribute": "humanidade",
-            "amount": 6
+            "amount": 5
           },
           {
             "type": "guidance.unlock",
@@ -826,8 +820,8 @@
       },
       {
         "id": "meet-calm",
-        "label": "Falar baixo e esperar ela decidir a distância",
-        "hint": "A Voz Calma rende mais confiança.",
+        "label": "Falar baixo e deixar Mira escolher a distância",
+        "hint": "A Voz Calma facilita o primeiro contato.",
         "notable": true,
         "conditions": [
           {
@@ -840,12 +834,37 @@
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": 20
+            "amount": 16
           },
           {
             "type": "attribute.change",
             "attribute": "humanidade",
-            "amount": 8
+            "amount": 6
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 3
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "relationships-basics"
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "moral-choice"
+        }
+      },
+      {
+        "id": "meet-distance",
+        "label": "Conversar mantendo alguns passos de distância",
+        "hint": "Contato sem confiança imediata.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 5
           },
           {
             "type": "attribute.change",
@@ -863,18 +882,20 @@
         }
       },
       {
-        "id": "meet-distance",
-        "label": "Falar à distância, sem se aproximar",
+        "id": "meet-leave",
+        "label": "Encerrar o contato por enquanto",
+        "hint": "Você confirma que existe outra pessoa e segue seu caminho.",
+        "notable": true,
         "effects": [
           {
-            "type": "relationship.change",
-            "characterId": "mira-vale",
-            "amount": 6
+            "type": "flag.set",
+            "flag": "mira.contact.ended",
+            "value": true
           },
           {
             "type": "attribute.change",
             "attribute": "cautela",
-            "amount": 6
+            "amount": 4
           },
           {
             "type": "guidance.unlock",
@@ -882,46 +903,16 @@
           }
         ],
         "transition": {
-          "type": "event",
-          "eventId": "moral-choice"
-        }
-      },
-      {
-        "id": "meet-hide",
-        "label": "Observar escondido antes de responder",
-        "hint": "Menos humanidade. Ela percebe a hesitação.",
-        "effects": [
-          {
-            "type": "relationship.change",
-            "characterId": "mira-vale",
-            "amount": 2
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "cautela",
-            "amount": 8
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "humanidade",
-            "amount": -6
-          },
-          {
-            "type": "guidance.unlock",
-            "topicId": "relationships-basics"
-          }
-        ],
-        "transition": {
-          "type": "event",
-          "eventId": "moral-choice"
+          "type": "returnToExploration"
         }
       }
-    ]
+    ],
+    "canStartSession": true
   },
   {
     "id": "moral-choice",
-    "title": "O pouco que existe",
-    "body": "Mira olha o fruto na sua mão com uma fome que ela tenta esconder. O dia ainda não acabou, e não há garantia de outro alimento.\n\n— Eu não vou pedir — diz ela. — Só... se a regra nova for cada um por si, eu preciso saber agora.\n\nO Sistema não sugere nada. A escolha é sua.",
+    "title": "O que vocês sabem",
+    "body": "Mira evita perguntas grandes demais. Onde estão as cidades? Ela não sabe. Por que o Sistema existe? Também não.\n\nO que ela sabe é menor e mais útil: viu água em algum ponto baixo, ouviu uma criatura na mata e acordou sem encontrar ninguém conhecido.\n\nVocê decide quanto quer oferecer em troca — recurso, informação ou nada por enquanto.",
     "image": {
       "kind": "scene",
       "label": "Decisão sobre o alimento"
@@ -932,9 +923,52 @@
     },
     "choices": [
       {
+        "id": "share-water",
+        "label": "Oferecer água",
+        "hint": "Exige água no inventário.",
+        "notable": true,
+        "conditions": [
+          {
+            "type": "inventory.has",
+            "itemId": "agua-limpa",
+            "quantity": 1
+          }
+        ],
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "moral.shared",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "moral.shared-water",
+            "value": true
+          },
+          {
+            "type": "inventory.remove",
+            "itemId": "agua-limpa",
+            "quantity": 1
+          },
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 18
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "humanidade",
+            "amount": 8
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
         "id": "share-fruit",
-        "label": "Dividir o fruto com Mira",
-        "hint": "Você perde o fruto. Confiança e humanidade aumentam.",
+        "label": "Dividir o fruto que encontrou",
+        "hint": "Exige um fruto disponível.",
         "notable": true,
         "conditions": [
           {
@@ -957,35 +991,22 @@
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": 22
+            "amount": 14
           },
           {
             "type": "attribute.change",
             "attribute": "humanidade",
-            "amount": 12
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "fome",
-            "amount": -8
-          },
-          {
-            "type": "world.period",
-            "period": "entardecer"
+            "amount": 6
           }
         ],
         "transition": {
-          "type": "firstMatch",
-          "eventIds": [
-            "dusk-trusted",
-            "dusk-wary"
-          ]
+          "type": "returnToExploration"
         }
       },
       {
         "id": "share-all",
-        "label": "Dividir o fruto e a água",
-        "hint": "Exige água no inventário. A confiança sobe bastante.",
+        "label": "Dividir água e alimento",
+        "hint": "Exige água e fruto.",
         "notable": true,
         "conditions": [
           {
@@ -1012,46 +1033,58 @@
           },
           {
             "type": "inventory.remove",
-            "itemId": "fruto-desconhecido",
+            "itemId": "agua-limpa",
             "quantity": 1
           },
           {
             "type": "inventory.remove",
-            "itemId": "agua-limpa",
+            "itemId": "fruto-desconhecido",
             "quantity": 1
           },
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": 30
+            "amount": 24
           },
           {
             "type": "attribute.change",
             "attribute": "humanidade",
-            "amount": 16
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "fome",
-            "amount": -12
-          },
-          {
-            "type": "world.period",
-            "period": "entardecer"
+            "amount": 10
           }
         ],
         "transition": {
-          "type": "firstMatch",
-          "eventIds": [
-            "dusk-trusted",
-            "dusk-wary"
-          ]
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "share-information",
+        "label": "Compartilhar apenas o que você descobriu",
+        "hint": "Informação também pode ser cooperação.",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "mira.shared-information",
+            "value": true
+          },
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 7
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "humanidade",
+            "amount": 3
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
         }
       },
       {
         "id": "keep-resource",
-        "label": "Guardar o que você tem",
-        "hint": "A confiança cai. Você mantém o alimento.",
+        "label": "Não dividir recursos agora",
+        "hint": "Você mantém o que possui e encerra a conversa sem hostilidade aberta.",
         "notable": true,
         "effects": [
           {
@@ -1062,24 +1095,16 @@
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": -12
+            "amount": -4
           },
           {
             "type": "attribute.change",
-            "attribute": "humanidade",
-            "amount": -10
-          },
-          {
-            "type": "world.period",
-            "period": "entardecer"
+            "attribute": "cautela",
+            "amount": 3
           }
         ],
         "transition": {
-          "type": "firstMatch",
-          "eventIds": [
-            "dusk-trusted",
-            "dusk-wary"
-          ]
+          "type": "returnToExploration"
         }
       }
     ]
