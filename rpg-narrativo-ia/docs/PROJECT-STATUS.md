@@ -54,6 +54,8 @@ A fundação narrativa detalhada está em [Fundação narrativa — Reset](NARRA
 
 O [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) está especificado, mas ainda não implementado nessa forma. Ele reorganiza o primeiro dia para introduzir Etéris/Númen em prática, preservar liberdade sandbox e encerrar com a primeira noite em vez de apresentar prematuramente toda a simulação social.
 
+A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). Ela aprova duas mecânicas transversais ainda não implementadas: [Orientação e Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) e a ampliação dos [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md). O checkpoint proposto eleva o save para schema 24 por adicionar sexo à identidade e estado persistido de orientação.
+
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
 ## Metas de experiência definidas
