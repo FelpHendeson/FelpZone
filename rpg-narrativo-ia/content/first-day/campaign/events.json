@@ -27,6 +27,10 @@
           {
             "type": "world.period",
             "period": "manha"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "choices-and-consequences"
           }
         ],
         "transition": {
@@ -52,6 +56,10 @@
           {
             "type": "world.period",
             "period": "manha"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "choices-and-consequences"
           }
         ],
         "transition": {
@@ -78,6 +86,14 @@
             "type": "flag.set",
             "flag": "system.acknowledged",
             "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "system-basics"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "time"
           }
         ],
         "transition": {
@@ -99,6 +115,14 @@
             "type": "flag.set",
             "flag": "system.observed",
             "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "system-basics"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "time"
           }
         ],
         "transition": {
@@ -136,6 +160,14 @@
             "type": "attribute.change",
             "attribute": "cautela",
             "amount": 15
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "exploration"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "journeys"
           }
         ],
         "transition": {
@@ -166,6 +198,14 @@
             "type": "attribute.change",
             "attribute": "energia",
             "amount": 10
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "exploration"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "journeys"
           }
         ],
         "transition": {
@@ -191,6 +231,14 @@
             "type": "attribute.change",
             "attribute": "humanidade",
             "amount": 15
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "exploration"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "journeys"
           }
         ],
         "transition": {
@@ -238,6 +286,14 @@
           {
             "type": "world.period",
             "period": "meio-dia"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "needs"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "inventory"
           }
         ],
         "transition": {
@@ -272,6 +328,14 @@
           {
             "type": "world.period",
             "period": "meio-dia"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "needs"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "inventory"
           }
         ],
         "transition": {
@@ -311,6 +375,14 @@
           {
             "type": "world.period",
             "period": "meio-dia"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "needs"
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "inventory"
           }
         ],
         "transition": {
@@ -621,6 +693,10 @@
             "type": "attribute.change",
             "attribute": "humanidade",
             "amount": 6
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "relationships-basics"
           }
         ],
         "transition": {
@@ -655,6 +731,10 @@
             "type": "attribute.change",
             "attribute": "cautela",
             "amount": 4
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "relationships-basics"
           }
         ],
         "transition": {
@@ -675,6 +755,10 @@
             "type": "attribute.change",
             "attribute": "cautela",
             "amount": 6
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "relationships-basics"
           }
         ],
         "transition": {
@@ -701,6 +785,10 @@
             "type": "attribute.change",
             "attribute": "humanidade",
             "amount": -6
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "relationships-basics"
           }
         ],
         "transition": {
