@@ -1,11 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import { firstDayCampaign } from '../campaigns/first-day';
 import { createInitialState } from '../core/state';
-import { indexObjectiveCatalog } from '../modules/objectives';
+import { indexObjectiveCatalog, synchronizeObjectives } from '../modules/objectives';
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction } from '../modules/sandbox-actions';
 import { buildJournalView } from '../ui/journal';
-import { playChoices } from './helpers';
+import { playChoices, revealMiraForTest } from './helpers';
 
 const context = createSandboxContext();
 const objectives = indexObjectiveCatalog({
@@ -92,12 +92,15 @@ function journalState() {
     () => '2026-09-11T12:00:00.000Z',
     objectives,
   );
-  return executeSandboxAction(exploring, { type: 'exploration.explore' }, {
+  const explored = executeSandboxAction(exploring, { type: 'exploration.explore' }, {
     context,
     campaign: firstDayCampaign,
     objectives,
     now: () => '2026-09-11T13:00:00.000Z',
   }).current;
+  const withMira = revealMiraForTest(explored);
+  const synchronized = synchronizeObjectives(objectives, withMira.objectives, withMira);
+  return { ...withMira, objectives: synchronized.current };
 }
 
 describe('Fatia 10.3 — diário derivado', () => {
