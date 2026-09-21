@@ -52,6 +52,8 @@ As decisões abaixo foram definidas pelo autor:
 
 A fundação narrativa detalhada está em [Fundação narrativa — Reset](NARRATIVE-FOUNDATION.md). Nomes de região, elenco inicial, números de ranking e ordem fina dos acontecimentos continuam provisórios para playtest.
 
+O [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) está especificado, mas ainda não implementado nessa forma. Ele reorganiza o primeiro dia para introduzir Etéris/Númen em prática, preservar liberdade sandbox e encerrar com a primeira noite em vez de apresentar prematuramente toda a simulação social.
+
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
 ## Metas de experiência definidas
