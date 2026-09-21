@@ -40,7 +40,7 @@ describe('Persistência dos Sistemas 14 a 17 — schema 11', () => {
 
   it('conversar com Mira registra fatos persistidos após reload', () => {
     const exploring = { ...freshState(), narrativeSession: null };
-    const revealed = executeSandboxAction(exploring, { type: 'exploration.explore' }).current;
+    const revealed = revealMiraForTest(exploring);
     const talked = executeSandboxAction(
       revealed,
       {
