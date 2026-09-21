@@ -112,8 +112,9 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
     validatePoliticsWorld(politics, map, npcs);
     validatePartyWorld(party, combat, npcs, organizations);
     const objectives = unwrap(inspectObjectiveCatalog(raw.objectives), 'O catálogo de jornadas é inválido.');
+    validateObjectiveSkillReferences(objectives, skills);
     const worldTriggers = unwrap(
-      inspectWorldTriggerCatalog(raw.worldTriggers, { campaign, exploration }),
+      inspectWorldTriggerCatalog(raw.worldTriggers, { campaign, exploration, skills }),
       'O catálogo de gatilhos é inválido.',
     );
     const firstPriorityTrigger = inspectFirstPriorityTrigger(raw.firstPriorityTrigger);
@@ -165,6 +166,28 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       throw new ContentError(error.message, { cause: error });
     }
     throw new ContentError('O pack de mundo é inválido.');
+  }
+}
+
+function validateObjectiveSkillReferences(
+  objectives: IndexedWorld['objectives'],
+  skills: IndexedWorld['skills'],
+): void {
+  for (const objective of objectives.objectives) {
+    const criteria = [
+      ...(objective.activation.type === 'criteria' ? objective.activation.criteria : []),
+      ...objective.steps.flatMap((step) => step.criteria),
+    ];
+    for (const criterion of criteria) {
+      if (
+        criterion.type === 'system.skill.proficiency.min' &&
+        !skills.skillById.has(criterion.skillId)
+      ) {
+        throw new ContentError(
+          `O objetivo ${objective.id} referencia a habilidade ${criterion.skillId}, que não existe.`,
+        );
+      }
+    }
   }
 }
 
