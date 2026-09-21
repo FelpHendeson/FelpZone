@@ -278,7 +278,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ## Programa especificado depois do Sistema 17
 
-O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda e uma fonte remota futura reusa o mesmo `composeWorld`. O Sistema 29 levou o save ao schema 23; a Fatia A da revisão narrativa do Dia 1 levou-o ao schema 24 com `character.sex`; a Fatia B levou-o ao schema 25 com orientação e ajuda persistidas, dirigidas pelo pack. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
+O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda e uma fonte remota futura reusa o mesmo `composeWorld`. O Sistema 29 levou o save ao schema 23; a Fatia A da revisão narrativa do Dia 1 levou-o ao schema 24 com `character.sex`; a Fatia B levou-o ao schema 25 com orientação e ajuda persistidas, dirigidas pelo pack; a Fatia C ampliou objetivos e `world-events` com marcos por proficiência e dia sem novo schema. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
 
 Em 17 de setembro de 2026, o autor definiu o projeto como um **motor de mundos jogáveis**: sistemas reutilizáveis formam os blocos; packs configuram as leis e o conteúdo; campanhas contam histórias por cima deles. A arquitetura e os critérios permanentes estão em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
 
