@@ -16,11 +16,11 @@
       },
       {
         "id": "first-priority-event",
-        "kind": "event",
+        "kind": "landmark",
         "revealAt": 10,
         "completionWeight": 1,
         "once": true,
-        "name": "A urgência do primeiro dia"
+        "name": "Leitura inicial da clareira"
       },
       {
         "id": "human-footprints",
