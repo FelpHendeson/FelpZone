@@ -460,12 +460,20 @@ Alterações de texto continuam sem exigir código.
 - `first-numen-practice` reage à proficiência canônica de `sharpened-senses`;
 - primeira percepção de Etéris registra apenas linguagem sensorial (pressão, calor ou vibração), sem bônus mecânico.
 
-## Fatia E — Sandbox e Mira
+## Fatia E — Sandbox e Mira — **implementada**
 
-- jornada principal;
-- sinais humanos;
-- encontro revisado;
-- opcionais desacoplados.
+- jornada principal `first-steps` preserva o ID e passa a representar o **Primeiro dia**;
+- primeira prática real de Númen integra a jornada pelo estado canônico de proficiência;
+- caminho para a nascente aparece cedo e a descoberta `spring-source` satisfaz a necessidade de água sem forçar tratamento específico;
+- `human-footprints` e `human-cut-branch` antecedem `mira-nearby`;
+- Mira só é revelada por `mira-nearby`, não por `first-priority-event`;
+- o jogador pode observar, fazer contato ou evitar Mira;
+- falar abre `survivor-meet`; a troca seguinte pode envolver água, alimento, informação ou recusa e retorna ao sandbox;
+- evitar contato resolve a presença sem abrir narrativa;
+- fogueira e refeição saem da jornada principal e entram na jornada lateral `camp-comfort`;
+- contato com Mira entra na jornada lateral `other-survivor`;
+- perigo e conversa deixam de empurrar automaticamente o jogador ao entardecer/noite;
+- nenhum novo estado persistente: schema permanece 25.
 
 ## Fatia F — Primeira noite
 
