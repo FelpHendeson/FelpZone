@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
@@ -32,6 +32,11 @@ import { InventoryPanel } from './exploration/InventoryPanel';
 import { SystemPanel } from './exploration/SystemPanel';
 import { DetailScreen, type GameView } from './exploration/shared';
 import { requireActiveCatalog } from './exploration/helpers';
+import {
+  listUnlockedGuidanceTopics,
+  listUnseenGuidanceTopics,
+} from '../../modules/guidance';
+import { GuidancePanel } from './exploration/GuidancePanel';
 
 interface ExplorationScreenProps {
   state: GameState;
@@ -41,6 +46,7 @@ interface ExplorationScreenProps {
   actionPending?: boolean;
   onAction: (action: SandboxAction) => void;
   onResolveCombat: (encounterId: string, finalState: CombatState) => void;
+  onGuidanceSeen: (topicId: string) => void;
   onExit: () => void;
 }
 
@@ -48,7 +54,7 @@ function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain') {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help') {
     return 'menu';
   }
   return view;
@@ -62,12 +68,15 @@ export function ExplorationScreen({
   actionPending = false,
   onAction,
   onResolveCombat,
+  onGuidanceSeen,
   onExit,
 }: ExplorationScreenProps) {
   const [activeView, setActiveView] = useState<GameView>('world');
   const [actionsOpen, setActionsOpen] = useState(false);
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
+  const [helpTopicId, setHelpTopicId] = useState<string | null>(null);
+  const guidancePopupShown = useRef(false);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
   const revealedDiscoveryIds =
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
@@ -76,6 +85,7 @@ export function ExplorationScreen({
   const items = requireActiveCatalog(context.items, 'itens');
   const party = requireActiveCatalog(context.party, 'party');
   const organizations = requireActiveCatalog(context.organizations, 'organizações');
+  const guidance = requireActiveCatalog(context.guidance, 'orientação');
   const encounters = listAvailableEncounters(
     combat,
     currentLocationId,
@@ -134,6 +144,11 @@ export function ExplorationScreen({
   const trackedJourney = journal.journeys.find(
     (journey) => journey.id === trackedJourneyId && journey.status === 'active',
   );
+  const unlockedGuidance = listUnlockedGuidanceTopics(guidance, state.guidance);
+  const unseenGuidance = listUnseenGuidanceTopics(guidance, state.guidance);
+  const popupGuidance = guidancePopupShown.current
+    ? null
+    : unseenGuidance.find((topic) => topic.popupOnUnlock !== false) ?? null;
 
   return (
     <main className="screen screen--exploration">
@@ -200,8 +215,23 @@ export function ExplorationScreen({
             />
           ) : null}
           {activeView === 'inventory' ? <InventoryPanel view={view} onAction={onAction} /> : null}
+          {activeView === 'help' ? (
+            <GuidancePanel
+              catalog={guidance}
+              state={state.guidance}
+              initialTopicId={helpTopicId}
+              onSeen={onGuidanceSeen}
+              onBack={() => setActiveView('menu')}
+            />
+          ) : null}
           {activeView === 'menu' ? (
-            <GameMenuPanel status={status} view={view} onNavigate={setActiveView} />
+            <GameMenuPanel
+              status={status}
+              view={view}
+              onNavigate={setActiveView}
+              guidanceCount={unlockedGuidance.length}
+              guidanceUnseenCount={unseenGuidance.length}
+            />
           ) : null}
 
           <AppDialog
@@ -213,6 +243,43 @@ export function ExplorationScreen({
           </AppDialog>
         </fieldset>
       </div>
+
+      {popupGuidance ? (
+        <AppDialog
+          open
+          title={popupGuidance.title}
+          onClose={() => {
+            guidancePopupShown.current = true;
+            onGuidanceSeen(popupGuidance.id);
+          }}
+        >
+          <p>{popupGuidance.summary}</p>
+          <div className="button-stack">
+            <button
+              type="button"
+              className="button button--primary"
+              onClick={() => {
+                guidancePopupShown.current = true;
+                onGuidanceSeen(popupGuidance.id);
+              }}
+            >
+              Entendi
+            </button>
+            <button
+              type="button"
+              className="button button--ghost"
+              onClick={() => {
+                guidancePopupShown.current = true;
+                setHelpTopicId(popupGuidance.id);
+                onGuidanceSeen(popupGuidance.id);
+                setActiveView('help');
+              }}
+            >
+              Ver detalhes
+            </button>
+          </div>
+        </AppDialog>
+      ) : null}
 
       <BottomNavigation
         active={bottomTabFor(activeView)}
