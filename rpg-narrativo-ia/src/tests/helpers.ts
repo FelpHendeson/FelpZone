@@ -39,10 +39,26 @@ export function revealMiraForTest(state: GameState): GameState {
   const discoveredPresenceIds = Array.from(
     new Set([...state.sandbox.presences.discoveredPresenceIds, 'mira-awakening-clearing']),
   );
-  const npcEntries = state.sandbox.npcs.entries.map((entry) =>
-    entry.npcId === 'mira-vale'
-      ? { ...entry, locationOverrideId: state.sandbox.navigation.currentLocationId }
-      : { ...entry },
+  const existingMira = state.sandbox.npcs.entries.find((entry) => entry.npcId === 'mira-vale');
+  const npcEntries = state.sandbox.npcs.entries
+    .filter((entry) => entry.npcId !== 'mira-vale')
+    .map((entry) => ({ ...entry }));
+  npcEntries.push(
+    existingMira
+      ? {
+          ...existingMira,
+          known: true,
+          status: 'active',
+          locationOverrideId: state.sandbox.navigation.currentLocationId,
+        }
+      : {
+          npcId: 'mira-vale',
+          known: true,
+          status: 'active',
+          locationOverrideId: state.sandbox.navigation.currentLocationId,
+          memoryFactIds: [],
+          scheduleOverrideId: null,
+        },
   );
   return {
     ...state,
