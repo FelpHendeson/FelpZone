@@ -58,6 +58,7 @@ import { createInitialPoliticsState, inspectPoliticsState } from '../../modules/
 import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
+  CHARACTER_SEXES,
   MIGRATED_CAMPAIGN_ID,
   SCHEMA_VERSION,
   SCHEMA_VERSION_V1,
@@ -82,6 +83,7 @@ import {
   SCHEMA_VERSION_V20,
   SCHEMA_VERSION_V21,
   SCHEMA_VERSION_V22,
+  SCHEMA_VERSION_V23,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -106,6 +108,7 @@ import {
   type GameStateV20,
   type GameStateV21,
   type GameStateV22,
+  type GameStateV23,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -200,6 +203,10 @@ export type GameStateV21Inspection =
 
 export type GameStateV22Inspection =
   | { ok: true; state: GameStateV22 }
+  | { ok: false; reason: string };
+
+export type GameStateV23Inspection =
+  | { ok: true; state: GameStateV23 }
   | { ok: false; reason: string };
 
 export function inspectGameState(
@@ -453,6 +460,18 @@ export function inspectGameStateV22(
 ): GameStateV22Inspection {
   try {
     return inspectV22(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV23(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV23Inspection {
+  try {
+    return inspectV23(value, context, objectiveCatalog);
   } catch {
     return { ok: false, reason: 'O salvamento está corrompido.' };
   }
@@ -775,6 +794,22 @@ export function migrateGameStateV21(
 
 export function migrateGameStateV22(
   state: GameStateV22,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV23(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V23,
+      politics: createInitialPoliticsState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV23(
+  state: GameStateV23,
   _context?: SandboxContext,
   _objectiveCatalog?: IndexedObjectives,
 ): GameState {
@@ -783,7 +818,11 @@ export function migrateGameStateV22(
   return {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
-    politics: createInitialPoliticsState(),
+    character: {
+      firstName: state.character.firstName,
+      lastName: state.character.lastName,
+      sex: 'unspecified',
+    },
   };
 }
 
@@ -1039,6 +1078,11 @@ function inspectCurrent(
     return shared;
   }
 
+  const character = readCharacter(value.character);
+  if (!character) {
+    return fail('A identidade do personagem é inválida.');
+  }
+
   if ('currentEventId' in value) {
     return fail('O salvamento usa o contrato antigo de evento atual.');
   }
@@ -1157,6 +1201,7 @@ function inspectCurrent(
     state: {
       schemaVersion: SCHEMA_VERSION,
       ...shared.value,
+      character,
       narrativeSession: session.value,
       sandbox: {
         ...sandbox.value,
@@ -1351,6 +1396,7 @@ function inspectV11(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       sandbox: isRecord(value.sandbox) ? { ...value.sandbox, interactables: { objects: [] } } : value.sandbox,
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
@@ -1406,6 +1452,7 @@ function inspectV12(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
@@ -1457,6 +1504,7 @@ function inspectV13(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
@@ -1506,6 +1554,7 @@ function inspectV14(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
@@ -1553,6 +1602,7 @@ function inspectV15(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
@@ -1598,6 +1648,7 @@ function inspectV16(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
@@ -1641,6 +1692,7 @@ function inspectV17(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
@@ -1682,6 +1734,7 @@ function inspectV18(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
@@ -1721,6 +1774,7 @@ function inspectV19(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
@@ -1758,6 +1812,7 @@ function inspectV20(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
@@ -1793,6 +1848,7 @@ function inspectV21(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
     },
@@ -1826,6 +1882,7 @@ function inspectV22(
     {
       ...value,
       schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
       politics: createInitialPoliticsState(),
     },
     context,
@@ -1841,6 +1898,39 @@ function inspectV22(
     state: {
       ...rest,
       schemaVersion: SCHEMA_VERSION_V22,
+    },
+  };
+}
+
+function inspectV23(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV23Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V23) {
+    return fail('O salvamento usa um contrato incompatível com o schema 23.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      character: withLegacyCharacterSex(value.character),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  return {
+    ok: true,
+    state: {
+      ...inspected.state,
+      schemaVersion: SCHEMA_VERSION_V23,
+      character: {
+        firstName: inspected.state.character.firstName,
+        lastName: inspected.state.character.lastName,
+      },
     },
   };
 }
@@ -2144,7 +2234,7 @@ function readShared<TAttributes>(
     return fail('A data de atualização é inválida.');
   }
 
-  const character = readCharacter(value.character);
+  const character = readLegacyCharacter(value.character);
   if (!character) {
     return fail('A identidade do personagem é inválida.');
   }
@@ -2247,6 +2337,22 @@ function readNarrativeSession(value: Record<string, unknown>, status: GameStatus
 }
 
 function readCharacter(value: unknown): GameState['character'] | undefined {
+  const legacy = readLegacyCharacter(value);
+  if (!legacy || !isRecord(value) || typeof value.sex !== 'string') {
+    return undefined;
+  }
+
+  if (!(CHARACTER_SEXES as readonly string[]).includes(value.sex)) {
+    return undefined;
+  }
+
+  return {
+    ...legacy,
+    sex: value.sex as GameState['character']['sex'],
+  };
+}
+
+function readLegacyCharacter(value: unknown): GameStateV23['character'] | undefined {
   if (!isRecord(value) || typeof value.firstName !== 'string' || typeof value.lastName !== 'string') {
     return undefined;
   }
@@ -2258,6 +2364,17 @@ function readCharacter(value: unknown): GameState['character'] | undefined {
   return {
     firstName: value.firstName,
     lastName: value.lastName,
+  };
+}
+
+function withLegacyCharacterSex(value: unknown): unknown {
+  if (!isRecord(value)) {
+    return value;
+  }
+
+  return {
+    ...value,
+    sex: 'unspecified',
   };
 }
 
