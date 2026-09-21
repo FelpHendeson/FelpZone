@@ -30,7 +30,7 @@ export function inspectWorldTriggerCatalog(
 
   const definitions: WorldNarrativeTriggerDefinition[] = [];
   const byId = new Map<string, WorldNarrativeTriggerDefinition>();
-  const byDiscoveryId = new Map<string, WorldNarrativeTriggerDefinition[]>();
+  const byDiscoveryId = new Map<string, WorldNarrativeTriggerDefinition>();
 
   for (const entry of value) {
     const inspected = inspectTrigger(entry, context.campaign, context.exploration, context.skills, byId);
@@ -40,10 +40,8 @@ export function inspectWorldTriggerCatalog(
 
     const trigger = inspected.value;
     byId.set(trigger.id, trigger);
-    if (trigger.source.type === 'discovery.revealed') {
-      const entries = byDiscoveryId.get(trigger.source.discoveryId) ?? [];
-      entries.push(trigger);
-      byDiscoveryId.set(trigger.source.discoveryId, entries);
+    if (trigger.source.type === 'discovery.revealed' && !byDiscoveryId.has(trigger.source.discoveryId)) {
+      byDiscoveryId.set(trigger.source.discoveryId, trigger);
     }
     definitions.push(trigger);
   }
