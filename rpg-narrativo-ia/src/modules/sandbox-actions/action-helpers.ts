@@ -494,6 +494,10 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     economy: copyEconomyState(patch.economy ?? base.economy ?? createInitialEconomyState()),
     settlements: copySettlementsState(patch.settlements ?? base.settlements ?? createInitialSettlementsState()),
     politics: copyPoliticsState(patch.politics ?? base.politics ?? createInitialPoliticsState()),
+    guidance: {
+      unlockedTopicIds: [...base.guidance.unlockedTopicIds],
+      seenTopicIds: [...base.guidance.seenTopicIds],
+    },
     updatedAt: patch.updatedAt,
   };
 }
