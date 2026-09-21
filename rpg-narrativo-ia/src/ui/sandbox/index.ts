@@ -24,5 +24,5 @@ export type {
   RestView,
   ResourceView,
 } from './model';
-export { attemptSandboxAction, commitSandboxAction, WORLD_TRIGGER_ATTENTION } from './run-action';
-export type { CommitSandboxActionOptions, SandboxActionAttempt } from './run-action';
+export { attemptSandboxAction, commitSandboxAction, resolveWorldNarrativeState, WORLD_TRIGGER_ATTENTION } from './run-action';
+export type { CommitSandboxActionOptions, SandboxActionAttempt, WorldNarrativeStateResolution } from './run-action';
