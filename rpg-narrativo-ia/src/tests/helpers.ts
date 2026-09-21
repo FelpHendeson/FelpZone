@@ -35,6 +35,32 @@ export function freshState(): GameState {
   return startGame({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, now);
 }
 
+export function revealMiraForTest(state: GameState): GameState {
+  const discoveredPresenceIds = Array.from(
+    new Set([...state.sandbox.presences.discoveredPresenceIds, 'mira-awakening-clearing']),
+  );
+  return {
+    ...state,
+    sandbox: {
+      ...state.sandbox,
+      presences: {
+        ...state.sandbox.presences,
+        discoveredPresenceIds,
+      },
+    },
+  };
+}
+
+export function grantMiraPromiseForTest(state: GameState): GameState {
+  return {
+    ...state,
+    flags: {
+      ...state.flags,
+      'mira.promise.made': true,
+    },
+  };
+}
+
 export function keepNpcAtCurrentLocation(state: GameState, npcId: string): GameState {
   const entries = (state.sandbox.npcs?.entries ?? []).map((entry) =>
     entry.npcId === npcId
