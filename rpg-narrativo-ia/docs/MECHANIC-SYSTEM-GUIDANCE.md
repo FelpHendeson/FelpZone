@@ -175,11 +175,11 @@ Se o playtest mostrar sobrecarga visual, uma segunda fatia poderá adicionar des
 
 Esta mecânica adiciona `GameState.guidance`.
 
-Será implementada no mesmo checkpoint de save da revisão do Dia 1, elevando o schema de 23 para 24.
+O schema 24 já foi publicado pela Fatia A da revisão do Dia 1 para persistir `character.sex`. Portanto, a implementação de `GameState.guidance` deverá usar um novo checkpoint de save, previsto como schema 25.
 
 ## Migração
 
-Saves schema 23 devem migrar sem perder progresso.
+Saves schema 24 devem migrar sem perder progresso.
 
 Para saves antigos do protótipo:
 
@@ -216,7 +216,7 @@ O catálogo não entra no save.
 - popup aparece uma vez;
 - reload não repete tópico visto;
 - pack alternativo troca textos sem alterar motor;
-- save schema 23 migra para 24.
+- save schema 24 migra para o novo schema de Guidance (previsto como 25).
 
 ## Fora do escopo inicial
 
