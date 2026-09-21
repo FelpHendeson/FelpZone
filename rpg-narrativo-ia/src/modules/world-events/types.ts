@@ -1,7 +1,8 @@
 import type { Campaign } from '../../core/events';
 import type { IndexedExploration } from '../exploration';
+import type { IndexedSkills } from '../skills';
 
-export const WORLD_TRIGGER_SOURCE_TYPES = ['discovery.revealed'] as const;
+export const WORLD_TRIGGER_SOURCE_TYPES = ['discovery.revealed', 'system.skill.proficiency.min', 'world.day.min'] as const;
 
 export type WorldTriggerSourceType = (typeof WORLD_TRIGGER_SOURCE_TYPES)[number];
 
@@ -10,7 +11,21 @@ export interface WorldTriggerDiscoverySource {
   discoveryId: string;
 }
 
-export type WorldTriggerSource = WorldTriggerDiscoverySource;
+export interface WorldTriggerSkillProficiencySource {
+  type: 'system.skill.proficiency.min';
+  skillId: string;
+  amount: number;
+}
+
+export interface WorldTriggerDaySource {
+  type: 'world.day.min';
+  day: number;
+}
+
+export type WorldTriggerSource =
+  | WorldTriggerDiscoverySource
+  | WorldTriggerSkillProficiencySource
+  | WorldTriggerDaySource;
 
 export interface WorldNarrativeTriggerDefinition {
   id: string;
@@ -22,7 +37,7 @@ export interface WorldNarrativeTriggerDefinition {
 export interface IndexedWorldTriggers {
   readonly definitions: readonly WorldNarrativeTriggerDefinition[];
   readonly byId: ReadonlyMap<string, WorldNarrativeTriggerDefinition>;
-  readonly byDiscoveryId: ReadonlyMap<string, WorldNarrativeTriggerDefinition>;
+  readonly byDiscoveryId: ReadonlyMap<string, readonly WorldNarrativeTriggerDefinition[]>;
 }
 
 export type WorldTriggerInspection<T> =
@@ -32,4 +47,5 @@ export type WorldTriggerInspection<T> =
 export interface WorldTriggerCatalogContext {
   campaign: Campaign;
   exploration: IndexedExploration;
+  skills: IndexedSkills;
 }
