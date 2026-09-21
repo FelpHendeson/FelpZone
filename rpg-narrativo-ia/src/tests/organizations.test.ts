@@ -10,7 +10,7 @@ import {
   planOrganizationAction,
 } from '../modules/organizations';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV14, freshState } from './helpers';
+import { asV14, freshState, revealMiraForTest, grantMiraPromiseForTest } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -18,8 +18,8 @@ function exploringState(): GameState {
 
 function meetMira(): GameState {
   let state = exploringState();
-  state = executeSandboxAction(state, { type: 'exploration.explore' }, { campaign: firstDayCampaign }).current;
-  return executeSandboxAction(
+  state = revealMiraForTest(state);
+  return grantMiraPromiseForTest(executeSandboxAction(
     state,
     {
       type: 'presence.interact',
@@ -27,12 +27,12 @@ function meetMira(): GameState {
       interactionId: 'talk-mira-awakening-clearing',
     },
     { campaign: firstDayCampaign },
-  ).current;
+  ).current);
 }
 
 function befriendMira(): GameState {
   const afterTalk = meetMira();
-  const honored = executeSandboxAction(afterTalk, { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
+  const honored = executeSandboxAction(grantMiraPromiseForTest(afterTalk), { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
   return executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current;
 }
 
