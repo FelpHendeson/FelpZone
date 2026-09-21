@@ -52,10 +52,12 @@ describe('catálogo de gatilhos de mundo', () => {
     const empty = inspectWorldTriggerCatalog(catalog, {
       campaign: firstDayCampaign,
       exploration: context.exploration,
+      skills: context.skills!,
     });
     const mechanism = inspectWorldTriggerCatalog(mechanismCatalog, {
       campaign: firstDayCampaign,
       exploration: context.exploration,
+      skills: context.skills!,
     });
 
     expect(empty.ok).toBe(true);
@@ -80,7 +82,7 @@ describe('catálogo de gatilhos de mundo', () => {
           eventId: 'first-priority',
         },
       ],
-      { campaign: firstDayCampaign, exploration: context.exploration },
+      { campaign: firstDayCampaign, exploration: context.exploration, skills: context.skills! },
     );
     const missingEvent = inspectWorldTriggerCatalog(
       [
@@ -91,7 +93,7 @@ describe('catálogo de gatilhos de mundo', () => {
           eventId: 'evento-fantasma',
         },
       ],
-      { campaign: firstDayCampaign, exploration: context.exploration },
+      { campaign: firstDayCampaign, exploration: context.exploration, skills: context.skills! },
     );
 
     expect(missingDiscovery).toMatchObject({ ok: false, reason: expect.stringMatching(/descoberta nope/) });
@@ -99,7 +101,7 @@ describe('catálogo de gatilhos de mundo', () => {
   });
 
   it('rejeita catálogo malformado, IDs duplicados e gatilhos ambíguos', () => {
-    const contextValue = { campaign: firstDayCampaign, exploration: context.exploration };
+    const contextValue = { campaign: firstDayCampaign, exploration: context.exploration, skills: context.skills! };
     expect(inspectWorldTriggerCatalog(null, contextValue).ok).toBe(false);
     expect(
       inspectWorldTriggerCatalog(
@@ -110,20 +112,23 @@ describe('catálogo de gatilhos de mundo', () => {
     expect(
       inspectWorldTriggerCatalog([...mechanismCatalog, ...mechanismCatalog], contextValue),
     ).toMatchObject({ ok: false, reason: expect.stringMatching(/duplicado/) });
-    expect(
-      inspectWorldTriggerCatalog(
-        [
-          FIRST_PRIORITY_WORLD_TRIGGER,
-          {
-            id: 'other',
-            source: { type: 'discovery.revealed', discoveryId: 'first-priority-event' },
-            campaignId: 'first-day',
-            eventId: 'first-priority',
-          },
-        ],
-        contextValue,
-      ),
-    ).toMatchObject({ ok: false, reason: expect.stringMatching(/ambíguos/) });
+    const sharedSource = inspectWorldTriggerCatalog(
+      [
+        FIRST_PRIORITY_WORLD_TRIGGER,
+        {
+          id: 'other',
+          source: { type: 'discovery.revealed', discoveryId: 'first-priority-event' },
+          campaignId: 'first-day',
+          eventId: 'first-priority',
+        },
+      ],
+      contextValue,
+    );
+    expect(sharedSource.ok).toBe(true);
+    if (sharedSource.ok) {
+      expect(sharedSource.value.definitions.map((entry) => entry.id)).toEqual(['first-priority', 'other']);
+      expect(sharedSource.value.byDiscoveryId.get('first-priority-event')?.id).toBe('first-priority');
+    }
   });
 
   it('rejeita evento sem canStartSession como alvo', () => {
@@ -136,7 +141,7 @@ describe('catálogo de gatilhos de mundo', () => {
           eventId: 'awakening',
         },
       ],
-      { campaign: firstDayCampaign, exploration: context.exploration },
+      { campaign: firstDayCampaign, exploration: context.exploration, skills: context.skills! },
     );
 
     expect(inspected.ok).toBe(false);
@@ -395,6 +400,7 @@ describe('primeiro encontro acionado pelo mundo', () => {
     const inspected = inspectWorldTriggerCatalog(mechanismCatalog, {
       campaign: firstDayCampaign,
       exploration: context.exploration,
+      skills: context.skills!,
     });
     expect(inspected.ok).toBe(true);
     if (!inspected.ok) {
