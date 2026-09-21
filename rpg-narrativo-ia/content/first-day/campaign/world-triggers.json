@@ -8,5 +8,24 @@
     },
     "campaignId": "first-day",
     "eventId": "first-numen-practice"
+  },
+  {
+    "id": "first-night",
+    "source": {
+      "type": "world.time.reached",
+      "day": 1,
+      "period": "noite"
+    },
+    "campaignId": "first-day",
+    "eventId": "first-night"
+  },
+  {
+    "id": "day-two-start",
+    "source": {
+      "type": "world.day.min",
+      "day": 2
+    },
+    "campaignId": "first-day",
+    "eventId": "day-two-awakening"
   }
 ]
