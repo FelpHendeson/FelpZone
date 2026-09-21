@@ -73,51 +73,32 @@ function act(state: ReturnType<typeof finishEnergyIntro>, action: Parameters<typ
   return result.current;
 }
 
-function surviveFirstPriority(state: ReturnType<typeof finishEnergyIntro>) {
-  const firstExplore = attemptSandboxAction(
-    state,
-    { type: 'exploration.explore' },
-    context,
-    campaign,
-    triggers,
-    world.objectives,
-  );
-  expect(firstExplore.ok).toBe(true);
-  if (!firstExplore.ok) {
-    throw new Error(firstExplore.error);
-  }
-  expect(firstExplore.current.narrativeSession?.eventId).toBe('first-priority');
+function secureWaterAndFindSigns(state: ReturnType<typeof finishEnergyIntro>) {
+  let current = act(state, { type: 'exploration.explore' });
+  current = act(current, { type: 'exploration.explore' });
 
-  let current = applyChoice(
-    firstExplore.current,
-    campaign,
-    'seek-water',
-    now,
-    world.objectives,
-    context,
-  );
-  expect(current.narrativeSession?.eventId).toBe('danger-alert');
+  expect(
+    current.sandbox.exploration.locations
+      .find((entry) => entry.locationId === 'awakening-clearing')
+      ?.revealedDiscoveryIds,
+  ).toContain('human-footprints');
+  expect(current.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
 
-  current = applyChoice(
-    current,
-    campaign,
-    'alert-hide',
-    now,
-    world.objectives,
-    context,
-  );
-  expect(current.narrativeSession).toBeNull();
-  return resolveWorldNarrativeState(current, context, campaign, triggers).current;
+  current = act(current, { type: 'navigation.move', locationId: 'spring-lake' });
+  current = act(current, { type: 'exploration.explore' });
+  return current;
 }
 
 describe('Fatia E — sandbox inicial e primeiro contato', () => {
   it('conclui a jornada principal com treino, água e sinais sem exigir fogo, refeição ou Mira', () => {
-    let state = surviveFirstPriority(finishEnergyIntro());
-
-    state = act(state, { type: 'exploration.explore' });
+    let state = secureWaterAndFindSigns(finishEnergyIntro());
 
     expect(getObjectiveStatus(world.objectives, state.objectives, 'first-steps')).toBe('completed');
-    expect(state.inventory.some((entry) => entry.itemId === 'agua-limpa')).toBe(true);
+    expect(
+      state.sandbox.exploration.locations
+        .find((entry) => entry.locationId === 'spring-lake')
+        ?.revealedDiscoveryIds,
+    ).toContain('spring-source');
     expect(
       state.sandbox.exploration.locations
         .find((entry) => entry.locationId === 'awakening-clearing')
@@ -129,16 +110,9 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
   });
 
   it('sinais humanos aparecem antes de Mira e conforto fica como jornada lateral', () => {
-    let state = surviveFirstPriority(finishEnergyIntro());
+    let state = secureWaterAndFindSigns(finishEnergyIntro());
 
-    state = act(state, { type: 'exploration.explore' });
-    expect(
-      state.sandbox.exploration.locations
-        .find((entry) => entry.locationId === 'awakening-clearing')
-        ?.revealedDiscoveryIds,
-    ).toContain('human-footprints');
-    expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
-
+    state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
     state = act(state, { type: 'exploration.explore' });
     const known = listKnownObjectives(world.objectives, state.objectives).map((objective) => objective.id);
     expect(known).toContain('camp-comfort');
@@ -151,8 +125,9 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
   });
 
   it('permite evitar Mira sem abrir narrativa e conclui a jornada lateral de contato', () => {
-    let state = surviveFirstPriority(finishEnergyIntro());
-    for (let count = 0; count < 4; count += 1) {
+    let state = secureWaterAndFindSigns(finishEnergyIntro());
+    state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
+    for (let count = 0; count < 3; count += 1) {
       state = act(state, { type: 'exploration.explore' });
     }
 
@@ -171,8 +146,9 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
   });
 
   it('conversar com Mira abre somente o primeiro contato e devolve ao sandbox após a troca', () => {
-    let state = surviveFirstPriority(finishEnergyIntro());
-    for (let count = 0; count < 4; count += 1) {
+    let state = secureWaterAndFindSigns(finishEnergyIntro());
+    state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
+    for (let count = 0; count < 3; count += 1) {
       state = act(state, { type: 'exploration.explore' });
     }
 
