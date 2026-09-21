@@ -216,6 +216,8 @@ export function evaluateObjectiveCriterion(criterion: ObjectiveCriterion, state:
       return state.progression.abilityIds.length > 0;
     case 'progression.ability.has':
       return state.progression.abilityIds.includes(criterion.abilityId);
+    case 'system.skill.proficiency.min':
+      return (state.system.entries.find((entry) => entry.skillId === criterion.skillId)?.proficiency ?? -1) >= criterion.amount;
     case 'navigation.location.visited':
       return state.sandbox.navigation.visitedLocationIds.includes(criterion.locationId);
     case 'exploration.discovery.revealed':
@@ -449,6 +451,14 @@ function inspectCriterion(value: unknown): ObjectiveInspection<ObjectiveCriterio
       return { ok: true, value: { type: value.type } };
     case 'progression.ability.has':
       return stringCriterion(value, 'abilityId', value.type);
+    case 'system.skill.proficiency.min':
+      if (!nonEmpty(value.skillId) || !nonNegativeSafeInteger(value.amount)) {
+        return fail('O critério de proficiência de habilidade é inválido.');
+      }
+      return {
+        ok: true,
+        value: { type: value.type, skillId: value.skillId, amount: value.amount },
+      };
     case 'navigation.location.visited':
       return stringCriterion(value, 'locationId', value.type);
     case 'exploration.discovery.revealed':
@@ -744,6 +754,10 @@ function nonEmpty(value: unknown): value is string {
 
 function positiveSafeInteger(value: unknown): value is number {
   return typeof value === 'number' && Number.isSafeInteger(value) && value > 0;
+}
+
+function nonNegativeSafeInteger(value: unknown): value is number {
+  return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
 }
 
 function includes<const T extends readonly string[]>(values: T, value: unknown): value is T[number] {
