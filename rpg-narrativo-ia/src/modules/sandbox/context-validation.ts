@@ -358,9 +358,13 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
     if (!isRecord(value.worldTriggers) || !Array.isArray(value.worldTriggers.definitions)) {
       return fail('O catálogo de gatilhos narrativos é inválido.');
     }
+    if (!context.skills) {
+      return fail('O catálogo de habilidades do pack ativo não está disponível.');
+    }
     const worldTriggers = inspectWorldTriggerCatalog(value.worldTriggers.definitions, {
       campaign: campaign.value,
       exploration: exploration.value,
+      skills: context.skills,
     });
     if (!worldTriggers.ok) {
       return fail(worldTriggers.reason);
