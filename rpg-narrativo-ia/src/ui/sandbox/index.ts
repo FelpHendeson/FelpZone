@@ -1,5 +1,12 @@
 export { formatPeriodCost, sandboxDiscoveryName, sandboxItemName, sandboxStationName } from './labels';
-export { describeSandboxFeedback } from './feedback';
+export {
+  describeSandboxFeedback,
+  feedbackClassName,
+  feedbackIcon,
+  feedbackTitle,
+  mergeFeedback,
+} from './feedback';
+export type { FeedbackEntry, FeedbackKind, WorldFeedbackView } from './feedback';
 export { buildExplorationView } from './model';
 export type {
   DestinationView,

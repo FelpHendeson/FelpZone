@@ -28,7 +28,7 @@ import {
   resolveEligibleWorldTrigger,
   type WorldNarrativeTriggerDefinition,
 } from '../../modules/world-events';
-import { describeSandboxFeedback } from './feedback';
+import { describeSandboxFeedback, mergeFeedback, type WorldFeedbackView } from './feedback';
 import { describeObjectiveFeedback } from '../journal/feedback';
 
 export const WORLD_TRIGGER_ATTENTION = 'Algo exige a sua atenção.';
@@ -40,6 +40,7 @@ export type SandboxActionAttempt =
       result: SandboxActionResult;
       current: GameState;
       feedback: string;
+      feedbackView: WorldFeedbackView;
       openedTrigger?: WorldNarrativeTriggerDefinition;
     }
   | {
@@ -78,18 +79,21 @@ export function attemptSandboxAction(
           trigger,
         )
       : afterMatchingSession;
-    const feedback = [
-      describeSandboxFeedback(result, context),
-      trigger ? WORLD_TRIGGER_ATTENTION : '',
-      describeObjectiveFeedback(result.objectives, objectiveCatalog),
-    ].filter(Boolean).join(' ');
+    const sandboxFeedback = describeSandboxFeedback(result, context);
+    const objectiveFeedback = describeObjectiveFeedback(result.objectives, objectiveCatalog);
+    const feedbackView = mergeFeedback([
+      { kind: sandboxFeedback.kind, message: sandboxFeedback.message },
+      ...(trigger ? [{ kind: 'info' as const, message: WORLD_TRIGGER_ATTENTION }] : []),
+      ...(objectiveFeedback ? [objectiveFeedback] : []),
+    ]) ?? sandboxFeedback;
 
     return {
       ok: true,
       previous: state,
       result,
       current,
-      feedback,
+      feedback: feedbackView.message,
+      feedbackView,
       openedTrigger: trigger,
     };
   } catch (caught) {

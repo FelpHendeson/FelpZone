@@ -120,10 +120,10 @@ describe('Fatia 9.4 — superfície de necessidades', () => {
     const consumed = executeSandboxAction(state, { type: 'needs.consume', itemId: 'raw-water' }, { context });
     const rested = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple' }, { context });
 
-    expect(describeSandboxFeedback(consumed, context)).toContain('Consumiu Água bruta. Sede −45.');
-    expect(describeSandboxFeedback(consumed, context)).not.toContain('Desgaste:');
-    expect(describeSandboxFeedback(rested, context)).toContain('Energia +24.');
-    expect(describeSandboxFeedback(rested, context)).toContain('Desgaste: Energia −4, Fome +6, Sede +10.');
+    expect(describeSandboxFeedback(consumed, context).message).toContain('Consumiu Água bruta. Sede −45.');
+    expect(describeSandboxFeedback(consumed, context).message).not.toContain('Desgaste:');
+    expect(describeSandboxFeedback(rested, context).message).toContain('Energia +24.');
+    expect(describeSandboxFeedback(rested, context).message).toContain('Desgaste: Energia −4, Fome +6, Sede +10.');
   });
 
   it('mantém recuperação disponível e comunica condição crítica sem modal', () => {
@@ -134,7 +134,8 @@ describe('Fatia 9.4 — superfície de necessidades', () => {
     const feedback = describeSandboxFeedback(result, context);
 
     expect(result.current.attributes.sede).toBe(100);
-    expect(feedback).toContain('Condição crítica: Sede. Ações de recuperação continuam disponíveis.');
+    expect(feedback.kind).toBe('critical');
+    expect(feedback.message).toContain('Condição crítica: Sede. Ações de recuperação continuam disponíveis.');
     expect(buildExplorationView(result.current, firstDayCampaign, context).rest.mode).toBe('simple');
   });
 });

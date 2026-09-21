@@ -54,7 +54,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       inspectGardenCatalog(raw.garden, skills, new Set(mastery.milestones.map((milestone) => milestone.id))),
       'O catálogo do Jardim é inválido.',
     );
-    const combat = unwrap(inspectCombatCatalog(raw.combat, skills, items), 'O catálogo de combate é inválido.');
+    const combat = unwrap(inspectCombatCatalog(raw.combat, skills, items, conditions, execution), 'O catálogo de combate é inválido.');
     const map = unwrap(inspectNavigationMap(raw.map, raw.startingLocationId), 'O mapa do pack é inválido.');
     if (!map.locations.has(raw.startingLocationId)) {
       throw new ContentError('A localização inicial não existe.');

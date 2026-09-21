@@ -12,8 +12,15 @@ import { inspectPartyCatalog, INITIAL_PARTY } from '../party';
 import { inspectCraftingDefinitions } from '../crafting';
 import { inspectExplorationDefinitions } from '../exploration';
 import { inspectInteractableCatalog } from '../interactables';
+import { inspectCombatCatalog } from '../combat';
+import { inspectConditionsCatalog } from '../conditions';
+import { inspectEnergeticsCatalog } from '../energetics';
+import { inspectGardenCatalog } from '../garden';
 import { inspectItemsCatalog } from '../items';
+import { inspectMasteryCatalog } from '../mastery';
 import { inspectNavigationMap } from '../navigation';
+import { inspectSkillsCatalog } from '../skills';
+import { inspectTrainingCatalog } from '../training';
 import { inspectNpcCatalog } from '../npcs';
 import { inspectObjectiveCatalog } from '../objectives';
 import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
@@ -263,6 +270,82 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
   if (items) {
     context.items = items.value;
   }
+
+  if (value.skills !== undefined) {
+    const skills = inspectSkillsCatalog(value.skills);
+    if (!skills.ok) {
+      return fail(skills.reason);
+    }
+    context.skills = skills.value;
+  }
+
+  if (value.energetics !== undefined) {
+    const energetics = inspectEnergeticsCatalog(value.energetics);
+    if (!energetics.ok) {
+      return fail(energetics.reason);
+    }
+    context.energetics = energetics.value;
+  }
+
+  if (value.training !== undefined) {
+    if (!context.skills) {
+      return fail('O catálogo de habilidades do pack ativo não está disponível.');
+    }
+    const training = inspectTrainingCatalog(value.training, context.skills);
+    if (!training.ok) {
+      return fail(training.reason);
+    }
+    context.training = training.value;
+  }
+
+  if (value.mastery !== undefined) {
+    const mastery = inspectMasteryCatalog(value.mastery);
+    if (!mastery.ok) {
+      return fail(mastery.reason);
+    }
+    context.mastery = mastery.value;
+  }
+
+  if (value.garden !== undefined) {
+    if (!context.skills || !context.mastery) {
+      return fail('O catálogo de habilidades ou maestria do pack ativo não está disponível.');
+    }
+    const garden = inspectGardenCatalog(
+      value.garden,
+      context.skills,
+      new Set(context.mastery.milestones.map((milestone) => milestone.id)),
+    );
+    if (!garden.ok) {
+      return fail(garden.reason);
+    }
+    context.garden = garden.value;
+  }
+
+  if (value.conditions !== undefined) {
+    const conditions = inspectConditionsCatalog(value.conditions);
+    if (!conditions.ok) {
+      return fail(conditions.reason);
+    }
+    context.conditions = conditions.value;
+  }
+
+  if (value.combat !== undefined) {
+    if (!context.skills || !context.conditions) {
+      return fail('O catálogo de habilidades ou condições do pack ativo não está disponível.');
+    }
+    const combat = inspectCombatCatalog(
+      value.combat,
+      context.skills,
+      items?.value,
+      context.conditions,
+      context.execution ?? INITIAL_EXECUTION,
+    );
+    if (!combat.ok) {
+      return fail(combat.reason);
+    }
+    context.combat = combat.value;
+  }
+
   if (value.objectives !== undefined) {
     const objectives = inspectObjectiveCatalog(value.objectives);
     if (!objectives.ok) {

@@ -1059,7 +1059,7 @@ function inspectCurrent(
   if (!objectives.ok) {
     return fail(objectives.reason);
   }
-  const system = inspectSkillsProgress(value.system, INITIAL_SKILLS);
+  const system = inspectSkillsProgress(value.system, resolvedContext.skills ?? INITIAL_SKILLS);
   if (!system.ok) {
     return fail(system.reason);
   }

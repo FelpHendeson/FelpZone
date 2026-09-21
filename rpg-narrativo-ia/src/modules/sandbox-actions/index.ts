@@ -1,5 +1,5 @@
 export { SandboxActionError } from './errors';
-export { executeSandboxAction } from './execute-action';
+export { executeSandboxAction, resolveNarrativeSessionPatch } from './execute-action';
 export type {
   SandboxAction,
   SandboxActionDetail,

@@ -52,7 +52,7 @@ export function createInitialState(
       interactables: createInitialInteractablesState(),
     },
     objectives: createInitialObjectivesState(objectiveCatalog),
-    system: createInitialSkillsProgress(INITIAL_SKILLS),
+    system: createInitialSkillsProgress(context.skills ?? INITIAL_SKILLS),
     items: createInitialItemsState(),
     lingering: createInitialLingering(),
     garden: createInitialGardenState(),

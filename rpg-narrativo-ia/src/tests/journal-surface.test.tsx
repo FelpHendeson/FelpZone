@@ -159,11 +159,13 @@ describe('Fatia 10.4 — superfície de Jornadas e Diário', () => {
       completedObjectiveIds: [],
     };
 
-    expect(describeObjectiveFeedback(base, catalog)).toBe(
-      'Jornada atualizada: Primeiros passos — Explorar a clareira.',
-    );
-    expect(describeObjectiveFeedback({ ...base, completedObjectiveIds: ['main'] }, catalog)).toBe(
-      'Jornada concluída: Primeiros passos.',
-    );
+    expect(describeObjectiveFeedback(base, catalog)).toEqual({
+      kind: 'journey',
+      message: 'Jornada atualizada: Primeiros passos — Explorar a clareira.',
+    });
+    expect(describeObjectiveFeedback({ ...base, completedObjectiveIds: ['main'] }, catalog)).toEqual({
+      kind: 'journey',
+      message: 'Jornada concluída: Primeiros passos.',
+    });
   });
 });

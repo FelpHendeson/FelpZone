@@ -12,7 +12,7 @@ function render(knownSkillIds: string[]) {
     knownSkillIds,
   });
   return renderToStaticMarkup(
-    <CombatScreen initialState={initialState} encounterName="Predador Arisco" onFinish={() => undefined} />,
+    <CombatScreen initialState={initialState} encounterName="Predador Arisco" combat={INITIAL_COMBAT} onFinish={() => undefined} />,
   );
 }
 
@@ -53,6 +53,7 @@ describe('Fatia 12.5 — superfície de combate', () => {
       <CombatScreen
         initialState={initialState}
         encounterName="Predadores da Clareira"
+        combat={INITIAL_COMBAT}
         orderViews={listCompanionOrderViews(
           INITIAL_PARTY,
           INITIAL_ORGANIZATIONS,
@@ -108,7 +109,7 @@ describe('Fatia 12.5 — superfície de combate', () => {
       safety += 1;
     }
     const html = renderToStaticMarkup(
-      <CombatScreen initialState={state} encounterName="Predador Arisco" onFinish={() => undefined} />,
+      <CombatScreen initialState={state} encounterName="Predador Arisco" combat={INITIAL_COMBAT} onFinish={() => undefined} />,
     );
     expect(html).toContain('Vitória');
     expect(html).toContain('Saúde preservada');

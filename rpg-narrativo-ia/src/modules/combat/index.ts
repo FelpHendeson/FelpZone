@@ -4,9 +4,10 @@ import {
   INITIAL_EXECUTION,
   type ActionCost,
   type ActionPhases,
+  type IndexedExecution,
 } from '../execution';
 import { INITIAL_SKILLS, hasSkill, type IndexedSkills } from '../skills';
-import { INITIAL_CONDITIONS } from '../conditions';
+import { INITIAL_CONDITIONS, type IndexedConditions } from '../conditions';
 import { INITIAL_ITEMS, type IndexedItems } from '../items';
 import { CombatError } from './errors';
 import { ImmutableIndex } from './immutable-index';
@@ -33,6 +34,7 @@ export {
   listPlayerActions,
   resolveTurn,
   type AllySnapshot,
+  type CombatRuntime,
   type CreateCombatOptions,
 } from './engine';
 export {
@@ -52,6 +54,8 @@ export function inspectCombatCatalog(
   value: unknown,
   skills: IndexedSkills,
   items: IndexedItems = INITIAL_ITEMS,
+  conditions: IndexedConditions = INITIAL_CONDITIONS,
+  execution: IndexedExecution = INITIAL_EXECUTION,
 ): CombatInspection<IndexedCombat> {
   if (
     !isRecord(value) ||
@@ -65,7 +69,7 @@ export function inspectCombatCatalog(
   const actions: CombatActionDefinition[] = [];
   const actionIds = new Set<string>();
   for (const entry of value.actions) {
-    const inspected = inspectAction(entry, actionIds, skills);
+    const inspected = inspectAction(entry, actionIds, skills, conditions, execution);
     if (!inspected.ok) {
       return inspected;
     }
@@ -76,7 +80,7 @@ export function inspectCombatCatalog(
   const combatants: CombatantTemplate[] = [];
   const combatantIds = new Set<string>();
   for (const entry of value.combatants) {
-    const inspected = inspectCombatant(entry, combatantIds, actionIds);
+    const inspected = inspectCombatant(entry, combatantIds, actionIds, conditions);
     if (!inspected.ok) {
       return inspected;
     }
@@ -102,8 +106,10 @@ export function indexCombatCatalog(
   value: unknown,
   skills: IndexedSkills,
   items: IndexedItems = INITIAL_ITEMS,
+  conditions: IndexedConditions = INITIAL_CONDITIONS,
+  execution: IndexedExecution = INITIAL_EXECUTION,
 ): IndexedCombat {
-  const inspected = inspectCombatCatalog(value, skills, items);
+  const inspected = inspectCombatCatalog(value, skills, items, conditions, execution);
   if (!inspected.ok) {
     throw new CombatError(inspected.reason);
   }
@@ -154,6 +160,8 @@ function inspectAction(
   value: unknown,
   existing: ReadonlySet<string>,
   skills: IndexedSkills,
+  conditions: IndexedConditions,
+  execution: IndexedExecution,
 ): CombatInspection<CombatActionDefinition> {
   if (!isRecord(value) || !nonEmpty(value.id) || !nonEmpty(value.name) || !nonEmpty(value.description)) {
     return fail('A ação de combate é inválida.');
@@ -172,7 +180,7 @@ function inspectAction(
   }
   const effects: CombatEffect[] = [];
   for (const entry of value.effects) {
-    const inspected = inspectEffect(entry);
+    const inspected = inspectEffect(entry, conditions);
     if (!inspected.ok) {
       return inspected;
     }
@@ -181,7 +189,7 @@ function inspectAction(
   if (value.skillId !== undefined && (!nonEmpty(value.skillId) || !hasSkill(skills, value.skillId))) {
     return fail('A ação de combate referencia uma habilidade inexistente.');
   }
-  if (value.elementId !== undefined && (!nonEmpty(value.elementId) || !INITIAL_CONDITIONS.elementById.has(value.elementId))) {
+  if (value.elementId !== undefined && (!nonEmpty(value.elementId) || !conditions.elementById.has(value.elementId))) {
     return fail('A ação de combate referencia um elemento inexistente.');
   }
   if (value.classification !== undefined && !isApplicationField(value.classification)) {
@@ -194,11 +202,11 @@ function inspectAction(
   if (!range.ok) {
     return range;
   }
-  const phases = inspectPhases(value.phases);
+  const phases = inspectPhases(value.phases, execution);
   if (!phases.ok) {
     return phases;
   }
-  const cost = inspectCost(value.cost);
+  const cost = inspectCost(value.cost, execution);
   if (!cost.ok) {
     return cost;
   }
@@ -231,7 +239,7 @@ function inspectAction(
   };
 }
 
-function inspectEffect(value: unknown): CombatInspection<CombatEffect> {
+function inspectEffect(value: unknown, conditions: IndexedConditions): CombatInspection<CombatEffect> {
   if (!isRecord(value) || !includes(COMBAT_EFFECT_TYPES, value.type)) {
     return fail('O efeito da ação de combate é inválido.');
   }
@@ -241,7 +249,7 @@ function inspectEffect(value: unknown): CombatInspection<CombatEffect> {
   if (value.type === 'condition.apply') {
     if (
       !nonEmpty(value.conditionId) ||
-      !INITIAL_CONDITIONS.conditionById.has(value.conditionId) ||
+      !conditions.conditionById.has(value.conditionId) ||
       !positiveSafeInteger(value.duration) ||
       !positiveSafeInteger(value.potency)
     ) {
@@ -272,6 +280,7 @@ function inspectCombatant(
   value: unknown,
   existing: ReadonlySet<string>,
   actionIds: ReadonlySet<string>,
+  conditions: IndexedConditions,
 ): CombatInspection<CombatantTemplate> {
   if (!isRecord(value) || !nonEmpty(value.id) || !nonEmpty(value.name)) {
     return fail('O combatente é inválido.');
@@ -295,7 +304,7 @@ function inspectCombatant(
     ids.push(id);
   }
 
-  if (value.defenseElementId !== undefined && (!nonEmpty(value.defenseElementId) || !INITIAL_CONDITIONS.elementById.has(value.defenseElementId))) {
+  if (value.defenseElementId !== undefined && (!nonEmpty(value.defenseElementId) || !conditions.elementById.has(value.defenseElementId))) {
     return fail('O combatente referencia um elemento de defesa inexistente.');
   }
 
@@ -510,7 +519,7 @@ function nonEmpty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
 }
 
-function inspectPhases(value: unknown): CombatInspection<ActionPhases> {
+function inspectPhases(value: unknown, execution: IndexedExecution): CombatInspection<ActionPhases> {
   if (value === undefined) {
     return { ok: true, value: { ...DEFAULT_ACTION_PHASES } };
   }
@@ -522,7 +531,7 @@ function inspectPhases(value: unknown): CombatInspection<ActionPhases> {
   ) {
     return fail('As fases da ação de combate são inválidas.');
   }
-  if (value.execute < INITIAL_EXECUTION.limits.minExecute) {
+  if (value.execute < execution.limits.minExecute) {
     return fail('As fases da ação de combate são inválidas.');
   }
   return {
@@ -531,14 +540,14 @@ function inspectPhases(value: unknown): CombatInspection<ActionPhases> {
   };
 }
 
-function inspectCost(value: unknown): CombatInspection<ActionCost | undefined> {
+function inspectCost(value: unknown, execution: IndexedExecution): CombatInspection<ActionCost | undefined> {
   if (value === undefined) {
     return { ok: true, value: undefined };
   }
   if (
     !isRecord(value) ||
     !isEnergyKind(value.energyId) ||
-    !INITIAL_EXECUTION.reserveByEnergyId.has(value.energyId) ||
+    !execution.reserveByEnergyId.has(value.energyId) ||
     !nonNegativeSafeInteger(value.amount)
   ) {
     return fail('O custo da ação de combate é inválido.');

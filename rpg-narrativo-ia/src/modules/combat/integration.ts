@@ -9,7 +9,7 @@ import type {
   IndexedCombat,
   PreparedConsumableState,
 } from './types';
-import { createCombat, emptyCombatLoadout, resolveTurn } from './engine';
+import { createCombat, emptyCombatLoadout, resolveTurn, type CombatRuntime } from './engine';
 
 export interface VerifyCombatResolutionOptions {
   playerName?: string;
@@ -19,6 +19,7 @@ export interface VerifyCombatResolutionOptions {
   prepared?: readonly PreparedConsumableState[];
   execution?: import('../execution').ExecutionState;
   allies?: import('./engine').AllySnapshot[];
+  runtime?: CombatRuntime;
 }
 
 export function combatEncounterResolvedFlag(encounterId: string): string {
@@ -121,6 +122,7 @@ export function verifyCombatResolution(
     prepared: options.prepared ?? [],
     execution: options.execution ?? resolution.entryExecution ?? createInitialExecutionState(),
     allies: options.allies ?? [],
+    runtime: options.runtime,
   });
   const orderLog = resolution.companionOrders ?? [];
   if (orderLog.length !== 0 && orderLog.length !== resolution.playerActionIds.length) {
@@ -130,7 +132,7 @@ export function verifyCombatResolution(
     if (replayed.outcome !== 'ongoing') {
       throw new CombatError('A sequência de combate continua depois de um desfecho terminal.');
     }
-    replayed = resolveTurn(catalog, replayed, actionId, orderLog[index] ?? []);
+    replayed = resolveTurn(catalog, replayed, actionId, orderLog[index] ?? [], options.runtime);
   }
 
   const verified = buildCombatResolution(replayed, encounter);

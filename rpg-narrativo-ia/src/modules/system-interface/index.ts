@@ -70,6 +70,7 @@ import type {
 
 export function buildSystemStatus(state: GameState, context?: SandboxContext): SystemStatusView {
   const progress = state.system;
+  const catalogs = systemCatalogs(context);
   const registryCatalog = context?.registry ?? INITIAL_REGISTRY;
   const organizationCatalog = context?.organizations ?? INITIAL_ORGANIZATIONS;
   const partyCatalog = context?.party ?? INITIAL_PARTY;
@@ -84,15 +85,15 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
   return {
     characterName: `${state.character.firstName} ${state.character.lastName}`.trim(),
     level: progress.level,
-    energies: INITIAL_ENERGETICS.energies.map((energy) => ({ ...energy })),
-    fields: INITIAL_ENERGETICS.fields.map((field) => ({ ...field })),
-    knownSkills: buildKnownSkills(progress),
-    tree: deriveSkillTree(INITIAL_SKILLS, progress),
-    trainings: buildTrainings(progress),
-    nextMilestone: buildNextMilestone(progress),
+    energies: catalogs.energetics.energies.map((energy) => ({ ...energy })),
+    fields: catalogs.energetics.fields.map((field) => ({ ...field })),
+    knownSkills: buildKnownSkills(progress, catalogs),
+    tree: deriveSkillTree(catalogs.skills, progress),
+    trainings: buildTrainings(progress, catalogs),
+    nextMilestone: buildNextMilestone(progress, catalogs),
     garden: {
       cultivationPoints: state.garden.cultivationPoints,
-      recipes: deriveGardenRecipes(INITIAL_GARDEN, INITIAL_SKILLS, progress, state.garden),
+      recipes: deriveGardenRecipes(catalogs.garden, catalogs.skills, progress, state.garden),
     },
     registry: buildRegistryView(state, registryCatalog),
     organizations: listOrganizationViews(organizationCatalog, state.organizations ?? { entries: [], consumedActionIds: [] }),
@@ -254,12 +255,42 @@ function buildCalendarView(state: GameState, catalog: IndexedCalendar): SystemSt
   };
 }
 
-function resolveSkillName(skillId: string): string {
-  return getSkill(INITIAL_SKILLS, skillId).name;
+function systemCatalogs(context?: SandboxContext) {
+  if (!context) {
+    return {
+      skills: INITIAL_SKILLS,
+      training: INITIAL_TRAINING,
+      mastery: INITIAL_MASTERY,
+      energetics: INITIAL_ENERGETICS,
+      garden: INITIAL_GARDEN,
+    };
+  }
+
+  return {
+    skills: requireSystemCatalog(context.skills, 'habilidades'),
+    training: requireSystemCatalog(context.training, 'treinamentos'),
+    mastery: requireSystemCatalog(context.mastery, 'maestria'),
+    energetics: requireSystemCatalog(context.energetics, 'energia'),
+    garden: requireSystemCatalog(context.garden, 'Jardim'),
+  };
 }
 
-function buildNextMilestone(progress: SkillsProgressState): SystemMilestoneView | null {
-  const candidates = INITIAL_MASTERY.milestones
+function requireSystemCatalog<T>(value: T | undefined, label: string): T {
+  if (value === undefined) {
+    throw new Error(`O catálogo de ${label} do pack ativo não está disponível.`);
+  }
+  return value;
+}
+
+function resolveSkillName(skillId: string, catalogs: ReturnType<typeof systemCatalogs>): string {
+  return getSkill(catalogs.skills, skillId).name;
+}
+
+function buildNextMilestone(
+  progress: SkillsProgressState,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): SystemMilestoneView | null {
+  const candidates = catalogs.mastery.milestones
     .filter((milestone) => milestone.level > progress.level)
     .filter((milestone) => milestone.requirements.every((requirement) => isRequirementComprehensible(requirement, progress)))
     .sort((left, right) => left.level - right.level);
@@ -270,7 +301,7 @@ function buildNextMilestone(progress: SkillsProgressState): SystemMilestoneView 
   return {
     level: milestone.level,
     requirements: milestone.requirements.map((requirement) => ({
-      text: describeMasteryRequirement(requirement, resolveSkillName),
+      text: describeMasteryRequirement(requirement, (skillId) => resolveSkillName(skillId, catalogs)),
       met: isRequirementMet(requirement, progress),
     })),
   };
@@ -283,19 +314,20 @@ function isRequirementComprehensible(requirement: MasteryRequirement, progress: 
   return isSkillKnown(progress, requirement.skillId);
 }
 
-export function describeMasteryProgress(result: MasteryResult): string {
+export function describeMasteryProgress(result: MasteryResult, context?: SandboxContext): string {
+  const catalogs = systemCatalogs(context);
   const parts: string[] = [];
   for (const gain of result.proficiencyGains) {
-    parts.push(`Você praticou ${resolveSkillName(gain.skillId)} (+${gain.amount}).`);
+    parts.push(`Você praticou ${resolveSkillName(gain.skillId, catalogs)} (+${gain.amount}).`);
   }
   for (const milestoneId of result.reachedMilestoneIds) {
-    const milestone = INITIAL_MASTERY.milestoneById.get(milestoneId);
+    const milestone = catalogs.mastery.milestoneById.get(milestoneId);
     if (milestone) {
       parts.push(`Nível ${milestone.level} alcançado.`);
     }
   }
   for (const methodId of result.revealedTrainingIds) {
-    const method = INITIAL_TRAINING.byId.get(methodId);
+    const method = catalogs.training.byId.get(methodId);
     if (method) {
       parts.push(`Nova orientação do Sistema: ${method.name}.`);
     }
@@ -306,9 +338,12 @@ export function describeMasteryProgress(result: MasteryResult): string {
   return parts.join(' ');
 }
 
-function buildKnownSkills(progress: SkillsProgressState): SystemSkillView[] {
-  return listKnownSkills(INITIAL_SKILLS, progress).map(({ skill, proficiency }) => {
-    const path = getPath(INITIAL_SKILLS, skill.pathId);
+function buildKnownSkills(
+  progress: SkillsProgressState,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): SystemSkillView[] {
+  return listKnownSkills(catalogs.skills, progress).map(({ skill, proficiency }) => {
+    const path = getPath(catalogs.skills, skill.pathId);
     return {
       skillId: skill.id,
       name: skill.name,
@@ -321,18 +356,21 @@ function buildKnownSkills(progress: SkillsProgressState): SystemSkillView[] {
   });
 }
 
-function buildTrainings(progress: SkillsProgressState): SystemTrainingView[] {
+function buildTrainings(
+  progress: SkillsProgressState,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): SystemTrainingView[] {
   const views: SystemTrainingView[] = [];
 
-  for (const method of INITIAL_TRAINING.methods) {
-    if (!isTargetKnown(progress, method) || !areMasteryRequirementsMet(method.requirements, progress)) {
+  for (const method of catalogs.training.methods) {
+    if (!isTargetKnown(progress, method, catalogs) || !areMasteryRequirementsMet(method.requirements, progress)) {
       continue;
     }
 
     let canTrain = true;
     let blockedReason: string | undefined;
     try {
-      planTraining(INITIAL_TRAINING, INITIAL_SKILLS, progress, method.id);
+      planTraining(catalogs.training, catalogs.skills, progress, method.id);
     } catch (error) {
       canTrain = false;
       blockedReason = error instanceof TrainingError ? error.message : 'O treino não está disponível agora.';
@@ -342,10 +380,12 @@ function buildTrainings(progress: SkillsProgressState): SystemTrainingView[] {
       methodId: method.id,
       name: method.name,
       description: method.description,
-      targetLabel: describeTarget(method),
+      targetLabel: describeTarget(method, catalogs),
       costPeriods: method.cost.periods,
-      effectsSummary: method.effects.map(describeEffect),
-      requirementsSummary: method.requirements.map((requirement) => describeMasteryRequirement(requirement, resolveSkillName)),
+      effectsSummary: method.effects.map((effect) => describeEffect(effect, catalogs)),
+      requirementsSummary: method.requirements.map((requirement) =>
+        describeMasteryRequirement(requirement, (skillId) => resolveSkillName(skillId, catalogs)),
+      ),
       canTrain,
       ...(blockedReason ? { blockedReason } : {}),
     });
@@ -354,22 +394,26 @@ function buildTrainings(progress: SkillsProgressState): SystemTrainingView[] {
   return views;
 }
 
-function isTargetKnown(progress: SkillsProgressState, method: TrainingMethodDefinition): boolean {
+function isTargetKnown(
+  progress: SkillsProgressState,
+  method: TrainingMethodDefinition,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): boolean {
   if (method.target.type === 'skill') {
     return isSkillKnown(progress, method.target.id);
   }
-  return listKnownSkills(INITIAL_SKILLS, progress).some(({ skill }) => skill.pathId === method.target.id);
+  return listKnownSkills(catalogs.skills, progress).some(({ skill }) => skill.pathId === method.target.id);
 }
 
-function describeTarget(method: TrainingMethodDefinition): string {
+function describeTarget(method: TrainingMethodDefinition, catalogs: ReturnType<typeof systemCatalogs>): string {
   if (method.target.type === 'skill') {
-    return `Habilidade: ${getSkill(INITIAL_SKILLS, method.target.id).name}`;
+    return `Habilidade: ${getSkill(catalogs.skills, method.target.id).name}`;
   }
-  return `Caminho: ${getPath(INITIAL_SKILLS, method.target.id).name}`;
+  return `Caminho: ${getPath(catalogs.skills, method.target.id).name}`;
 }
 
-function describeEffect(effect: TrainingEffect): string {
-  const skillName = getSkill(INITIAL_SKILLS, effect.skillId).name;
+function describeEffect(effect: TrainingEffect, catalogs: ReturnType<typeof systemCatalogs>): string {
+  const skillName = getSkill(catalogs.skills, effect.skillId).name;
   if (effect.type === 'skill.proficiency.increase') {
     return `Aprofunda ${skillName} (+${effect.amount})`;
   }

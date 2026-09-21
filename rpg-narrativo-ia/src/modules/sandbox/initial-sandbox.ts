@@ -1,6 +1,9 @@
 import { firstDayCampaign } from '../../campaigns/first-day';
 import labels from '../../../content/first-day/ui/labels.json' with { type: 'json' };
 import { CombatError, INITIAL_COMBAT, validateEncounterDiscoveries } from '../combat';
+import { INITIAL_CONDITIONS } from '../conditions';
+import { INITIAL_ENERGETICS } from '../energetics';
+import { INITIAL_GARDEN } from '../garden';
 import { INITIAL_ITEMS } from '../items';
 import {
   INITIAL_RECIPES,
@@ -92,6 +95,13 @@ export function createSandboxContextFromWorld(
     campaign: world.campaign,
     npcs: world.npcs,
     items: world.items,
+    skills: world.skills,
+    training: world.training,
+    mastery: world.mastery,
+    combat: world.combat,
+    energetics: world.energetics,
+    garden: world.garden,
+    conditions: world.conditions,
     objectives: world.objectives,
     worldTriggers: world.worldTriggers,
     stationLabels: world.stationLabels,
@@ -147,6 +157,13 @@ export function createSandboxContext(
       campaign: firstDayCampaign,
       npcs: INITIAL_NPCS,
       items: INITIAL_ITEMS,
+      skills: INITIAL_SKILLS,
+      training: INITIAL_TRAINING,
+      mastery: INITIAL_MASTERY,
+      combat: INITIAL_COMBAT,
+      energetics: INITIAL_ENERGETICS,
+      garden: INITIAL_GARDEN,
+      conditions: INITIAL_CONDITIONS,
       objectives: INITIAL_OBJECTIVES,
       stationLabels: labels.stations,
     };

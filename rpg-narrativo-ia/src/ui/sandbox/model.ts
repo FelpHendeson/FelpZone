@@ -335,7 +335,7 @@ export function buildExplorationView(
     })),
     lingering: state.lingering.entries.map((entry) => ({
       conditionId: entry.conditionId,
-      name: INITIAL_CONDITIONS.conditionById.get(entry.conditionId)?.name ?? entry.conditionId,
+      name: (context.conditions ?? INITIAL_CONDITIONS).conditionById.get(entry.conditionId)?.name ?? entry.conditionId,
       remainingPeriods: entry.remainingPeriods,
     })),
     knownNpcs: visibleNpcs(state, context),

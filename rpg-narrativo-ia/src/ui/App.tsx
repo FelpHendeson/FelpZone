@@ -1,7 +1,6 @@
 import { loadFirstDayWorld } from '../modules/content';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import {
-  INITIAL_COMBAT,
   buildCombatResolution,
   getEncounter,
   type CombatOutcome,
@@ -21,6 +20,7 @@ import { StartScreen } from './screens/StartScreen';
 import { SummaryScreen } from './screens/SummaryScreen';
 import { hasActiveNarrativeSession, toAppScreen } from './routing';
 import { commitSandboxAction } from './sandbox';
+import { mergeFeedback, type FeedbackEntry, type WorldFeedbackView } from './sandbox/feedback';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Screen = 'start' | 'create' | 'game' | 'exploration' | 'summary';
@@ -43,14 +43,14 @@ function bindLoadResult(result: LoadResult): LoadResult {
   return { status: 'ok', state: bound.state };
 }
 
-function combatFeedback(outcome: Exclude<CombatOutcome, 'ongoing'>): string {
+function combatFeedback(outcome: Exclude<CombatOutcome, 'ongoing'>): FeedbackEntry {
   if (outcome === 'victory') {
-    return 'Você venceu o confronto e ganhou cautela.';
+    return { kind: 'success', message: 'Você venceu o confronto e ganhou cautela.' };
   }
   if (outcome === 'defeat') {
-    return 'Condição crítica: você foi ferido no confronto.';
+    return { kind: 'critical', message: 'Você foi ferido no confronto.' };
   }
-  return 'Você fugiu do confronto.';
+  return { kind: 'success', message: 'Você fugiu do confronto.' };
 }
 
 function createBrowserPersistence(context: SandboxContext): GamePersistence {
@@ -84,7 +84,7 @@ export function App() {
   const [state, setState] = useState<GameState | null>(null);
   const [confirm, setConfirm] = useState<ConfirmKind>('none');
   const [error, setError] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<WorldFeedbackView | null>(null);
   const [actionPending, setActionPending] = useState(false);
   const actionLock = useRef(false);
   const actionUnlockTimer = useRef<number | null>(null);
@@ -183,9 +183,12 @@ export function App() {
 
       setError(null);
       setFeedback(
-        [attempt.feedback, attempt.result.mastery ? describeMasteryProgress(attempt.result.mastery) : '']
-          .filter(Boolean)
-          .join(' '),
+        mergeFeedback([
+          attempt.feedbackView,
+          ...(attempt.result.mastery
+            ? [{ kind: 'success' as const, message: describeMasteryProgress(attempt.result.mastery, sandboxContext) }]
+            : []),
+        ]),
       );
       setScreen(toAppScreen(attempt.current));
     } catch (caught) {
@@ -201,7 +204,11 @@ export function App() {
     }
 
     try {
-      const resolution = buildCombatResolution(finalState, getEncounter(INITIAL_COMBAT, encounterId));
+      const combat = sandboxContext.combat;
+      if (!combat) {
+        throw new Error('O catálogo de combate do pack ativo não está disponível.');
+      }
+      const resolution = buildCombatResolution(finalState, getEncounter(combat, encounterId));
       const attempt = commitSandboxAction(state, { type: 'combat.resolve', resolution }, sandboxContext, {
         campaign,
         catalog: worldTriggers,
@@ -213,13 +220,13 @@ export function App() {
       }
       setError(null);
       setFeedback(
-        [
+        mergeFeedback([
           combatFeedback(resolution.outcome),
-          attempt.feedback,
-          attempt.result.mastery ? describeMasteryProgress(attempt.result.mastery) : '',
-        ]
-          .filter(Boolean)
-          .join(' '),
+          attempt.feedbackView,
+          ...(attempt.result.mastery
+            ? [{ kind: 'success' as const, message: describeMasteryProgress(attempt.result.mastery, sandboxContext) }]
+            : []),
+        ]),
       );
       setScreen(toAppScreen(attempt.current));
     } catch (caught) {

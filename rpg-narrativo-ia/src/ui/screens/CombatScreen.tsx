@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import {
   FLEE_ACTION_ID,
-  INITIAL_COMBAT,
   listPlayerActionViews,
   resolveTurn,
   type CombatActionDefinition,
@@ -10,26 +9,41 @@ import {
   type CombatantState,
   type CombatOutcome,
   type CombatState,
+  type IndexedCombat,
 } from '../../modules/combat';
-import { INITIAL_CONDITIONS } from '../../modules/conditions';
-import { INITIAL_EXECUTION } from '../../modules/execution';
+import { INITIAL_CONDITIONS, type IndexedConditions } from '../../modules/conditions';
+import { INITIAL_EXECUTION, type IndexedExecution } from '../../modules/execution';
 import type { CompanionOrderView } from '../../modules/party';
 
 interface CombatScreenProps {
   initialState: CombatState;
   encounterName: string;
+  combat: IndexedCombat;
+  conditions?: IndexedConditions;
+  execution?: IndexedExecution;
   orderViews?: CompanionOrderView[];
   onFinish: (finalState: CombatState) => void;
 }
 
-export function CombatScreen({ initialState, encounterName, orderViews = [], onFinish }: CombatScreenProps) {
+export function CombatScreen({
+  initialState,
+  encounterName,
+  combat,
+  conditions,
+  execution,
+  orderViews = [],
+  onFinish,
+}: CombatScreenProps) {
   const [state, setState] = useState<CombatState>(initialState);
   const [selectedOrders, setSelectedOrders] = useState<Record<string, string>>(() => defaultOrders(orderViews));
   const finished = state.outcome !== 'ongoing';
-  const actions = state.outcome === 'ongoing' ? listPlayerActionViews(INITIAL_COMBAT, state) : [];
+  const runtime = { conditions, execution };
+  const actions = state.outcome === 'ongoing' ? listPlayerActionViews(combat, state, runtime) : [];
   const recentLog = state.log.slice(-6);
   const numen = state.player.execution.reserves.find((entry) => entry.energyId === 'numen');
-  const numenMax = INITIAL_EXECUTION.reserveByEnergyId.get('numen')?.max ?? 0;
+  const executionCatalog = execution ?? INITIAL_EXECUTION;
+  const conditionCatalog = conditions ?? INITIAL_CONDITIONS;
+  const numenMax = executionCatalog.reserveByEnergyId.get('numen')?.max ?? 0;
   const foes = [state.opponent, ...(state.foes ?? [])];
   const allies = [state.player, ...(state.allies ?? [])];
 
@@ -41,7 +55,7 @@ export function CombatScreen({ initialState, encounterName, orderViews = [], onF
       .filter((view) => view.available && selectedOrders[view.order.npcId] === view.order.id)
       .filter((view, index, list) => list.findIndex((entry) => entry.order.npcId === view.order.npcId) === index)
       .map((view) => ({ actorId: view.order.npcId, actionId: view.order.actionId }));
-    setState(resolveTurn(INITIAL_COMBAT, state, actionId, orders));
+    setState(resolveTurn(combat, state, actionId, orders, runtime));
   }
 
   return (
@@ -60,12 +74,12 @@ export function CombatScreen({ initialState, encounterName, orderViews = [], onF
       <div className="combat-arena">
         <div className="combat-side combat-side--foes" aria-label="Oponentes">
           {foes.map((combatant) => (
-            <CombatantCard key={combatant.id} combatant={combatant} role="opponent" />
+            <CombatantCard key={combatant.id} combatant={combatant} role="opponent" conditions={conditionCatalog} />
           ))}
         </div>
         <div className="combat-side combat-side--allies" aria-label="Grupo">
           {allies.map((combatant) => (
-            <CombatantCard key={combatant.id} combatant={combatant} role={combatant.id === 'player' ? 'player' : 'ally'} />
+            <CombatantCard key={combatant.id} combatant={combatant} role={combatant.id === 'player' ? 'player' : 'ally'} conditions={conditionCatalog} />
           ))}
         </div>
       </div>
@@ -138,7 +152,7 @@ export function CombatScreen({ initialState, encounterName, orderViews = [], onF
                 onClick={() => act(view.action.id)}
               >
                 <strong>{view.action.name}</strong>
-                <small>{describeActionView(view)}</small>
+                <small>{describeActionView(view, conditionCatalog)}</small>
               </button>
             ))}
             <button type="button" className="combat-action combat-action--flee" onClick={() => act(FLEE_ACTION_ID)}>
@@ -163,10 +177,18 @@ function defaultOrders(views: CompanionOrderView[]): Record<string, string> {
   return selected;
 }
 
-function CombatantCard({ combatant, role }: { combatant: CombatantState; role: 'player' | 'opponent' | 'ally' }) {
+function CombatantCard({
+  combatant,
+  role,
+  conditions,
+}: {
+  combatant: CombatantState;
+  role: 'player' | 'opponent' | 'ally';
+  conditions: IndexedConditions;
+}) {
   const ratio = Math.max(0, Math.round((combatant.health / combatant.maxHealth) * 100));
   const defenseName = combatant.defenseElementId
-    ? INITIAL_CONDITIONS.elementById.get(combatant.defenseElementId)?.name
+    ? conditions.elementById.get(combatant.defenseElementId)?.name
     : undefined;
   return (
     <article className={`combatant-card combatant-card--${role}`}>
@@ -185,7 +207,7 @@ function CombatantCard({ combatant, role }: { combatant: CombatantState; role: '
         <ul className="combat-condition-list" aria-label="Condições ativas">
           {combatant.conditions.map((entry) => (
             <li key={entry.conditionId}>
-              {INITIAL_CONDITIONS.conditionById.get(entry.conditionId)?.name ?? entry.conditionId}
+              {conditions.conditionById.get(entry.conditionId)?.name ?? entry.conditionId}
               {' · '}
               {entry.remainingTurns} turno{entry.remainingTurns === 1 ? '' : 's'}
             </li>
@@ -196,9 +218,9 @@ function CombatantCard({ combatant, role }: { combatant: CombatantState; role: '
   );
 }
 
-function describeActionView(view: CombatActionView): string {
+function describeActionView(view: CombatActionView, conditions: IndexedConditions): string {
   const parts = [
-    describeAction(view.action),
+    describeAction(view.action, conditions),
     `prep. ${view.phases.prepare}`,
     `vel. ${view.action.speed}`,
   ];
@@ -214,11 +236,11 @@ function describeActionView(view: CombatActionView): string {
   return parts.join(' · ');
 }
 
-function describeAction(action: CombatActionDefinition): string {
-  return action.effects.map(describeEffect).join(', ');
+function describeAction(action: CombatActionDefinition, conditions: IndexedConditions): string {
+  return action.effects.map((effect) => describeEffect(effect, conditions)).join(', ');
 }
 
-function describeEffect(effect: CombatEffect): string {
+function describeEffect(effect: CombatEffect, conditions: IndexedConditions): string {
   if (effect.type === 'damage') {
     return `${effect.amount} de dano`;
   }
@@ -229,7 +251,7 @@ function describeEffect(effect: CombatEffect): string {
     return `escudo ${effect.amount}`;
   }
   if (effect.type === 'condition.apply') {
-    return `aplica ${INITIAL_CONDITIONS.conditionById.get(effect.conditionId)?.name ?? 'condição'}`;
+    return `aplica ${conditions.conditionById.get(effect.conditionId)?.name ?? 'condição'}`;
   }
   if (effect.type === 'interrupt') {
     return 'interrompe preparação';
