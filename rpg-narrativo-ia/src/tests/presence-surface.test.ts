@@ -164,9 +164,13 @@ describe('Fatia 8.5 — view-model de presenças', () => {
       expect.objectContaining({
         interactionId: 'talk-mira-awakening-clearing',
         kind: 'talk',
-        label: 'Conversar',
-        hint: 'Falar com Mira Vale.',
         costPeriods: 1,
+        available: true,
+      }),
+      expect.objectContaining({
+        interactionId: 'avoid-mira-awakening-clearing',
+        kind: 'avoid',
+        costPeriods: 0,
         available: true,
       }),
     ]);
@@ -240,6 +244,11 @@ describe('Fatia 8.5 — view-model de presenças', () => {
         available: false,
         blockedReason: 'As condições da interação não foram satisfeitas.',
         costPeriods: 1,
+      }),
+      expect.objectContaining({
+        interactionId: 'avoid-mira-awakening-clearing',
+        available: true,
+        costPeriods: 0,
       }),
     ]);
   });
