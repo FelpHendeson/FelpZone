@@ -177,7 +177,13 @@ describe('catálogo de interações', () => {
       presenceId: 'mira-awakening-clearing',
       kind: 'talk',
       resolvesPresence: true,
-      narrative: { campaignId: 'first-day', eventId: 'first-priority' },
+      narrative: { campaignId: 'first-day', eventId: 'survivor-meet' },
+    });
+    expect(inspected.value.byId.get('avoid-mira-awakening-clearing')).toMatchObject({
+      presenceId: 'mira-awakening-clearing',
+      kind: 'avoid',
+      resolvesPresence: true,
+      timeCost: { periods: 0 },
     });
     expect(inspected.value.byId.get('observe-horned-rabbit-dense-woods')).toMatchObject({
       presenceId: 'horned-rabbit-dense-woods',
@@ -283,7 +289,7 @@ describe('catálogo de interações', () => {
           interactions: [
             interaction({
               id: 'orphan-narrative',
-              narrative: { campaignId: 'first-day', eventId: 'first-priority' },
+              narrative: { campaignId: 'first-day', eventId: 'survivor-meet' },
             }),
           ],
         },
@@ -447,9 +453,8 @@ describe('planejamento puro de interação', () => {
       effects: [
         { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' },
         { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },
-        { type: 'flag.set', flag: 'mira.promise.made', value: true },
       ],
-      narrative: { campaignId: 'first-day', eventId: 'first-priority' },
+      narrative: { campaignId: 'first-day', eventId: 'survivor-meet' },
       resolvesPresence: true,
     });
     expect(state.resolvedPresenceIds).toEqual([]);
