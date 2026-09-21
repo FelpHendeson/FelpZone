@@ -283,7 +283,7 @@ function WorldPanel({
   return (
     <div className="world-panel">
       <section className="location-hero" aria-labelledby="current-location-title">
-        <ImagePlaceholder kind="scene" label={view.location.imageLabel} className="location-hero__image" />
+        <ImagePlaceholder kind="scene" label={view.location.imageLabel} src={view.location.imageSrc} priority className="location-hero__image" />
         <div className="location-hero__shade" aria-hidden="true" />
         <div className="location-hero__badges" aria-label="Estado do local">
           <span>Zona descoberta</span>
@@ -688,6 +688,7 @@ function InteractableSection({
         {interactables.map((interactable) => (
           <article key={interactable.interactableId} className="presence-card">
             <div className="presence-card__body">
+              {interactable.imageSrc ? <ImagePlaceholder kind="scene" label={interactable.imageLabel} src={interactable.imageSrc} className="interactable-media" /> : null}
               <div className="presence-card__title">
                 <h3>{interactable.name}</h3>
                 <p className="presence-card__meta">{interactable.stageName}</p>
@@ -781,6 +782,7 @@ function PresenceCard({
           <ImagePlaceholder
             kind={presence.imageKind}
             label={presence.imageLabel}
+            src={presence.imageSrc}
             className="presence-card__media"
           />
           <span className="presence-card__title">
@@ -927,6 +929,7 @@ function MapNode({ destination, onAction }: { destination: DestinationView; onAc
       onClick={() => onAction({ type: 'navigation.move', locationId: destination.locationId })}
     >
       <span className="map-node__marker" aria-hidden="true">{destination.accessible ? '○' : '▒'}</span>
+      {destination.imageSrc ? <ImagePlaceholder kind="scene" label={destination.name} src={destination.imageSrc} className="map-node__image" /> : null}
       <span className="map-node__copy">
         <strong>{destination.name}</strong>
         <small>{destination.blockedReason ?? `${destination.relationLabel} · ${formatPeriodCost(destination.costPeriods)}`}</small>
@@ -1202,7 +1205,9 @@ function InventoryPanel({ view, onAction }: { view: ExplorationView; onAction: (
         <ul className="inventory-grid">
           {filteredInventory.map((item) => (
             <li key={item.itemId} className={item.consumable ? 'inventory-grid__item inventory-grid__item--consumable' : 'inventory-grid__item'}>
-              <span className="inventory-grid__icon" aria-hidden="true">{itemGlyph(item.itemId)}</span>
+              {item.imageSrc
+                ? <ImagePlaceholder kind="icon" label={item.name} src={item.imageSrc} className="inventory-grid__image" />
+                : <span className="inventory-grid__icon" aria-hidden="true">{itemGlyph(item.itemId)}</span>}
               <strong>{item.name}</strong>
               <span>× {item.quantity}</span>
               {item.consumable ? (

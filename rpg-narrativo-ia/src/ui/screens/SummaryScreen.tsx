@@ -22,7 +22,7 @@ export function SummaryScreen({ state, campaign, onRestart, onBack }: SummaryScr
   return (
     <main className="screen screen--narrow summary-screen">
       <section className="summary-hero">
-        <ImagePlaceholder kind="scene" label="O vale depois da primeira noite" />
+        <ImagePlaceholder kind="scene" label={campaign.endingImage?.label ?? 'O vale depois da primeira noite'} src={campaign.endingImage?.src} priority />
         <div className="summary-hero__content">
           <p className="eyebrow">Primeiro dia concluído</p>
           <h1 className="title title--small">{fullName(state.character)}</h1>
@@ -30,7 +30,7 @@ export function SummaryScreen({ state, campaign, onRestart, onBack }: SummaryScr
       </section>
       {title ? (
         <section className="summary-title">
-          <ImagePlaceholder kind="icon" label={title.name} />
+          <ImagePlaceholder kind="icon" label={title.name} src={title.image?.src} />
           <div>
             <h2>{title.name}</h2>
             <p>{title.description}</p>

@@ -25,6 +25,8 @@ export function inspectCampaignDocument(value: unknown, events: unknown): Campai
     id: value.id,
     title: value.title,
     firstEventId: value.firstEventId,
+    coverImage: value.coverImage as Campaign['coverImage'],
+    endingImage: value.endingImage as Campaign['endingImage'],
     events: events as StoryEvent[],
     items: value.items as Campaign['items'],
     abilities: value.abilities as Campaign['abilities'],

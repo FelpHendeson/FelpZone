@@ -1,4 +1,4 @@
-import { evaluateConditions, type Campaign, type GameCondition, type ImageReference } from '../../core/events';
+import { evaluateConditions, inspectImageReference, type Campaign, type GameCondition, type ImageReference } from '../../core/events';
 import { isAttributeId, type GameState } from '../../core/state/types';
 import type { ExplorationState, IndexedExploration } from '../exploration';
 import type { IndexedMap } from '../navigation';
@@ -32,7 +32,6 @@ import {
 
 export { PresenceError } from './errors';
 
-const IMAGE_KINDS = ['scene', 'portrait', 'icon'] as const;
 
 export function inspectPresenceCatalog(
   value: unknown,
@@ -728,11 +727,12 @@ function inspectOptionalImage(
     return { ok: true, value: undefined };
   }
 
-  if (!isRecord(value) || !isImageKind(value.kind) || typeof value.label !== 'string' || value.label.trim() === '') {
+  const image = inspectImageReference(value);
+  if (!image) {
     return fail(reason);
   }
 
-  return { ok: true, value: { kind: value.kind, label: value.label } };
+  return { ok: true, value: image };
 }
 
 function inspectOptionalConditions(
@@ -1228,7 +1228,7 @@ function copyEntity(entity: WorldEntityDefinition): WorldEntityDefinition {
   };
 
   if (entity.image) {
-    copied.image = { kind: entity.image.kind, label: entity.image.label };
+    copied.image = { ...entity.image };
   }
 
   return copied;
@@ -1376,7 +1376,7 @@ function sameEntity(left: WorldEntityDefinition, right: unknown): boolean {
     return false;
   }
 
-  return right.image.kind === left.image.kind && right.image.label === left.image.label;
+  return right.image.kind === left.image.kind && right.image.label === left.image.label && right.image.src === left.image.src;
 }
 
 function samePresence(left: WorldPresenceDefinition, right: unknown): boolean {
@@ -1435,10 +1435,6 @@ function sameCondition(left: GameCondition, right: unknown): boolean {
 
 function isEntityKind(value: unknown): value is WorldEntityKind {
   return typeof value === 'string' && (WORLD_ENTITY_KINDS as readonly string[]).includes(value);
-}
-
-function isImageKind(value: unknown): value is ImageReference['kind'] {
-  return typeof value === 'string' && (IMAGE_KINDS as readonly string[]).includes(value);
 }
 
 function isFiniteNumber(value: unknown): value is number {

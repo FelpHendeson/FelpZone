@@ -94,7 +94,7 @@ Evite colocar funções, JSX ou lógica específica da interface nos arquivos de
 
 ## Placeholders de imagem
 
-O MVP não deve buscar arte final nem usar imagens externas temporárias. Todo espaço visual recebe um componente local de placeholder.
+O MVP não deve buscar arte final nem usar imagens externas temporárias. Todo espaço visual continua tendo um placeholder local. O pack pode apontar para arte local opcional; consulte [Imagens opcionais dos packs](VISUAL-ASSETS.md).
 
 O placeholder deve:
 
@@ -103,7 +103,7 @@ O placeholder deve:
 - exibir uma etiqueta como `Cena: despertar` ou `Retrato: sobrevivente`;
 - usar cores coerentes com o tema provisório;
 - possuir texto alternativo adequado;
-- aceitar `kind`, `label` e proporção por propriedades;
+- aceitar `kind`, `label` e `src` opcional por propriedades;
 - continuar apresentável se JavaScript ou o asset falhar.
 
 Proporções iniciais:
@@ -119,7 +119,7 @@ Exemplo de uso esperado:
 <ImagePlaceholder kind="portrait" label="Sobrevivente desconhecido" />
 ```
 
-Quando a arte final existir, o mesmo espaço deverá aceitar uma referência local sem exigir alterações no motor narrativo.
+Quando a arte existir, o mesmo espaço renderiza a referência local. Se o arquivo não existir ou falhar, o placeholder reaparece sem alterar o motor narrativo.
 
 ## Conteúdo inicial necessário
 

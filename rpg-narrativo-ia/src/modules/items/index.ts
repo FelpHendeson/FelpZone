@@ -1,4 +1,5 @@
 import type { InventoryItem } from '../../core/state/types';
+import { inspectImageReference } from '../../core/events';
 import { itemQuantity } from '../inventory';
 import { ItemError } from './errors';
 import { ImmutableIndex } from './immutable-index';
@@ -321,6 +322,10 @@ function inspectItem(value: unknown, existing: ReadonlySet<string>): ItemsInspec
   if (!tags.ok) {
     return tags;
   }
+  const image = value.image === undefined ? undefined : inspectImageReference(value.image);
+  if (value.image !== undefined && (!image || image.kind !== 'icon')) {
+    return fail('O item possui imagem inválida.');
+  }
 
   if (value.kind === 'material') {
     if (value.slot !== undefined || value.grants !== undefined || value.use !== undefined) {
@@ -335,6 +340,7 @@ function inspectItem(value: unknown, existing: ReadonlySet<string>): ItemsInspec
         id: value.id,
         name: value.name,
         description: value.description,
+        image,
         kind: 'material',
         stackLimit: value.stackLimit,
         tags: tags.value,
@@ -362,6 +368,7 @@ function inspectItem(value: unknown, existing: ReadonlySet<string>): ItemsInspec
         id: value.id,
         name: value.name,
         description: value.description,
+        image,
         kind: 'equipment',
         stackLimit: 1,
         tags: tags.value,
@@ -384,6 +391,7 @@ function inspectItem(value: unknown, existing: ReadonlySet<string>): ItemsInspec
       id: value.id,
       name: value.name,
       description: value.description,
+      image,
       kind: 'consumable',
       stackLimit: value.stackLimit,
       tags: tags.value,
@@ -466,6 +474,7 @@ function freezeCatalog(items: CatalogItemDefinition[]): IndexedItems {
 }
 
 function freezeItem(item: CatalogItemDefinition): CatalogItemDefinition {
+  if (item.image) Object.freeze(item.image);
   if (item.kind === 'equipment') {
     return Object.freeze({
       ...item,
@@ -499,15 +508,15 @@ function copyItem(item: CatalogItemDefinition): CatalogItemDefinition {
   if (item.kind === 'consumable') {
     return copyConsumable(item);
   }
-  return { ...item, tags: [...item.tags] };
+  return { ...item, image: item.image ? { ...item.image } : undefined, tags: [...item.tags] };
 }
 
 function copyEquipment(item: EquipmentDefinition): EquipmentDefinition {
-  return { ...item, tags: [...item.tags], grants: item.grants.map((grant) => ({ ...grant })) };
+  return { ...item, image: item.image ? { ...item.image } : undefined, tags: [...item.tags], grants: item.grants.map((grant) => ({ ...grant })) };
 }
 
 function copyConsumable(item: ConsumableDefinition): ConsumableDefinition {
-  return { ...item, tags: [...item.tags], use: { ...item.use } };
+  return { ...item, image: item.image ? { ...item.image } : undefined, tags: [...item.tags], use: { ...item.use } };
 }
 
 function requireIndexed(catalog: IndexedItems): IndexedItems {

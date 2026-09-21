@@ -43,7 +43,7 @@ export default defineConfig(({ mode }) => ({
         ],
       },
       workbox: {
-        globPatterns: ['**/*.{js,css,html,svg,png,webmanifest,ico}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,jpg,jpeg,webp,avif,webmanifest,ico}'],
         navigateFallback: 'index.html',
         cleanupOutdatedCaches: true,
         clientsClaim: true,

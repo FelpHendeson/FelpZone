@@ -1,6 +1,8 @@
+import type { ImageReference } from '../../core/events';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
 
 interface StartScreenProps {
+  coverImage?: ImageReference;
   canContinue: boolean;
   continueLabel: string;
   saveWarning?: string;
@@ -11,6 +13,7 @@ interface StartScreenProps {
 }
 
 export function StartScreen({
+  coverImage,
   canContinue,
   continueLabel,
   saveWarning,
@@ -22,7 +25,7 @@ export function StartScreen({
   return (
     <main className="screen screen--start screen--narrow">
       <section className="start-hero">
-        <ImagePlaceholder kind="scene" label="Horizonte depois do Reset" className="start-hero__image" />
+        <ImagePlaceholder kind="scene" label={coverImage?.label ?? 'Horizonte depois do Reset'} src={coverImage?.src} priority className="start-hero__image" />
         <div className="start-hero__shade" aria-hidden="true" />
         <div className="start-hero__content">
           <p className="eyebrow">RPG narrativo de exploração</p>

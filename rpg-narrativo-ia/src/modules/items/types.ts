@@ -34,6 +34,7 @@ export interface ItemDefinition {
   id: string;
   name: string;
   description: string;
+  image?: ImageReference;
   kind: ItemKind;
   stackLimit: number;
   tags: readonly string[];
@@ -92,3 +93,4 @@ export const PREPARATION_SLOT_COUNT = 2;
 export type ItemsInspection<T> =
   | { ok: true; value: T }
   | { ok: false; reason: string };
+import type { ImageReference } from '../../core/events';

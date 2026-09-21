@@ -40,12 +40,12 @@ export function GameScreen({ state, campaign, event, choices, onChoose, onExit }
 
       <div className="narrative-stage">
         <div className="narrative-hero">
-          <ImagePlaceholder kind="scene" label={event.image.label} className="narrative-hero__scene" />
+          <ImagePlaceholder kind="scene" label={event.image?.label ?? title} src={event.image?.src} priority className="narrative-hero__scene" />
           <div className="narrative-hero__shade" aria-hidden="true" />
           <span className="narrative-hero__tag">Encontro narrativo</span>
           {event.portrait ? (
             <div className="narrative-speaker">
-              <ImagePlaceholder kind="portrait" label={event.portrait.label} />
+              <ImagePlaceholder kind="portrait" label={event.portrait.label} src={event.portrait.src} />
               <span>{event.portrait.label}</span>
             </div>
           ) : null}
@@ -148,7 +148,7 @@ function CharacterPanel({ state, campaign }: { state: GameState; campaign: Campa
               const ability = findAbility(campaign, abilityId);
               return (
                 <li key={abilityId} className="asset-list__item">
-                  <ImagePlaceholder kind="icon" label={ability?.name ?? abilityId} />
+                  <ImagePlaceholder kind="icon" label={ability?.name ?? abilityId} src={ability?.image?.src} />
                   <div>
                     <strong>{ability?.name ?? abilityId}</strong>
                     <p>{ability?.description}</p>
@@ -169,7 +169,7 @@ function CharacterPanel({ state, campaign }: { state: GameState; campaign: Campa
               const npc = findNpc(campaign, relation.characterId);
               return (
                 <li key={relation.characterId} className="asset-list__item">
-                  <ImagePlaceholder kind="portrait" label={npc?.name ?? relation.characterId} />
+                  <ImagePlaceholder kind="portrait" label={npc?.name ?? relation.characterId} src={npc?.image?.src} />
                   <div>
                     <strong>{npc?.name ?? relation.characterId}</strong>
                     <p>Confiança {relation.trust}</p>
@@ -198,7 +198,7 @@ function InventoryPanel({ state, campaign }: { state: GameState; campaign: Campa
         const definition = findItem(campaign, item.itemId);
         return (
           <li key={item.itemId} className="asset-list__item">
-            <ImagePlaceholder kind="icon" label={definition?.name ?? item.itemId} />
+            <ImagePlaceholder kind="icon" label={definition?.name ?? item.itemId} src={definition?.image?.src} />
             <div>
               <strong>
                 {definition?.name ?? item.itemId} × {item.quantity}

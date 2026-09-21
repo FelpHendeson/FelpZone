@@ -261,6 +261,7 @@ export function App() {
 
       {screen === 'start' ? (
         <StartScreen
+          coverImage={campaign.coverImage}
           canContinue={Boolean(savedState)}
           continueLabel={savedState?.status === 'completed' ? 'Abrir resumo da partida' : 'Continuar'}
           saveWarning={saveWarning}

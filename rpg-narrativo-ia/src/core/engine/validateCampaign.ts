@@ -1,10 +1,13 @@
 import { STORY_VAR_KEYS } from '../../modules/character';
+import { inspectImageReference } from '../events/image';
 import { isAttributeId, isDayPeriod } from '../state';
 import type {
   Campaign,
   EventTransition,
   GameCondition,
   GameEffect,
+  ImageKind,
+  ImageReference,
   StoryChoice,
 } from '../events';
 import { walkCampaignTrajectories } from './walkTrajectories';
@@ -19,6 +22,12 @@ export function validateCampaign(campaign: Campaign): string[] {
   const abilityIds = uniqueIds(campaign.abilities.map((ability) => ability.id), 'capacidades', errors);
   const npcIds = uniqueIds(campaign.npcs.map((npc) => npc.id), 'NPCs', errors);
   const titleIds = uniqueIds(campaign.titles.map((title) => title.id), 'títulos', errors);
+  errors.push(...validateVisual(campaign.coverImage, 'scene', 'A capa da campanha'));
+  errors.push(...validateVisual(campaign.endingImage, 'scene', 'O encerramento da campanha'));
+  for (const item of campaign.items) errors.push(...validateVisual(item.image, 'icon', `O item ${item.id}`));
+  for (const ability of campaign.abilities) errors.push(...validateVisual(ability.image, 'icon', `A capacidade ${ability.id}`));
+  for (const npc of campaign.npcs) errors.push(...validateVisual(npc.image, 'portrait', `O NPC ${npc.id}`));
+  for (const title of campaign.titles) errors.push(...validateVisual(title.image, 'icon', `O título ${title.id}`));
 
   if (eventIdSet.size !== eventIds.length) {
     errors.push('A campanha possui eventos com identificadores repetidos.');
@@ -36,6 +45,8 @@ export function validateCampaign(campaign: Campaign): string[] {
   const choiceIds: string[] = [];
 
   for (const event of campaign.events) {
+    errors.push(...validateVisual(event.image, 'scene', `O evento ${event.id}`));
+    errors.push(...validateVisual(event.portrait, 'portrait', `O retrato do evento ${event.id}`));
     if (event.choices.length === 0) {
       errors.push(`O evento ${event.id} não possui escolhas.`);
     }
@@ -76,6 +87,12 @@ export function validateCampaign(campaign: Campaign): string[] {
   errors.push(...validateReachability(campaign, eventIdSet));
 
   return errors;
+}
+
+function validateVisual(image: ImageReference | undefined, kind: ImageKind, subject: string): string[] {
+  if (image === undefined) return [];
+  const inspected = inspectImageReference(image);
+  return inspected?.kind === kind ? [] : [`${subject} possui imagem inválida.`];
 }
 
 function uniqueIds(ids: string[], label: string, errors: string[]): Set<string> {

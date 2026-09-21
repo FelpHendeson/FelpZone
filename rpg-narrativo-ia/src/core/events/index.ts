@@ -9,6 +9,7 @@ export function getVisibleChoices(event: StoryEvent, isAvailable: (choice: Story
 }
 
 export { evaluateCondition, evaluateConditions } from './conditions';
+export { inspectImageReference, isLocalImagePath } from './image';
 export type {
   AbilityDefinition,
   AttributeId,

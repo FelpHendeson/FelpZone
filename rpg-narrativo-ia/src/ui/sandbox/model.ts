@@ -77,6 +77,7 @@ export interface NeedEffectView {
 export interface DestinationView {
   locationId: string;
   name: string;
+  imageSrc?: string;
   relation?: LocationRelation;
   relationLabel?: string;
   costPeriods: number;
@@ -110,6 +111,7 @@ export interface RecipeView {
 export interface InventoryViewItem {
   itemId: string;
   name: string;
+  imageSrc?: string;
   quantity: number;
   kind: ItemKind | 'unknown';
   description?: string;
@@ -169,6 +171,7 @@ export interface PresenceView {
   description: string;
   imageKind: ImageKind;
   imageLabel: string;
+  imageSrc?: string;
   status: VisiblePresenceStatus;
   statusLabel: string;
   trust?: number;
@@ -192,6 +195,7 @@ export interface InteractableView {
   stageName: string;
   stageDescription: string;
   imageLabel: string;
+  imageSrc?: string;
   facts: string[];
   actions: InteractableActionView[];
 }
@@ -229,6 +233,7 @@ export interface ExplorationView {
     name: string;
     description: string;
     imageLabel: string;
+    imageSrc?: string;
     progress: number;
     canExplore: boolean;
     exploreDisabledReason?: string;
@@ -295,6 +300,7 @@ export function buildExplorationView(
       name: location.name,
       description: location.description ?? '',
       imageLabel: location.image?.label ?? location.name,
+      imageSrc: location.image?.src,
       progress: exploration.progress,
       canExplore: hasDefinition && !complete,
       exploreDisabledReason: exploreDisabledReason(hasDefinition, complete),
@@ -303,6 +309,7 @@ export function buildExplorationView(
     destinations: listVisibleDestinations(context.map, state.sandbox.navigation, state).map((destination) => ({
       locationId: destination.location.id,
       name: destination.location.name,
+      imageSrc: destination.location.image?.src,
       relation: destination.relation,
       relationLabel: RELATION_LABELS[destination.relation],
       costPeriods: destination.travelCost.periods,
@@ -490,6 +497,7 @@ function copyInventory(items: readonly InventoryItem[], state: GameState, contex
     return {
       itemId: item.itemId,
       name: sandboxItemName(item.itemId, catalog),
+      imageSrc: definition?.image?.src,
       quantity: item.quantity,
       kind: definition?.kind ?? 'unknown',
       description: definition?.description,
@@ -568,6 +576,7 @@ function visiblePresences(state: GameState, context: SandboxContext, locationId:
       description: known.entity.description,
       imageKind: known.entity.image?.kind ?? (known.entity.kind === 'npc' ? 'portrait' : 'icon'),
       imageLabel: known.entity.image?.label ?? known.entity.name,
+      imageSrc: known.entity.image?.src,
       status: known.status,
       statusLabel: PRESENCE_STATUS_LABELS[known.status],
       hint: visibleNpcs(state, context).find((npc) => npc.npcId === known.entity.id && npc.locationId === locationId)
@@ -624,6 +633,7 @@ function visibleInteractables(state: GameState, context: SandboxContext, locatio
     stageName: known.stage.name,
     stageDescription: known.stage.description,
     imageLabel: known.definition.image?.label ?? known.definition.name,
+    imageSrc: known.definition.image?.src,
     facts: known.revealedFacts.map((fact) => fact.text),
     actions: known.actions.map((entry) => ({
       actionId: entry.action.id,

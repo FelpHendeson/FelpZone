@@ -1,4 +1,4 @@
-import { evaluateConditions, type GameCondition, type GameEffect, type ImageReference } from '../../core/events';
+import { evaluateConditions, inspectImageReference, type GameCondition, type GameEffect, type ImageReference } from '../../core/events';
 import { isAttributeId, isDayPeriod, type GameState } from '../../core/state/types';
 import type { ExplorationState, IndexedExploration } from '../exploration';
 import type { IndexedMap } from '../navigation';
@@ -43,7 +43,6 @@ export type {
   KnownInteractableAction,
 } from './types';
 
-const IMAGE_KINDS = ['scene', 'portrait', 'icon'] as const;
 const UNAVAILABLE_REASON = 'O ponto de interesse não está disponível.';
 
 export function inspectInteractableCatalog(
@@ -682,10 +681,11 @@ function inspectOptionalImage(
   if (value === undefined) {
     return { ok: true, value: undefined };
   }
-  if (!isRecord(value) || !isImageKind(value.kind) || !nonEmpty(value.label)) {
+  const image = inspectImageReference(value);
+  if (!image) {
     return fail(reason);
   }
-  return { ok: true, value: { kind: value.kind, label: value.label } };
+  return { ok: true, value: image };
 }
 
 function freezeCatalog(
@@ -763,10 +763,6 @@ function revealedDiscoveries(state: ExplorationState): Set<string> {
     }
   }
   return revealed;
-}
-
-function isImageKind(value: unknown): value is ImageReference['kind'] {
-  return typeof value === 'string' && (IMAGE_KINDS as readonly string[]).includes(value);
 }
 
 function positiveSafeInteger(value: unknown): value is number {

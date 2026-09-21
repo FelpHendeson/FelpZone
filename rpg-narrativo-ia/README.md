@@ -49,6 +49,7 @@ Leia nesta ordem:
 28. [Jardim de habilidades](docs/SYSTEM-SKILL-GARDEN.md): Sistema 16 implementado e consolidado nas Fatias 16.1 a 16.7.
 29. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
 30. [Motor e pack de mundo](docs/CONTENT-PACK.md): o código conhece leis; o primeiro dia entra como JSON validado.
+    - [Imagens opcionais dos packs](docs/VISUAL-ASSETS.md): como adicionar cenas, retratos e ícones sem tornar arte obrigatória.
 31. [Cenário interativo e pontos de interesse](docs/SYSTEM-18-INTERACTABLE-WORLD.md): Sistema 18 implementado e consolidado nas Fatias 18.1 a 18.7.
 32. [Relacionamentos e vínculos persistentes](docs/SYSTEM-19-RELATIONSHIPS.md): Sistema 19 implementado e consolidado nas Fatias 19.1 a 19.7.
 33. [Registro do Sistema, patentes e rankings](docs/SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md): Sistema 20 implementado e consolidado nas Fatias 20.1 a 20.7.

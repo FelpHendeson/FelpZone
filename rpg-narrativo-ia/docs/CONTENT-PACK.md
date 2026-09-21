@@ -22,6 +22,8 @@ Vira pack `first-day` em `content/first-day/`:
 
 Pack inválido falha na borda, como save corrupto. JSON nunca executa código.
 
+Arte estática é opcional nos catálogos e eventos. Quando declarada, aponta para arquivos locais validados em `public/images/`; sem arquivo a interface preserva o placeholder. Veja [Imagens opcionais dos packs](VISUAL-ASSETS.md).
+
 ## ContentSource e compose
 
 ```ts

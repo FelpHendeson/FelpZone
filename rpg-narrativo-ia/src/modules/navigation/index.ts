@@ -1,4 +1,4 @@
-import { evaluateConditions, type GameCondition, type ImageReference } from '../../core/events';
+import { evaluateConditions, inspectImageReference, type GameCondition, type ImageReference } from '../../core/events';
 import { isAttributeId, type GameState } from '../../core/state/types';
 import { inspectTimeCost, type TimeCost } from '../time';
 import { DEFAULT_STARTING_LOCATION_ID, INITIAL_WORLD_MAP } from './initial-map';
@@ -26,7 +26,6 @@ export class NavigationError extends Error {
 export const DEFAULT_LOCKED_REASON = 'Este local está bloqueado.';
 export const ZERO_TRAVEL_COST: TimeCost = { periods: 0 };
 
-const IMAGE_KINDS = ['scene', 'portrait', 'icon'] as const;
 const VISIBILITIES = ['known', 'hidden'] as const;
 
 export function inspectNavigationMap(
@@ -707,13 +706,14 @@ function inspectCondition(value: unknown): NavigationInspection<GameCondition> {
 }
 
 function inspectImage(value: unknown): NavigationInspection<ImageReference> {
-  if (!isRecord(value) || !isImageKind(value.kind) || typeof value.label !== 'string' || value.label.trim() === '') {
+  const image = inspectImageReference(value);
+  if (!image) {
     return fail('A localização possui imagem malformada.');
   }
 
   return {
     ok: true,
-    value: { kind: value.kind, label: value.label },
+    value: image,
   };
 }
 
@@ -767,10 +767,6 @@ function copyState(state: NavigationState): NavigationState {
 
 function isVisibility(value: unknown): value is LocationVisibility {
   return typeof value === 'string' && (VISIBILITIES as readonly string[]).includes(value);
-}
-
-function isImageKind(value: unknown): value is ImageReference['kind'] {
-  return typeof value === 'string' && (IMAGE_KINDS as readonly string[]).includes(value);
 }
 
 function isFiniteNumber(value: unknown): value is number {

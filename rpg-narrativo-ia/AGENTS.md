@@ -23,7 +23,7 @@ A interface jogável segue o princípio **aventura primeiro, dados sob demanda**
 - Mantenha regras do jogo fora dos componentes React.
 - Modele campanhas e eventos como dados; não codifique a história diretamente na interface.
 - Não adicione API de IA, backend, login, telemetria ou serviço pago.
-- Não use imagens finais. Crie placeholders locais com proporção e identificação do uso futuro.
+- Não crie imagens finais sem pedido explícito. Preserve placeholders locais, mas aceite referências de arte opcionais do pack conforme [Imagens opcionais dos packs](docs/VISUAL-ASSETS.md).
 - Cada módulo deve expor tipos e funções públicas sem acessar internamente outro módulo.
 - Prefira funções puras para condições, escolhas e efeitos.
 - Salve uma versão do esquema junto com a partida para permitir migrações futuras.

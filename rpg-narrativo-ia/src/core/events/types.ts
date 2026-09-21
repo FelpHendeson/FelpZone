@@ -30,6 +30,7 @@ export type ImageKind = 'scene' | 'portrait' | 'icon';
 export interface ImageReference {
   kind: ImageKind;
   label: string;
+  src?: string;
 }
 
 export type EventTransition =
@@ -52,7 +53,7 @@ export interface StoryEvent {
   id: string;
   title: string;
   body: string;
-  image: ImageReference;
+  image?: ImageReference;
   portrait?: ImageReference;
   conditions?: GameCondition[];
   choices: StoryChoice[];
@@ -64,23 +65,27 @@ export interface ItemDefinition {
   id: string;
   name: string;
   description: string;
+  image?: ImageReference;
 }
 
 export interface AbilityDefinition {
   id: string;
   name: string;
   description: string;
+  image?: ImageReference;
 }
 
 export interface NpcDefinition {
   id: string;
   name: string;
+  image?: ImageReference;
 }
 
 export interface TitleDefinition {
   id: string;
   name: string;
   description: string;
+  image?: ImageReference;
   conditions: GameCondition[];
 }
 
@@ -88,6 +93,8 @@ export interface Campaign {
   id: string;
   title: string;
   firstEventId: string;
+  coverImage?: ImageReference;
+  endingImage?: ImageReference;
   events: StoryEvent[];
   items: ItemDefinition[];
   abilities: AbilityDefinition[];
