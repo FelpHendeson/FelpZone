@@ -1991,10 +1991,12 @@ function inspectV23(
   if (!inspected.ok) {
     return inspected;
   }
+  const { guidance: _guidance, ...rest } = inspected.state;
+  void _guidance;
   return {
     ok: true,
     state: {
-      ...inspected.state,
+      ...rest,
       schemaVersion: SCHEMA_VERSION_V23,
       character: {
         firstName: inspected.state.character.firstName,
