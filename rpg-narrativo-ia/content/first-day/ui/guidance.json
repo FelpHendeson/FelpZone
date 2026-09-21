@@ -1,0 +1,136 @@
+{
+  "topics": [
+    {
+      "id": "choices-and-consequences",
+      "title": "Escolhas e consequências",
+      "summary": "Suas decisões podem alterar recursos, atributos, relações e acontecimentos futuros.",
+      "body": [
+        "Nem toda consequência aparece imediatamente.",
+        "Algumas escolhas mudam o estado do mundo, enquanto outras abrem ou fecham oportunidades futuras.",
+        "O jogo não marca uma decisão como moralmente correta ou errada."
+      ],
+      "category": "system",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "system-basics",
+      "title": "O Sistema",
+      "summary": "O Sistema é uma interface real deste mundo e acompanha seu estado e progresso.",
+      "body": [
+        "Consultar o Sistema não consome períodos do dia.",
+        "Novas informações e funções podem aparecer conforme você descobre o mundo.",
+        "O Sistema organiza informações; ele não decide o que você deve fazer."
+      ],
+      "category": "system",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "time",
+      "title": "Tempo e períodos",
+      "summary": "Ações relevantes podem avançar o período do dia e alterar o estado do mundo.",
+      "body": [
+        "Viajar, explorar, treinar, descansar e outras ações podem consumir tempo.",
+        "Menus e consultas não avançam o relógio.",
+        "O dia continua mesmo quando você escolhe não seguir uma jornada."
+      ],
+      "category": "world",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "exploration",
+      "title": "Exploração",
+      "summary": "Explore locais conhecidos para revelar recursos, ameaças, pessoas e caminhos.",
+      "body": [
+        "Cada região possui descobertas próprias.",
+        "Algumas descobertas liberam novas rotas ou interações.",
+        "Voltar a um lugar conhecido pode continuar sendo útil conforme o mundo muda."
+      ],
+      "category": "world",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "needs",
+      "title": "Necessidades",
+      "summary": "Saúde, energia, fome e sede respondem às ações e ao passar do tempo.",
+      "body": [
+        "Atividades exigentes podem consumir energia e aumentar necessidades.",
+        "Comida, água, descanso e outras ações ajudam a recuperar o personagem.",
+        "Ignorar necessidades por muito tempo pode limitar suas opções."
+      ],
+      "category": "survival",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "inventory",
+      "title": "Inventário",
+      "summary": "Recursos encontrados, produzidos ou recebidos ficam disponíveis na Mochila.",
+      "body": [
+        "Itens podem servir para sobrevivência, crafting, combate ou acontecimentos narrativos.",
+        "Algumas ações consomem itens de forma permanente.",
+        "O jogo valida a quantidade necessária antes de permitir um consumo."
+      ],
+      "category": "survival",
+      "popupOnUnlock": false
+    },
+    {
+      "id": "eteris",
+      "title": "Etéris",
+      "summary": "Etéris é a energia presente no ambiente e no próprio mundo.",
+      "body": [
+        "Perceber Etéris é o primeiro passo para compreender a nova realidade energética.",
+        "A forma como uma pessoa percebe essa energia pode variar.",
+        "O Sistema oferece conceitos básicos, mas descoberta e experimentação continuam humanas."
+      ],
+      "category": "progression",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "numen",
+      "title": "Númen",
+      "summary": "Etéris assimilada por um ser vivo é interiorizada e individualizada como Númen.",
+      "body": [
+        "Númen pertence ao indivíduo que o internalizou.",
+        "Circulação e aplicação precisam ser desenvolvidas por prática.",
+        "Pessoas diferentes podem chegar a aplicações muito diferentes."
+      ],
+      "category": "progression",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "training",
+      "title": "Treinamento",
+      "summary": "Treinos consomem tempo e desenvolvem habilidades conhecidas.",
+      "body": [
+        "Cada método possui alvo, requisitos e custo em períodos.",
+        "Treinar afeta o relógio e pode desgastar necessidades normalmente.",
+        "Novos métodos podem ser encontrados ou desenvolvidos ao longo da campanha."
+      ],
+      "category": "progression",
+      "popupOnUnlock": true
+    },
+    {
+      "id": "journeys",
+      "title": "Jornadas",
+      "summary": "Jornadas acompanham objetivos importantes sem impedir que você explore livremente.",
+      "body": [
+        "Uma jornada pode possuir várias etapas.",
+        "O progresso é reconhecido a partir do estado real da partida.",
+        "Você pode realizar outras atividades enquanto uma jornada continua ativa."
+      ],
+      "category": "system",
+      "popupOnUnlock": false
+    },
+    {
+      "id": "relationships-basics",
+      "title": "Relações",
+      "summary": "Pessoas lembram de decisões e vínculos podem mudar com convivência e conflito.",
+      "body": [
+        "Relações não existem apenas como recompensa por diálogo.",
+        "Ajuda, promessas, trabalho, perigo e discordâncias podem alterar como alguém vê você.",
+        "Uma pessoa importante continua tendo objetivos próprios."
+      ],
+      "category": "social",
+      "popupOnUnlock": true
+    }
+  ]
+}
