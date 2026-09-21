@@ -56,6 +56,12 @@ import { createInitialEconomyState, inspectEconomyState } from '../../modules/ec
 import { createInitialSettlementsState, inspectSettlementsState } from '../../modules/settlements';
 import { createInitialPoliticsState, inspectPoliticsState } from '../../modules/politics';
 import {
+  INITIAL_GUIDANCE,
+  createInitialGuidanceState,
+  createMigratedGuidanceState,
+  inspectGuidanceState,
+} from '../../modules/guidance';
+import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
   CHARACTER_SEXES,
@@ -84,6 +90,7 @@ import {
   SCHEMA_VERSION_V21,
   SCHEMA_VERSION_V22,
   SCHEMA_VERSION_V23,
+  SCHEMA_VERSION_V24,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -109,6 +116,7 @@ import {
   type GameStateV21,
   type GameStateV22,
   type GameStateV23,
+  type GameStateV24,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -207,6 +215,10 @@ export type GameStateV22Inspection =
 
 export type GameStateV23Inspection =
   | { ok: true; state: GameStateV23 }
+  | { ok: false; reason: string };
+
+export type GameStateV24Inspection =
+  | { ok: true; state: GameStateV24 }
   | { ok: false; reason: string };
 
 export function inspectGameState(
@@ -472,6 +484,18 @@ export function inspectGameStateV23(
 ): GameStateV23Inspection {
   try {
     return inspectV23(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV24(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV24Inspection {
+  try {
+    return inspectV24(value, context, objectiveCatalog);
   } catch {
     return { ok: false, reason: 'O salvamento está corrompido.' };
   }
@@ -810,19 +834,34 @@ export function migrateGameStateV22(
 
 export function migrateGameStateV23(
   state: GameStateV23,
-  _context?: SandboxContext,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV24(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V24,
+      character: {
+        firstName: state.character.firstName,
+        lastName: state.character.lastName,
+        sex: 'unspecified',
+      },
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV24(
+  state: GameStateV24,
+  context?: SandboxContext,
   _objectiveCatalog?: IndexedObjectives,
 ): GameState {
-  void _context;
   void _objectiveCatalog;
   return {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
-    character: {
-      firstName: state.character.firstName,
-      lastName: state.character.lastName,
-      sex: 'unspecified',
-    },
+    guidance: createMigratedGuidanceState(context?.guidance ?? INITIAL_GUIDANCE),
   };
 }
 
@@ -1098,6 +1137,10 @@ function inspectCurrent(
   }
 
   const resolvedContext = requireContext(context);
+  const guidance = inspectGuidanceState(value.guidance, resolvedContext.guidance ?? INITIAL_GUIDANCE);
+  if (!guidance.ok) {
+    return fail(guidance.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1229,6 +1272,7 @@ function inspectCurrent(
       economy: economy.value,
       settlements: settlements.value,
       politics: politics.value,
+      guidance: guidance.value,
     },
   };
 }
@@ -1397,6 +1441,7 @@ function inspectV11(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       sandbox: isRecord(value.sandbox) ? { ...value.sandbox, interactables: { objects: [] } } : value.sandbox,
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
@@ -1453,6 +1498,7 @@ function inspectV12(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
@@ -1505,6 +1551,7 @@ function inspectV13(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
@@ -1555,6 +1602,7 @@ function inspectV14(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
@@ -1603,6 +1651,7 @@ function inspectV15(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
@@ -1649,6 +1698,7 @@ function inspectV16(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
@@ -1693,6 +1743,7 @@ function inspectV17(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
@@ -1735,6 +1786,7 @@ function inspectV18(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
@@ -1775,6 +1827,7 @@ function inspectV19(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
@@ -1813,6 +1866,7 @@ function inspectV20(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
@@ -1849,6 +1903,7 @@ function inspectV21(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
     },
@@ -1883,6 +1938,7 @@ function inspectV22(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
       politics: createInitialPoliticsState(),
     },
     context,
@@ -1915,6 +1971,7 @@ function inspectV23(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
+      guidance: createInitialGuidanceState(),
     },
     context,
     objectiveCatalog,
@@ -1931,6 +1988,37 @@ function inspectV23(
         firstName: inspected.state.character.firstName,
         lastName: inspected.state.character.lastName,
       },
+    },
+  };
+}
+
+function inspectV24(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV24Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V24 || 'guidance' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 24.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      guidance: createInitialGuidanceState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { guidance: _guidance, ...rest } = inspected.state;
+  void _guidance;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V24,
     },
   };
 }
