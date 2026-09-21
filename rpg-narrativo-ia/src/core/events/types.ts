@@ -22,6 +22,7 @@ export type GameCondition =
   | { type: 'attribute.min'; attribute: AttributeId; amount: number }
   | { type: 'attribute.max'; attribute: AttributeId; amount: number }
   | { type: 'inventory.has'; itemId: string; quantity?: number }
+  | { type: 'crafting.structure.active'; structureId: string; locationId?: string }
   | { type: 'relationship.min'; characterId: string; amount: number }
   | { type: 'bond.dimension.min'; fromId: string; toId: string; dimensionId: string; amount: number }
   | { type: 'bond.exists'; fromId: string; toId: string; bondId: string };
