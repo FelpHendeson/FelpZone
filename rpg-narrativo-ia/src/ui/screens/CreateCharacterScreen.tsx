@@ -1,14 +1,16 @@
 import { useMemo, useState, type FormEvent } from 'react';
+import type { CharacterSex } from '../../core/state';
 import { normalizeIdentity, validateIdentity } from '../../modules/character';
 
 interface CreateCharacterScreenProps {
   onBack: () => void;
-  onConfirm: (firstName: string, lastName: string) => void;
+  onConfirm: (firstName: string, lastName: string, sex: Exclude<CharacterSex, 'unspecified'>) => void;
 }
 
 export function CreateCharacterScreen({ onBack, onConfirm }: CreateCharacterScreenProps) {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
+  const [sex, setSex] = useState<Exclude<CharacterSex, 'unspecified'> | null>(null);
   const [step, setStep] = useState<'form' | 'confirm'>('form');
   const [submitted, setSubmitted] = useState(false);
 
@@ -18,7 +20,7 @@ export function CreateCharacterScreen({ onBack, onConfirm }: CreateCharacterScre
   function handleSubmit(event: FormEvent) {
     event.preventDefault();
     setSubmitted(true);
-    if (!validation.ok) {
+    if (!validation.ok || sex === null) {
       return;
     }
 
@@ -32,13 +34,18 @@ export function CreateCharacterScreen({ onBack, onConfirm }: CreateCharacterScre
         <div className="identity-mark" aria-hidden="true">{identity.firstName[0]}{identity.lastName[0]}</div>
         <h1 className="title title--small">Começar como {identity.firstName} {identity.lastName}?</h1>
         <p className="lede">
-          Esse será o nome que o Sistema reconhece. Não há família esperando do outro lado do vale.
+          Esse será o nome que o Sistema reconhece. Identidade: {sex === 'male' ? 'masculino' : 'feminino'}.
+          Não há família esperando do outro lado do vale.
         </p>
         <div className="button-stack">
           <button
             type="button"
             className="button button--primary"
-            onClick={() => onConfirm(identity.firstName, identity.lastName)}
+            onClick={() => {
+              if (sex !== null) {
+                onConfirm(identity.firstName, identity.lastName, sex);
+              }
+            }}
           >
             Confirmar e despertar
           </button>
@@ -88,6 +95,34 @@ export function CreateCharacterScreen({ onBack, onConfirm }: CreateCharacterScre
             </span>
           ) : null}
         </label>
+        <fieldset className="field">
+          <legend>Sexo</legend>
+          <label>
+            <input
+              type="radio"
+              name="sex"
+              value="male"
+              checked={sex === 'male'}
+              onChange={() => setSex('male')}
+            />
+            Masculino
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="sex"
+              value="female"
+              checked={sex === 'female'}
+              onChange={() => setSex('female')}
+            />
+            Feminino
+          </label>
+          {submitted && sex === null ? (
+            <span className="field__error" role="alert">
+              Escolha o sexo do personagem.
+            </span>
+          ) : null}
+        </fieldset>
         <div className="button-stack">
           <button type="submit" className="button button--primary">
             Continuar
