@@ -210,6 +210,11 @@ function validateEffect(
         return [`${prefix} referencia o título ${effect.titleId}, que não existe.`];
       }
       return [];
+    case 'guidance.unlock':
+      if (effect.topicId.trim() === '') {
+        return [`${prefix} possui tópico de orientação inválido.`];
+      }
+      return [];
     case 'game.complete':
       return [];
     case 'npc.rememberFact':
