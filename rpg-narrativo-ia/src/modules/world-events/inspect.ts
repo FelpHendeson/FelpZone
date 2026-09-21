@@ -1,4 +1,5 @@
 import type { Campaign } from '../../core/events';
+import { isDayPeriod } from '../../core/state';
 import { getEventById } from '../../core/events';
 import type { IndexedExploration } from '../exploration';
 import type { IndexedSkills } from '../skills';
@@ -172,6 +173,22 @@ function inspectSource(
       return {
         ok: true,
         value: { type: value.type, day: value.day as number },
+      };
+    case 'world.time.reached':
+      if (
+        !Number.isSafeInteger(value.day) ||
+        (value.day as number) <= 0 ||
+        !isDayPeriod(value.period)
+      ) {
+        return fail('O marco temporal do gatilho é inválido.');
+      }
+      return {
+        ok: true,
+        value: {
+          type: value.type,
+          day: value.day as number,
+          period: value.period,
+        },
       };
   }
 
