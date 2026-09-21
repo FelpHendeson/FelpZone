@@ -76,7 +76,7 @@ describe('superfície mobile do sandbox', () => {
     expect(destinationIds(afterOne)).toEqual([]);
 
     const afterTwo = exploreTimes(start, 2);
-    expect(destinationIds(afterTwo)).toEqual(['great-tree']);
+    expect(destinationIds(afterTwo)).toEqual(['great-tree', 'spring-lake']);
 
     const afterFour = exploreTimes(start, 4);
     expect(destinationIds(afterFour)).toEqual(['great-tree', 'spring-lake']);
@@ -92,7 +92,7 @@ describe('superfície mobile do sandbox', () => {
 
     const afterTwo = exploreTimes(start, 2);
     expect(destinationIds(afterTwo)).toEqual(['great-tree']);
-    expect(destinationIds(afterTwo)).not.toContain('spring-lake');
+    expect(destinationIds(afterTwo)).toContain('spring-lake');
     expect(destinationIds(afterTwo)).not.toContain('dense-woods');
     expect(destinationIds(afterTwo)).not.toContain('hidden-cave');
 
@@ -114,7 +114,7 @@ describe('superfície mobile do sandbox', () => {
     expect(attempt.current.sandbox.navigation).toEqual(attempt.result.current.sandbox.navigation);
     expect(attempt.current.sandbox.exploration).toEqual(attempt.result.current.sandbox.exploration);
     expect(attempt.current.sandbox.presences).toEqual({
-      discoveredPresenceIds: ['mira-awakening-clearing'],
+      discoveredPresenceIds: [],
       resolvedPresenceIds: [],
     });
     expect(attempt.current.narrativeSession).toBeNull();
