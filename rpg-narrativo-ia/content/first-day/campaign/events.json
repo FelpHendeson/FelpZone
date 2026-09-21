@@ -1110,12 +1110,37 @@
     ]
   },
   {
-    "id": "dusk-trusted",
-    "title": "O fogo que ela aceita dividir",
-    "body": "O entardecer desce mais rápido do que a memória de {{nome}} espera. Mira não fala do fruto outra vez. Só aponta um oco entre raízes, onde o vento quebra.\n\n— Você não precisava ter dividido — diz ela, já reunindo gravetos secos. — Por isso mesmo, o fogo pode ser dos dois. Se quiser.\n\nA primeira noite não vai ser confortável. Pode, no entanto, não ser solitária.",
+    "id": "first-night",
+    "title": "A primeira noite chega",
+    "body": "O primeiro ciclo de escuridão de Reset muda o peso de cada decisão. O que durante o dia parecia apenas recurso, distância ou cautela agora define como você vai atravessar horas em que quase não enxerga.\n\nO Sistema não manda você dormir e não escolhe companhia por você. Ele apenas registra que a noite chegou.",
     "image": {
       "kind": "scene",
-      "label": "Abrigo improvisado no entardecer"
+      "label": "A primeira noite em Reset"
+    },
+    "choices": [
+      {
+        "id": "assess-first-night",
+        "label": "Decidir como atravessar a noite",
+        "hint": "O estado do mundo e suas escolhas anteriores definem as opções disponíveis.",
+        "effects": [],
+        "transition": {
+          "type": "firstMatch",
+          "eventIds": [
+            "dusk-trusted",
+            "dusk-wary"
+          ]
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "dusk-trusted",
+    "title": "Alguém ainda está por perto",
+    "body": "Mira não se tornou sua amiga por causa de uma conversa, mas também não desapareceu. Há confiança suficiente para que uma proposta de vigília compartilhada não soe absurda.\n\nVocês podem dividir presença e atenção sem fingir que já existe uma aliança. Ou você pode preferir manter distância.",
+    "image": {
+      "kind": "scene",
+      "label": "Duas pessoas avaliando a noite"
     },
     "portrait": {
       "kind": "portrait",
@@ -1123,16 +1148,26 @@
     },
     "conditions": [
       {
+        "type": "relationship.min",
+        "characterId": "mira-vale",
+        "amount": 5
+      },
+      {
         "type": "flag.is",
-        "flag": "moral.shared",
-        "value": true
+        "flag": "mira.contact.avoided",
+        "value": false
+      },
+      {
+        "type": "flag.is",
+        "flag": "mira.contact.ended",
+        "value": false
       }
     ],
     "choices": [
       {
         "id": "accept-shelter",
-        "label": "Aceitar o abrigo e o fogo",
-        "hint": "Energia e saúde se recuperam um pouco.",
+        "label": "Propor uma vigília compartilhada",
+        "hint": "Vocês passam a noite próximos, mas isso não cria automaticamente amizade ou party.",
         "notable": true,
         "effects": [
           {
@@ -1141,32 +1176,18 @@
             "value": true
           },
           {
-            "type": "attribute.change",
-            "attribute": "energia",
-            "amount": 18
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "saude",
-            "amount": 8
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "fome",
-            "amount": -6
+            "type": "flag.set",
+            "flag": "camp.alone",
+            "value": false
           },
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": 8
+            "amount": 3
           },
           {
             "type": "progression.title",
             "titleId": "mao-partilhada"
-          },
-          {
-            "type": "world.period",
-            "period": "noite"
           }
         ],
         "transition": {
@@ -1175,9 +1196,51 @@
         }
       },
       {
+        "id": "keep-own-fire",
+        "label": "Ficar sozinho junto à sua fogueira",
+        "hint": "Disponível se existe uma fogueira ativa no local.",
+        "notable": true,
+        "conditions": [
+          {
+            "type": "crafting.structure.active",
+            "structureId": "campfire"
+          }
+        ],
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "camp.alone",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "camp.together",
+            "value": false
+          },
+          {
+            "type": "flag.set",
+            "flag": "night.campfire",
+            "value": true
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 3
+          },
+          {
+            "type": "progression.title",
+            "titleId": "caminho-solitario"
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "night-alone"
+        }
+      },
+      {
         "id": "decline-shelter",
-        "label": "Agradecer e seguir sozinho",
-        "hint": "A cautela aumenta. Você passa a noite sem companhia.",
+        "label": "Preferir distância nesta noite",
+        "hint": "Você mantém o contato possível, mas passa a noite por conta própria.",
         "notable": true,
         "effects": [
           {
@@ -1186,27 +1249,18 @@
             "value": true
           },
           {
+            "type": "flag.set",
+            "flag": "camp.together",
+            "value": false
+          },
+          {
             "type": "attribute.change",
             "attribute": "cautela",
-            "amount": 8
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "energia",
-            "amount": 6
-          },
-          {
-            "type": "relationship.change",
-            "characterId": "mira-vale",
-            "amount": -4
+            "amount": 4
           },
           {
             "type": "progression.title",
             "titleId": "caminho-solitario"
-          },
-          {
-            "type": "world.period",
-            "period": "noite"
           }
         ],
         "transition": {
@@ -1214,32 +1268,42 @@
           "eventId": "night-alone"
         }
       }
-    ],
-    "canStartSession": true
+    ]
   },
   {
     "id": "dusk-wary",
-    "title": "A distância que ficou",
-    "body": "Mira não discute o alimento. Guarda as mãos junto ao corpo e aponta um vale mais baixo, onde o vento bate menos.\n\n— Cada um por si, então — diz ela. — Eu não vou te seguir. Também não vou fingir que isso aqui é um começo.\n\nAinda assim, ela não some de imediato. O primeiro dia está acabando para os dois.",
+    "title": "A noite sem acordo",
+    "body": "Não existe confiança suficiente — ou talvez nem exista contato — para transformar a noite em companhia automática.\n\nVocê ainda pode usar o que construiu, reconhecer que o corpo chegou ao limite ou simplesmente escolher um lugar e manter distância de tudo.",
     "image": {
       "kind": "scene",
-      "label": "Separação no entardecer"
-    },
-    "portrait": {
-      "kind": "portrait",
-      "label": "Mira Vale"
+      "label": "Anoitecer sem acordo"
     },
     "choices": [
       {
         "id": "repair-offer",
-        "label": "Pedir desculpas e oferecer a água agora",
-        "hint": "Exige água. Pode reabrir o caminho do abrigo.",
+        "label": "Oferecer água e propor uma trégua para a noite",
+        "hint": "Só aparece se você conhece Mira, ainda possui alguma confiança e tem água limpa.",
         "notable": true,
         "conditions": [
+          {
+            "type": "relationship.min",
+            "characterId": "mira-vale",
+            "amount": 1
+          },
           {
             "type": "inventory.has",
             "itemId": "agua-limpa",
             "quantity": 1
+          },
+          {
+            "type": "flag.is",
+            "flag": "mira.contact.avoided",
+            "value": false
+          },
+          {
+            "type": "flag.is",
+            "flag": "mira.contact.ended",
+            "value": false
           }
         ],
         "effects": [
@@ -1254,6 +1318,11 @@
             "value": true
           },
           {
+            "type": "flag.set",
+            "flag": "camp.alone",
+            "value": false
+          },
+          {
             "type": "inventory.remove",
             "itemId": "agua-limpa",
             "quantity": 1
@@ -1261,25 +1330,16 @@
           {
             "type": "relationship.change",
             "characterId": "mira-vale",
-            "amount": 14
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "humanidade",
             "amount": 8
           },
           {
             "type": "attribute.change",
-            "attribute": "energia",
-            "amount": 12
+            "attribute": "humanidade",
+            "amount": 4
           },
           {
             "type": "progression.title",
             "titleId": "gesto-tardio"
-          },
-          {
-            "type": "world.period",
-            "period": "noite"
           }
         ],
         "transition": {
@@ -1289,13 +1349,13 @@
       },
       {
         "id": "stay-apart",
-        "label": "Permanecer no mesmo vale, à distância",
+        "label": "Passar a noite junto à fogueira",
+        "hint": "A fogueira melhora sua posição, mesmo sem companhia.",
         "notable": true,
         "conditions": [
           {
-            "type": "inventory.has",
-            "itemId": "fruto-desconhecido",
-            "quantity": 1
+            "type": "crafting.structure.active",
+            "structureId": "campfire"
           }
         ],
         "effects": [
@@ -1305,32 +1365,46 @@
             "value": true
           },
           {
-            "type": "attribute.change",
-            "attribute": "energia",
-            "amount": 8
+            "type": "flag.set",
+            "flag": "camp.together",
+            "value": false
           },
           {
-            "type": "attribute.change",
-            "attribute": "cautela",
-            "amount": 6
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "fome",
-            "amount": -10
-          },
-          {
-            "type": "inventory.remove",
-            "itemId": "fruto-desconhecido",
-            "quantity": 1
+            "type": "flag.set",
+            "flag": "night.campfire",
+            "value": true
           },
           {
             "type": "progression.title",
             "titleId": "caminho-solitario"
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "night-alone"
+        }
+      },
+      {
+        "id": "rest-exhausted",
+        "label": "Parar onde está; o corpo chegou ao limite",
+        "hint": "Disponível quando a energia está muito baixa.",
+        "conditions": [
+          {
+            "type": "attribute.max",
+            "attribute": "energia",
+            "amount": 25
+          }
+        ],
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "camp.alone",
+            "value": true
           },
           {
-            "type": "world.period",
-            "period": "noite"
+            "type": "flag.set",
+            "flag": "camp.together",
+            "value": false
           }
         ],
         "transition": {
@@ -1340,15 +1414,8 @@
       },
       {
         "id": "walk-away",
-        "label": "Afastar-se e passar a noite sozinho",
+        "label": "Escolher um ponto afastado e ficar sozinho",
         "notable": true,
-        "conditions": [
-          {
-            "type": "inventory.has",
-            "itemId": "fruto-desconhecido",
-            "quantity": 1
-          }
-        ],
         "effects": [
           {
             "type": "flag.set",
@@ -1356,32 +1423,18 @@
             "value": true
           },
           {
+            "type": "flag.set",
+            "flag": "camp.together",
+            "value": false
+          },
+          {
             "type": "attribute.change",
             "attribute": "cautela",
-            "amount": 10
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "energia",
-            "amount": 4
-          },
-          {
-            "type": "attribute.change",
-            "attribute": "fome",
-            "amount": -10
-          },
-          {
-            "type": "inventory.remove",
-            "itemId": "fruto-desconhecido",
-            "quantity": 1
+            "amount": 5
           },
           {
             "type": "progression.title",
             "titleId": "caminho-solitario"
-          },
-          {
-            "type": "world.period",
-            "period": "noite"
           }
         ],
         "transition": {
@@ -1389,23 +1442,36 @@
           "eventId": "night-alone"
         }
       }
-    ],
-    "canStartSession": true
+    ]
   },
   {
     "id": "night-together",
-    "title": "A primeira noite",
-    "body": "O fogo é pequeno e o sono não é profundo. Ainda assim, há outra respiração no escuro e um acordo não dito: ninguém some enquanto o outro estiver de guarda.\n\nO Sistema registra o dia sem fanfarra. Não entrega um destino. Só confirma que {{nomeCompleto}} ainda está aqui.\n\nAmanhã o mundo continua maior do que deveria. Hoje, isso basta.",
+    "title": "A primeira noite, com outra respiração por perto",
+    "body": "Vocês não criam regras grandiosas. Só combinam o necessário: quem fecha os olhos primeiro, quem presta atenção aos ruídos e qual distância ainda parece segura.\n\nFogo, água e comida continuam sendo recursos reais; a presença de outra pessoa não substitui nenhum deles. Mas, pela primeira vez desde o despertar, você não precisa interpretar cada som sozinho.",
     "image": {
       "kind": "scene",
-      "label": "Noite compartilhada"
+      "label": "Vigília compartilhada na primeira noite"
     },
-    "isEnding": true,
     "choices": [
       {
         "id": "together-summary",
-        "label": "Continuar no mundo",
-        "effects": [],
+        "label": "Voltar ao mundo e descansar quando estiver pronto",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "night.resolved",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "night.route.shared",
+            "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "needs"
+          }
+        ],
         "transition": {
           "type": "returnToExploration"
         }
@@ -1414,18 +1480,109 @@
   },
   {
     "id": "night-alone",
-    "title": "A primeira noite",
-    "body": "O escuro chega inteiro. Sem parede, sem voz, sem certeza de que o vale ainda será o mesmo ao amanhecer.\n\nVocê ouve coisas que a memória não classifica. O Sistema permanece à margem da visão, silencioso, como se também estivesse aprendendo a esperar.\n\n{{nomeCompleto}} atravessa o primeiro dia. Sozinho, por enquanto.",
+    "title": "A primeira noite por conta própria",
+    "body": "A noite fica sob sua responsabilidade. Se existe fogo, ele vira uma pequena fronteira de luz. Se não existe, o escuro chega mais perto. O corpo também cobra tudo que foi feito durante o dia.\n\nEstar sozinho não encerra nenhuma rota. É apenas a forma como você escolheu — ou precisou — atravessar esta primeira noite.",
     "image": {
       "kind": "scene",
-      "label": "Noite solitária"
+      "label": "Primeira noite solitária"
     },
-    "isEnding": true,
     "choices": [
       {
         "id": "alone-summary",
-        "label": "Continuar no mundo",
+        "label": "Voltar ao mundo e descansar quando estiver pronto",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "night.resolved",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "night.route.alone",
+            "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "needs"
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-two-awakening",
+    "title": "O segundo dia",
+    "body": "O descanso atravessa a fronteira que a narrativa não deve fingir: o relógio do mundo realmente avançou. O Sistema registra o novo dia sem reiniciar suas escolhas, seus recursos ou o que aconteceu com outras pessoas.\n\nDia 2 começa no mesmo mundo que você deixou na noite anterior.",
+    "image": {
+      "kind": "scene",
+      "label": "Amanhecer do segundo dia"
+    },
+    "choices": [
+      {
+        "id": "day-two-assess",
+        "label": "Ver o que restou da primeira noite",
         "effects": [],
+        "transition": {
+          "type": "firstMatch",
+          "eventIds": [
+            "day-two-together",
+            "day-two-alone"
+          ]
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "day-two-together",
+    "title": "Amanhecer com companhia próxima",
+    "body": "Mira ainda está por perto quando a luz volta. Isso não transforma vocês em um grupo formal. Só prova que a decisão da noite teve continuidade suficiente para chegar à manhã.",
+    "portrait": {
+      "kind": "portrait",
+      "label": "Mira Vale"
+    },
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "camp.together",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-two-together-continue",
+        "label": "Começar o Dia 2",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.started",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-two-alone",
+    "title": "Amanhecer por conta própria",
+    "body": "A luz volta sem apagar a noite anterior. Você continua com o que reuniu, o que perdeu e as decisões que tomou. Outras pessoas podem existir na região; nenhuma delas foi transformada em obrigação pela narrativa.",
+    "choices": [
+      {
+        "id": "day-two-alone-continue",
+        "label": "Começar o Dia 2",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.started",
+            "value": true
+          }
+        ],
         "transition": {
           "type": "returnToExploration"
         }
