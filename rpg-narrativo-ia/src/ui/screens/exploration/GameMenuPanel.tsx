@@ -6,10 +6,14 @@ export function GameMenuPanel({
   status,
   view,
   onNavigate,
+  guidanceCount,
+  guidanceUnseenCount,
 }: {
   status: SystemStatusView;
   view: ExplorationView;
   onNavigate: (view: GameView) => void;
+  guidanceCount: number;
+  guidanceUnseenCount: number;
 }) {
   const activeOrganizations = status.organizations.length;
   const activeCivic = status.civic.filter((entry) => entry.active).length;
@@ -41,6 +45,9 @@ export function GameMenuPanel({
         </button>
         <button type="button" className="hub-card" onClick={() => onNavigate('map')}>
           <span className="hub-card__icon" aria-hidden="true">⌖</span><span><strong>Mapa completo</strong><small>{view.destinations.length} rotas a partir de {view.location.name}</small></span><span aria-hidden="true">→</span>
+        </button>
+        <button type="button" className="hub-card" onClick={() => onNavigate('help')}>
+          <span className="hub-card__icon" aria-hidden="true">?</span><span><strong>Ajuda</strong><small>{guidanceCount} tópicos disponíveis{guidanceUnseenCount > 0 ? ` · ${guidanceUnseenCount} novo${guidanceUnseenCount === 1 ? '' : 's'}` : ''}</small></span><span aria-hidden="true">→</span>
         </button>
       </div>
     </div>
