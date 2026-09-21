@@ -4,13 +4,13 @@ import { applyEffects } from '../effects';
 import { appendHistory } from '../../modules/narrative';
 import { INITIAL_OBJECTIVES, synchronizeObjectives, type IndexedObjectives } from '../../modules/objectives';
 import { createInitialState, defaultNow } from '../state';
-import type { CharacterIdentity, GameState } from '../state/types';
+import type { CharacterIdentityInput, GameState } from '../state/types';
 import type { SandboxContext } from '../../modules/sandbox';
 import { EngineError } from './errors';
 import { requireEvent, resolveTransition } from './resolveTransition';
 
 export function startGame(
-  character: CharacterIdentity,
+  character: CharacterIdentityInput,
   campaign: Campaign,
   now = defaultNow,
   sandboxContext?: SandboxContext,
