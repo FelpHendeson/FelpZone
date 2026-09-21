@@ -90,9 +90,9 @@ Não adicionar aparência nesta fatia.
 
 ---
 
-# 3. Orientação/ajuda
+# 3. Orientação/ajuda — **implementada**
 
-Implementar módulo `guidance`.
+Módulo `guidance` implementado.
 
 Sugestão de pasta:
 
@@ -431,9 +431,9 @@ Alterações de texto continuam sem exigir código.
 - migração;
 - testes.
 
-## Fatia B — Guidance
+## Fatia B — Guidance — **implementada**
 
-Como o schema 24 já foi publicado pela Fatia A, persistir `guidance` exigirá um novo checkpoint de schema (previsto como 25) para manter contratos de save explícitos.
+`guidance` foi publicada no schema 25, preservando o schema 24 como contrato histórico da identidade.
 
 - catálogo;
 - estado;
