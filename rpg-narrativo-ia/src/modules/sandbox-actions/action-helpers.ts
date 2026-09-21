@@ -446,7 +446,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
   return {
     schemaVersion: base.schemaVersion,
     status: patch.status ?? base.status,
-    character: { firstName: base.character.firstName, lastName: base.character.lastName },
+    character: { firstName: base.character.firstName, lastName: base.character.lastName, sex: base.character.sex },
     narrativeSession: resolveNarrativeSessionPatch(patch.narrativeSession, base.narrativeSession),
     attributes: { ...(patch.attributes ?? base.attributes) },
     inventory: copyInventory(patch.inventory),
