@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 21 de setembro de 2026. Ainda não implementada.**
+**Especificada e implementada em 21 de setembro de 2026.**
 
 Esta é uma extensão do módulo existente `world-events`, não um novo sistema numerado.
 
@@ -124,7 +124,7 @@ Validação:
 
 Não exigir unicidade por source: dois acontecimentos diferentes podem legitimamente depender do mesmo marco, desde que a ordem seja determinística.
 
-A restrição atual de um único trigger por discovery deve ser revisada deliberadamente. Se mantida para discovery, documentar como exceção específica.
+A implementação permite múltiplos triggers para a mesma descoberta. O índice `byDiscoveryId` permanece compatível apontando para o primeiro trigger declarado; a resolução completa usa `definitions` e preserva a ordem do catálogo.
 
 ## Integração com sandbox
 
