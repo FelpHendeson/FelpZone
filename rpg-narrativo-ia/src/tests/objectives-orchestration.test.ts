@@ -39,7 +39,7 @@ function exploring(catalog: IndexedObjectives): GameState {
   );
   return playChoices(
     initial,
-    ['awake-calm', 'system-touch', 'ability-perception'],
+    ['awake-calm', 'system-touch', 'ability-perception', 'eteris-pressure', 'numen-follow-guidance'],
     firstDayCampaign,
     () => STAMP,
     catalog,
