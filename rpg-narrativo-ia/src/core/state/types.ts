@@ -41,7 +41,8 @@ export const SCHEMA_VERSION_V19 = 19 as const;
 export const SCHEMA_VERSION_V20 = 20 as const;
 export const SCHEMA_VERSION_V21 = 21 as const;
 export const SCHEMA_VERSION_V22 = 22 as const;
-export const SCHEMA_VERSION = 23 as const;
+export const SCHEMA_VERSION_V23 = 23 as const;
+export const SCHEMA_VERSION = 24 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
@@ -76,9 +77,20 @@ export interface Attributes extends LegacyAttributes {
   sede: number;
 }
 
-export interface CharacterIdentity {
+export const CHARACTER_SEXES = ['male', 'female', 'unspecified'] as const;
+export type CharacterSex = (typeof CHARACTER_SEXES)[number];
+
+export interface LegacyCharacterIdentity {
   firstName: string;
   lastName: string;
+}
+
+export interface CharacterIdentity extends LegacyCharacterIdentity {
+  sex: CharacterSex;
+}
+
+export interface CharacterIdentityInput extends LegacyCharacterIdentity {
+  sex?: CharacterSex;
 }
 
 export interface InventoryItem {
@@ -116,7 +128,7 @@ export interface NarrativeSession {
 
 interface SharedState<TAttributes> {
   status: GameStatus;
-  character: CharacterIdentity;
+  character: LegacyCharacterIdentity;
   attributes: TAttributes;
   inventory: InventoryItem[];
   relationships: Relationship[];
@@ -388,8 +400,31 @@ export interface GameStateV22 extends SharedState<Attributes> {
   settlements: SettlementsState;
 }
 
+export interface GameStateV23 extends SharedState<Attributes> {
+  schemaVersion: typeof SCHEMA_VERSION_V23;
+  narrativeSession: NarrativeSession | null;
+  sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
+  objectives: ObjectivesState;
+  system: SkillsProgressState;
+  items: ItemsState;
+  lingering: PersistentConditionState;
+  garden: GardenState;
+  bonds: BondsState;
+  registry: RegistryState;
+  organizations: OrganizationsState;
+  execution: ExecutionState;
+  party: PartyState;
+  calendar: CalendarState;
+  family: FamilyState;
+  civic: CivicState;
+  economy: EconomyState;
+  settlements: SettlementsState;
+  politics: PoliticsState;
+}
+
 export interface GameState extends SharedState<Attributes> {
   schemaVersion: typeof SCHEMA_VERSION;
+  character: CharacterIdentity;
   narrativeSession: NarrativeSession | null;
   sandbox: SandboxState & { npcs: NPCsState; interactables: InteractablesState };
   objectives: ObjectivesState;
