@@ -47,12 +47,11 @@
         },
         {
           "id": "secure-water",
-          "title": "Garanta água para continuar",
+          "title": "Encontre uma fonte de água",
           "criteria": [
             {
-              "type": "inventory.item.quantity",
-              "itemId": "agua-limpa",
-              "quantity": 1
+              "type": "exploration.discovery.revealed",
+              "discoveryId": "spring-source"
             }
           ]
         },
