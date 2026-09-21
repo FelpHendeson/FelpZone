@@ -27,7 +27,7 @@ describe('transições', () => {
       ['awake-calm', 'system-touch', 'ability-perception'],
       ['seek-water', 'alert-hide', 'meet-open', 'share-fruit'],
     );
-    expect(afterShare.narrativeSession?.eventId).toBe('dusk-trusted');
+    expect(afterShare.narrativeSession).toBeNull();
     expect(afterShare.flags['moral.shared']).toBe(true);
 
     const ended = continueAfterIntro(
@@ -54,22 +54,28 @@ describe('transições', () => {
       ['seek-location', 'sudden-endure', 'meet-distance', 'keep-resource'],
     );
 
-    expect(wary.narrativeSession?.eventId).toBe('dusk-wary');
+    expect(wary.narrativeSession).toBeNull();
     expect(wary.flags['moral.kept']).toBe(true);
 
-    const alone = applyChoice(wary, firstDayCampaign, 'walk-away', now);
+    const alone = applyChoice(reopenNarrativeSession(wary, 'dusk-wary'), firstDayCampaign, 'walk-away', now);
     expect(alone.narrativeSession?.eventId).toBe('night-alone');
     expect(alone.flags['camp.alone']).toBe(true);
   });
 
   it('oferece a escolha de empatia somente com Voz Calma', () => {
-    const withEmpathy = continueAfterIntro(
-      ['awake-calm', 'system-touch', 'ability-empathy'],
-      ['seek-shelter', 'sudden-dodge'],
+    const withEmpathy = reopenNarrativeSession(
+      continueAfterIntro(
+        ['awake-calm', 'system-touch', 'ability-empathy'],
+        ['seek-shelter', 'sudden-dodge'],
+      ),
+      'survivor-meet',
     );
-    const withoutEmpathy = continueAfterIntro(
-      ['awake-calm', 'system-touch', 'ability-perception'],
-      ['seek-shelter', 'alert-leave'],
+    const withoutEmpathy = reopenNarrativeSession(
+      continueAfterIntro(
+        ['awake-calm', 'system-touch', 'ability-perception'],
+        ['seek-shelter', 'alert-leave'],
+      ),
+      'survivor-meet',
     );
 
     expect(withEmpathy.narrativeSession?.eventId).toBe('survivor-meet');
