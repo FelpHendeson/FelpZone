@@ -10,7 +10,7 @@
         "O jogo não marca uma decisão como moralmente correta ou errada."
       ],
       "category": "system",
-      "popupOnUnlock": true
+      "popupOnUnlock": false
     },
     {
       "id": "system-basics",
@@ -22,7 +22,7 @@
         "O Sistema organiza informações; ele não decide o que você deve fazer."
       ],
       "category": "system",
-      "popupOnUnlock": true
+      "popupOnUnlock": false
     },
     {
       "id": "time",
@@ -34,7 +34,7 @@
         "O dia continua mesmo quando você escolhe não seguir uma jornada."
       ],
       "category": "world",
-      "popupOnUnlock": true
+      "popupOnUnlock": false
     },
     {
       "id": "exploration",
@@ -46,7 +46,7 @@
         "Voltar a um lugar conhecido pode continuar sendo útil conforme o mundo muda."
       ],
       "category": "world",
-      "popupOnUnlock": true
+      "popupOnUnlock": false
     },
     {
       "id": "needs",
@@ -82,7 +82,7 @@
         "O Sistema oferece conceitos básicos, mas descoberta e experimentação continuam humanas."
       ],
       "category": "progression",
-      "popupOnUnlock": true
+      "popupOnUnlock": false
     },
     {
       "id": "numen",
@@ -94,7 +94,7 @@
         "Pessoas diferentes podem chegar a aplicações muito diferentes."
       ],
       "category": "progression",
-      "popupOnUnlock": true
+      "popupOnUnlock": false
     },
     {
       "id": "training",
@@ -102,6 +102,7 @@
       "summary": "Treinos consomem tempo e desenvolvem habilidades conhecidas.",
       "body": [
         "Cada método possui alvo, requisitos e custo em períodos.",
+        "Abra Personagem e consulte o Sistema para encontrar os treinamentos disponíveis.",
         "Treinar afeta o relógio e pode desgastar necessidades normalmente.",
         "Novos métodos podem ser encontrados ou desenvolvidos ao longo da campanha."
       ],
