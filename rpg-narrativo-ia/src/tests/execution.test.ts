@@ -131,7 +131,7 @@ describe('Sistema 22 — Númen avançado e execução', () => {
   });
 
   it('persiste reservas no schema 19 e migra saves v16 sem conceder party', () => {
-    expect(SCHEMA_VERSION).toBe(23);
+    expect(SCHEMA_VERSION).toBe(24);
     const spent: GameState = {
       ...freshState(),
       execution: { reserves: [{ energyId: 'numen', current: 6 }], cooldowns: [{ actionId: 'numen-spark', remaining: 1 }] },
