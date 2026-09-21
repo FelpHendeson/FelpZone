@@ -11,7 +11,7 @@ import {
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction, type SandboxAction } from '../modules/sandbox-actions';
 import { buildJournalView } from '../ui/journal';
-import { freshState, playFirstDay, reopenNarrativeSession } from './helpers';
+import { freshState, playFirstDay } from './helpers';
 
 const context = createSandboxContext();
 
@@ -65,22 +65,14 @@ describe('Fatia E — jornada principal do primeiro dia', () => {
     ]);
 
     act({ type: 'exploration.explore' });
+    act({ type: 'exploration.explore' });
     expect(progressFor(state)?.completedStepIds).toEqual([
       'choose-ability',
       'first-numen-practice',
       'explore-awakening-clearing',
     ]);
 
-    state = applyChoice(
-      reopenNarrativeSession(state, 'first-priority'),
-      firstDayCampaign,
-      'seek-water',
-    );
-    state = applyChoice(state, firstDayCampaign, 'alert-hide');
-    persistence.save(state);
-
-    expect(progressFor(state)?.completedStepIds).toContain('secure-water');
-
+    act({ type: 'navigation.move', locationId: 'spring-lake' });
     act({ type: 'exploration.explore' });
 
     expect(progressFor(state)?.completedStepIds).toEqual([
