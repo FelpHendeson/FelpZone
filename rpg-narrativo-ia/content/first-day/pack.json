@@ -36,6 +36,7 @@
     "events": "campaign/events.json",
     "worldTriggers": "campaign/world-triggers.json",
     "firstPriorityTrigger": "campaign/first-priority-trigger.json",
-    "labels": "ui/labels.json"
+    "labels": "ui/labels.json",
+    "guidance": "ui/guidance.json"
   }
 }
