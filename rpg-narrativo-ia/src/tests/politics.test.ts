@@ -11,7 +11,7 @@ import {
   planPoliticsAction,
 } from '../modules/politics';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV22, freshState, keepNpcAtCurrentLocation } from './helpers';
+import { asV22, freshState, keepNpcAtCurrentLocation, revealMiraForTest, grantMiraPromiseForTest } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -19,7 +19,7 @@ function exploringState(): GameState {
 
 function befriendMira(): GameState {
   let state = exploringState();
-  state = executeSandboxAction(state, { type: 'exploration.explore' }, { campaign: firstDayCampaign }).current;
+  state = revealMiraForTest(state);
   const talked = executeSandboxAction(
     state,
     {
@@ -29,7 +29,7 @@ function befriendMira(): GameState {
     },
     { campaign: firstDayCampaign },
   ).current;
-  const honored = executeSandboxAction(talked, { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
+  const honored = executeSandboxAction(grantMiraPromiseForTest(talked), { type: 'bond.act', actionId: 'honor-mira-promise' }).current;
   return keepNpcAtCurrentLocation(
     executeSandboxAction(honored, { type: 'bond.act', actionId: 'form-mira-friendship' }).current,
     'mira-vale',
