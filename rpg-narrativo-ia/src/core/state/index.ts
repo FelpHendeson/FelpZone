@@ -1,4 +1,4 @@
-import type { CharacterIdentity, GameState } from './types';
+import type { CharacterIdentityInput, GameState } from './types';
 import { SCHEMA_VERSION } from './types';
 import { createInitialAttributes } from '../../modules/character';
 import { createInitialProgression } from '../../modules/progression';
@@ -24,7 +24,7 @@ import { createInitialInteractablesState } from '../../modules/interactables';
 import { createInitialWorld } from '../../modules/world';
 
 export function createInitialState(
-  character: CharacterIdentity,
+  character: CharacterIdentityInput,
   campaign: { id: string; firstEventId: string },
   now = defaultNow,
   sandboxContext?: SandboxContext,
@@ -34,7 +34,11 @@ export function createInitialState(
   return {
     schemaVersion: SCHEMA_VERSION,
     status: 'playing',
-    character,
+    character: {
+      firstName: character.firstName,
+      lastName: character.lastName,
+      sex: character.sex ?? 'unspecified',
+    },
     narrativeSession: {
       campaignId: campaign.id,
       eventId: campaign.firstEventId,
@@ -99,6 +103,7 @@ export {
   SCHEMA_VERSION_V20,
   SCHEMA_VERSION_V21,
   SCHEMA_VERSION_V22,
+  SCHEMA_VERSION_V23,
   MIGRATED_CAMPAIGN_ID,
 } from './types';
 export {
@@ -125,6 +130,7 @@ export {
   inspectGameStateV20,
   inspectGameStateV21,
   inspectGameStateV22,
+  inspectGameStateV23,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
@@ -147,6 +153,7 @@ export {
   migrateGameStateV20,
   migrateGameStateV21,
   migrateGameStateV22,
+  migrateGameStateV23,
 } from './validateGameState';
 export type {
   GameStateInspection,
@@ -172,10 +179,12 @@ export type {
   GameStateV20Inspection,
   GameStateV21Inspection,
   GameStateV22Inspection,
+  GameStateV23Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
+  CHARACTER_SEXES,
   DAY_PERIODS,
   isAttributeId,
   isDayPeriod,
@@ -184,6 +193,9 @@ export type {
   AttributeId,
   Attributes,
   CharacterIdentity,
+  CharacterIdentityInput,
+  CharacterSex,
+  LegacyCharacterIdentity,
   DayPeriod,
   GameState,
   GameStateV1,
@@ -208,6 +220,7 @@ export type {
   GameStateV20,
   GameStateV21,
   GameStateV22,
+  GameStateV23,
   GameStatus,
   HistoryEntry,
   InventoryItem,
