@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 21 de setembro de 2026. Ainda não implementada.**
+**Especificada e implementada em 21 de setembro de 2026.**
 
 Esta mecânica cria onboarding contextual e uma Central de Ajuda diegética sem transformar tutorial em regra de gameplay.
 
@@ -175,11 +175,11 @@ Se o playtest mostrar sobrecarga visual, uma segunda fatia poderá adicionar des
 
 Esta mecânica adiciona `GameState.guidance`.
 
-O schema 24 já foi publicado pela Fatia A da revisão do Dia 1 para persistir `character.sex`. Portanto, a implementação de `GameState.guidance` deverá usar um novo checkpoint de save, previsto como schema 25.
+O schema 24 foi publicado pela Fatia A para persistir `character.sex`. `GameState.guidance` foi publicado no schema 25.
 
 ## Migração
 
-Saves schema 24 devem migrar sem perder progresso.
+Saves schema 24 migram sem perder progresso.
 
 Para saves antigos do protótipo:
 
@@ -216,7 +216,7 @@ O catálogo não entra no save.
 - popup aparece uma vez;
 - reload não repete tópico visto;
 - pack alternativo troca textos sem alterar motor;
-- save schema 24 migra para o novo schema de Guidance (previsto como 25).
+- save schema 24 migra para schema 25.
 
 ## Fora do escopo inicial
 
