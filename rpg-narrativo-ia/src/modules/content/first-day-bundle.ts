@@ -17,6 +17,7 @@ import skills from '../../../content/first-day/system/skills.json' with { type: 
 import structures from '../../../content/first-day/system/structures.json' with { type: 'json' };
 import training from '../../../content/first-day/system/training.json' with { type: 'json' };
 import labels from '../../../content/first-day/ui/labels.json' with { type: 'json' };
+import guidance from '../../../content/first-day/ui/guidance.json' with { type: 'json' };
 import exploration from '../../../content/first-day/world/exploration.json' with { type: 'json' };
 import bonds from '../../../content/first-day/world/bonds.json' with { type: 'json' };
 import organizations from '../../../content/first-day/world/organizations.json' with { type: 'json' };
@@ -74,6 +75,7 @@ export function assembleFirstDayRaw(): unknown {
     worldTriggers,
     firstPriorityTrigger,
     labels,
+    guidance,
   };
 }
 
