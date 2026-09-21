@@ -70,7 +70,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 7.5 — Gatilho de mundo e primeiro encontro
 
-**Implementada.** O jogador desperta, escolhe uma capacidade, explora a Clareira e encontra a criatura e Mira por consequência da descoberta `first-priority-event`. Depois da noite, retorna ao sandbox. O marco mínimo do Sistema 7 foi atingido.
+**Implementada como marco histórico do loop integrado.** A Fatia 7.5 provou gatilhos de mundo e retorno ao sandbox. Na revisão atual do Dia 1, `first-priority-event` não revela mais Mira nem força a noite: sinais humanos e o encontro opcional foram desacoplados nas Fatias E/F.
 
 ### Etapa 8 — Presenças e interações no mundo
 
@@ -98,7 +98,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 8.6 — Conteúdo protótipo
 
-**Implementada.** Explorar a Clareira revela Mira sem abrir conversa. Conversar abre `first-priority` e devolve ao mesmo local. Na Mata Densa, o coelho chifrudo pode ser observado ou evitado sem combate. O gatilho automático da 7.5 na campanha `first-day` foi desligado; o mecanismo genérico permanece. Saves com `world.trigger.first-priority.consumed` reconciliam Mira como resolvida.
+**Implementada e revisada.** O mecanismo de presenças permanece o mesmo, mas o conteúdo atual revela Mira somente por `mira-nearby`, depois de sinais humanos. O jogador pode observar, conversar por `survivor-meet` ou evitar contato. Na Mata Densa, o coelho chifrudo continua podendo ser observado ou evitado sem combate. `first-priority` permanece apenas como mecanismo/conteúdo legado compatível, não como porta obrigatória para Mira.
 
 ## Depois do Sistema 8
 
@@ -146,7 +146,7 @@ Fonte: `SYSTEM-INTEGRATION.md`.
 
 #### Fatia 10.5 — Primeira jornada ponta a ponta
 
-**Implementada, revisada e consolidada.** A jornada principal `Primeiros passos` usa dez critérios aprovados no total e conecta capacidade, exploração, nascente, fogueira, refeição e Mira. O fluxo foi provado de ponta a ponta, inclusive para saves schema 6 anteriores ao conteúdo.
+**Implementada, revisada e consolidada.** O ID persistente `first-steps` agora representa a jornada **Primeiro dia** e conecta aptidão inicial, primeira prática real de Númen, reconhecimento da clareira, fonte de água e sinais humanos. Fogueira/refeição ficam em `camp-comfort` e a decisão sobre Mira em `other-survivor`, sem bloquear a jornada principal.
 
 ## Depois do Sistema 10
 
@@ -278,7 +278,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ## Programa especificado depois do Sistema 17
 
-O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda e uma fonte remota futura reusa o mesmo `composeWorld`. O Sistema 29 levou o save ao schema 23; a Fatia A da revisão narrativa do Dia 1 levou-o ao schema 24 com `character.sex`; a Fatia B levou-o ao schema 25 com orientação e ajuda persistidas, dirigidas pelo pack; a Fatia C ampliou objetivos e `world-events` com marcos por proficiência e dia sem novo schema. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
+O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda e uma fonte remota futura reusa o mesmo `composeWorld`. O Sistema 29 levou o save ao schema 23; a Fatia A da revisão narrativa do Dia 1 levou-o ao schema 24 com `character.sex`; a Fatia B levou-o ao schema 25 com orientação e ajuda persistidas. As Fatias C–F ampliaram comportamento e conteúdo sem novo schema: marcos por proficiência/dia/tempo, introdução Etéris/Númen, sandbox com sinais humanos e Mira opcional, e primeira noite adaptativa com transição canônica ao Dia 2. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
 
 Em 17 de setembro de 2026, o autor definiu o projeto como um **motor de mundos jogáveis**: sistemas reutilizáveis formam os blocos; packs configuram as leis e o conteúdo; campanhas contam histórias por cima deles. A arquitetura e os critérios permanentes estão em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
 
