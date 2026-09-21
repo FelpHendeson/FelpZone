@@ -1,1 +1,12 @@
-[]
+[
+  {
+    "id": "first-numen-practice",
+    "source": {
+      "type": "system.skill.proficiency.min",
+      "skillId": "sharpened-senses",
+      "amount": 1
+    },
+    "campaignId": "first-day",
+    "eventId": "first-numen-practice"
+  }
+]
