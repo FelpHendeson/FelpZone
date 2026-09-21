@@ -159,20 +159,26 @@ describe('motor com sessão narrativa', () => {
     expect(completed.narrativeSession).toBeNull();
   });
 
-  it('retorna à exploração preservando efeitos e histórico', () => {
+  it('encadeia a aptidão até Etéris e Númen antes de retornar à exploração', () => {
     const before = playFirstDay(['awake-calm', 'system-touch']);
     const snapshot = structuredClone(before);
-    const exploring = applyChoice(before, firstDayCampaign, 'ability-perception', now);
+    const afterAbility = applyChoice(before, firstDayCampaign, 'ability-perception', now);
 
-    expect(exploring.status).toBe('playing');
-    expect(exploring.narrativeSession).toBeNull();
-    expect(exploring.progression.abilityIds).toEqual([ABILITY_PERCEPTION]);
-    expect(exploring.flags[FLAG_ABILITY_PERCEPTION]).toBe(true);
-    expect(exploring.attributes.cautela).toBe(before.attributes.cautela + 15);
-    expect(exploring.history.at(-1)?.choiceId).toBe('ability-perception');
-    expect(exploring.updatedAt).toBe(now());
-    expect(exploring.sandbox).toEqual(before.sandbox);
+    expect(afterAbility.status).toBe('playing');
+    expect(afterAbility.narrativeSession?.eventId).toBe('eteris-introduction');
+    expect(afterAbility.progression.abilityIds).toEqual([ABILITY_PERCEPTION]);
+    expect(afterAbility.flags[FLAG_ABILITY_PERCEPTION]).toBe(true);
+    expect(afterAbility.attributes.cautela).toBe(before.attributes.cautela + 15);
+    expect(afterAbility.history.at(-1)?.choiceId).toBe('ability-perception');
+    expect(afterAbility.updatedAt).toBe(now());
+    expect(afterAbility.sandbox).toEqual(before.sandbox);
     expect(before).toEqual(snapshot);
+
+    const afterEteris = applyChoice(afterAbility, firstDayCampaign, 'eteris-pressure', now);
+    expect(afterEteris.narrativeSession?.eventId).toBe('numen-introduction');
+    const exploring = applyChoice(afterEteris, firstDayCampaign, 'numen-follow-guidance', now);
+    expect(exploring.narrativeSession).toBeNull();
+    expect(exploring.sandbox).toEqual(before.sandbox);
   });
 });
 
@@ -181,9 +187,13 @@ describe('saída da introdução', () => {
     ['ability-perception', ABILITY_PERCEPTION, FLAG_ABILITY_PERCEPTION, { cautela: 15 }],
     ['ability-resilience', ABILITY_RESILIENCE, FLAG_ABILITY_RESILIENCE, { saude: 15, energia: 10 }],
     ['ability-empathy', ABILITY_EMPATHY, FLAG_ABILITY_EMPATHY, { humanidade: 15 }],
-  ] as const)('escolhe %s e entra na exploração livre', (choiceId, abilityId, flag, deltas) => {
+  ] as const)('escolhe %s, atravessa a orientação energética e entra na exploração livre', (choiceId, abilityId, flag, deltas) => {
     const before = playFirstDay(['awake-calm', 'system-touch']);
-    const exploring = applyChoice(before, firstDayCampaign, choiceId, now);
+    const afterAbility = applyChoice(before, firstDayCampaign, choiceId, now);
+    expect(afterAbility.narrativeSession?.eventId).toBe('eteris-introduction');
+    const afterEteris = applyChoice(afterAbility, firstDayCampaign, 'eteris-pressure', now);
+    expect(afterEteris.narrativeSession?.eventId).toBe('numen-introduction');
+    const exploring = applyChoice(afterEteris, firstDayCampaign, 'numen-follow-guidance', now);
 
     expect(exploring.status).toBe('playing');
     expect(exploring.narrativeSession).toBeNull();
