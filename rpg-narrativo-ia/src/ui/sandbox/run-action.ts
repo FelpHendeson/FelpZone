@@ -66,19 +66,9 @@ export function attemptSandboxAction(
 ): SandboxActionAttempt {
   try {
     const result = executeSandboxAction(state, action, { context, campaign, objectives: objectiveCatalog });
-    const indexed = indexWorldTriggerCatalog(catalog, {
-      campaign,
-      exploration: context.exploration,
-    });
-    const afterMatchingSession = consumeWorldTriggersMatchingNarrative(indexed, result.current);
-    const trigger = resolveEligibleWorldTrigger(indexed, afterMatchingSession);
-    const current = trigger
-      ? resolvePresencesForWorldTrigger(
-          applyWorldNarrativeTrigger(afterMatchingSession, campaign, trigger),
-          context,
-          trigger,
-        )
-      : afterMatchingSession;
+    const resolved = resolveWorldNarrativeState(result.current, context, campaign, catalog);
+    const trigger = resolved.openedTrigger;
+    const current = resolved.current;
     const sandboxFeedback = describeSandboxFeedback(result, context);
     const objectiveFeedback = describeObjectiveFeedback(result.objectives, objectiveCatalog);
     const feedbackView = mergeFeedback([
@@ -123,6 +113,42 @@ export function attemptSandboxAction(
       error,
     };
   }
+}
+
+export interface WorldNarrativeStateResolution {
+  current: GameState;
+  openedTrigger?: WorldNarrativeTriggerDefinition;
+}
+
+export function resolveWorldNarrativeState(
+  state: GameState,
+  context: SandboxContext,
+  campaign: Campaign,
+  catalog: readonly WorldNarrativeTriggerDefinition[],
+): WorldNarrativeStateResolution {
+  if (!context.skills) {
+    throw new WorldEventError('O catálogo de habilidades do pack ativo não está disponível.');
+  }
+
+  const indexed = indexWorldTriggerCatalog(catalog, {
+    campaign,
+    exploration: context.exploration,
+    skills: context.skills,
+  });
+  const afterMatchingSession = consumeWorldTriggersMatchingNarrative(indexed, state);
+  const trigger = resolveEligibleWorldTrigger(indexed, afterMatchingSession);
+  if (!trigger) {
+    return { current: afterMatchingSession };
+  }
+
+  return {
+    current: resolvePresencesForWorldTrigger(
+      applyWorldNarrativeTrigger(afterMatchingSession, campaign, trigger),
+      context,
+      trigger,
+    ),
+    openedTrigger: trigger,
+  };
 }
 
 function resolvePresencesForWorldTrigger(
