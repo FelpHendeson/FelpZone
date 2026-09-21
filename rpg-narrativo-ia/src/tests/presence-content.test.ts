@@ -13,6 +13,7 @@ import { asV3, playChoices, playFirstDay, revealMiraForTest } from './helpers';
 
 const context = createSandboxContext();
 const consumedFlag = worldTriggerConsumedFlag('first-priority');
+const presenceTriggers = FIRST_DAY_WORLD_TRIGGERS.filter((trigger) => !['first-night', 'day-two-start'].includes(trigger.id));
 
 function enterExploration() {
   return playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
@@ -25,7 +26,7 @@ function viewOf(state: GameState) {
 function commit(state: GameState, action: SandboxAction) {
   return commitSandboxAction(state, action, context, {
     campaign: firstDayCampaign,
-    catalog: FIRST_DAY_WORLD_TRIGGERS,
+    catalog: presenceTriggers,
     persist: () => undefined,
   });
 }
