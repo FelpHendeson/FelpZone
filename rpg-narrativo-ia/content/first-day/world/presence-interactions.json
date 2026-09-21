@@ -5,7 +5,7 @@
       "presenceId": "mira-awakening-clearing",
       "kind": "observe",
       "label": "Observar",
-      "hint": "Observar Mira à distância, sem iniciar conversa.",
+      "hint": "Observar a sobrevivente antes de decidir se vale a pena fazer contato.",
       "timeCost": {
         "periods": 1
       },
@@ -16,21 +16,21 @@
           "value": true
         }
       ],
-      "feedback": "Mira permanece alerta, como qualquer sobrevivente depois do Reset.",
+      "feedback": "Ela vasculha o terreno com cuidado e olha para trás mais de uma vez. Não parece estar esperando resgate.",
       "resolvesPresence": false
     },
     {
       "id": "talk-mira-awakening-clearing",
       "presenceId": "mira-awakening-clearing",
       "kind": "talk",
-      "label": "Conversar",
-      "hint": "Falar com Mira Vale.",
+      "label": "Fazer contato",
+      "hint": "Chamar a atenção da sobrevivente e deixar que ela escolha a distância.",
       "timeCost": {
         "periods": 1
       },
       "narrative": {
         "campaignId": "first-day",
-        "eventId": "first-priority"
+        "eventId": "survivor-meet"
       },
       "resolvesPresence": true,
       "effects": [
@@ -43,13 +43,32 @@
           "type": "npc.rememberFact",
           "npcId": "mira-vale",
           "factId": "mira-seeks-water"
-        },
-        {
-          "type": "flag.set",
-          "flag": "mira.promise.made",
-          "value": true
         }
       ]
+    },
+    {
+      "id": "avoid-mira-awakening-clearing",
+      "presenceId": "mira-awakening-clearing",
+      "kind": "avoid",
+      "label": "Evitar contato",
+      "hint": "Deixar a sobrevivente seguir sem revelar sua posição.",
+      "timeCost": {
+        "periods": 0
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "mira.contact.avoided",
+          "value": true
+        },
+        {
+          "type": "attribute.change",
+          "attribute": "cautela",
+          "amount": 3
+        }
+      ],
+      "feedback": "Você muda de rota antes que ela perceba sua presença. A decisão pode ser revista apenas se os caminhos de vocês voltarem a se cruzar.",
+      "resolvesPresence": true
     },
     {
       "id": "observe-horned-rabbit-dense-woods",
