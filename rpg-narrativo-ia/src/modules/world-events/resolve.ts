@@ -1,4 +1,5 @@
 import type { GameState } from '../../core/state';
+import { DEFAULT_PERIODS } from '../time';
 import type { IndexedWorldTriggers, WorldNarrativeTriggerDefinition } from './types';
 
 export const WORLD_TRIGGER_FLAG_PREFIX = 'world.trigger.';
@@ -57,6 +58,17 @@ function isWorldTriggerSourceSatisfied(
       );
     case 'world.day.min':
       return state.world.day >= source.day;
+    case 'world.time.reached': {
+      if (state.world.day > source.day) {
+        return true;
+      }
+      if (state.world.day < source.day) {
+        return false;
+      }
+      const currentIndex = DEFAULT_PERIODS.findIndex((entry) => entry.id === state.world.period);
+      const targetIndex = DEFAULT_PERIODS.findIndex((entry) => entry.id === source.period);
+      return currentIndex >= targetIndex;
+    }
   }
 }
 
