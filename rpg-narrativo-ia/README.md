@@ -22,6 +22,9 @@ Leia nesta ordem:
 2. [Estado, metas e horizonte](docs/PROJECT-STATUS.md): fonte de verdade sobre o que foi definido, implementado, está em discussão ou ainda não foi decidido.
    - [Fundação narrativa](docs/NARRATIVE-FOUNDATION.md): regra geográfica do Reset, primeiro arco dos Sete Dias, elenco inicial, assentamento, ranking, romance e onboarding.
    - [Dia 1 — especificação narrativa e jogável](docs/DAY-1-NARRATIVE-SPEC.md): fluxo completo do despertar à primeira noite, onboarding de Etéris/Númen e lacunas técnicas mínimas.
+     - [Implementação do Dia 1](docs/DAY-1-IMPLEMENTATION-SPEC.md): schema 24, conteúdo, fatias e testes.
+     - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
+     - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
 4. [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md): sistemas como blocos, packs como configuração e campanhas como histórias.
 5. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
