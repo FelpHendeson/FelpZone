@@ -3,7 +3,7 @@ import { type GameTab } from '../../components/BottomNavigation';
 import { formatNeedDelta } from '../../needs/presentation';
 import type { NeedEffectView } from '../../sandbox';
 
-export type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain';
+export type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain' | 'help';
 
 export function DetailScreen({
   title,
