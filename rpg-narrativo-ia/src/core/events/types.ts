@@ -11,6 +11,7 @@ export type GameEffect =
   | { type: 'world.period'; period: DayPeriod }
   | { type: 'progression.ability'; abilityId: string }
   | { type: 'progression.title'; titleId: string }
+  | { type: 'guidance.unlock'; topicId: string }
   | { type: 'game.complete' }
   | { type: 'npc.rememberFact'; npcId: string; factId: string }
   | { type: 'bond.shift'; fromId: string; toId: string; dimensionId: string; delta: number }
