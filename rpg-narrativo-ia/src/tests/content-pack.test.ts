@@ -37,7 +37,7 @@ describe('pack de mundo e ContentSource', () => {
       { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },
       { type: 'flag.set', flag: 'mira.promise.made', value: true },
     ]);
-    expect(SCHEMA_VERSION).toBe(23);
+    expect(SCHEMA_VERSION).toBe(24);
 
     const hostile = structuredClone(assembleFirstDayRaw()) as { skills: { skills: unknown[] } };
     hostile.skills.skills = [];
