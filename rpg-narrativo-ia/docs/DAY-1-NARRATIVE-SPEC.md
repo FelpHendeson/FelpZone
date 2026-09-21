@@ -927,6 +927,10 @@ Além disso:
 
 ---
 
+## Especificação técnica
+
+A implementação está detalhada em [Dia 1 — Especificação técnica de implementação](DAY-1-IMPLEMENTATION-SPEC.md), apoiada por [Orientação e Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) e [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md).
+
 # 25. Próxima etapa depois desta especificação
 
 A implementação deve ser feita em fatias pequenas.
