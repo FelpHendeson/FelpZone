@@ -8,7 +8,7 @@ import {
 } from '../modules/objectives';
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction, SandboxActionError, type SandboxAction } from '../modules/sandbox-actions';
-import { playChoices } from './helpers';
+import { playChoices, revealMiraForTest } from './helpers';
 
 const context = createSandboxContext();
 const STAMP = '2026-09-11T15:00:00.000Z';
@@ -135,7 +135,7 @@ describe('Fatia 10.3 — objetivos no orquestrador de ações', () => {
 
   it('sincroniza interação, consumo e repouso sem duplicar efeitos', () => {
     const presenceCatalog = objectiveCatalog({ type: 'presence.resolved', presenceId: 'mira-awakening-clearing' });
-    const withMira = run(exploring(presenceCatalog), { type: 'exploration.explore' }, presenceCatalog).current;
+    const withMira = revealMiraForTest(exploring(presenceCatalog));
     const talked = run(
       withMira,
       {
@@ -146,7 +146,7 @@ describe('Fatia 10.3 — objetivos no orquestrador de ações', () => {
       presenceCatalog,
     );
     expectCompleted(talked);
-    expect(talked.current.narrativeSession?.eventId).toBe('first-priority');
+    expect(talked.current.narrativeSession?.eventId).toBe('survivor-meet');
 
     const consumeCatalog = objectiveCatalog({ type: 'inventory.item.quantity', itemId: 'raw-water', quantity: 1 });
     const withWater = valid(
