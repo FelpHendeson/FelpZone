@@ -12,19 +12,26 @@ import {
   type IndexedBonds,
 } from '../../modules/bonds';
 import { advancePeriodTo } from '../../modules/world';
+import {
+  INITIAL_GUIDANCE,
+  unlockGuidanceTopic,
+  type IndexedGuidance,
+} from '../../modules/guidance';
 
 export function applyEffects(
   state: GameState,
   effects: GameEffect[],
   bonds: IndexedBonds = INITIAL_BONDS,
+  guidance: IndexedGuidance = INITIAL_GUIDANCE,
 ): GameState {
-  return effects.reduce((current, effect) => applyEffect(current, effect, bonds), state);
+  return effects.reduce((current, effect) => applyEffect(current, effect, bonds, guidance), state);
 }
 
 export function applyEffect(
   state: GameState,
   effect: GameEffect,
   bonds: IndexedBonds = INITIAL_BONDS,
+  guidance: IndexedGuidance = INITIAL_GUIDANCE,
 ): GameState {
   switch (effect.type) {
     case 'attribute.change':
@@ -79,6 +86,11 @@ export function applyEffect(
       return {
         ...state,
         progression: grantTitle(state.progression, effect.titleId),
+      };
+    case 'guidance.unlock':
+      return {
+        ...state,
+        guidance: unlockGuidanceTopic(guidance, state.guidance, effect.topicId),
       };
     case 'game.complete':
       return {
