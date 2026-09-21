@@ -39,7 +39,7 @@ describe('catálogo de gatilhos de mundo', () => {
 
     expect(active.ok).toBe(true);
     if (active.ok) {
-      expect(active.value.definitions).toHaveLength(1);
+      expect(active.value.definitions).toHaveLength(3);
       expect(active.value.definitions[0]).toMatchObject({
         id: 'first-numen-practice',
         source: {
@@ -47,6 +47,16 @@ describe('catálogo de gatilhos de mundo', () => {
           skillId: 'sharpened-senses',
           amount: 1,
         },
+      });
+      expect(active.value.definitions[1]).toMatchObject({
+        id: 'first-night',
+        source: { type: 'world.time.reached', day: 1, period: 'noite' },
+        eventId: 'first-night',
+      });
+      expect(active.value.definitions[2]).toMatchObject({
+        id: 'day-two-start',
+        source: { type: 'world.day.min', day: 2 },
+        eventId: 'day-two-awakening',
       });
     }
 
