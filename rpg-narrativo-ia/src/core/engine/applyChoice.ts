@@ -69,7 +69,7 @@ export function applyChoice(
     throw new EngineError(`A escolha ${choiceId} não está disponível no estado atual.`);
   }
 
-  const withEffects = applyEffects(state, choice.effects, sandboxContext?.bonds);
+  const withEffects = applyEffects(state, choice.effects, sandboxContext?.bonds, sandboxContext?.guidance);
   const withHistory: GameState = {
     ...withEffects,
     history: appendHistory(withEffects.history, {
