@@ -451,13 +451,14 @@ Alterações de texto continuam sem exigir código.
 - validação cruzada;
 - testes.
 
-## Fatia D — Conteúdo energético
+## Fatia D — Conteúdo energético — **implementada**
 
-- reescrever começo;
-- eventos Etéris/Númen;
-- desbloquear treino;
-- primeiro treino real;
-- evento pós-prática.
+- começo reescrito para separar aptidão inicial de progressão energética;
+- eventos Etéris/Númen implementados;
+- ajuda de Etéris, Númen e Treinamento desbloqueada no momento narrativo;
+- `focused-perception-drill` permanece como ação real de treino com custo temporal normal;
+- `first-numen-practice` reage à proficiência canônica de `sharpened-senses`;
+- primeira percepção de Etéris registra apenas linguagem sensorial (pressão, calor ou vibração), sem bônus mecânico.
 
 ## Fatia E — Sandbox e Mira
 
