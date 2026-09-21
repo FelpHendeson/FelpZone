@@ -46,16 +46,17 @@ function isWorldTriggerSourceSatisfied(
   trigger: WorldNarrativeTriggerDefinition,
   state: GameState,
 ): boolean {
-  switch (trigger.source.type) {
+  const source = trigger.source;
+  switch (source.type) {
     case 'discovery.revealed':
-      return isDiscoveryRevealedInWorld(state, trigger.source.discoveryId);
+      return isDiscoveryRevealedInWorld(state, source.discoveryId);
     case 'system.skill.proficiency.min':
       return (
-        (state.system.entries.find((entry) => entry.skillId === trigger.source.skillId)?.proficiency ?? -1) >=
-        trigger.source.amount
+        (state.system.entries.find((entry) => entry.skillId === source.skillId)?.proficiency ?? -1) >=
+        source.amount
       );
     case 'world.day.min':
-      return state.world.day >= trigger.source.day;
+      return state.world.day >= source.day;
   }
 }
 
