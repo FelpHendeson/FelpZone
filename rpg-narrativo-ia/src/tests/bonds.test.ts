@@ -17,7 +17,7 @@ import {
   type BondsState,
 } from '../modules/bonds';
 import { executeSandboxAction } from '../modules/sandbox-actions';
-import { asV12, freshState } from './helpers';
+import { asV12, freshState, revealMiraForTest, grantMiraPromiseForTest } from './helpers';
 
 function exploringState(): GameState {
   return { ...freshState(), narrativeSession: null };
@@ -25,8 +25,8 @@ function exploringState(): GameState {
 
 function meetMira(): GameState {
   let state = exploringState();
-  state = executeSandboxAction(state, { type: 'exploration.explore' }, { campaign: firstDayCampaign }).current;
-  return executeSandboxAction(
+  state = revealMiraForTest(state);
+  return grantMiraPromiseForTest(executeSandboxAction(
     state,
     {
       type: 'presence.interact',
@@ -34,7 +34,7 @@ function meetMira(): GameState {
       interactionId: 'talk-mira-awakening-clearing',
     },
     { campaign: firstDayCampaign },
-  ).current;
+  ).current);
 }
 
 describe('Sistema 19 — relacionamentos e vínculos', () => {
@@ -108,7 +108,7 @@ describe('Sistema 19 — relacionamentos e vínculos', () => {
     expect(listRevealedDimensions(INITIAL_BONDS, afterTalk.bonds, PLAYER_ACTOR_ID, 'mira-vale')).toEqual([]);
     expect(listRevealedDimensions(INITIAL_BONDS, afterTalk.bonds, 'mira-vale', PLAYER_ACTOR_ID)).toEqual([]);
 
-    const honored = executeSandboxAction(afterTalk, { type: 'bond.act', actionId: 'honor-mira-promise' });
+    const honored = executeSandboxAction(grantMiraPromiseForTest(afterTalk), { type: 'bond.act', actionId: 'honor-mira-promise' });
     expect(honored.current.bonds.edges).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ fromId: 'player', toId: 'mira-vale', values: { trust: 25 } }),
@@ -152,7 +152,7 @@ describe('Sistema 19 — relacionamentos e vínculos', () => {
     expect(() =>
       executeSandboxAction(afterTalk, { type: 'bond.act', actionId: 'honor-mira-promise', value: 100 } as never),
     ).not.toThrow();
-    const honored = executeSandboxAction(afterTalk, { type: 'bond.act', actionId: 'honor-mira-promise' });
+    const honored = executeSandboxAction(grantMiraPromiseForTest(afterTalk), { type: 'bond.act', actionId: 'honor-mira-promise' });
     expect(honored.action).toEqual({ type: 'bond.act', actionId: 'honor-mira-promise' });
     expect(honored.action).not.toHaveProperty('value');
     expect(honored.action).not.toHaveProperty('delta');
