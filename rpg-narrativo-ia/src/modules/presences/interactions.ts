@@ -763,6 +763,14 @@ function copyCondition(condition: GameCondition): GameCondition {
       return condition.quantity === undefined
         ? { type: 'inventory.has', itemId: condition.itemId }
         : { type: 'inventory.has', itemId: condition.itemId, quantity: condition.quantity };
+    case 'crafting.structure.active':
+      return condition.locationId === undefined
+        ? { type: 'crafting.structure.active', structureId: condition.structureId }
+        : {
+            type: 'crafting.structure.active',
+            structureId: condition.structureId,
+            locationId: condition.locationId,
+          };
     case 'relationship.min':
       return { type: 'relationship.min', characterId: condition.characterId, amount: condition.amount };
     case 'bond.dimension.min':
@@ -824,6 +832,8 @@ function sameCondition(left: GameCondition, right: unknown): boolean {
       return right.attribute === left.attribute && right.amount === left.amount;
     case 'inventory.has':
       return right.itemId === left.itemId && right.quantity === left.quantity;
+    case 'crafting.structure.active':
+      return right.structureId === left.structureId && right.locationId === left.locationId;
     case 'relationship.min':
       return right.characterId === left.characterId && right.amount === left.amount;
     case 'bond.dimension.min':
