@@ -26,6 +26,7 @@ import { inspectResourceDefinitions } from '../resources';
 import { inspectSkillsCatalog, type IndexedSkills } from '../skills';
 import { inspectTrainingCatalog } from '../training';
 import { inspectWorldTriggerCatalog } from '../world-events';
+import { inspectGuidanceCatalog, type IndexedGuidance } from '../guidance';
 import { ContentError } from './errors';
 import { inspectCampaignDocument } from './inspect-campaign';
 import type { IndexedWorld } from './types';
@@ -83,6 +84,8 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       'O catálogo de presenças é inválido.',
     );
     const campaign = inspectCampaignDocument(raw.campaign, raw.events);
+    const guidance = unwrap(inspectGuidanceCatalog(raw.guidance), 'O catálogo de orientação é inválido.');
+    validateGuidanceReferences(campaign, guidance);
     const presenceInteractions = unwrap(
       inspectPresenceInteractionCatalog(raw.presenceInteractions, presences, campaign),
       'O catálogo de interações é inválido.',
@@ -152,6 +155,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       worldTriggers,
       firstPriorityTrigger,
       stationLabels,
+      guidance,
     };
   } catch (error) {
     if (error instanceof ContentError) {
@@ -161,6 +165,18 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       throw new ContentError(error.message, { cause: error });
     }
     throw new ContentError('O pack de mundo é inválido.');
+  }
+}
+
+function validateGuidanceReferences(campaign: IndexedWorld['campaign'], guidance: IndexedGuidance): void {
+  for (const event of campaign.events) {
+    for (const choice of event.choices) {
+      for (const effect of choice.effects) {
+        if (effect.type === 'guidance.unlock' && !guidance.byId.has(effect.topicId)) {
+          throw new ContentError(`A escolha ${choice.id} referencia o tópico de orientação ${effect.topicId}, que não existe.`);
+        }
+      }
+    }
   }
 }
 
