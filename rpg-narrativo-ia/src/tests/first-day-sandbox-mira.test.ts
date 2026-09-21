@@ -91,7 +91,7 @@ function secureWaterAndFindSigns(state: ReturnType<typeof finishEnergyIntro>) {
 
 describe('Fatia E — sandbox inicial e primeiro contato', () => {
   it('conclui a jornada principal com treino, água e sinais sem exigir fogo, refeição ou Mira', () => {
-    let state = secureWaterAndFindSigns(finishEnergyIntro());
+    const state = secureWaterAndFindSigns(finishEnergyIntro());
 
     expect(getObjectiveStatus(world.objectives, state.objectives, 'first-steps')).toBe('completed');
     expect(
