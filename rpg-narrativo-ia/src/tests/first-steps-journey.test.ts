@@ -11,7 +11,7 @@ import {
 import { createSandboxContext } from '../modules/sandbox';
 import { executeSandboxAction, type SandboxAction } from '../modules/sandbox-actions';
 import { buildJournalView } from '../ui/journal';
-import { freshState, playFirstDay } from './helpers';
+import { freshState, playFirstDay, reopenNarrativeSession } from './helpers';
 
 const context = createSandboxContext();
 
@@ -19,7 +19,7 @@ function progressFor(state: ReturnType<typeof freshState>) {
   return state.objectives.entries.find((entry) => entry.objectiveId === 'first-steps');
 }
 
-describe('Fatia 10.5 — jornada Primeiros passos', () => {
+describe('Fatia E — jornada principal do primeiro dia', () => {
   it.each(['ability-perception', 'ability-resilience', 'ability-empathy'])(
     'ativa a mesma jornada ao escolher %s',
     (abilityChoice) => {
@@ -40,7 +40,7 @@ describe('Fatia 10.5 — jornada Primeiros passos', () => {
     },
   );
 
-  it('percorre, persiste e conclui a jornada sem interromper o sandbox', () => {
+  it('conclui a jornada com treino, água e sinais sem exigir fogo, refeição ou Mira', () => {
     const persistence = createMemoryPersistence(undefined, context);
     let state = playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
 
@@ -58,71 +58,72 @@ describe('Fatia 10.5 — jornada Primeiros passos', () => {
 
     expect(progressFor(state)?.completedStepIds).toEqual(['choose-ability']);
 
-    for (let count = 0; count < 6; count += 1) {
-      act({ type: 'exploration.explore' });
-    }
+    act({ type: 'training.train', methodId: 'focused-perception-drill' });
     expect(progressFor(state)?.completedStepIds).toEqual([
       'choose-ability',
-      'explore-awakening-clearing',
+      'first-numen-practice',
     ]);
 
-    act({ type: 'navigation.move', locationId: 'spring-lake' });
     act({ type: 'exploration.explore' });
-    expect(progressFor(state)?.completedStepIds).toContain('find-spring');
-
-    act({ type: 'navigation.move', locationId: 'awakening-clearing' });
-    act({ type: 'resource.collect', nodeId: 'fallen-sticks', units: 2 });
-    act({ type: 'resource.collect', nodeId: 'fallen-sticks', units: 1 });
-    act({ type: 'crafting.craft', recipeId: 'build-campfire' });
-    expect(progressFor(state)?.completedStepIds).toContain('build-campfire');
-
-    act({ type: 'navigation.move', locationId: 'dense-woods' });
-    for (let count = 0; count < 4; count += 1) {
-      act({ type: 'exploration.explore' });
-    }
-    act({ type: 'resource.collect', nodeId: 'horned-rabbit-warren', units: 1 });
-    act({ type: 'navigation.move', locationId: 'awakening-clearing' });
-    const cooked = act({ type: 'crafting.craft', recipeId: 'cook-horned-rabbit-meat' });
-
-    expect(cooked.objectives.completedSteps).toEqual([
-      { objectiveId: 'first-steps', stepId: 'prepare-meal' },
-      { objectiveId: 'first-steps', stepId: 'investigate-signs' },
-    ]);
     expect(progressFor(state)?.completedStepIds).toEqual([
       'choose-ability',
+      'first-numen-practice',
       'explore-awakening-clearing',
-      'find-spring',
-      'build-campfire',
-      'prepare-meal',
+    ]);
+
+    state = applyChoice(
+      reopenNarrativeSession(state, 'first-priority'),
+      firstDayCampaign,
+      'seek-water',
+    );
+    state = applyChoice(state, firstDayCampaign, 'alert-hide');
+    persistence.save(state);
+
+    expect(progressFor(state)?.completedStepIds).toContain('secure-water');
+
+    act({ type: 'exploration.explore' });
+
+    expect(progressFor(state)?.completedStepIds).toEqual([
+      'choose-ability',
+      'first-numen-practice',
+      'explore-awakening-clearing',
+      'secure-water',
       'investigate-signs',
     ]);
+    expect(getObjectiveStatus(INITIAL_OBJECTIVES, state.objectives, 'first-steps')).toBe('completed');
+    expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
+    expect(state.sandbox.crafting.activeStructures).toEqual([]);
+    expect(state.inventory.some((entry) => entry.itemId === 'cooked-horned-rabbit-meat')).toBe(false);
 
     const journal = buildJournalView(state, context);
-    expect(journal.journeys[0].steps.at(-1)).toMatchObject({ id: 'meet-mira', current: true });
+    const main = journal.journeys.find((journey) => journey.id === 'first-steps');
+    expect(main?.title).toBe('Primeiro dia');
+    expect(main?.status).toBe('completed');
+    expect(() => executeSandboxAction(state, { type: 'exploration.explore' }, { context })).not.toThrow();
+  });
 
-    const met = act({
-      type: 'presence.interact',
-      presenceId: 'mira-awakening-clearing',
-      interactionId: 'talk-mira-awakening-clearing',
-    });
-    expect(met.objectives.completedObjectiveIds).toEqual(['first-steps']);
-    expect(getObjectiveStatus(INITIAL_OBJECTIVES, state.objectives, 'first-steps')).toBe('completed');
-    expect(state.narrativeSession?.eventId).toBe('first-priority');
+  it('mantém fogueira e refeição em uma jornada lateral separada', () => {
+    let state = playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
+    state = executeSandboxAction(
+      state,
+      { type: 'training.train', methodId: 'focused-perception-drill' },
+      { context, campaign: firstDayCampaign },
+    ).current;
 
-    for (const choiceId of [
-      'seek-water',
-      'alert-hide',
-      'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
-    ]) {
-      state = applyChoice(state, firstDayCampaign, choiceId);
+    for (let count = 0; count < 3; count += 1) {
+      state = executeSandboxAction(
+        state,
+        { type: 'exploration.explore' },
+        { context, campaign: firstDayCampaign },
+      ).current;
     }
 
-    expect(state.narrativeSession).toBeNull();
-    expect(getObjectiveStatus(INITIAL_OBJECTIVES, state.objectives, 'first-steps')).toBe('completed');
-    expect(() => executeSandboxAction(state, { type: 'exploration.explore' }, { context })).not.toThrow();
+    expect(listKnownObjectives(INITIAL_OBJECTIVES, state.objectives).map((objective) => objective.id)).toContain(
+      'camp-comfort',
+    );
+    expect(getObjectiveStatus(INITIAL_OBJECTIVES, state.objectives, 'camp-comfort')).toBe('active');
+    expect(progressFor(state)?.completedStepIds).not.toContain('build-campfire');
+    expect(progressFor(state)?.completedStepIds).not.toContain('prepare-meal');
   });
 
   it('reconcilia um save schema 6 criado quando o catálogo inicial estava vazio', () => {
