@@ -33,7 +33,7 @@ Sem implementar ainda o assentamento formal ou o ranking do Dia 7.
 
 ---
 
-# 1. Save schema 24 — identidade e orientação
+# 1. Save schema 24 — identidade
 
 ## CharacterIdentity
 
@@ -59,24 +59,10 @@ Nova partida aceita na UI apenas:
 
 Não inferir sexo pelo nome.
 
-## GuidanceState
-
-Adicionar:
-
-```ts
-interface GuidanceState {
-  unlockedTopicIds: string[];
-  seenTopicIds: string[];
-}
-```
-
-`GameState` schema 24 passa a possuir `guidance`.
-
 ## Migração v23 → v24
 
 - preservar todos os campos atuais;
 - `character.sex = 'unspecified'` em save antigo;
-- criar orientação migrada conforme a especificação da mecânica;
 - nenhuma ação de mundo;
 - nenhum avanço de relógio;
 - não regravar durante leitura além do comportamento já adotado pelo projeto.
@@ -437,7 +423,7 @@ Alterações de texto continuam sem exigir código.
 
 # 15. Ordem de implementação
 
-## Fatia A — Fundação persistida
+## Fatia A — Fundação persistida — **implementada**
 
 - schema 24;
 - `CharacterSex`;
@@ -446,6 +432,8 @@ Alterações de texto continuam sem exigir código.
 - testes.
 
 ## Fatia B — Guidance
+
+Como o schema 24 já foi publicado pela Fatia A, persistir `guidance` exigirá um novo checkpoint de schema (previsto como 25) para manter contratos de save explícitos.
 
 - catálogo;
 - estado;
