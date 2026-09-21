@@ -4,7 +4,7 @@ import { firstDayCampaign } from '../campaigns/first-day';
 import { SCHEMA_VERSION, inspectGameState } from '../core/state';
 import { executeSandboxAction } from '../modules/sandbox-actions';
 import { createInitialItemsState } from '../modules/items';
-import { asV7, asV8, asV9, asV10, freshState } from './helpers';
+import { asV7, asV8, asV9, asV10, freshState, revealMiraForTest } from './helpers';
 
 describe('Persistência dos Sistemas 14 a 17 — schema 11', () => {
   it('novas partidas começam no schema 11 com estados vazios', () => {
