@@ -18,13 +18,13 @@ export function applyWorldNarrativeTrigger(
     throw new WorldEventError(`O gatilho ${trigger.id} já foi consumido.`);
   }
 
-  const flagged: GameState = {
-    ...state,
+  const opened = startNarrativeSession(state, campaign, trigger.eventId);
+
+  return {
+    ...opened,
     flags: {
-      ...state.flags,
+      ...opened.flags,
       [worldTriggerConsumedFlag(trigger.id)]: true,
     },
   };
-
-  return startNarrativeSession(flagged, campaign, trigger.eventId);
 }
