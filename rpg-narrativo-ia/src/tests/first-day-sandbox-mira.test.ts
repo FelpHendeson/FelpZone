@@ -64,7 +64,7 @@ function act(state: ReturnType<typeof finishEnergyIntro>, action: Parameters<typ
     action,
     context,
     campaign,
-    triggers,
+    sliceETriggers,
     world.objectives,
   );
   expect(result.ok).toBe(true);
