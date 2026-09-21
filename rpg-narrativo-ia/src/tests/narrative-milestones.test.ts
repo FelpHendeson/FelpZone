@@ -43,6 +43,17 @@ const dayTrigger: WorldNarrativeTriggerDefinition = {
   eventId: 'first-priority',
 };
 
+const nightTrigger: WorldNarrativeTriggerDefinition = {
+  id: 'first-night',
+  source: {
+    type: 'world.time.reached',
+    day: 1,
+    period: 'noite',
+  },
+  campaignId: 'first-day',
+  eventId: 'first-priority',
+};
+
 function exploring() {
   return { ...freshState(), narrativeSession: null };
 }
@@ -170,7 +181,7 @@ describe('Fatia C — critérios e marcos narrativos', () => {
   });
 
   it('valida gatilhos por proficiência e dia contra o pack ativo', () => {
-    const valid = inspectWorldTriggerCatalog([skillTrigger, dayTrigger], triggerContext());
+    const valid = inspectWorldTriggerCatalog([skillTrigger, dayTrigger, nightTrigger], triggerContext());
     expect(valid.ok).toBe(true);
 
     const missingSkill = inspectWorldTriggerCatalog(
@@ -216,6 +227,18 @@ describe('Fatia C — critérios e marcos narrativos', () => {
       triggerContext(),
     );
     expect(invalidDay.ok).toBe(false);
+
+    const invalidTime = inspectWorldTriggerCatalog(
+      [
+        {
+          ...nightTrigger,
+          id: 'invalid-time',
+          source: { type: 'world.time.reached', day: 1, period: 'madrugada' },
+        },
+      ],
+      triggerContext(),
+    );
+    expect(invalidTime.ok).toBe(false);
   });
 
   it('treino real atinge proficiência e abre o marco uma única vez sem custo temporal extra', () => {
@@ -290,6 +313,24 @@ describe('Fatia C — critérios e marcos narrativos', () => {
     const daySeven = { ...daySix, world: { day: 7, period: 'manha' as const } };
     expect(listEligibleWorldTriggers(inspected.value, daySix)).toEqual([]);
     expect(resolveEligibleWorldTrigger(inspected.value, daySeven)?.id).toBe(dayTrigger.id);
+  });
+
+  it('world.time.reached respeita dia e ordem dos períodos e continua válido depois do marco', () => {
+    const inspected = inspectWorldTriggerCatalog([nightTrigger], triggerContext());
+    expect(inspected.ok).toBe(true);
+    if (!inspected.ok) {
+      throw new Error(inspected.reason);
+    }
+
+    const afternoon = { ...exploring(), world: { day: 1, period: 'tarde' as const } };
+    const sunset = { ...afternoon, world: { day: 1, period: 'entardecer' as const } };
+    const night = { ...afternoon, world: { day: 1, period: 'noite' as const } };
+    const nextDay = { ...afternoon, world: { day: 2, period: 'alvorecer' as const } };
+
+    expect(listEligibleWorldTriggers(inspected.value, afternoon)).toEqual([]);
+    expect(listEligibleWorldTriggers(inspected.value, sunset)).toEqual([]);
+    expect(resolveEligibleWorldTrigger(inspected.value, night)?.id).toBe(nightTrigger.id);
+    expect(resolveEligibleWorldTrigger(inspected.value, nextDay)?.id).toBe(nightTrigger.id);
   });
 
   it('sessão aberta impede outro marco e ordem declarada decide entre elegíveis', () => {
