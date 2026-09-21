@@ -15,6 +15,7 @@ import { hasActiveNarrativeSession, resolvePlayScreen, toAppScreen } from '../ui
 import { playFirstDay } from './helpers';
 
 const context = createSandboxContext();
+const sandboxSurfaceTriggers = FIRST_DAY_WORLD_TRIGGERS.filter((trigger) => !['first-night', 'day-two-start'].includes(trigger.id));
 
 function enterExploration() {
   return playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
@@ -39,7 +40,7 @@ function commit(
 ) {
   return commitSandboxAction(state, action, context, {
     campaign: firstDayCampaign,
-    catalog: FIRST_DAY_WORLD_TRIGGERS,
+    catalog: sandboxSurfaceTriggers,
     persist: persist ?? (() => undefined),
   });
 }
