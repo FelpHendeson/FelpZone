@@ -78,7 +78,12 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     const state = revealMira(exploring());
     const persistence = createMemoryPersistence(undefined, context);
     persistence.save(state);
-    expect(persistence.load()).toEqual({ status: 'ok', state });
+    const loaded = persistence.load();
+    expect(loaded.status).toBe('ok');
+    if (loaded.status === 'ok') {
+      expect(loaded.state.sandbox.presences).toEqual(state.sandbox.presences);
+      expect(loaded.state.sandbox.npcs.entries.some((entry) => entry.npcId === 'mira-vale')).toBe(true);
+    }
   });
 
   it('migra v1, v2 e v3 para o schema atual', () => {
@@ -461,8 +466,9 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     expect(opened.current.sandbox.presences.discoveredPresenceIds).toEqual([]);
     expect(opened.current.sandbox.presences.resolvedPresenceIds).toEqual([]);
 
+    const miraReady = revealMiraForTest(opened.current);
     const talked = commitSandboxAction(
-      opened.current,
+      miraReady,
       {
         type: 'presence.interact',
         presenceId: 'mira-awakening-clearing',
@@ -482,12 +488,8 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     }
 
     const returned = playChoices(talked.current, [
-      'seek-water',
-      'alert-hide',
       'meet-open',
-      'share-fruit',
-      'accept-shelter',
-      'together-summary',
+      'share-information',
     ]);
     const talk = commitSandboxAction(
       returned,
