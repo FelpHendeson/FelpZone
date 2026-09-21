@@ -67,7 +67,7 @@
       {
         "id": "path-spring-lake",
         "kind": "passage",
-        "revealAt": 40,
+        "revealAt": 20,
         "completionWeight": 1,
         "targetId": "spring-lake",
         "unlockTarget": true,
