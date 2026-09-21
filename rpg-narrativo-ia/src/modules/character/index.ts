@@ -1,7 +1,7 @@
-import type { Attributes, AttributeId, CharacterIdentity } from '../../core/state/types';
+import type { Attributes, AttributeId, CharacterIdentity, LegacyCharacterIdentity } from '../../core/state/types';
 import { createInitialNeedsSnapshot } from '../needs';
 
-export type { AttributeId, Attributes, CharacterIdentity };
+export type { AttributeId, Attributes, CharacterIdentity, LegacyCharacterIdentity };
 
 export const ATTRIBUTE_MIN = 0;
 export const ATTRIBUTE_MAX = 100;
@@ -40,13 +40,13 @@ export function changeAttribute(attributes: Attributes, attribute: AttributeId, 
   };
 }
 
-export function fullName(character: CharacterIdentity): string {
+export function fullName(character: LegacyCharacterIdentity): string {
   return `${character.firstName} ${character.lastName}`.trim();
 }
 
 export const STORY_VAR_KEYS = ['nome', 'sobrenome', 'nomeCompleto'] as const;
 
-export function storyVars(character: CharacterIdentity): Record<string, string> {
+export function storyVars(character: LegacyCharacterIdentity): Record<string, string> {
   return {
     nome: character.firstName,
     sobrenome: character.lastName,
@@ -81,7 +81,7 @@ export function validateIdentity(firstName: string, lastName: string): IdentityV
   return result;
 }
 
-export function normalizeIdentity(firstName: string, lastName: string): CharacterIdentity {
+export function normalizeIdentity(firstName: string, lastName: string): LegacyCharacterIdentity {
   return {
     firstName: firstName.trim(),
     lastName: lastName.trim(),
