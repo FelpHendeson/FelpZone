@@ -32,11 +32,7 @@ export function listEligibleWorldTriggers(
       continue;
     }
 
-    if (trigger.source.type !== 'discovery.revealed') {
-      continue;
-    }
-
-    if (!isDiscoveryRevealedInWorld(state, trigger.source.discoveryId)) {
+    if (!isWorldTriggerSourceSatisfied(trigger, state)) {
       continue;
     }
 
@@ -44,6 +40,23 @@ export function listEligibleWorldTriggers(
   }
 
   return eligible;
+}
+
+function isWorldTriggerSourceSatisfied(
+  trigger: WorldNarrativeTriggerDefinition,
+  state: GameState,
+): boolean {
+  switch (trigger.source.type) {
+    case 'discovery.revealed':
+      return isDiscoveryRevealedInWorld(state, trigger.source.discoveryId);
+    case 'system.skill.proficiency.min':
+      return (
+        (state.system.entries.find((entry) => entry.skillId === trigger.source.skillId)?.proficiency ?? -1) >=
+        trigger.source.amount
+      );
+    case 'world.day.min':
+      return state.world.day >= trigger.source.day;
+  }
 }
 
 export function resolveEligibleWorldTrigger(
