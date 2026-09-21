@@ -274,6 +274,14 @@ function validateConditions(
           errors.push(`A ${context} de ${ownerId} possui quantidade inválida.`);
         }
         break;
+      case 'crafting.structure.active':
+        if (
+          condition.structureId.trim() === '' ||
+          (condition.locationId !== undefined && condition.locationId.trim() === '')
+        ) {
+          errors.push(`A ${context} de ${ownerId} possui estrutura ativa inválida.`);
+        }
+        break;
       case 'relationship.min':
         if (!npcIds.has(condition.characterId) || !Number.isFinite(condition.amount)) {
           errors.push(`A ${context} de ${ownerId} possui relação inválida.`);
