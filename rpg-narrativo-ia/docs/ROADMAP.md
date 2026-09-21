@@ -278,11 +278,11 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ## Programa especificado depois do Sistema 17
 
-O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda, o save permanece schema 11 e uma fonte remota futura reusa o mesmo `composeWorld`. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
+O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda, o save permanece schema 23 e uma fonte remota futura reusa o mesmo `composeWorld`. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
 
 Em 17 de setembro de 2026, o autor definiu o projeto como um **motor de mundos jogáveis**: sistemas reutilizáveis formam os blocos; packs configuram as leis e o conteúdo; campanhas contam histórias por cima deles. A arquitetura e os critérios permanentes estão em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
 
-As etapas abaixo estão **especificadas, mas ainda não implementadas**. A ordem reduz retrabalho entre dependências. Cada sistema continua exigindo implementação fatiada, revisão e gates próprios.
+As etapas abaixo foram **especificadas e implementadas** nas Fatias 18.1 a 29.7. A ordem original reduziu retrabalho entre dependências. Cada sistema continua exigindo revisão e gates próprios antes de uma expansão.
 
 ### Etapa 18 — Cenário interativo e pontos de interesse
 

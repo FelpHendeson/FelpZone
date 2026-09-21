@@ -46,7 +46,7 @@ As decisões abaixo foram definidas pelo autor:
 - A trajetória pode misturar aventura, drama, fantasia e ficção especulativa; o tom deve responder às decisões do jogador.
 - A causa do Reset, a origem do Sistema e o desenvolvimento amplo da trama continuam **em discussão** e devem ser construídos em conjunto.
 
-Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram definidos e especificados nos Sistemas 28 e 29, mas ainda não foram implementados.
+Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
 ## Metas de experiência definidas
 
@@ -189,7 +189,7 @@ O Sistema 8 representa entidades, presenças descobertas por local, disponibilid
 
 ### Interações com elementos do cenário
 
-O jogador deverá interagir com elementos e pessoas presentes na localização, além de navegar e explorar. Coleta e crafting já cobrem parte disso, mas ainda não existe um sistema genérico de objetos interativos. O contrato agora está em [Sistema 18](SYSTEM-18-INTERACTABLE-WORLD.md).
+O jogador deverá interagir com elementos e pessoas presentes na localização, além de navegar e explorar. Coleta, crafting e o Sistema 18 já cobrem objetos interativos declarativos. Novos tipos de interação devem ser discutidos em fatias menores.
 
 ### Expansão de exploração, recursos, crafting e cozinha
 
@@ -205,7 +205,7 @@ São parte confirmada do mundo e da trama futura. Construção, administração,
 
 ### Vida, poder, pertencimento e liderança
 
-O motor deve permitir que a mesma trajetória combine vida familiar, crescimento de poder, participação em grupos e construção social. Relacionamentos, registro e rankings, organizações, Númen avançado, party, ciclo de vida, família, profissões, economia, assentamentos e política estão especificados nos Sistemas 19 a 29. Eles são blocos combináveis, não modos excludentes.
+O motor deve permitir que a mesma trajetória combine vida familiar, crescimento de poder, participação em grupos e construção social. Relacionamentos, registro e rankings, organizações, Númen avançado, party, ciclo de vida, família, profissões, economia, assentamentos e política estão implementados nos Sistemas 19 a 29, dentro dos recortes documentados. Eles são blocos combináveis, não modos excludentes.
 
 ## Ideias em discussão, sem compromisso de implementação
 
@@ -241,7 +241,7 @@ Os itens abaixo apareceram como possibilidades técnicas ou foram inferidos pelo
 - editor de campanhas;
 - arte final e estilo visual definitivo.
 
-Não crie numeração de sistema, contrato, schema ou prompt de implementação para esses itens até que o autor os discuta e autorize. Esta restrição não se aplica aos Sistemas 18 a 29, que já possuem especificações próprias; os Sistemas 18 a 21 já foram implementados.
+Não crie numeração de sistema, contrato, schema ou prompt de implementação para esses itens até que o autor os discuta e autorize. Esta restrição não se aplica aos Sistemas 18 a 29, que já foram implementados e consolidados dentro dos recortes documentados.
 
 ## Decisões negativas atuais
 

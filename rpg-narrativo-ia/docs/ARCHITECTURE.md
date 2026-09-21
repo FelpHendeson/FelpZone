@@ -89,7 +89,7 @@ src/
 └── tests/
 ```
 
-A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os módulos dos Sistemas 1 a 17 estão implementados. Os Sistemas 18 a 29 possuem especificações, mas suas pastas só devem nascer na respectiva implementação autorizada.
+A estrutura é uma direção, não uma obrigação de criar pastas vazias. Os módulos dos Sistemas 1 a 29 estão implementados dentro dos recortes documentados. Pastas novas só devem nascer na respectiva implementação autorizada.
 
 ## Responsabilidades
 
