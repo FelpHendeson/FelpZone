@@ -37,7 +37,7 @@ export interface WorldNarrativeTriggerDefinition {
 export interface IndexedWorldTriggers {
   readonly definitions: readonly WorldNarrativeTriggerDefinition[];
   readonly byId: ReadonlyMap<string, WorldNarrativeTriggerDefinition>;
-  readonly byDiscoveryId: ReadonlyMap<string, readonly WorldNarrativeTriggerDefinition[]>;
+  readonly byDiscoveryId: ReadonlyMap<string, WorldNarrativeTriggerDefinition>;
 }
 
 export type WorldTriggerInspection<T> =
