@@ -54,7 +54,7 @@ A fundação narrativa detalhada está em [Fundação narrativa — Reset](NARRA
 
 O [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) está especificado, mas ainda não implementado nessa forma. Ele reorganiza o primeiro dia para introduzir Etéris/Númen em prática, preservar liberdade sandbox e encerrar com a primeira noite em vez de apresentar prematuramente toda a simulação social.
 
-A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). As **Fatias A e B estão implementadas**: escolha de sexo no schema 24 e [Orientação/Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) persistida no schema 25, dirigida pelo pack e desbloqueada por efeitos de campanha. A ampliação dos [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md) continua especificada e ainda não implementada.
+A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). As **Fatias A, B e C estão implementadas**: escolha de sexo no schema 24; [Orientação/Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) persistida no schema 25; e [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md) ampliados para reagir a proficiência real e passagem de dias sem novo estado persistido. A próxima fatia é o conteúdo energético do começo da campanha.
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
@@ -264,7 +264,7 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 29 estão implementados e consolidados.** O save atual é o schema 25 após as Fatias A e B da revisão narrativa do Dia 1. O programa de mundo especificado em 17 de setembro de 2026 está completo dentro do recorte aprovado.
+**Os Sistemas 1 a 29 estão implementados e consolidados.** O save atual é o schema 25 após as Fatias A e B; a Fatia C ampliou critérios e gatilhos sem alterar o schema. O programa de mundo especificado em 17 de setembro de 2026 está completo dentro do recorte aprovado.
 
 Antes de um novo eixo:
 
