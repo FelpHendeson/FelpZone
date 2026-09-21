@@ -1,6 +1,7 @@
 import type { Campaign } from '../../core/events';
 import { getEventById } from '../../core/events';
 import type { IndexedExploration } from '../exploration';
+import type { IndexedSkills } from '../skills';
 import { WorldEventError } from './errors';
 import type {
   IndexedWorldTriggers,
@@ -15,7 +16,7 @@ export function inspectWorldTriggerCatalog(
   value: unknown,
   context: WorldTriggerCatalogContext,
 ): WorldTriggerInspection<IndexedWorldTriggers> {
-  if (!isRecord(context) || !isRecord(context.campaign) || !isRecord(context.exploration)) {
+  if (!isRecord(context) || !isRecord(context.campaign) || !isRecord(context.exploration) || !isRecord(context.skills)) {
     return fail('O contexto do catálogo de gatilhos é inválido.');
   }
 
@@ -29,17 +30,21 @@ export function inspectWorldTriggerCatalog(
 
   const definitions: WorldNarrativeTriggerDefinition[] = [];
   const byId = new Map<string, WorldNarrativeTriggerDefinition>();
-  const byDiscoveryId = new Map<string, WorldNarrativeTriggerDefinition>();
+  const byDiscoveryId = new Map<string, WorldNarrativeTriggerDefinition[]>();
 
   for (const entry of value) {
-    const inspected = inspectTrigger(entry, context.campaign, context.exploration, byId, byDiscoveryId);
+    const inspected = inspectTrigger(entry, context.campaign, context.exploration, context.skills, byId);
     if (!inspected.ok) {
       return inspected;
     }
 
     const trigger = inspected.value;
     byId.set(trigger.id, trigger);
-    byDiscoveryId.set(trigger.source.discoveryId, trigger);
+    if (trigger.source.type === 'discovery.revealed') {
+      const entries = byDiscoveryId.get(trigger.source.discoveryId) ?? [];
+      entries.push(trigger);
+      byDiscoveryId.set(trigger.source.discoveryId, entries);
+    }
     definitions.push(trigger);
   }
 
@@ -69,8 +74,8 @@ function inspectTrigger(
   value: unknown,
   campaign: Campaign,
   exploration: IndexedExploration,
+  skills: IndexedSkills,
   byId: Map<string, WorldNarrativeTriggerDefinition>,
-  byDiscoveryId: Map<string, WorldNarrativeTriggerDefinition>,
 ): WorldTriggerInspection<WorldNarrativeTriggerDefinition> {
   if (!isRecord(value)) {
     return fail('O gatilho narrativo é inválido.');
@@ -84,7 +89,7 @@ function inspectTrigger(
     return fail(`O gatilho ${value.id} está duplicado.`);
   }
 
-  const source = inspectSource(value.source, exploration, byDiscoveryId);
+  const source = inspectSource(value.source, exploration, skills);
   if (!source.ok) {
     return source;
   }
@@ -124,7 +129,7 @@ function inspectTrigger(
 function inspectSource(
   value: unknown,
   exploration: IndexedExploration,
-  byDiscoveryId: Map<string, WorldNarrativeTriggerDefinition>,
+  skills: IndexedSkills,
 ): WorldTriggerInspection<WorldTriggerSource> {
   if (!isRecord(value) || typeof value.type !== 'string') {
     return fail('A origem do gatilho é inválida.');
@@ -134,25 +139,45 @@ function inspectSource(
     return fail('O tipo de origem do gatilho é desconhecido.');
   }
 
-  if (typeof value.discoveryId !== 'string' || value.discoveryId.trim() === '') {
-    return fail('A descoberta do gatilho é inválida.');
+  switch (value.type) {
+    case 'discovery.revealed':
+      if (typeof value.discoveryId !== 'string' || value.discoveryId.trim() === '') {
+        return fail('A descoberta do gatilho é inválida.');
+      }
+      if (!exploration.byDiscovery.has(value.discoveryId)) {
+        return fail(`A descoberta ${value.discoveryId} não existe nas definições de exploração.`);
+      }
+      return {
+        ok: true,
+        value: { type: value.type, discoveryId: value.discoveryId },
+      };
+    case 'system.skill.proficiency.min':
+      if (
+        typeof value.skillId !== 'string' ||
+        value.skillId.trim() === '' ||
+        !Number.isSafeInteger(value.amount) ||
+        (value.amount as number) < 0
+      ) {
+        return fail('O marco de proficiência do gatilho é inválido.');
+      }
+      if (!skills.skillById.has(value.skillId)) {
+        return fail(`A habilidade ${value.skillId} do gatilho não existe.`);
+      }
+      return {
+        ok: true,
+        value: { type: value.type, skillId: value.skillId, amount: value.amount as number },
+      };
+    case 'world.day.min':
+      if (!Number.isSafeInteger(value.day) || (value.day as number) <= 0) {
+        return fail('O dia mínimo do gatilho é inválido.');
+      }
+      return {
+        ok: true,
+        value: { type: value.type, day: value.day as number },
+      };
   }
 
-  if (!exploration.byDiscovery.has(value.discoveryId)) {
-    return fail(`A descoberta ${value.discoveryId} não existe nas definições de exploração.`);
-  }
-
-  if (byDiscoveryId.has(value.discoveryId)) {
-    return fail(`Há gatilhos ambíguos para a descoberta ${value.discoveryId}.`);
-  }
-
-  return {
-    ok: true,
-    value: {
-      type: 'discovery.revealed',
-      discoveryId: value.discoveryId,
-    },
-  };
+  return fail('O tipo de origem do gatilho é desconhecido.');
 }
 
 function fail(reason: string): WorldTriggerInspection<never> {
