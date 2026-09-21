@@ -1,8 +1,9 @@
 import type { Campaign } from '../../core/events';
 import type { IndexedExploration } from '../exploration';
 import type { IndexedSkills } from '../skills';
+import type { DayPeriod } from '../../core/state/types';
 
-export const WORLD_TRIGGER_SOURCE_TYPES = ['discovery.revealed', 'system.skill.proficiency.min', 'world.day.min'] as const;
+export const WORLD_TRIGGER_SOURCE_TYPES = ['discovery.revealed', 'system.skill.proficiency.min', 'world.day.min', 'world.time.reached'] as const;
 
 export type WorldTriggerSourceType = (typeof WORLD_TRIGGER_SOURCE_TYPES)[number];
 
@@ -22,10 +23,17 @@ export interface WorldTriggerDaySource {
   day: number;
 }
 
+export interface WorldTriggerTimeReachedSource {
+  type: 'world.time.reached';
+  day: number;
+  period: DayPeriod;
+}
+
 export type WorldTriggerSource =
   | WorldTriggerDiscoverySource
   | WorldTriggerSkillProficiencySource
-  | WorldTriggerDaySource;
+  | WorldTriggerDaySource
+  | WorldTriggerTimeReachedSource;
 
 export interface WorldNarrativeTriggerDefinition {
   id: string;
