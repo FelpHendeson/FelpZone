@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 21 de setembro de 2026. Ainda não implementada.**
+**Especificada em 21 de setembro de 2026. Implementada até a Fatia F; resta a Fatia G de playtest e ajuste fino.**
 
 Esta especificação converte [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -475,11 +475,19 @@ Alterações de texto continuam sem exigir código.
 - perigo e conversa deixam de empurrar automaticamente o jogador ao entardecer/noite;
 - nenhum novo estado persistente: schema permanece 25.
 
-## Fatia F — Primeira noite
+## Fatia F — Primeira noite — **implementada**
 
-- contexto da noite;
-- duas saídas principais;
-- transição ao Dia 2.
+- novo marco `world.time.reached` detecta o primeiro momento em `Dia 1 · noite` ou posterior sem depender de uma ação específica;
+- `first-night` é a entrada única da resolução noturna e usa `firstMatch` para escolher contexto com confiança suficiente em Mira ou rota sem acordo;
+- a condição `crafting.structure.active` permite que a narrativa reconheça uma fogueira real no local atual sem criar flag duplicada;
+- energia baixa pode liberar uma saída contextual de exaustão;
+- companhia continua opcional: vigília compartilhada não cria amizade, party, família ou romance;
+- `night-together` e `night-alone` voltam ao sandbox com `status: playing`;
+- a narrativa não concede descanso artificial nem move o relógio: recuperação e passagem de tempo continuam em `needs.rest`;
+- ao cruzar para o Dia 2 pelo relógio canônico, o trigger `day-two-start` abre `day-two-awakening`;
+- o amanhecer possui variantes compartilhada/solo e retorna ao sandbox com todo o estado preservado;
+- se uma ação no entardecer avançar diretamente para o Dia 2, a ordem dos triggers garante que `first-night` seja resolvida antes de `day-two-start`;
+- nenhum novo estado persistente: schema permanece 25.
 
 ## Fatia G — Playtest
 
