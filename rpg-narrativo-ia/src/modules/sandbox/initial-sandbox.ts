@@ -57,6 +57,7 @@ import { INITIAL_SKILLS } from '../skills';
 import { INITIAL_TRAINING } from '../training';
 import { INITIAL_NPCS } from '../npcs';
 import { INITIAL_OBJECTIVES } from '../objectives';
+import { INITIAL_GUIDANCE } from '../guidance';
 import type { IndexedWorld } from '../content';
 import { inspectSandboxContext } from './context-validation';
 import { SandboxError, type SandboxContext, type SandboxState } from './types';
@@ -105,6 +106,7 @@ export function createSandboxContextFromWorld(
     objectives: world.objectives,
     worldTriggers: world.worldTriggers,
     stationLabels: world.stationLabels,
+    guidance: world.guidance,
   };
 }
 
@@ -166,6 +168,7 @@ export function createSandboxContext(
       conditions: INITIAL_CONDITIONS,
       objectives: INITIAL_OBJECTIVES,
       stationLabels: labels.stations,
+      guidance: INITIAL_GUIDANCE,
     };
   } catch (error) {
     if (error instanceof NavigationError || error instanceof CombatError || error instanceof MasteryError) {
