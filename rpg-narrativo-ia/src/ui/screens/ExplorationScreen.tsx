@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
@@ -76,7 +76,7 @@ export function ExplorationScreen({
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
   const [helpTopicId, setHelpTopicId] = useState<string | null>(null);
-  const guidancePopupShown = useRef(false);
+  const [guidancePopupDismissed, setGuidancePopupDismissed] = useState(false);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
   const revealedDiscoveryIds =
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
@@ -146,7 +146,7 @@ export function ExplorationScreen({
   );
   const unlockedGuidance = listUnlockedGuidanceTopics(guidance, state.guidance);
   const unseenGuidance = listUnseenGuidanceTopics(guidance, state.guidance);
-  const popupGuidance = guidancePopupShown.current
+  const popupGuidance = guidancePopupDismissed
     ? null
     : unseenGuidance.find((topic) => topic.popupOnUnlock !== false) ?? null;
 
@@ -249,7 +249,7 @@ export function ExplorationScreen({
           open
           title={popupGuidance.title}
           onClose={() => {
-            guidancePopupShown.current = true;
+            setGuidancePopupDismissed(true);
             onGuidanceSeen(popupGuidance.id);
           }}
         >
@@ -259,7 +259,7 @@ export function ExplorationScreen({
               type="button"
               className="button button--primary"
               onClick={() => {
-                guidancePopupShown.current = true;
+                setGuidancePopupDismissed(true);
                 onGuidanceSeen(popupGuidance.id);
               }}
             >
@@ -269,7 +269,7 @@ export function ExplorationScreen({
               type="button"
               className="button button--ghost"
               onClick={() => {
-                guidancePopupShown.current = true;
+                setGuidancePopupDismissed(true);
                 setHelpTopicId(popupGuidance.id);
                 onGuidanceSeen(popupGuidance.id);
                 setActiveView('help');
