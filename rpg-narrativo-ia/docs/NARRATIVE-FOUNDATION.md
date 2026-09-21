@@ -889,6 +889,10 @@ O jogador pode se envolver profundamente nisso ou seguir outra trajetória.
 
 ---
 
+## Especificação do primeiro dia
+
+A primeira fatia jogável detalhada está em [Dia 1 — Especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md). Ela define o fluxo do despertar à primeira noite e deve ser usada antes de reescrever o pack `first-day`.
+
 # 15. Próxima etapa de conteúdo
 
 Antes de expandir o motor novamente, a prioridade narrativa é transformar esta fundação em conteúdo jogável.
