@@ -7,7 +7,7 @@ import { executeSandboxAction, type SandboxAction } from '../modules/sandbox-act
 import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { buildExplorationView, commitSandboxAction } from '../ui/sandbox';
 import { toAppScreen } from '../ui/routing';
-import { playFirstDay } from './helpers';
+import { playFirstDay, revealMiraForTest } from './helpers';
 
 const context = createSandboxContext();
 
@@ -40,7 +40,15 @@ function expectContext(value: unknown): SandboxContext {
 }
 
 function discoverMira(state: GameState = enterExploration()): GameState {
-  return executeSandboxAction(state, { type: 'exploration.explore' }, { context }).current;
+  return revealMiraForTest(state);
+}
+
+function exploreTimes(state: GameState, times: number): GameState {
+  let current = state;
+  for (let index = 0; index < times; index += 1) {
+    current = executeSandboxAction(current, { type: 'exploration.explore' }, { context }).current;
+  }
+  return current;
 }
 
 function withRabbit(state: GameState): GameState {
@@ -99,17 +107,14 @@ describe('Fatia 8.5 — view-model de presenças', () => {
     expect(view.location.id).toBe('awakening-clearing');
   });
 
-  it('explorar pela superfície revela Mira disponível sem abrir narrativa', () => {
-    const attempt = mustCommit(enterExploration(), { type: 'exploration.explore' });
-    const mira = viewOf(attempt.current).presences[0];
+  it('exploração mantém Mira oculta até os sinais avançados e não abre narrativa', () => {
+    const early = exploreTimes(enterExploration(), 4);
+    expect(early.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
 
-    expect(toAppScreen(attempt.current)).toBe('exploration');
-    expect(attempt.current.narrativeSession).toBeNull();
-    expect(mira?.status).toBe('available');
-    expect(mira?.interactions.map((interaction) => interaction.interactionId)).toEqual([
-      'observe-mira-awakening-clearing',
-      'talk-mira-awakening-clearing',
-    ]);
+    const revealed = exploreTimes(early, 1);
+    expect(revealed.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
+    expect(revealed.narrativeSession).toBeNull();
+    expect(toAppScreen(revealed)).toBe('exploration');
   });
 
   it('não revela presença de outro local mesmo depois de descoberta', () => {
@@ -323,7 +328,7 @@ describe('Fatia 8.5 — view-model de presenças', () => {
     });
 
     expect(toAppScreen(attempt.current)).toBe('game');
-    expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
+    expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'survivor-meet' });
     expect(attempt.current.sandbox.navigation.currentLocationId).toBe(location);
     expect(attempt.current.flags[worldTriggerConsumedFlag('first-priority')]).toBeUndefined();
     expect(viewOf(attempt.current).presences[0]?.status).toBe('resolved');
