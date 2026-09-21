@@ -31,6 +31,7 @@ import type {
 } from '../presences/types';
 import type { IndexedResources, ResourcesState } from '../resources/types';
 import type { IndexedWorldTriggers } from '../world-events/types';
+import type { IndexedGuidance } from '../guidance/types';
 
 export class SandboxError extends Error {
   constructor(message: string, options?: ErrorOptions) {
@@ -85,6 +86,7 @@ export interface SandboxContext {
   objectives?: IndexedObjectives;
   worldTriggers?: IndexedWorldTriggers;
   stationLabels?: Readonly<Record<string, string>>;
+  guidance?: IndexedGuidance;
 }
 
 export type SandboxInspection =
