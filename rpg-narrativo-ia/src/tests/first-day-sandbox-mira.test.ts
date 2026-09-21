@@ -105,7 +105,7 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
         ?.revealedDiscoveryIds,
     ).toContain('human-footprints');
     expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
-    expect(state.sandbox.crafting.activeStructures).toEqual([]);
+    expect(state.sandbox.crafting.structures).toEqual([]);
     expect(state.inventory.some((entry) => entry.itemId === 'cooked-horned-rabbit-meat')).toBe(false);
   });
 
@@ -114,7 +114,7 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
 
     state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
     state = act(state, { type: 'exploration.explore' });
-    const known = listKnownObjectives(world.objectives, state.objectives).map((objective) => objective.id);
+    const known = listKnownObjectives(world.objectives, state.objectives).map((entry) => entry.objective.id);
     expect(known).toContain('camp-comfort');
     expect(getObjectiveStatus(world.objectives, state.objectives, 'camp-comfort')).toBe('active');
     expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
