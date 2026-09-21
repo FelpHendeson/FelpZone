@@ -200,6 +200,7 @@ describe('catálogo de interações', () => {
     expect(inspected.value.byPresence.get('mira-awakening-clearing')?.map((entry) => entry.id)).toEqual([
       'observe-mira-awakening-clearing',
       'talk-mira-awakening-clearing',
+      'avoid-mira-awakening-clearing',
     ]);
     expect(inspected.value.byPresence.get('horned-rabbit-dense-woods')?.map((entry) => entry.id)).toEqual([
       'observe-horned-rabbit-dense-woods',
