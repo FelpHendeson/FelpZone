@@ -204,7 +204,7 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
     expect(loaded.state.narrativeSession).toBeNull();
     expect(toAppScreen(loaded.state)).toBe('exploration');
 
-    const ready = exploreTimes(loaded.state, 2);
+    const ready = exploreTimes(loaded.state, 3);
     const collected = mustCommit(ready, { type: 'resource.collect', nodeId: 'fallen-sticks', units: 1 }).current;
     expect(itemQuantity(collected.inventory, 'fallen-branch')).toBe(1);
     expect(viewOf(collected).recipes.length).toBeGreaterThan(0);
