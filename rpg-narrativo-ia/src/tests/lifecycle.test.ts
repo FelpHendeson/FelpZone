@@ -44,10 +44,11 @@ describe('ciclo de vida do motor', () => {
   });
 
   it('rejeita uma escolha que não cumpre as próprias condições', () => {
-    const atMeet = continueAfterIntro(
+    const afterDanger = continueAfterIntro(
       ['awake-calm', 'system-touch', 'ability-perception'],
       ['seek-shelter', 'alert-leave'],
     );
+    const atMeet = reopenNarrativeSession(afterDanger, 'survivor-meet');
     const snapshot = structuredClone(atMeet);
 
     expect(atMeet.narrativeSession?.eventId).toBe('survivor-meet');
