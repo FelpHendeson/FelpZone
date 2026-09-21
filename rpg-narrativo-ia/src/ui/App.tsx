@@ -10,6 +10,7 @@ import { describeMasteryProgress } from '../modules/system-interface';
 import type { CharacterSex, GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
+import { markGuidanceTopicSeen } from '../modules/guidance';
 import { createSandboxContextFromWorld, type SandboxContext } from '../modules/sandbox';
 import type { SandboxAction } from '../modules/sandbox-actions';
 import { ConfirmDialog } from './components/ConfirmDialog';
@@ -168,6 +169,23 @@ export function App() {
     }
   }
 
+  function handleGuidanceSeen(topicId: string) {
+    if (!state) {
+      return;
+    }
+
+    try {
+      const guidance = markGuidanceTopicSeen(world.guidance, state.guidance, topicId);
+      if (guidance === state.guidance) {
+        return;
+      }
+      persist({ ...state, guidance });
+      setError(null);
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Não foi possível atualizar a ajuda.');
+    }
+  }
+
   function handleSandboxAction(action: SandboxAction) {
     if (!state || actionLock.current) {
       return;
@@ -309,6 +327,7 @@ export function App() {
           actionPending={actionPending}
           onAction={handleSandboxAction}
           onResolveCombat={handleResolveCombat}
+          onGuidanceSeen={handleGuidanceSeen}
           onExit={() => {
             setFeedback(null);
             setScreen('start');
