@@ -158,7 +158,7 @@ describe('validação de campanha', () => {
     expect(walk.deadEnds).toEqual([]);
     expect(walk.completedPaths).toBe(0);
     expect(walk.returnedToExplorationPaths).toBeGreaterThan(0);
-    expect(walk.reachedEventIds.sort()).toEqual(['awakening', 'choose-ability', 'system-awakens']);
+    expect(walk.reachedEventIds.sort()).toEqual(['awakening', 'choose-ability', 'eteris-introduction', 'numen-introduction', 'system-awakens']);
     expect(laterEvents.every((eventId) => firstDayCampaign.events.some((event) => event.id === eventId))).toBe(true);
     expect(firstDayCampaign.events.find((event) => event.id === 'first-priority')?.canStartSession).toBe(true);
     expect(walk.reachedEventIds).not.toContain('first-priority');
