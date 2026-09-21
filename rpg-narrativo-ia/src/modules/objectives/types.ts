@@ -9,6 +9,7 @@ export type ObjectiveStatus = (typeof OBJECTIVE_STATUSES)[number];
 export type ObjectiveCriterion =
   | { type: 'progression.ability.selected' }
   | { type: 'progression.ability.has'; abilityId: string }
+  | { type: 'system.skill.proficiency.min'; skillId: string; amount: number }
   | { type: 'navigation.location.visited'; locationId: string }
   | { type: 'exploration.discovery.revealed'; discoveryId: string }
   | { type: 'inventory.item.quantity'; itemId: string; quantity: number }
