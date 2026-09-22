@@ -217,6 +217,45 @@ export function copyNpcsState(state: NPCsState): NPCsState {
   };
 }
 
+export function relocateNpc(
+  catalog: IndexedNpcs,
+  state: NPCsState,
+  npcId: string,
+  locationId: string,
+): NPCsState {
+  if (!catalog.npcById.has(npcId)) {
+    throw new NpcError('O NPC não existe.');
+  }
+  if (!catalog.locationIds.includes(locationId)) {
+    throw new NpcError('A localização alternativa do NPC é inválida.');
+  }
+  const entries = copyNpcsState(state).entries.map((entry) => ({ ...entry }));
+  const existing = entries.find((entry) => entry.npcId === npcId);
+  if (existing?.status === 'departed') {
+    throw new NpcError('Um NPC que partiu não pode ser relocado.');
+  }
+  if (!existing) {
+    return {
+      entries: [
+        ...entries,
+        {
+          npcId,
+          known: true,
+          status: 'active',
+          locationOverrideId: locationId,
+          memoryFactIds: [],
+          scheduleOverrideId: null,
+        },
+      ],
+    };
+  }
+  return {
+    entries: entries.map((entry) =>
+      entry.npcId === npcId ? { ...entry, locationOverrideId: locationId } : entry,
+    ),
+  };
+}
+
 export function rememberNpcFact(catalog: IndexedNpcs, state: NPCsState, npcId: string, factId: string): NPCsState {
   const fact = catalog.factById.get(factId);
   if (!fact || fact.npcId !== npcId) {
