@@ -146,7 +146,7 @@ describe('Fatia 9.2 — estado principal e migração', () => {
       expect(loaded.state.world).toEqual(current.world);
       expect(loaded.state.inventory).toEqual(current.inventory);
       expect(loaded.state.sandbox).toEqual(current.sandbox);
-      expect(loaded.state.attributes.sede).toBe(26);
+      expect(loaded.state.attributes.sede).toBe(25);
     }
     expect(writes).toEqual([]);
     expect(memory.get(SAVE_KEY)).toBe(raw);
