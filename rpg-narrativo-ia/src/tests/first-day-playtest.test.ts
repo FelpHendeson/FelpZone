@@ -77,7 +77,7 @@ function reachPostTrainingSandbox(): GameState {
 
   state = choose(state, 'first-numen-practice-continue');
   expect(state.narrativeSession).toBeNull();
-  expect(state.world).toEqual({ day: 1, period: 'manha' });
+  expect(state.world).toEqual({ day: 1, period: 'meio-dia' });
   return state;
 }
 
@@ -98,7 +98,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     let state = reachPostTrainingSandbox();
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world).toEqual({ day: 1, period: 'meio-dia' });
+    expect(state.world).toEqual({ day: 1, period: 'tarde' });
     const clearingAfterFirstLook = state.sandbox.exploration.locations.find(
       (entry) => entry.locationId === 'awakening-clearing',
     );
@@ -177,11 +177,11 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     let state = reachPostTrainingSandbox();
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world.period).toBe('meio-dia');
+    expect(state.world.period).toBe('tarde');
     expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world.period).toBe('tarde');
+    expect(state.world.period).toBe('entardecer');
     expect(state.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
 
     state = act(state, {
@@ -194,8 +194,6 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.sandbox.presences.resolvedPresenceIds).toContain('mira-awakening-clearing');
     expect(getObjectiveStatus(world.objectives, state.objectives, 'first-steps')).not.toBe('completed');
 
-    state = act(state, { type: 'exploration.explore' });
-    expect(state.world.period).toBe('entardecer');
     state = act(state, { type: 'exploration.explore' });
     expect(state.world.period).toBe('noite');
     expect(state.narrativeSession?.eventId).toBe('first-night');
