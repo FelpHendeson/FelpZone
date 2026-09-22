@@ -76,7 +76,6 @@ function act(state: ReturnType<typeof finishEnergyIntro>, action: Parameters<typ
 
 function secureWaterAndFindSigns(state: ReturnType<typeof finishEnergyIntro>) {
   let current = act(state, { type: 'exploration.explore' });
-  current = act(current, { type: 'exploration.explore' });
 
   expect(
     current.sandbox.exploration.locations
@@ -113,24 +112,22 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
   it('sinais humanos aparecem antes de Mira e conforto fica como jornada lateral', () => {
     let state = secureWaterAndFindSigns(finishEnergyIntro());
 
+    expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
+
     state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
+    state = act(state, { type: 'exploration.explore' });
+    expect(state.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
+
     state = act(state, { type: 'exploration.explore' });
     const known = listKnownObjectives(world.objectives, state.objectives).map((entry) => entry.objective.id);
     expect(known).toContain('camp-comfort');
     expect(getObjectiveStatus(world.objectives, state.objectives, 'camp-comfort')).toBe('active');
-    expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
-
-    state = act(state, { type: 'exploration.explore' });
-    state = act(state, { type: 'exploration.explore' });
-    expect(state.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
   });
 
   it('permite evitar Mira sem abrir narrativa e conclui a jornada lateral de contato', () => {
     let state = secureWaterAndFindSigns(finishEnergyIntro());
     state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
-    for (let count = 0; count < 3; count += 1) {
-      state = act(state, { type: 'exploration.explore' });
-    }
+    state = act(state, { type: 'exploration.explore' });
 
     expect(state.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
 
@@ -149,9 +146,7 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
   it('conversar com Mira abre somente o primeiro contato e devolve ao sandbox após a troca', () => {
     let state = secureWaterAndFindSigns(finishEnergyIntro());
     state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
-    for (let count = 0; count < 3; count += 1) {
-      state = act(state, { type: 'exploration.explore' });
-    }
+    state = act(state, { type: 'exploration.explore' });
 
     state = act(state, {
       type: 'presence.interact',
