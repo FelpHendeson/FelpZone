@@ -31,6 +31,8 @@ import { INITIAL_POLITICS, applyPoliticsActionPlan, copyPoliticsState, createIni
 import { copyExecutionState, createInitialExecutionState, restoreReserves, type ExecutionState } from '../execution';
 import { applyInteractablePlan, copyInteractablesState, createInitialInteractablesState, planInteractableAction, type InteractableActionPlan, type InteractablesState } from '../interactables';
 import { copyNpcsState, createInitialNpcsState, rememberNpcFact, INITIAL_NPCS, type NPCsState } from '../npcs';
+import { applyContextualActivityPlan, copyContextualActivitiesState, createInitialContextualActivitiesState, planContextualActivity, type ContextualActivitiesState, type ContextualActivityPlan } from '../activities';
+import type { GuidanceState } from '../guidance';
 import type { TimeCost } from '../time';
 import { worldToTimeState } from '../world';
 import { SandboxActionError } from './errors';
@@ -54,6 +56,7 @@ export function executePrimary(
   economyPlan?: EconomyActionPlan;
   settlementPlan?: SettlementActionPlan;
   politicsPlan?: PoliticsActionPlan;
+  activityPlan?: ContextualActivityPlan;
   navigation: GameState['sandbox']['navigation'];
   exploration: GameState['sandbox']['exploration'];
   resources: GameState['sandbox']['resources'];
@@ -74,6 +77,8 @@ export function executePrimary(
   economy: EconomyState;
   settlements: SettlementsState;
   politics: PoliticsState;
+  activities: ContextualActivitiesState;
+  guidance: GuidanceState;
   npcs: NPCsState;
   interactables: InteractablesState;
   attributes: Attributes;
@@ -115,6 +120,11 @@ export function executePrimary(
     economy: copyEconomyState(state.economy ?? createInitialEconomyState()),
     settlements: copySettlementsState(state.settlements ?? createInitialSettlementsState()),
     politics: copyPoliticsState(state.politics ?? createInitialPoliticsState()),
+    activities: copyContextualActivitiesState(state.activities ?? createInitialContextualActivitiesState()),
+    guidance: {
+      unlockedTopicIds: [...state.guidance.unlockedTopicIds],
+      seenTopicIds: [...state.guidance.seenTopicIds],
+    },
     npcs: copyNpcsState(state.sandbox.npcs ?? createInitialNpcsState()),
     interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
     status: state.status,
@@ -1032,6 +1042,44 @@ export function executePrimary(
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
       world: { day: afterEffects.world.day, period: afterEffects.world.period },
+    };
+  }
+
+  if (action.type === 'activity.perform') {
+    if (!context.activities || !context.npcs || !context.guidance) {
+      throw new SandboxActionError('O catálogo de atividades do pack ativo não está disponível.');
+    }
+    const activityPlan = planContextualActivity(
+      context.activities,
+      unchanged.activities,
+      state,
+      context.npcs,
+      action.activityId,
+      action.optionalParticipantIds,
+    );
+    const applied = applyContextualActivityPlan(
+      context.activities,
+      unchanged.activities,
+      activityPlan,
+      state,
+      { npcs: context.npcs, guidance: context.guidance },
+    );
+    return {
+      detail: { type: 'activity.perform', plan: activityPlan },
+      timeCost: { periods: activityPlan.timeCost.periods },
+      activityPlan,
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      activities: applied.activities,
+      npcs: applied.npcs,
+      flags: applied.flags,
+      relationships: applied.relationships,
+      guidance: applied.guidance,
     };
   }
 
