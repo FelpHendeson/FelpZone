@@ -261,15 +261,16 @@ function inspectActivity(
 
   let narrative: ContextualActivityDefinition['narrative'];
   if (value.narrative !== undefined) {
+    const rawNarrative = value.narrative;
     if (
-      !isRecord(value.narrative) ||
-      value.narrative.campaignId !== world.campaign.id ||
-      !nonEmpty(value.narrative.eventId) ||
-      !world.campaign.events.some((event) => event.id === value.narrative.eventId && event.canStartSession === true)
+      !isRecord(rawNarrative) ||
+      rawNarrative.campaignId !== world.campaign.id ||
+      !nonEmpty(rawNarrative.eventId) ||
+      !world.campaign.events.some((event) => event.id === rawNarrative.eventId && event.canStartSession === true)
     ) {
       return fail('A narrativa da atividade é inválida.');
     }
-    narrative = { campaignId: value.narrative.campaignId as string, eventId: value.narrative.eventId };
+    narrative = { campaignId: rawNarrative.campaignId as string, eventId: rawNarrative.eventId };
   }
 
   if (value.feedback !== undefined && !nonEmpty(value.feedback)) {
