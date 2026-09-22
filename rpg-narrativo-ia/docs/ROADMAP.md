@@ -278,7 +278,7 @@ Os Sistemas 14 a 17 foram ordenados e especificados pelo autor em 15 de setembro
 
 ## Programa especificado depois do Sistema 17
 
-O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda e uma fonte remota futura reusa o mesmo `composeWorld`. O Sistema 29 levou o save ao schema 23; a Fatia A da revisão narrativa do Dia 1 levou-o ao schema 24 com `character.sex`; a Fatia B levou-o ao schema 25 com orientação e ajuda persistidas. As Fatias C–F ampliaram comportamento e conteúdo sem novo schema: marcos por proficiência/dia/tempo, introdução Etéris/Númen, sandbox com sinais humanos e Mira opcional, e primeira noite adaptativa com transição canônica ao Dia 2. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
+O pack de mundo `content/first-day/` está implementado: o motor valida JSON na borda e uma fonte remota futura reusa o mesmo `composeWorld`. O Sistema 29 levou o save ao schema 23; a Fatia A da revisão narrativa do Dia 1 levou-o ao schema 24 com `character.sex`; a Fatia B levou-o ao schema 25 com orientação e ajuda persistidas. As Fatias C–G ampliaram comportamento, conteúdo e cobertura sem novo schema: marcos por proficiência/dia/tempo, introdução Etéris/Númen, sandbox com sinais humanos e Mira opcional, primeira noite adaptativa, transição canônica ao Dia 2 e playtest integrado das duas rotas obrigatórias. Fonte: [Motor e pack de mundo](CONTENT-PACK.md). CMS e banco reais continuam fora do escopo.
 
 Em 17 de setembro de 2026, o autor definiu o projeto como um **motor de mundos jogáveis**: sistemas reutilizáveis formam os blocos; packs configuram as leis e o conteúdo; campanhas contam histórias por cima deles. A arquitetura e os critérios permanentes estão em [Visão do motor de mundo](WORLD-ENGINE-VISION.md).
 
@@ -356,3 +356,10 @@ Antes de implementar, definir:
 6. menor sequência jogável;
 7. testes e critérios de aceite;
 8. itens explicitamente fora da etapa.
+
+
+### Revisão narrativa do Dia 1 — Fatia G
+
+**Concluída em 22 de setembro de 2026.** O playtest integrado encontrou e corrigiu um gargalo de tempo entre treino, água, sinais humanos, Mira e primeira noite. A Clareira mantém 10% por exploração; sinais e caminho da Nascente entram em 10%, Mira em 20%; a Nascente é um destino local de custo 0. As rotas com contato e evasão chegam ao Dia 2 sem encerrar a partida. Consulte [Dia 1 — Playtest da Fatia G](DAY-1-PLAYTEST.md).
+
+**Próxima etapa narrativa:** especificação detalhada do Dia 2.
