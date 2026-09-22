@@ -29,6 +29,12 @@ export interface WorldTriggerTimeReachedSource {
   period: DayPeriod;
 }
 
+export interface WorldTriggerFlagCondition {
+  type: 'flag.is';
+  flag: string;
+  value: boolean;
+}
+
 export type WorldTriggerSource =
   | WorldTriggerDiscoverySource
   | WorldTriggerSkillProficiencySource
@@ -38,6 +44,7 @@ export type WorldTriggerSource =
 export interface WorldNarrativeTriggerDefinition {
   id: string;
   source: WorldTriggerSource;
+  conditions?: readonly WorldTriggerFlagCondition[];
   campaignId: string;
   eventId: string;
 }

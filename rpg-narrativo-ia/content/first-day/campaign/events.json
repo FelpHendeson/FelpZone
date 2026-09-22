@@ -1917,5 +1917,163 @@
       }
     ],
     "canStartSession": true
+  },
+  {
+    "id": "day-three-awakening",
+    "title": "Ninguém virá buscar vocês",
+    "body": "A noite passou porque o mundo continuou girando. Quando o relógio registra o terceiro dia, ninguém chega para explicar o Reset ou decidir o que vocês devem fazer. O que mudou depende dos caminhos que você cruzou ontem.",
+    "image": {
+      "kind": "scene",
+      "label": "Amanhecer do terceiro dia"
+    },
+    "choices": [
+      {
+        "id": "day-three-look-around",
+        "label": "Observar o que aconteceu durante a noite",
+        "effects": [],
+        "transition": {
+          "type": "firstMatch",
+          "eventIds": [
+            "day-three-cooperation",
+            "day-three-distance",
+            "day-three-solo",
+            "day-three-independent"
+          ]
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "day-three-cooperation",
+    "title": "Planos sem promessa",
+    "body": "Na Clareira, Caio aponta os acessos que quer verificar. Davi, agora com espaço para descansar, sugere comparar o que cada um aprendeu sobre o Sistema. Vocês podem seguir juntos por algum tempo ou separar os caminhos quando quiserem. Não surgiu uma liderança nem uma obrigação.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.davi.escorted",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-three-cooperation-continue",
+        "label": "Começar o dia e decidir o próximo passo em conjunto",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.group.intent.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-three-distance",
+    "title": "Eles seguiram por conta própria",
+    "body": "Ao longe, há sinais de movimento perto da Margem Rochosa. Caio e Davi encontraram um jeito de continuar sem depender de você. O espaço entre vocês continua aberto: talvez voltem a se cruzar, talvez não.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.avoided",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-three-distance-continue",
+        "label": "Seguir sua própria direção",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.group.intent.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-three-solo",
+    "title": "Fumaça além das árvores",
+    "body": "Você não chegou à Nascente nem à Margem Rochosa ontem. Pela manhã, vê uma coluna fina de fumaça em algum ponto distante. Há outras pessoas tentando se organizar, mesmo sem você ter cruzado com elas. Nenhuma cena força esse encontro.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.contact",
+        "value": false
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-three-solo-continue",
+        "label": "Explorar por conta própria",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.unmet-survivors-noted",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-three-independent",
+    "title": "Cada um continua seu caminho",
+    "body": "Você ouviu os planos de Caio e Davi, mas não combinou de acompanhá-los. Eles decidiram continuar buscando um lugar mais seguro e outras pessoas. O terceiro dia começa sem compromisso ou vínculo forçado.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.contact",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-three-independent-continue",
+        "label": "Começar o dia no seu próprio ritmo",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.group.intent.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
   }
 ]

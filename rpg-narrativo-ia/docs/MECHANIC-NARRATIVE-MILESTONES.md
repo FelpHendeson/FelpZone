@@ -6,7 +6,7 @@
 
 Esta é uma extensão do módulo existente `world-events`, não um novo sistema numerado.
 
-Hoje um gatilho narrativo pode surgir somente de `discovery.revealed`.
+Os gatilhos narrativos podem surgir de descobertas, prática de habilidade e marcos do relógio. Um gatilho também pode exigir condições explícitas de flags para se limitar à sequência narrativa correta.
 
 A narrativa dos Sete Dias exige que acontecimentos também possam nascer de fatos canônicos como treino e passagem do tempo.
 
@@ -93,6 +93,7 @@ Elegível quando:
 
 Uso futuro já previsto:
 
+- Dia 3 → encerramento variável do Dia 2, condicionado a `day2.started`;
 - Dia 7 → abertura do Registro regional.
 
 ## Determinismo

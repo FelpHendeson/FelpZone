@@ -93,6 +93,11 @@ function inspectTrigger(
     return source;
   }
 
+  const conditions = inspectFlagConditions(value.conditions);
+  if (!conditions.ok) {
+    return conditions;
+  }
+
   if (typeof value.campaignId !== 'string' || value.campaignId.trim() === '') {
     return fail(`A campanha do gatilho ${value.id} é inválida.`);
   }
@@ -119,10 +124,32 @@ function inspectTrigger(
     value: {
       id: value.id,
       source: source.value,
+      ...(conditions.value.length > 0 ? { conditions: conditions.value } : {}),
       campaignId: value.campaignId,
       eventId: value.eventId,
     },
   };
+}
+
+function inspectFlagConditions(value: unknown): WorldTriggerInspection<{ type: 'flag.is'; flag: string; value: boolean }[]> {
+  if (value === undefined) {
+    return { ok: true, value: [] };
+  }
+  if (!Array.isArray(value) || value.length > 16) {
+    return fail('As condições do gatilho narrativo são inválidas.');
+  }
+  const conditions: { type: 'flag.is'; flag: string; value: boolean }[] = [];
+  for (const entry of value) {
+    if (
+      !isRecord(entry) || entry.type !== 'flag.is' ||
+      typeof entry.flag !== 'string' || entry.flag.trim() === '' ||
+      typeof entry.value !== 'boolean'
+    ) {
+      return fail('As condições do gatilho narrativo são inválidas.');
+    }
+    conditions.push({ type: 'flag.is', flag: entry.flag, value: entry.value });
+  }
+  return { ok: true, value: conditions };
 }
 
 function inspectSource(

@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificado em 22 de setembro de 2026. Fatias A–E implementadas; autonomia final e playtest entram nas Fatias F–G.**
+**Especificado em 22 de setembro de 2026. Fatias A–F implementadas; o playtest integrado está na Fatia G.**
 
 Este documento é o próximo passo narrativo depois do fechamento das Fatias A–G do Dia 1.
 

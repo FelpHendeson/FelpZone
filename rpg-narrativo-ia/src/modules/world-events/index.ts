@@ -14,6 +14,7 @@ export type {
   IndexedWorldTriggers,
   WorldNarrativeTriggerDefinition,
   WorldTriggerCatalogContext,
+  WorldTriggerFlagCondition,
   WorldTriggerInspection,
   WorldTriggerSource,
 } from './types';

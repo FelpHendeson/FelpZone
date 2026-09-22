@@ -36,5 +36,21 @@
     },
     "campaignId": "first-day",
     "eventId": "day-two-human-tracks"
+  },
+  {
+    "id": "day-three-start",
+    "source": {
+      "type": "world.day.min",
+      "day": 3
+    },
+    "campaignId": "first-day",
+    "eventId": "day-three-awakening",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.started",
+        "value": true
+      }
+    ]
   }
 ]

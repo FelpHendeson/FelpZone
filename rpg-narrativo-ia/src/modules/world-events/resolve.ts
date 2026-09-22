@@ -36,6 +36,9 @@ export function listEligibleWorldTriggers(
     if (!isWorldTriggerSourceSatisfied(trigger, state)) {
       continue;
     }
+    if (trigger.conditions?.some((condition) => state.flags[condition.flag] !== condition.value)) {
+      continue;
+    }
 
     eligible.push(trigger);
   }

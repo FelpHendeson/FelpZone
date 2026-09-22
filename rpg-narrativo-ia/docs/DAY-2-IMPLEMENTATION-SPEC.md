@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Fatias A–E implementadas e validadas; Fatias F–G pendentes.**
+**Especificada em 22 de setembro de 2026. Fatias A–F implementadas e validadas; a Fatia G está pendente.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -706,7 +706,7 @@ Até lá, nenhuma UI do Dia 2 deve apresentar esses ciclos como próximos passos
 - cobertura dedicada em `contextual-activities.test.ts`;
 - fechamento: **93 arquivos de teste / 932 testes**, lint, typecheck e build PWA verdes.
 
-A próxima fatia é a **Fatia F — Autonomia e encerramento**.
+A próxima fatia é a **Fatia G — Playtest do Dia 2**.
 
 ## Fatia B — Mundo do Dia 2 — **implementada**
 
@@ -737,20 +737,20 @@ A próxima fatia é a **Fatia F — Autonomia e encerramento**.
 - a cena revela a intenção imediata dos sobreviventes e pode concluir `day-two-others` sem criar party.
 - fechamento: **94 arquivos de teste / 940 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
-## Fatia E — Água e tensão social
+## Fatia E — Água e tensão social — **implementada**
 
-- conversa sobre uso da Nascente;
-- coleta continua canônica;
-- decisões deixam memória/relacionamento;
-- nenhuma lei/propriedade.
+- `discuss-water-with-caio` exige que Caio seja conhecido e esteja presente e disponível na Nascente;
+- a conversa custa um período, registra a posição escolhida e não concede água; coleta permanece na fonte canônica;
+- uma jornada lateral pede recurso realmente coletado e decisão, sem propriedade, lei ou relacionamento formal;
+- o estado mantém-se no save com o schema 26.
 
-## Fatia F — Autonomia e encerramento
+## Fatia F — Autonomia e encerramento — **implementada**
 
-- rota cooperação;
-- rota afastamento;
-- rota sem encontrar sobreviventes;
-- encerramento variável;
-- entrada no Dia 3.
+- `day-three-start` abre no Dia 3 pelo relógio do sandbox e só se aplica a uma campanha que realmente iniciou o Dia 2;
+- a cena seleciona saídas condicionais: cooperação depois de acompanhar Davi, afastamento, sobreviventes conhecidos sem compromisso, ou nenhum encontro durante o Dia 2;
+- o jogador volta ao sandbox no Dia 3, sem fim de jogo, party, cidadania ou assentamento automático; a cena solo mostra sinais à distância sem forçar encontro;
+- `day3.started` e a decisão narrativa persistem sem novo schema.
+- fechamento: **94 arquivos de teste / 942 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
 ## Fatia G — Playtest do Dia 2
 

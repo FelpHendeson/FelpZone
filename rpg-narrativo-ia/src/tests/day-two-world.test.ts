@@ -67,6 +67,29 @@ function offerHelpToDavi(flags: Record<string, boolean> = {}): GameState {
   return choose(state, 'offer-davi-help');
 }
 
+function advanceToDayThree(state: GameState): GameState {
+  for (let attempt = 0; attempt < 8 && state.world.day < 3; attempt += 1) {
+    const rested = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple' }, options).current;
+    state = resolveWorldNarrativeState(rested, context, world.campaign, world.worldTriggers.definitions).current;
+  }
+  return state;
+}
+
+function atDayTwo(flags: Record<string, boolean> = {}): GameState {
+  const state = startSandbox();
+  return {
+    ...state,
+    world: { day: 2, period: 'alvorecer' },
+    flags: {
+      ...state.flags,
+      'day2.started': true,
+      [worldTriggerConsumedFlag('first-night')]: true,
+      [worldTriggerConsumedFlag('day-two-start')]: true,
+      ...flags,
+    },
+  };
+}
+
 describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
   it('mantém as pistas, a Margem Rochosa e os sobreviventes ocultos no Dia 1; reavalia progresso antigo no Dia 2', () => {
     let state = startSandbox();
@@ -302,6 +325,42 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
     if (loaded.status === 'ok') {
       expect(loaded.state.flags['day2.water.position.organized']).toBe(true);
       expect(loaded.state.inventory.find((entry) => entry.itemId === 'raw-water')?.quantity).toBe(waterBefore);
+    }
+  });
+
+  it('encerra o Dia 2 pelo relógio com rotas cooperativa, distante e sem encontro', () => {
+    const routes: { flags: Record<string, boolean>; eventId: string; choiceId: string }[] = [
+      {
+        flags: { 'day2.survivors.contact': true, 'day2.davi.escorted': true },
+        eventId: 'day-three-cooperation',
+        choiceId: 'day-three-cooperation-continue',
+      },
+      {
+        flags: { 'day2.survivors.avoided': true },
+        eventId: 'day-three-distance',
+        choiceId: 'day-three-distance-continue',
+      },
+      {
+        flags: {},
+        eventId: 'day-three-solo',
+        choiceId: 'day-three-solo-continue',
+      },
+    ];
+
+    for (const route of routes) {
+      let state = advanceToDayThree(atDayTwo(route.flags));
+      expect(state.world.day).toBe(3);
+      expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
+
+      state = choose(state, 'day-three-look-around');
+      expect(state.narrativeSession?.eventId).toBe(route.eventId);
+      state = choose(state, route.choiceId);
+
+      expect(state.status).toBe('playing');
+      expect(state.narrativeSession).toBeNull();
+      expect(state.world.day).toBe(3);
+      expect(state.flags['day3.started']).toBe(true);
+      expect(state.party.vitals).toEqual([]);
     }
   });
 });
