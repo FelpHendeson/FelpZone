@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Ainda não implementada.**
+**Especificada em 22 de setembro de 2026. Fatia A implementada e validada; Fatias B–G pendentes.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -685,17 +685,28 @@ Até lá, nenhuma UI do Dia 2 deve apresentar esses ciclos como próximos passos
 
 # 24. Fatias de implementação
 
-## Fatia A — Atividades + schema 26
+## Fatia A — Atividades + schema 26 — **implementada**
 
-- módulo `activities`;
-- estado;
-- migração;
-- pack;
-- `SandboxAction`;
-- planner/apply;
-- UI mínima;
-- guidance;
-- testes isolados.
+- novo módulo `modules/activities` valida, indexa, planeja e aplica atividades contextuais;
+- `ContextualActivitiesState` persiste apenas `consumedActivityIds`;
+- save atual avançou de schema 25 para **schema 26**;
+- migração 25 → 26 cria estado vazio sem avançar tempo, mover NPC, abrir narrativa ou executar atividade;
+- `activities.json` entrou no pack e no contrato de composição;
+- o catálogo real permanece **vazio nesta fatia** para não antecipar conteúdo de Caio/Davi;
+- `SandboxContext` e `IndexedWorld` propagam o catálogo ativo;
+- nova ação `activity.perform` recebe `activityId` e participantes opcionais;
+- participantes obrigatórios/opcionais são validados pelo motor; a UI não decide consentimento;
+- requisitos iniciais cobrem flags, inventário, relação, local, dia e presença/conhecimento/disponibilidade de NPC;
+- efeitos iniciais cobrem flag, relação, memória, relocação explícita de NPC e desbloqueio de guidance;
+- `npc.relocate` foi adicionado como operação pura do domínio de NPCs, usando `locationOverrideId`;
+- execução cobra tempo e necessidades uma única vez pelo pipeline normal do sandbox;
+- narrativa declarada pela atividade tem prioridade sobre gatilhos globais do mesmo avanço temporal;
+- a seção **Atividades** já existe na UI de ações locais e suporta seleção limitada de participantes opcionais;
+- tópico de ajuda `contextual-activities` entrou no catálogo, mas só será desbloqueado por conteúdo futuro;
+- cobertura dedicada em `contextual-activities.test.ts`;
+- fechamento: **93 arquivos de teste / 932 testes**, lint, typecheck e build PWA verdes.
+
+A próxima fatia é a **Fatia B — Mundo do Dia 2**.
 
 ## Fatia B — Mundo do Dia 2
 
