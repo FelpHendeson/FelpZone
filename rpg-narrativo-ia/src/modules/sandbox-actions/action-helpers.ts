@@ -31,6 +31,8 @@ import { PoliticsError, copyPoliticsState, createInitialPoliticsState, type Poli
 import { ExecutionError, copyExecutionState, createInitialExecutionState, inspectExecutionState, type ExecutionState } from '../execution';
 import { InteractableError, copyInteractablesState, createInitialInteractablesState } from '../interactables';
 import { NpcError, copyNpcsState, createInitialNpcsState, INITIAL_NPCS, type NPCsState } from '../npcs';
+import { ContextualActivityError, copyContextualActivitiesState, createInitialContextualActivitiesState, type ContextualActivitiesState } from '../activities';
+import type { GuidanceState } from '../guidance';
 import { WorldError } from '../world';
 import { SandboxActionError } from './errors';
 import type { SandboxAction, SandboxActionResult } from './types';
@@ -332,6 +334,22 @@ export function requireAction(value: unknown): SandboxAction {
     return { type: 'politics.act', actionId: value.actionId };
   }
 
+  if (value.type === 'activity.perform') {
+    if (
+      typeof value.activityId !== 'string' ||
+      value.activityId.trim() === '' ||
+      !Array.isArray(value.optionalParticipantIds) ||
+      value.optionalParticipantIds.some((id) => typeof id !== 'string' || id.trim() === '')
+    ) {
+      throw new SandboxActionError('A atividade é inválida.');
+    }
+    return {
+      type: 'activity.perform',
+      activityId: value.activityId,
+      optionalParticipantIds: [...value.optionalParticipantIds] as string[],
+    };
+  }
+
   throw new SandboxActionError('A ação do sandbox é desconhecida.');
 }
 
@@ -436,6 +454,8 @@ export interface GameStatePatch {
   economy?: EconomyState;
   settlements?: SettlementsState;
   politics?: PoliticsState;
+  activities?: ContextualActivitiesState;
+  guidance?: GuidanceState;
   npcs?: NPCsState;
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
@@ -495,9 +515,12 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     settlements: copySettlementsState(patch.settlements ?? base.settlements ?? createInitialSettlementsState()),
     politics: copyPoliticsState(patch.politics ?? base.politics ?? createInitialPoliticsState()),
     guidance: {
-      unlockedTopicIds: [...base.guidance.unlockedTopicIds],
-      seenTopicIds: [...base.guidance.seenTopicIds],
+      unlockedTopicIds: [...(patch.guidance ?? base.guidance).unlockedTopicIds],
+      seenTopicIds: [...(patch.guidance ?? base.guidance).seenTopicIds],
     },
+    activities: copyContextualActivitiesState(
+      patch.activities ?? base.activities ?? createInitialContextualActivitiesState(),
+    ),
     updatedAt: patch.updatedAt,
   };
 }
@@ -594,6 +617,13 @@ export function copyAction(action: SandboxAction): SandboxAction {
   }
   if (action.type === 'politics.act') {
     return { type: 'politics.act', actionId: action.actionId };
+  }
+  if (action.type === 'activity.perform') {
+    return {
+      type: 'activity.perform',
+      activityId: action.activityId,
+      optionalParticipantIds: [...action.optionalParticipantIds],
+    };
   }
 
   return { type: 'presence.interact', presenceId: action.presenceId, interactionId: action.interactionId };
@@ -839,6 +869,7 @@ export function rethrowDomain(error: unknown): never {
     error instanceof EconomyError ||
     error instanceof SettlementError ||
     error instanceof PoliticsError ||
+    error instanceof ContextualActivityError ||
     error instanceof PartyError ||
     error instanceof ExecutionError ||
     error instanceof EngineError
