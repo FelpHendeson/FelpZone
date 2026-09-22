@@ -31,6 +31,7 @@ import type { SettlementActionPlan } from '../settlements';
 import type { PoliticsActionPlan } from '../politics';
 import type { EquipmentChangeResult } from '../equipment';
 import type { PreparationChangeResult } from '../preparation';
+import type { ContextualActivityPlan } from '../activities';
 
 export type SandboxAction =
   | {
@@ -127,6 +128,11 @@ export type SandboxAction =
   | {
       type: 'politics.act';
       actionId: string;
+    }
+  | {
+      type: 'activity.perform';
+      activityId: string;
+      optionalParticipantIds: string[];
     };
 
 export type SandboxActionDetail =
@@ -152,7 +158,8 @@ export type SandboxActionDetail =
   | { type: 'civic.act'; plan: CivicActionPlan }
   | { type: 'economy.act'; plan: EconomyActionPlan }
   | { type: 'settlement.act'; plan: SettlementActionPlan }
-  | { type: 'politics.act'; plan: PoliticsActionPlan };
+  | { type: 'politics.act'; plan: PoliticsActionPlan }
+  | { type: 'activity.perform'; plan: ContextualActivityPlan };
 
 export interface SandboxSynchronizationSummary {
   renewedNodeIds: string[];
