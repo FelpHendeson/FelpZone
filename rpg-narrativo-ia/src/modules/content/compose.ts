@@ -27,6 +27,7 @@ import { inspectSkillsCatalog, type IndexedSkills } from '../skills';
 import { inspectTrainingCatalog } from '../training';
 import { inspectWorldTriggerCatalog } from '../world-events';
 import { inspectGuidanceCatalog, type IndexedGuidance } from '../guidance';
+import { inspectContextualActivityCatalog } from '../activities';
 import { ContentError } from './errors';
 import { inspectCampaignDocument } from './inspect-campaign';
 import type { IndexedWorld } from './types';
@@ -110,6 +111,10 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
     validateSettlementsWorld(settlements, map, npcs, items, economy);
     const politics = unwrap(inspectPoliticsCatalog(raw.politics), 'O catálogo político é inválido.');
     validatePoliticsWorld(politics, map, npcs);
+    const activities = unwrap(
+      inspectContextualActivityCatalog(raw.activities, { map, npcs, guidance, campaign }),
+      'O catálogo de atividades é inválido.',
+    );
     validatePartyWorld(party, combat, npcs, organizations);
     const objectives = unwrap(inspectObjectiveCatalog(raw.objectives), 'O catálogo de jornadas é inválido.');
     validateObjectiveSkillReferences(objectives, skills);
@@ -157,6 +162,7 @@ export function composeWorld(raw: unknown, sourceId = 'memory'): IndexedWorld {
       firstPriorityTrigger,
       stationLabels,
       guidance,
+      activities,
     };
   } catch (error) {
     if (error instanceof ContentError) {
