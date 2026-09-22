@@ -1510,7 +1510,7 @@ function inspectV11(
     return inspected;
   }
   const { interactables: _ignored, ...sandbox } = inspected.state.sandbox;
-  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _ignored;
   void _bonds;
   void _registry;
@@ -1524,6 +1524,7 @@ function inspectV11(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1567,7 +1568,7 @@ function inspectV12(
   if (!inspected.ok) {
     return inspected;
   }
-  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _bonds;
   void _registry;
   void _organizations;
@@ -1580,6 +1581,7 @@ function inspectV12(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1621,7 +1623,7 @@ function inspectV13(
   if (!inspected.ok) {
     return inspected;
   }
-  const { registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _registry;
   void _organizations;
   void _execution;
@@ -1633,6 +1635,7 @@ function inspectV13(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1673,7 +1676,7 @@ function inspectV14(
   if (!inspected.ok) {
     return inspected;
   }
-  const { organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _organizations;
   void _execution;
   void _party;
@@ -1684,6 +1687,7 @@ function inspectV14(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1723,7 +1727,7 @@ function inspectV15(
   if (!inspected.ok) {
     return inspected;
   }
-  const { execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _execution;
   void _party;
   void _calendar;
@@ -1733,6 +1737,7 @@ function inspectV15(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1771,7 +1776,7 @@ function inspectV16(
   if (!inspected.ok) {
     return inspected;
   }
-  const { party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _party;
   void _calendar;
   void _family;
@@ -1780,6 +1785,7 @@ function inspectV16(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1817,7 +1823,7 @@ function inspectV17(
   if (!inspected.ok) {
     return inspected;
   }
-  const { calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _calendar;
   void _family;
   void _civic;
@@ -1825,6 +1831,7 @@ function inspectV17(
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1861,13 +1868,14 @@ function inspectV18(
   if (!inspected.ok) {
     return inspected;
   }
-  const { family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _family;
   void _civic;
   void _economy;
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1903,12 +1911,13 @@ function inspectV19(
   if (!inspected.ok) {
     return inspected;
   }
-  const { civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _civic;
   void _economy;
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1943,11 +1952,12 @@ function inspectV20(
   if (!inspected.ok) {
     return inspected;
   }
-  const { economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _economy;
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -1981,10 +1991,11 @@ function inspectV21(
   if (!inspected.ok) {
     return inspected;
   }
-  const { settlements: _settlements, politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _settlements;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -2017,9 +2028,10 @@ function inspectV22(
   if (!inspected.ok) {
     return inspected;
   }
-  const { politics: _politics, guidance: _guidance, ...rest } = inspected.state;
+  const { politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _politics;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
@@ -2051,8 +2063,9 @@ function inspectV23(
   if (!inspected.ok) {
     return inspected;
   }
-  const { guidance: _guidance, ...rest } = inspected.state;
+  const { guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
