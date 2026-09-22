@@ -132,6 +132,18 @@
       ],
       "category": "social",
       "popupOnUnlock": true
+    },
+    {
+      "id": "contextual-activities",
+      "title": "Atividades",
+      "summary": "Algumas necessidades podem ser resolvidas com outras pessoas sem criar um grupo formal.",
+      "body": [
+        "Atividades consomem tempo como outras ações do mundo.",
+        "Participantes precisam estar presentes e disponíveis; a interface não decide por eles.",
+        "Uma atividade pode gerar relações, informação, prática ou acontecimentos sem transformar cooperação em emprego, party ou assentamento."
+      ],
+      "category": "social",
+      "popupOnUnlock": true
     }
   ]
 }
