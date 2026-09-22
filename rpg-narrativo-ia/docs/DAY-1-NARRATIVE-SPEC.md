@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificado em 21 de setembro de 2026. Implementado até a Fatia F, incluindo primeira noite adaptativa e transição canônica ao Dia 2; resta a Fatia G de playtest e ajuste fino.**
+**Especificado em 21 de setembro de 2026. Implementado e validado até a Fatia G em 22 de setembro de 2026.**
 
 Este documento transforma a [Fundação narrativa](NARRATIVE-FOUNDATION.md) em uma primeira fatia jogável concreta.
 
@@ -929,7 +929,7 @@ Além disso:
 
 ## Especificação técnica
 
-A implementação está detalhada em [Dia 1 — Especificação técnica de implementação](DAY-1-IMPLEMENTATION-SPEC.md), apoiada por [Orientação e Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) e [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md).
+A implementação está detalhada em [Dia 1 — Especificação técnica de implementação](DAY-1-IMPLEMENTATION-SPEC.md), apoiada por [Orientação e Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) e [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md). O fechamento do fluxo está registrado em [Dia 1 — Playtest da Fatia G](DAY-1-PLAYTEST.md).
 
 # 25. Próxima etapa depois desta especificação
 
@@ -948,7 +948,7 @@ Ordem recomendada:
 9. testes;
 10. playtest completo do Dia 1.
 
-Somente depois do playtest do Dia 1 deve começar a especificação detalhada do Dia 2.
+O playtest do Dia 1 foi concluído na Fatia G. A especificação detalhada do Dia 2 é o próximo trabalho narrativo.
 
 ---
 
