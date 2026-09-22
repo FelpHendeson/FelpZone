@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 21 de setembro de 2026. Implementada até a Fatia F; resta a Fatia G de playtest e ajuste fino.**
+**Especificada em 21 de setembro de 2026. Fatias A–G implementadas e validadas em 22 de setembro de 2026.**
 
 Esta especificação converte [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -489,9 +489,11 @@ Alterações de texto continuam sem exigir código.
 - se uma ação no entardecer avançar diretamente para o Dia 2, a ordem dos triggers garante que `first-night` seja resolvida antes de `day-two-start`;
 - nenhum novo estado persistente: schema permanece 25.
 
-## Fatia G — Playtest
+## Fatia G — Playtest — **implementada e validada**
 
-Rota mínima:
+O playtest integrado está documentado em [Dia 1 — Playtest da Fatia G](DAY-1-PLAYTEST.md).
+
+Rotas validadas:
 
 ```text
 nova partida
@@ -499,23 +501,42 @@ nova partida
 → Etéris
 → Númen
 → treino
+→ sinais humanos
 → água
-→ sinais
 → Mira
-→ noite
+→ noite compartilhada
+→ descanso real
 → Dia 2
 ```
-
-Rota alternativa obrigatória:
 
 ```text
 nova partida
 → treino
 → exploração
-→ evita Mira
+→ Mira percebida
+→ evita contato
 → noite sozinho
+→ descanso real
 → Dia 2
 ```
+
+Achado principal do playtest:
+
+- a combinação anterior de custos de exploração/viagem fazia a noite chegar antes da rota água + sinais + Mira;
+- a correção preservou o progresso geral da clareira em 10% por ação e antecipou somente os elementos de onboarding;
+- a Nascente passou a ser um destino local de custo 0 e leitura imediata, sem tornar coleta/consumo gratuitos;
+- `human-footprints`, `human-cut-branch` e o caminho da Nascente aparecem na primeira exploração;
+- `mira-nearby` aparece na segunda;
+- o contato no entardecer pode levar naturalmente à noite;
+- schema permanece 25.
+
+Gate de fechamento:
+
+- 92 arquivos de teste;
+- 928 testes;
+- lint;
+- typecheck;
+- build PWA.
 
 ---
 
