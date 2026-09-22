@@ -9,7 +9,7 @@ import { asV7, asV8, asV9, asV10, freshState, revealMiraForTest } from './helper
 describe('Persistência dos Sistemas 14 a 17 — schema 11', () => {
   it('novas partidas começam no schema 11 com estados vazios', () => {
     const state = freshState();
-    expect(SCHEMA_VERSION).toBe(25);
+    expect(SCHEMA_VERSION).toBe(26);
     expect(state.items).toEqual(createInitialItemsState());
     expect(state.lingering.entries).toEqual([]);
     expect(state.garden).toEqual({ cultivationPoints: 0, completedRecipeIds: [] });
