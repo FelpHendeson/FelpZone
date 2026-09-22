@@ -2,9 +2,11 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Ainda não implementada.**
+**Infraestrutura do primeiro recorte implementada em 22 de setembro de 2026 na Fatia A do Dia 2. O primeiro conteúdo jogável com Caio/Davi entra nas fatias seguintes.**
 
 Esta mecânica nasce do Dia 2 e da direção de longo prazo de trabalho como motor narrativo.
+
+O catálogo ativo permanece vazio nesta fatia. Isso é intencional: o motor, save, pack, UI e guidance estão prontos, mas nenhuma atividade do Dia 2 é exibida antes da introdução dos NPCs e locais que a justificam.
 
 Ela **não é o Sistema 30**.
 
