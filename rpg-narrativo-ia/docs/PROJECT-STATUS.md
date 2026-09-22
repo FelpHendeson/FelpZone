@@ -52,9 +52,9 @@ As decisões abaixo foram definidas pelo autor:
 
 A fundação narrativa detalhada está em [Fundação narrativa — Reset](NARRATIVE-FOUNDATION.md). Nomes de região, elenco inicial, números de ranking e ordem fina dos acontecimentos continuam provisórios para playtest.
 
-O [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) está implementado até a Fatia F. O primeiro dia agora introduz Etéris/Númen em prática, preserva liberdade sandbox, coloca sinais humanos antes do contato opcional com Mira e resolve a primeira noite de forma adaptativa antes de continuar no Dia 2.
+O [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) está implementado e validado até a Fatia G. O primeiro dia introduz Etéris/Númen em prática, preserva liberdade sandbox, coloca sinais humanos antes do contato opcional com Mira, resolve a primeira noite de forma adaptativa e continua no Dia 2. O playtest integrado e seus ajustes de ritmo estão em [Dia 1 — Playtest da Fatia G](DAY-1-PLAYTEST.md).
 
-A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). As **Fatias A, B, C, D, E e F estão implementadas**: escolha de sexo no schema 24; [Orientação/Central de Ajuda](MECHANIC-SYSTEM-GUIDANCE.md) no schema 25; [Marcos narrativos](MECHANIC-NARRATIVE-MILESTONES.md) por proficiência/dia; começo energético jogável; sandbox inicial revisado com água, sinais humanos e contato opcional com Mira; e primeira noite adaptativa com `world.time.reached`, fogueira real via `crafting.structure.active`, descanso canônico e transição ao Dia 2. A Fatia F mantém o schema 25. A próxima etapa é a Fatia G de playtest.
+A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). As **Fatias A–G estão implementadas e validadas**: escolha de sexo no schema 24; orientação persistida no schema 25; marcos narrativos; introdução jogável de Etéris/Númen; sandbox com sinais humanos e Mira opcional; primeira noite adaptativa; e playtest completo das rotas com/sem contato. A Fatia G ajustou apenas pacing/conteúdo e mantém o schema 25. A próxima etapa é a especificação detalhada do Dia 2.
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
@@ -264,7 +264,7 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 29 estão implementados e consolidados.** O save atual é o schema 25 após as Fatias A e B; as Fatias C, D, E e F ampliaram comportamento e conteúdo sem alterar o schema. O programa de mundo especificado em 17 de setembro de 2026 está completo dentro do recorte aprovado.
+**Os Sistemas 1 a 29 estão implementados e consolidados.** O save atual é o schema 25 após as Fatias A e B; as Fatias C–G ampliaram comportamento, conteúdo e cobertura sem alterar o schema. O programa de mundo especificado em 17 de setembro de 2026 está completo dentro do recorte aprovado.
 
 Antes de um novo eixo:
 
