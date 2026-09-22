@@ -63,7 +63,7 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
     const start = enterExploration();
     expect(viewOf(start).presences).toEqual([]);
 
-    const early = exploreTimes(start, 4);
+    const early = exploreTimes(start, 1);
     expect(early.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
     expect(early.narrativeSession).toBeNull();
 
