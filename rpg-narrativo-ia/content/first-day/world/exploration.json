@@ -129,9 +129,9 @@
   },
   {
     "locationId": "spring-lake",
-    "progressPerAction": 10,
+    "progressPerAction": 30,
     "timeCost": {
-      "periods": 1
+      "periods": 0
     },
     "discoveries": [
       {
