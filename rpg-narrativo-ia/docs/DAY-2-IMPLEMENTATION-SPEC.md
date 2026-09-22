@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Fatias A–C implementadas e validadas; Fatias D–G pendentes.**
+**Especificada em 22 de setembro de 2026. Fatias A–D implementadas e validadas; Fatias E–G pendentes.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -706,7 +706,7 @@ Até lá, nenhuma UI do Dia 2 deve apresentar esses ciclos como próximos passos
 - cobertura dedicada em `contextual-activities.test.ts`;
 - fechamento: **93 arquivos de teste / 932 testes**, lint, typecheck e build PWA verdes.
 
-A próxima fatia é a **Fatia D — Davi e primeira atividade**.
+A próxima fatia é a **Fatia E — Água e tensão social**.
 
 ## Fatia B — Mundo do Dia 2 — **implementada**
 
@@ -727,13 +727,15 @@ A próxima fatia é a **Fatia D — Davi e primeira atividade**.
 - save/reload preserva a rota escolhida; a jornada permanece aberta para a intenção futura das Fatias D–F.
 - fechamento: **94 arquivos de teste / 938 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
-## Fatia D — Davi e primeira atividade
+## Fatia D — Davi e primeira atividade — **implementada**
 
-- situação do ferimento;
-- `escort-davi-to-clearing`;
-- `npc.relocate`;
-- narrativa de chegada;
-- persistência.
+- a decisão de ajudar libera `escort-davi-to-clearing` na Margem Rochosa;
+- Davi é obrigatório; Caio e Mira são opcionais somente quando presentes e disponíveis;
+- a atividade custa um período, aplica desgaste uma vez e usa `npc.relocate` para mover Davi à Clareira;
+- consumo único, fato de memória, guidance e localização persistem no save;
+- `davi-arrives-clearing` tem prioridade narrativa e a reação escolhida pode alterar a relação com Davi;
+- a cena revela a intenção imediata dos sobreviventes e pode concluir `day-two-others` sem criar party.
+- fechamento: **94 arquivos de teste / 940 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
 ## Fatia E — Água e tensão social
 

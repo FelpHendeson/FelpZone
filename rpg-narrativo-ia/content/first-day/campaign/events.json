@@ -1783,5 +1783,51 @@
       }
     ],
     "canStartSession": true
+  },
+  {
+    "id": "davi-arrives-clearing",
+    "title": "Um caminho feito devagar",
+    "body": "O trajeto curto exige pausas. Davi escolhe onde apoiar o pé e recusa ser carregado como carga. Quando a Clareira aparece entre as árvores, ele finalmente encontra espaço para descansar sem ficar preso entre as pedras.\n\nCaio pretende revisar os acessos e decidir no próximo dia se vale procurar outras pessoas. Davi quer comparar o que cada um descobriu sobre o Sistema. Isso ainda não é um grupo formal — apenas pessoas fazendo planos próximos umas das outras.",
+    "portrait": {
+      "kind": "portrait",
+      "label": "Davi Moura"
+    },
+    "choices": [
+      {
+        "id": "help-davi-settle",
+        "label": "Ajudar Davi a se acomodar",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.group.intent.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "leave-arrival-practical",
+        "label": "Deixar que eles decidam os próximos passos",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.group.intent.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
   }
 ]

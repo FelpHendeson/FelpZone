@@ -2,11 +2,11 @@
 
 ## Estado
 
-**Infraestrutura do primeiro recorte implementada em 22 de setembro de 2026 na Fatia A do Dia 2. O primeiro conteúdo jogável com Caio/Davi entra nas fatias seguintes.**
+**Infraestrutura implementada na Fatia A do Dia 2; primeira atividade jogável com Davi implementada na Fatia D.**
 
 Esta mecânica nasce do Dia 2 e da direção de longo prazo de trabalho como motor narrativo.
 
-O catálogo ativo permanece vazio nesta fatia. Isso é intencional: o motor, save, pack, UI e guidance estão prontos, mas nenhuma atividade do Dia 2 é exibida antes da introdução dos NPCs e locais que a justificam.
+O catálogo ativo contém `escort-davi-to-clearing`, liberada somente depois que o jogador conhece a situação e oferece ajuda. Ela prova participantes, tempo, relocação persistente, guidance, narrativa e consumo único.
 
 Ela **não é o Sistema 30**.
 

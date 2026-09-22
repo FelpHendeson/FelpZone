@@ -367,7 +367,7 @@ Antes de implementar, definir:
 
 ### Dia 2 — Os outros
 
-**Especificado em 22 de setembro de 2026. Fatias A–C implementadas.**
+**Especificado em 22 de setembro de 2026. Fatias A–D implementadas.**
 
 O segundo dia parte do estado real herdado da primeira noite e muda o foco de sobrevivência individual para convivência. Caio Nascimento e Davi Moura entram como sobreviventes que já possuem relação e decisões próprias; a Margem Rochosa amplia o mapa; a Nascente passa a gerar a primeira tensão social sobre recurso comum. Mira pode estar presente, distante, evitada ou sequer ter sido conhecida.
 
@@ -376,13 +376,13 @@ A implementação está dividida em A–G:
 1. **Atividades Contextuais + schema 26 — implementada**;
 2. **mundo do Dia 2 — implementada**;
 3. **jornada e primeiro contato — implementada**;
-4. Davi + primeira atividade compartilhada;
+4. **Davi + primeira atividade compartilhada — implementada**;
 5. água e tensão social;
 6. autonomia e encerramento;
 7. playtest do Dia 2.
 
 A mecânica transversal está em [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md). Ela representa ações situadas com tempo e participantes sem transformar cooperação emergencial em profissão, party ou assentamento.
 
-A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. A Fatia C acrescentou `day-two-others`, o evento dos rastros e as rotas de contato ou afastamento, com e sem Mira. O catálogo ativo de atividades permanece vazio até a primeira atividade jogável. **Próxima etapa: Fatia D — Davi e primeira atividade.**
+A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. A Fatia C acrescentou `day-two-others`, o evento dos rastros e as rotas de contato ou afastamento, com e sem Mira. A Fatia D publicou `escort-davi-to-clearing`, relocação persistente e a cena de chegada. **Próxima etapa: Fatia E — Água e tensão social.**
 
 Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementação](DAY-2-IMPLEMENTATION-SPEC.md).

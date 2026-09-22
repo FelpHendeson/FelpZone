@@ -221,6 +221,11 @@
       "id": "davi-needs-rest",
       "npcId": "davi-moura",
       "summary": "Davi se move com dificuldade e precisa descansar."
+    },
+    {
+      "id": "davi-arrived-clearing",
+      "npcId": "davi-moura",
+      "summary": "Você acompanhou Davi até a Clareira do Despertar."
     }
   ]
 }

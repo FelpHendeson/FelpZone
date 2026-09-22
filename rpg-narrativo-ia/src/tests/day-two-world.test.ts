@@ -9,6 +9,7 @@ import { executeSandboxAction } from '../modules/sandbox-actions';
 import { listKnownPresencesAtLocation } from '../modules/presences';
 import { deriveNpcAt } from '../modules/npcs';
 import { getObjectiveStatus } from '../modules/objectives';
+import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { resolveWorldNarrativeState } from '../ui/sandbox';
 import { now } from './helpers';
 
@@ -36,13 +37,33 @@ function reachRockyBank(flags: Record<string, boolean> = {}): GameState {
   state = executeSandboxAction(state, { type: 'exploration.explore' }, options).current;
   state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'spring-lake' }, options).current;
   state = executeSandboxAction(state, { type: 'exploration.explore' }, options).current;
-  state = { ...state, flags: { ...state.flags, 'day2.started': true, ...flags } };
+  state = {
+    ...state,
+    world: { day: 2, period: 'alvorecer' },
+    flags: {
+      ...state.flags,
+      'day2.started': true,
+      [worldTriggerConsumedFlag('first-night')]: true,
+      [worldTriggerConsumedFlag('day-two-start')]: true,
+      ...flags,
+    },
+  };
   state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'awakening-clearing' }, options).current;
   state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'spring-lake' }, options).current;
   state = resolveWorldNarrativeState(state, context, world.campaign, world.worldTriggers.definitions).current;
   expect(state.narrativeSession?.eventId).toBe('day-two-human-tracks');
   state = choose(state, 'follow-rocky-bank-signs');
   return executeSandboxAction(state, { type: 'navigation.move', locationId: 'rocky-bank' }, options).current;
+}
+
+function offerHelpToDavi(flags: Record<string, boolean> = {}): GameState {
+  let state = reachRockyBank({ 'camp.alone': true, ...flags });
+  state = executeSandboxAction(state, {
+    type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'talk-caio-rocky-bank',
+  }, options).current;
+  state = choose(state, 'caio-answer');
+  state = choose(state, flags['camp.together'] ? 'with-mira-check-davi' : 'alone-check-davi');
+  return choose(state, 'offer-davi-help');
 }
 
 describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
@@ -169,5 +190,58 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
     expect(loaded.state.flags['day2.survivors.avoided']).toBe(true);
     expect(loaded.state.flags['day2.involvement.decided']).toBe(true);
     expect(loaded.state.status).toBe('playing');
+  });
+
+  it('acompanha Davi com Caio, cobra um período, reloca o NPC e abre a chegada antes de outros gatilhos', () => {
+    const state = offerHelpToDavi();
+    expect(state.world).toEqual({ day: 2, period: 'manha' });
+
+    const result = executeSandboxAction(state, {
+      type: 'activity.perform',
+      activityId: 'escort-davi-to-clearing',
+      optionalParticipantIds: ['caio-nascimento'],
+    }, options);
+
+    expect(result.timeCost.periods).toBe(1);
+    expect(result.current.world).toEqual({ day: 2, period: 'meio-dia' });
+    expect(result.detail).toMatchObject({
+      type: 'activity.perform',
+      plan: { participantNpcIds: ['davi-moura', 'caio-nascimento'] },
+    });
+    expect(result.current.narrativeSession?.eventId).toBe('davi-arrives-clearing');
+    expect(result.current.activities.consumedActivityIds).toContain('escort-davi-to-clearing');
+    expect(result.current.flags['day2.davi.escorted']).toBe(true);
+    expect(result.current.guidance.unlockedTopicIds).toContain('contextual-activities');
+    expect(deriveNpcAt(world.npcs, result.current.sandbox.npcs, 'davi-moura', 'meio-dia', () => true)?.locationId)
+      .toBe('awakening-clearing');
+
+    const settled = choose(result.current, 'help-davi-settle');
+    expect(settled.relationships).toContainEqual({ characterId: 'davi-moura', trust: 2 });
+    expect(getObjectiveStatus(world.objectives, settled.objectives, 'day-two-others')).toBe('completed');
+    const loaded = parseGameState(serializeGameState(settled, context, world.objectives), context, world.objectives);
+    expect(loaded.status).toBe('ok');
+    if (loaded.status === 'ok') {
+      expect(deriveNpcAt(world.npcs, loaded.state.sandbox.npcs, 'davi-moura', 'tarde', () => true)?.locationId)
+        .toBe('awakening-clearing');
+      expect(loaded.state.activities.consumedActivityIds).toContain('escort-davi-to-clearing');
+    }
+  });
+
+  it('permite acompanhar Davi sem Caio ou Mira e rejeita participante indisponível sem mutar o estado', () => {
+    const state = offerHelpToDavi();
+    const snapshot = structuredClone(state);
+    expect(() => executeSandboxAction(state, {
+      type: 'activity.perform', activityId: 'escort-davi-to-clearing', optionalParticipantIds: ['mira-vale'],
+    }, options)).toThrow('participante');
+    expect(state).toEqual(snapshot);
+
+    const result = executeSandboxAction(state, {
+      type: 'activity.perform', activityId: 'escort-davi-to-clearing', optionalParticipantIds: [],
+    }, options);
+    expect(result.current.narrativeSession?.eventId).toBe('davi-arrives-clearing');
+    expect(result.current.relationships.find((entry) => entry.characterId === 'davi-moura')).toBeUndefined();
+    const practical = choose(result.current, 'leave-arrival-practical');
+    expect(practical.flags['day2.group.intent.known']).toBe(true);
+    expect(practical.party.vitals).toEqual([]);
   });
 });

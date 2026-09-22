@@ -1,3 +1,70 @@
 {
-  "activities": []
+  "activities": [
+    {
+      "id": "escort-davi-to-clearing",
+      "label": "Acompanhar Davi até a Clareira",
+      "description": "Seguir devagar com Davi até um ponto menos exposto onde ele possa descansar.",
+      "locationId": "rocky-bank",
+      "timeCost": {
+        "periods": 1
+      },
+      "repeatable": false,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day2.davi.help.offered",
+          "value": true
+        },
+        {
+          "type": "npc.known",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "davi-moura"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "davi-moura"
+        ],
+        "optionalNpcIds": [
+          "caio-nascimento",
+          "mira-vale"
+        ],
+        "minOptional": 0,
+        "maxOptional": 1
+      },
+      "effects": [
+        {
+          "type": "npc.relocate",
+          "npcId": "davi-moura",
+          "locationId": "awakening-clearing"
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-arrived-clearing"
+        },
+        {
+          "type": "flag.set",
+          "flag": "day2.davi.escorted",
+          "value": true
+        },
+        {
+          "type": "guidance.unlock",
+          "topicId": "contextual-activities"
+        }
+      ],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-arrives-clearing"
+      },
+      "feedback": "O grupo ajusta o passo ao limite de Davi e alcança a Clareira."
+    }
+  ]
 }
