@@ -208,7 +208,13 @@ describe('exploração e descobertas', () => {
       {
         locationId: START,
         progress: 10,
-        revealedDiscoveryIds: ['awakening-site', 'first-priority-event'],
+        revealedDiscoveryIds: [
+          'awakening-site',
+          'first-priority-event',
+          'human-footprints',
+          'human-cut-branch',
+          'path-spring-lake',
+        ],
         explorationCount: 1,
       },
     ]);
@@ -1068,8 +1074,10 @@ describe('exploração e descobertas', () => {
         'awakening-site',
         'first-priority-event',
         'human-footprints',
-        'path-great-tree',
+        'human-cut-branch',
         'path-spring-lake',
+        'path-great-tree',
+        'mira-nearby',
       ]);
       expect(inspected.value.locations[0]?.explorationCount).toBe(2);
     }
@@ -1119,9 +1127,9 @@ describe('exploração e descobertas', () => {
 
     expect(forest.zoneId).toBe('horned-rabbit-forest');
     expect(forest.totalPoints).toBe(19);
-    expect(forest.completedPoints).toBe(2);
+    expect(forest.completedPoints).toBe(5);
     expect(clearing.totalPoints).toBe(11);
-    expect(clearing.completedPoints).toBe(2);
+    expect(clearing.completedPoints).toBe(5);
     expect(forest).not.toHaveProperty('discoveryIds');
   });
 
