@@ -63,7 +63,18 @@
           "image": {
             "kind": "scene",
             "label": "Nascente e Pequeno Lago"
-          }
+          },
+          "children": [
+            {
+              "id": "rocky-bank",
+              "name": "Margem Rochosa",
+              "description": "Uma dobra de pedra acompanha o curso d'água e cria um abrigo ruim, mas defensável o bastante para alguém ferido parar por algumas horas.",
+              "image": { "kind": "scene", "label": "Margem Rochosa" },
+              "travelCost": { "periods": 0 },
+              "visibility": "hidden",
+              "lockedReason": "A dobra de pedra ainda não foi encontrada."
+            }
+          ]
         },
         {
           "id": "dense-woods",

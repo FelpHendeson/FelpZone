@@ -149,6 +149,51 @@
         "completionWeight": 1,
         "once": true,
         "name": "Nascente"
+      },
+      {
+        "id": "multiple-human-tracks",
+        "kind": "landmark",
+        "revealAt": 30,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Pegadas de duas pessoas, uma delas com passo irregular",
+        "conditions": [{ "type": "flag.is", "flag": "day2.started", "value": true }]
+      },
+      {
+        "id": "dried-blood-trace",
+        "kind": "landmark",
+        "revealAt": 30,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Pequenas manchas de sangue seco entre as pedras",
+        "conditions": [{ "type": "flag.is", "flag": "day2.started", "value": true }]
+      },
+      {
+        "id": "path-rocky-bank",
+        "kind": "passage",
+        "revealAt": 30,
+        "completionWeight": 1,
+        "targetId": "rocky-bank",
+        "unlockTarget": true,
+        "once": true,
+        "name": "Passagem para a Margem Rochosa",
+        "conditions": [{ "type": "flag.is", "flag": "day2.started", "value": true }]
+      }
+    ]
+  },
+  {
+    "locationId": "rocky-bank",
+    "progressPerAction": 30,
+    "timeCost": { "periods": 1 },
+    "discoveries": [
+      {
+        "id": "survivors-rocky-bank",
+        "kind": "landmark",
+        "revealAt": 0,
+        "completionWeight": 1,
+        "once": true,
+        "name": "Duas pessoas abrigadas entre as pedras",
+        "conditions": [{ "type": "flag.is", "flag": "day2.started", "value": true }]
       }
     ]
   },

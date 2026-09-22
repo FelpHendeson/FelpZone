@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Fatia A implementada e validada; Fatias B–G pendentes.**
+**Especificada em 22 de setembro de 2026. Fatias A–B implementadas e validadas; Fatias C–G pendentes.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -706,17 +706,16 @@ Até lá, nenhuma UI do Dia 2 deve apresentar esses ciclos como próximos passos
 - cobertura dedicada em `contextual-activities.test.ts`;
 - fechamento: **93 arquivos de teste / 932 testes**, lint, typecheck e build PWA verdes.
 
-A próxima fatia é a **Fatia B — Mundo do Dia 2**.
+A próxima fatia é a **Fatia C — Jornada e primeiro contato**.
 
-## Fatia B — Mundo do Dia 2
+## Fatia B — Mundo do Dia 2 — **implementada**
 
-- Margem Rochosa;
-- descobertas condicionais;
-- Caio;
-- Davi;
-- agendas;
-- presenças;
-- validação do pack.
+- `rocky-bank` entrou como local oculto sob `spring-lake`, desbloqueado por `path-rocky-bank`;
+- pegadas de duas pessoas, sangue seco e passagem dependem de `day2.started` e podem surgir ao reavaliar progresso anterior;
+- Caio e Davi entraram no catálogo de NPCs, com entidades, agendas, fatos de memória e presenças ligadas a `survivors-rocky-bank`;
+- nenhum encontro ou atividade de Caio/Davi é executado nesta fatia; o catálogo de atividades continua vazio;
+- testes verificam o gate do Dia 1, a reavaliação da Nascente, a revelação conjunta e as referências do pack.
+- fechamento: **94 arquivos de teste / 934 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
 ## Fatia C — Jornada e primeiro contato
 

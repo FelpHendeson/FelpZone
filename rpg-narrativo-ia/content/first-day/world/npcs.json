@@ -11,6 +11,18 @@
       "entityId": "rowan-vale",
       "name": "Rowan Vale",
       "defaultScheduleId": "rowan-routine"
+    },
+    {
+      "id": "caio-nascimento",
+      "entityId": "caio-nascimento",
+      "name": "Caio Nascimento",
+      "defaultScheduleId": "caio-routine"
+    },
+    {
+      "id": "davi-moura",
+      "entityId": "davi-moura",
+      "name": "Davi Moura",
+      "defaultScheduleId": "davi-routine"
     }
   ],
   "schedules": [
@@ -87,6 +99,80 @@
           "availability": "hidden"
         }
       ]
+    },
+    {
+      "id": "caio-routine",
+      "npcId": "caio-nascimento",
+      "fallbackLocationId": "rocky-bank",
+      "entries": [
+        {
+          "period": "alvorecer",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "manha",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "meio-dia",
+          "locationId": "spring-lake",
+          "availability": "available"
+        },
+        {
+          "period": "tarde",
+          "locationId": "spring-lake",
+          "availability": "available"
+        },
+        {
+          "period": "entardecer",
+          "locationId": "awakening-clearing",
+          "availability": "available"
+        },
+        {
+          "period": "noite",
+          "locationId": "rocky-bank",
+          "availability": "hidden"
+        }
+      ]
+    },
+    {
+      "id": "davi-routine",
+      "npcId": "davi-moura",
+      "fallbackLocationId": "rocky-bank",
+      "entries": [
+        {
+          "period": "alvorecer",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "manha",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "meio-dia",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "tarde",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "entardecer",
+          "locationId": "rocky-bank",
+          "availability": "available"
+        },
+        {
+          "period": "noite",
+          "locationId": "rocky-bank",
+          "availability": "hidden"
+        }
+      ]
     }
   ],
   "facts": [
@@ -115,6 +201,26 @@
       "id": "mira-friendship-named",
       "npcId": "mira-vale",
       "summary": "Vocês nomearam a amizade em voz alta."
+    },
+    {
+      "id": "caio-met-at-rocky-bank",
+      "npcId": "caio-nascimento",
+      "summary": "Vocês se conheceram na Margem Rochosa."
+    },
+    {
+      "id": "caio-watches-tracks",
+      "npcId": "caio-nascimento",
+      "summary": "Caio presta atenção aos rastros perto da Nascente."
+    },
+    {
+      "id": "davi-met-at-rocky-bank",
+      "npcId": "davi-moura",
+      "summary": "Vocês se conheceram na Margem Rochosa."
+    },
+    {
+      "id": "davi-needs-rest",
+      "npcId": "davi-moura",
+      "summary": "Davi se move com dificuldade e precisa descansar."
     }
   ]
 }

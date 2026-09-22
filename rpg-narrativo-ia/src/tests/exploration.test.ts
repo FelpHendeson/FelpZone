@@ -1126,7 +1126,7 @@ describe('exploração e descobertas', () => {
     const clearing = calculateZoneCompletion(map, definitions, start.current, START);
 
     expect(forest.zoneId).toBe('horned-rabbit-forest');
-    expect(forest.totalPoints).toBe(19);
+    expect(forest.totalPoints).toBe(23);
     expect(forest.completedPoints).toBe(5);
     expect(clearing.totalPoints).toBe(11);
     expect(clearing.completedPoints).toBe(5);
@@ -1166,7 +1166,7 @@ describe('exploração e descobertas', () => {
       totalPoints: 4,
       percentage: 0,
     });
-    expect(forest.totalPoints).toBe(19);
+    expect(forest.totalPoints).toBe(23);
     expect(JSON.stringify(empty)).not.toContain('hidden-cave');
     expect(empty).not.toHaveProperty('revealedDiscoveryIds');
   });

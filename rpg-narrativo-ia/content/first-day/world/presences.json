@@ -11,6 +11,20 @@
       }
     },
     {
+      "id": "caio-nascimento",
+      "kind": "npc",
+      "name": "Caio Nascimento",
+      "description": "Sobrevivente atento aos riscos da região. Observa trilhas e tenta manter os outros em segurança.",
+      "image": { "kind": "portrait", "label": "Caio Nascimento" }
+    },
+    {
+      "id": "davi-moura",
+      "kind": "npc",
+      "name": "Davi Moura",
+      "description": "Sobrevivente ferido que encontrou abrigo provisório entre as pedras.",
+      "image": { "kind": "portrait", "label": "Davi Moura" }
+    },
+    {
       "id": "horned-rabbit",
       "kind": "animal",
       "name": "Coelho chifrudo",
@@ -27,6 +41,20 @@
       "entityId": "mira-vale",
       "locationId": "awakening-clearing",
       "discoveryId": "mira-nearby",
+      "resolvable": true
+    },
+    {
+      "id": "caio-rocky-bank",
+      "entityId": "caio-nascimento",
+      "locationId": "rocky-bank",
+      "discoveryId": "survivors-rocky-bank",
+      "resolvable": true
+    },
+    {
+      "id": "davi-rocky-bank",
+      "entityId": "davi-moura",
+      "locationId": "rocky-bank",
+      "discoveryId": "survivors-rocky-bank",
       "resolvable": true
     },
     {

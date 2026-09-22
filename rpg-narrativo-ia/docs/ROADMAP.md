@@ -374,7 +374,7 @@ O segundo dia parte do estado real herdado da primeira noite e muda o foco de so
 A implementação está dividida em A–G:
 
 1. **Atividades Contextuais + schema 26 — implementada**;
-2. mundo do Dia 2;
+2. **mundo do Dia 2 — implementada**;
 3. jornada e primeiro contato;
 4. Davi + primeira atividade compartilhada;
 5. água e tensão social;
@@ -383,6 +383,6 @@ A implementação está dividida em A–G:
 
 A mecânica transversal está em [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md). Ela representa ações situadas com tempo e participantes sem transformar cooperação emergencial em profissão, party ou assentamento.
 
-A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. O catálogo ativo de atividades permanece vazio até os NPCs/locais do Dia 2 entrarem. **Próxima etapa: Fatia B — Mundo do Dia 2.**
+A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. O catálogo ativo de atividades permanece vazio até a primeira atividade jogável. **Próxima etapa: Fatia C — Jornada e primeiro contato.**
 
 Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementação](DAY-2-IMPLEMENTATION-SPEC.md).
