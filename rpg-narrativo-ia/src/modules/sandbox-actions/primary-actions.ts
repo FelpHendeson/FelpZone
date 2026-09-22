@@ -77,8 +77,8 @@ export function executePrimary(
   economy: EconomyState;
   settlements: SettlementsState;
   politics: PoliticsState;
-  activities: ContextualActivitiesState;
-  guidance: GuidanceState;
+  activities?: ContextualActivitiesState;
+  guidance?: GuidanceState;
   npcs: NPCsState;
   interactables: InteractablesState;
   attributes: Attributes;
