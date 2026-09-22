@@ -35,6 +35,7 @@ import populations from '../../../content/first-day/world/populations.json' with
 import presenceInteractions from '../../../content/first-day/world/presence-interactions.json' with { type: 'json' };
 import presences from '../../../content/first-day/world/presences.json' with { type: 'json' };
 import resourceNodes from '../../../content/first-day/world/resource-nodes.json' with { type: 'json' };
+import activities from '../../../content/first-day/world/activities.json' with { type: 'json' };
 
 export function assembleFirstDayRaw(): unknown {
   return {
@@ -76,6 +77,7 @@ export function assembleFirstDayRaw(): unknown {
     firstPriorityTrigger,
     labels,
     guidance,
+    activities,
   };
 }
 
