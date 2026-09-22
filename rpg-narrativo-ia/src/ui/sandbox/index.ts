@@ -9,6 +9,7 @@ export {
 export type { FeedbackEntry, FeedbackKind, WorldFeedbackView } from './feedback';
 export { buildExplorationView } from './model';
 export type {
+  ContextualActivityView,
   DestinationView,
   EquipmentSlotView,
   ExplorationView,
