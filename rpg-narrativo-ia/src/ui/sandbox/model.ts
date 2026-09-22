@@ -63,6 +63,7 @@ import {
   type RestMode,
 } from '../../modules/needs';
 import type { SandboxContext } from '../../modules/sandbox';
+import { listKnownContextualActivities } from '../../modules/activities';
 import { describeWorld } from '../../modules/world';
 import { describeCalendarDate, INITIAL_CALENDAR } from '../../modules/calendar';
 import { sandboxItemName, sandboxStationName } from './labels';
@@ -188,6 +189,19 @@ export interface InteractableActionView {
   blockedReason?: string;
 }
 
+export interface ContextualActivityView {
+  activityId: string;
+  label: string;
+  description: string;
+  costPeriods: number;
+  available: boolean;
+  blockedReason?: string;
+  requiredParticipants: Array<{ npcId: string; name: string }>;
+  optionalParticipants: Array<{ npcId: string; name: string; eligible: boolean }>;
+  minOptional: number;
+  maxOptional: number;
+}
+
 export interface InteractableView {
   interactableId: string;
   name: string;
@@ -249,6 +263,7 @@ export interface ExplorationView {
   knownNpcs: DerivedNpcView[];
   presences: PresenceView[];
   interactables: InteractableView[];
+  activities: ContextualActivityView[];
   bonds: BondCharacterView[];
   organizations: OrganizationView[];
   needs: NeedPresentation[];
@@ -341,6 +356,7 @@ export function buildExplorationView(
     knownNpcs: visibleNpcs(state, context),
     presences: visiblePresences(state, context, location.id),
     interactables: visibleInteractables(state, context, location.id),
+    activities: visibleActivities(state, context),
     bonds: visibleBonds(state, context, campaign),
     organizations: listOrganizationViews(context.organizations ?? INITIAL_ORGANIZATIONS, state.organizations ?? { entries: [], consumedActionIds: [] }),
     needs: buildNeedsPresentation(state.attributes),
@@ -644,6 +660,35 @@ function visibleInteractables(state: GameState, context: SandboxContext, locatio
       blockedReason: entry.blockedReason,
     })),
   }));
+}
+
+function visibleActivities(state: GameState, context: SandboxContext): ContextualActivityView[] {
+  if (!context.activities || !context.npcs) {
+    return [];
+  }
+  return listKnownContextualActivities(context.activities, state.activities, state, context.npcs).map((entry) => {
+    const participants = entry.activity.participants;
+    const eligible = new Set(entry.eligibleOptionalNpcIds);
+    return {
+      activityId: entry.activity.id,
+      label: entry.activity.label,
+      description: entry.activity.description,
+      costPeriods: entry.activity.timeCost.periods,
+      available: entry.available,
+      blockedReason: entry.blockedReason,
+      requiredParticipants: (participants?.requiredNpcIds ?? []).map((npcId) => ({
+        npcId,
+        name: context.npcs?.npcById.get(npcId)?.name ?? npcId,
+      })),
+      optionalParticipants: (participants?.optionalNpcIds ?? []).map((npcId) => ({
+        npcId,
+        name: context.npcs?.npcById.get(npcId)?.name ?? npcId,
+        eligible: eligible.has(npcId),
+      })),
+      minOptional: participants?.minOptional ?? 0,
+      maxOptional: participants?.maxOptional ?? 0,
+    };
+  });
 }
 
 function visibleBonds(state: GameState, context: SandboxContext, campaign: Campaign): BondCharacterView[] {
