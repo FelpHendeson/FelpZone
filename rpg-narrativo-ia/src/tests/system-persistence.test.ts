@@ -14,7 +14,7 @@ function withProgress(state: GameState): GameState {
 describe('Fatia 11.2 — schema 7 e progressão persistida', () => {
   it('novas partidas começam no schema 7 com o estado de progressão de base', () => {
     const state = freshState();
-    expect(SCHEMA_VERSION).toBe(25);
+    expect(SCHEMA_VERSION).toBe(26);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.system).toEqual(baseline);
   });
