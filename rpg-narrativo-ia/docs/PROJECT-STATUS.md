@@ -58,7 +58,7 @@ A implementação do novo Dia 1 também está especificada em [Dia 1 — impleme
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
-O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. O segundo dia introduz Caio Nascimento e Davi Moura, a Margem Rochosa, tensão pelo uso da água e primeiras decisões de cooperação sem formalizar party, cidadania ou assentamento. A lacuna de trabalho compartilhado foi formalizada como [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md), uma mecânica transversal — não Sistema 30. A implementação proposta começa pela Fatia A, com módulo de atividades e schema 26.
+O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. O segundo dia introduz Caio Nascimento e Davi Moura, a Margem Rochosa, tensão pelo uso da água e primeiras decisões de cooperação sem formalizar party, cidadania ou assentamento. A [Fatia A está implementada](MECHANIC-CONTEXTUAL-ACTIVITIES.md): Atividades Contextuais entraram como mecânica transversal — não Sistema 30 — com schema 26, pack, planner/apply, `activity.perform`, UI e guidance. O catálogo real ainda está vazio para não antecipar conteúdo. A próxima etapa é a Fatia B — Mundo do Dia 2.
 
 ## Metas de experiência definidas
 
@@ -87,7 +87,7 @@ O formato exato de “100%” global, de rotas e de campanha está **em discuss�
 | --- | --- | --- | --- |
 | MVP narrativo | **Implementado e consolidado** | Personagem, atributos, escolhas, condições, efeitos, inventário, relações, histórico, títulos e campanha inicial. | O conteúdo é curto e provisório. |
 | Motor e validação | **Implementado e consolidado** | Estado imutável, validação de campanha, trajetórias, ciclo de vida, erros controlados e validação profunda de save. | Não é um editor de campanhas. |
-| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 25, migrações v1–v24, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
+| Persistência e PWA | **Implementado e consolidado** | `localStorage`, schema 26, migrações v1–v25, continuar/apagar partida e build PWA offline. | Não há conta nem sincronização entre aparelhos. |
 | Sistema 1 — Horário e data | **Implementado e consolidado** | Relógio determinístico por períodos e dias, dirigido pelo custo das ações. | Sem calendário de meses/anos ou tempo real. |
 | Sistema 2 — Ciclo diário | **Implementado e consolidado** | Eventos de início/fim de período e dia, além de fase visual derivada. | A fase ainda não troca o tema da interface. |
 | Sistema 3 — Navegação | **Implementado e consolidado** | Mapa JSON hierárquico, posição, descoberta, desbloqueio, movimento entre pai, filhos e irmãos e primeira representação visual dos arredores. | O mapa visual mostra relações adjacentes; não há visão global, atalhos ou viagem rápida. |
@@ -266,7 +266,7 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 29 estão implementados e consolidados.** O save atual é o schema 25 após as Fatias A e B; as Fatias C–G ampliaram comportamento, conteúdo e cobertura sem alterar o schema. O programa de mundo especificado em 17 de setembro de 2026 está completo dentro do recorte aprovado.
+**Os Sistemas 1 a 29 estão implementados e consolidados.** O Dia 1 fechou no schema 25. A Fatia A do Dia 2 adicionou Atividades Contextuais e avançou o save para **schema 26** sem criar Sistema 30. O próximo trabalho é a Fatia B — Mundo do Dia 2.
 
 Antes de um novo eixo:
 
