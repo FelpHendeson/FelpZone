@@ -1,7 +1,7 @@
 [
   {
     "locationId": "awakening-clearing",
-    "progressPerAction": 25,
+    "progressPerAction": 10,
     "timeCost": {
       "periods": 1
     },
@@ -25,7 +25,7 @@
       {
         "id": "human-footprints",
         "kind": "landmark",
-        "revealAt": 20,
+        "revealAt": 10,
         "completionWeight": 1,
         "once": true,
         "name": "Pegadas humanas recentes"
@@ -59,7 +59,7 @@
       {
         "id": "human-cut-branch",
         "kind": "landmark",
-        "revealAt": 25,
+        "revealAt": 10,
         "completionWeight": 1,
         "once": true,
         "name": "Ramo cortado de propósito"
@@ -67,7 +67,7 @@
       {
         "id": "path-spring-lake",
         "kind": "passage",
-        "revealAt": 20,
+        "revealAt": 10,
         "completionWeight": 1,
         "targetId": "spring-lake",
         "unlockTarget": true,
@@ -77,7 +77,7 @@
       {
         "id": "mira-nearby",
         "kind": "event",
-        "revealAt": 50,
+        "revealAt": 20,
         "completionWeight": 1,
         "once": true,
         "name": "Movimento humano além das pedras"
