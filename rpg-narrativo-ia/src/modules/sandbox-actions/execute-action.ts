@@ -200,6 +200,8 @@ function runTransaction(
         )
       : copySettlementsState(executed.settlements ?? previous.settlements ?? createInitialSettlementsState()),
     politics: executed.politics ?? previous.politics ?? createInitialPoliticsState(),
+    activities: executed.activities,
+    guidance: executed.guidance,
     status: executed.status,
     narrativeSession: executed.narrativeSession,
   });
@@ -210,6 +212,14 @@ function runTransaction(
       throw new SandboxActionError('A campanha da interação não existe.');
     }
 
+    candidate = startNarrativeSession(candidate, campaign, narrative.eventId);
+  }
+
+  if (action.type === 'activity.perform' && executed.activityPlan?.narrative) {
+    const narrative = executed.activityPlan.narrative;
+    if (!campaign || campaign.id !== narrative.campaignId) {
+      throw new SandboxActionError('A campanha da atividade não existe.');
+    }
     candidate = startNarrativeSession(candidate, campaign, narrative.eventId);
   }
 
@@ -247,7 +257,8 @@ function runTransaction(
       executed.civicPlan?.feedback ??
       executed.economyPlan?.feedback ??
       executed.settlementPlan?.feedback ??
-      executed.politicsPlan?.feedback,
+      executed.politicsPlan?.feedback ??
+      executed.activityPlan?.feedback,
     synchronization: summarizeSynchronization({
       previousExploration: previous.sandbox.exploration,
       currentExploration: current.sandbox.exploration,
