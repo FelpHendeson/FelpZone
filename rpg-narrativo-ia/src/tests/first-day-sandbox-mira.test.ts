@@ -163,6 +163,6 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
     expect(state.flags['mira.shared-information']).toBe(true);
     expect(state.flags['camp.together']).toBeUndefined();
     expect(state.flags['camp.alone']).toBeUndefined();
-    expect(state.world.period).not.toBe('noite');
+    expect(state.world.period).toBe('noite');
   });
 });
