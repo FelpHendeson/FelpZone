@@ -14,7 +14,7 @@ describe('Fatia 9.2 — estado principal e migração', () => {
   it('mantém sede inicial no schema atual sem mudar a interface', () => {
     const state = freshState();
 
-    expect(SCHEMA_VERSION).toBe(25);
+    expect(SCHEMA_VERSION).toBe(26);
     expect(state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(state.attributes.sede).toBe(INITIAL_NEEDS_SNAPSHOT.sede);
     expect(Object.keys(state.attributes)).toEqual([...ATTRIBUTE_IDS]);
@@ -146,7 +146,7 @@ describe('Fatia 9.2 — estado principal e migração', () => {
       expect(loaded.state.world).toEqual(current.world);
       expect(loaded.state.inventory).toEqual(current.inventory);
       expect(loaded.state.sandbox).toEqual(current.sandbox);
-      expect(loaded.state.attributes.sede).toBe(25);
+      expect(loaded.state.attributes.sede).toBe(26);
     }
     expect(writes).toEqual([]);
     expect(memory.get(SAVE_KEY)).toBe(raw);
