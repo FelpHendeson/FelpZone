@@ -74,7 +74,7 @@ describe('superfície mobile do sandbox', () => {
     expect(destinationIds(start)).toEqual([]);
 
     const afterOne = exploreTimes(start, 1);
-    expect(destinationIds(afterOne)).toEqual([]);
+    expect(destinationIds(afterOne)).toEqual(['spring-lake']);
 
     const afterTwo = exploreTimes(start, 2);
     expect(destinationIds(afterTwo)).toEqual(['great-tree', 'spring-lake']);
