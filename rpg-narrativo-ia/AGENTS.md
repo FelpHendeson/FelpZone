@@ -61,4 +61,4 @@ A interface jogável segue o princípio **aventura primeiro, dados sob demanda**
 Quando houver ambiguidade, preserve a modularidade e escolha a menor solução capaz de validar a experiência.
 
 
-O fechamento da revisão do Dia 1 está em [Dia 1 — Playtest da Fatia G](docs/DAY-1-PLAYTEST.md). O próximo trabalho narrativo é especificar o Dia 2 a partir do estado herdado da primeira noite.
+O fechamento da revisão do Dia 1 está em [Dia 1 — Playtest da Fatia G](docs/DAY-1-PLAYTEST.md). O Dia 2 já está especificado em [Dia 2 — narrativa](docs/DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementação](docs/DAY-2-IMPLEMENTATION-SPEC.md). Ele introduz Caio, Davi, Margem Rochosa e convivência sem formalizar organização/assentamento. A nova [Mecânica de Atividades Contextuais](docs/MECHANIC-CONTEXTUAL-ACTIVITIES.md) não é Sistema 30; a próxima implementação é a Fatia A do Dia 2, que propõe schema 26.
