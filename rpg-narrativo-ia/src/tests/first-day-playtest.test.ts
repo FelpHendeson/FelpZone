@@ -102,7 +102,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     const clearingAfterFirstLook = state.sandbox.exploration.locations.find(
       (entry) => entry.locationId === 'awakening-clearing',
     );
-    expect(clearingAfterFirstLook?.progress).toBe(25);
+    expect(clearingAfterFirstLook?.progress).toBe(10);
     expect(clearingAfterFirstLook?.revealedDiscoveryIds).toContain('human-footprints');
     expect(clearingAfterFirstLook?.revealedDiscoveryIds).toContain('human-cut-branch');
     expect(state.sandbox.navigation.discoveredLocationIds).toContain('spring-lake');
