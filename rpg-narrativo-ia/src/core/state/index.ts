@@ -23,6 +23,7 @@ import { createInitialPoliticsState } from '../../modules/politics';
 import { createInitialInteractablesState } from '../../modules/interactables';
 import { createInitialWorld } from '../../modules/world';
 import { createInitialGuidanceState } from '../../modules/guidance';
+import { createInitialContextualActivitiesState } from '../../modules/activities';
 
 export function createInitialState(
   character: CharacterIdentityInput,
@@ -73,6 +74,7 @@ export function createInitialState(
     settlements: createInitialSettlementsState(),
     politics: createInitialPoliticsState(),
     guidance: createInitialGuidanceState(),
+    activities: createInitialContextualActivitiesState(),
     updatedAt: now(),
   };
 }
@@ -107,6 +109,7 @@ export {
   SCHEMA_VERSION_V22,
   SCHEMA_VERSION_V23,
   SCHEMA_VERSION_V24,
+  SCHEMA_VERSION_V25,
   MIGRATED_CAMPAIGN_ID,
 } from './types';
 export {
@@ -135,6 +138,7 @@ export {
   inspectGameStateV22,
   inspectGameStateV23,
   inspectGameStateV24,
+  inspectGameStateV25,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
@@ -159,6 +163,7 @@ export {
   migrateGameStateV22,
   migrateGameStateV23,
   migrateGameStateV24,
+  migrateGameStateV25,
 } from './validateGameState';
 export type {
   GameStateInspection,
@@ -186,6 +191,7 @@ export type {
   GameStateV22Inspection,
   GameStateV23Inspection,
   GameStateV24Inspection,
+  GameStateV25Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
@@ -228,6 +234,7 @@ export type {
   GameStateV22,
   GameStateV23,
   GameStateV24,
+  GameStateV25,
   GameStatus,
   HistoryEntry,
   InventoryItem,
