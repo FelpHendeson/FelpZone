@@ -23,6 +23,7 @@ Leia nesta ordem:
    - [Fundação narrativa](docs/NARRATIVE-FOUNDATION.md): regra geográfica do Reset, primeiro arco dos Sete Dias, elenco inicial, assentamento, ranking, romance e onboarding.
    - [Dia 1 — especificação narrativa e jogável](docs/DAY-1-NARRATIVE-SPEC.md): fluxo completo do despertar à primeira noite, onboarding de Etéris/Númen e lacunas técnicas mínimas.
      - [Implementação do Dia 1](docs/DAY-1-IMPLEMENTATION-SPEC.md): schemas 24–25, conteúdo, fatias e testes.
+     - [Playtest do Dia 1](docs/DAY-1-PLAYTEST.md): rotas integradas, achados de pacing e fechamento da Fatia G.
      - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
      - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
@@ -67,7 +68,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; o save atual está no schema 25 e as Fatias A–F da revisão do Dia 1 já estão implementadas.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; o save atual está no schema 25 e as Fatias A–G da revisão do Dia 1 estão implementadas e validadas.
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -157,7 +158,7 @@ O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do r
 
 ## O que foi validado nesta entrega
 
-- `npm test`: testes incluindo a jornada **Primeiro dia**, sinais humanos e contato opcional com Mira, primeira noite adaptativa, transição ao Dia 2, fluxo do coelho, persistência schema 25, migrações v1–v24, diário, superfície mobile, necessidades, critérios por proficiência, marcos narrativos por habilidade/tempo/dia, orquestração, o ciclo de fortalecimento do Sistema 11, o combate consolidado do Sistema 12 (descoberta → confronto → transação atômica), o ciclo de progressão por prática do Sistema 13, os Sistemas 14 a 17 (loadout, condições, Jardim e NPCs persistentes), o ciclo da Grande Árvore do Sistema 18, os vínculos direcionais do Sistema 19, o Registro do Sistema 20, os grupos do Sistema 21, a execução avançada do Sistema 22, a party coletiva do Sistema 23, o calendário do Sistema 24, a família do Sistema 25, a cidadania do Sistema 26, a economia do Sistema 27, os assentamentos do Sistema 28 e a diplomacia do Sistema 29.
+- `npm test`: 92 arquivos / 928 testes no fechamento da Fatia G, incluindo duas rotas completas do Dia 1 (contato com Mira e evasão), jornada **Primeiro dia**, primeira noite adaptativa, transição ao Dia 2, persistência schema 25, migrações v1–v24 e os Sistemas 1 a 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Na Clareira do Despertar, pegadas e outros sinais humanos aparecem antes de `mira-nearby`. Mira pode ser observada, abordada ou evitada; conversar abre `survivor-meet` e retorna ao sandbox após a troca. A primeira noite é acionada pelo relógio, não pela conversa, e o Dia 2 começa depois do avanço real de tempo pelo sandbox.
