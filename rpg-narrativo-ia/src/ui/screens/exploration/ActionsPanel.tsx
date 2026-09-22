@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import type { SandboxAction } from '../../../modules/sandbox-actions';
 import {
   formatPeriodCost,
+  type ContextualActivityView,
   type ExplorationView,
   type RecipeView,
   type ResourceView,
@@ -24,6 +26,23 @@ export function ActionsPanel({
         <h1>Ações disponíveis</h1>
         <p>Veja custos e resultados antes de comprometer um período.</p>
       </header> : <p className="action-drawer__intro">Escolha uma atividade. O custo aparece antes de você agir.</p>}
+
+      {view.activities.length > 0 ? (
+        <section className="action-section" aria-labelledby="activities-title">
+          <div className="section-heading">
+            <div>
+              <span className="section-kicker">Ações compartilhadas</span>
+              <h2 id="activities-title">Atividades</h2>
+            </div>
+            <span className="section-count">{view.activities.length}</span>
+          </div>
+          <div className="action-card-list">
+            {view.activities.map((activity) => (
+              <ContextualActivityCard key={activity.activityId} activity={activity} onAction={onAction} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="action-section" aria-labelledby="rest-title">
         <div className="section-heading">
@@ -88,6 +107,82 @@ export function ActionsPanel({
         )}
       </section>
     </div>
+  );
+}
+
+export function ContextualActivityCard({
+  activity,
+  onAction,
+}: {
+  activity: ContextualActivityView;
+  onAction: (action: SandboxAction) => void;
+}) {
+  const initial = activity.optionalParticipants
+    .filter((participant) => participant.eligible)
+    .slice(0, activity.minOptional)
+    .map((participant) => participant.npcId);
+  const [selected, setSelected] = useState<string[]>(initial);
+  const selectionValid = selected.length >= activity.minOptional && selected.length <= activity.maxOptional;
+
+  return (
+    <article className={activity.available ? 'action-card' : 'action-card action-card--blocked'}>
+      <div className="item-glyph" aria-hidden="true">◇</div>
+      <div className="action-card__body">
+        <div className="action-card__title">
+          <h3>{activity.label}</h3>
+          <span>{formatPeriodCost(activity.costPeriods)}</span>
+        </div>
+        <p>{activity.description}</p>
+        {activity.requiredParticipants.length > 0 ? (
+          <p className="action-card__outcome">
+            Participantes: {activity.requiredParticipants.map((participant) => participant.name).join(', ')}
+          </p>
+        ) : null}
+        {activity.optionalParticipants.length > 0 ? (
+          <fieldset>
+            <legend>Acompanhantes opcionais</legend>
+            {activity.optionalParticipants.map((participant) => {
+              const checked = selected.includes(participant.npcId);
+              const limitReached = !checked && selected.length >= activity.maxOptional;
+              return (
+                <label key={participant.npcId}>
+                  <input
+                    type="checkbox"
+                    checked={checked}
+                    disabled={!participant.eligible || limitReached}
+                    onChange={() =>
+                      setSelected((current) =>
+                        current.includes(participant.npcId)
+                          ? current.filter((id) => id !== participant.npcId)
+                          : [...current, participant.npcId],
+                      )
+                    }
+                  />
+                  {participant.name}
+                </label>
+              );
+            })}
+          </fieldset>
+        ) : null}
+        <div className="action-card__footer">
+          <small>{activity.blockedReason ?? (selectionValid ? 'Pronto para executar.' : 'Selecione os participantes necessários.')}</small>
+          <button
+            type="button"
+            className="button button--compact"
+            disabled={!activity.available || !selectionValid}
+            onClick={() =>
+              onAction({
+                type: 'activity.perform',
+                activityId: activity.activityId,
+                optionalParticipantIds: selected,
+              })
+            }
+          >
+            Executar
+          </button>
+        </div>
+      </div>
+    </article>
   );
 }
 
