@@ -1,7 +1,7 @@
 [
   {
     "locationId": "awakening-clearing",
-    "progressPerAction": 10,
+    "progressPerAction": 25,
     "timeCost": {
       "periods": 1
     },
@@ -59,7 +59,7 @@
       {
         "id": "human-cut-branch",
         "kind": "landmark",
-        "revealAt": 35,
+        "revealAt": 25,
         "completionWeight": 1,
         "once": true,
         "name": "Ramo cortado de propósito"
