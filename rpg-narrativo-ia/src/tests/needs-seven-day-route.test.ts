@@ -72,7 +72,7 @@ describe('Fatia 9.5 — sobrevivência ponta a ponta', () => {
     const daysSurvived = current.world.day - survivalStartDay;
     const finalPopulation = getPopulation(current.sandbox.resources, 'horned-rabbits');
 
-    expect(daysSurvived).toBe(8);
+    expect(daysSurvived).toBe(7);
     expect(rabbitsCollected / daysSurvived).toBeLessThanOrEqual(2);
     expect(finalPopulation.locallyExtinct).toBe(false);
     expect(current.attributes).toMatchObject({ saude: 100, energia: 96, fome: 6, sede: 25 });
