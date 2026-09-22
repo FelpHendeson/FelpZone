@@ -118,7 +118,13 @@ describe('gatilhos de mundo no sandbox', () => {
     const location = result.current.sandbox.exploration.locations[0];
 
     expect(location?.progress).toBe(10);
-    expect(location?.revealedDiscoveryIds).toEqual(['awakening-site', 'first-priority-event']);
+    expect(location?.revealedDiscoveryIds).toEqual([
+      'awakening-site',
+      'first-priority-event',
+      'human-footprints',
+      'human-cut-branch',
+      'path-spring-lake',
+    ]);
     expect(result.current.sandbox.presences.discoveredPresenceIds).toEqual([]);
     expect(result.current.narrativeSession).toBeNull();
   });
