@@ -200,8 +200,8 @@ function runTransaction(
         )
       : copySettlementsState(executed.settlements ?? previous.settlements ?? createInitialSettlementsState()),
     politics: executed.politics ?? previous.politics ?? createInitialPoliticsState(),
-    activities: executed.activities,
-    guidance: executed.guidance,
+    activities: executed.activities ?? previous.activities,
+    guidance: executed.guidance ?? previous.guidance,
     status: executed.status,
     narrativeSession: executed.narrativeSession,
   });
