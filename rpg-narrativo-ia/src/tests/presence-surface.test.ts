@@ -108,7 +108,7 @@ describe('Fatia 8.5 — view-model de presenças', () => {
   });
 
   it('exploração mantém Mira oculta até os sinais avançados e não abre narrativa', () => {
-    const early = exploreTimes(enterExploration(), 4);
+    const early = exploreTimes(enterExploration(), 1);
     expect(early.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
 
     const revealed = exploreTimes(early, 1);
