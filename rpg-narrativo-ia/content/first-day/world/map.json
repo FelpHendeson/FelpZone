@@ -59,13 +59,10 @@
         {
           "id": "spring-lake",
           "name": "Nascente e Pequeno Lago",
-          "description": "Água clara emerge da terra e se acumula num lago raso.",
+          "description": "Água clara emerge da terra e se acumula num lago raso, a poucos minutos da Clareira do Despertar.",
           "image": {
             "kind": "scene",
             "label": "Nascente e Pequeno Lago"
-          },
-          "travelCost": {
-            "periods": 1
           }
         },
         {
