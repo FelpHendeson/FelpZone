@@ -65,6 +65,65 @@
         "eventId": "davi-arrives-clearing"
       },
       "feedback": "O grupo ajusta o passo ao limite de Davi e alcança a Clareira."
+    },
+    {
+      "id": "discuss-water-with-caio",
+      "label": "Conversar com Caio sobre a água",
+      "description": "Ouvir a preocupação de Caio sobre o uso da Nascente e deixar clara sua posição.",
+      "locationId": "spring-lake",
+      "timeCost": {
+        "periods": 1
+      },
+      "repeatable": false,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day2.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "npc.known",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "caio-nascimento"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "caio-nascimento"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.water.question.heard",
+          "value": true
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "caio-nascimento",
+          "factId": "caio-water-question-raised"
+        }
+      ],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "water-question"
+      },
+      "feedback": "Caio expõe sua preocupação sobre o acesso à fonte."
     }
   ]
 }

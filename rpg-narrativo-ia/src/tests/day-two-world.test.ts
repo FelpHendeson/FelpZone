@@ -9,6 +9,7 @@ import { executeSandboxAction } from '../modules/sandbox-actions';
 import { listKnownPresencesAtLocation } from '../modules/presences';
 import { deriveNpcAt } from '../modules/npcs';
 import { getObjectiveStatus } from '../modules/objectives';
+import { listKnownContextualActivities } from '../modules/activities';
 import { worldTriggerConsumedFlag } from '../modules/world-events';
 import { resolveWorldNarrativeState } from '../ui/sandbox';
 import { now } from './helpers';
@@ -243,5 +244,64 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
     const practical = choose(result.current, 'leave-arrival-practical');
     expect(practical.flags['day2.group.intent.known']).toBe(true);
     expect(practical.party.vitals).toEqual([]);
+  });
+
+  it('discute água com Caio apenas quando conhecido e disponível na Nascente, sem gerar recurso', () => {
+    const beforeContact = startSandbox();
+    const hiddenState = {
+      ...beforeContact,
+      world: { day: 2, period: 'alvorecer' as const },
+      flags: { ...beforeContact.flags, 'day2.started': true },
+      sandbox: {
+        ...beforeContact.sandbox,
+        navigation: { ...beforeContact.sandbox.navigation, currentLocationId: 'spring-lake' },
+      },
+    };
+    expect(listKnownContextualActivities(world.activities, beforeContact.activities, hiddenState, world.npcs)
+      .some(({ activity }) => activity.id === 'discuss-water-with-caio')).toBe(false);
+
+    let state = reachRockyBank({ 'camp.alone': true });
+    state = executeSandboxAction(state, {
+      type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'talk-caio-rocky-bank',
+    }, options).current;
+    state = choose(state, 'caio-answer');
+    state = choose(state, 'alone-check-davi');
+    state = choose(state, 'offer-davi-help');
+    state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'spring-lake' }, options).current;
+
+    expect(() => executeSandboxAction(state, {
+      type: 'activity.perform', activityId: 'discuss-water-with-caio', optionalParticipantIds: [],
+    }, options)).toThrow('requisitos');
+    state = executeSandboxAction(state, { type: 'resource.collect', nodeId: 'spring', units: 1 }, options).current;
+    state = executeSandboxAction(state, { type: 'resource.collect', nodeId: 'spring', units: 1 }, options).current;
+    expect(state.world.period).toBe('tarde');
+    expect(deriveNpcAt(world.npcs, state.sandbox.npcs, 'caio-nascimento', state.world.period,
+      (locationId) => state.sandbox.navigation.discoveredLocationIds.includes(locationId))?.locationId)
+      .toBe('spring-lake');
+    const waterBefore = state.inventory.find((entry) => entry.itemId === 'raw-water')?.quantity ?? 0;
+    expect(waterBefore).toBe(2);
+
+    const conversation = executeSandboxAction(state, {
+      type: 'activity.perform', activityId: 'discuss-water-with-caio', optionalParticipantIds: [],
+    }, options);
+    expect(conversation.current.narrativeSession?.eventId).toBe('water-question');
+    expect(conversation.current.world.period).toBe('entardecer');
+    expect(conversation.current.inventory.find((entry) => entry.itemId === 'raw-water')?.quantity).toBe(waterBefore);
+    expect(conversation.current.sandbox.npcs.entries.find((entry) => entry.npcId === 'caio-nascimento')?.memoryFactIds)
+      .toContain('caio-water-question-raised');
+    expect(getObjectiveStatus(world.objectives, conversation.current.objectives, 'more-than-one-mouth')).toBe('active');
+
+    const decided = choose(conversation.current, 'water-use-organize');
+    expect(decided.flags['day2.water.position.organized']).toBe(true);
+    expect(decided.flags['day2.water.position.decided']).toBe(true);
+    expect(getObjectiveStatus(world.objectives, decided.objectives, 'more-than-one-mouth')).toBe('completed');
+    expect(decided.status).toBe('playing');
+
+    const loaded = parseGameState(serializeGameState(decided, context, world.objectives), context, world.objectives);
+    expect(loaded.status).toBe('ok');
+    if (loaded.status === 'ok') {
+      expect(loaded.state.flags['day2.water.position.organized']).toBe(true);
+      expect(loaded.state.inventory.find((entry) => entry.itemId === 'raw-water')?.quantity).toBe(waterBefore);
+    }
   });
 });

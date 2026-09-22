@@ -1829,5 +1829,93 @@
       }
     ],
     "canStartSession": true
+  },
+  {
+    "id": "water-question",
+    "title": "Água para mais de um",
+    "body": "Caio acompanha a borda da Nascente. Ele quer evitar que várias pessoas entrem na água ao mesmo tempo, pisoteiem o entorno ou retirem mais do que conseguem carregar.\n\nDavi precisa beber, mas não pede que alguém decida por todos. A fonte continua sendo comum; ninguém aqui possui uma regra reconhecida para ela.",
+    "image": {
+      "kind": "scene",
+      "label": "Conversa junto à Nascente"
+    },
+    "choices": [
+      {
+        "id": "water-use-share",
+        "label": "Quem precisa pode beber; cada pessoa recolhe o que consegue carregar",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.shared",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "water-use-organize",
+        "label": "Combinar uma ordem simples para não atrapalhar a fonte",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.organized",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "water-use-independent",
+        "label": "Cada pessoa cuida da própria água e do próprio recipiente",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.independent",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "water-use-no-decision",
+        "label": "Não decidir pelos outros; cuidar primeiro das próprias necessidades",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.declined",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.water.position.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
   }
 ]

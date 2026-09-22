@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Fatias A–D implementadas e validadas; Fatias E–G pendentes.**
+**Especificada em 22 de setembro de 2026. Fatias A–E implementadas e validadas; Fatias F–G pendentes.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -706,7 +706,7 @@ Até lá, nenhuma UI do Dia 2 deve apresentar esses ciclos como próximos passos
 - cobertura dedicada em `contextual-activities.test.ts`;
 - fechamento: **93 arquivos de teste / 932 testes**, lint, typecheck e build PWA verdes.
 
-A próxima fatia é a **Fatia E — Água e tensão social**.
+A próxima fatia é a **Fatia F — Autonomia e encerramento**.
 
 ## Fatia B — Mundo do Dia 2 — **implementada**
 

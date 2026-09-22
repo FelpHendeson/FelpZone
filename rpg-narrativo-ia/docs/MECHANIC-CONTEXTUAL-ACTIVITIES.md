@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Infraestrutura implementada na Fatia A do Dia 2; primeira atividade jogável com Davi implementada na Fatia D.**
+**Infraestrutura implementada na Fatia A do Dia 2; atividades jogáveis com Davi e Caio implementadas nas Fatias D–E.**
 
 Esta mecânica nasce do Dia 2 e da direção de longo prazo de trabalho como motor narrativo.
 

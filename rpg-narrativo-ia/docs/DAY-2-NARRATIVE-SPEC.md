@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificado em 22 de setembro de 2026. Fatias A–D implementadas; tensão da água, autonomia final e playtest entram nas Fatias E–G.**
+**Especificado em 22 de setembro de 2026. Fatias A–E implementadas; autonomia final e playtest entram nas Fatias F–G.**
 
 Este documento é o próximo passo narrativo depois do fechamento das Fatias A–G do Dia 1.
 

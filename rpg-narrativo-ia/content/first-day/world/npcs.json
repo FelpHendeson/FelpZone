@@ -226,6 +226,11 @@
       "id": "davi-arrived-clearing",
       "npcId": "davi-moura",
       "summary": "Você acompanhou Davi até a Clareira do Despertar."
+    },
+    {
+      "id": "caio-water-question-raised",
+      "npcId": "caio-nascimento",
+      "summary": "Vocês conversaram sobre como várias pessoas podem usar a Nascente sem contaminá-la ou desperdiçar água."
     }
   ]
 }

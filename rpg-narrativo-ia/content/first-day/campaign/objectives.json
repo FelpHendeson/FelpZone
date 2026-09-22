@@ -297,6 +297,48 @@
         }
       ],
       "completionText": "Você sabe quem são os outros sobreviventes próximos e qual direção eles pretendem seguir."
+    },
+    {
+      "id": "more-than-one-mouth",
+      "title": "Água para mais de um",
+      "description": "A Nascente continua aberta, mas pessoas diferentes dependem dela. Cuide das suas necessidades e escolha como responder à preocupação de Caio.",
+      "kind": "side",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "flag.is",
+            "flag": "day2.water.question.heard",
+            "value": true
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "secure-real-water",
+          "title": "Consiga água pela coleta",
+          "criteria": [
+            {
+              "type": "inventory.item.quantity",
+              "itemId": "raw-water",
+              "quantity": 1
+            }
+          ]
+        },
+        {
+          "id": "choose-water-position",
+          "title": "Escolha como responder sobre o uso da fonte",
+          "criteria": [
+            {
+              "type": "flag.is",
+              "flag": "day2.water.position.decided",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "completionText": "Você atendeu uma necessidade real e deixou clara sua posição sobre o uso da Nascente. Nenhuma propriedade ou lei foi criada."
     }
   ]
 }

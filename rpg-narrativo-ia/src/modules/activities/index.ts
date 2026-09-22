@@ -188,6 +188,10 @@ export function listKnownContextualActivities(
 ): ContextualActivityKnownView[] {
   return catalog.activities
     .filter((activity) => activity.locationId === gameState.sandbox.navigation.currentLocationId)
+    // Do not expose an activity until its explicitly named NPC is known. Once
+    // known, other unmet requirements remain visible as ordinary blockers.
+    .filter((activity) => activity.requirements.every((requirement) =>
+      requirement.type !== 'npc.known' || requirementMet(requirement, gameState, npcs)))
     .map((activity) => {
       const optionalIds = activity.participants?.optionalNpcIds ?? [];
       const eligibleOptionalNpcIds = optionalIds.filter((npcId) => npcAvailable(npcs, gameState, npcId));
