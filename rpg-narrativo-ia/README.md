@@ -24,6 +24,9 @@ Leia nesta ordem:
    - [Dia 1 — especificação narrativa e jogável](docs/DAY-1-NARRATIVE-SPEC.md): fluxo completo do despertar à primeira noite, onboarding de Etéris/Númen e lacunas técnicas mínimas.
      - [Implementação do Dia 1](docs/DAY-1-IMPLEMENTATION-SPEC.md): schemas 24–25, conteúdo, fatias e testes.
      - [Playtest do Dia 1](docs/DAY-1-PLAYTEST.md): rotas integradas, achados de pacing e fechamento da Fatia G.
+   - [Dia 2 — especificação narrativa e jogável](docs/DAY-2-NARRATIVE-SPEC.md): Caio, Davi, Margem Rochosa, tensão da água, autonomia dos sobreviventes e entrada gradual na convivência.
+     - [Implementação do Dia 2](docs/DAY-2-IMPLEMENTATION-SPEC.md): schema 26 proposto, fatias A–G, pack, NPCs, jornada e playtest.
+     - [Atividades Contextuais](docs/MECHANIC-CONTEXTUAL-ACTIVITIES.md): ações compartilhadas com tempo, participantes e consequências sem criar Sistema 30.
      - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
      - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
@@ -68,7 +71,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; o save atual está no schema 25 e as Fatias A–G da revisão do Dia 1 estão implementadas e validadas.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; o Dia 1 está fechado em A–G e o Dia 2 já possui especificação narrativa/técnica. A próxima implementação é a Fatia A do Dia 2: Atividades Contextuais + schema 26.
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
