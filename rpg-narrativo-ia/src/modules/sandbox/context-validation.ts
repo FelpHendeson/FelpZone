@@ -21,12 +21,13 @@ import { inspectMasteryCatalog } from '../mastery';
 import { inspectNavigationMap } from '../navigation';
 import { inspectSkillsCatalog } from '../skills';
 import { inspectTrainingCatalog } from '../training';
-import { inspectNpcCatalog } from '../npcs';
+import { inspectNpcCatalog, INITIAL_NPCS } from '../npcs';
 import { inspectObjectiveCatalog } from '../objectives';
 import { inspectPresenceCatalog, inspectPresenceInteractionCatalog } from '../presences';
 import { inspectResourceDefinitions } from '../resources';
 import { inspectWorldTriggerCatalog } from '../world-events';
 import { inspectGuidanceCatalog, INITIAL_GUIDANCE } from '../guidance';
+import { inspectContextualActivityCatalog } from '../activities';
 import { firstDayCampaign } from '../../campaigns/first-day';
 import type { Campaign } from '../../core/events';
 import type { SandboxContext, SandboxContextInspection } from './types';
@@ -380,6 +381,20 @@ export function inspectSandboxContext(value: unknown): SandboxContextInspection 
   } else {
     context.guidance = INITIAL_GUIDANCE;
   }
+
+  const activities = inspectContextualActivityCatalog(
+    value.activities ?? { activities: [] },
+    {
+      map: map.value,
+      npcs: context.npcs ?? INITIAL_NPCS,
+      guidance: context.guidance,
+      campaign: campaign.value,
+    },
+  );
+  if (!activities.ok) {
+    return fail(activities.reason);
+  }
+  context.activities = activities.value;
 
   if (value.stationLabels !== undefined && !isRecord(value.stationLabels)) {
     return fail('Os rótulos de estação são inválidos.');
