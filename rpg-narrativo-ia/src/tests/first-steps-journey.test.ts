@@ -65,7 +65,6 @@ describe('Fatia E — jornada principal do primeiro dia', () => {
     ]);
 
     act({ type: 'exploration.explore' });
-    act({ type: 'exploration.explore' });
     expect(progressFor(state)?.completedStepIds).toEqual([
       'choose-ability',
       'first-numen-practice',
