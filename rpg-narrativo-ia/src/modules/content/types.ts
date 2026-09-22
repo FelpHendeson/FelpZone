@@ -28,6 +28,7 @@ import type { IndexedSkills } from '../skills/types';
 import type { IndexedTraining } from '../training/types';
 import type { IndexedWorldTriggers, WorldNarrativeTriggerDefinition } from '../world-events/types';
 import type { IndexedGuidance } from '../guidance/types';
+import type { IndexedActivities } from '../activities/types';
 
 export interface ContentSource {
   readonly id: string;
@@ -71,6 +72,7 @@ export interface IndexedWorld {
   readonly firstPriorityTrigger: WorldNarrativeTriggerDefinition;
   readonly stationLabels: Readonly<Record<string, string>>;
   readonly guidance: IndexedGuidance;
+  readonly activities: IndexedActivities;
 }
 
 export const PACK_FILE_KEYS = [
@@ -110,6 +112,7 @@ export const PACK_FILE_KEYS = [
   'firstPriorityTrigger',
   'labels',
   'guidance',
+  'activities',
 ] as const;
 
 export type PackFileKey = (typeof PACK_FILE_KEYS)[number];
