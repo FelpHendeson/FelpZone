@@ -62,6 +62,10 @@ import {
   inspectGuidanceState,
 } from '../../modules/guidance';
 import {
+  createInitialContextualActivitiesState,
+  inspectContextualActivitiesState,
+} from '../../modules/activities';
+import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
   CHARACTER_SEXES,
@@ -91,6 +95,7 @@ import {
   SCHEMA_VERSION_V22,
   SCHEMA_VERSION_V23,
   SCHEMA_VERSION_V24,
+  SCHEMA_VERSION_V25,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -117,6 +122,7 @@ import {
   type GameStateV22,
   type GameStateV23,
   type GameStateV24,
+  type GameStateV25,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -219,6 +225,10 @@ export type GameStateV23Inspection =
 
 export type GameStateV24Inspection =
   | { ok: true; state: GameStateV24 }
+  | { ok: false; reason: string };
+
+export type GameStateV25Inspection =
+  | { ok: true; state: GameStateV25 }
   | { ok: false; reason: string };
 
 export function inspectGameState(
@@ -496,6 +506,18 @@ export function inspectGameStateV24(
 ): GameStateV24Inspection {
   try {
     return inspectV24(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV25(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV25Inspection {
+  try {
+    return inspectV25(value, context, objectiveCatalog);
   } catch {
     return { ok: false, reason: 'O salvamento está corrompido.' };
   }
@@ -855,13 +877,30 @@ export function migrateGameStateV23(
 export function migrateGameStateV24(
   state: GameStateV24,
   context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV25(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V25,
+      guidance: createMigratedGuidanceState(context?.guidance ?? INITIAL_GUIDANCE),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+export function migrateGameStateV25(
+  state: GameStateV25,
+  _context?: SandboxContext,
   _objectiveCatalog?: IndexedObjectives,
 ): GameState {
+  void _context;
   void _objectiveCatalog;
   return {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
-    guidance: createMigratedGuidanceState(context?.guidance ?? INITIAL_GUIDANCE),
+    activities: createInitialContextualActivitiesState(),
   };
 }
 
@@ -1141,6 +1180,13 @@ function inspectCurrent(
   if (!guidance.ok) {
     return fail(guidance.reason);
   }
+  if (!resolvedContext.activities) {
+    return fail('O catálogo de atividades é inválido.');
+  }
+  const activities = inspectContextualActivitiesState(value.activities, resolvedContext.activities);
+  if (!activities.ok) {
+    return fail(activities.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1273,6 +1319,7 @@ function inspectCurrent(
       settlements: settlements.value,
       politics: politics.value,
       guidance: guidance.value,
+      activities: activities.value,
     },
   };
 }
@@ -1442,6 +1489,7 @@ function inspectV11(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       sandbox: isRecord(value.sandbox) ? { ...value.sandbox, interactables: { objects: [] } } : value.sandbox,
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
@@ -1500,6 +1548,7 @@ function inspectV12(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
@@ -1554,6 +1603,7 @@ function inspectV13(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
@@ -1606,6 +1656,7 @@ function inspectV14(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
@@ -1656,6 +1707,7 @@ function inspectV15(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
@@ -1704,6 +1756,7 @@ function inspectV16(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
@@ -1750,6 +1803,7 @@ function inspectV17(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
@@ -1794,6 +1848,7 @@ function inspectV18(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
@@ -1836,6 +1891,7 @@ function inspectV19(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
@@ -1876,6 +1932,7 @@ function inspectV20(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
@@ -1914,6 +1971,7 @@ function inspectV21(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
     },
@@ -1950,6 +2008,7 @@ function inspectV22(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
       politics: createInitialPoliticsState(),
     },
     context,
@@ -1984,6 +2043,7 @@ function inspectV23(
       schemaVersion: SCHEMA_VERSION,
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
     },
     context,
     objectiveCatalog,
@@ -2019,6 +2079,7 @@ function inspectV24(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       guidance: createInitialGuidanceState(),
+      activities: createInitialContextualActivitiesState(),
     },
     context,
     objectiveCatalog,
@@ -2026,13 +2087,45 @@ function inspectV24(
   if (!inspected.ok) {
     return inspected;
   }
-  const { guidance: _guidance, ...rest } = inspected.state;
+  const { guidance: _guidance, activities: _activities, ...rest } = inspected.state;
   void _guidance;
+  void _activities;
   return {
     ok: true,
     state: {
       ...rest,
       schemaVersion: SCHEMA_VERSION_V24,
+    },
+  };
+}
+
+function inspectV25(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV25Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V25 || 'activities' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 25.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      activities: createInitialContextualActivitiesState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { activities: _activities, ...rest } = inspected.state;
+  void _activities;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V25,
     },
   };
 }
