@@ -54,9 +54,11 @@ A fundação narrativa detalhada está em [Fundação narrativa — Reset](NARRA
 
 O [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md) está implementado e validado até a Fatia G. O primeiro dia introduz Etéris/Númen em prática, preserva liberdade sandbox, coloca sinais humanos antes do contato opcional com Mira, resolve a primeira noite de forma adaptativa e continua no Dia 2. O playtest integrado e seus ajustes de ritmo estão em [Dia 1 — Playtest da Fatia G](DAY-1-PLAYTEST.md).
 
-A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). As **Fatias A–G estão implementadas e validadas**: escolha de sexo no schema 24; orientação persistida no schema 25; marcos narrativos; introdução jogável de Etéris/Númen; sandbox com sinais humanos e Mira opcional; primeira noite adaptativa; e playtest completo das rotas com/sem contato. A Fatia G ajustou apenas pacing/conteúdo e mantém o schema 25. A próxima etapa é a especificação detalhada do Dia 2.
+A implementação do novo Dia 1 também está especificada em [Dia 1 — implementação](DAY-1-IMPLEMENTATION-SPEC.md). As **Fatias A–G estão implementadas e validadas**: escolha de sexo no schema 24; orientação persistida no schema 25; marcos narrativos; introdução jogável de Etéris/Númen; sandbox com sinais humanos e Mira opcional; primeira noite adaptativa; e playtest completo das rotas com/sem contato. A Fatia G ajustou apenas pacing/conteúdo e mantém o schema 25.
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
+
+O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. O segundo dia introduz Caio Nascimento e Davi Moura, a Margem Rochosa, tensão pelo uso da água e primeiras decisões de cooperação sem formalizar party, cidadania ou assentamento. A lacuna de trabalho compartilhado foi formalizada como [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md), uma mecânica transversal — não Sistema 30. A implementação proposta começa pela Fatia A, com módulo de atividades e schema 26.
 
 ## Metas de experiência definidas
 
