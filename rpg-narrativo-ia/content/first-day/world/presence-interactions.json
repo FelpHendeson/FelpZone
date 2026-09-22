@@ -107,6 +107,186 @@
       ],
       "feedback": "Você contorna os arbustos. O coelho chifrudo não se aproxima.",
       "resolvesPresence": false
+    },
+    {
+      "id": "observe-caio-rocky-bank",
+      "presenceId": "caio-rocky-bank",
+      "kind": "observe",
+      "label": "Observar os sobreviventes",
+      "hint": "Entender a relação entre os dois antes de revelar sua posição.",
+      "timeCost": {
+        "periods": 1
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.survivors.observed",
+          "value": true
+        }
+      ],
+      "feedback": "O homem em pé protege o espaço ao redor. O outro poupa uma das pernas. Eles já se conheciam antes de você chegar.",
+      "resolvesPresence": false
+    },
+    {
+      "id": "talk-caio-rocky-bank",
+      "presenceId": "caio-rocky-bank",
+      "kind": "talk",
+      "label": "Fazer contato",
+      "hint": "Mostrar-se e deixar claro que veio conversar.",
+      "timeCost": {
+        "periods": 1
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "caio-nascimento",
+          "factId": "caio-met-at-rocky-bank"
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-met-at-rocky-bank"
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-needs-rest"
+        }
+      ],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "caio-first-contact"
+      },
+      "resolvesPresence": true
+    },
+    {
+      "id": "avoid-caio-rocky-bank",
+      "presenceId": "caio-rocky-bank",
+      "kind": "avoid",
+      "label": "Evitar contato",
+      "hint": "Recuar antes que os dois confirmem sua presença.",
+      "timeCost": {
+        "periods": 0
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.survivors.avoided",
+          "value": true
+        },
+        {
+          "type": "flag.set",
+          "flag": "day2.involvement.decided",
+          "value": true
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "caio-nascimento",
+          "factId": "caio-met-at-rocky-bank"
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-met-at-rocky-bank"
+        }
+      ],
+      "feedback": "Você reconhece os dois sobreviventes e se afasta. Eles continuam discutindo como sair dali sem depender de você.",
+      "resolvesPresence": true
+    },
+    {
+      "id": "observe-davi-rocky-bank",
+      "presenceId": "davi-rocky-bank",
+      "kind": "observe",
+      "label": "Avaliar o ferimento",
+      "hint": "Observar a dificuldade de Davi sem se aproximar.",
+      "timeCost": {
+        "periods": 1
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.davi.condition.seen",
+          "value": true
+        }
+      ],
+      "feedback": "Davi evita apoiar uma das pernas. O ferimento limita o movimento, mas ele continua consciente e participando das decisões.",
+      "resolvesPresence": false
+    },
+    {
+      "id": "talk-davi-rocky-bank",
+      "presenceId": "davi-rocky-bank",
+      "kind": "talk",
+      "label": "Perguntar sobre Davi",
+      "hint": "Aproximar-se o suficiente para entender a situação do ferimento.",
+      "timeCost": {
+        "periods": 1
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.set",
+          "flag": "day2.davi.condition.known",
+          "value": true
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "caio-nascimento",
+          "factId": "caio-met-at-rocky-bank"
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-met-at-rocky-bank"
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-needs-rest"
+        }
+      ],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-condition"
+      },
+      "resolvesPresence": true
+    },
+    {
+      "id": "avoid-davi-rocky-bank",
+      "presenceId": "davi-rocky-bank",
+      "kind": "avoid",
+      "label": "Não se envolver",
+      "hint": "Deixar que os dois resolvam a situação por conta própria.",
+      "timeCost": {
+        "periods": 0
+      },
+      "effects": [
+        {
+          "type": "flag.set",
+          "flag": "day2.survivors.avoided",
+          "value": true
+        },
+        {
+          "type": "flag.set",
+          "flag": "day2.involvement.decided",
+          "value": true
+        },
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-met-at-rocky-bank"
+        }
+      ],
+      "feedback": "Você não assume responsabilidade pelo ferimento. Caio e Davi continuam procurando uma saída própria.",
+      "resolvesPresence": true
     }
   ]
 }

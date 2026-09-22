@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificado em 22 de setembro de 2026. Ainda não implementado.**
+**Especificado em 22 de setembro de 2026. Fatias A–C implementadas; atividades jogáveis e restante do Dia 2 entram nas Fatias D–G.**
 
 Este documento é o próximo passo narrativo depois do fechamento das Fatias A–G do Dia 1.
 

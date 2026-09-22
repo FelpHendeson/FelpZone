@@ -27,5 +27,14 @@
     },
     "campaignId": "first-day",
     "eventId": "day-two-awakening"
+  },
+  {
+    "id": "day-two-human-tracks",
+    "source": {
+      "type": "discovery.revealed",
+      "discoveryId": "multiple-human-tracks"
+    },
+    "campaignId": "first-day",
+    "eventId": "day-two-human-tracks"
   }
 ]

@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Fatias A–B implementadas e validadas; Fatias C–G pendentes.**
+**Especificada em 22 de setembro de 2026. Fatias A–C implementadas e validadas; Fatias D–G pendentes.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -706,7 +706,7 @@ Até lá, nenhuma UI do Dia 2 deve apresentar esses ciclos como próximos passos
 - cobertura dedicada em `contextual-activities.test.ts`;
 - fechamento: **93 arquivos de teste / 932 testes**, lint, typecheck e build PWA verdes.
 
-A próxima fatia é a **Fatia C — Jornada e primeiro contato**.
+A próxima fatia é a **Fatia D — Davi e primeira atividade**.
 
 ## Fatia B — Mundo do Dia 2 — **implementada**
 
@@ -717,13 +717,15 @@ A próxima fatia é a **Fatia C — Jornada e primeiro contato**.
 - testes verificam o gate do Dia 1, a reavaliação da Nascente, a revelação conjunta e as referências do pack.
 - fechamento: **94 arquivos de teste / 934 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
-## Fatia C — Jornada e primeiro contato
+## Fatia C — Jornada e primeiro contato — **implementada**
 
-- `day-two-others`;
-- eventos;
-- observar/falar/evitar;
-- estado herdado de Mira;
-- rotas sem Mira.
+- a jornada `day-two-others` acompanha sinais, localização, condição de Davi, decisão de envolvimento e intenção futura;
+- `multiple-human-tracks` aciona `day-two-human-tracks` pelo pipeline de `world-events`;
+- Caio e Davi podem ser observados, abordados ou evitados por interações declarativas;
+- o contato com Caio possui variantes para Mira próxima, Mira evitada e ausência de Mira;
+- ajudar, recusar responsabilidade ou ir embora registram decisão sem conceder relação, party ou posição social;
+- save/reload preserva a rota escolhida; a jornada permanece aberta para a intenção futura das Fatias D–F.
+- fechamento: **94 arquivos de teste / 938 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
 ## Fatia D — Davi e primeira atividade
 

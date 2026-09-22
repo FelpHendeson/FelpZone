@@ -220,6 +220,83 @@
         }
       ],
       "completionText": "A amizade com Mira passou a ter nome. Confiança e afinidade continuam caminhos distintos."
+    },
+    {
+      "id": "day-two-others",
+      "title": "Os outros",
+      "description": "Descubra quem mais está sobrevivendo perto de você e decida quanto espaço essas pessoas terão no seu segundo dia.",
+      "kind": "main",
+      "stepMode": "sequential",
+      "activation": {
+        "type": "criteria",
+        "criteria": [
+          {
+            "type": "flag.is",
+            "flag": "day2.started",
+            "value": true
+          }
+        ]
+      },
+      "steps": [
+        {
+          "id": "find-multiple-signs",
+          "title": "Encontre sinais de mais de uma pessoa",
+          "criteria": [
+            {
+              "type": "exploration.discovery.revealed",
+              "discoveryId": "multiple-human-tracks"
+            }
+          ]
+        },
+        {
+          "id": "locate-survivors",
+          "title": "Localize os sobreviventes",
+          "criteria": [
+            {
+              "type": "presence.discovered",
+              "presenceId": "caio-rocky-bank"
+            },
+            {
+              "type": "presence.discovered",
+              "presenceId": "davi-rocky-bank"
+            }
+          ]
+        },
+        {
+          "id": "understand-davi",
+          "title": "Entenda a situação de Davi",
+          "criteria": [
+            {
+              "type": "flag.is",
+              "flag": "day2.davi.condition.known",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "decide-involvement",
+          "title": "Decida se vai ajudar ou se afastar",
+          "criteria": [
+            {
+              "type": "flag.is",
+              "flag": "day2.involvement.decided",
+              "value": true
+            }
+          ]
+        },
+        {
+          "id": "learn-next-intent",
+          "title": "Descubra o que os sobreviventes pretendem fazer",
+          "criteria": [
+            {
+              "type": "flag.is",
+              "flag": "day2.group.intent.known",
+              "value": true
+            }
+          ]
+        }
+      ],
+      "completionText": "Você sabe quem são os outros sobreviventes próximos e qual direção eles pretendem seguir."
     }
   ]
 }

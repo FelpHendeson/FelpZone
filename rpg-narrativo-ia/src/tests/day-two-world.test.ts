@@ -1,12 +1,15 @@
 import { describe, expect, it } from 'vitest';
-import { startGame } from '../core/engine';
+import { applyChoice, startGame } from '../core/engine';
 import type { GameState } from '../core/state';
+import { parseGameState, serializeGameState } from '../infrastructure/persistence';
 import { inspectLocationAccess } from '../modules/navigation';
 import { loadFirstDayWorld } from '../modules/content';
 import { createSandboxContextFromWorld } from '../modules/sandbox';
 import { executeSandboxAction } from '../modules/sandbox-actions';
 import { listKnownPresencesAtLocation } from '../modules/presences';
 import { deriveNpcAt } from '../modules/npcs';
+import { getObjectiveStatus } from '../modules/objectives';
+import { resolveWorldNarrativeState } from '../ui/sandbox';
 import { now } from './helpers';
 
 const world = loadFirstDayWorld();
@@ -22,6 +25,24 @@ function startSandbox(): GameState {
     world.objectives,
   );
   return { ...state, narrativeSession: null };
+}
+
+function choose(state: GameState, choiceId: string): GameState {
+  return applyChoice(state, world.campaign, choiceId, now, world.objectives, context);
+}
+
+function reachRockyBank(flags: Record<string, boolean> = {}): GameState {
+  let state = startSandbox();
+  state = executeSandboxAction(state, { type: 'exploration.explore' }, options).current;
+  state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'spring-lake' }, options).current;
+  state = executeSandboxAction(state, { type: 'exploration.explore' }, options).current;
+  state = { ...state, flags: { ...state.flags, 'day2.started': true, ...flags } };
+  state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'awakening-clearing' }, options).current;
+  state = executeSandboxAction(state, { type: 'navigation.move', locationId: 'spring-lake' }, options).current;
+  state = resolveWorldNarrativeState(state, context, world.campaign, world.worldTriggers.definitions).current;
+  expect(state.narrativeSession?.eventId).toBe('day-two-human-tracks');
+  state = choose(state, 'follow-rocky-bank-signs');
+  return executeSandboxAction(state, { type: 'navigation.move', locationId: 'rocky-bank' }, options).current;
 }
 
 describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
@@ -67,5 +88,86 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
     expect(world.npcs.scheduleById.get('davi-routine')?.entries.every((entry) => entry.locationId === 'rocky-bank'))
       .toBe(true);
     expect(deriveNpcAt(world.npcs, { entries: [] }, 'caio-nascimento', 'manha', () => true)).toBeNull();
+  });
+
+  it('faz contato com Caio, reconhece Mira presente e registra uma decisão sobre Davi', () => {
+    let state = reachRockyBank({ 'camp.together': true });
+    expect(getObjectiveStatus(world.objectives, state.objectives, 'day-two-others')).toBe('active');
+
+    state = executeSandboxAction(state, {
+      type: 'presence.interact',
+      presenceId: 'caio-rocky-bank',
+      interactionId: 'talk-caio-rocky-bank',
+    }, options).current;
+    expect(state.narrativeSession?.eventId).toBe('caio-first-contact');
+    expect(state.relationships.find((entry) => entry.characterId === 'caio-nascimento')).toBeUndefined();
+
+    state = choose(state, 'caio-answer');
+    expect(state.narrativeSession?.eventId).toBe('caio-contact-with-mira');
+    state = choose(state, 'with-mira-check-davi');
+    expect(state.narrativeSession?.eventId).toBe('davi-condition');
+    state = choose(state, 'offer-davi-help');
+
+    expect(state.narrativeSession).toBeNull();
+    expect(state.flags['day2.davi.help.offered']).toBe(true);
+    expect(state.flags['day2.involvement.decided']).toBe(true);
+    expect(state.sandbox.npcs.entries.find((entry) => entry.npcId === 'davi-moura')?.memoryFactIds)
+      .toContain('davi-needs-rest');
+    const journey = state.objectives.entries.find((entry) => entry.objectiveId === 'day-two-others');
+    expect(journey?.completedStepIds).toEqual([
+      'find-multiple-signs', 'locate-survivors', 'understand-davi', 'decide-involvement',
+    ]);
+    expect(journey?.completed).toBe(false);
+  });
+
+  it('reconhece Mira evitada e permite recusar responsabilidade sem criar vínculo', () => {
+    let state = reachRockyBank({ 'mira.contact.avoided': true, 'camp.alone': true });
+    state = executeSandboxAction(state, {
+      type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'talk-caio-rocky-bank',
+    }, options).current;
+    state = choose(state, 'caio-answer');
+    expect(state.narrativeSession?.eventId).toBe('caio-contact-after-mira-avoidance');
+    state = choose(state, 'wary-check-davi');
+    state = choose(state, 'decline-davi-responsibility');
+
+    expect(state.flags['day2.davi.help.declined']).toBe(true);
+    expect(state.party.vitals).toEqual([]);
+    expect(state.relationships.find((entry) => entry.characterId === 'caio-nascimento')).toBeUndefined();
+    expect(state.relationships.find((entry) => entry.characterId === 'davi-moura')).toBeUndefined();
+  });
+
+  it('permite evitar o encontro sem Mira e deixa os sobreviventes no mundo', () => {
+    let state = reachRockyBank({ 'camp.alone': true });
+    state = executeSandboxAction(state, {
+      type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'avoid-caio-rocky-bank',
+    }, options).current;
+
+    expect(state.narrativeSession).toBeNull();
+    expect(state.flags['day2.survivors.avoided']).toBe(true);
+    expect(state.flags['day2.involvement.decided']).toBe(true);
+    expect(state.sandbox.presences.resolvedPresenceIds).toContain('caio-rocky-bank');
+    expect(state.sandbox.presences.discoveredPresenceIds).toContain('davi-rocky-bank');
+    expect(state.sandbox.npcs.entries.map((entry) => entry.npcId)).toEqual(
+      expect.arrayContaining(['caio-nascimento', 'davi-moura']),
+    );
+    expect(state.status).toBe('playing');
+  });
+
+  it('faz a rota de contato sem Mira e preserva a decisão após salvar e recarregar', () => {
+    let state = reachRockyBank({ 'camp.alone': true });
+    state = executeSandboxAction(state, {
+      type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'talk-caio-rocky-bank',
+    }, options).current;
+    state = choose(state, 'caio-answer');
+    expect(state.narrativeSession?.eventId).toBe('caio-contact-alone');
+    state = choose(state, 'alone-check-davi');
+    state = choose(state, 'leave-davi-undecided');
+
+    const loaded = parseGameState(serializeGameState(state, context, world.objectives), context, world.objectives);
+    expect(loaded.status).toBe('ok');
+    if (loaded.status !== 'ok') return;
+    expect(loaded.state.flags['day2.survivors.avoided']).toBe(true);
+    expect(loaded.state.flags['day2.involvement.decided']).toBe(true);
+    expect(loaded.state.status).toBe('playing');
   });
 });

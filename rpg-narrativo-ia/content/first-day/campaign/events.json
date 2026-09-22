@@ -1588,5 +1588,200 @@
         }
       }
     ]
+  },
+  {
+    "id": "day-two-human-tracks",
+    "title": "Mais de um caminho",
+    "body": "As marcas ao redor da Nascente não pertencem à mesma pessoa. Um passo é firme; o outro arrasta levemente antes de alcançar uma dobra de pedra. Pequenas manchas de sangue seco acompanham a trilha.\n\nAlguém ferido passou por aqui — e não estava sozinho.",
+    "image": {
+      "kind": "scene",
+      "label": "Rastros de duas pessoas junto à Nascente"
+    },
+    "choices": [
+      {
+        "id": "follow-rocky-bank-signs",
+        "label": "Registrar a direção dos rastros",
+        "effects": [],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "caio-first-contact",
+    "title": "Quem chega primeiro",
+    "body": "O homem em pé se coloca entre você e o ferido sem fazer ameaça aberta. Ele se apresenta como Caio. Atrás dele, Davi permanece apoiado nas pedras, atento à conversa.\n\nEles já passaram horas decidindo juntos o que fazer. Sua chegada muda a situação, mas não apaga o que começou antes de você.",
+    "portrait": {
+      "kind": "portrait",
+      "label": "Caio Nascimento"
+    },
+    "choices": [
+      {
+        "id": "caio-answer",
+        "label": "Dizer que não veio atacar",
+        "effects": [],
+        "transition": {
+          "type": "firstMatch",
+          "eventIds": [
+            "caio-contact-with-mira",
+            "caio-contact-after-mira-avoidance",
+            "caio-contact-alone"
+          ]
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "caio-contact-with-mira",
+    "title": "Quatro pessoas, nenhuma liderança",
+    "body": "Mira se mantém próxima o bastante para ser reconhecida, sem falar por você. Caio percebe a confiança entre vocês, mas continua avaliando cada movimento. Davi corta o silêncio antes que a cautela vire impasse.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "camp.together",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "with-mira-check-davi",
+        "label": "Perguntar o que aconteceu com Davi",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.davi.condition.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "davi-condition"
+        }
+      }
+    ]
+  },
+  {
+    "id": "caio-contact-after-mira-avoidance",
+    "title": "Uma distância reconhecível",
+    "body": "Caio nota o modo como você preserva distância. Você já fez isso antes com outra sobrevivente. Dessa vez, Davi não consegue simplesmente seguir caminho, e a perna ruim torna a decisão mais concreta.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "mira.contact.avoided",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "wary-check-davi",
+        "label": "Ouvir sem se comprometer",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.davi.condition.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "davi-condition"
+        }
+      }
+    ]
+  },
+  {
+    "id": "caio-contact-alone",
+    "title": "Três desconhecidos",
+    "body": "Nenhum de vocês possui autoridade sobre os outros. Caio explica apenas o necessário: encontrou Davi depois do Reset, e a perna dele piorou durante a noite. Davi acrescenta que consegue pensar e decidir por si mesmo.",
+    "choices": [
+      {
+        "id": "alone-check-davi",
+        "label": "Entender o limite do ferimento",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.davi.condition.known",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "event",
+          "eventId": "davi-condition"
+        }
+      }
+    ]
+  },
+  {
+    "id": "davi-condition",
+    "title": "Uma perna ruim",
+    "body": "Davi consegue ficar de pé, mas não por muito tempo. Ele não pede que você resolva tudo. Caio quer alcançar um ponto menos exposto; Davi prefere não transformar uma lesão em ordem para ninguém.\n\nA situação exige uma decisão sobre envolvimento, não uma promessa de cura.",
+    "portrait": {
+      "kind": "portrait",
+      "label": "Davi Moura"
+    },
+    "choices": [
+      {
+        "id": "offer-davi-help",
+        "label": "Dizer que pode ajudar a encontrar um lugar melhor",
+        "notable": true,
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.davi.help.offered",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.involvement.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "decline-davi-responsibility",
+        "label": "Deixar claro que não vai assumir essa responsabilidade",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.davi.help.declined",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.involvement.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "leave-davi-undecided",
+        "label": "Manter distância e ir embora",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day2.survivors.avoided",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day2.involvement.decided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
   }
 ]

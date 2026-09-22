@@ -39,7 +39,7 @@ describe('catálogo de gatilhos de mundo', () => {
 
     expect(active.ok).toBe(true);
     if (active.ok) {
-      expect(active.value.definitions).toHaveLength(3);
+      expect(active.value.definitions).toHaveLength(4);
       expect(active.value.definitions[0]).toMatchObject({
         id: 'first-numen-practice',
         source: {
@@ -57,6 +57,11 @@ describe('catálogo de gatilhos de mundo', () => {
         id: 'day-two-start',
         source: { type: 'world.day.min', day: 2 },
         eventId: 'day-two-awakening',
+      });
+      expect(active.value.definitions[3]).toMatchObject({
+        id: 'day-two-human-tracks',
+        source: { type: 'discovery.revealed', discoveryId: 'multiple-human-tracks' },
+        eventId: 'day-two-human-tracks',
       });
     }
 

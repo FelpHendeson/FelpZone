@@ -58,7 +58,7 @@ A implementação do novo Dia 1 também está especificada em [Dia 1 — impleme
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
-O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. As **Fatias A–B estão implementadas**: Atividades Contextuais usam schema 26, pack, planner/apply, `activity.perform`, UI e guidance; a Margem Rochosa, as pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças já compõem o mundo. O catálogo de atividades segue vazio até a Fatia D. Jornada, primeiro contato, tensão pela água e decisões de cooperação ainda não estão implementados. A próxima etapa é a Fatia C — Jornada e primeiro contato.
+O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. As **Fatias A–C estão implementadas**: Atividades Contextuais usam schema 26; a Margem Rochosa, as pistas e Caio/Davi compõem o mundo; `day-two-others` e as rotas de observar, abordar ou evitar reconhecem Mira próxima, evitada ou ausente. O catálogo de atividades segue vazio até a Fatia D. A próxima etapa é Davi e a primeira atividade compartilhada.
 
 ## Metas de experiência definidas
 
@@ -266,7 +266,7 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 29 estão implementados e consolidados.** O Dia 1 fechou no schema 25. A Fatia A do Dia 2 adicionou Atividades Contextuais e avançou o save para **schema 26** sem criar Sistema 30. A Fatia B adicionou mapa, pistas e sobreviventes sem alterar o schema. O próximo trabalho é a Fatia C — Jornada e primeiro contato.
+**Os Sistemas 1 a 29 estão implementados e consolidados.** O Dia 1 fechou no schema 25. A Fatia A do Dia 2 adicionou Atividades Contextuais e avançou o save para **schema 26** sem criar Sistema 30. As Fatias B–C adicionaram mapa, sobreviventes, jornada e primeiro contato sem alterar o schema. O próximo trabalho é a Fatia D — Davi e primeira atividade.
 
 Antes de um novo eixo:
 
