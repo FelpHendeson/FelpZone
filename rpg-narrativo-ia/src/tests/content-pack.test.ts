@@ -36,7 +36,7 @@ describe('pack de mundo e ContentSource', () => {
       { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' },
       { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },
     ]);
-    expect(SCHEMA_VERSION).toBe(25);
+    expect(SCHEMA_VERSION).toBe(26);
 
     const hostile = structuredClone(assembleFirstDayRaw()) as { skills: { skills: unknown[] } };
     hostile.skills.skills = [];
