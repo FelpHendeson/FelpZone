@@ -3,11 +3,21 @@
   "$id": "https://felpzone.local/content-pack.schema.json",
   "title": "FelpZone content pack",
   "type": "object",
-  "required": ["id", "startingLocationId", "files"],
+  "required": [
+    "id",
+    "startingLocationId",
+    "files"
+  ],
   "additionalProperties": false,
   "properties": {
-    "id": { "type": "string", "minLength": 1 },
-    "startingLocationId": { "type": "string", "minLength": 1 },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "startingLocationId": {
+      "type": "string",
+      "minLength": 1
+    },
     "files": {
       "type": "object",
       "required": [
@@ -45,45 +55,155 @@
         "events",
         "worldTriggers",
         "firstPriorityTrigger",
-        "labels"
+        "labels",
+        "activities"
       ],
       "additionalProperties": false,
       "properties": {
-        "map": { "type": "string", "minLength": 1 },
-        "exploration": { "type": "string", "minLength": 1 },
-        "populations": { "type": "string", "minLength": 1 },
-        "resourceNodes": { "type": "string", "minLength": 1 },
-        "presences": { "type": "string", "minLength": 1 },
-        "presenceInteractions": { "type": "string", "minLength": 1 },
-        "interactables": { "type": "string", "minLength": 1 },
-        "bonds": { "type": "string", "minLength": 1 },
-        "organizations": { "type": "string", "minLength": 1 },
-        "party": { "type": "string", "minLength": 1 },
-        "calendar": { "type": "string", "minLength": 1 },
-        "family": { "type": "string", "minLength": 1 },
-        "civic": { "type": "string", "minLength": 1 },
-        "economy": { "type": "string", "minLength": 1 },
-        "settlements": { "type": "string", "minLength": 1 },
-        "politics": { "type": "string", "minLength": 1 },
-        "registry": { "type": "string", "minLength": 1 },
-        "npcs": { "type": "string", "minLength": 1 },
-        "energetics": { "type": "string", "minLength": 1 },
-        "skills": { "type": "string", "minLength": 1 },
-        "training": { "type": "string", "minLength": 1 },
-        "mastery": { "type": "string", "minLength": 1 },
-        "garden": { "type": "string", "minLength": 1 },
-        "items": { "type": "string", "minLength": 1 },
-        "conditions": { "type": "string", "minLength": 1 },
-        "execution": { "type": "string", "minLength": 1 },
-        "combat": { "type": "string", "minLength": 1 },
-        "craftingRecipes": { "type": "string", "minLength": 1 },
-        "craftingStructures": { "type": "string", "minLength": 1 },
-        "objectives": { "type": "string", "minLength": 1 },
-        "campaign": { "type": "string", "minLength": 1 },
-        "events": { "type": "string", "minLength": 1 },
-        "worldTriggers": { "type": "string", "minLength": 1 },
-        "firstPriorityTrigger": { "type": "string", "minLength": 1 },
-        "labels": { "type": "string", "minLength": 1 }
+        "map": {
+          "type": "string",
+          "minLength": 1
+        },
+        "exploration": {
+          "type": "string",
+          "minLength": 1
+        },
+        "populations": {
+          "type": "string",
+          "minLength": 1
+        },
+        "resourceNodes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "presences": {
+          "type": "string",
+          "minLength": 1
+        },
+        "presenceInteractions": {
+          "type": "string",
+          "minLength": 1
+        },
+        "interactables": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bonds": {
+          "type": "string",
+          "minLength": 1
+        },
+        "organizations": {
+          "type": "string",
+          "minLength": 1
+        },
+        "party": {
+          "type": "string",
+          "minLength": 1
+        },
+        "calendar": {
+          "type": "string",
+          "minLength": 1
+        },
+        "family": {
+          "type": "string",
+          "minLength": 1
+        },
+        "civic": {
+          "type": "string",
+          "minLength": 1
+        },
+        "economy": {
+          "type": "string",
+          "minLength": 1
+        },
+        "settlements": {
+          "type": "string",
+          "minLength": 1
+        },
+        "politics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "registry": {
+          "type": "string",
+          "minLength": 1
+        },
+        "npcs": {
+          "type": "string",
+          "minLength": 1
+        },
+        "energetics": {
+          "type": "string",
+          "minLength": 1
+        },
+        "skills": {
+          "type": "string",
+          "minLength": 1
+        },
+        "training": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mastery": {
+          "type": "string",
+          "minLength": 1
+        },
+        "garden": {
+          "type": "string",
+          "minLength": 1
+        },
+        "items": {
+          "type": "string",
+          "minLength": 1
+        },
+        "conditions": {
+          "type": "string",
+          "minLength": 1
+        },
+        "execution": {
+          "type": "string",
+          "minLength": 1
+        },
+        "combat": {
+          "type": "string",
+          "minLength": 1
+        },
+        "craftingRecipes": {
+          "type": "string",
+          "minLength": 1
+        },
+        "craftingStructures": {
+          "type": "string",
+          "minLength": 1
+        },
+        "objectives": {
+          "type": "string",
+          "minLength": 1
+        },
+        "campaign": {
+          "type": "string",
+          "minLength": 1
+        },
+        "events": {
+          "type": "string",
+          "minLength": 1
+        },
+        "worldTriggers": {
+          "type": "string",
+          "minLength": 1
+        },
+        "firstPriorityTrigger": {
+          "type": "string",
+          "minLength": 1
+        },
+        "labels": {
+          "type": "string",
+          "minLength": 1
+        },
+        "activities": {
+          "type": "string",
+          "minLength": 1
+        }
       }
     }
   }
