@@ -362,4 +362,25 @@ Antes de implementar, definir:
 
 **Concluída em 22 de setembro de 2026.** O playtest integrado encontrou e corrigiu um gargalo de tempo entre treino, água, sinais humanos, Mira e primeira noite. A Clareira mantém 10% por exploração; sinais e caminho da Nascente entram em 10%, Mira em 20%; a Nascente é um destino local de custo 0. As rotas com contato e evasão chegam ao Dia 2 sem encerrar a partida. Consulte [Dia 1 — Playtest da Fatia G](DAY-1-PLAYTEST.md).
 
-**Próxima etapa narrativa:** especificação detalhada do Dia 2.
+**Próxima etapa narrativa concluída:** Dia 2 especificado. A próxima implementação é a Fatia A do Dia 2.
+
+
+### Dia 2 — Os outros
+
+**Especificado em 22 de setembro de 2026. Ainda não implementado.**
+
+O segundo dia parte do estado real herdado da primeira noite e muda o foco de sobrevivência individual para convivência. Caio Nascimento e Davi Moura entram como sobreviventes que já possuem relação e decisões próprias; a Margem Rochosa amplia o mapa; a Nascente passa a gerar a primeira tensão social sobre recurso comum. Mira pode estar presente, distante, evitada ou sequer ter sido conhecida.
+
+A implementação está dividida em A–G:
+
+1. Atividades Contextuais + schema 26;
+2. mundo do Dia 2;
+3. jornada e primeiro contato;
+4. Davi + primeira atividade compartilhada;
+5. água e tensão social;
+6. autonomia e encerramento;
+7. playtest do Dia 2.
+
+A mecânica transversal está em [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md). Ela representa ações situadas com tempo e participantes sem transformar cooperação emergencial em profissão, party ou assentamento.
+
+Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementação](DAY-2-IMPLEMENTATION-SPEC.md).
