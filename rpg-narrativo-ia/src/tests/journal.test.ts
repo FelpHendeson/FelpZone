@@ -144,6 +144,9 @@ describe('Fatia 10.3 — diário derivado', () => {
         discoveries: [
           { id: 'awakening-site', name: 'Marca do despertar', kind: 'landmark' },
           { id: 'first-priority-event', name: 'Leitura inicial da clareira', kind: 'landmark' },
+          { id: 'human-footprints', name: 'Pegadas humanas recentes', kind: 'landmark' },
+          { id: 'human-cut-branch', name: 'Ramo cortado de propósito', kind: 'landmark' },
+          { id: 'path-spring-lake', name: 'Passagem para a Nascente', kind: 'passage' },
         ],
       }),
     ]);
