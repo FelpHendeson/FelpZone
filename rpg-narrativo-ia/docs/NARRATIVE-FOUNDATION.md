@@ -382,6 +382,8 @@ O conflito central ainda não é uma grande facção.
 
 É convivência.
 
+O recorte jogável do Dia 2 está em [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md); a ponte para cooperação cotidiana opcional no Dia 3 está em [Dia 3 — especificação narrativa e jogável](DAY-3-NARRATIVE-SPEC.md).
+
 Perguntas importantes:
 
 - quem possui a água encontrada?

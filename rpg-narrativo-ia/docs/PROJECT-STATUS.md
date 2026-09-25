@@ -58,7 +58,7 @@ A implementação do novo Dia 1 também está especificada em [Dia 1 — impleme
 
 Assentamentos e facções estão confirmados como parte do universo narrativo. Administração de base, território, assentamento, diplomacia e facções jogáveis foram implementados nos Sistemas 28 e 29, dentro dos recortes documentados.
 
-O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. As **Fatias A–G do Dia 2 estão implementadas e validadas** no schema 26: mundo e sobreviventes, primeiro contato, atividades de Davi e sobre água, encerramentos variáveis e playtest ponta a ponta das rotas de cooperação, afastamento e ausência de encontro. Próxima etapa: especificar o Dia 3.
+O [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) e a [implementação do Dia 2](DAY-2-IMPLEMENTATION-SPEC.md) estão especificados. As **Fatias A–G do Dia 2 estão implementadas e validadas** no schema 26: mundo e sobreviventes, primeiro contato, atividades de Davi e sobre água, encerramentos variáveis e playtest ponta a ponta das rotas de cooperação, afastamento e ausência de encontro. O [Dia 3 — especificação narrativa e jogável](DAY-3-NARRATIVE-SPEC.md) agora define a ponte para cooperação cotidiana opcional. Próxima etapa: especificar o recorte técnico do Dia 3 antes de implementar.
 
 ## Metas de experiência definidas
 
@@ -266,7 +266,7 @@ Não crie numeração de sistema, contrato, schema ou prompt de implementação 
 
 O marco mínimo da integração explorável foi atingido: o jogador desperta, escolhe uma capacidade, explora e encontra conteúdo por ações no mundo.
 
-**Os Sistemas 1 a 29 estão implementados e consolidados.** O Dia 1 fechou no schema 25. A Fatia A do Dia 2 adicionou Atividades Contextuais e avançou o save para **schema 26** sem criar Sistema 30. As Fatias B–G adicionaram mapa, sobreviventes, jornada, atividades, tensão social, encerramento variável e validação integrada sem alterar o schema 26. O próximo trabalho é especificar narrativamente o Dia 3.
+**Os Sistemas 1 a 29 estão implementados e consolidados.** O Dia 1 fechou no schema 25. A Fatia A do Dia 2 adicionou Atividades Contextuais e avançou o save para **schema 26** sem criar Sistema 30. As Fatias B–G adicionaram mapa, sobreviventes, jornada, atividades, tensão social, encerramento variável e validação integrada sem alterar o schema 26. A especificação narrativa do Dia 3 está em [Dia 3 — especificação narrativa e jogável](DAY-3-NARRATIVE-SPEC.md); o próximo trabalho é converter sua direção em um recorte técnico revisável.
 
 Antes de um novo eixo:
 

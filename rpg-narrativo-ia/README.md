@@ -29,6 +29,7 @@ Leia nesta ordem:
      - [Atividades Contextuais](docs/MECHANIC-CONTEXTUAL-ACTIVITIES.md): ações compartilhadas com tempo, participantes e consequências sem criar Sistema 30.
      - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
      - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
+   - [Dia 3 — especificação narrativa e jogável](docs/DAY-3-NARRATIVE-SPEC.md): cooperação opcional diante de necessidades cotidianas, com continuidade das rotas e sem formalizar uma comunidade.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
 4. [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md): sistemas como blocos, packs como configuração e campanhas como histórias.
 5. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
@@ -71,7 +72,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dia 1 fechado em A–G e Dia 2 com Fatias A–G implementadas e validadas. Próximo: especificar o Dia 3 antes de iniciar outra implementação.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dias 1 e 2 fechados; Dia 3 especificado narrativamente. Próximo: definir o recorte técnico do Dia 3 antes da implementação.
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
