@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificada em 22 de setembro de 2026. Fatias A–F implementadas e validadas; a Fatia G está pendente.**
+**Especificada em 22 de setembro de 2026. Fatias A–G implementadas e validadas em 25 de setembro de 2026.**
 
 Esta especificação converte [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md) em trabalho técnico.
 
@@ -752,41 +752,11 @@ A próxima fatia é a **Fatia G — Playtest do Dia 2**.
 - `day3.started` e a decisão narrativa persistem sem novo schema.
 - fechamento: **94 arquivos de teste / 942 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
-## Fatia G — Playtest do Dia 2
+## Fatia G — Playtest do Dia 2 — **implementada**
 
-Rotas obrigatórias:
+Playtest ponta a ponta iniciado no Dia 1 e atravessando descanso real, com três rotas: acompanhar Davi e conversar sobre a água após coletá-la; evitar Caio e seguir sobrevivendo por conta própria; e não visitar a Nascente nem localizar a Margem Rochosa. As três chegam ao Dia 3 por passagem real do relógio, preservam o sandbox aberto e não criam party. A rota cooperativa também confirma objetivos, inventário e flags após save/reload; a rota de afastamento mantém contato não estabelecido; a rota solo apresenta sinais distantes sem forçar encontro. Mira foi evitada no Dia 1 para validar essa condição herdada.
 
-```text
-Dia 2
-→ sinais
-→ Caio/Davi
-→ ajudar
-→ atividade compartilhada
-→ noite
-→ Dia 3
-```
-
-```text
-Dia 2
-→ sinais
-→ evita Caio/Davi
-→ segue vida própria
-→ percebe organização à distância
-→ noite
-→ Dia 3
-```
-
-Rota de robustez:
-
-```text
-Dia 2
-→ não vai à Nascente
-→ não encontra Margem Rochosa
-→ mundo continua
-→ Dia 3
-```
-
----
+Fechamento: **95 arquivos / 945 testes aprovados**, lint, typecheck e build PWA verdes; schema 26. O playtest não encontrou novos bloqueios de pacing nem regressões.
 
 # 25. Testes obrigatórios
 

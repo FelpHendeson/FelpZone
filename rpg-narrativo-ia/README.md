@@ -25,7 +25,7 @@ Leia nesta ordem:
      - [Implementação do Dia 1](docs/DAY-1-IMPLEMENTATION-SPEC.md): schemas 24–25, conteúdo, fatias e testes.
      - [Playtest do Dia 1](docs/DAY-1-PLAYTEST.md): rotas integradas, achados de pacing e fechamento da Fatia G.
    - [Dia 2 — especificação narrativa e jogável](docs/DAY-2-NARRATIVE-SPEC.md): Caio, Davi, Margem Rochosa, tensão da água, autonomia dos sobreviventes e entrada gradual na convivência.
-     - [Implementação do Dia 2](docs/DAY-2-IMPLEMENTATION-SPEC.md): Fatias A–F implementadas no schema 26; a Fatia G cobre o playtest integrado.
+     - [Implementação do Dia 2](docs/DAY-2-IMPLEMENTATION-SPEC.md): Fatias A–G do Dia 2 implementadas no schema 26 e validadas em rotas integradas.
      - [Atividades Contextuais](docs/MECHANIC-CONTEXTUAL-ACTIVITIES.md): ações compartilhadas com tempo, participantes e consequências sem criar Sistema 30.
      - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
      - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
@@ -71,7 +71,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dia 1 fechado em A–G e Dia 2 com Fatias A–F implementadas. A próxima implementação é a Fatia G — Playtest do Dia 2.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dia 1 fechado em A–G e Dia 2 com Fatias A–G implementadas e validadas. Próximo: especificar o Dia 3 antes de iniciar outra implementação.
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -161,7 +161,7 @@ O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do r
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 94 arquivos / 942 testes após a Fatia F do Dia 2, incluindo as rotas completas do Dia 1, Atividades Contextuais, mundo, primeiro contato, atividade de Davi, tensão da água e três rotas de encerramento, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
+- `npm test`: 95 arquivos / 945 testes após a Fatia G do Dia 2, incluindo as rotas integradas de cooperação, afastamento e ausência de encontro, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Na Clareira do Despertar, pegadas e outros sinais humanos aparecem antes de `mira-nearby`. Mira pode ser observada, abordada ou evitada; conversar abre `survivor-meet` e retorna ao sandbox após a troca. A primeira noite é acionada pelo relógio, não pela conversa, e o Dia 2 começa depois do avanço real de tempo pelo sandbox.

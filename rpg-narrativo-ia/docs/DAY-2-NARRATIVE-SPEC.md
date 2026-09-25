@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificado em 22 de setembro de 2026. Fatias A–F implementadas; o playtest integrado está na Fatia G.**
+**Especificado em 22 de setembro de 2026. Fatias A–G implementadas; playtest integrado validou cooperação, afastamento e ausência de encontro.**
 
 Este documento é o próximo passo narrativo depois do fechamento das Fatias A–G do Dia 1.
 

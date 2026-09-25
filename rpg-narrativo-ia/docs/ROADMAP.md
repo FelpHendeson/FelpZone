@@ -367,7 +367,7 @@ Antes de implementar, definir:
 
 ### Dia 2 — Os outros
 
-**Especificado em 22 de setembro de 2026. Fatias A–F implementadas.**
+**Especificado em 22 de setembro de 2026. Fatias A–G implementadas e validadas.**
 
 O segundo dia parte do estado real herdado da primeira noite e muda o foco de sobrevivência individual para convivência. Caio Nascimento e Davi Moura entram como sobreviventes que já possuem relação e decisões próprias; a Margem Rochosa amplia o mapa; a Nascente passa a gerar a primeira tensão social sobre recurso comum. Mira pode estar presente, distante, evitada ou sequer ter sido conhecida.
 
@@ -379,10 +379,10 @@ A implementação está dividida em A–G:
 4. **Davi + primeira atividade compartilhada — implementada**;
 5. **água e tensão social — implementada**;
 6. **autonomia e encerramento — implementada**;
-7. playtest do Dia 2.
+7. **playtest do Dia 2 — implementada; 95 arquivos / 945 testes, lint, typecheck e build verdes.**
 
 A mecânica transversal está em [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md). Ela representa ações situadas com tempo e participantes sem transformar cooperação emergencial em profissão, party ou assentamento.
 
-A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. A Fatia C acrescentou `day-two-others`, o evento dos rastros e as rotas de contato ou afastamento, com e sem Mira. A Fatia D publicou `escort-davi-to-clearing`, relocação persistente e a cena de chegada. A Fatia E adicionou a conversa contextual sobre o uso da Nascente, escolhas persistentes e jornada de coleta real, sem alterar schema nem criar leis/propriedade. A Fatia F adiciona os encerramentos condicionais do Dia 2 e entrada no Dia 3 pelo relógio real, incluindo a rota sem encontrar os sobreviventes. **Próxima etapa: Fatia G — Playtest do Dia 2.**
+A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. A Fatia C acrescentou `day-two-others`, o evento dos rastros e as rotas de contato ou afastamento, com e sem Mira. A Fatia D publicou `escort-davi-to-clearing`, relocação persistente e a cena de chegada. A Fatia E adicionou a conversa contextual sobre o uso da Nascente, escolhas persistentes e jornada de coleta real, sem alterar schema nem criar leis/propriedade. A Fatia F adiciona os encerramentos condicionais do Dia 2 e entrada no Dia 3 pelo relógio real, incluindo a rota sem encontrar os sobreviventes. A Fatia G percorre as três rotas integradas a partir do Dia 1, confirmando persistência e continuidade do sandbox. **O Dia 2 está fechado; a próxima etapa é especificar o Dia 3.**
 
 Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementação](DAY-2-IMPLEMENTATION-SPEC.md).
