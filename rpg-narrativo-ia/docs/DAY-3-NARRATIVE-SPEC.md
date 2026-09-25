@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificação narrativa inicial.** Nenhum conteúdo ou código do Dia 3 foi implementado por este documento. O contrato técnico, as fatias e os critérios de validação ainda precisam ser definidos antes da implementação.
+**Especificação narrativa concluída.** Nenhum conteúdo ou código de continuação do Dia 3 foi implementado. O recorte técnico está definido em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
 
 O Dia 3 parte do estado real ao fim do Dia 2: o jogador pode estar sozinho ou próximo de Caio, Davi e Mira; pode ter cooperado, mantido distância ou ainda não encontrado os sobreviventes. O mundo e o relógio continuam sendo a fonte canônica desses fatos.
 
@@ -12,6 +12,7 @@ Referências:
 - [Dia 1 — especificação narrativa e jogável](DAY-1-NARRATIVE-SPEC.md);
 - [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md);
 - [Dia 2 — implementação](DAY-2-IMPLEMENTATION-SPEC.md);
+- [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md);
 - [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md).
 
 ---
@@ -187,4 +188,4 @@ Uma futura especificação técnica do Dia 3 deve demonstrar que:
 
 # 11. Próximo passo
 
-Especificar a implementação do Dia 3 em fatias pequenas, escolhendo a primeira necessidade cotidiana que prove cooperação opcional e preservação das rotas. Essa especificação técnica deverá definir conteúdo, contratos existentes reutilizados, possíveis alterações de estado, validação integrada e itens fora do escopo antes de qualquer implementação.
+A implementação técnica do Dia 3 está especificada em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md). O próximo passo é executar sua Fatia A: validar a entrada já existente e fechar as lacunas de regressão antes de adicionar conteúdo.

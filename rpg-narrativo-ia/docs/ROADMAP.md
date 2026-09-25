@@ -389,10 +389,11 @@ Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementa�
 
 ### Dia 3 — Cooperação por necessidade
 
-**Especificação narrativa concluída. Implementação ainda não especificada.**
+**Especificações narrativa e técnica concluídas; implementação ainda não iniciada.**
 
 O Dia 3 parte das rotas reais do Dia 2 e apresenta custos cotidianos que podem ser reduzidos por cooperação voluntária. O jogador pode participar, negociar, recusar ou seguir sozinho; os sobreviventes continuam com objetivos próprios. Atividades têm tempo e efeitos reais, mas não criam party, emprego, assentamento ou obrigação de compartilhar recursos.
 
-Próximo passo: escrever a especificação técnica em fatias pequenas, eleger a primeira necessidade cotidiana e definir como validar cooperação opcional e ausência de encontro sem quebrar o sandbox. Nenhuma implementação do Dia 3 está autorizada por esta especificação narrativa.
+O recorte técnico está organizado em quatro fatias: validar a entrada existente e sua cobertura de regressão, adicionar uma atividade opcional de comparação de acessos à Nascente com Caio, cobrir disponibilidade e autonomia e fechar com playtest integrado. Mantém o schema 26 e o contrato atual de Atividades Contextuais.
 
 Consulte [Dia 3 — narrativa](DAY-3-NARRATIVE-SPEC.md).
+Consulte também [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
