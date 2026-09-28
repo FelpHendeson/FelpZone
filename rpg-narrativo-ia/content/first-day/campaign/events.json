@@ -2075,5 +2075,80 @@
         }
       }
     ]
+  },
+  {
+    "id": "night-watch-proposal",
+    "title": "Quem fica de olho",
+    "body": "Caio admite que não dorme direito desde que encontrou Davi: prefere vigiar a arriscar que algo aconteça enquanto os dois descansam. Ele não está pedindo uma promessa permanente, só uma noite em que não precise ficar com os olhos abertos sozinho.\n\nDavi ouve calado. Sabe que ainda não consegue assumir turno nenhum, e ninguém aqui espera que ele finja o contrário.",
+    "portrait": {
+      "kind": "portrait",
+      "label": "Caio Nascimento"
+    },
+    "choices": [
+      {
+        "id": "take-watch-alone",
+        "label": "Assumir a vigília sozinho para que Caio durma de verdade",
+        "notable": true,
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.watch.covered",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day3.watch.taken-by-player",
+            "value": true
+          },
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 14
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "split-the-watch",
+        "label": "Propor revezar a vigília em turnos",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.watch.covered",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day3.watch.shared",
+            "value": true
+          },
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 8
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "decline-watch-duty",
+        "label": "Dizer que precisa cuidar da própria rotina essa noite",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day3.watch.declined",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
   }
 ]

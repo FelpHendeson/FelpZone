@@ -124,6 +124,66 @@
         "eventId": "water-question"
       },
       "feedback": "Caio expõe sua preocupação sobre o acesso à fonte."
+    },
+    {
+      "id": "share-night-watch-with-caio",
+      "label": "Ouvir Caio sobre a vigília",
+      "description": "Caio quer decidir com você quem cobre a vigília desta noite na Margem Rochosa.",
+      "locationId": "rocky-bank",
+      "timeCost": {
+        "periods": 1
+      },
+      "repeatable": false,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day3.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "npc.known",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "caio-nascimento"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "caio-nascimento"
+        ],
+        "optionalNpcIds": [
+          "davi-moura"
+        ],
+        "minOptional": 0,
+        "maxOptional": 1
+      },
+      "effects": [
+        {
+          "type": "npc.rememberFact",
+          "npcId": "caio-nascimento",
+          "factId": "caio-watch-request-heard"
+        },
+        {
+          "type": "guidance.unlock",
+          "topicId": "contextual-activities"
+        }
+      ],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "night-watch-proposal"
+      },
+      "feedback": "Caio explica que não dorme direito desde que encontrou Davi e pergunta se vocês podem dividir a vigília."
     }
   ]
 }

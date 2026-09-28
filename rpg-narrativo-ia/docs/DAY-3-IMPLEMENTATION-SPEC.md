@@ -2,17 +2,18 @@
 
 ## Estado
 
-**Especificada; nenhuma fatia implementada.** Este documento converte a [especificação narrativa do Dia 3](DAY-3-NARRATIVE-SPEC.md) em uma sequência de trabalho. O primeiro dia jogável termina no sandbox do Dia 3; o restante do Dia 3 ainda precisa de conteúdo.
+**Fatias A e B implementadas.** Este documento converte a [especificação narrativa do Dia 3](DAY-3-NARRATIVE-SPEC.md) em uma sequência de trabalho.
 
 A campanha first-day já contém:
 
 - o world trigger day-three-start, condicionado por day2.started;
-- day-three-awakening e quatro variantes de continuidade;
+- day-three-awakening e quatro variantes de continuidade, agora com as quatro rotas cobertas por teste integrado (`day-two-playtest.test.ts`), incluindo `day-three-independent`, que não tinha regressão própria;
 - a flag day3.started, definida antes de voltar ao sandbox;
 - atividades contextuais e o estado persistente activities.consumedActivityIds;
+- a primeira atividade jogável do Dia 3 — `share-night-watch-with-caio` — e o evento `night-watch-proposal`, cobertos em `src/tests/day-three.test.ts`;
 - as rotas integradas Dia 1 → Dia 2 → amanhecer do Dia 3 nos testes day-two-playtest.
 
-As Fatias A–D abaixo ampliam a experiência depois do amanhecer. Não duplicar nem substituir a entrada existente sem um defeito demonstrado.
+**Mudança de conteúdo em relação à primeira versão desta especificação:** a seção 3 originalmente propunha `compare-spring-paths-with-caio`, uma segunda conversa sobre a Nascente. Ela foi descartada porque duplicava o tema de `discuss-water-with-caio` (Dia 2, Fatia E) no mesmo local com o mesmo NPC. A atividade implementada usa a Margem Rochosa e o tema da vigília noturna, que a especificação narrativa já lista como pressão dramática válida ("vigiar reduz o tempo disponível para outras tarefas") e ainda não tinha sido jogada. As Fatias C–D abaixo permanecem como próximo trabalho.
 
 Referências:
 
@@ -61,117 +62,118 @@ O pack é a fonte da disponibilidade. Caio só pode ser escolhido se for conheci
 
 ---
 
-# 3. Conteúdo da primeira atividade
+# 3. Conteúdo da primeira atividade — implementada
 
-ID proposto:
+ID:
 
-compare-spring-paths-with-caio
+share-night-watch-with-caio
 
 Local:
 
-spring-lake
+rocky-bank
 
 Disponível quando:
 
 - day3.started = true;
 - day2.survivors.contact = true;
-- Caio é conhecido, está na Nascente e está disponível;
+- Caio é conhecido, está na Margem Rochosa e está disponível;
 - a atividade ainda não foi consumida.
 
-Declarar também npc.known para caio-nascimento: o planejador valida presença e disponibilidade de participantes obrigatórios, mas não infere que o jogador conhece essa pessoa. Manter day2.survivors.contact como gate explícito para não iniciar contato retroativo. O texto da atividade apresenta a revisão como convite de Caio; executá-la é a aceitação voluntária do jogador, e disponibilidade oculta ou ocupada impede a oferta.
+Declarar também npc.known para caio-nascimento: o planejador valida presença e disponibilidade de participantes obrigatórios, mas não infere que o jogador conhece essa pessoa. Manter day2.survivors.contact como gate explícito para não iniciar contato retroativo. Davi participa apenas como testemunha opcional (0–1): ele não assume turno, mas pode estar presente pela agenda. O texto da atividade apresenta a conversa como iniciativa de Caio; executá-la é a aceitação voluntária do jogador, e disponibilidade oculta ou ocupada impede a oferta.
 
-Definição conceitual:
+Definição implementada (`content/first-day/world/activities.json`):
 
 ~~~json
 {
-  "id": "compare-spring-paths-with-caio",
-  "label": "Comparar os acessos à Nascente com Caio",
-  "description": "Rever os caminhos que vocês conhecem e combinar qual observar depois.",
-  "locationId": "spring-lake",
+  "id": "share-night-watch-with-caio",
+  "label": "Ouvir Caio sobre a vigília",
+  "description": "Caio quer decidir com você quem cobre a vigília desta noite na Margem Rochosa.",
+  "locationId": "rocky-bank",
   "timeCost": { "periods": 1 },
   "repeatable": false,
   "requirements": [
     { "type": "flag.is", "flag": "day3.started", "value": true },
     { "type": "flag.is", "flag": "day2.survivors.contact", "value": true },
-    { "type": "npc.known", "npcId": "caio-nascimento" }
+    { "type": "npc.known", "npcId": "caio-nascimento" },
+    { "type": "npc.present", "npcId": "caio-nascimento" },
+    { "type": "npc.available", "npcId": "caio-nascimento" }
   ],
   "participants": {
     "requiredNpcIds": ["caio-nascimento"],
-    "optionalNpcIds": [],
+    "optionalNpcIds": ["davi-moura"],
     "minOptional": 0,
-    "maxOptional": 0
+    "maxOptional": 1
   },
   "effects": [
-    { "type": "flag.set", "flag": "day3.spring-paths.compared", "value": true },
-    {
-      "type": "npc.rememberFact",
-      "npcId": "caio-nascimento",
-      "factId": "caio-spring-paths-compared"
-    },
+    { "type": "npc.rememberFact", "npcId": "caio-nascimento", "factId": "caio-watch-request-heard" },
     { "type": "guidance.unlock", "topicId": "contextual-activities" }
   ],
   "narrative": {
     "campaignId": "first-day",
-    "eventId": "day-three-spring-paths"
+    "eventId": "night-watch-proposal"
   }
 }
 ~~~
 
-Adicionar o fato de memória ao NPC correto e validar todas as referências na composição do pack.
+O fato de memória `caio-watch-request-heard` e a narrativa foram validados na composição do pack.
 
-## 3.1 Evento day-three-spring-paths
+## 3.1 Evento night-watch-proposal — implementado
 
-A cena reconhece apenas que o jogador e Caio revisaram acessos já conhecidos. Não afirmar que uma rota foi explorada, garantida ou provada segura.
+A cena reconhece que Caio não dorme direito desde que encontrou Davi e está vigiando a Margem Rochosa sozinho à noite. Davi ouve, mas não participa da decisão — ele ainda não consegue assumir turno.
+
+Restrição de contrato encontrada durante a implementação: `npc.rememberFact` só existe nos efeitos de atividades e interações, não nos efeitos de uma escolha de evento comum (o motor de eventos não recebe o catálogo de NPCs). Por isso as três opções abaixo usam apenas `flag.set` e `relationship.change`, e o único fato de memória do arco fica no efeito-base da atividade.
 
 Opções narrativas:
 
-- **Anotar uma rota para observar depois:** define day3.spring-paths.plan.observe.
-- **Manter cada um atento ao próprio caminho:** define day3.spring-paths.plan.independent.
-- **Deixar a decisão para outro momento:** define day3.spring-paths.plan.deferred.
+- **Assumir a vigília sozinho para que Caio durma de verdade** (`take-watch-alone`, notável): define `day3.watch.covered` e `day3.watch.taken-by-player`; `relationship.change` +14 com Caio.
+- **Propor revezar a vigília em turnos** (`split-the-watch`): define `day3.watch.covered` e `day3.watch.shared`; `relationship.change` +8 com Caio.
+- **Dizer que precisa cuidar da própria rotina essa noite** (`decline-watch-duty`): define `day3.watch.declined`; nenhuma variação de relação — a especificação narrativa exige que recusar não seja punido mecanicamente.
 
-Cada escolha retorna ao sandbox. Nenhuma concede água, item, descoberta, relação ou movimento de NPC.
+Cada escolha retorna ao sandbox. Nenhuma concede água, item, descoberta ou movimento de NPC.
 
-O ato de participar já consome a atividade. Escolher adiar a decisão não permite repetir a conversa como atividade paga: o resultado fica registrado e o jogador pode voltar ao tema apenas se conteúdo futuro oferecer uma nova situação.
+O ato de participar já consome a atividade. Não repete a conversa como atividade paga; o resultado fica registrado e o jogador pode voltar ao tema apenas se conteúdo futuro oferecer uma nova situação.
 
 ---
 
 # 4. Continuidade das rotas
 
-## Cooperação no Dia 2
+## Cooperação no Dia 2 — coberta por teste
 
-Após day-three-cooperation-continue, o jogador pode chegar à Nascente e executar a atividade quando Caio estiver realmente presente. Davi pode estar em outro local pela agenda; não o teleportar nem incluí-lo artificialmente.
+Após day-three-cooperation-continue, o jogador pode chegar à Margem Rochosa e executar `share-night-watch-with-caio` quando Caio estiver realmente presente (alvorecer/manhã pela agenda). Davi pode estar em outro local pela agenda; não é teleportado nem incluído artificialmente — é apenas participante opcional quando presente.
 
 ## Sobreviventes evitados
 
-Após day-three-distance-continue, day2.survivors.contact permanece falso. A atividade de Caio não aparece. Os sinais distantes continuam observáveis sem iniciar contato ou marcar que o jogador conheceu os sobreviventes.
+Após day-three-distance-continue, day2.survivors.contact permanece falso. A atividade de Caio não aparece (o requisito `day2.survivors.contact` bloqueia o catálogo). Os sinais distantes continuam observáveis sem iniciar contato ou marcar que o jogador conheceu os sobreviventes.
 
-## Sobreviventes conhecidos sem compromisso
+## Sobreviventes conhecidos sem compromisso — coberta por teste
 
-Após day-three-independent-continue, Caio pode participar apenas se conhecido e presente pela agenda. A escolha de iniciar a atividade não converte a recusa/independência anterior em acordo permanente.
+Após day-three-independent-continue (Fatia A, `day2.survivors.contact = true` sem `day2.davi.escorted`), Caio pode participar apenas se conhecido e presente pela agenda. A escolha de iniciar a atividade não converte a recusa/independência anterior em acordo permanente; a conversa da vigília fica disponível do mesmo jeito, porque a tensão de vigiar sozinho independe de o jogador ter ajudado Davi a se mudar.
 
 ## Nenhum encontro no Dia 2
 
-Após day-three-solo-continue, a fumaça permanece informação à distância. Não revelar a presença de Caio pela atividade, não marcar day2.survivors.contact e não bloquear exploração individual.
+Após day-three-solo-continue, a fumaça permanece informação à distância. A atividade de Caio não aparece, day2.survivors.contact continua falso e a exploração individual não é bloqueada.
 
 ---
 
 # 5. Fatias de implementação
 
-## Fatia A — contrato de entrada e regressão
+## Fatia A — contrato de entrada e regressão — **implementada**
 
-- Conferir as quatro variantes já existentes de day-three-awakening e seus gates.
-- Confirmar que o trigger só nasce após day2.started e é consumido uma vez.
-- Confirmar que cada escolha define day3.started e volta ao sandbox.
-- Acrescentar casos de aceitação explícitos às suítes existentes apenas para lacunas encontradas; não reescrever o conteúdo que já passa.
-- Não alterar schema, NPCs, mapa ou contratos.
+- As quatro variantes de day-three-awakening e seus gates foram conferidas; nenhuma precisou de correção.
+- O trigger só nasce após day2.started e é consumido uma vez (já coberto antes desta fatia).
+- Cada escolha define day3.started e volta ao sandbox (já coberto antes desta fatia).
+- A lacuna real era a ausência de teste para `day-three-independent` (contato feito, ajuda recusada). Um novo caso foi acrescentado a `day-two-playtest.test.ts` cobrindo `talk-caio-rocky-bank → wary-check-davi → decline-davi-responsibility → day-three-independent`; as suítes existentes não foram reescritas.
+- Schema, NPCs, mapa e contratos não foram alterados.
 
-## Fatia B — atividade compartilhada e cena
+## Fatia B — atividade compartilhada e cena — **implementada**
 
-- Adicionar a atividade e o fato de memória especificados na seção 3.
-- Adicionar o evento com as três decisões provisórias.
-- Desbloquear guidance de Atividades somente se o tópico ainda não estiver desbloqueado; a UI de atividades já existe.
-- Validar custos, participante, flags e referência narrativa durante a composição do pack.
-- Não adicionar recursos diretamente nem alterar a atividade existente de água.
+- A atividade `share-night-watch-with-caio` e o fato de memória `caio-watch-request-heard` foram adicionados (seção 3), substituindo a proposta original `compare-spring-paths-with-caio` para não duplicar `discuss-water-with-caio`.
+- O evento `night-watch-proposal` foi adicionado com três decisões (seção 3.1).
+- Guidance de Atividades é desbloqueada pela atividade só quando ainda não estiver; a UI de atividades já existente não precisou de mudança.
+- Custos, participante, flags e referência narrativa foram validados pela composição do pack (testes de regressão do pack continuam verdes).
+- Nenhum recurso foi adicionado diretamente; a atividade de água do Dia 2 não foi alterada.
+- Cobertura dedicada em `src/tests/day-three.test.ts`: indisponibilidade antes de day3.started, as três ramificações da cena (assumir sozinho, revezar, recusar), bloqueio de segunda execução e persistência via save/reload.
+- Fechamento: **96 arquivos de teste / 950 testes**, lint, typecheck e build PWA verdes.
 
 ## Fatia C — autonomia e falhas de disponibilidade
 
@@ -205,7 +207,8 @@ Validação e testes:
 - src/tests/campaign-validation.test.ts;
 - src/tests/contextual-activities.test.ts;
 - src/tests/day-two-world.test.ts;
-- src/tests/day-two-playtest.test.ts.
+- src/tests/day-two-playtest.test.ts (rota day-three-independent acrescentada na Fatia A);
+- src/tests/day-three.test.ts (novo, Fatia B).
 
 Atualizar src/campaigns/first-day ou os tipos do motor apenas se a composição JSON exigir uma referência que o contrato atual já não permita validar. Não antecipar infraestrutura genérica.
 
@@ -270,4 +273,4 @@ O playtest integrado do Dia 3 deve acrescentar suas rotas sem retirar os testes 
 
 # 9. Critério de conclusão
 
-O Dia 3 está implementado quando a atividade compartilhada pode ser escolhida e concluída no mundo com custo real, decisão registrada e retorno livre ao sandbox; as quatro saídas do amanhecer herdadas continuam válidas; e os gates finais passam. Até lá, o próximo passo de execução é a **Fatia A — contrato de entrada e regressão**.
+O Dia 3 está implementado quando a atividade compartilhada pode ser escolhida e concluída no mundo com custo real, decisão registrada e retorno livre ao sandbox; as quatro saídas do amanhecer herdadas continuam válidas; e os gates finais passam. As Fatias A e B cumprem esse critério para a primeira atividade. O próximo passo de execução é a **Fatia C — autonomia e falhas de disponibilidade**.
