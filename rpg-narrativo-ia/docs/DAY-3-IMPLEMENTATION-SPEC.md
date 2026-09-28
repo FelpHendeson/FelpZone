@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Fatias A e B implementadas.** Este documento converte a [especificação narrativa do Dia 3](DAY-3-NARRATIVE-SPEC.md) em uma sequência de trabalho.
+**Fatias A, B e C implementadas.** Este documento converte a [especificação narrativa do Dia 3](DAY-3-NARRATIVE-SPEC.md) em uma sequência de trabalho.
 
 A campanha first-day já contém:
 
@@ -175,13 +175,15 @@ Após day-three-solo-continue, a fumaça permanece informação à distância. A
 - Cobertura dedicada em `src/tests/day-three.test.ts`: indisponibilidade antes de day3.started, as três ramificações da cena (assumir sozinho, revezar, recusar), bloqueio de segunda execução e persistência via save/reload.
 - Fechamento: **96 arquivos de teste / 950 testes**, lint, typecheck e build PWA verdes.
 
-## Fatia C — autonomia e falhas de disponibilidade
+## Fatia C — autonomia e falhas de disponibilidade — **implementada**
 
-- Confirmar que o catálogo não oferece a atividade antes de day3.started.
-- Confirmar que ausência, indisponibilidade ou ocultação de Caio bloqueia a execução sem mutar estado.
-- Confirmar que execução não é possível sem contato conhecido, ainda que alguém altere a ação enviada pelo cliente.
-- Preservar a rota solo e a rota de distância; nenhuma tentativa de executar a atividade pode criar presença ou contato.
-- Save/reload preserva o consumo, as flags escolhidas e a memória; nova execução é recusada sem efeitos duplicados.
+- A indisponibilidade antes de day3.started já tinha teste na Fatia B; permanece coberta.
+- Novo caso: com Ana ainda na Margem Rochosa, avançar o relógio até Caio se mover pela agenda para a Nascente (meio-dia) reproduz "presente no local, NPC ausente" sem qualquer navegação manual. A tentativa é recusada e o estado capturado antes da chamada permanece intacto — uma ação recusada não devolve um novo estado para aplicar.
+- Novo caso: na rota de afastamento (`day2.survivors.avoided`, sem `day2.survivors.contact`), forçar `activity.perform` com `optionalParticipantIds: ['davi-moura']` — participante que nunca foi declarado opcional — ainda é recusado; a presença de Caio já resolvida (por `avoid-caio-rocky-bank`) permanece resolvida sem virar contato.
+- Novo caso: na rota sem encontro (`day-three-solo`), a mesma tentativa não descobre `rocky-bank` nem cria a presença `caio-rocky-bank` — a rejeição do motor não tem efeito colateral algum no mundo.
+- Save/reload testado também para a ramificação de revezamento (`split-the-watch`), não só para "assumir sozinho": consumo, flag e confiança sobrevivem ao ciclo, e uma segunda tentativa após o reload continua bloqueada.
+- Cobertura em `src/tests/day-three.test.ts`, descrever `Fatia C — autonomia e falhas de disponibilidade`. Nenhum código de produção mudou — a robustez já vinha do contrato de `planContextualActivity`/`listKnownContextualActivities`; a fatia só prova isso.
+- Fechamento: **96 arquivos de teste / 954 testes**, lint, typecheck e build PWA verdes.
 
 ## Fatia D — playtest integrado e fechamento
 
@@ -273,4 +275,4 @@ O playtest integrado do Dia 3 deve acrescentar suas rotas sem retirar os testes 
 
 # 9. Critério de conclusão
 
-O Dia 3 está implementado quando a atividade compartilhada pode ser escolhida e concluída no mundo com custo real, decisão registrada e retorno livre ao sandbox; as quatro saídas do amanhecer herdadas continuam válidas; e os gates finais passam. As Fatias A e B cumprem esse critério para a primeira atividade. O próximo passo de execução é a **Fatia C — autonomia e falhas de disponibilidade**.
+O Dia 3 está implementado quando a atividade compartilhada pode ser escolhida e concluída no mundo com custo real, decisão registrada e retorno livre ao sandbox; as quatro saídas do amanhecer herdadas continuam válidas; e os gates finais passam. As Fatias A, B e C cumprem esse critério para a primeira atividade, incluindo robustez contra indisponibilidade de NPC e tentativas fora de contrato. O próximo passo de execução é a **Fatia D — playtest integrado e fechamento**.
