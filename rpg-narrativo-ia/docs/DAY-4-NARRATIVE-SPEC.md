@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificação narrativa em rascunho; nenhuma fatia de implementação autorizada.** Este documento converte a [Fundação Narrativa](NARRATIVE-FOUNDATION.md) (seção "Dias 4 e 5 — Trabalho e convivência") em uma direção jogável para o quarto dia, a partir do estado real ao fim do [Dia 3](DAY-3-NARRATIVE-SPEC.md). Nenhum código deve ser escrito a partir deste documento até que exista uma especificação técnica equivalente à de [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md), dividida em fatias.
+**Especificação narrativa concluída; Fatias A, B, C e D da implementação estão feitas — Dia 4 fechado neste recorte.** Este documento converte a [Fundação Narrativa](NARRATIVE-FOUNDATION.md) (seção "Dias 4 e 5 — Trabalho e convivência") em uma direção jogável para o quarto dia, a partir do estado real ao fim do [Dia 3](DAY-3-NARRATIVE-SPEC.md). A especificação técnica que implementa esta direção está em [Dia 4 — implementação](DAY-4-IMPLEMENTATION-SPEC.md).
 
 Referências:
 
@@ -10,6 +10,7 @@ Referências:
 - [Dia 2 — especificação narrativa e jogável](DAY-2-NARRATIVE-SPEC.md);
 - [Dia 3 — especificação narrativa e jogável](DAY-3-NARRATIVE-SPEC.md);
 - [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md);
+- [Dia 4 — implementação](DAY-4-IMPLEMENTATION-SPEC.md);
 - [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md).
 
 ---
@@ -152,4 +153,4 @@ Uma futura especificação técnica do Dia 4 deve demonstrar que:
 
 # 11. Próximo passo
 
-Este documento é a especificação narrativa; nenhuma fatia de implementação está autorizada a partir dele. O próximo passo é escrever [Dia 4 — implementação](DAY-4-IMPLEMENTATION-SPEC.md) (ainda não existe), escolhendo **uma** situação prática da seção 3 para a primeira atividade jogável do Dia 4, com o mesmo recorte em fatias pequenas usado no Dia 3.
+Este documento é a especificação narrativa; sua implementação está em [Dia 4 — implementação](DAY-4-IMPLEMENTATION-SPEC.md), que escolheu cuidar do ferimento de Davi como a segunda atividade jogável e fechou as Fatias A a D no mesmo recorte em fatias pequenas usado no Dia 3. O próximo passo é uma decisão de conteúdo sobre o Dia 5.

@@ -184,6 +184,66 @@
         "eventId": "night-watch-proposal"
       },
       "feedback": "Caio explica que não dorme direito desde que encontrou Davi e pergunta se vocês podem dividir a vigília."
+    },
+    {
+      "id": "tend-davi-wound-with-caio",
+      "label": "Cuidar do ferimento de Davi",
+      "description": "Davi ainda evita apoiar a perna ferida; verificar de longe não é mais suficiente.",
+      "locationId": "awakening-clearing",
+      "timeCost": {
+        "periods": 1
+      },
+      "repeatable": false,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day4.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.davi.escorted",
+          "value": true
+        },
+        {
+          "type": "npc.known",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "davi-moura"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "davi-moura"
+        ],
+        "optionalNpcIds": [
+          "caio-nascimento"
+        ],
+        "minOptional": 0,
+        "maxOptional": 1
+      },
+      "effects": [
+        {
+          "type": "npc.rememberFact",
+          "npcId": "davi-moura",
+          "factId": "davi-wound-tended"
+        },
+        {
+          "type": "guidance.unlock",
+          "topicId": "contextual-activities"
+        }
+      ],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-wound-care"
+      },
+      "feedback": "Davi tenta esconder o desconforto, mas o ferimento ainda incomoda de verdade."
     }
   ]
 }

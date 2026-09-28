@@ -2150,5 +2150,105 @@
       }
     ],
     "canStartSession": true
+  },
+  {
+    "id": "day-four-awakening",
+    "title": "Mais um dia sem explicação",
+    "body": "O relógio marca o quarto dia. Ninguém chegou durante a noite para dizer o que fazer ou assumir o que ainda está por resolver. O que você levou do terceiro dia — cooperação, distância ou nenhum dos dois — continua sendo o que orienta hoje.",
+    "image": {
+      "kind": "scene",
+      "label": "Amanhecer do quarto dia"
+    },
+    "choices": [
+      {
+        "id": "day-four-look-around",
+        "label": "Começar o dia",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day4.started",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "davi-wound-care",
+    "title": "Um cuidado que dá trabalho",
+    "body": "Davi tenta esconder que o ferimento ainda incomoda, mas o jeito de sentar denuncia. Verificar de longe, como no segundo dia, não resolve nada — cuidar de verdade toma tempo, e ele sabe disso tanto quanto você.",
+    "portrait": {
+      "kind": "portrait",
+      "label": "Davi Moura"
+    },
+    "choices": [
+      {
+        "id": "care-with-patience",
+        "label": "Cuidar com calma, aceitando gastar mais tempo com ele",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day4.davi.care.covered",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day4.davi.care.attentive",
+            "value": true
+          },
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 14
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "care-quickly",
+        "label": "Fazer o cuidado básico rápido, sem se prolongar",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day4.davi.care.covered",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day4.davi.care.quick",
+            "value": true
+          },
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 6
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "postpone-davi-care",
+        "label": "Dizer que agora não é o momento e adiar",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day4.davi.care.declined",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
   }
 ]

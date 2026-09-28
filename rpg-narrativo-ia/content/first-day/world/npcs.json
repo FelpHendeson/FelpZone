@@ -236,6 +236,11 @@
       "id": "caio-watch-request-heard",
       "npcId": "caio-nascimento",
       "summary": "Caio contou que está vigiando a Margem Rochosa sozinho à noite desde que encontrou Davi."
+    },
+    {
+      "id": "davi-wound-tended",
+      "npcId": "davi-moura",
+      "summary": "Você cuidou do ferimento de Davi de verdade, além de apenas perguntar como ele estava."
     }
   ]
 }
