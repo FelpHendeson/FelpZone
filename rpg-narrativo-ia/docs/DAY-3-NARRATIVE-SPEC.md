@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificação narrativa concluída; Fatias A e B da implementação concluídas.** O amanhecer do Dia 3 (quatro variantes) e a primeira atividade jogável — `share-night-watch-with-caio`, sobre dividir a vigília noturna com Caio — estão implementados. O recorte técnico está definido em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
+**Especificação narrativa concluída; Fatias A, B e C da implementação concluídas.** O amanhecer do Dia 3 (quatro variantes) e a primeira atividade jogável — `share-night-watch-with-caio`, sobre dividir a vigília noturna com Caio — estão implementados e cobertos contra indisponibilidade do NPC e tentativas fora das rotas que o contatam. O recorte técnico está definido em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
 
 O Dia 3 parte do estado real ao fim do Dia 2: o jogador pode estar sozinho ou próximo de Caio, Davi e Mira; pode ter cooperado, mantido distância ou ainda não encontrado os sobreviventes. O mundo e o relógio continuam sendo a fonte canônica desses fatos.
 

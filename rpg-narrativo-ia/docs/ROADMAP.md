@@ -389,11 +389,11 @@ Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementa�
 
 ## Dia 3 — cooperação por necessidade
 
-**Especificado em 25 de setembro de 2026. Fatias A–B implementadas.**
+**Especificado em 25 de setembro de 2026. Fatias A–C implementadas.**
 
-O terceiro dia herda o estado real do fim do Dia 2 (cooperação, afastamento, contato sem compromisso ou nenhum encontro) e introduz a primeira tensão de cooperação prática: dividir a vigília noturna na Margem Rochosa. A Fatia A adicionou o teste de regressão que faltava para a rota `day-three-independent`. A Fatia B publicou `share-night-watch-with-caio` e o evento `night-watch-proposal`, com três decisões (assumir a vigília sozinho, revezar em turnos ou recusar) que não punem mecanicamente a recusa. As Fatias C e D seguem como próximo trabalho: autonomia/falhas de disponibilidade e o playtest integrado do Dia 3.
+O terceiro dia herda o estado real do fim do Dia 2 (cooperação, afastamento, contato sem compromisso ou nenhum encontro) e introduz a primeira tensão de cooperação prática: dividir a vigília noturna na Margem Rochosa. A Fatia A adicionou o teste de regressão que faltava para a rota `day-three-independent`. A Fatia B publicou `share-night-watch-with-caio` e o evento `night-watch-proposal`, com três decisões (assumir a vigília sozinho, revezar em turnos ou recusar) que não punem mecanicamente a recusa. A Fatia C provou robustez sem mudar código de produção: Caio ausente da Margem Rochosa pela própria agenda bloqueia a atividade sem mutar estado, `activity.perform` forçado nas rotas de afastamento e ausência de encontro é recusado sem criar presença ou contato, e save/reload da ramificação de revezamento não duplica consumo nem confiança. A Fatia D segue como próximo trabalho: o playtest integrado do Dia 3.
 
-Fechamento: **96 arquivos de teste / 950 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
+Fechamento: **96 arquivos de teste / 954 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
 
 Consulte [Dia 3 — narrativa](DAY-3-NARRATIVE-SPEC.md) e [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
 

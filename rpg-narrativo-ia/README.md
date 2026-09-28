@@ -28,7 +28,7 @@ Leia nesta ordem:
      - [Implementação do Dia 2](docs/DAY-2-IMPLEMENTATION-SPEC.md): Fatias A–G do Dia 2 implementadas no schema 26 e validadas em rotas integradas.
      - [Atividades Contextuais](docs/MECHANIC-CONTEXTUAL-ACTIVITIES.md): ações compartilhadas com tempo, participantes e consequências sem criar Sistema 30.
    - [Dia 3 — especificação narrativa e jogável](docs/DAY-3-NARRATIVE-SPEC.md): cooperação por necessidade entre sobreviventes ainda sem autoridade comum.
-     - [Implementação do Dia 3](docs/DAY-3-IMPLEMENTATION-SPEC.md): Fatias A–B implementadas — regressão das quatro rotas do amanhecer e a atividade `share-night-watch-with-caio`; Fatias C–D seguem como próximo trabalho.
+     - [Implementação do Dia 3](docs/DAY-3-IMPLEMENTATION-SPEC.md): Fatias A–C implementadas — regressão das quatro rotas do amanhecer, a atividade `share-night-watch-with-caio` e robustez contra indisponibilidade de NPC; a Fatia D (playtest integrado) segue como próximo trabalho.
      - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
      - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
    - [Dia 3 — especificação narrativa e jogável](docs/DAY-3-NARRATIVE-SPEC.md): cooperação opcional diante de necessidades cotidianas, com continuidade das rotas e sem formalizar uma comunidade.
@@ -165,7 +165,7 @@ O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do r
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 96 arquivos / 950 testes após as Fatias A–B do Dia 3, incluindo as quatro rotas do amanhecer (cooperação, afastamento, ausência de encontro e contato sem compromisso), a atividade `share-night-watch-with-caio`, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
+- `npm test`: 96 arquivos / 954 testes após as Fatias A–C do Dia 3, incluindo as quatro rotas do amanhecer (cooperação, afastamento, ausência de encontro e contato sem compromisso), a atividade `share-night-watch-with-caio` e sua robustez contra indisponibilidade de NPC, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Na Clareira do Despertar, pegadas e outros sinais humanos aparecem antes de `mira-nearby`. Mira pode ser observada, abordada ou evitada; conversar abre `survivor-meet` e retorna ao sandbox após a troca. A primeira noite é acionada pelo relógio, não pela conversa, e o Dia 2 começa depois do avanço real de tempo pelo sandbox.
