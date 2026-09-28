@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Especificação narrativa concluída; Fatias A, B e C da implementação concluídas.** O amanhecer do Dia 3 (quatro variantes) e a primeira atividade jogável — `share-night-watch-with-caio`, sobre dividir a vigília noturna com Caio — estão implementados e cobertos contra indisponibilidade do NPC e tentativas fora das rotas que o contatam. O recorte técnico está definido em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
+**Especificação narrativa concluída; Fatias A, B, C e D da implementação concluídas — Dia 3 fechado neste recorte.** O amanhecer do Dia 3 (quatro variantes) e a primeira atividade jogável — `share-night-watch-with-caio`, sobre dividir a vigília noturna com Caio — estão implementados e cobertos por playtest integrado: a rota cooperativa, o contato conhecido sem compromisso, o afastamento e a ausência de encontro chegam todos ao conteúdo apropriado, com save/reload preservando cada decisão. O recorte técnico está definido em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
 
 O Dia 3 parte do estado real ao fim do Dia 2: o jogador pode estar sozinho ou próximo de Caio, Davi e Mira; pode ter cooperado, mantido distância ou ainda não encontrado os sobreviventes. O mundo e o relógio continuam sendo a fonte canônica desses fatos.
 
@@ -188,4 +188,4 @@ Uma futura especificação técnica do Dia 3 deve demonstrar que:
 
 # 11. Próximo passo
 
-A implementação técnica do Dia 3 está especificada em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md). O próximo passo é executar sua Fatia A: validar a entrada já existente e fechar as lacunas de regressão antes de adicionar conteúdo.
+A implementação técnica do Dia 3 está especificada em [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md); suas Fatias A a D estão implementadas e o Dia 3 cumpre o critério de conclusão deste recorte. O próximo passo é uma decisão de conteúdo sobre o Dia 4, ainda não especificada.

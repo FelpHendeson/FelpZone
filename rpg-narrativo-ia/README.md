@@ -28,11 +28,11 @@ Leia nesta ordem:
      - [Implementação do Dia 2](docs/DAY-2-IMPLEMENTATION-SPEC.md): Fatias A–G do Dia 2 implementadas no schema 26 e validadas em rotas integradas.
      - [Atividades Contextuais](docs/MECHANIC-CONTEXTUAL-ACTIVITIES.md): ações compartilhadas com tempo, participantes e consequências sem criar Sistema 30.
    - [Dia 3 — especificação narrativa e jogável](docs/DAY-3-NARRATIVE-SPEC.md): cooperação por necessidade entre sobreviventes ainda sem autoridade comum.
-     - [Implementação do Dia 3](docs/DAY-3-IMPLEMENTATION-SPEC.md): Fatias A–C implementadas — regressão das quatro rotas do amanhecer, a atividade `share-night-watch-with-caio` e robustez contra indisponibilidade de NPC; a Fatia D (playtest integrado) segue como próximo trabalho.
+     - [Implementação do Dia 3](docs/DAY-3-IMPLEMENTATION-SPEC.md): Fatias A–D implementadas — Dia 3 fechado neste recorte, com regressão das quatro rotas do amanhecer, a atividade `share-night-watch-with-caio`, robustez contra indisponibilidade de NPC e playtest integrado das rotas de cooperação, contato sem compromisso, afastamento e ausência de encontro.
      - [Orientação e Central de Ajuda](docs/MECHANIC-SYSTEM-GUIDANCE.md): onboarding contextual persistido e dirigido pelo pack.
      - [Marcos narrativos](docs/MECHANIC-NARRATIVE-MILESTONES.md): gatilhos por proficiência e passagem de dias sobre world-events.
    - [Dia 3 — especificação narrativa e jogável](docs/DAY-3-NARRATIVE-SPEC.md): cooperação opcional diante de necessidades cotidianas, com continuidade das rotas e sem formalizar uma comunidade.
-     - [Implementação do Dia 3](docs/DAY-3-IMPLEMENTATION-SPEC.md): recorte técnico em quatro fatias, reaproveitando a entrada existente do terceiro dia.
+     - [Implementação do Dia 3](docs/DAY-3-IMPLEMENTATION-SPEC.md): recorte técnico em quatro fatias, reaproveitando a entrada existente do terceiro dia — Fatias A–D implementadas.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
 4. [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md): sistemas como blocos, packs como configuração e campanhas como histórias.
 5. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
@@ -75,7 +75,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dias 1 e 2 fechados; Dia 3 especificado narrativa e tecnicamente. Próximo: executar a Fatia A do Dia 3.
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dias 1, 2 e 3 fechados. Próximo: decisão de conteúdo sobre o Dia 4.
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -165,7 +165,7 @@ O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do r
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 96 arquivos / 954 testes após as Fatias A–C do Dia 3, incluindo as quatro rotas do amanhecer (cooperação, afastamento, ausência de encontro e contato sem compromisso), a atividade `share-night-watch-with-caio` e sua robustez contra indisponibilidade de NPC, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
+- `npm test`: 96 arquivos / 959 testes após as Fatias A–D do Dia 3 (Dia 3 fechado neste recorte), incluindo as quatro rotas do amanhecer (cooperação, afastamento, ausência de encontro e contato sem compromisso), a atividade `share-night-watch-with-caio`, sua robustez contra indisponibilidade de NPC e o playtest integrado de todas as rotas com save/reload, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Na Clareira do Despertar, pegadas e outros sinais humanos aparecem antes de `mira-nearby`. Mira pode ser observada, abordada ou evitada; conversar abre `survivor-meet` e retorna ao sandbox após a troca. A primeira noite é acionada pelo relógio, não pela conversa, e o Dia 2 começa depois do avanço real de tempo pelo sandbox.
