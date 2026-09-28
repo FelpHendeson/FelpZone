@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { applyChoice, startGame } from '../core/engine';
 import type { GameState } from '../core/state';
 import { parseGameState, serializeGameState } from '../infrastructure/persistence';
+import { listKnownContextualActivities } from '../modules/activities';
 import { loadFirstDayWorld } from '../modules/content';
 import { getTrust } from '../modules/relationships';
 import { createSandboxContextFromWorld } from '../modules/sandbox';
@@ -13,6 +14,11 @@ const world = loadFirstDayWorld();
 const campaign = world.campaign;
 const context = createSandboxContextFromWorld(world);
 const triggers = world.worldTriggers.definitions;
+const activitiesCatalog = context.activities;
+const npcCatalog = context.npcs;
+if (!activitiesCatalog || !npcCatalog) {
+  throw new Error('O pack first-day precisa expor catálogos de atividades e NPCs para este playtest.');
+}
 
 function newGame(): GameState {
   return startGame({ firstName: 'Ana', lastName: 'Cruz', sex: 'female' }, campaign, now, context, world.objectives);
@@ -173,6 +179,56 @@ function reachDayThreeSolo(): GameState {
   state = choose(state, 'day-three-solo-continue');
   expect(state.flags['day3.started']).toBe(true);
   expect(state.flags['day2.survivors.contact']).not.toBe(true);
+  return state;
+}
+
+/** Ana faz contato com Caio, recusa a responsabilidade por Davi e chega ao Dia 3 sem compromisso. */
+function reachDayThreeIndependent(): GameState {
+  let state = newGame();
+  for (const choiceId of [
+    'awake-calm', 'system-touch', 'ability-perception', 'eteris-pressure', 'numen-follow-guidance',
+  ]) state = choose(state, choiceId);
+  state = act(state, { type: 'training.train', methodId: 'focused-perception-drill' });
+  state = choose(state, 'first-numen-practice-continue');
+  state = act(state, { type: 'exploration.explore' });
+  state = act(state, { type: 'exploration.explore' });
+  state = act(state, {
+    type: 'presence.interact', presenceId: 'mira-awakening-clearing',
+    interactionId: 'avoid-mira-awakening-clearing',
+  });
+  state = act(state, { type: 'exploration.explore' });
+  state = choose(state, 'assess-first-night');
+  state = choose(state, 'walk-away');
+  state = choose(state, 'alone-summary');
+  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = choose(state, 'day-two-assess');
+  state = choose(state, 'day-two-alone-continue');
+
+  state = act(state, { type: 'navigation.move', locationId: 'spring-lake' });
+  for (let count = 0; count < 4 && state.narrativeSession === null; count += 1) {
+    state = act(state, { type: 'exploration.explore' });
+  }
+  state = choose(state, 'follow-rocky-bank-signs');
+  state = act(state, { type: 'navigation.move', locationId: 'rocky-bank' });
+  state = act(state, {
+    type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'talk-caio-rocky-bank',
+  });
+  state = choose(state, 'caio-answer');
+  state = choose(state, 'wary-check-davi');
+  state = choose(state, 'decline-davi-responsibility');
+  expect(state.flags['day2.davi.help.declined']).toBe(true);
+  expect(state.flags['day2.davi.escorted']).not.toBe(true);
+
+  while (state.world.day < 3 && state.narrativeSession === null) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
+  expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
+  state = choose(state, 'day-three-look-around');
+  expect(state.narrativeSession?.eventId).toBe('day-three-independent');
+  state = choose(state, 'day-three-independent-continue');
+  expect(state.flags['day3.started']).toBe(true);
+  expect(state.flags['day2.survivors.contact']).toBe(true);
+  expect(state.flags['day2.davi.escorted']).not.toBe(true);
   return state;
 }
 
@@ -344,5 +400,105 @@ describe('Fatia C — autonomia e falhas de disponibilidade', () => {
     });
     expect(second.ok).toBe(false);
     expect(getTrust(loaded.state.relationships, 'caio-nascimento')).toBe(trustAfterSplit);
+  }, 30_000);
+});
+
+describe('Fatia D — playtest integrado e fechamento', () => {
+  it('rota cooperativa: percorre o Dia 1 ao Dia 3 e realiza a vigília no primeiro período em que Caio está presente', () => {
+    const state = reachDayThreeCooperating();
+    // reachDayThreeCooperating já entrega o jogador na Margem Rochosa no instante em que
+    // o Dia 3 nasce (alvorecer), sem descanso extra: é o primeiro período jogável do dia.
+    const known = listKnownContextualActivities(activitiesCatalog, state.activities, state, npcCatalog);
+    const nightWatch = known.find((entry) => entry.activity.id === 'share-night-watch-with-caio');
+    expect(nightWatch?.available).toBe(true);
+  }, 30_000);
+
+  it('contato conhecido sem compromisso: participa da vigília com Davi como testemunha opcional sem converter a independência em compromisso', () => {
+    let state = reachDayThreeIndependent();
+    const trustCaioBefore = getTrust(state.relationships, 'caio-nascimento');
+
+    const known = listKnownContextualActivities(activitiesCatalog, state.activities, state, npcCatalog);
+    const nightWatch = known.find((entry) => entry.activity.id === 'share-night-watch-with-caio');
+    expect(nightWatch?.available).toBe(true);
+    expect(nightWatch?.eligibleOptionalNpcIds).toContain('davi-moura');
+
+    state = act(state, {
+      type: 'activity.perform', activityId: 'share-night-watch-with-caio',
+      optionalParticipantIds: ['davi-moura'],
+    });
+    expect(state.narrativeSession?.eventId).toBe('night-watch-proposal');
+    state = choose(state, 'split-the-watch');
+
+    expect(state.flags['day3.watch.covered']).toBe(true);
+    expect(state.flags['day3.watch.shared']).toBe(true);
+    expect(getTrust(state.relationships, 'caio-nascimento')).toBeGreaterThan(trustCaioBefore);
+    // A recusa em ajudar Davi no Dia 2 continua registrada; participar da vigília não
+    // retroage e não cria compromisso permanente com o grupo.
+    expect(state.flags['day2.davi.help.declined']).toBe(true);
+    expect(state.flags['day2.davi.escorted']).not.toBe(true);
+  }, 30_000);
+
+  it('rota de afastamento: Ana reconhece Caio mas a vigília continua bloqueada na listagem natural, sem contato forçado', () => {
+    let state = reachDayThreeAtDistance();
+    // Sem tentativa forçada: apenas volta ao local onde a atividade viveria e lista o que é conhecido.
+    // Evitar Caio já registra reconhecimento (npc.rememberFact em avoid-caio-rocky-bank), então a
+    // atividade permanece visível — mas bloqueada, porque day2.survivors.contact nunca foi definido.
+    state = act(state, { type: 'navigation.move', locationId: 'spring-lake' });
+    const returned = act(state, { type: 'navigation.move', locationId: 'rocky-bank' });
+    const known = listKnownContextualActivities(activitiesCatalog, returned.activities, returned, npcCatalog);
+    const nightWatch = known.find((entry) => entry.activity.id === 'share-night-watch-with-caio');
+    expect(nightWatch?.available).toBe(false);
+    expect(returned.flags['day2.survivors.contact']).not.toBe(true);
+  }, 30_000);
+
+  it('rota sem encontro: a vigília não aparece na listagem natural, pois Caio nunca foi reconhecido', () => {
+    const state = reachDayThreeSolo();
+    expect(state.sandbox.navigation.discoveredLocationIds).not.toContain('rocky-bank');
+    // Sem jamais ter visitado a Margem Rochosa, Caio não tem entrada em sandbox.npcs — o
+    // requisito npc.known reprova e a atividade some da listagem, mesmo que se force o local.
+    const atRockyBank = {
+      ...state,
+      sandbox: {
+        ...state.sandbox,
+        navigation: { ...state.sandbox.navigation, currentLocationId: 'rocky-bank' },
+      },
+    };
+    const known = listKnownContextualActivities(activitiesCatalog, atRockyBank.activities, atRockyBank, npcCatalog);
+    expect(known.some((entry) => entry.activity.id === 'share-night-watch-with-caio')).toBe(false);
+  }, 30_000);
+
+  it('save/reload após a vigília retoma o sandbox sem duplicar relógio, consumo ou escolha', () => {
+    let state = reachDayThreeCooperating();
+    const dayBefore = state.world.day;
+    const periodBefore = state.world.period;
+
+    state = act(state, {
+      type: 'activity.perform', activityId: 'share-night-watch-with-caio', optionalParticipantIds: [],
+    });
+    state = choose(state, 'take-watch-alone');
+    expect(state.status).toBe('playing');
+    expect(state.narrativeSession).toBeNull();
+    expect(state.world.day).toBe(dayBefore);
+    expect(state.world.period).not.toBe(periodBefore);
+    expect(
+      state.activities.consumedActivityIds.filter((id) => id === 'share-night-watch-with-caio'),
+    ).toHaveLength(1);
+
+    const loaded = parseGameState(serializeGameState(state, context, world.objectives), context, world.objectives);
+    expect(loaded.status).toBe('ok');
+    if (loaded.status !== 'ok') return;
+    expect(loaded.state.world).toEqual(state.world);
+    expect(loaded.state.status).toBe('playing');
+    expect(loaded.state.narrativeSession).toBeNull();
+    expect(loaded.state.flags['day3.watch.taken-by-player']).toBe(true);
+    expect(
+      loaded.state.activities.consumedActivityIds.filter((id) => id === 'share-night-watch-with-caio'),
+    ).toHaveLength(1);
+
+    // Retomar no sandbox e confirmar que a atividade continua bloqueada, sem duplicar efeito algum.
+    const second = tryAct(loaded.state, {
+      type: 'activity.perform', activityId: 'share-night-watch-with-caio', optionalParticipantIds: [],
+    });
+    expect(second.ok).toBe(false);
   }, 30_000);
 });

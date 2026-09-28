@@ -2,7 +2,7 @@
 
 ## Estado
 
-**Fatias A, B e C implementadas.** Este documento converte a [especificação narrativa do Dia 3](DAY-3-NARRATIVE-SPEC.md) em uma sequência de trabalho.
+**Fatias A, B, C e D implementadas — Dia 3 fechado neste recorte.** Este documento converte a [especificação narrativa do Dia 3](DAY-3-NARRATIVE-SPEC.md) em uma sequência de trabalho.
 
 A campanha first-day já contém:
 
@@ -185,13 +185,15 @@ Após day-three-solo-continue, a fumaça permanece informação à distância. A
 - Cobertura em `src/tests/day-three.test.ts`, descrever `Fatia C — autonomia e falhas de disponibilidade`. Nenhum código de produção mudou — a robustez já vinha do contrato de `planContextualActivity`/`listKnownContextualActivities`; a fatia só prova isso.
 - Fechamento: **96 arquivos de teste / 954 testes**, lint, typecheck e build PWA verdes.
 
-## Fatia D — playtest integrado e fechamento
+## Fatia D — playtest integrado e fechamento — **implementada**
 
-- Percorrer a rota cooperativa desde o Dia 1 e realizar a atividade no primeiro período em que Caio está presente na Nascente.
-- Percorrer a rota de contato conhecido sem compromisso e verificar consentimento opcional.
-- Percorrer as rotas de evasão e ausência de encontro até o sandbox do Dia 3 e verificar ausência da atividade e do contato forçado.
-- Salvar e recarregar depois da atividade, retomando no sandbox sem duplicar custo, fato ou escolha.
-- Atualizar status, roadmap, README e documentação de testes somente após os gates.
+- Rota cooperativa: `reachDayThreeCooperating()` percorre o Dia 1 completo até o instante exato em que o Dia 3 nasce (alvorecer, sem descanso extra) e confirma pela listagem natural (`listKnownContextualActivities`) que a vigília já está disponível nesse primeiro período em que Caio está presente na Margem Rochosa.
+- Contato conhecido sem compromisso: novo caso percorre a rota `day-three-independent` (contato feito, ajuda a Davi recusada no Dia 2) e executa a vigília com Davi como testemunha opcional presente pela própria agenda; a recusa anterior (`day2.davi.help.declined`) permanece registrada e não é convertida em compromisso permanente (`day2.davi.escorted` continua ausente).
+- Evasão: descoberta durante a fatia — evitar Caio na Margem Rochosa já registra reconhecimento via `npc.rememberFact` (efeito existente de `avoid-caio-rocky-bank`), então a vigília continua visível na listagem natural ao retornar ao local, mas **bloqueada**, porque `day2.survivors.contact` nunca foi definido; não há contato forçado nem execução possível.
+- Ausência de encontro: sem nunca ter visitado a Margem Rochosa, Caio não tem entrada em `sandbox.npcs` — o requisito `npc.known` reprova e a vigília não aparece na listagem, mesmo forçando o local atual.
+- Save/reload: depois de concluir a vigília (`take-watch-alone`), o ciclo salvar/recarregar preserva `world.day`/`world.period` sem duplicação, mantém `consumedActivityIds` com exatamente uma entrada, retoma em `status: 'playing'` com `narrativeSession: null` e uma segunda tentativa continua bloqueada.
+- Cobertura em `src/tests/day-three.test.ts`, descrever `Fatia D — playtest integrado e fechamento` (5 novos testes). Nenhum código de produção mudou; a fatia prova via `listKnownContextualActivities` que a listagem natural e as tentativas forçadas (Fatia C) concordam.
+- Fechamento: **96 arquivos de teste / 959 testes**, lint, typecheck e build PWA verdes.
 
 ---
 
@@ -275,4 +277,4 @@ O playtest integrado do Dia 3 deve acrescentar suas rotas sem retirar os testes 
 
 # 9. Critério de conclusão
 
-O Dia 3 está implementado quando a atividade compartilhada pode ser escolhida e concluída no mundo com custo real, decisão registrada e retorno livre ao sandbox; as quatro saídas do amanhecer herdadas continuam válidas; e os gates finais passam. As Fatias A, B e C cumprem esse critério para a primeira atividade, incluindo robustez contra indisponibilidade de NPC e tentativas fora de contrato. O próximo passo de execução é a **Fatia D — playtest integrado e fechamento**.
+O Dia 3 está implementado quando a atividade compartilhada pode ser escolhida e concluída no mundo com custo real, decisão registrada e retorno livre ao sandbox; as quatro saídas do amanhecer herdadas continuam válidas; e os gates finais passam. As Fatias A, B, C e D cumprem esse critério: a primeira atividade é robusta contra indisponibilidade de NPC e tentativas fora de contrato, e o playtest integrado confirma que as rotas de cooperação, contato conhecido sem compromisso, afastamento e ausência de encontro chegam todas ao conteúdo apropriado, com save/reload preservando cada decisão. Este recorte do Dia 3 está fechado; o próximo passo é uma decisão de conteúdo sobre o Dia 4.
