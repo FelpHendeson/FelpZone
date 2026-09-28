@@ -177,4 +177,27 @@ describe('Fatia G — playtest integrado do Dia 2', () => {
     expect(state.flags['day2.unmet-survivors-noted']).toBe(true);
     expect(state.party.vitals).toEqual([]);
   }, 30_000);
+
+  it('faz contato com Caio, recusa a responsabilidade por Davi e começa o Dia 3 sem compromisso', () => {
+    let state = followDayTwoTracksToBank(beginDayTwoAlone());
+    state = act(state, {
+      type: 'presence.interact', presenceId: 'caio-rocky-bank', interactionId: 'talk-caio-rocky-bank',
+    });
+    expect(state.narrativeSession?.eventId).toBe('caio-first-contact');
+    state = choose(state, 'caio-answer');
+    expect(state.narrativeSession?.eventId).toBe('caio-contact-after-mira-avoidance');
+    state = choose(state, 'wary-check-davi');
+    expect(state.narrativeSession?.eventId).toBe('davi-condition');
+    state = choose(state, 'decline-davi-responsibility');
+    expect(state.flags['day2.davi.help.declined']).toBe(true);
+    expect(state.flags['day2.involvement.decided']).toBe(true);
+    expect(state.flags['day2.davi.escorted']).not.toBe(true);
+    expect(state.flags['day2.survivors.avoided']).not.toBe(true);
+
+    state = continueIntoDayThree(state, 'day-three-independent', 'day-three-independent-continue');
+    expect(state.flags['day2.survivors.contact']).toBe(true);
+    expect(state.flags['day2.group.intent.known']).toBe(true);
+    expect(state.flags['day2.davi.escorted']).not.toBe(true);
+    expect(state.party.vitals).toEqual([]);
+  }, 30_000);
 });

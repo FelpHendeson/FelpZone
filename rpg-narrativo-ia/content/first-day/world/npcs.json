@@ -231,6 +231,11 @@
       "id": "caio-water-question-raised",
       "npcId": "caio-nascimento",
       "summary": "Vocês conversaram sobre como várias pessoas podem usar a Nascente sem contaminá-la ou desperdiçar água."
+    },
+    {
+      "id": "caio-watch-request-heard",
+      "npcId": "caio-nascimento",
+      "summary": "Caio contou que está vigiando a Margem Rochosa sozinho à noite desde que encontrou Davi."
     }
   ]
 }

@@ -383,9 +383,19 @@ A implementação está dividida em A–G:
 
 A mecânica transversal está em [Atividades Contextuais](MECHANIC-CONTEXTUAL-ACTIVITIES.md). Ela representa ações situadas com tempo e participantes sem transformar cooperação emergencial em profissão, party ou assentamento.
 
-A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. A Fatia C acrescentou `day-two-others`, o evento dos rastros e as rotas de contato ou afastamento, com e sem Mira. A Fatia D publicou `escort-davi-to-clearing`, relocação persistente e a cena de chegada. A Fatia E adicionou a conversa contextual sobre o uso da Nascente, escolhas persistentes e jornada de coleta real, sem alterar schema nem criar leis/propriedade. A Fatia F adiciona os encerramentos condicionais do Dia 2 e entrada no Dia 3 pelo relógio real, incluindo a rota sem encontrar os sobreviventes. A Fatia G percorre as três rotas integradas a partir do Dia 1, confirmando persistência e continuidade do sandbox. **O Dia 2 está fechado; a especificação narrativa do Dia 3 está concluída.**
+A Fatia A implementou domínio, schema 26, migração 25→26, pack, `activity.perform`, UI e guidance. A Fatia B acrescentou a Margem Rochosa, pistas condicionadas ao Dia 2 e Caio/Davi com agendas e presenças. A Fatia C acrescentou `day-two-others`, o evento dos rastros e as rotas de contato ou afastamento, com e sem Mira. A Fatia D publicou `escort-davi-to-clearing`, relocação persistente e a cena de chegada. A Fatia E adicionou a conversa contextual sobre o uso da Nascente, escolhas persistentes e jornada de coleta real, sem alterar schema nem criar leis/propriedade. A Fatia F adiciona os encerramentos condicionais do Dia 2 e entrada no Dia 3 pelo relógio real, incluindo a rota sem encontrar os sobreviventes. A Fatia G percorre as três rotas integradas a partir do Dia 1, confirmando persistência e continuidade do sandbox. **O Dia 2 está fechado; o Dia 3 tem as Fatias A–B implementadas.**
 
 Consulte [Dia 2 — narrativa](DAY-2-NARRATIVE-SPEC.md) e [Dia 2 — implementação](DAY-2-IMPLEMENTATION-SPEC.md).
+
+## Dia 3 — cooperação por necessidade
+
+**Especificado em 25 de setembro de 2026. Fatias A–B implementadas.**
+
+O terceiro dia herda o estado real do fim do Dia 2 (cooperação, afastamento, contato sem compromisso ou nenhum encontro) e introduz a primeira tensão de cooperação prática: dividir a vigília noturna na Margem Rochosa. A Fatia A adicionou o teste de regressão que faltava para a rota `day-three-independent`. A Fatia B publicou `share-night-watch-with-caio` e o evento `night-watch-proposal`, com três decisões (assumir a vigília sozinho, revezar em turnos ou recusar) que não punem mecanicamente a recusa. As Fatias C e D seguem como próximo trabalho: autonomia/falhas de disponibilidade e o playtest integrado do Dia 3.
+
+Fechamento: **96 arquivos de teste / 950 testes**, lint, typecheck e build PWA verdes; schema permanece 26.
+
+Consulte [Dia 3 — narrativa](DAY-3-NARRATIVE-SPEC.md) e [Dia 3 — implementação](DAY-3-IMPLEMENTATION-SPEC.md).
 
 ### Dia 3 — Cooperação por necessidade
 
