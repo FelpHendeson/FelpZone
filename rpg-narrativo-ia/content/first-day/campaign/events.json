@@ -2373,5 +2373,128 @@
         }
       }
     ]
+  },
+  {
+    "id": "day-six-awakening",
+    "title": "O sexto amanhecer",
+    "body": "O relógio marca o sexto dia. O que foi dito ontem sobre como o grupo deveria decidir as coisas ainda não encontrou um caso real para testar essa ideia.",
+    "image": {
+      "kind": "scene",
+      "label": "Amanhecer do sexto dia"
+    },
+    "choices": [
+      {
+        "id": "day-six-look-around",
+        "label": "Começar o dia",
+        "effects": [],
+        "transition": {
+          "type": "firstMatch",
+          "eventIds": [
+            "day-six-davi-question",
+            "day-six-alone-continue"
+          ]
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "day-six-davi-question",
+    "title": "Um caso concreto",
+    "body": "Há mais para fazer do que o grupo consegue cobrir, e alguém pergunta diretamente: Davi ainda não se recuperou de verdade — ele deveria ser poupado enquanto isso, ou contribuir do jeito que conseguir, como qualquer outra pessoa? Ninguém finge que a resposta é óbvia.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.contact",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "day6-davi-protected",
+        "label": "Defender que Davi seja poupado até se recuperar de verdade",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day6.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day6.davi.priority.protected",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "day6-davi-equal-duty",
+        "label": "Dizer que Davi deveria contribuir do jeito que conseguir, sem tratamento especial",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day6.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day6.davi.priority.equal-duty",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "day6-davi-self-choice",
+        "label": "Recusar decidir por Davi e devolver a pergunta a ele",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day6.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day6.davi.priority.self-choice",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-six-alone-continue",
+    "title": "Um dia sem esse caso",
+    "body": "Não há ninguém conhecido por perto para levantar essa pergunta hoje. O sexto dia segue sem esse tipo de decisão.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.contact",
+        "value": false
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-six-alone-continue-choice",
+        "label": "Seguir o sexto dia",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day6.started",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
   }
 ]
