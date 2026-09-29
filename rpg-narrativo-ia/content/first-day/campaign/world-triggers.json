@@ -68,5 +68,21 @@
         "value": true
       }
     ]
+  },
+  {
+    "id": "day-five-start",
+    "source": {
+      "type": "world.day.min",
+      "day": 5
+    },
+    "campaignId": "first-day",
+    "eventId": "day-five-awakening",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day4.started",
+        "value": true
+      }
+    ]
   }
 ]

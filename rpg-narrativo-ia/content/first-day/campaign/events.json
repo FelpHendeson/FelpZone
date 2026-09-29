@@ -2250,5 +2250,128 @@
       }
     ],
     "canStartSession": true
+  },
+  {
+    "id": "day-five-awakening",
+    "title": "O quinto amanhecer",
+    "body": "O relógio marca o quinto dia. Nada foi resolvido de uma vez só, mas o que aconteceu até aqui — quem você encontrou, quem evitou, o que cuidou ou deixou passar — continua orientando o que vem agora.",
+    "image": {
+      "kind": "scene",
+      "label": "Amanhecer do quinto dia"
+    },
+    "choices": [
+      {
+        "id": "day-five-look-around",
+        "label": "Começar o dia",
+        "effects": [],
+        "transition": {
+          "type": "firstMatch",
+          "eventIds": [
+            "day-five-group-conversation",
+            "day-five-alone-continue"
+          ]
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "day-five-group-conversation",
+    "title": "Nem todo mundo está crescendo do mesmo jeito",
+    "body": "Alguém do grupo que você já conhece comenta em voz alta o que os dois vêm percebendo há alguns dias: nem todos estão desenvolvendo o mesmo tanto de capacidade no mesmo ritmo. Não é uma acusação, é uma pergunta prática — se isso continuar assim, como vocês deveriam decidir as coisas daqui para frente? Ninguém propõe uma resposta pronta; a pergunta fica no ar, esperando a sua posição.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.contact",
+        "value": true
+      }
+    ],
+    "choices": [
+      {
+        "id": "day5-stance-collective",
+        "label": "Propor que decisões continuem sendo tomadas em conjunto, independente de quem for mais forte",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day5.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day5.organization.stance.collective",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "day5-stance-capable",
+        "label": "Dizer que faz sentido deixar quem for mais capaz decidir quando for preciso",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day5.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day5.organization.stance.capable",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "day5-stance-undecided",
+        "label": "Dizer que ainda não sabe e que prefere não se comprometer agora",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day5.started",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "day5.organization.stance.undecided",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
+  },
+  {
+    "id": "day-five-alone-continue",
+    "title": "Um dia sem essa conversa",
+    "body": "Não há ninguém por perto para levantar essa pergunta hoje. O mundo continua do mesmo jeito, e a diferença de capacidade entre as pessoas — se existir — ainda não é assunto seu.",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day2.survivors.contact",
+        "value": false
+      }
+    ],
+    "choices": [
+      {
+        "id": "day-five-alone-continue-choice",
+        "label": "Seguir o quinto dia",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day5.started",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ]
   }
 ]
