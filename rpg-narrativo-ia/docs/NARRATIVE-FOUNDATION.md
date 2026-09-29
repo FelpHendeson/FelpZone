@@ -22,7 +22,13 @@ Os pontos abaixo fazem parte da direção canônica atual:
 - a narrativa deve combinar sobrevivência, reconstrução social, desenvolvimento científico/prático, relações humanas, disputa política, ascensão de indivíduos poderosos, família e vida cotidiana;
 - escolhas de relacionamento, parceiro romântico, pertencimento, profissão, poder e liderança devem poder alterar trajetórias narrativas;
 - o jogador deve escolher o sexo do personagem;
-- o jogo precisa de tutorial contextual e uma central de ajuda permanente, preferencialmente tratados como parte diegética do Sistema.
+- o jogo precisa de tutorial contextual e uma central de ajuda permanente, preferencialmente tratados como parte diegética do Sistema;
+- a forma como o jogador vem se comportando desde a chegada pode colorir sua própria leitura de uma fala de NPC (a mesma fala pode ser lida como neutra, amigável ou suspeita dependendo do estado do próprio jogador), sem que isso altere a fala real do NPC;
+- o nascimento do primeiro assentamento inclui um momento narrativo explícito de discussão sobre método de governo/liderança apropriado ao tipo de grupo formado, antes de mecânicas de facção, reputação interna e disputa por domínio se tornarem relevantes;
+- mecânicas centrais devem, quando fizer sentido, vir acompanhadas de um minijogo simples que evite que a rotina cotidiana pareça apenas repetição de menus;
+- após o Registro regional do sétimo dia, o medo do que pessoas/grupos poderosos podem se tornar deve ser uma força de união tanto quanto uma força de conflito: assentamentos podem se unir por especialização (comércio, militarização) tanto quanto entrar em conflito de larga escala, e o mesmo período introduz ameaças de fera poderosa e banditismo organizado como conteúdo, não apenas guerra entre humanos;
+- o combate deve escalar de confrontos individuais a confrontos entre grupos e entre forças de larga escala, sem exigir um sistema totalmente novo por escala — ver Sistema 23 (party e combate em grupo) como base a estender;
+- famílias podem crescer além de um único vínculo conjugal quando a cultura do grupo permitir, incluindo filhos, e a vida familiar deve poder interagir com outras mecânicas (profissão, propriedade, política, facção) em vez de existir isolada.
 
 ### Provisório para playtest
 
@@ -35,7 +41,8 @@ Os pontos abaixo são propostas iniciais e podem mudar durante a escrita e o jog
 - categorias exatas do ranking;
 - níveis, posições e números de poder exibidos no sétimo dia;
 - ordem exata de eventos entre os dias 2 e 6;
-- o título provisório **Os Primeiros Senhores** para o primeiro arco longo após o prólogo.
+- o título provisório **Os Primeiros Senhores** para o primeiro arco longo após o prólogo;
+- tudo que vier depois d'Os Primeiros Senhores (um eventual terceiro arco): o autor confia a condução dessa etapa ao critério de quem especifica o conteúdo, mantendo apenas a direção já registrada nas seções 9.1 e 14 como bússola (família como instituição que interage com outras mecânicas, poder pessoal convertido em território/riqueza/autoridade).
 
 A regra é simples: playtest pode alterar conteúdo provisório sem retconar a premissa central.
 
@@ -415,6 +422,8 @@ O assentamento não nasce porque o jogador clicou em "fundar assentamento".
 
 Ele nasce porque pessoas precisam organizar a própria sobrevivência.
 
+Quando o grupo se reconhece como um assentamento (e não mais como sobreviventes isolados cooperando ponto a ponto), isso deve ser marcado por um momento narrativo explícito de discussão coletiva sobre método de governo/liderança apropriado ao tipo de grupo formado — não uma escolha de menu, mas uma cena onde as posições dos NPCs presentes já indicam divergência (quem quer decisão coletiva, quem quer um líder único, quem não se importa). É esse momento que abre caminho para reputação interna, formação de facção, engajamento em disputa por domínio e as demais mecânicas de poder da seção 6 (Dias 5 e 6) e da seção 14.
+
 ## Dias 4 e 5 — Trabalho e convivência
 
 A rotina produz relações.
@@ -638,6 +647,10 @@ A contribuição do jogador altera resultados, velocidade, relações e oportuni
 
 Antes de implementar essa camada, definir um contrato mínimo sobre os Sistemas 17, 26 e 28 em vez de criar imediatamente um sistema gigante independente.
 
+### Minijogos como redutor de tédio
+
+Mecânicas centrais e recorrentes (vigia, coleta, treino, combate, tarefas do assentamento) devem, quando fizer sentido, ser acompanhadas de um minijogo simples e rápido em vez de se resolverem apenas por um botão de "confirmar". O objetivo não é criar um jogo dentro do jogo, mas dar uma sensação de participação ativa em atividades que, de outro modo, seriam apenas repetição de menu. O formato exato de cada minijogo é decisão de implementação futura, específica de cada mecânica.
+
 ---
 
 # 9. Relacionamentos e romance
@@ -705,6 +718,18 @@ Romance pode evoluir para:
 - consequências políticas.
 
 O parceiro nunca deve funcionar como acessório automático do protagonista.
+
+Família pode crescer além de um único vínculo conjugal quando a cultura do grupo ou facção envolvida permitir isso (poligamia, arranjos próprios de certas comunidades), e pode incluir filhos e a expansão da própria unidade familiar ao longo do tempo — o Sistema 25 (laços, lares e marcos) já persiste esse eixo; o que falta é a camada narrativa que faz a família interagir com as demais mecânicas em vez de existir isolada: uma família pode carregar profissão, propriedade, posição política e filiação de facção próprias, e decisões nesses outros eixos podem gerar tensão ou apoio dentro da família. Formato exato ainda provisório; ver seção 14 para a mesma ideia aplicada à escala de facções.
+
+## 9.2 Percepção subjetiva das interações
+
+O jogador acumula, desde o despertar, um estado comportamental próprio (por exemplo: quão desconfiado, cooperativo ou hostil ele tem agido).
+
+Esse estado não altera o conteúdo real de uma fala ou ação de NPC, mas pode alterar **como o jogo apresenta essa fala ao jogador** — a mesma linha de diálogo neutra pode ser narrada com um tom de leitura desconfiada quando o próprio jogador vem se comportando de forma desconfiada, e com um tom mais aberto quando o jogador vem cooperando.
+
+Isso é uma camada de apresentação sobre o estado real de relação (Sistema 19), não um substituto dele: o NPC continua reagindo ao que de fato aconteceu; apenas a moldura com que o jogo relata isso ao jogador muda.
+
+Essa mecânica ainda não possui contrato técnico. Antes de qualquer implementação, é necessário especificar separadamente: qual estado do jogador alimenta essa leitura, como ele é acumulado, e o contrato de como a apresentação de uma fala é escolhida sem duplicar o conteúdo do evento.
 
 ---
 
@@ -888,6 +913,32 @@ A ideia central é mostrar o momento histórico em que algumas pessoas percebem 
 > poder individual pode ser convertido em território, seguidores, riqueza e autoridade.
 
 O jogador pode se envolver profundamente nisso ou seguir outra trajetória.
+
+## 14.1 Medo como força de união, não só de conflito
+
+O Registro regional prova que alguém ficou muito mais forte do que deveria ser possível em poucos dias. A reação dominante deste arco não é apenas competição — é **medo do desconhecido**: se isso já aconteceu, o que mais existe lá fora, e o que impede que aconteça de novo contra o próprio grupo?
+
+Esse medo deve gerar tanto união quanto conflito, e o jogo deve deixar as duas coisas emergirem do mesmo evento:
+
+- assentamentos podem se unir por especialização complementar — um foca comércio e produção, outro foca militarização e proteção — formando alianças ou uniões maiores do que qualquer assentamento isolado;
+- essas mesmas uniões, ao crescerem, competem entre si por território, rotas e recursos, reabrindo conflito, agora em escala maior do que qualquer disputa interna do primeiro assentamento;
+- o mesmo período introduz ameaças que não são humanas nem políticas — feras poderosas e banditismo organizado — como pressão concreta que também empurra comunidades a se unirem, e que também serve de terreno de treino e prova de força para quem busca ascensão.
+
+## 14.2 Escala de combate
+
+O combate deste arco deixa de ser só confronto individual. Ele deve escalar em pelo menos três camadas, todas apoiadas no mesmo contrato de combatente já existente (Sistema 12) e na base de grupo já existente (Sistema 23), sem exigir um sistema de combate totalmente novo por escala:
+
+- confronto individual (já existente);
+- confronto entre grupos pequenos/party contra party, ou party contra fera/bando;
+- confronto em larga escala entre uniões de assentamentos ou facções.
+
+A camada de larga escala é a que ainda não tem contrato nenhum e é a que mais precisa de especificação técnica própria antes de qualquer código — provavelmente como uma resolução agregada apoiada em atributos de grupo (Sistema 21/23/28/29) em vez de simular cada combatente individualmente.
+
+## 14.3 Treino e habilidades no contexto de facção
+
+O crescimento pessoal (Sistemas 11, 13, 16, 22) ganha, neste arco, um contexto social: treinar deixa de ser só desenvolvimento individual e passa a ser também um investimento que uma facção ou assentamento pode fazer ou disputar em um membro promissor. Isso não exige um sistema de treino novo — é uma camada narrativa e de contribuição (Sistema 26/29) sobre o que já existe.
+
+O tempo entre o fim do prólogo (Dia 7) e o início efetivo deste arco, e o ritmo interno de suas próprias fatias, ficam em aberto até existir uma especificação técnica dedicada — o mesmo processo usado para os Dias 2 a 4 (narrativa primeiro, depois recorte técnico em fatias pequenas).
 
 ---
 
