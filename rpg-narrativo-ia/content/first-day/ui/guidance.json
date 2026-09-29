@@ -144,6 +144,18 @@
       ],
       "category": "social",
       "popupOnUnlock": true
+    },
+    {
+      "id": "regional-registry",
+      "title": "Registro regional",
+      "summary": "O Sistema concluiu um primeiro ciclo de avaliação e agora reconhece pessoas além do que você viu pessoalmente.",
+      "body": [
+        "O Registro compara realizações dentro de categorias e escopos declarados; nível, patente, ranking e título continuam conceitos separados.",
+        "Uma posição alta em um ranking não revela automaticamente quem é essa pessoa nem garante segurança ou perigo imediato.",
+        "Rankings locais (como os da Clareira) e o Registro regional convivem: um não substitui o outro."
+      ],
+      "category": "society",
+      "popupOnUnlock": true
     }
   ]
 }

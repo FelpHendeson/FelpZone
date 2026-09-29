@@ -39,6 +39,8 @@ Leia nesta ordem:
      - [Implementação do Dia 5](docs/DAY-5-IMPLEMENTATION-SPEC.md): recorte técnico como evento de campanha puro — Fatias A–D implementadas, Dia 5 fechado neste recorte.
    - [Dia 6 — especificação narrativa e jogável](docs/DAY-6-NARRATIVE-SPEC.md): a postura declarada no Dia 5 encontra um caso concreto — o cuidado com Davi.
      - [Implementação do Dia 6](docs/DAY-6-IMPLEMENTATION-SPEC.md): recorte técnico como evento de campanha puro — Fatias A–D implementadas, Dia 6 fechado neste recorte.
+   - [Dia 7 — especificação narrativa e jogável](docs/DAY-7-NARRATIVE-SPEC.md): o Registro regional é habilitado, fechando o primeiro arco (Os Sete Dias).
+     - [Implementação do Dia 7](docs/DAY-7-IMPLEMENTATION-SPEC.md): revelação puramente narrativa sobre o Sistema 20 já existente — Fatias A–C implementadas, Dia 7 fechado neste recorte.
 3. [Visão do produto](docs/PRODUCT.md): universo, experiência e limites conceituais.
 4. [Visão do motor de mundo](docs/WORLD-ENGINE-VISION.md): sistemas como blocos, packs como configuração e campanhas como histórias.
 5. [Escopo do MVP](docs/MVP.md): o que deve e não deve ser implementado agora.
@@ -81,7 +83,7 @@ Leia nesta ordem:
 40. [Economia, comércio e propriedade](docs/SYSTEM-27-ECONOMY-COMMERCE-PROPERTY.md): Sistema 27 implementado e consolidado nas Fatias 27.1 a 27.7.
 41. [Bases, territórios e assentamentos](docs/SYSTEM-28-BASES-TERRITORIES-SETTLEMENTS.md): Sistema 28 implementado e consolidado nas Fatias 28.1 a 28.7.
 42. [Facções, diplomacia e poder político](docs/SYSTEM-29-FACTIONS-DIPLOMACY-POLITICS.md): Sistema 29 implementado e consolidado nas Fatias 29.1 a 29.7.
-43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dias 1 a 6 fechados. Próximo: decisão de conteúdo sobre o Dia 7 (Registro regional).
+43. [Roadmap de mecânicas](docs/ROADMAP.md): etapas consolidadas até o Sistema 29; Dias 1 a 7 fechados — primeiro arco (Os Sete Dias) concluído. Próximo: decisão de conteúdo sobre o arco "Os Primeiros Senhores".
 44. [Instruções para agentes](AGENTS.md): regras práticas para trabalhar nesta pasta.
 
 ## Como executar
@@ -171,7 +173,7 @@ O programa dos Sistemas 18 a 29 está **implementado e consolidado** dentro do r
 
 ## O que foi validado nesta entrega
 
-- `npm test`: 99 arquivos / 1006 testes após as Fatias A–D do Dia 6 (Dia 6 fechado neste recorte), incluindo a entrada pelo relógio real, o caso concreto de Davi (evento de campanha puro, sem atividade contextual) disponível apenas para quem já tem convivência real estabelecida, sem que a postura declarada no Dia 5 trave nenhuma das saídas, e o playtest integrado das quatro rotas herdadas com save/reload, além das Fatias A–D dos Dias 3 a 5, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
+- `npm test`: 100 arquivos / 1012 testes após as Fatias A–C do Dia 7 (Dia 7 fechado neste recorte, fechando o primeiro arco), incluindo a revelação do Registro regional chegando a todas as quatro rotas herdadas sem depender de convivência estabelecida, o novo tópico de ajuda `regional-registry`, e a confirmação de que o Sistema 20 (rankings/patentes locais da Clareira, desde o Dia 1) continua funcionando sem alteração de contrato, além das Fatias A–D dos Dias 3 a 6, migração schema 25→26, persistência atual e os Sistemas 1 a 29.
 - `npm run lint` e `npm run typecheck`.
 - `npm run build`: bundle estático com `sw.js` e manifesto.
 - Na Clareira do Despertar, pegadas e outros sinais humanos aparecem antes de `mira-nearby`. Mira pode ser observada, abordada ou evitada; conversar abre `survivor-meet` e retorna ao sandbox após a troca. A primeira noite é acionada pelo relógio, não pela conversa, e o Dia 2 começa depois do avanço real de tempo pelo sandbox.

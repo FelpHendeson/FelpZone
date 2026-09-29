@@ -100,5 +100,21 @@
         "value": true
       }
     ]
+  },
+  {
+    "id": "day-seven-start",
+    "source": {
+      "type": "world.day.min",
+      "day": 7
+    },
+    "campaignId": "first-day",
+    "eventId": "day-seven-registry",
+    "conditions": [
+      {
+        "type": "flag.is",
+        "flag": "day6.started",
+        "value": true
+      }
+    ]
   }
 ]

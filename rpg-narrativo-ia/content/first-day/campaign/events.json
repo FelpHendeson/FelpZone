@@ -2496,5 +2496,35 @@
         }
       }
     ]
+  },
+  {
+    "id": "day-seven-registry",
+    "title": "Primeiro ciclo de avaliação concluído",
+    "body": "O Sistema apresenta uma mensagem que não existia antes: o primeiro ciclo de avaliação terminou. Uma nova função se abre — o Registro regional. Pela primeira vez fica claro que a região abriga muito mais gente do que qualquer coisa que você tenha visto por perto, e que ao menos uma pessoa, em algum lugar dela, cresceu em capacidade de um jeito que sete dias não deveriam permitir. O Sistema não diz quem. Só que existe.",
+    "image": {
+      "kind": "scene",
+      "label": "Registro regional habilitado"
+    },
+    "choices": [
+      {
+        "id": "day-seven-look-around",
+        "label": "Consultar o Registro",
+        "effects": [
+          {
+            "type": "flag.set",
+            "flag": "day7.started",
+            "value": true
+          },
+          {
+            "type": "guidance.unlock",
+            "topicId": "regional-registry"
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
   }
 ]
