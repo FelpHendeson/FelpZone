@@ -203,6 +203,9 @@ export interface ContextualActivityView {
   /** "Último período", "Expira hoje", "Expira amanhã" ou "Expira em N dias". */
   deadlineLabel?: string;
   deadlineUrgent?: boolean;
+  /** "Chance alta · 80%" — o risco aparece antes da escolha, nunca depois. */
+  chanceLabel?: string;
+  chanceBand?: 'alta' | 'incerta' | 'arriscada';
 }
 
 export interface InteractableView {
@@ -694,6 +697,9 @@ function visibleActivities(state: GameState, context: SandboxContext): Contextua
       minOptional: participants?.minOptional ?? 0,
       maxOptional: participants?.maxOptional ?? 0,
       ...describeDeadline(entry.daysLeft, entry.lastPeriod),
+      ...(entry.chance
+        ? { chanceLabel: `Chance ${entry.chance.band} · ${entry.chance.favorablePercent}%`, chanceBand: entry.chance.band }
+        : {}),
     };
   });
 }

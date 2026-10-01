@@ -4656,3 +4656,21 @@ button:disabled {
   font-family: var(--font-story);
   font-weight: 500;
 }
+
+/* Incerteza declarada: a faixa de chance aparece antes da escolha */
+.chance-badge {
+  justify-self: start;
+  width: fit-content;
+  margin: 0;
+  padding: 3px 9px;
+  border: 1px solid color-mix(in srgb, var(--tone-chance) 50%, transparent);
+  border-radius: 999px;
+  color: var(--tone-chance);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.chance-badge--alta { --tone-chance: var(--accent); }
+.chance-badge--incerta { --tone-chance: var(--accent-system); }
+.chance-badge--arriscada { --tone-chance: var(--accent-social); }

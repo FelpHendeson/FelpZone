@@ -132,6 +132,11 @@ export function ContextualActivityCard({
           <h3>{activity.label}</h3>
           <span>{formatPeriodCost(activity.costPeriods)}</span>
         </div>
+        {activity.chanceLabel ? (
+          <p className={`chance-badge chance-badge--${activity.chanceBand}`}>
+            <span aria-hidden="true">◈</span> {activity.chanceLabel}
+          </p>
+        ) : null}
         {activity.deadlineLabel ? (
           <p className={activity.deadlineUrgent ? 'deadline-badge deadline-badge--urgent' : 'deadline-badge'}>
             <span aria-hidden="true">⧗</span> {activity.deadlineLabel}

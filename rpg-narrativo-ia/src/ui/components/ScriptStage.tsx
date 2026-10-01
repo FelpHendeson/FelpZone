@@ -59,6 +59,8 @@ export function ScriptStage({ lines, playerName, speakers, interpolate, onComple
   }, [current, currentText, delay]);
 
   useEffect(() => {
+    // A primeira linha não rola: a cena (imagem) abre o evento.
+    if (index === 0 && !finished) return;
     logEndRef.current?.scrollIntoView?.({ block: 'end', behavior: delay === 0 ? 'auto' : 'smooth' });
   }, [index, finished, delay]);
 

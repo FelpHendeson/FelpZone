@@ -57,6 +57,8 @@ export function executePrimary(
   settlementPlan?: SettlementActionPlan;
   politicsPlan?: PoliticsActionPlan;
   activityPlan?: ContextualActivityPlan;
+  activityOutcome?: { id: string; label: string; favorable: boolean; feedback?: string };
+  rng?: GameState['rng'];
   navigation: GameState['sandbox']['navigation'];
   exploration: GameState['sandbox']['exploration'];
   resources: GameState['sandbox']['resources'];
@@ -1080,6 +1082,8 @@ export function executePrimary(
       flags: applied.flags,
       relationships: applied.relationships,
       guidance: applied.guidance,
+      rng: applied.rng,
+      ...(applied.outcome ? { activityOutcome: applied.outcome } : {}),
     };
   }
 

@@ -8,7 +8,7 @@ Este documento junta o que a comparação com jogos parecidos (A Dark Room, Road
 | --- | --- | --- | --- |
 | 1 | Revelação progressiva da Central do Sistema | A Dark Room | **Implementada** |
 | 2 | Janela do Sistema para conquistas, com vibração | Status windows de LitRPG | **Implementada** |
-| 3 | Incerteza declarada com semente persistida | Citizen Sleeper | Proposta — exige schema 27 |
+| 3 | Incerteza declarada com semente persistida | Citizen Sleeper | **Implementada** (schema 27; conteúdo no próximo arco) |
 | 4 | Oportunidades com prazo | Roadwarden | **Implementada** (motor e interface; conteúdo no próximo arco) |
 | 5 | Vozes da aptidão nas cenas | Disco Elysium | **Implementada** (condição `ability.has`) |
 | 6 | Crônica | Wildermyth | **Implementada** (legado entre partidas fica para depois) |
@@ -30,20 +30,36 @@ O Menu diz quantas interfaces continuam seladas, para o jogador saber que há ma
 
 ---
 
-## 3. Incerteza declarada — proposta
+## 3. Incerteza declarada — implementada (schema 27)
 
-**Problema.** O motor é totalmente determinístico: toda ação mostra o resultado antes de acontecer. Isso é ótimo para testes, mas tira tensão — não existe "arriscar".
+**Save.** `GameState.rng = { seed, cursor }`. Partidas novas derivam a semente de `createdAt` + nome; saves do schema 26 migram com semente derivada de `updatedAt` + nome e cursor 0. A semente é inteiro de 32 bits e o cursor só cresce; valores adulterados tornam o save corrompido. Módulo puro: `src/modules/chance` (FNV-1a para a semente, mulberry32 sobre semente + cursor, sorteio por pesos inteiros).
 
-**Proposta (no espírito de Citizen Sleeper):**
+**Pack.** Uma atividade contextual pode declarar `risk` com 2 ou 3 desfechos, ao menos um favorável:
 
-- O save ganha `rng: { seed: number; cursor: number }` (schema 27; saves 26 migram com uma semente fixa derivada de dados já persistidos e cursor 0 — a origem exata fica para a spec).
-- O pack pode declarar, numa atividade contextual ou interação, um bloco opcional `risk` com 2 a 3 desfechos (`success`, `partial`, `setback`) e pesos inteiros. Sem `risk`, nada muda.
-- O peso pode ser modificado **só** por condições já existentes (`ability.has`, `attribute.min`, `bond.dimension.min`), nunca por fórmula nova.
-- A UI mostra a faixa antes da escolha ("chance alta / incerta / arriscada"), nunca esconde o risco.
-- A rolagem acontece no motor, consome uma posição do cursor e o desfecho entra na mesma transação de mundo que custa o tempo. React não rola nada.
-- Testes: mesma semente + mesmo cursor ⇒ mesmo desfecho; save/reload não permite "rolar de novo".
+```json
+"risk": {
+  "outcomes": [
+    {
+      "id": "clean", "label": "Sucesso", "favorable": true, "weight": 3,
+      "modifiers": [{ "requirements": [{ "type": "ability.has", "abilityId": "olhar-atento" }], "delta": 3 }],
+      "effects": [{ "type": "flag.set", "flag": "x.clean", "value": true }],
+      "feedback": "Nada passa despercebido."
+    },
+    {
+      "id": "setback", "label": "Revés", "favorable": false, "weight": 2,
+      "effects": [{ "type": "flag.set", "flag": "x.setback", "value": true }],
+      "feedback": "Um galho estala e o momento se perde."
+    }
+  ]
+}
+```
 
-**Fora do recorte:** dados visíveis por período, stress, combate probabilístico.
+- Pesos só mudam por `modifiers` com requisitos já existentes de atividade (agora incluindo `ability.has`) — nenhuma fórmula nova.
+- O cartão mostra a faixa antes da escolha: "Chance alta · 75%" (≥ 70%), "incerta" (≥ 40%) ou "arriscada".
+- O sorteio acontece em `applyContextualActivityPlan`, uma vez, na mesma transação que cobra o tempo; os efeitos do desfecho somam-se aos efeitos fixos e o feedback sai rotulado ("Revés: ...").
+- Mesma semente + mesmo cursor ⇒ mesmo desfecho; recarregar o save não permite sortear de novo.
+
+**Fora do recorte:** dados por período, stress, combate probabilístico. Nenhuma atividade dos Dias 1–7 ganhou `risk`, para não mudar rotas fechadas por playtest; o primeiro uso previsto é o arco "Os Primeiros Senhores".
 
 ## 4. Oportunidades com prazo — implementada
 

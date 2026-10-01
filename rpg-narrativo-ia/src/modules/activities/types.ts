@@ -4,6 +4,7 @@ import type { IndexedNpcs, NPCsState } from '../npcs/types';
 import type { IndexedMap } from '../navigation/types';
 import type { IndexedGuidance, GuidanceState } from '../guidance/types';
 import type { Campaign } from '../../core/events';
+import type { ChanceBand, ChanceState } from '../chance/types';
 
 export type ContextualActivityRequirement =
   | { type: 'flag.is'; flag: string; value: boolean }
@@ -13,7 +14,8 @@ export type ContextualActivityRequirement =
   | { type: 'world.day.min'; day: number }
   | { type: 'npc.known'; npcId: string }
   | { type: 'npc.present'; npcId: string }
-  | { type: 'npc.available'; npcId: string };
+  | { type: 'npc.available'; npcId: string }
+  | { type: 'ability.has'; abilityId: string };
 
 export type ContextualActivityEffect =
   | { type: 'flag.set'; flag: string; value: boolean }
@@ -32,6 +34,38 @@ export interface ContextualActivityParticipants {
 export interface ContextualActivityNarrative {
   campaignId: string;
   eventId: string;
+}
+
+/** Ajuste de peso de um desfecho quando todas as condições valem (ex.: aptidão, relação). */
+export interface ContextualActivityOutcomeModifier {
+  requirements: readonly ContextualActivityRequirement[];
+  delta: number;
+}
+
+export interface ContextualActivityOutcome {
+  id: string;
+  label: string;
+  /** Desfecho favorável conta para a faixa de chance mostrada antes da escolha. */
+  favorable: boolean;
+  weight: number;
+  modifiers?: readonly ContextualActivityOutcomeModifier[];
+  effects: readonly ContextualActivityEffect[];
+  feedback?: string;
+}
+
+/** Desfechos sorteados no motor com a semente persistida; 2 a 3 opções, ao menos uma favorável. */
+export interface ContextualActivityRisk {
+  outcomes: readonly ContextualActivityOutcome[];
+}
+
+export interface PlannedActivityOutcome {
+  id: string;
+  label: string;
+  favorable: boolean;
+  /** Peso efetivo já ajustado pelos modificadores no estado atual. */
+  weight: number;
+  effects: readonly ContextualActivityEffect[];
+  feedback?: string;
 }
 
 /** Prazo da oportunidade: disponível até o fim do dia (ou até o período) indicado, inclusive. */
@@ -53,6 +87,7 @@ export interface ContextualActivityDefinition {
   narrative?: ContextualActivityNarrative;
   feedback?: string;
   availableUntil?: ContextualActivityDeadline;
+  risk?: ContextualActivityRisk;
 }
 
 export interface IndexedActivities {
@@ -71,6 +106,7 @@ export interface ContextualActivityPlan {
   effects: readonly ContextualActivityEffect[];
   narrative?: ContextualActivityNarrative;
   feedback?: string;
+  outcomes?: readonly PlannedActivityOutcome[];
 }
 
 export interface ContextualActivityKnownView {
@@ -82,6 +118,8 @@ export interface ContextualActivityKnownView {
   daysLeft?: number;
   /** Verdadeiro quando o prazo termina no período atual. */
   lastPeriod?: boolean;
+  /** Faixa e porcentagem do desfecho favorável, quando a atividade tem risco. */
+  chance?: { band: ChanceBand; favorablePercent: number };
 }
 
 export interface ActivityWorldContext {
@@ -97,6 +135,8 @@ export interface ContextualActivityApplied {
   flags: Record<string, boolean>;
   relationships: GameState['relationships'];
   guidance: GuidanceState;
+  rng: ChanceState;
+  outcome?: { id: string; label: string; favorable: boolean; feedback?: string };
 }
 
 export type ContextualActivityInspection<T> =
