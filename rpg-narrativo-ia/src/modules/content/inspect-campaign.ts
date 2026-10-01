@@ -16,7 +16,15 @@ export function inspectCampaignDocument(value: unknown, events: unknown): Campai
     throw new ContentError('Os eventos da campanha são inválidos.');
   }
   for (const event of events) {
-    if (!isRecord(event) || !nonEmpty(event.id) || !nonEmpty(event.title) || !nonEmpty(event.body) || !Array.isArray(event.choices)) {
+    if (
+      !isRecord(event) ||
+      !nonEmpty(event.id) ||
+      !nonEmpty(event.title) ||
+      typeof event.body !== 'string' ||
+      (!nonEmpty(event.body) && !Array.isArray(event.script)) ||
+      (event.script !== undefined && !Array.isArray(event.script)) ||
+      !Array.isArray(event.choices)
+    ) {
       throw new ContentError('Os eventos da campanha são inválidos.');
     }
   }

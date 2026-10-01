@@ -1,4 +1,4 @@
-import type { Attributes, AttributeId, CharacterIdentity, LegacyCharacterIdentity } from '../../core/state/types';
+import type { Attributes, AttributeId, CharacterIdentity, CharacterSex, LegacyCharacterIdentity } from '../../core/state/types';
 import { createInitialNeedsSnapshot } from '../needs';
 
 export type { AttributeId, Attributes, CharacterIdentity, LegacyCharacterIdentity };
@@ -44,13 +44,20 @@ export function fullName(character: LegacyCharacterIdentity): string {
   return `${character.firstName} ${character.lastName}`.trim();
 }
 
-export const STORY_VAR_KEYS = ['nome', 'sobrenome', 'nomeCompleto'] as const;
+export const STORY_VAR_KEYS = ['nome', 'sobrenome', 'nomeCompleto', 'desperto'] as const;
 
-export function storyVars(character: LegacyCharacterIdentity): Record<string, string> {
+const AWAKENED_FORM: Record<CharacterSex, string> = {
+  male: 'Desperto',
+  female: 'Desperta',
+  unspecified: 'Desperto(a)',
+};
+
+export function storyVars(character: LegacyCharacterIdentity & { sex?: CharacterSex }): Record<string, string> {
   return {
     nome: character.firstName,
     sobrenome: character.lastName,
     nomeCompleto: fullName(character),
+    desperto: AWAKENED_FORM[character.sex ?? 'unspecified'],
   };
 }
 

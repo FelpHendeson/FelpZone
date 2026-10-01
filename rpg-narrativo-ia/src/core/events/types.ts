@@ -25,7 +25,8 @@ export type GameCondition =
   | { type: 'crafting.structure.active'; structureId: string; locationId?: string }
   | { type: 'relationship.min'; characterId: string; amount: number }
   | { type: 'bond.dimension.min'; fromId: string; toId: string; dimensionId: string; amount: number }
-  | { type: 'bond.exists'; fromId: string; toId: string; bondId: string };
+  | { type: 'bond.exists'; fromId: string; toId: string; bondId: string }
+  | { type: 'ability.has'; abilityId: string };
 
 export type ImageKind = 'scene' | 'portrait' | 'icon';
 
@@ -51,10 +52,23 @@ export interface StoryChoice {
   notable?: boolean;
 }
 
+/**
+ * Roteiro de visual novel: linhas apresentadas uma a uma antes das escolhas.
+ * `system` é a voz do Sistema (janela diegética); `thought` é o pensamento do
+ * personagem; `speech` é a fala de um NPC declarado na campanha.
+ */
+export type ScriptLine =
+  | { kind: 'narration'; text: string; conditions?: GameCondition[] }
+  | { kind: 'thought'; text: string; conditions?: GameCondition[] }
+  | { kind: 'system'; text: string; conditions?: GameCondition[] }
+  | { kind: 'speech'; speakerId: string; text: string; conditions?: GameCondition[] };
+
 export interface StoryEvent {
   id: string;
   title: string;
+  /** Texto corrido. Pode ficar vazio quando o evento declara `script`. */
   body: string;
+  script?: ScriptLine[];
   image?: ImageReference;
   portrait?: ImageReference;
   conditions?: GameCondition[];

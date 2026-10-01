@@ -438,7 +438,8 @@ function inspectCampaign(value: unknown): { ok: true; value: Campaign } | { ok: 
       !nonEmpty(event.id) ||
       eventIds.has(event.id) ||
       !nonEmpty(event.title) ||
-      !nonEmpty(event.body) ||
+      typeof event.body !== 'string' ||
+      !hasNarrativeText(event.body, event.script) ||
       !Array.isArray(event.choices) ||
       event.choices.length > 256
     ) {
@@ -464,6 +465,12 @@ function inspectCampaign(value: unknown): { ok: true; value: Campaign } | { ok: 
     return { ok: false, reason: 'A campanha do sandbox é inválida.' };
   }
   return { ok: true, value: value as unknown as Campaign };
+}
+
+/** Um evento precisa de texto corrido ou de um roteiro de até 256 linhas; o conteúdo das linhas é validado pela campanha. */
+function hasNarrativeText(body: string, script: unknown): boolean {
+  if (script === undefined) return nonEmpty(body);
+  return Array.isArray(script) && script.length > 0 && script.length <= 256;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

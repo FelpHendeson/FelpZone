@@ -10,8 +10,9 @@ Este documento junta o que a comparação com jogos parecidos (A Dark Room, Road
 | 2 | Janela do Sistema para conquistas, com vibração | Status windows de LitRPG | **Implementada** |
 | 3 | Incerteza declarada com semente persistida | Citizen Sleeper | Proposta — exige schema 27 |
 | 4 | Oportunidades com prazo | Roadwarden | Proposta — conteúdo + leitura de prazo |
-| 5 | Vozes da aptidão nas cenas | Disco Elysium | Proposta — só conteúdo, motor já suporta |
+| 5 | Vozes da aptidão nas cenas | Disco Elysium | **Implementada** (condição `ability.has`) |
 | 6 | Crônica de fim de arco | Wildermyth | Proposta — só apresentação |
+| 7 | Cenas em modo visual novel | Visual novels / LitRPG | **Implementada** |
 
 ---
 
@@ -37,7 +38,7 @@ O Menu diz quantas interfaces continuam seladas, para o jogador saber que há ma
 
 - O save ganha `rng: { seed: number; cursor: number }` (schema 27; saves 26 migram com uma semente fixa derivada de dados já persistidos e cursor 0 — a origem exata fica para a spec).
 - O pack pode declarar, numa atividade contextual ou interação, um bloco opcional `risk` com 2 a 3 desfechos (`success`, `partial`, `setback`) e pesos inteiros. Sem `risk`, nada muda.
-- O peso pode ser modificado **só** por condições já existentes (`progression.ability`, `attribute.min`, `bond.dimension.min`), nunca por fórmula nova.
+- O peso pode ser modificado **só** por condições já existentes (`ability.has`, `attribute.min`, `bond.dimension.min`), nunca por fórmula nova.
 - A UI mostra a faixa antes da escolha ("chance alta / incerta / arriscada"), nunca esconde o risco.
 - A rolagem acontece no motor, consome uma posição do cursor e o desfecho entra na mesma transação de mundo que custa o tempo. React não rola nada.
 - Testes: mesma semente + mesmo cursor ⇒ mesmo desfecho; save/reload não permite "rolar de novo".
@@ -55,15 +56,42 @@ O Menu diz quantas interfaces continuam seladas, para o jogador saber que há ma
 - Primeiro uso sugerido: no arco "Os Primeiros Senhores", uma ajuda a Davi ou Caio que só existe até um dia declarado.
 - Sem schema novo: o prazo é catálogo; o estado já guarda dia e período.
 
-## 5. Vozes da aptidão — proposta (só conteúdo)
+## 5. Vozes da aptidão — implementada
 
-O motor já tem a condição `progression.ability`. Escolhas de evento podem ser exclusivas de quem tem Olhar Atento, Voz Calma ou Resiliência, com um `hint` em voz do Sistema ("[Olhar Atento] A trilha à esquerda foi pisada há pouco."). Isso dá personalidade à aptidão inicial sem regra nova. Sugestão: uma escolha condicionada por aptidão em cada cena-chave dos próximos dias.
+Havia só o *efeito* `progression.ability` (conceder a aptidão); faltava uma *condição* para lê-la. O motor ganhou `{ "type": "ability.has", "abilityId": "..." }`, validada contra o catálogo de aptidões da campanha e avaliada em `core/events/conditions.ts`. Ela vale em escolhas, eventos, títulos e linhas de roteiro.
+
+No Dia 1, `eteris-introduction` traz uma linha do Sistema exclusiva de cada aptidão (`[Olhar Atento]`, `[Resiliência]`, `[Voz Calma]`) e `first-numen-practice` traz um pensamento exclusivo de cada uma. Próximo passo de conteúdo: ao menos uma linha ou escolha condicionada por aptidão em cada cena-chave dos próximos dias.
 
 ## 6. Crônica de fim de arco — proposta (só apresentação)
 
 Ao fim de cada arco, uma tela "Crônica" reúne título obtido, rota tomada nos dias, vínculos formados e decisões marcantes — tudo derivado de `history`, `progression.titleIds` e `bonds`. Um legado entre partidas (heróis que reaparecem, como em Wildermyth) exigiria armazenamento fora do save e fica para depois.
 
 ---
+
+## 7. Cenas em modo visual novel — implementada
+
+Eventos podem declarar `script`: uma lista de linhas apresentadas uma a uma antes das escolhas.
+
+```json
+"script": [
+  { "kind": "narration", "text": "Você abre os olhos sobre um chão que nunca existiu." },
+  { "kind": "system", "text": "Usuário reconhecido: **{{nomeCompleto}}**." },
+  { "kind": "thought", "text": "Um painel flutuando no ar... falando comigo?" },
+  { "kind": "speech", "speakerId": "mira-vale", "text": "Fique onde está." },
+  { "kind": "system", "text": "[Olhar Atento] ...", "conditions": [{ "type": "ability.has", "abilityId": "olhar-atento" }] }
+]
+```
+
+- `narration` usa a fonte da história; `thought` é a voz interna do personagem; `speech` mostra retrato e nome do NPC declarado na campanha.
+- Linhas `system` consecutivas abrem uma **janela do Sistema** que cresce a cada toque — a interação com o Sistema durante a história acontece ali, não no texto corrido.
+- Texto aparece com digitação progressiva (instantâneo com `prefers-reduced-motion`); um toque completa a linha, outro avança. "Pular cena" revela tudo. As escolhas só aparecem quando o roteiro termina.
+- `body` pode ficar vazio quando há `script`. A validação exige roteiro não vazio, texto em toda linha, falante existente, variáveis conhecidas e ao menos uma linha sem condição.
+- Nova variável `{{desperto}}`: Desperto, Desperta ou Desperto(a), conforme o sexo do personagem.
+- O índice da linha atual não é salvo: recarregar reinicia o roteiro do evento atual, sem efeito no estado.
+
+Convertidos no Dia 1: `awakening`, `system-awakens`, `choose-ability`, `eteris-introduction`, `numen-introduction` e `first-numen-practice`. Os demais eventos continuam com `body` e podem migrar aos poucos.
+
+Cânone a confirmar: a abertura agora menciona coelhos com chifres e **ilhas flutuantes** no horizonte (sugestão do autor). O mundo continua sem nome; o Sistema chama o personagem de "Usuário" e de "{{desperto}}".
 
 ## Fontes consultadas
 

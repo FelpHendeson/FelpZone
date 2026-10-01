@@ -31,6 +31,8 @@ export function evaluateCondition(condition: GameCondition, state: GameState): b
       const edge = state.bonds?.edges.find((entry) => entry.fromId === condition.fromId && entry.toId === condition.toId);
       return (edge?.values[condition.dimensionId] ?? 0) >= condition.amount;
     }
+    case 'ability.has':
+      return state.progression.abilityIds.includes(condition.abilityId);
     case 'bond.exists':
       return (
         state.bonds?.edges.some(

@@ -39,6 +39,10 @@ interface ContentSource {
 
 `composeWorld(raw)` chama os `inspect*` existentes, resolve referências cruzadas (skill ↔ treino ↔ jardim ↔ combate ↔ mapa) e devolve `IndexedWorld`. `createSandboxContext` / `startGame` / a UI consomem esse mundo já validado.
 
+## Roteiros de cena
+
+Eventos de campanha podem declarar `script` (narração, Sistema, pensamento e fala de NPC, com `conditions` opcionais por linha) no lugar do `body` corrido. Contrato e exemplos em [Melhorias inspiradas em jogos de referência](IMPROVEMENTS-FROM-REFERENCES.md#7-cenas-em-modo-visual-novel--implementada). A condição `ability.has` permite linhas e escolhas exclusivas de cada aptidão.
+
 ## Fora de escopo
 
 - CMS, autenticação, backend de produção;
