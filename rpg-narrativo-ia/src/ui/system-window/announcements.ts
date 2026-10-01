@@ -2,6 +2,7 @@ import { findTitle } from '../../campaigns/first-day';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
+import { notableHistory } from '../../modules/narrative';
 import { buildSystemStatus } from '../../modules/system-interface';
 import { buildExplorationView } from '../sandbox';
 import { MENU_DOMAIN_LABELS, revealedMenuDomains, type MenuDomainId } from './reveal';
@@ -34,7 +35,7 @@ export function takeSystemSnapshot(state: GameState, campaign: Campaign, context
     ),
     patents: Object.fromEntries(status.registry.patents.filter((entry) => entry.granted).map((entry) => [entry.id, entry.name])),
     titleIds: [...state.progression.titleIds],
-    domains: [...revealedMenuDomains(status, bonds)],
+    domains: [...revealedMenuDomains(status, bonds, notableHistory(state.history).length)],
   };
 }
 

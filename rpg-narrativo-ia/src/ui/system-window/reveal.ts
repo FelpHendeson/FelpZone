@@ -1,6 +1,8 @@
 import type { SystemStatusView } from '../../modules/system-interface';
 
-export type MenuDomainId = 'progression' | 'registry' | 'relationships' | 'society' | 'family' | 'domain' | 'map' | 'help';
+export type MenuDomainId = 'progression' | 'registry' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help';
+
+export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help'];
 
 export const MENU_DOMAIN_LABELS: Record<MenuDomainId, string> = {
   progression: 'Progressão',
@@ -9,6 +11,7 @@ export const MENU_DOMAIN_LABELS: Record<MenuDomainId, string> = {
   society: 'Sociedade',
   family: 'Família e lar',
   domain: 'Domínio',
+  chronicle: 'Crônica',
   map: 'Mapa completo',
   help: 'Ajuda',
 };
@@ -20,8 +23,11 @@ const anyAvailable = (actions: readonly { available: boolean }[]) => actions.som
  * existe algo real para consultar (estado persistido) ou fazer agora (ação disponível).
  * Ações listadas mas bloqueadas não abrem uma interface sozinhas.
  */
-export function revealedMenuDomains(status: SystemStatusView, knownBonds: number): Set<MenuDomainId> {
+export function revealedMenuDomains(status: SystemStatusView, knownBonds: number, notableDecisions = 0): Set<MenuDomainId> {
   const revealed = new Set<MenuDomainId>(['progression', 'map', 'help']);
+  if (notableDecisions > 0) {
+    revealed.add('chronicle');
+  }
   if (status.registry.accessGranted || status.registry.patents.some((entry) => entry.granted)) {
     revealed.add('registry');
   }

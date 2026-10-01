@@ -56,7 +56,7 @@ describe('Revelação progressiva da Central do Sistema', () => {
     const html = renderToStaticMarkup(
       <GameMenuPanel status={status} view={view} campaign={firstDayCampaign} onNavigate={noop} guidanceCount={1} guidanceUnseenCount={0} />,
     );
-    const hidden = 8 - revealedMenuDomains(status, view.bonds.length).size;
+    const hidden = 9 - revealedMenuDomains(status, view.bonds.length).size;
     expect(hidden).toBeGreaterThan(0);
     expect(html).toContain('menu-sealed');
     expect(html).toContain(`${hidden} interface`);
@@ -113,5 +113,33 @@ describe('Janela do Sistema', () => {
     expect(html).toContain('[ Sistema ]');
     expect(html).toContain('system-window__panel--level');
     expect(html).toContain('Confirmar');
+  });
+});
+
+describe('Crônica', () => {
+  it('abre a interface com a primeira decisão marcante e resume título, vínculos e decisões', async () => {
+    const { ChroniclePanel } = await import('../ui/screens/exploration/ChroniclePanel');
+    const state = enterExploration();
+    const status = buildSystemStatus(state, context);
+    expect(revealedMenuDomains(status, 0, 0).has('chronicle')).toBe(false);
+    expect(revealedMenuDomains(status, 0, 1).has('chronicle')).toBe(true);
+    const chronicled = {
+      ...state,
+      progression: { ...state.progression, titleIds: ['despertar'] },
+      history: [...state.history, { eventId: 'e', eventTitle: 'A primeira noite', choiceId: 'c', choiceLabel: 'Dividir a vigília', notable: true }],
+    };
+    const html = renderToStaticMarkup(
+      <ChroniclePanel
+        state={chronicled}
+        campaign={firstDayCampaign}
+        status={status}
+        bonds={[{ npcId: 'mira-vale', name: 'Mira Vale', portraitSrc: '/images/first-day/npcs/mira-vale.webp', outgoing: [], incoming: [], namedBonds: [], actions: [], organizationActions: [], familyActions: [], civicActions: [], economyActions: [], settlementActions: [], politicsActions: [] }]}
+        onBack={noop}
+      />,
+    );
+    expect(html).toContain('/images/first-day/titles/despertar.webp');
+    expect(html).toContain('Mira Vale');
+    expect(html).toContain('Dividir a vigília');
+    expect(html).toContain('detail-screen--registry');
   });
 });

@@ -31,6 +31,8 @@ import { ActionsPanel } from './exploration/ActionsPanel';
 import { InventoryPanel } from './exploration/InventoryPanel';
 import { SystemPanel } from './exploration/SystemPanel';
 import { DomainPanel } from './exploration/DomainPanel';
+import { ChroniclePanel } from './exploration/ChroniclePanel';
+import { notableHistory } from '../../modules/narrative';
 import { DetailScreen, type DomainView, type GameView } from './exploration/shared';
 import { requireActiveCatalog } from './exploration/helpers';
 import {
@@ -55,7 +57,7 @@ function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || isDomainView(view)) {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || isDomainView(view)) {
     return 'menu';
   }
   return view;
@@ -219,6 +221,9 @@ export function ExplorationScreen({
               onBack={() => setActiveView('menu')}
             />
           ) : null}
+          {activeView === 'chronicle' ? (
+            <ChroniclePanel state={state} campaign={campaign} status={status} bonds={view.bonds} onBack={() => setActiveView('menu')} />
+          ) : null}
           {activeView === 'domain' ? (
             <DomainPanel status={status} onNavigate={setActiveView} onBack={() => setActiveView('menu')} />
           ) : null}
@@ -256,6 +261,7 @@ export function ExplorationScreen({
               onNavigate={setActiveView}
               guidanceCount={unlockedGuidance.length}
               guidanceUnseenCount={unseenGuidance.length}
+              notableCount={notableHistory(state.history).length}
             />
           ) : null}
 

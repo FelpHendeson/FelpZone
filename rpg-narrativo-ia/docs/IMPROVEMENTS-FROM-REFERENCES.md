@@ -11,7 +11,7 @@ Este documento junta o que a comparação com jogos parecidos (A Dark Room, Road
 | 3 | Incerteza declarada com semente persistida | Citizen Sleeper | Proposta — exige schema 27 |
 | 4 | Oportunidades com prazo | Roadwarden | **Implementada** (motor e interface; conteúdo no próximo arco) |
 | 5 | Vozes da aptidão nas cenas | Disco Elysium | **Implementada** (condição `ability.has`) |
-| 6 | Crônica de fim de arco | Wildermyth | Proposta — só apresentação |
+| 6 | Crônica | Wildermyth | **Implementada** (legado entre partidas fica para depois) |
 | 7 | Cenas em modo visual novel | Visual novels / LitRPG | **Implementada** |
 
 ---
@@ -65,11 +65,11 @@ Havia só o *efeito* `progression.ability` (conceder a aptidão); faltava uma *c
 
 No Dia 1, `eteris-introduction` traz uma linha do Sistema exclusiva de cada aptidão (`[Olhar Atento]`, `[Resiliência]`, `[Voz Calma]`) e `first-numen-practice` traz um pensamento exclusivo de cada uma. Próximo passo de conteúdo: ao menos uma linha ou escolha condicionada por aptidão em cada cena-chave dos próximos dias.
 
-## 6. Crônica de fim de arco — proposta (só apresentação)
+## 6. Crônica — implementada
 
-Ao fim de cada arco, uma tela "Crônica" reúne título obtido, rota tomada nos dias, vínculos formados e decisões marcantes — tudo derivado de `history`, `progression.titleIds` e `bonds`. Um legado entre partidas (heróis que reaparecem, como em Wildermyth) exigiria armazenamento fora do save e fica para depois.
+`Menu → Mundo e referência → Crônica` abre quando surge a primeira decisão marcante e mostra dia atual, nível, habilidades, vínculos (com retrato), títulos (com arte) e a linha do tempo das decisões marcantes. Tudo é derivado de `history`, `progression.titleIds`, `bonds` e do status do Sistema — nada é salvo à parte, e a interface não depende de nenhuma flag de história. Ao fim de um arco, ela funciona como o resumo da jornada.
 
----
+Legado entre partidas (heróis que reaparecem, como em Wildermyth) exigiria armazenamento fora do save e continua fora do recorte.
 
 ## 7. Cenas em modo visual novel — implementada
 

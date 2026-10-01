@@ -4508,3 +4508,151 @@ button:disabled {
   background: var(--gold);
   color: #1b1607;
 }
+
+/* Crônica */
+.detail-screen--registry .detail-screen__header {
+  border-color: color-mix(in srgb, var(--gold) 40%, transparent);
+  background: linear-gradient(135deg, rgba(76, 64, 25, 0.38), rgba(12, 20, 24, 0.98));
+}
+
+.detail-screen--registry .back-button,
+.detail-screen--registry .section-kicker {
+  border-color: color-mix(in srgb, var(--gold) 34%, transparent);
+  color: var(--gold);
+}
+
+.chronicle-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.chronicle-stats > div {
+  display: grid;
+  gap: 2px;
+  padding: 10px 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  text-align: center;
+}
+
+.chronicle-stats dt {
+  color: var(--text-muted);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.chronicle-stats dd {
+  margin: 0;
+  color: var(--gold);
+  font-family: var(--font-story);
+  font-size: 1.4rem;
+}
+
+.chronicle-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.chronicle-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.chronicle-titles,
+.chronicle-bonds,
+.chronicle-timeline {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chronicle-titles li,
+.chronicle-bonds li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.chronicle-titles p {
+  margin: 2px 0 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.4;
+}
+
+.chronicle-titles__art.placeholder--icon {
+  width: 52px;
+  border-radius: 12px;
+}
+
+.chronicle-bonds li > div {
+  display: grid;
+  gap: 2px;
+}
+
+.chronicle-bonds small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+}
+
+.portrait.chronicle-bonds__portrait {
+  width: 42px;
+  height: 42px;
+}
+
+.chronicle-timeline {
+  position: relative;
+  padding-left: 16px;
+}
+
+.chronicle-timeline::before {
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: 4px;
+  width: 1px;
+  background: linear-gradient(var(--gold), color-mix(in srgb, var(--gold) 10%, transparent));
+  content: '';
+}
+
+.chronicle-timeline li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+}
+
+.chronicle-timeline li::before {
+  position: absolute;
+  top: 6px;
+  left: -15px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  content: '';
+}
+
+.chronicle-timeline span {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.chronicle-timeline strong {
+  font-family: var(--font-story);
+  font-weight: 500;
+}

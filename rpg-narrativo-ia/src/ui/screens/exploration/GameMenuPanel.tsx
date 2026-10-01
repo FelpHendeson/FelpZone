@@ -5,7 +5,7 @@ import type { SystemStatusView } from '../../../modules/system-interface';
 import { Icon, SystemCorners, type IconName } from '../../components/Icon';
 import { PortraitStack } from '../../components/Portrait';
 import type { ExplorationView } from '../../sandbox';
-import { revealedMenuDomains, type MenuDomainId } from '../../system-window';
+import { ALL_MENU_DOMAINS, revealedMenuDomains, type MenuDomainId } from '../../system-window';
 import type { GameView } from './shared';
 
 export type MenuTone = 'world' | 'system' | 'registry' | 'social' | 'domain';
@@ -17,6 +17,7 @@ export function GameMenuPanel({
   onNavigate,
   guidanceCount,
   guidanceUnseenCount,
+  notableCount = 0,
 }: {
   status: SystemStatusView;
   view: ExplorationView;
@@ -24,12 +25,13 @@ export function GameMenuPanel({
   onNavigate: (view: GameView) => void;
   guidanceCount: number;
   guidanceUnseenCount: number;
+  notableCount?: number;
 }) {
   const activeOrganizations = status.organizations.length;
   const activeCivic = status.civic.filter((entry) => entry.active).length;
   const bondPeople = view.bonds.map((bond) => ({ id: bond.npcId, name: bond.name, src: bond.portraitSrc }));
-  const revealed = revealedMenuDomains(status, view.bonds.length);
-  const hiddenCount = ALL_DOMAINS.filter((domain) => !revealed.has(domain)).length;
+  const revealed = revealedMenuDomains(status, view.bonds.length, notableCount);
+  const hiddenCount = ALL_MENU_DOMAINS.filter((domain) => !revealed.has(domain)).length;
   const show = (domain: MenuDomainId) => revealed.has(domain);
   const familyPeople = status.family
     .filter((member) => !member.isPlayer)
@@ -94,6 +96,13 @@ export function GameMenuPanel({
           detail={`${status.settlements.claims.length} territórios · economia e política`}
           onClick={() => onNavigate('domain')}
         /> : null}
+        {show('chronicle') ? <MenuEntry
+          icon="journal"
+          tone="registry"
+          title="Crônica"
+          detail={`${notableCount} decis${notableCount === 1 ? 'ão marcante' : 'ões marcantes'} · títulos e vínculos`}
+          onClick={() => onNavigate('chronicle')}
+        /> : null}
         <MenuEntry
           icon="map"
           tone="world"
@@ -118,8 +127,6 @@ export function GameMenuPanel({
     </div>
   );
 }
-
-const ALL_DOMAINS: MenuDomainId[] = ['progression', 'registry', 'relationships', 'society', 'family', 'domain', 'map', 'help'];
 
 export function MenuGroup({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (
