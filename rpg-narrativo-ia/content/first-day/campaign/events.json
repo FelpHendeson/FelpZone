@@ -110,7 +110,7 @@
       },
       {
         "kind": "system",
-        "text": "Saudações, {{desperto}}."
+        "text": "Saudações, {{desperto}}. Você acaba de surgir em **Basilis**."
       },
       {
         "kind": "system",
