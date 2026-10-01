@@ -5,6 +5,7 @@ import type { SystemStatusView } from '../../../modules/system-interface';
 import { Icon, SystemCorners, type IconName } from '../../components/Icon';
 import { PortraitStack } from '../../components/Portrait';
 import type { ExplorationView } from '../../sandbox';
+import { revealedMenuDomains, type MenuDomainId } from '../../system-window';
 import type { GameView } from './shared';
 
 export type MenuTone = 'world' | 'system' | 'registry' | 'social' | 'domain';
@@ -27,6 +28,9 @@ export function GameMenuPanel({
   const activeOrganizations = status.organizations.length;
   const activeCivic = status.civic.filter((entry) => entry.active).length;
   const bondPeople = view.bonds.map((bond) => ({ id: bond.npcId, name: bond.name, src: bond.portraitSrc }));
+  const revealed = revealedMenuDomains(status, view.bonds.length);
+  const hiddenCount = ALL_DOMAINS.filter((domain) => !revealed.has(domain)).length;
+  const show = (domain: MenuDomainId) => revealed.has(domain);
   const familyPeople = status.family
     .filter((member) => !member.isPlayer)
     .map((member) => ({ id: member.actorId, name: member.name, src: findNpc(campaign, member.actorId)?.image?.src }));
@@ -47,49 +51,49 @@ export function GameMenuPanel({
           detail={`${status.knownSkills.length} habilidades · ${status.trainings.length} treinos`}
           onClick={() => onNavigate('progression')}
         />
-        <MenuEntry
+        {show('registry') ? <MenuEntry
           icon="registry"
           tone="registry"
           title="Registro"
           detail={`${status.registry.patents.filter((entry) => entry.granted).length} patentes · rankings e títulos`}
           onClick={() => onNavigate('registry')}
-        />
+        /> : null}
       </MenuGroup>
 
-      <MenuGroup id="menu-group-people" title="Pessoas">
-        <MenuEntry
+      {show('relationships') || show('society') || show('family') ? <MenuGroup id="menu-group-people" title="Pessoas">
+        {show('relationships') ? <MenuEntry
           icon="relationships"
           tone="social"
           title="Relacionamentos"
           detail={`${view.bonds.length} vínculo${view.bonds.length === 1 ? '' : 's'} conhecido${view.bonds.length === 1 ? '' : 's'}`}
           aside={<PortraitStack people={bondPeople} />}
           onClick={() => onNavigate('relationships')}
-        />
-        <MenuEntry
+        /> : null}
+        {show('society') ? <MenuEntry
           icon="society"
           tone="social"
           title="Sociedade"
           detail={`${activeOrganizations} grupos · ${activeCivic} posições ativas`}
           onClick={() => onNavigate('society')}
-        />
-        <MenuEntry
+        /> : null}
+        {show('family') ? <MenuEntry
           icon="family"
           tone="social"
           title="Família e lar"
           detail={`${status.family.length} pessoa${status.family.length === 1 ? '' : 's'} reconhecida${status.family.length === 1 ? '' : 's'}`}
           aside={<PortraitStack people={familyPeople} />}
           onClick={() => onNavigate('family')}
-        />
-      </MenuGroup>
+        /> : null}
+      </MenuGroup> : null}
 
       <MenuGroup id="menu-group-world" title="Mundo e referência">
-        <MenuEntry
+        {show('domain') ? <MenuEntry
           icon="domain"
           tone="domain"
           title="Domínio"
           detail={`${status.settlements.claims.length} territórios · economia e política`}
           onClick={() => onNavigate('domain')}
-        />
+        /> : null}
         <MenuEntry
           icon="map"
           tone="world"
@@ -105,9 +109,17 @@ export function GameMenuPanel({
           onClick={() => onNavigate('help')}
         />
       </MenuGroup>
+
+      {hiddenCount > 0 ? (
+        <p className="menu-sealed">
+          <span aria-hidden="true">◇</span> O Sistema ainda mantém {hiddenCount} interface{hiddenCount === 1 ? '' : 's'} selada{hiddenCount === 1 ? '' : 's'}. Elas se abrem quando houver algo real para consultar.
+        </p>
+      ) : null}
     </div>
   );
 }
+
+const ALL_DOMAINS: MenuDomainId[] = ['progression', 'registry', 'relationships', 'society', 'family', 'domain', 'map', 'help'];
 
 export function MenuGroup({ id, title, children }: { id: string; title: string; children: ReactNode }) {
   return (

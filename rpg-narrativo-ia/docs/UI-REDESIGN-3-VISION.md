@@ -88,7 +88,7 @@ Eu e o Sistema        Pessoas                  Mundo e referência
 - Cor por domínio é um mapa mental, não decoração — cada domínio aparece sempre na mesma cor, em toda tela, sem exceção.
 - Arte de pack substitui glifo sempre que `src` já existir; glifo continua como fallback honesto, nunca como escolha quando a arte já existe.
 - Nenhuma tela nova aumenta a profundidade de navegação além do que já existe hoje (destino → tela → eventual sub-tela de domínio).
-- Agrupar não é esconder: todo cartão de grupo mostra contagem, exatamente como hoje.
+- Agrupar não é esconder: todo cartão visível mostra contagem. Desde a revelação progressiva ([melhorias](IMPROVEMENTS-FROM-REFERENCES.md)), uma interface sem estado nem ação disponível fica selada, e o Menu informa quantas faltam.
 
 ## Não-objetivos — fora deste recorte
 

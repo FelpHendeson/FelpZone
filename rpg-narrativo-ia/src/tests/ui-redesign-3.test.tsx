@@ -52,9 +52,25 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
 
   it('agrupa a Central do Sistema em três seções sem perder nenhum destino', () => {
     const { view, status } = setup();
+    const action = { actionId: 'a', label: 'Agir', hint: '', costPeriods: 1, available: true };
+    const unlocked = {
+      ...status,
+      registry: { ...status.registry, accessGranted: true },
+      civicActions: [action],
+      familyActions: [action],
+      economyActions: [action],
+    };
     const html = renderToStaticMarkup(
-      <GameMenuPanel status={status} view={view} campaign={firstDayCampaign} onNavigate={noop} guidanceCount={3} guidanceUnseenCount={0} />,
+      <GameMenuPanel
+        status={unlocked}
+        view={{ ...view, bonds: [bond('mira-vale', 'Mira Vale')] }}
+        campaign={firstDayCampaign}
+        onNavigate={noop}
+        guidanceCount={3}
+        guidanceUnseenCount={0}
+      />,
     );
+    expect(html).not.toContain('menu-sealed');
     const self = html.indexOf('Eu e o Sistema');
     const people = html.indexOf('>Pessoas<');
     const world = html.indexOf('Mundo e referência');
