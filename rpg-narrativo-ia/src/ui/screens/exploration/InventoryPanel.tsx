@@ -3,6 +3,7 @@ import type { SandboxAction } from '../../../modules/sandbox-actions';
 import { type ItemKind } from '../../../modules/items';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { ImagePlaceholder } from '../../components/ImagePlaceholder';
+import { SystemCorners } from '../../components/Icon';
 import type { ExplorationView } from '../../sandbox';
 import { NeedEffectList } from './shared';
 import { itemGlyph } from './helpers';
@@ -24,8 +25,9 @@ export function InventoryPanel({ view, onAction }: { view: ExplorationView; onAc
   ];
 
   return (
-    <div className="tab-panel">
-      <header className="panel-heading panel-heading--split">
+    <div className="tab-panel inventory-panel">
+      <header className="panel-heading panel-heading--split sys-frame">
+        <SystemCorners />
         <div>
           <span className="section-kicker">Pertences carregados</span>
           <h1>Mochila</h1>
@@ -54,7 +56,7 @@ export function InventoryPanel({ view, onAction }: { view: ExplorationView; onAc
           <span className="section-kicker">Preparação</span>
           <ul className="loadout-slots">
             {view.preparation.map((slot) => (
-              <li key={slot.index}>
+              <li key={slot.index} className={slot.itemId ? 'is-active' : undefined}>
                 <strong>{slot.index + 1}</strong>
                 <span>{slot.itemName ?? '—'}</span>
                 {slot.itemId ? (
@@ -72,7 +74,7 @@ export function InventoryPanel({ view, onAction }: { view: ExplorationView; onAc
           <span className="section-kicker">Equipado</span>
           <ul className="loadout-slots">
             {view.equipment.map((slot) => (
-              <li key={slot.slot}>
+              <li key={slot.slot} className={slot.itemId ? 'is-active' : undefined}>
                 <strong>{slot.label}</strong>
                 <span>{slot.itemName ?? '—'}</span>
                 {slot.itemId ? (

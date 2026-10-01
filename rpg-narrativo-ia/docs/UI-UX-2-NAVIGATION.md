@@ -4,7 +4,7 @@
 
 Esta arquitetura está **implementada como protótipo**. Ela reorganiza a apresentação dos Sistemas 1 a 29 sem alterar regras, custos, conteúdo, persistência ou balanceamento.
 
-Existe uma proposta de rework visual e de informação sobre esta base, ainda não implementada: [UI/UX 3.0 — Rework visual e de informação](UI-REDESIGN-3-VISION.md) (previews em [UI-REDESIGN-3-SCREENS.md](UI-REDESIGN-3-SCREENS.md)). Ela mantém os cinco destinos e as regras abaixo; reorganiza `Menu` em grupos e propõe uma paleta por domínio.
+O rework visual e de informação sobre esta base está implementado: [UI/UX 3.0 — Rework visual e de informação](UI-REDESIGN-3-VISION.md) (previews em [UI-REDESIGN-3-SCREENS.md](UI-REDESIGN-3-SCREENS.md)). Ela mantém os cinco destinos e as regras abaixo; reorganiza `Menu` em grupos, divide Domínio em sub-telas e aplica uma paleta por domínio.
 
 ## Problema resolvido
 

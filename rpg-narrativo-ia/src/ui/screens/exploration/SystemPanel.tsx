@@ -9,19 +9,36 @@ import {
 } from '../../../modules/system-interface';
 import { AttributeSummary } from '../../components/AttributeSummary';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { SystemCorners } from '../../components/Icon';
+import { ImagePlaceholder } from '../../components/ImagePlaceholder';
 import { formatPeriodCost } from '../../sandbox';
+import { Portrait } from '../../components/Portrait';
 import { EmptyAction } from './shared';
+
+export type SystemSection = 'progression' | 'registry' | 'society' | 'family' | 'territory' | 'economy' | 'politics';
+
+const SECTION_TONE: Record<SystemSection, 'system' | 'registry' | 'social' | 'domain'> = {
+  progression: 'system',
+  registry: 'registry',
+  society: 'social',
+  family: 'social',
+  territory: 'domain',
+  economy: 'domain',
+  politics: 'domain',
+};
 
 export function SystemPanel({
   section,
   status,
   campaign,
+  ability,
   onAction,
   onBack,
 }: {
-  section: 'progression' | 'registry' | 'society' | 'family' | 'domain';
+  section: SystemSection;
   status: SystemStatusView;
   campaign: Campaign;
+  ability?: { name: string; imageSrc?: string };
   onAction: (action: SandboxAction) => void;
   onBack: () => void;
 }) {
@@ -35,12 +52,15 @@ export function SystemPanel({
     registry: { eyebrow: 'Reconhecimento do Sistema', title: 'Registro', description: 'Patentes, classificações e posições reconhecidas.' },
     society: { eyebrow: 'Vida compartilhada', title: 'Sociedade', description: 'Grupos, companheiros, profissões e cidadania.' },
     family: { eyebrow: 'Laços de vida', title: 'Família e lar', description: 'Parentesco, casa, linhagem e os marcos de uma vida compartilhada.' },
-    domain: { eyebrow: 'Construção de poder', title: 'Domínio', description: 'Economia, propriedades, territórios e política.' },
+    territory: { eyebrow: 'Domínio', title: 'Base e território', description: 'Reivindicações, estruturas, projetos e estoques.' },
+    economy: { eyebrow: 'Domínio', title: 'Economia', description: 'Carteiras, comércio e direitos de uso.' },
+    politics: { eyebrow: 'Domínio', title: 'Política', description: 'Mandatos, relações entre facções, acordos e leis.' },
   }[section];
 
   return (
-    <div className={`tab-panel system-panel system-panel--${section}`}>
-      <header className="system-console">
+    <div className={`tab-panel system-panel system-panel--${section} system-panel--tone-${SECTION_TONE[section]}`}>
+      <header className="system-console sys-frame">
+        <SystemCorners />
         <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${sectionCopy.title}`}><span aria-hidden="true">←</span></button>
         <div>
           <span className="section-kicker">{sectionCopy.eyebrow}</span>
@@ -51,6 +71,12 @@ export function SystemPanel({
       </header>
 
       <div className="system-disclosure-list">
+        {section === 'progression' && ability ? (
+          <section className="system-aptitude" aria-label="Aptidão inicial">
+            <ImagePlaceholder kind="icon" label={ability.name} src={ability.imageSrc} className="system-aptitude__icon" />
+            <div><span className="section-kicker">Aptidão inicial</span><strong>{ability.name}</strong></div>
+          </section>
+        ) : null}
         {section === 'progression' ? <>
         <details className="system-disclosure">
           <summary>
@@ -492,8 +518,8 @@ export function SystemPanel({
         </details>
 
         </> : null}
-        {section === 'domain' ? <>
-        <details className="system-disclosure">
+        {section === 'economy' ? <>
+        <details className="system-disclosure" open>
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚖</span>
             <span>
@@ -554,7 +580,9 @@ export function SystemPanel({
           </div>
         </details>
 
-        <details className="system-disclosure">
+        </> : null}
+        {section === 'territory' ? <>
+        <details className="system-disclosure" open>
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⌂</span>
             <span>
@@ -635,7 +663,9 @@ export function SystemPanel({
           </div>
         </details>
 
-        <details className="system-disclosure">
+        </> : null}
+        {section === 'politics' ? <>
+        <details className="system-disclosure" open>
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚑</span>
             <span>
@@ -795,7 +825,11 @@ export function SystemIdentity({
         <ul className="relationship-list" aria-label="Confiança residual">
           {state.relationships.map((relationship) => (
             <li key={relationship.characterId}>
-              <span className="relationship-list__avatar" aria-hidden="true">♙</span>
+              <Portrait
+                name={findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}
+                src={findNpc(campaign, relationship.characterId)?.image?.src}
+                className="relationship-list__avatar"
+              />
               <div><strong>{findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}</strong><span>Confiança residual</span></div>
               <strong>{relationship.trust}</strong>
             </li>

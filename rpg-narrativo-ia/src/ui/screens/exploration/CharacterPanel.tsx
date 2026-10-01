@@ -1,6 +1,8 @@
 import type { Campaign } from '../../../core/events';
 import type { GameState } from '../../../core/state';
 import type { SystemStatusView } from '../../../modules/system-interface';
+import { SystemCorners } from '../../components/Icon';
+import { Portrait } from '../../components/Portrait';
 import { EmptyAction } from './shared';
 import { SystemIdentity } from './SystemPanel';
 
@@ -17,8 +19,9 @@ export function CharacterPanel({
 }) {
   return (
     <div className="tab-panel character-panel">
-      <header className="character-hero">
-        <span className="character-hero__avatar" aria-hidden="true">♙</span>
+      <header className="character-hero sys-frame">
+        <SystemCorners />
+        <Portrait name={status.characterName} className="character-hero__avatar" />
         <div><span className="section-kicker">Sobrevivente</span><h1>{status.characterName}</h1><p>{abilityName}</p></div>
         <span className="system-console__level">Nível <strong>{status.level}</strong></span>
       </header>
@@ -31,7 +34,7 @@ export function CharacterPanel({
         ) : <EmptyAction message="Nenhum marco pessoal próximo." />}
       </section>
       {status.nextMilestone ? (
-        <section className="system-milestone" aria-label="Próximo marco">
+        <section className="system-milestone accent-bar" aria-label="Próximo marco">
           <span className="section-kicker">Próximo marco · Nível {status.nextMilestone.level}</span>
           <ul className="system-milestone__list">{status.nextMilestone.requirements.map((requirement) => <li key={requirement.text} className={requirement.met ? 'is-met' : undefined}><span aria-hidden="true">{requirement.met ? '✓' : '○'}</span> {requirement.text}</li>)}</ul>
         </section>

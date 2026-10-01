@@ -11,6 +11,8 @@
   --accent-system: #83cbea;
   --gold: #e6c97a;
   --danger: #d67a6a;
+  --accent-social: #e3a868;
+  --accent-domain: #a9825a;
   --border: #26363c;
   --border-strong: #365058;
   --focus: #f0d78c;
@@ -3549,57 +3551,33 @@ button:disabled {
   pointer-events: none;
 }
 
-.hub-card--progression {
-  border-color: rgba(131, 203, 234, 0.35);
-  background: linear-gradient(145deg, rgba(31, 80, 98, 0.45), rgba(11, 19, 24, 0.98));
-}
-
-.hub-card--registry {
-  border-color: rgba(202, 179, 102, 0.26);
-  background: linear-gradient(145deg, rgba(71, 61, 27, 0.33), rgba(12, 19, 23, 0.98));
-}
-
-.hub-card--society,
-.hub-card--relationships,
-.hub-card--family {
-  border-color: rgba(214, 142, 115, 0.25);
-  background: linear-gradient(145deg, rgba(69, 39, 39, 0.34), rgba(12, 19, 23, 0.98));
-}
-
-.hub-card--domain {
-  border-color: rgba(139, 153, 113, 0.28);
-  background: linear-gradient(145deg, rgba(45, 58, 32, 0.36), rgba(12, 19, 23, 0.98));
-}
-
-.system-panel--progression::before {
+.system-panel--tone-system::before {
   background: radial-gradient(circle at 85% 5%, rgba(131, 203, 234, 0.16), transparent 26rem);
 }
 
-.system-panel--registry::before {
+.system-panel--tone-registry::before {
   background: radial-gradient(circle at 85% 5%, rgba(202, 179, 102, 0.14), transparent 26rem);
 }
 
-.system-panel--society::before,
-.system-panel--family::before {
+.system-panel--tone-social::before {
   background: radial-gradient(circle at 85% 5%, rgba(214, 142, 115, 0.14), transparent 26rem);
 }
 
-.system-panel--domain::before {
+.system-panel--tone-domain::before {
   background: radial-gradient(circle at 85% 5%, rgba(139, 153, 113, 0.16), transparent 26rem);
 }
 
-.system-panel--registry .system-console {
+.system-panel--tone-registry .system-console {
   border-color: rgba(202, 179, 102, 0.4);
   background: linear-gradient(135deg, rgba(76, 64, 25, 0.38), rgba(12, 20, 24, 0.98));
 }
 
-.system-panel--society .system-console,
-.system-panel--family .system-console {
+.system-panel--tone-social .system-console {
   border-color: rgba(214, 142, 115, 0.38);
   background: linear-gradient(135deg, rgba(78, 42, 39, 0.38), rgba(12, 20, 24, 0.98));
 }
 
-.system-panel--domain .system-console {
+.system-panel--tone-domain .system-console {
   border-color: rgba(139, 153, 113, 0.38);
   background: linear-gradient(135deg, rgba(46, 63, 36, 0.4), rgba(12, 20, 24, 0.98));
 }
@@ -3692,4 +3670,371 @@ button:disabled {
   .inventory-tabs__item {
     min-height: 46px;
   }
+}
+
+/* UI/UX 3.0 — cor por domínio, canto-trava e Central do Sistema agrupada
+   (docs/UI-REDESIGN-3-VISION.md). Cada domínio expõe sua cor em --tone. */
+.menu-entry--world,
+.detail-screen--world,
+.location-hero,
+.inventory-panel {
+  --tone: var(--accent);
+}
+
+.menu-entry--system,
+.detail-screen--system,
+.system-panel--tone-system,
+.game-hud,
+.character-panel,
+.menu-panel {
+  --tone: var(--accent-system);
+}
+
+.menu-entry--registry,
+.detail-screen--registry,
+.system-panel--tone-registry {
+  --tone: var(--gold);
+}
+
+.menu-entry--social,
+.detail-screen--social,
+.system-panel--tone-social {
+  --tone: var(--accent-social);
+}
+
+.menu-entry--domain,
+.detail-screen--domain,
+.system-panel--tone-domain {
+  --tone: var(--accent-domain);
+}
+
+.ui-icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+}
+
+.bottom-nav__icon .ui-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.hub-card__icon .ui-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* Canto-trava: traços em L nos quatro cantos, como um visor sendo focado. */
+.detail-screen__header.sys-frame,
+.character-hero.sys-frame,
+.panel-heading.sys-frame,
+.system-console.sys-frame {
+  position: relative;
+}
+
+.sys-corners {
+  --corner-color: color-mix(in srgb, var(--tone, var(--accent-system)) 78%, transparent);
+  --corner-length: 14px;
+  --corner-weight: 1.5px;
+  position: absolute;
+  inset: 6px;
+  z-index: 3;
+  background:
+    linear-gradient(var(--corner-color), var(--corner-color)) top left / var(--corner-length) var(--corner-weight),
+    linear-gradient(var(--corner-color), var(--corner-color)) top left / var(--corner-weight) var(--corner-length),
+    linear-gradient(var(--corner-color), var(--corner-color)) top right / var(--corner-length) var(--corner-weight),
+    linear-gradient(var(--corner-color), var(--corner-color)) top right / var(--corner-weight) var(--corner-length),
+    linear-gradient(var(--corner-color), var(--corner-color)) bottom left / var(--corner-length) var(--corner-weight),
+    linear-gradient(var(--corner-color), var(--corner-color)) bottom left / var(--corner-weight) var(--corner-length),
+    linear-gradient(var(--corner-color), var(--corner-color)) bottom right / var(--corner-length) var(--corner-weight),
+    linear-gradient(var(--corner-color), var(--corner-color)) bottom right / var(--corner-weight) var(--corner-length);
+  background-repeat: no-repeat;
+  pointer-events: none;
+}
+
+.game-hud .sys-corners {
+  inset: 4px;
+  --corner-length: 10px;
+}
+
+.location-hero .sys-corners {
+  inset: 10px;
+  --corner-length: 20px;
+  --corner-weight: 2px;
+}
+
+/* Sombra fica para o que realmente flutua (HUD, diálogos); cartões ganham peso pela barra lateral. */
+.location-hero {
+  box-shadow: none;
+}
+
+.accent-bar,
+.system-panel .system-disclosure,
+.world-shortcuts {
+  box-shadow: inset 3px 0 0 var(--tone, var(--accent-system));
+}
+
+.world-shortcuts {
+  --tone: var(--accent);
+}
+
+/* Cabeçalhos por domínio */
+.detail-screen--social::before,
+.system-panel--tone-social::before {
+  background:
+    radial-gradient(circle at 85% 4%, color-mix(in srgb, var(--accent-social) 15%, transparent), transparent 23rem),
+    linear-gradient(180deg, rgba(54, 36, 22, 0.22), transparent 28rem);
+}
+
+.detail-screen--domain::before,
+.system-panel--tone-domain::before {
+  background:
+    radial-gradient(circle at 85% 4%, color-mix(in srgb, var(--accent-domain) 17%, transparent), transparent 23rem),
+    linear-gradient(180deg, rgba(48, 36, 24, 0.24), transparent 28rem);
+}
+
+.detail-screen--registry::before {
+  background: radial-gradient(circle at 85% 5%, rgba(230, 201, 122, 0.14), transparent 26rem);
+}
+
+.detail-screen--social .detail-screen__header,
+.system-panel--tone-social .system-console {
+  border-color: color-mix(in srgb, var(--accent-social) 42%, transparent);
+  background: linear-gradient(135deg, rgba(80, 52, 28, 0.42), rgba(12, 18, 21, 0.98));
+}
+
+.detail-screen--domain .detail-screen__header,
+.system-panel--tone-domain .system-console {
+  border-color: color-mix(in srgb, var(--accent-domain) 45%, transparent);
+  background: linear-gradient(135deg, rgba(66, 48, 30, 0.44), rgba(12, 18, 21, 0.98));
+}
+
+.detail-screen--social .back-button,
+.detail-screen--social .section-kicker,
+.detail-screen--domain .back-button,
+.detail-screen--domain .section-kicker,
+.system-panel--tone-social .back-button,
+.system-panel--tone-social .section-kicker,
+.system-panel--tone-domain .back-button,
+.system-panel--tone-domain .section-kicker,
+.system-panel--tone-registry .back-button,
+.system-panel--tone-registry .section-kicker {
+  border-color: color-mix(in srgb, var(--tone) 34%, transparent);
+  color: var(--tone);
+}
+
+/* Central do Sistema — três grupos nomeados, mesma profundidade de clique */
+.menu-panel .panel-heading::after {
+  content: none;
+}
+
+.menu-group {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.menu-group__title {
+  margin: 4px 4px 0;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.menu-group__list {
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(20, 31, 37, 0.98), rgba(11, 18, 22, 0.98));
+}
+
+.menu-entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 66px;
+  padding: 12px 14px 12px 16px;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 160ms ease;
+}
+
+.menu-entry + .menu-entry {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.menu-entry::before {
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 0;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--tone);
+  content: '';
+}
+
+.menu-entry:hover,
+.menu-entry:focus-visible {
+  background: color-mix(in srgb, var(--tone) 8%, transparent);
+}
+
+.menu-entry:focus-visible {
+  outline-offset: -3px;
+}
+
+.menu-entry__icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--tone) 12%, transparent);
+  color: var(--tone);
+}
+
+.menu-entry__text {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.menu-entry__text strong,
+.menu-entry__text small {
+  overflow-wrap: anywhere;
+}
+
+.menu-entry__text small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.menu-entry__chevron {
+  color: var(--tone);
+}
+
+/* Retratos — arte do pack quando existe, iniciais como fallback */
+.portrait {
+  display: inline-grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 28px;
+  height: 28px;
+  overflow: hidden;
+  border: 1px solid var(--border-strong);
+  border-radius: 50%;
+  background: linear-gradient(145deg, #23363d, #10191e);
+  color: var(--tone, var(--accent));
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+.portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.portrait-stack {
+  display: inline-flex;
+  align-items: center;
+}
+
+.portrait-stack .portrait {
+  box-shadow: 0 0 0 2px #121c21;
+}
+
+.portrait-stack .portrait + .portrait {
+  margin-left: -8px;
+}
+
+.portrait--more {
+  color: var(--text-muted);
+}
+
+.portrait.relationship-list__avatar,
+.portrait.relationship-card__portrait {
+  width: 42px;
+  height: 42px;
+  font-size: 0.78rem;
+}
+
+.portrait.relationship-card__portrait {
+  border-color: color-mix(in srgb, var(--accent-social) 55%, transparent);
+}
+
+.portrait.character-hero__avatar {
+  width: 52px;
+  height: 52px;
+  border-color: rgba(131, 203, 234, 0.38);
+  border-radius: 16px;
+  color: var(--accent-system);
+  font-size: 1rem;
+}
+
+.relationship-card {
+  box-shadow: inset 3px 0 0 var(--accent-social);
+}
+
+/* Progressão — aptidão inicial com o ícone do pack */
+.system-aptitude {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  box-shadow: inset 3px 0 0 var(--accent-system);
+}
+
+.system-aptitude > div {
+  display: grid;
+  gap: 2px;
+}
+
+.system-aptitude__icon.placeholder--icon {
+  width: 56px;
+  border-radius: 14px;
+}
+
+/* Mochila — "ativo" diferente de "guardado" */
+.loadout-slots li.is-active {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+@media (max-width: 24rem) {
+  .menu-entry {
+    grid-template-columns: 36px minmax(0, 1fr) auto;
+    gap: 10px;
+  }
+
+  .menu-entry .portrait-stack {
+    display: none;
+  }
+
+  .menu-entry__icon {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+/* Telas curtas não esticam as linhas do grid (o HUD mantém a altura natural). */
+.screen--exploration {
+  align-content: start;
 }

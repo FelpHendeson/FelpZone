@@ -1,9 +1,11 @@
 import { type ReactNode } from 'react';
+import { SystemCorners } from '../../components/Icon';
 import { type GameTab } from '../../components/BottomNavigation';
 import { formatNeedDelta } from '../../needs/presentation';
 import type { NeedEffectView } from '../../sandbox';
 
-export type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain' | 'help';
+export type DomainView = 'domain-territory' | 'domain-economy' | 'domain-politics';
+export type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain' | DomainView | 'help';
 
 export function DetailScreen({
   title,
@@ -14,13 +16,14 @@ export function DetailScreen({
 }: {
   title: string;
   eyebrow: string;
-  tone?: 'world' | 'social' | 'system';
+  tone?: 'world' | 'social' | 'system' | 'registry' | 'domain';
   onBack: () => void;
   children: ReactNode;
 }) {
   return (
     <div className={`tab-panel detail-screen detail-screen--${tone}`}>
-      <header className="detail-screen__header">
+      <header className="detail-screen__header sys-frame">
+        <SystemCorners />
         <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${title}`}>
           <span aria-hidden="true">←</span>
         </button>

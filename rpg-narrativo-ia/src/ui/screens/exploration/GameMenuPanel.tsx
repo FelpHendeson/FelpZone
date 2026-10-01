@@ -1,55 +1,144 @@
+import type { ReactNode } from 'react';
+import { findNpc } from '../../../campaigns/first-day';
+import type { Campaign } from '../../../core/events';
 import type { SystemStatusView } from '../../../modules/system-interface';
+import { Icon, SystemCorners, type IconName } from '../../components/Icon';
+import { PortraitStack } from '../../components/Portrait';
 import type { ExplorationView } from '../../sandbox';
 import type { GameView } from './shared';
+
+export type MenuTone = 'world' | 'system' | 'registry' | 'social' | 'domain';
 
 export function GameMenuPanel({
   status,
   view,
+  campaign,
   onNavigate,
   guidanceCount,
   guidanceUnseenCount,
 }: {
   status: SystemStatusView;
   view: ExplorationView;
+  campaign: Campaign;
   onNavigate: (view: GameView) => void;
   guidanceCount: number;
   guidanceUnseenCount: number;
 }) {
   const activeOrganizations = status.organizations.length;
   const activeCivic = status.civic.filter((entry) => entry.active).length;
+  const bondPeople = view.bonds.map((bond) => ({ id: bond.npcId, name: bond.name, src: bond.portraitSrc }));
+  const familyPeople = status.family
+    .filter((member) => !member.isPlayer)
+    .map((member) => ({ id: member.actorId, name: member.name, src: findNpc(campaign, member.actorId)?.image?.src }));
   return (
     <div className="tab-panel menu-panel">
-      <header className="panel-heading">
+      <header className="panel-heading sys-frame">
+        <SystemCorners />
         <span className="section-kicker">Central do Sistema</span>
         <h1>Menu</h1>
         <p>Abra somente o domínio que você quer consultar ou desenvolver agora.</p>
       </header>
-      <div className="hub-card-grid">
-        <button type="button" className="hub-card hub-card--featured hub-card--progression" onClick={() => onNavigate('progression')}>
-          <span className="hub-card__icon" aria-hidden="true">❖</span><span><strong>Progressão</strong><small>{status.knownSkills.length} habilidades · {status.trainings.length} treinos</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card hub-card--registry" onClick={() => onNavigate('registry')}>
-          <span className="hub-card__icon" aria-hidden="true">▣</span><span><strong>Registro</strong><small>{status.registry.patents.filter((entry) => entry.granted).length} patentes · rankings e títulos</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card hub-card--society" onClick={() => onNavigate('society')}>
-          <span className="hub-card__icon" aria-hidden="true">⚑</span><span><strong>Sociedade</strong><small>{activeOrganizations} grupos · {activeCivic} posições ativas</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card hub-card--domain" onClick={() => onNavigate('domain')}>
-          <span className="hub-card__icon" aria-hidden="true">⌂</span><span><strong>Domínio</strong><small>{status.settlements.claims.length} territórios · economia e política</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card hub-card--relationships" onClick={() => onNavigate('relationships')}>
-          <span className="hub-card__icon" aria-hidden="true">♙</span><span><strong>Relacionamentos</strong><small>{view.bonds.length} vínculo{view.bonds.length === 1 ? '' : 's'} conhecido{view.bonds.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card hub-card--family" onClick={() => onNavigate('family')}>
-          <span className="hub-card__icon" aria-hidden="true">♡</span><span><strong>Família e lar</strong><small>{status.family.length} pessoa{status.family.length === 1 ? '' : 's'} reconhecida{status.family.length === 1 ? '' : 's'}</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card" onClick={() => onNavigate('map')}>
-          <span className="hub-card__icon" aria-hidden="true">⌖</span><span><strong>Mapa completo</strong><small>{view.destinations.length} rotas a partir de {view.location.name}</small></span><span aria-hidden="true">→</span>
-        </button>
-        <button type="button" className="hub-card" onClick={() => onNavigate('help')}>
-          <span className="hub-card__icon" aria-hidden="true">?</span><span><strong>Ajuda</strong><small>{guidanceCount} tópicos disponíveis{guidanceUnseenCount > 0 ? ` · ${guidanceUnseenCount} novo${guidanceUnseenCount === 1 ? '' : 's'}` : ''}</small></span><span aria-hidden="true">→</span>
-        </button>
-      </div>
+
+      <MenuGroup id="menu-group-self" title="Eu e o Sistema">
+        <MenuEntry
+          icon="progression"
+          tone="system"
+          title="Progressão"
+          detail={`${status.knownSkills.length} habilidades · ${status.trainings.length} treinos`}
+          onClick={() => onNavigate('progression')}
+        />
+        <MenuEntry
+          icon="registry"
+          tone="registry"
+          title="Registro"
+          detail={`${status.registry.patents.filter((entry) => entry.granted).length} patentes · rankings e títulos`}
+          onClick={() => onNavigate('registry')}
+        />
+      </MenuGroup>
+
+      <MenuGroup id="menu-group-people" title="Pessoas">
+        <MenuEntry
+          icon="relationships"
+          tone="social"
+          title="Relacionamentos"
+          detail={`${view.bonds.length} vínculo${view.bonds.length === 1 ? '' : 's'} conhecido${view.bonds.length === 1 ? '' : 's'}`}
+          aside={<PortraitStack people={bondPeople} />}
+          onClick={() => onNavigate('relationships')}
+        />
+        <MenuEntry
+          icon="society"
+          tone="social"
+          title="Sociedade"
+          detail={`${activeOrganizations} grupos · ${activeCivic} posições ativas`}
+          onClick={() => onNavigate('society')}
+        />
+        <MenuEntry
+          icon="family"
+          tone="social"
+          title="Família e lar"
+          detail={`${status.family.length} pessoa${status.family.length === 1 ? '' : 's'} reconhecida${status.family.length === 1 ? '' : 's'}`}
+          aside={<PortraitStack people={familyPeople} />}
+          onClick={() => onNavigate('family')}
+        />
+      </MenuGroup>
+
+      <MenuGroup id="menu-group-world" title="Mundo e referência">
+        <MenuEntry
+          icon="domain"
+          tone="domain"
+          title="Domínio"
+          detail={`${status.settlements.claims.length} territórios · economia e política`}
+          onClick={() => onNavigate('domain')}
+        />
+        <MenuEntry
+          icon="map"
+          tone="world"
+          title="Mapa completo"
+          detail={`${view.destinations.length} rotas a partir de ${view.location.name}`}
+          onClick={() => onNavigate('map')}
+        />
+        <MenuEntry
+          icon="help"
+          tone="world"
+          title="Ajuda"
+          detail={`${guidanceCount} tópicos disponíveis${guidanceUnseenCount > 0 ? ` · ${guidanceUnseenCount} novo${guidanceUnseenCount === 1 ? '' : 's'}` : ''}`}
+          onClick={() => onNavigate('help')}
+        />
+      </MenuGroup>
     </div>
+  );
+}
+
+export function MenuGroup({ id, title, children }: { id: string; title: string; children: ReactNode }) {
+  return (
+    <section className="menu-group" aria-labelledby={id}>
+      <h2 id={id} className="menu-group__title">{title}</h2>
+      <div className="menu-group__list">{children}</div>
+    </section>
+  );
+}
+
+export function MenuEntry({
+  icon,
+  tone,
+  title,
+  detail,
+  aside,
+  onClick,
+}: {
+  icon: IconName;
+  tone: MenuTone;
+  title: string;
+  detail: string;
+  aside?: ReactNode;
+  onClick: () => void;
+}) {
+  return (
+    <button type="button" className={`menu-entry menu-entry--${tone}`} onClick={onClick}>
+      <span className="menu-entry__icon" aria-hidden="true"><Icon name={icon} /></span>
+      <span className="menu-entry__text"><strong>{title}</strong><small>{detail}</small></span>
+      {aside}
+      <span className="menu-entry__chevron" aria-hidden="true">→</span>
+    </button>
   );
 }

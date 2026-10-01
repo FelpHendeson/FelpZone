@@ -226,6 +226,7 @@ export interface BondActionView {
 export interface BondCharacterView {
   npcId: string;
   name: string;
+  portraitSrc?: string;
   outgoing: { dimensionId: string; name: string; value: number }[];
   incoming: { dimensionId: string; name: string; value: number }[];
   namedBonds: { bondId: string; name: string; description: string }[];
@@ -242,6 +243,7 @@ export interface ExplorationView {
   characterName: string;
   worldLabel: string;
   abilityName: string;
+  abilityImageSrc?: string;
   location: {
     id: string;
     name: string;
@@ -310,6 +312,7 @@ export function buildExplorationView(
     characterName: fullName(state.character),
     worldLabel: `${describeWorld(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`,
     abilityName: ability?.name ?? 'Nenhuma',
+    abilityImageSrc: ability?.image?.src,
     location: {
       id: location.id,
       name: location.name,
@@ -723,9 +726,11 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
     if (!knownIds.has(npc.id) && actions.length === 0) {
       continue;
     }
+    const campaignNpc = findNpc(campaign, npc.id);
     views.push({
       npcId: npc.id,
-      name: findNpc(campaign, npc.id)?.name ?? npc.name,
+      name: campaignNpc?.name ?? npc.name,
+      portraitSrc: campaignNpc?.image?.src,
       outgoing: listRevealedDimensions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, PLAYER_ACTOR_ID, npc.id),
       incoming: listRevealedDimensions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, npc.id, PLAYER_ACTOR_ID),
       namedBonds: listRevealedNamedBonds(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, PLAYER_ACTOR_ID, npc.id),

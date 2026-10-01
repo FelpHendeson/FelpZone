@@ -30,7 +30,8 @@ import { GameMenuPanel } from './exploration/GameMenuPanel';
 import { ActionsPanel } from './exploration/ActionsPanel';
 import { InventoryPanel } from './exploration/InventoryPanel';
 import { SystemPanel } from './exploration/SystemPanel';
-import { DetailScreen, type GameView } from './exploration/shared';
+import { DomainPanel } from './exploration/DomainPanel';
+import { DetailScreen, type DomainView, type GameView } from './exploration/shared';
 import { requireActiveCatalog } from './exploration/helpers';
 import {
   listUnlockedGuidanceTopics,
@@ -54,10 +55,20 @@ function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help') {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || isDomainView(view)) {
     return 'menu';
   }
   return view;
+}
+
+const DOMAIN_SECTIONS: Record<DomainView, 'territory' | 'economy' | 'politics'> = {
+  'domain-territory': 'territory',
+  'domain-economy': 'economy',
+  'domain-politics': 'politics',
+};
+
+function isDomainView(view: GameView): view is DomainView {
+  return view in DOMAIN_SECTIONS;
 }
 
 export function ExplorationScreen({
@@ -194,17 +205,30 @@ export function ExplorationScreen({
               section="progression"
               status={status}
               campaign={campaign}
+              ability={{ name: view.abilityName, imageSrc: view.abilityImageSrc }}
               onAction={onAction}
               onBack={() => setActiveView('menu')}
             />
           ) : null}
-          {activeView === 'registry' || activeView === 'society' || activeView === 'family' || activeView === 'domain' ? (
+          {activeView === 'registry' || activeView === 'society' || activeView === 'family' ? (
             <SystemPanel
               section={activeView}
               status={status}
               campaign={campaign}
               onAction={onAction}
               onBack={() => setActiveView('menu')}
+            />
+          ) : null}
+          {activeView === 'domain' ? (
+            <DomainPanel status={status} onNavigate={setActiveView} onBack={() => setActiveView('menu')} />
+          ) : null}
+          {isDomainView(activeView) ? (
+            <SystemPanel
+              section={DOMAIN_SECTIONS[activeView]}
+              status={status}
+              campaign={campaign}
+              onAction={onAction}
+              onBack={() => setActiveView('domain')}
             />
           ) : null}
           {activeView === 'journal' ? (
@@ -228,6 +252,7 @@ export function ExplorationScreen({
             <GameMenuPanel
               status={status}
               view={view}
+              campaign={campaign}
               onNavigate={setActiveView}
               guidanceCount={unlockedGuidance.length}
               guidanceUnseenCount={unseenGuidance.length}
