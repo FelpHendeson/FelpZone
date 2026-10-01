@@ -136,6 +136,10 @@ export function deriveGardenRecipes(
         view.description = recipe.description;
         view.sourceSkillIds = [...recipe.sourceSkillIds];
         view.cost = { cultivationPoints: recipe.cost.cultivationPoints, timeCost: { ...recipe.cost.timeCost } };
+        view.requirements = recipe.requirements.map((requirement) => ({
+          ...requirement,
+          met: isGardenRequirementMet(requirement, progress, reachedMilestoneIds),
+        }));
       }
       if (visibility === 'available' || visibility === 'cultivated') {
         view.resultSkillId = recipe.resultSkillId;

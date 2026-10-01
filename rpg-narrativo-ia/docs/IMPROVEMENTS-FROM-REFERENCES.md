@@ -110,7 +110,13 @@ Eventos podem declarar `script`: uma lista de linhas apresentadas uma a uma ante
 
 Convertidos no Dia 1: `awakening`, `system-awakens`, `choose-ability`, `eteris-introduction`, `numen-introduction` e `first-numen-practice`. Os demais eventos continuam com `body` e podem migrar aos poucos.
 
-Cânone a confirmar: a abertura agora menciona coelhos com chifres e **ilhas flutuantes** no horizonte (sugestão do autor). O mundo continua sem nome; o Sistema chama o personagem de "Usuário" e de "{{desperto}}".
+Cânone confirmado pelo autor: o mundo se chama **Basilis** e tem **ilhas flutuantes** no horizonte (registrado em [Fundação narrativa](NARRATIVE-FOUNDATION.md#20-basilis)). O Sistema chama o personagem de "Usuário" e de "{{desperto}}".
+
+## 8. Árvore e Jardim como ferramentas de planejamento — implementada
+
+A Progressão passou de quatro sanfonas para **abas** (Árvore | Treino | Jardim | Fundamentos), como a apresentação mobile do Sistema 16 pede. A Árvore responde "o que posso desenvolver e como?" e o Jardim responde "o que falta para esta integração?". Detalhes em [Sistema 11](SYSTEM-ETERIS-NUMEN-PROGRESSION.md#árvore-de-habilidades) e [Sistema 16](SYSTEM-SKILL-GARDEN.md#implementado-na-aba-jardim). Nenhuma regra, custo ou conteúdo novo: tudo é derivado dos catálogos e do estado.
+
+Próximos passos de conteúdo (exigem decisão do autor): mais receitas no Jardim (ex.: uma integração Corpo + Poder envolvendo a Fagulha Condutora) e um método de treino que ensine a Fagulha, hoje marcada como "o Sistema ainda não indicou como desenvolver".
 
 ## Fontes consultadas
 

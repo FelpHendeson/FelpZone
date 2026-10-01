@@ -4674,3 +4674,465 @@ button:disabled {
 .chance-badge--alta { --tone-chance: var(--accent); }
 .chance-badge--incerta { --tone-chance: var(--accent-system); }
 .chance-badge--arriscada { --tone-chance: var(--accent-social); }
+
+/* Progressão — Árvore, Treino, Jardim e Fundamentos (Sistemas 11 e 16) */
+.progression {
+  display: grid;
+  gap: 12px;
+  min-width: 0;
+}
+
+.progression-tabs {
+  position: sticky;
+  top: calc(env(safe-area-inset-top, 0px) + 104px);
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: rgba(8, 14, 18, 0.92);
+  backdrop-filter: blur(10px);
+}
+
+.progression-tabs__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-height: 42px;
+  padding: 6px 4px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.progression-tabs__item small {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: rgba(131, 203, 234, 0.16);
+  color: var(--accent-system);
+  font-size: 0.64rem;
+}
+
+.progression-tabs__item--active {
+  background: rgba(131, 203, 234, 0.14);
+  color: var(--accent-system);
+  box-shadow: inset 0 0 0 1px rgba(131, 203, 234, 0.26);
+}
+
+.progression-tabs__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--gold);
+  box-shadow: 0 0 8px var(--gold);
+}
+
+.progression__panel {
+  min-width: 0;
+  animation: vn-line-in 220ms ease both;
+}
+
+/* Árvore: cada caminho é uma trilha vertical de nós */
+.skill-tree {
+  display: grid;
+  gap: 14px;
+}
+
+.skill-path {
+  --path-tone: var(--accent-system);
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  box-shadow: inset 3px 0 0 var(--path-tone);
+}
+
+.skill-path--corpo {
+  --path-tone: var(--accent);
+}
+
+.skill-path--poder {
+  --path-tone: var(--accent-system);
+}
+
+.skill-path__head {
+  display: grid;
+  gap: 3px;
+}
+
+.skill-path__field {
+  justify-self: start;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--path-tone) 45%, transparent);
+  border-radius: 999px;
+  color: var(--path-tone);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.skill-path__head h3 {
+  margin: 2px 0 0;
+  font-family: var(--font-story);
+  font-size: 1.12rem;
+}
+
+.skill-path__head p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.skill-path__nodes {
+  position: relative;
+  display: grid;
+  gap: 4px;
+  margin: 4px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-node {
+  position: relative;
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: 10px;
+}
+
+/* conector entre nós da mesma trilha */
+.skill-node:not(:last-child)::before {
+  position: absolute;
+  top: 20px;
+  bottom: -4px;
+  left: 10px;
+  width: 2px;
+  background: linear-gradient(var(--path-tone), color-mix(in srgb, var(--path-tone) 25%, transparent));
+  content: '';
+}
+
+.skill-node--available:not(:last-child)::before,
+.skill-node--hidden::before {
+  background: repeating-linear-gradient(color-mix(in srgb, var(--path-tone) 50%, transparent) 0 4px, transparent 4px 8px);
+}
+
+.skill-node__marker {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  margin-top: 1px;
+  border: 2px solid var(--path-tone);
+  border-radius: 50%;
+  background: var(--path-tone);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--path-tone) 45%, transparent);
+}
+
+.skill-node--available .skill-node__marker {
+  background: var(--bg-elevated);
+  box-shadow: none;
+}
+
+.skill-node--hidden .skill-node__marker {
+  border-style: dashed;
+  border-color: var(--border-strong);
+  background: transparent;
+  box-shadow: none;
+}
+
+.skill-node--garden .skill-node__marker {
+  border-color: var(--gold);
+  background: var(--gold);
+  box-shadow: 0 0 12px rgba(230, 201, 122, 0.45);
+}
+
+.skill-node__body {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.skill-node__body p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.skill-node--hidden .skill-node__body p {
+  font-style: italic;
+}
+
+.skill-node__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 8px;
+}
+
+.skill-node__level {
+  color: var(--path-tone);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.skill-node__level--open {
+  color: var(--text-muted);
+}
+
+.skill-node__tag {
+  justify-self: start;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.skill-node__tag--garden {
+  color: var(--gold);
+}
+
+.skill-node__requires {
+  font-size: 0.76rem;
+}
+
+.skill-node__requires .is-met {
+  color: var(--text);
+}
+
+.skill-node__link {
+  color: var(--accent-system);
+  font-weight: 700;
+}
+
+.skill-node__develop {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px 10px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.skill-node__develop strong {
+  color: var(--text);
+}
+
+.skill-tree__hidden {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+/* Jardim: integrações como fontes → resultado */
+.garden {
+  display: grid;
+  gap: 12px;
+}
+
+.garden__points {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid color-mix(in srgb, var(--gold) 35%, transparent);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(76, 64, 25, 0.32), rgba(12, 20, 24, 0.98));
+}
+
+.garden__points-value {
+  display: grid;
+  place-items: center;
+  width: 54px;
+  height: 54px;
+  border: 1px solid color-mix(in srgb, var(--gold) 55%, transparent);
+  border-radius: 50%;
+  color: var(--gold);
+  font-family: var(--font-story);
+  font-size: 1.6rem;
+}
+
+.garden__points > div {
+  display: grid;
+  gap: 3px;
+}
+
+.garden__points small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.garden__list {
+  display: grid;
+  gap: 10px;
+}
+
+.garden-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  box-shadow: inset 3px 0 0 var(--gold);
+}
+
+.garden-card--perceived {
+  box-shadow: inset 3px 0 0 color-mix(in srgb, var(--gold) 45%, transparent);
+}
+
+.garden-card--cultivated {
+  border-color: color-mix(in srgb, var(--gold) 35%, transparent);
+}
+
+.garden-card__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.garden-card__head h3 {
+  margin: 0;
+  font-family: var(--font-story);
+  font-size: 1.08rem;
+}
+
+.garden-card__head span {
+  color: var(--gold);
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.garden-card > p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.garden-card__graph {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+}
+
+.garden-card__sources {
+  display: grid;
+  gap: 6px;
+}
+
+.garden-card__arrow {
+  color: var(--gold);
+  font-size: 1.1rem;
+}
+
+.garden-chip {
+  padding: 6px 9px;
+  border: 1px solid var(--border-strong);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.garden-chip--result {
+  border-color: color-mix(in srgb, var(--gold) 60%, transparent);
+  color: var(--gold);
+  box-shadow: 0 0 14px rgba(230, 201, 122, 0.18);
+}
+
+.garden-chip--unknown {
+  border-style: dashed;
+  color: var(--text-muted);
+}
+
+.garden-card__checks {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.8rem;
+}
+
+.garden-card__checks li {
+  color: var(--text-muted);
+}
+
+.garden-card__checks li.is-met {
+  color: var(--text);
+}
+
+.garden-card__checks li.is-met span {
+  color: var(--accent);
+}
+
+.garden-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.garden-card__footer small {
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+.progression-basics {
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 26rem) {
+  .progression-tabs__item {
+    padding-inline: 2px;
+    font-size: 0.68rem;
+    letter-spacing: -0.01em;
+  }
+
+  .garden-card__graph {
+    grid-template-columns: 1fr;
+    justify-items: stretch;
+  }
+
+  .garden-card__arrow {
+    justify-self: center;
+    transform: rotate(90deg);
+  }
+}
+
+.vn-skip--in-window {
+  justify-self: center;
+}

@@ -123,6 +123,9 @@ export function ScriptStage({ lines, playerName, speakers, interpolate, onComple
             <button type="button" className="button button--primary vn-system__next" onClick={(event) => { event.stopPropagation(); advance(); }} autoFocus>
               {typing ? 'Mostrar' : 'Continuar'}
             </button>
+            <button type="button" className="vn-skip vn-skip--in-window" onClick={(event) => { event.stopPropagation(); finish(); }}>
+              Pular cena <span aria-hidden="true">»</span>
+            </button>
           </div>
         </div>
       ) : null}

@@ -227,6 +227,16 @@ O Jardim entra dentro da aba `Sistema`, sem criar um quinto destino principal.
 - resultado usa feedback diegético curto;
 - detalhes ficam sob demanda.
 
+### Implementado na aba Jardim
+
+`buildSystemStatus().garden.integrations` e `garden.nextPointLevel` alimentam a aba:
+
+- pontos de cultivo em destaque e a origem do próximo ponto ("o marco do Nível N concede um novo ponto"), derivada só de marcos compreensíveis;
+- cada integração desenhada como **fontes → resultado** (o resultado fica `?` enquanto a receita só está percebida);
+- checklist dos requisitos com estado atual ("Sentidos Aguçados em proficiência 3 (atual 1)", "Nível 2 (atual 1)"); requisitos sobre habilidades desconhecidas aparecem como "uma habilidade ainda não compreendida";
+- custo e permanência ("1 ponto · 2 períodos · permanente") e o motivo exato de bloqueio vindo de `planGardenCultivation`;
+- a aba exibe um marcador quando há integração pronta para cultivar.
+
 ## Relação com objetivos
 
 O Sistema 10 pode observar ponto adquirido, receita concluída ou habilidade conhecida depois da transação. Objetivos não concedem receita diretamente nem duplicam o ponto.

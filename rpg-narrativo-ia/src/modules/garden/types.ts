@@ -53,6 +53,8 @@ export interface GardenRecipeView {
   cost?: GardenCost;
   resultSkillId?: string;
   requirementsMet?: boolean;
+  /** Requisitos com estado atual — só aparecem quando as fontes já são conhecidas (mesma regra do nome). */
+  requirements?: readonly (GardenRequirement & { met: boolean })[];
 }
 
 export interface GardenPlan {

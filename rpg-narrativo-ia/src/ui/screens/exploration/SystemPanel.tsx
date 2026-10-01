@@ -14,6 +14,7 @@ import { ImagePlaceholder } from '../../components/ImagePlaceholder';
 import { formatPeriodCost } from '../../sandbox';
 import { Portrait } from '../../components/Portrait';
 import { EmptyAction } from './shared';
+import { ProgressionTabs } from './ProgressionTabs';
 
 export type SystemSection = 'progression' | 'registry' | 'society' | 'family' | 'territory' | 'economy' | 'politics';
 
@@ -77,156 +78,9 @@ export function SystemPanel({
             <div><span className="section-kicker">Aptidão inicial</span><strong>{ability.name}</strong></div>
           </section>
         ) : null}
-        {section === 'progression' ? <>
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">∞</span>
-            <span><strong>Eteris e Númen</strong><small>Fundamentos conhecidos</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            <ul className="system-note-list">
-              {status.energies.map((energy) => (
-                <li key={energy.id}><strong>{energy.name}</strong><p>{energy.description}</p></li>
-              ))}
-              {status.execution.reserves.map((reserve) => (
-                <li key={reserve.energyId}>
-                  <strong>{reserve.name}</strong>
-                  <p>
-                    {reserve.current}/{reserve.max} disponível
-                  </p>
-                </li>
-              ))}
-            </ul>
-            <ul className="system-chip-list" aria-label="Campos de aplicação">
-              {status.fields.map((field) => (
-                <li key={field.id} className="system-chip"><strong>{field.name}</strong><span>{field.description}</span></li>
-              ))}
-            </ul>
-          </div>
-        </details>
-
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">⌘</span>
-            <span><strong>Habilidades e caminhos</strong><small>{status.knownSkills.length} conhecidas</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body system-disclosure__body--stack">
-            <section aria-labelledby="system-skills-title">
-              <div className="section-heading"><h2 id="system-skills-title">Habilidades conhecidas</h2><span className="section-count">{status.knownSkills.length}</span></div>
-              {status.knownSkills.length === 0 ? <EmptyAction message="O Sistema ainda não registrou habilidades." /> : (
-                <ul className="system-skill-list">
-                  {status.knownSkills.map((skill) => (
-                    <li key={skill.skillId} className="system-skill">
-                      <div className="system-skill__head"><strong>{skill.name}</strong><span>Proficiência {skill.proficiency}</span></div>
-                      <p>{skill.description}</p><small>{skill.pathName}</small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section aria-labelledby="system-tree-title">
-              <div className="section-heading"><h2 id="system-tree-title">Árvore de habilidades</h2></div>
-              {status.tree.paths.length === 0 ? <EmptyAction message="Nenhum caminho revelado ainda." /> : (
-                <div className="system-tree">
-                  {status.tree.paths.map((path) => (
-                    <article key={path.pathId} className="system-tree__path">
-                      <header className="system-tree__path-head"><strong>{path.name}</strong><span>{path.field === 'corpo' ? 'Corpo' : 'Poder'}</span></header>
-                      <ul className="system-tree__nodes">
-                        {path.nodes.map((node) => (
-                          <li key={node.skillId} className={`system-tree__node system-tree__node--${node.status}`}>
-                            <strong>{node.name}</strong>
-                            <span>{node.status === 'known' ? `Conhecida · proficiência ${node.proficiency}` : 'Possível de desenvolver'}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {path.hasHiddenSkills ? <small className="system-tree__hidden">Há possibilidades ainda não compreendidas neste caminho</small> : null}
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-        </details>
-
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">△</span>
-            <span><strong>Treinamento</strong><small>{status.trainings.length} métodos conhecidos</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            {status.trainings.length === 0 ? <EmptyAction message="Nenhum método de treino disponível agora." /> : (
-              <div className="action-card-list">
-                {status.trainings.map((training) => (
-                  <article key={training.methodId} className={training.canTrain ? 'action-card' : 'action-card action-card--blocked'}>
-                    <div className="action-card__body">
-                      <div className="action-card__title"><h3>{training.name}</h3><span>{training.targetLabel}</span></div>
-                      <p>{training.description}</p>
-                      <ul className="training-effects" aria-label="Efeitos do treino">
-                        {training.effectsSummary.map((effect) => <li key={effect}>{effect}</li>)}
-                      </ul>
-                      {training.requirementsSummary.length > 0 ? (
-                        <p className="training-requirements">Requisitos: {training.requirementsSummary.join(', ')}</p>
-                      ) : null}
-                      <div className="action-card__footer">
-                        <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
-                        <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => setPending(training)}>Treinar</button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </details>
-
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">❀</span>
-            <span><strong>Jardim</strong><small>{status.garden.cultivationPoints} ponto{status.garden.cultivationPoints === 1 ? '' : 's'} de cultivo</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            {status.garden.recipes.length === 0 ? (
-              <EmptyAction message="Nenhuma integração percebida no Jardim." />
-            ) : (
-              <div className="action-card-list">
-                {status.garden.recipes.map((recipe) => (
-                  <article key={recipe.id} className={recipe.visibility === 'available' ? 'action-card' : 'action-card action-card--blocked'}>
-                    <div className="action-card__body">
-                      <div className="action-card__title">
-                        <h3>{recipe.name ?? 'Integração percebida'}</h3>
-                        <span>{recipe.visibility === 'cultivated' ? 'Cultivada' : recipe.visibility === 'available' ? 'Disponível' : 'Percebida'}</span>
-                      </div>
-                      {recipe.description ? <p>{recipe.description}</p> : <p>Os requisitos desta integração ainda não estão claros.</p>}
-                      {recipe.cost ? (
-                        <p className="training-requirements">
-                          Custa {recipe.cost.cultivationPoints} ponto{recipe.cost.cultivationPoints === 1 ? '' : 's'} · {formatPeriodCost(recipe.cost.timeCost.periods)}
-                        </p>
-                      ) : null}
-                      <div className="action-card__footer">
-                        <small>{recipe.requirementsMet === false ? 'Requisitos em aberto' : recipe.visibility === 'cultivated' ? 'Já integrada' : 'Integração irreversível neste recorte'}</small>
-                        <button
-                          type="button"
-                          className="button button--compact"
-                          disabled={recipe.visibility !== 'available' || !recipe.requirementsMet}
-                          onClick={() => setPendingGarden(recipe.id)}
-                        >
-                          Cultivar integração
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </details>
-
-        </> : null}
+        {section === 'progression' ? (
+          <ProgressionTabs status={status} onTrain={setPending} onCultivate={setPendingGarden} />
+        ) : null}
         {section === 'registry' ? <>
         <details className="system-disclosure">
           <summary>
