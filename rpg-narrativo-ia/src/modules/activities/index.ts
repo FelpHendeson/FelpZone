@@ -1,19 +1,26 @@
+import { DAY_PERIODS, isDayPeriod } from '../../core/state';
 import type { GameState } from '../../core/state/types';
 import { changeRelationship } from '../relationships';
 import { deriveNpcAt, relocateNpc, rememberNpcFact } from '../npcs';
 import { unlockGuidanceTopic } from '../guidance';
+import { chanceBand, drawWeighted } from '../chance';
 import type {
   ActivityWorldContext,
   ContextualActivitiesState,
   ContextualActivityApplied,
+  ContextualActivityDeadline,
   ContextualActivityDefinition,
   ContextualActivityEffect,
   ContextualActivityInspection,
   ContextualActivityKnownView,
+  ContextualActivityOutcome,
+  ContextualActivityOutcomeModifier,
   ContextualActivityParticipants,
   ContextualActivityPlan,
   ContextualActivityRequirement,
+  ContextualActivityRisk,
   IndexedActivities,
+  PlannedActivityOutcome,
 } from './types';
 
 export class ContextualActivityError extends Error {
@@ -108,6 +115,9 @@ export function planContextualActivity(
   if (!activity.repeatable && activityState.consumedActivityIds.includes(activity.id)) {
     throw new ContextualActivityError('Esta atividade já foi concluída.');
   }
+  if (activity.availableUntil && deadlinePassed(activity.availableUntil, gameState)) {
+    throw new ContextualActivityError('O prazo desta oportunidade terminou.');
+  }
   if (gameState.sandbox.navigation.currentLocationId !== activity.locationId) {
     throw new ContextualActivityError('A atividade não está disponível neste local.');
   }
@@ -122,6 +132,11 @@ export function planContextualActivity(
     requireNpcAvailable(npcs, gameState, npcId);
   }
 
+  const outcomes = activity.risk ? planOutcomes(activity.risk, gameState, npcs) : undefined;
+  if (outcomes && outcomes.every((outcome) => outcome.weight === 0)) {
+    throw new ContextualActivityError('Nenhum desfecho é possível nesta situação.');
+  }
+
   return {
     activityId: activity.id,
     participantNpcIds,
@@ -129,7 +144,34 @@ export function planContextualActivity(
     effects: activity.effects.map(copyEffect),
     ...(activity.narrative ? { narrative: { ...activity.narrative } } : {}),
     ...(activity.feedback ? { feedback: activity.feedback } : {}),
+    ...(outcomes ? { outcomes } : {}),
   };
+}
+
+function planOutcomes(
+  risk: ContextualActivityRisk,
+  state: GameState,
+  npcs: ActivityWorldContext['npcs'],
+): PlannedActivityOutcome[] {
+  return risk.outcomes.map((outcome) => {
+    const delta = (outcome.modifiers ?? [])
+      .filter((modifier) => modifier.requirements.every((requirement) => requirementMet(requirement, state, npcs)))
+      .reduce((sum, modifier) => sum + modifier.delta, 0);
+    return {
+      id: outcome.id,
+      label: outcome.label,
+      favorable: outcome.favorable,
+      weight: Math.max(0, outcome.weight + delta),
+      effects: outcome.effects.map(copyEffect),
+      ...(outcome.feedback ? { feedback: outcome.feedback } : {}),
+    };
+  });
+}
+
+function describeChance(outcomes: readonly PlannedActivityOutcome[]): ContextualActivityKnownView['chance'] {
+  const total = outcomes.reduce((sum, outcome) => sum + outcome.weight, 0);
+  const favorable = outcomes.filter((outcome) => outcome.favorable).reduce((sum, outcome) => sum + outcome.weight, 0);
+  return { band: chanceBand(favorable, total), favorablePercent: total > 0 ? Math.round((favorable / total) * 100) : 0 };
 }
 
 export function applyContextualActivityPlan(
@@ -157,7 +199,24 @@ export function applyContextualActivityPlan(
     seenTopicIds: [...gameState.guidance.seenTopicIds],
   };
 
-  for (const effect of plan.effects) {
+  // O sorteio acontece aqui, uma única vez, e consome a posição atual do cursor persistido.
+  let rng = { seed: gameState.rng.seed, cursor: gameState.rng.cursor };
+  let outcome: ContextualActivityApplied['outcome'];
+  let effects = plan.effects;
+  if (plan.outcomes && plan.outcomes.length > 0) {
+    const drawn = drawWeighted(rng, plan.outcomes.map((entry) => entry.weight));
+    const chosen = plan.outcomes[drawn.index]!;
+    rng = drawn.next;
+    outcome = {
+      id: chosen.id,
+      label: chosen.label,
+      favorable: chosen.favorable,
+      ...(chosen.feedback ? { feedback: chosen.feedback } : {}),
+    };
+    effects = [...plan.effects, ...chosen.effects];
+  }
+
+  for (const effect of effects) {
     switch (effect.type) {
       case 'flag.set':
         flags = { ...flags, [effect.flag]: effect.value };
@@ -177,7 +236,7 @@ export function applyContextualActivityPlan(
     }
   }
 
-  return { activities, npcs, flags, relationships, guidance };
+  return { activities, npcs, flags, relationships, guidance, rng, ...(outcome ? { outcome } : {}) };
 }
 
 export function listKnownContextualActivities(
@@ -192,12 +251,15 @@ export function listKnownContextualActivities(
     // known, other unmet requirements remain visible as ordinary blockers.
     .filter((activity) => activity.requirements.every((requirement) =>
       requirement.type !== 'npc.known' || requirementMet(requirement, gameState, npcs)))
-    .map((activity) => {
+    // Oportunidade com prazo vencido sai da lista: o mundo seguiu em frente.
+    .filter((activity) => !activity.availableUntil || !deadlinePassed(activity.availableUntil, gameState))
+    .map((activity) => ({ activity, ...deadlineView(activity.availableUntil, gameState) }))
+    .map(({ activity, ...deadline }) => {
       const optionalIds = activity.participants?.optionalNpcIds ?? [];
       const eligibleOptionalNpcIds = optionalIds.filter((npcId) => npcAvailable(npcs, gameState, npcId));
       try {
         const minimum = activity.participants?.minOptional ?? 0;
-        planContextualActivity(
+        const plan = planContextualActivity(
           catalog,
           activityState,
           gameState,
@@ -205,10 +267,17 @@ export function listKnownContextualActivities(
           activity.id,
           eligibleOptionalNpcIds.slice(0, minimum),
         );
-        return { activity, available: true, eligibleOptionalNpcIds };
+        return {
+          activity,
+          available: true,
+          eligibleOptionalNpcIds,
+          ...deadline,
+          ...(plan.outcomes ? { chance: describeChance(plan.outcomes) } : {}),
+        };
       } catch (error) {
         return {
           activity,
+          ...deadline,
           available: false,
           blockedReason:
             error instanceof ContextualActivityError
@@ -281,6 +350,22 @@ function inspectActivity(
     return fail('O feedback da atividade é inválido.');
   }
 
+  let risk: ContextualActivityRisk | undefined;
+  if (value.risk !== undefined) {
+    const inspected = inspectRisk(value.risk, world);
+    if (!inspected.ok) return inspected;
+    risk = inspected.value;
+  }
+
+  let availableUntil: ContextualActivityDeadline | undefined;
+  if (value.availableUntil !== undefined) {
+    const raw = value.availableUntil;
+    if (!isRecord(raw) || !positiveInteger(raw.day) || (raw.period !== undefined && !isDayPeriod(raw.period))) {
+      return fail('O prazo da atividade é inválido.');
+    }
+    availableUntil = raw.period === undefined ? { day: raw.day as number } : { day: raw.day as number, period: raw.period };
+  }
+
   return {
     ok: true,
     value: {
@@ -295,8 +380,87 @@ function inspectActivity(
       effects,
       ...(narrative ? { narrative } : {}),
       ...(typeof value.feedback === 'string' ? { feedback: value.feedback } : {}),
+      ...(availableUntil ? { availableUntil } : {}),
+      ...(risk ? { risk } : {}),
     },
   };
+}
+
+function inspectRisk(value: unknown, world: ActivityWorldContext): ContextualActivityInspection<ContextualActivityRisk> {
+  const invalid = fail<ContextualActivityRisk>('O risco da atividade é inválido.');
+  if (!isRecord(value) || !Array.isArray(value.outcomes) || value.outcomes.length < 2 || value.outcomes.length > 3) {
+    return invalid;
+  }
+  const outcomes: ContextualActivityOutcome[] = [];
+  const ids = new Set<string>();
+  for (const raw of value.outcomes) {
+    if (
+      !isRecord(raw) ||
+      !nonEmpty(raw.id) ||
+      ids.has(raw.id) ||
+      !nonEmpty(raw.label) ||
+      typeof raw.favorable !== 'boolean' ||
+      !nonNegativeInteger(raw.weight) ||
+      !Array.isArray(raw.effects) ||
+      (raw.feedback !== undefined && !nonEmpty(raw.feedback)) ||
+      (raw.modifiers !== undefined && !Array.isArray(raw.modifiers))
+    ) {
+      return invalid;
+    }
+    ids.add(raw.id);
+    const effects: ContextualActivityEffect[] = [];
+    for (const effect of raw.effects) {
+      const inspected = inspectEffect(effect, world);
+      if (!inspected.ok) return fail(inspected.reason);
+      effects.push(inspected.value);
+    }
+    const modifiers: ContextualActivityOutcomeModifier[] = [];
+    for (const modifier of (raw.modifiers as unknown[] | undefined) ?? []) {
+      if (!isRecord(modifier) || !Array.isArray(modifier.requirements) || modifier.requirements.length === 0 || !Number.isSafeInteger(modifier.delta)) {
+        return invalid;
+      }
+      const requirements: ContextualActivityRequirement[] = [];
+      for (const requirement of modifier.requirements) {
+        const inspected = inspectRequirement(requirement, world);
+        if (!inspected.ok) return fail(inspected.reason);
+        requirements.push(inspected.value);
+      }
+      modifiers.push({ requirements, delta: modifier.delta as number });
+    }
+    outcomes.push({
+      id: raw.id,
+      label: raw.label,
+      favorable: raw.favorable,
+      weight: raw.weight as number,
+      ...(modifiers.length > 0 ? { modifiers } : {}),
+      effects,
+      ...(typeof raw.feedback === 'string' ? { feedback: raw.feedback } : {}),
+    });
+  }
+  if (!outcomes.some((outcome) => outcome.favorable) || outcomes.reduce((sum, outcome) => sum + outcome.weight, 0) === 0) {
+    return invalid;
+  }
+  return { ok: true, value: { outcomes } };
+}
+
+export function deadlinePassed(deadline: ContextualActivityDeadline, state: GameState): boolean {
+  if (state.world.day !== deadline.day) return state.world.day > deadline.day;
+  if (deadline.period === undefined) return false;
+  return DAY_PERIODS.indexOf(state.world.period) > DAY_PERIODS.indexOf(deadline.period);
+}
+
+function deadlineView(
+  deadline: ContextualActivityDeadline | undefined,
+  state: GameState,
+): Pick<ContextualActivityKnownView, 'daysLeft' | 'lastPeriod'> {
+  if (!deadline) return {};
+  const daysLeft = Math.max(0, deadline.day - state.world.day);
+  const lastPeriod =
+    daysLeft === 0 &&
+    (deadline.period === undefined
+      ? state.world.period === DAY_PERIODS[DAY_PERIODS.length - 1]
+      : state.world.period === deadline.period);
+  return { daysLeft, lastPeriod };
 }
 
 function inspectParticipants(
@@ -361,6 +525,10 @@ function inspectRequirement(
     case 'world.day.min':
       return positiveInteger(value.day)
         ? { ok: true, value: { type: 'world.day.min', day: value.day as number } }
+        : fail('O requisito da atividade é inválido.');
+    case 'ability.has':
+      return nonEmpty(value.abilityId) && world.campaign.abilities.some((ability) => ability.id === value.abilityId)
+        ? { ok: true, value: { type: 'ability.has', abilityId: value.abilityId } }
         : fail('O requisito da atividade é inválido.');
     case 'npc.known':
     case 'npc.present':
@@ -431,6 +599,8 @@ function requirementMet(
     }
     case 'npc.available':
       return npcAvailable(npcs, state, requirement.npcId);
+    case 'ability.has':
+      return state.progression.abilityIds.includes(requirement.abilityId);
   }
 }
 

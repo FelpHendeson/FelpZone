@@ -2,7 +2,37 @@
   {
     "id": "awakening",
     "title": "Despertar",
-    "body": "Você abre os olhos sobre um chão que nunca existiu. A terra é fria, irregular, e o céu parece grande demais.\n\nNão há rua, muro, cama ou voz familiar. O nome {{nomeCompleto}} ainda cabe em você, mas o resto da vida ficou do outro lado de algo que as pessoas vão chamar de Reset.\n\nVocê está só. Sem pais, sem aliados, sem objeto algum. A maioridade chegou ontem. O mundo, hoje.",
+    "body": "",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Você abre os olhos sobre um chão que nunca existiu. A terra é fria, irregular, e o céu parece grande demais."
+      },
+      {
+        "kind": "narration",
+        "text": "Nada aqui é reconhecível. Coelhos com chifres curtos se movem no capim, logo à sua frente. Aves de asas compridas demais cruzam o céu sem fazer som."
+      },
+      {
+        "kind": "narration",
+        "text": "Ao longe, há nuvens... Não. Não são nuvens. Parecem ilhas — massas de terra suspensas no ar, imóveis contra o vento."
+      },
+      {
+        "kind": "narration",
+        "text": "A visão não lhe diz nada além disso: este é outro mundo."
+      },
+      {
+        "kind": "thought",
+        "text": "Meu Deus... o que é isso? Outro mundo? Que história é essa?"
+      },
+      {
+        "kind": "narration",
+        "text": "O nome {{nomeCompleto}} ainda cabe em você, mas o resto da vida ficou do outro lado de algo que as pessoas vão chamar de Reset."
+      },
+      {
+        "kind": "narration",
+        "text": "Você está só. Sem pais, sem aliados, sem objeto algum. A maioridade chegou ontem. O mundo, hoje."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Despertar após o Reset"
@@ -72,7 +102,37 @@
   {
     "id": "system-awakens",
     "title": "O Sistema",
-    "body": "Uma superfície translúcida se forma no ar, a um palmo dos olhos. Não é um aparelho. Não pesa. Ainda assim, você lê:\n\nUsuário reconhecido: {{nomeCompleto}}.\nSistema inicializado.\nCapacidade inicial disponível.\n\nTodo mundo tem isso agora. Não é um chamado exclusivo. É uma regra nova, tão silenciosa quanto o desaparecimento das cidades.",
+    "body": "",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Uma superfície translúcida se forma no ar, a um palmo dos olhos. Não é um aparelho. Não pesa."
+      },
+      {
+        "kind": "system",
+        "text": "Saudações, {{desperto}}. Você acaba de surgir em **Basilis**."
+      },
+      {
+        "kind": "system",
+        "text": "Usuário reconhecido: **{{nomeCompleto}}**."
+      },
+      {
+        "kind": "system",
+        "text": "Sistema inicializado. Funções de usuário ativas."
+      },
+      {
+        "kind": "system",
+        "text": "Avance pela orientação e pelos níveis para compreender este mundo — antes que ele decida por você."
+      },
+      {
+        "kind": "thought",
+        "text": "Um painel flutuando no ar... falando comigo? Devo tocar nisso? Isso é perigoso?"
+      },
+      {
+        "kind": "narration",
+        "text": "Todo mundo tem isso agora. Não é um chamado exclusivo. É uma regra nova, tão silenciosa quanto o desaparecimento das cidades."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Interface do Sistema"
@@ -135,7 +195,25 @@
   {
     "id": "choose-ability",
     "title": "Aptidão inicial",
-    "body": "O Sistema não escolhe uma classe por você. Três aptidões aparecem como inclinações para este começo — vantagens, não destinos.\n\nNada aqui diz o que seu Númen poderá se tornar. Isso dependerá do que você fizer depois.",
+    "body": "",
+    "script": [
+      {
+        "kind": "system",
+        "text": "Capacidade inicial disponível."
+      },
+      {
+        "kind": "system",
+        "text": "O Sistema não atribui classes. Três **aptidões** foram identificadas como inclinações para este começo."
+      },
+      {
+        "kind": "system",
+        "text": "Vantagens, não destinos. O que seu Númen poderá se tornar dependerá do que você fizer depois."
+      },
+      {
+        "kind": "thought",
+        "text": "Só posso escolher uma. O que vai me manter vivo aqui?"
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Escolha de capacidade"
@@ -253,7 +331,63 @@
   {
     "id": "eteris-introduction",
     "title": "Algo além do corpo",
-    "body": "Quando a escolha termina, o painel não desaparece.\n\nUma nova orientação ocupa a superfície translúcida:\n\n**ETÉRIS — energia presente no ambiente e no próprio mundo.**\n\nA instrução seguinte parece simples demais:\n\n> Pare por um instante. Não procure um objeto. Procure a diferença entre o que pertence ao seu corpo e o que existe ao redor dele.\n\nVocê fica imóvel. Não surge luz nem voz. Ainda assim, alguma coisa começa a se destacar do vento, da terra e do espaço entre as árvores.",
+    "body": "",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Quando a escolha termina, o painel não desaparece."
+      },
+      {
+        "kind": "system",
+        "text": "Nova orientação disponível."
+      },
+      {
+        "kind": "system",
+        "text": "**ETÉRIS** — energia presente no ambiente e no próprio mundo."
+      },
+      {
+        "kind": "system",
+        "text": "Pare por um instante. Não procure um objeto. Procure a diferença entre o que pertence ao seu corpo e o que existe ao redor dele."
+      },
+      {
+        "kind": "thought",
+        "text": "Procurar a diferença... como assim?"
+      },
+      {
+        "kind": "narration",
+        "text": "Você fica imóvel. Não surge luz nem voz. Ainda assim, alguma coisa começa a se destacar do vento, da terra e do espaço entre as árvores."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] Variações finas detectadas. A diferença é mais nítida perto das raízes e da água.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "system",
+        "text": "[Resiliência] O corpo resiste à pressão desconhecida. Mantenha o foco; o cansaço não vai interromper a leitura.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "resiliencia"
+          }
+        ]
+      },
+      {
+        "kind": "system",
+        "text": "[Voz Calma] Respire devagar. A Etéris responde melhor a quem não a força.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "voz-calma"
+          }
+        ]
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Primeira percepção da Etéris"
@@ -321,7 +455,33 @@
   {
     "id": "numen-introduction",
     "title": "Númen",
-    "body": "O Sistema responde à percepção com outra definição curta:\n\n**NÚMEN — Etéris assimilada por um ser vivo, interiorizada e individualizada.**\n\nVocê percebe então que parte daquela presença não está apenas fora. Existe algo acompanhando sua respiração, o pulso e a tensão dos músculos — parecido com a Etéris, mas inequivocamente seu.\n\nA orientação não promete poder instantâneo. Ela oferece um método:\n\n**Treino de Percepção Focada** — use o Númen para aguçar a leitura do ambiente e aprenda a reconhecer sua circulação.\n\nO restante depende de prática.",
+    "body": "",
+    "script": [
+      {
+        "kind": "system",
+        "text": "Percepção registrada."
+      },
+      {
+        "kind": "system",
+        "text": "**NÚMEN** — Etéris assimilada por um ser vivo, interiorizada e individualizada."
+      },
+      {
+        "kind": "narration",
+        "text": "Você percebe então que parte daquela presença não está apenas fora. Existe algo acompanhando sua respiração, o pulso e a tensão dos músculos — parecido com a Etéris, mas inequivocamente seu."
+      },
+      {
+        "kind": "thought",
+        "text": "Isso... sou eu?"
+      },
+      {
+        "kind": "system",
+        "text": "Método disponível: **Treino de Percepção Focada**. Use o Númen para aguçar a leitura do ambiente e aprenda a reconhecer sua circulação."
+      },
+      {
+        "kind": "system",
+        "text": "Resultados dependem de prática."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Primeira percepção do Númen"
@@ -351,7 +511,63 @@
     "id": "first-numen-practice",
     "title": "A primeira circulação",
     "canStartSession": true,
-    "body": "Depois de insistir na orientação, a diferença finalmente deixa de ser apenas teoria.\n\nO Númen acompanha sua atenção. Por um instante, sons se separam melhor, pequenas mudanças do vento ficam mais fáceis de notar e o terreno parece oferecer mais informação do que oferecia antes.\n\nNão foi uma transformação súbita. Você não recebeu domínio de nada.\n\nMas agora sabe que a circulação responde à prática — e que **Sentidos Aguçados** deixou de ser apenas um nome no Sistema.",
+    "body": "",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Depois de insistir na orientação, a diferença finalmente deixa de ser apenas teoria."
+      },
+      {
+        "kind": "narration",
+        "text": "O Númen acompanha sua atenção. Por um instante, sons se separam melhor, pequenas mudanças do vento ficam mais fáceis de notar e o terreno parece oferecer mais informação do que oferecia antes."
+      },
+      {
+        "kind": "system",
+        "text": "Circulação de Númen confirmada."
+      },
+      {
+        "kind": "system",
+        "text": "**Sentidos Aguçados** — proficiência registrada."
+      },
+      {
+        "kind": "thought",
+        "text": "Não foi mágica. Foi prática. Então é assim que funciona."
+      },
+      {
+        "kind": "narration",
+        "text": "Você não recebeu domínio de nada. Mas agora sabe que a circulação responde ao esforço."
+      },
+      {
+        "kind": "thought",
+        "text": "Com o Olhar Atento, agora percebo até o caminho que o vento faz entre as folhas.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Meu corpo aguentou o esforço melhor do que eu esperava. Dá para insistir mais.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "resiliencia"
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ficar calmo ajudou. Talvez isso valha com as pessoas também.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "voz-calma"
+          }
+        ]
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Primeira prática real de Númen"

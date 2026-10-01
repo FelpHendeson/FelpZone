@@ -65,6 +65,7 @@ import {
   createInitialContextualActivitiesState,
   inspectContextualActivitiesState,
 } from '../../modules/activities';
+import { createChanceState, inspectChanceState, type ChanceState } from '../../modules/chance';
 import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
@@ -96,6 +97,7 @@ import {
   SCHEMA_VERSION_V23,
   SCHEMA_VERSION_V24,
   SCHEMA_VERSION_V25,
+  SCHEMA_VERSION_V26,
   isDayPeriod,
   type GameState,
   type GameStateV1,
@@ -123,6 +125,7 @@ import {
   type GameStateV23,
   type GameStateV24,
   type GameStateV25,
+  type GameStateV26,
   type GameStatus,
   type NarrativeSession,
 } from './types';
@@ -230,6 +233,13 @@ export type GameStateV24Inspection =
 export type GameStateV25Inspection =
   | { ok: true; state: GameStateV25 }
   | { ok: false; reason: string };
+
+export type GameStateV26Inspection =
+  | { ok: true; state: GameStateV26 }
+  | { ok: false; reason: string };
+
+/** Sorte provisória usada só para inspecionar saves antigos pelo contrato atual; é descartada em seguida. */
+const LEGACY_INSPECTION_RNG: ChanceState = { seed: 0, cursor: 0 };
 
 export function inspectGameState(
   value: unknown,
@@ -518,6 +528,18 @@ export function inspectGameStateV25(
 ): GameStateV25Inspection {
   try {
     return inspectV25(value, context, objectiveCatalog);
+  } catch {
+    return { ok: false, reason: 'O salvamento está corrompido.' };
+  }
+}
+
+export function inspectGameStateV26(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV26Inspection {
+  try {
+    return inspectV26(value, context, objectiveCatalog);
   } catch {
     return { ok: false, reason: 'O salvamento está corrompido.' };
   }
@@ -892,6 +914,23 @@ export function migrateGameStateV24(
 
 export function migrateGameStateV25(
   state: GameStateV25,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameState {
+  return migrateGameStateV26(
+    {
+      ...structuredClone(state),
+      schemaVersion: SCHEMA_VERSION_V26,
+      activities: createInitialContextualActivitiesState(),
+    },
+    context,
+    objectiveCatalog,
+  );
+}
+
+/** Schema 26 → 27: semente estável derivada de dados já persistidos; o cursor começa em zero. */
+export function migrateGameStateV26(
+  state: GameStateV26,
   _context?: SandboxContext,
   _objectiveCatalog?: IndexedObjectives,
 ): GameState {
@@ -900,7 +939,7 @@ export function migrateGameStateV25(
   return {
     ...structuredClone(state),
     schemaVersion: SCHEMA_VERSION,
-    activities: createInitialContextualActivitiesState(),
+    rng: createChanceState(`${state.updatedAt}|${state.character.firstName} ${state.character.lastName}`),
   };
 }
 
@@ -1187,6 +1226,10 @@ function inspectCurrent(
   if (!activities.ok) {
     return fail(activities.reason);
   }
+  const rng = inspectChanceState(value.rng);
+  if (!rng.ok) {
+    return fail(rng.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1320,6 +1363,7 @@ function inspectCurrent(
       politics: politics.value,
       guidance: guidance.value,
       activities: activities.value,
+      rng: rng.value,
     },
   };
 }
@@ -1490,6 +1534,7 @@ function inspectV11(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       sandbox: isRecord(value.sandbox) ? { ...value.sandbox, interactables: { objects: [] } } : value.sandbox,
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
@@ -1510,7 +1555,7 @@ function inspectV11(
     return inspected;
   }
   const { interactables: _ignored, ...sandbox } = inspected.state.sandbox;
-  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _ignored;
   void _bonds;
   void _registry;
@@ -1525,6 +1570,7 @@ function inspectV11(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1550,6 +1596,7 @@ function inspectV12(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       bonds: { edges: [], consumedActionIds: [] },
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
@@ -1568,7 +1615,7 @@ function inspectV12(
   if (!inspected.ok) {
     return inspected;
   }
-  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { bonds: _bonds, registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _bonds;
   void _registry;
   void _organizations;
@@ -1582,6 +1629,7 @@ function inspectV12(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1606,6 +1654,7 @@ function inspectV13(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       registry: createInitialRegistryState(),
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
@@ -1623,7 +1672,7 @@ function inspectV13(
   if (!inspected.ok) {
     return inspected;
   }
-  const { registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { registry: _registry, organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _registry;
   void _organizations;
   void _execution;
@@ -1636,6 +1685,7 @@ function inspectV13(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1660,6 +1710,7 @@ function inspectV14(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       organizations: createInitialOrganizationsState(),
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
@@ -1676,7 +1727,7 @@ function inspectV14(
   if (!inspected.ok) {
     return inspected;
   }
-  const { organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { organizations: _organizations, execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _organizations;
   void _execution;
   void _party;
@@ -1688,6 +1739,7 @@ function inspectV14(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1712,6 +1764,7 @@ function inspectV15(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       execution: createInitialExecutionState(),
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
@@ -1727,7 +1780,7 @@ function inspectV15(
   if (!inspected.ok) {
     return inspected;
   }
-  const { execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { execution: _execution, party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _execution;
   void _party;
   void _calendar;
@@ -1738,6 +1791,7 @@ function inspectV15(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1762,6 +1816,7 @@ function inspectV16(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       party: createInitialPartyState(),
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
@@ -1776,7 +1831,7 @@ function inspectV16(
   if (!inspected.ok) {
     return inspected;
   }
-  const { party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { party: _party, calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _party;
   void _calendar;
   void _family;
@@ -1786,6 +1841,7 @@ function inspectV16(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1810,6 +1866,7 @@ function inspectV17(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       calendar: createInitialCalendarState(),
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
@@ -1823,7 +1880,7 @@ function inspectV17(
   if (!inspected.ok) {
     return inspected;
   }
-  const { calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { calendar: _calendar, family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _calendar;
   void _family;
   void _civic;
@@ -1832,6 +1889,7 @@ function inspectV17(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1856,6 +1914,7 @@ function inspectV18(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       family: createInitialFamilyState(),
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
@@ -1868,7 +1927,7 @@ function inspectV18(
   if (!inspected.ok) {
     return inspected;
   }
-  const { family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { family: _family, civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _family;
   void _civic;
   void _economy;
@@ -1876,6 +1935,7 @@ function inspectV18(
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1900,6 +1960,7 @@ function inspectV19(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       civic: createInitialCivicState(),
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
@@ -1911,13 +1972,14 @@ function inspectV19(
   if (!inspected.ok) {
     return inspected;
   }
-  const { civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { civic: _civic, economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _civic;
   void _economy;
   void _settlements;
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1942,6 +2004,7 @@ function inspectV20(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       economy: createInitialEconomyState(),
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
@@ -1952,12 +2015,13 @@ function inspectV20(
   if (!inspected.ok) {
     return inspected;
   }
-  const { economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { economy: _economy, settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _economy;
   void _settlements;
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -1982,6 +2046,7 @@ function inspectV21(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       settlements: createInitialSettlementsState(),
       politics: createInitialPoliticsState(),
     },
@@ -1991,11 +2056,12 @@ function inspectV21(
   if (!inspected.ok) {
     return inspected;
   }
-  const { settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { settlements: _settlements, politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _settlements;
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -2020,6 +2086,7 @@ function inspectV22(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
       politics: createInitialPoliticsState(),
     },
     context,
@@ -2028,10 +2095,11 @@ function inspectV22(
   if (!inspected.ok) {
     return inspected;
   }
-  const { politics: _politics, guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { politics: _politics, guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _politics;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -2056,6 +2124,7 @@ function inspectV23(
       character: withLegacyCharacterSex(value.character),
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
     },
     context,
     objectiveCatalog,
@@ -2063,9 +2132,10 @@ function inspectV23(
   if (!inspected.ok) {
     return inspected;
   }
-  const { guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -2093,6 +2163,7 @@ function inspectV24(
       schemaVersion: SCHEMA_VERSION,
       guidance: createInitialGuidanceState(),
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
     },
     context,
     objectiveCatalog,
@@ -2100,9 +2171,10 @@ function inspectV24(
   if (!inspected.ok) {
     return inspected;
   }
-  const { guidance: _guidance, activities: _activities, ...rest } = inspected.state;
+  const { guidance: _guidance, activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _guidance;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
@@ -2125,6 +2197,7 @@ function inspectV25(
       ...value,
       schemaVersion: SCHEMA_VERSION,
       activities: createInitialContextualActivitiesState(),
+      rng: LEGACY_INSPECTION_RNG,
     },
     context,
     objectiveCatalog,
@@ -2132,13 +2205,45 @@ function inspectV25(
   if (!inspected.ok) {
     return inspected;
   }
-  const { activities: _activities, ...rest } = inspected.state;
+  const { activities: _activities, rng: _rng, ...rest } = inspected.state;
   void _activities;
+  void _rng;
   return {
     ok: true,
     state: {
       ...rest,
       schemaVersion: SCHEMA_VERSION_V25,
+    },
+  };
+}
+
+function inspectV26(
+  value: unknown,
+  context?: SandboxContext,
+  objectiveCatalog?: IndexedObjectives,
+): GameStateV26Inspection {
+  if (!isRecord(value) || value.schemaVersion !== SCHEMA_VERSION_V26 || 'rng' in value) {
+    return fail('O salvamento usa um contrato incompatível com o schema 26.');
+  }
+  const inspected = inspectCurrent(
+    {
+      ...value,
+      schemaVersion: SCHEMA_VERSION,
+      rng: LEGACY_INSPECTION_RNG,
+    },
+    context,
+    objectiveCatalog,
+  );
+  if (!inspected.ok) {
+    return inspected;
+  }
+  const { rng: _rng, ...rest } = inspected.state;
+  void _rng;
+  return {
+    ok: true,
+    state: {
+      ...rest,
+      schemaVersion: SCHEMA_VERSION_V26,
     },
   };
 }

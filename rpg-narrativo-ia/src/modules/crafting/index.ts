@@ -1223,6 +1223,8 @@ function copyCondition(condition: GameCondition): GameCondition {
       };
     case 'bond.exists':
       return { type: 'bond.exists', fromId: condition.fromId, toId: condition.toId, bondId: condition.bondId };
+    case 'ability.has':
+      return { type: 'ability.has', abilityId: condition.abilityId };
   }
 }
 

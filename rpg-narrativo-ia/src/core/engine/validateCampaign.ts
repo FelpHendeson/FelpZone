@@ -8,6 +8,7 @@ import type {
   GameEffect,
   ImageKind,
   ImageReference,
+  ScriptLine,
   StoryChoice,
 } from '../events';
 import { walkCampaignTrajectories } from './walkTrajectories';
@@ -59,6 +60,7 @@ export function validateCampaign(campaign: Campaign): string[] {
     choiceIds.push(...localChoiceIds);
     errors.push(...validateText(event.id, 'título', event.title));
     errors.push(...validateText(event.id, 'texto', event.body));
+    errors.push(...validateScript(event.id, event.script, event.body, itemIds, npcIds, abilityIds));
 
     for (const choice of event.choices) {
       errors.push(...validateText(event.id, `escolha ${choice.id}`, choice.label));
@@ -70,10 +72,10 @@ export function validateCampaign(campaign: Campaign): string[] {
       errors.push(
         ...validateEffects(event.id, choice, itemIds, abilityIds, npcIds, titleIds),
       );
-      errors.push(...validateConditions(event.id, `escolha ${choice.id}`, choice.conditions, itemIds, npcIds));
+      errors.push(...validateConditions(event.id, `escolha ${choice.id}`, choice.conditions, itemIds, npcIds, abilityIds));
     }
 
-    errors.push(...validateConditions(event.id, 'evento', event.conditions, itemIds, npcIds));
+    errors.push(...validateConditions(event.id, 'evento', event.conditions, itemIds, npcIds, abilityIds));
   }
 
   if (new Set(choiceIds).size !== choiceIds.length) {
@@ -81,7 +83,7 @@ export function validateCampaign(campaign: Campaign): string[] {
   }
 
   for (const title of campaign.titles) {
-    errors.push(...validateConditions(`título ${title.id}`, 'condição', title.conditions, itemIds, npcIds));
+    errors.push(...validateConditions(`título ${title.id}`, 'condição', title.conditions, itemIds, npcIds, abilityIds));
   }
 
   errors.push(...validateReachability(campaign, eventIdSet));
@@ -247,6 +249,7 @@ function validateConditions(
   conditions: GameCondition[] | undefined,
   itemIds: Set<string>,
   npcIds: Set<string>,
+  abilityIds: Set<string>,
 ): string[] {
   if (!conditions) {
     return [];
@@ -302,9 +305,55 @@ function validateConditions(
           errors.push(`A ${context} de ${ownerId} possui vínculo inválido.`);
         }
         break;
+      case 'ability.has':
+        if (!abilityIds.has(condition.abilityId)) {
+          errors.push(`A ${context} de ${ownerId} referencia a capacidade ${condition.abilityId}, que não existe.`);
+        }
+        break;
+      default:
+        errors.push(`A ${context} de ${ownerId} possui condição desconhecida.`);
     }
   }
 
+  return errors;
+}
+
+const SCRIPT_KINDS: readonly ScriptLine['kind'][] = ['narration', 'thought', 'system', 'speech'];
+
+function validateScript(
+  eventId: string,
+  script: ScriptLine[] | undefined,
+  body: string,
+  itemIds: Set<string>,
+  npcIds: Set<string>,
+  abilityIds: Set<string>,
+): string[] {
+  if (script === undefined) {
+    return body.trim() === '' ? [`O evento ${eventId} não possui texto nem roteiro.`] : [];
+  }
+  if (!Array.isArray(script) || script.length === 0) {
+    return [`O evento ${eventId} possui roteiro vazio.`];
+  }
+  const errors: string[] = [];
+  script.forEach((line, index) => {
+    const label = `linha ${index + 1} do roteiro`;
+    if (typeof line !== 'object' || line === null || !SCRIPT_KINDS.includes(line.kind)) {
+      errors.push(`A ${label} do evento ${eventId} possui tipo inválido.`);
+      return;
+    }
+    if (typeof line.text !== 'string' || line.text.trim() === '') {
+      errors.push(`A ${label} do evento ${eventId} não possui texto.`);
+      return;
+    }
+    if (line.kind === 'speech' && !npcIds.has(line.speakerId)) {
+      errors.push(`A ${label} do evento ${eventId} referencia o NPC ${line.speakerId}, que não existe.`);
+    }
+    errors.push(...validateText(eventId, label, line.text));
+    errors.push(...validateConditions(eventId, label, line.conditions, itemIds, npcIds, abilityIds));
+  });
+  if (!script.some((line) => line.conditions === undefined || line.conditions.length === 0)) {
+    errors.push(`O roteiro do evento ${eventId} precisa de ao menos uma linha sem condição.`);
+  }
   return errors;
 }
 

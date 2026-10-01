@@ -8,6 +8,8 @@ Esta mecânica nasce do Dia 2 e da direção de longo prazo de trabalho como mot
 
 O catálogo ativo contém `escort-davi-to-clearing`, liberada somente depois que o jogador conhece a situação e oferece ajuda. Ela prova participantes, tempo, relocação persistente, guidance, narrativa e consumo único.
 
+Atividades podem declarar prazo com `availableUntil` (`{ day, period? }`); depois dele, a oportunidade some da lista e o plano é recusado. Detalhes em [Melhorias inspiradas em jogos de referência](IMPROVEMENTS-FROM-REFERENCES.md).
+
 Ela **não é o Sistema 30**.
 
 É uma camada pequena de orquestração entre sistemas já existentes.

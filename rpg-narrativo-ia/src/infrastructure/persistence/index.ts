@@ -25,6 +25,7 @@ import {
   SCHEMA_VERSION_V23,
   SCHEMA_VERSION_V24,
   SCHEMA_VERSION_V25,
+  SCHEMA_VERSION_V26,
   inspectGameState,
   inspectGameStateV1,
   inspectGameStateV2,
@@ -51,6 +52,7 @@ import {
   inspectGameStateV23,
   inspectGameStateV24,
   inspectGameStateV25,
+  inspectGameStateV26,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
@@ -76,6 +78,7 @@ import {
   migrateGameStateV23,
   migrateGameStateV24,
   migrateGameStateV25,
+  migrateGameStateV26,
   type GameState,
 } from '../../core/state';
 import type { SandboxContext } from '../../modules/sandbox';
@@ -467,6 +470,18 @@ export function parseGameState(
         return { status: 'corrupt', reason: previous.reason };
       }
       const migrated = inspectGameState(migrateGameStateV25(previous.state, context, objectiveCatalog), context, objectiveCatalog);
+      if (!migrated.ok) {
+        return { status: 'corrupt', reason: migrated.reason };
+      }
+      return { status: 'ok', state: migrated.state };
+    }
+
+    if (parsed.schemaVersion === SCHEMA_VERSION_V26) {
+      const previous = inspectGameStateV26(parsed, context, objectiveCatalog);
+      if (!previous.ok) {
+        return { status: 'corrupt', reason: previous.reason };
+      }
+      const migrated = inspectGameState(migrateGameStateV26(previous.state, context, objectiveCatalog), context, objectiveCatalog);
       if (!migrated.ok) {
         return { status: 'corrupt', reason: migrated.reason };
       }

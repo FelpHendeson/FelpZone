@@ -200,6 +200,12 @@ export interface ContextualActivityView {
   optionalParticipants: Array<{ npcId: string; name: string; eligible: boolean }>;
   minOptional: number;
   maxOptional: number;
+  /** "Último período", "Expira hoje", "Expira amanhã" ou "Expira em N dias". */
+  deadlineLabel?: string;
+  deadlineUrgent?: boolean;
+  /** "Chance alta · 80%" — o risco aparece antes da escolha, nunca depois. */
+  chanceLabel?: string;
+  chanceBand?: 'alta' | 'incerta' | 'arriscada';
 }
 
 export interface InteractableView {
@@ -226,6 +232,7 @@ export interface BondActionView {
 export interface BondCharacterView {
   npcId: string;
   name: string;
+  portraitSrc?: string;
   outgoing: { dimensionId: string; name: string; value: number }[];
   incoming: { dimensionId: string; name: string; value: number }[];
   namedBonds: { bondId: string; name: string; description: string }[];
@@ -242,6 +249,7 @@ export interface ExplorationView {
   characterName: string;
   worldLabel: string;
   abilityName: string;
+  abilityImageSrc?: string;
   location: {
     id: string;
     name: string;
@@ -310,6 +318,7 @@ export function buildExplorationView(
     characterName: fullName(state.character),
     worldLabel: `${describeWorld(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`,
     abilityName: ability?.name ?? 'Nenhuma',
+    abilityImageSrc: ability?.image?.src,
     location: {
       id: location.id,
       name: location.name,
@@ -687,8 +696,20 @@ function visibleActivities(state: GameState, context: SandboxContext): Contextua
       })),
       minOptional: participants?.minOptional ?? 0,
       maxOptional: participants?.maxOptional ?? 0,
+      ...describeDeadline(entry.daysLeft, entry.lastPeriod),
+      ...(entry.chance
+        ? { chanceLabel: `Chance ${entry.chance.band} · ${entry.chance.favorablePercent}%`, chanceBand: entry.chance.band }
+        : {}),
     };
   });
+}
+
+function describeDeadline(daysLeft: number | undefined, lastPeriod: boolean | undefined): Pick<ContextualActivityView, 'deadlineLabel' | 'deadlineUrgent'> {
+  if (daysLeft === undefined) return {};
+  if (lastPeriod) return { deadlineLabel: 'Último período', deadlineUrgent: true };
+  if (daysLeft === 0) return { deadlineLabel: 'Expira hoje', deadlineUrgent: true };
+  if (daysLeft === 1) return { deadlineLabel: 'Expira amanhã', deadlineUrgent: false };
+  return { deadlineLabel: `Expira em ${daysLeft} dias`, deadlineUrgent: false };
 }
 
 function visibleBonds(state: GameState, context: SandboxContext, campaign: Campaign): BondCharacterView[] {
@@ -723,9 +744,11 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
     if (!knownIds.has(npc.id) && actions.length === 0) {
       continue;
     }
+    const campaignNpc = findNpc(campaign, npc.id);
     views.push({
       npcId: npc.id,
-      name: findNpc(campaign, npc.id)?.name ?? npc.name,
+      name: campaignNpc?.name ?? npc.name,
+      portraitSrc: campaignNpc?.image?.src,
       outgoing: listRevealedDimensions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, PLAYER_ACTOR_ID, npc.id),
       incoming: listRevealedDimensions(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, npc.id, PLAYER_ACTOR_ID),
       namedBonds: listRevealedNamedBonds(catalog, state.bonds ?? { edges: [], consumedActionIds: [] }, PLAYER_ACTOR_ID, npc.id),

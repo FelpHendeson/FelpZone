@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react';
 import type { Attributes } from '../../core/state';
 import { buildNeedsPresentation } from '../needs/presentation';
+import { SystemCorners } from './Icon';
 
 interface GameHudProps {
   characterName: string;
@@ -13,7 +14,8 @@ export function GameHud({ characterName, worldLabel, attributes, onExit }: GameH
   const needs = buildNeedsPresentation(attributes);
 
   return (
-    <header className="game-hud">
+    <header className="game-hud sys-frame">
+      <SystemCorners />
       <div className="game-hud__time">
         <span>{worldLabel}</span>
         <button type="button" className="icon-button" onClick={onExit} aria-label="Voltar ao menu inicial">

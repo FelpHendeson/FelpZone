@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import type { Campaign, StoryChoice, StoryEvent } from '../../core/events';
+import { getVisibleScript, type Campaign, type StoryChoice, type StoryEvent } from '../../core/events';
 import type { GameState } from '../../core/state';
 import { findAbility, findItem, findNpc } from '../../campaigns/first-day';
 import { ATTRIBUTE_LABELS, fullName, storyVars } from '../../modules/character';
@@ -11,6 +11,7 @@ import { AppDialog } from '../components/AppDialog';
 import { ChoiceList } from '../components/ChoiceList';
 import { GameHud } from '../components/GameHud';
 import { ImagePlaceholder } from '../components/ImagePlaceholder';
+import { ScriptStage, type ScriptSpeaker } from '../components/ScriptStage';
 
 interface GameScreenProps {
   state: GameState;
@@ -25,9 +26,16 @@ type Panel = 'none' | 'history' | 'character' | 'inventory';
 
 export function GameScreen({ state, campaign, event, choices, onChoose, onExit }: GameScreenProps) {
   const [panel, setPanel] = useState<Panel>('none');
+  const [sceneDoneFor, setSceneDoneFor] = useState<string | null>(null);
   const vars = storyVars(state.character);
   const body = interpolate(event.body, vars);
   const title = interpolate(event.title, vars);
+  const script = getVisibleScript(event, state);
+  const hasScript = script.length > 0;
+  const sceneDone = !hasScript || sceneDoneFor === event.id;
+  const speakers: Record<string, ScriptSpeaker> = Object.fromEntries(
+    campaign.npcs.map((npc) => [npc.id, { name: npc.name, portraitSrc: npc.image?.src }]),
+  );
 
   return (
     <main className="screen screen--game screen--play">
@@ -51,21 +59,32 @@ export function GameScreen({ state, campaign, event, choices, onChoose, onExit }
           ) : null}
         </div>
 
-        <article className="event event--card">
+        <article className={hasScript ? 'event event--card event--script' : 'event event--card'}>
           <p className="section-kicker">O mundo reage</p>
           <h1 className="event__title">{title}</h1>
-          {body.split('\n\n').map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
+          {hasScript ? (
+            <ScriptStage
+              key={event.id}
+              lines={script}
+              playerName={state.character.firstName}
+              speakers={speakers}
+              interpolate={(text) => interpolate(text, vars)}
+              onComplete={() => setSceneDoneFor(event.id)}
+            />
+          ) : (
+            body.split('\n\n').map((paragraph) => <p key={paragraph}>{paragraph}</p>)
+          )}
         </article>
 
-        <section className="narrative-choices" aria-labelledby="narrative-choices-title">
-          <div className="section-heading">
-            <h2 id="narrative-choices-title">Como você reage?</h2>
-            <span className="section-count">{choices.length}</span>
-          </div>
-          <ChoiceList choices={choices} onChoose={onChoose} />
-        </section>
+        {sceneDone ? (
+          <section className="narrative-choices narrative-choices--enter" aria-labelledby="narrative-choices-title">
+            <div className="section-heading">
+              <h2 id="narrative-choices-title">Como você reage?</h2>
+              <span className="section-count">{choices.length}</span>
+            </div>
+            <ChoiceList choices={choices} onChoose={onChoose} />
+          </section>
+        ) : null}
       </div>
 
       <nav className="game-nav" aria-label="Fichas da partida">

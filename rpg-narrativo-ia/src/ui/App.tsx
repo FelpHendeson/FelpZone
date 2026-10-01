@@ -22,6 +22,15 @@ import { SummaryScreen } from './screens/SummaryScreen';
 import { hasActiveNarrativeSession, toAppScreen } from './routing';
 import { commitSandboxAction, resolveWorldNarrativeState } from './sandbox';
 import { mergeFeedback, type FeedbackEntry, type WorldFeedbackView } from './sandbox/feedback';
+import { SystemWindow } from './components/SystemWindow';
+import { pulse } from './haptics';
+import {
+  diffSystemSnapshots,
+  hapticPattern,
+  takeSystemSnapshot,
+  type SystemAnnouncement,
+  type SystemSnapshot,
+} from './system-window';
 import { useEffect, useMemo, useRef, useState } from 'react';
 
 type Screen = 'start' | 'create' | 'game' | 'exploration' | 'summary';
@@ -87,6 +96,7 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<WorldFeedbackView | null>(null);
   const [actionPending, setActionPending] = useState(false);
+  const [announcements, setAnnouncements] = useState<SystemAnnouncement[]>([]);
   const actionLock = useRef(false);
   const actionUnlockTimer = useRef<number | null>(null);
 
@@ -108,6 +118,23 @@ export function App() {
     refreshLoad();
   }
 
+  function snapshot(target: GameState): SystemSnapshot | null {
+    try {
+      return takeSystemSnapshot(target, campaign, sandboxContext);
+    } catch {
+      return null;
+    }
+  }
+
+  function announceProgress(before: SystemSnapshot | null, after: GameState) {
+    const next = snapshot(after);
+    if (!before || !next) return;
+    const found = diffSystemSnapshots(before, next, campaign);
+    if (found.length === 0) return;
+    setAnnouncements((current) => [...current, ...found.filter((entry) => !current.some((shown) => shown.id === entry.id))]);
+    pulse(hapticPattern(found));
+  }
+
   function goToSavedGame(next: GameState) {
     setState(next);
     setError(null);
@@ -126,6 +153,7 @@ export function App() {
     setState(null);
     setError(null);
     setFeedback(null);
+    setAnnouncements([]);
     setScreen('create');
   }
 
@@ -136,6 +164,7 @@ export function App() {
     setConfirm('none');
     setError(null);
     setFeedback(null);
+    setAnnouncements([]);
     setScreen('create');
   }
 
@@ -159,10 +188,12 @@ export function App() {
     }
 
     try {
+      const before = snapshot(state);
       const prepared = resolveWorldNarrativeState(state, sandboxContext, campaign, worldTriggers).current;
       const transitioned = applyChoice(prepared, campaign, choiceId, undefined, world.objectives, sandboxContext);
       const resolved = resolveWorldNarrativeState(transitioned, sandboxContext, campaign, worldTriggers);
       persist(resolved.current);
+      announceProgress(before, resolved.current);
       setError(null);
       setFeedback(null);
       setScreen(toAppScreen(resolved.current));
@@ -197,6 +228,7 @@ export function App() {
     setActionPending(true);
 
     try {
+      const before = snapshot(state);
       const attempt = commitSandboxAction(state, action, sandboxContext, {
         campaign,
         catalog: worldTriggers,
@@ -207,6 +239,7 @@ export function App() {
         return;
       }
 
+      announceProgress(before, attempt.current);
       setError(null);
       setFeedback(
         mergeFeedback([
@@ -235,6 +268,7 @@ export function App() {
         throw new Error('O catálogo de combate do pack ativo não está disponível.');
       }
       const resolution = buildCombatResolution(finalState, getEncounter(combat, encounterId));
+      const before = snapshot(state);
       const attempt = commitSandboxAction(state, { type: 'combat.resolve', resolution }, sandboxContext, {
         campaign,
         catalog: worldTriggers,
@@ -244,6 +278,7 @@ export function App() {
         setError(attempt.error);
         return;
       }
+      announceProgress(before, attempt.current);
       setError(null);
       setFeedback(
         mergeFeedback([
@@ -278,6 +313,7 @@ export function App() {
     setConfirm('none');
     setError(null);
     setFeedback(null);
+    setAnnouncements([]);
     setScreen('start');
   }
 
@@ -344,6 +380,10 @@ export function App() {
           onRestart={() => setConfirm('restart')}
           onBack={() => setScreen('start')}
         />
+      ) : null}
+
+      {screen === 'game' || screen === 'exploration' ? (
+        <SystemWindow announcements={announcements} onClose={() => setAnnouncements([])} />
       ) : null}
 
       <ConfirmDialog

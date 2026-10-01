@@ -25,8 +25,13 @@ import {
   type MasteryResult,
 } from '../mastery';
 import {
+  GardenError,
   INITIAL_GARDEN,
   deriveGardenRecipes,
+  planGardenCultivation,
+  type GardenRecipeView,
+  type GardenRequirement,
+  type GardenState,
 } from '../garden';
 import {
   INITIAL_REGISTRY,
@@ -62,10 +67,14 @@ import {
 import { INITIAL_EXECUTION } from '../execution';
 import type { SandboxContext } from '../sandbox';
 import type {
+  SystemGardenIntegrationView,
   SystemMilestoneView,
   SystemSkillView,
   SystemStatusView,
   SystemTrainingView,
+  SystemTreeDevelopView,
+  SystemTreeNodeView,
+  SystemTreePathView,
 } from './types';
 
 export function buildSystemStatus(state: GameState, context?: SandboxContext): SystemStatusView {
@@ -89,11 +98,14 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
     fields: catalogs.energetics.fields.map((field) => ({ ...field })),
     knownSkills: buildKnownSkills(progress, catalogs),
     tree: deriveSkillTree(catalogs.skills, progress),
+    skillTree: buildSkillTreeView(progress, state.garden, catalogs),
     trainings: buildTrainings(progress, catalogs),
     nextMilestone: buildNextMilestone(progress, catalogs),
     garden: {
       cultivationPoints: state.garden.cultivationPoints,
       recipes: deriveGardenRecipes(catalogs.garden, catalogs.skills, progress, state.garden),
+      integrations: buildGardenIntegrations(progress, state.garden, catalogs),
+      nextPointLevel: nextCultivationPointLevel(progress, catalogs),
     },
     registry: buildRegistryView(state, registryCatalog),
     organizations: listOrganizationViews(organizationCatalog, state.organizations ?? { entries: [], consumedActionIds: [] }),
@@ -412,6 +424,170 @@ function describeTarget(method: TrainingMethodDefinition, catalogs: ReturnType<t
   return `Caminho: ${getPath(catalogs.skills, method.target.id).name}`;
 }
 
+const FIELD_NAMES: Record<string, string> = { corpo: 'Corpo', poder: 'Poder' };
+
+/**
+ * Árvore enriquecida (Sistema 11): requisitos nomeados, conexões entre caminhos,
+ * origem no Jardim e como desenvolver cada possibilidade — sem revelar treino,
+ * marco ou receita que o Sistema ainda não mostrou.
+ */
+function buildSkillTreeView(
+  progress: SkillsProgressState,
+  garden: GardenState,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): { paths: SystemTreePathView[]; hasHiddenPaths: boolean } {
+  const tree = deriveSkillTree(catalogs.skills, progress);
+  const trainings = buildTrainings(progress, catalogs);
+  const gardenResults = new Set(
+    catalogs.garden.recipes.filter((recipe) => garden.completedRecipeIds.includes(recipe.id)).map((recipe) => recipe.resultSkillId),
+  );
+  const paths = tree.paths.map((path): SystemTreePathView => {
+    const definition = getPath(catalogs.skills, path.pathId);
+    return {
+      pathId: path.pathId,
+      name: path.name,
+      description: definition.description,
+      field: path.field,
+      fieldName: FIELD_NAMES[path.field] ?? path.field,
+      known: path.known,
+      hasHiddenSkills: path.hasHiddenSkills,
+      nodes: path.nodes.map((node): SystemTreeNodeView => ({
+        skillId: node.skillId,
+        name: node.name,
+        description: node.description,
+        status: node.status,
+        proficiency: node.proficiency,
+        origin: gardenResults.has(node.skillId) ? 'garden' : 'path',
+        requirements: node.requires.map((requirementId) => {
+          const requirement = getSkill(catalogs.skills, requirementId);
+          return {
+            skillId: requirementId,
+            name: requirement.name,
+            pathName: getPath(catalogs.skills, requirement.pathId).name,
+            crossPath: requirement.pathId !== path.pathId,
+            known: isSkillKnown(progress, requirementId),
+          };
+        }),
+        develop: node.status === 'known' ? { kind: 'known' } : developPathFor(node.skillId, progress, trainings, catalogs),
+      })),
+    };
+  });
+  return { paths, hasHiddenPaths: paths.length < catalogs.skills.paths.length };
+}
+
+function developPathFor(
+  skillId: string,
+  progress: SkillsProgressState,
+  trainings: SystemTrainingView[],
+  catalogs: ReturnType<typeof systemCatalogs>,
+): SystemTreeDevelopView {
+  const teaches = (methodId: string) =>
+    catalogs.training.methods
+      .find((method) => method.id === methodId)
+      ?.effects.some((effect) => effect.type === 'skill.learn' && effect.skillId === skillId) ?? false;
+
+  const training = trainings.find((entry) => teaches(entry.methodId));
+  if (training) {
+    return {
+      kind: 'training',
+      methodId: training.methodId,
+      methodName: training.name,
+      canTrain: training.canTrain,
+      ...(training.blockedReason ? { blockedReason: training.blockedReason } : {}),
+    };
+  }
+  const milestone = comprehensibleFutureMilestones(progress, catalogs).find((entry) =>
+    entry.reveals.some((reveal) => reveal.type === 'training.available' && teaches(reveal.methodId)),
+  );
+  if (milestone) {
+    return { kind: 'milestone', level: milestone.level };
+  }
+  if (catalogs.garden.recipes.some((recipe) => recipe.resultSkillId === skillId && recipe.visibility.type !== 'always-hidden')) {
+    return { kind: 'garden' };
+  }
+  return { kind: 'unrevealed' };
+}
+
+function comprehensibleFutureMilestones(progress: SkillsProgressState, catalogs: ReturnType<typeof systemCatalogs>) {
+  return catalogs.mastery.milestones
+    .filter((milestone) => milestone.level > progress.level)
+    .filter((milestone) => milestone.requirements.every((requirement) => isRequirementComprehensible(requirement, progress)))
+    .sort((left, right) => left.level - right.level);
+}
+
+function nextCultivationPointLevel(progress: SkillsProgressState, catalogs: ReturnType<typeof systemCatalogs>): number | null {
+  return (
+    comprehensibleFutureMilestones(progress, catalogs).find((milestone) =>
+      milestone.reveals.some((reveal) => reveal.type === 'garden.cultivation-points'),
+    )?.level ?? null
+  );
+}
+
+/** Jardim (Sistema 16): requisitos conhecidos com estado, fontes → resultado e motivo de bloqueio. */
+function buildGardenIntegrations(
+  progress: SkillsProgressState,
+  garden: GardenState,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): SystemGardenIntegrationView[] {
+  return deriveGardenRecipes(catalogs.garden, catalogs.skills, progress, garden)
+    .filter((recipe): recipe is GardenRecipeView & { visibility: 'perceived' | 'available' | 'cultivated' } => recipe.visibility !== 'hidden')
+    .map((recipe) => {
+      let canCultivate = false;
+      let blockedReason: string | undefined;
+      if (recipe.visibility === 'cultivated') {
+        blockedReason = 'Integração já cultivada.';
+      } else {
+        try {
+          planGardenCultivation(catalogs.garden, catalogs.skills, progress, garden, recipe.id);
+          canCultivate = true;
+        } catch (error) {
+          blockedReason = error instanceof GardenError ? error.message : 'A integração não está disponível.';
+        }
+      }
+      return {
+        recipeId: recipe.id,
+        visibility: recipe.visibility,
+        name: recipe.name ?? null,
+        description: recipe.description ?? null,
+        sourceNames: (recipe.sourceSkillIds ?? []).map((id) => resolveSkillName(id, catalogs)),
+        resultName: recipe.resultSkillId ? resolveSkillName(recipe.resultSkillId, catalogs) : null,
+        requirements: (recipe.requirements ?? []).map((requirement) => ({
+          text: describeGardenRequirement(requirement, progress, catalogs),
+          met: requirement.met,
+        })),
+        requirementsMet: recipe.requirementsMet ?? false,
+        cost: recipe.cost ? { cultivationPoints: recipe.cost.cultivationPoints, periods: recipe.cost.timeCost.periods } : null,
+        canCultivate,
+        ...(blockedReason ? { blockedReason } : {}),
+      };
+    });
+}
+
+function describeGardenRequirement(
+  requirement: GardenRequirement,
+  progress: SkillsProgressState,
+  catalogs: ReturnType<typeof systemCatalogs>,
+): string {
+  switch (requirement.type) {
+    case 'level.minimum':
+      return `Nível ${requirement.level} (atual ${progress.level})`;
+    case 'milestone.reached':
+      return 'Um marco do Sistema ainda não alcançado';
+    case 'skill.known':
+      return isSkillKnown(progress, requirement.skillId)
+        ? `Conhecer ${resolveSkillName(requirement.skillId, catalogs)}`
+        : 'Uma habilidade ainda não compreendida';
+    case 'skill.proficiency':
+      return isSkillKnown(progress, requirement.skillId)
+        ? `${resolveSkillName(requirement.skillId, catalogs)} em proficiência ${requirement.minimum} (atual ${getSkillProficiencyOf(progress, requirement.skillId)})`
+        : 'Uma habilidade ainda não compreendida';
+  }
+}
+
+function getSkillProficiencyOf(progress: SkillsProgressState, skillId: string): number {
+  return progress.entries.find((entry) => entry.skillId === skillId)?.proficiency ?? 0;
+}
+
 function describeEffect(effect: TrainingEffect, catalogs: ReturnType<typeof systemCatalogs>): string {
   const skillName = getSkill(catalogs.skills, effect.skillId).name;
   if (effect.type === 'skill.proficiency.increase') {
@@ -423,6 +599,12 @@ function describeEffect(effect: TrainingEffect, catalogs: ReturnType<typeof syst
 export type {
   SystemEnergyView,
   SystemFieldView,
+  SystemGardenIntegrationView,
+  SystemGardenRequirementView,
+  SystemTreeDevelopView,
+  SystemTreeNodeView,
+  SystemTreePathView,
+  SystemTreeRequirementView,
   SystemMilestoneRequirementView,
   SystemMilestoneView,
   SystemSkillView,

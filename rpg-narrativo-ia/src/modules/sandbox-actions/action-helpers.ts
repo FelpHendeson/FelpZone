@@ -32,6 +32,7 @@ import { ExecutionError, copyExecutionState, createInitialExecutionState, inspec
 import { InteractableError, copyInteractablesState, createInitialInteractablesState } from '../interactables';
 import { NpcError, copyNpcsState, createInitialNpcsState, INITIAL_NPCS, type NPCsState } from '../npcs';
 import { ContextualActivityError, copyContextualActivitiesState, createInitialContextualActivitiesState, type ContextualActivitiesState } from '../activities';
+import type { ChanceState } from '../chance';
 import type { GuidanceState } from '../guidance';
 import { WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -455,6 +456,7 @@ export interface GameStatePatch {
   settlements?: SettlementsState;
   politics?: PoliticsState;
   activities?: ContextualActivitiesState;
+  rng?: ChanceState;
   guidance?: GuidanceState;
   npcs?: NPCsState;
   status?: GameState['status'];
@@ -521,6 +523,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     activities: copyContextualActivitiesState(
       patch.activities ?? base.activities ?? createInitialContextualActivitiesState(),
     ),
+    rng: { ...(patch.rng ?? base.rng) },
     updatedAt: patch.updatedAt,
   };
 }

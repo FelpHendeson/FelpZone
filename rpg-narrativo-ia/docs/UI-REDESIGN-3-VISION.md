@@ -2,7 +2,15 @@
 
 ## Estado da decisão
 
-**Proposta de design, sem código.** Este documento e [UI-REDESIGN-3-SCREENS.md](UI-REDESIGN-3-SCREENS.md) formam a especificação narrativa-visual de um rework; nenhuma fatia de implementação está autorizada ainda. Segue a mesma disciplina dos documentos de dia: primeiro o plano, depois — se e quando aprovado — a implementação em fatias pequenas e testadas, uma de cada vez.
+**Implementado — Fatias 3.1 a 3.5.** O plano foi aprovado e aplicado sem mudança de schema, mecânica ou regra:
+
+- **3.1 — Tokens e motivo visual:** `--accent-social` e `--accent-domain` em `global.css`; cada domínio expõe sua cor em `--tone`. O canto-trava (`SystemCorners`, em `src/ui/components/Icon.tsx`) marca HUD, cartão-herói do local, cabeçalho da Central do Sistema, cabeçalhos de tela focada, Personagem e Mochila. A barra de acento lateral substitui a sombra nos cartões; `--shadow` fica para HUD e diálogos.
+- **3.2 — Menu agrupado:** `GameMenuPanel` mostra os mesmos 8 destinos em três grupos (Eu e o Sistema / Pessoas / Mundo e referência); `Sociedade` vive em Pessoas.
+- **3.3 — Domínio em sub-telas:** `Menu → Domínio` abre `DomainPanel`, um hub com Base e território / Economia / Política; cada sub-tela (`domain-territory`, `domain-economy`, `domain-politics`) reaproveita o conteúdo de `SystemPanel` para um único sistema de save.
+- **3.4 — Retratos onde já há `src`:** `BondCharacterView.portraitSrc` e `ExplorationView.abilityImageSrc` vêm da arte já declarada no pack; Relacionamentos, a confiança residual e os cartões de Relacionamentos/Família na Central usam `Portrait`/`PortraitStack`, com iniciais como fallback. Progressão mostra o ícone da aptidão inicial. O avatar do jogador continua sendo iniciais.
+- **3.5 — Iconografia SVG:** `Icon` (traço 1.5px, 24×24, sem preenchimento) substitui os glifos do rodapé, da Central do Sistema, do hub de Domínio e dos atalhos "Ao seu redor".
+
+Cobertura em `src/tests/ui-redesign-3.test.tsx`.
 
 Este rework não substitui [UI/UX 2.0](UI-UX-2-NAVIGATION.md); ele herda a arquitetura de cinco destinos e a separa "consulta vs. ação" que já está certa, e ataca dois problemas que surgiram depois que ela foi implementada: a Central do Sistema (`Menu`) cresceu mais rápido do que a navegação em grade plana aguenta, e a chegada de arte real (`docs/ART-GENERATION-PROMPTS.md`, `docs/VISUAL-ASSETS.md`) abriu um espaço visual que a interface ainda não usa.
 
@@ -80,7 +88,7 @@ Eu e o Sistema        Pessoas                  Mundo e referência
 - Cor por domínio é um mapa mental, não decoração — cada domínio aparece sempre na mesma cor, em toda tela, sem exceção.
 - Arte de pack substitui glifo sempre que `src` já existir; glifo continua como fallback honesto, nunca como escolha quando a arte já existe.
 - Nenhuma tela nova aumenta a profundidade de navegação além do que já existe hoje (destino → tela → eventual sub-tela de domínio).
-- Agrupar não é esconder: todo cartão de grupo mostra contagem, exatamente como hoje.
+- Agrupar não é esconder: todo cartão visível mostra contagem. Desde a revelação progressiva ([melhorias](IMPROVEMENTS-FROM-REFERENCES.md)), uma interface sem estado nem ação disponível fica selada, e o Menu informa quantas faltam.
 
 ## Não-objetivos — fora deste recorte
 

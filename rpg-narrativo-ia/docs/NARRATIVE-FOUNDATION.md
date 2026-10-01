@@ -10,6 +10,8 @@ Ele não substitui as especificações dos sistemas. Quando uma necessidade narr
 
 Os pontos abaixo fazem parte da direção canônica atual:
 
+- o novo mundo se chama **Basilis**; é assim que o Sistema o nomeia desde o primeiro despertar;
+- o céu de Basilis tem **ilhas flutuantes** — massas de terra suspensas, visíveis no horizonte desde o primeiro dia; sua origem e se podem ser alcançadas pertencem ao mistério do mundo;
 - pessoas que estavam geograficamente próximas na antiga Terra tendem a pertencer à mesma grande região de destino após o Reset;
 - dentro dessa região, a distribuição é parcialmente aleatória: pessoas próximas podem surgir juntas ou separadas por grandes distâncias;
 - o protagonista tem a sorte de despertar em uma área onde outras pessoas também foram distribuídas relativamente perto;
@@ -75,6 +77,17 @@ Ele é uma pessoa inserida no mesmo fenômeno que atingiu toda a humanidade e po
 ---
 
 ## 2. Geografia humana do Reset
+
+### 2.0 Basilis
+
+O planeta novo se chama **Basilis**. O nome é dado pelo Sistema na primeira saudação a cada usuário — ninguém sabe se é um nome antigo do lugar ou uma designação do próprio Sistema.
+
+Marcas visíveis desde o primeiro dia:
+
+- fauna estranha mas reconhecível como animal (coelhos com chifres, aves de asas longas demais e silenciosas);
+- **ilhas flutuantes** no horizonte: massas de terra suspensas, imóveis contra o vento.
+
+O que sustenta as ilhas, o que existe nelas e se alguém pode chegar até lá não é explicado no prólogo. Elas são um horizonte de mistério e uma promessa de exploração futura; nenhum conteúdo do primeiro arco deve resolvê-las.
 
 ### 2.1 Zonas de Origem e Zonas de Transposição
 

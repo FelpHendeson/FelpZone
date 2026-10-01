@@ -19,6 +19,7 @@ import type { SettlementsState } from '../../modules/settlements/types';
 import type { PoliticsState } from '../../modules/politics/types';
 import type { GuidanceState } from '../../modules/guidance/types';
 import type { ContextualActivitiesState } from '../../modules/activities/types';
+import type { ChanceState } from '../../modules/chance/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
 export const SCHEMA_VERSION_V1 = 1 as const;
@@ -46,7 +47,8 @@ export const SCHEMA_VERSION_V22 = 22 as const;
 export const SCHEMA_VERSION_V23 = 23 as const;
 export const SCHEMA_VERSION_V24 = 24 as const;
 export const SCHEMA_VERSION_V25 = 25 as const;
-export const SCHEMA_VERSION = 26 as const;
+export const SCHEMA_VERSION_V26 = 26 as const;
+export const SCHEMA_VERSION = 27 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
@@ -496,4 +498,10 @@ export interface GameState extends SharedState<Attributes> {
   politics: PoliticsState;
   guidance: GuidanceState;
   activities: ContextualActivitiesState;
+  /** Semente e cursor da sorte (schema 27): sorteios são reproduzíveis e não se repetem ao recarregar. */
+  rng: ChanceState;
+}
+
+export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng'> {
+  schemaVersion: typeof SCHEMA_VERSION_V26;
 }

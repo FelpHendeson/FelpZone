@@ -201,6 +201,7 @@ function runTransaction(
       : copySettlementsState(executed.settlements ?? previous.settlements ?? createInitialSettlementsState()),
     politics: executed.politics ?? previous.politics ?? createInitialPoliticsState(),
     activities: executed.activities ?? previous.activities,
+    rng: executed.rng ?? previous.rng,
     guidance: executed.guidance ?? previous.guidance,
     status: executed.status,
     narrativeSession: executed.narrativeSession,
@@ -258,7 +259,7 @@ function runTransaction(
       executed.economyPlan?.feedback ??
       executed.settlementPlan?.feedback ??
       executed.politicsPlan?.feedback ??
-      executed.activityPlan?.feedback,
+      describeActivityFeedback(executed.activityPlan?.feedback, executed.activityOutcome),
     synchronization: summarizeSynchronization({
       previousExploration: previous.sandbox.exploration,
       currentExploration: current.sandbox.exploration,
@@ -271,4 +272,14 @@ function runTransaction(
     objectives: objectiveSynchronization,
     ...(executed.mastery ? { mastery: copyMasteryResult(executed.mastery) } : {}),
   };
+}
+
+/** Desfecho sorteado aparece rotulado ("Revés: ...") junto do feedback geral da atividade. */
+function describeActivityFeedback(
+  base: string | undefined,
+  outcome: { label: string; feedback?: string } | undefined,
+): string | undefined {
+  if (!outcome) return base;
+  const detail = `${outcome.label}: ${outcome.feedback ?? 'o Sistema registrou o resultado.'}`;
+  return base ? `${base} ${detail}` : detail;
 }

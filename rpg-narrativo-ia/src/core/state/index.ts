@@ -24,6 +24,7 @@ import { createInitialInteractablesState } from '../../modules/interactables';
 import { createInitialWorld } from '../../modules/world';
 import { createInitialGuidanceState } from '../../modules/guidance';
 import { createInitialContextualActivitiesState } from '../../modules/activities';
+import { createChanceState } from '../../modules/chance';
 
 export function createInitialState(
   character: CharacterIdentityInput,
@@ -33,6 +34,7 @@ export function createInitialState(
   objectiveCatalog: IndexedObjectives = INITIAL_OBJECTIVES,
 ): GameState {
   const context = sandboxContext ?? createSandboxContext();
+  const createdAt = now();
   return {
     schemaVersion: SCHEMA_VERSION,
     status: 'playing',
@@ -75,7 +77,8 @@ export function createInitialState(
     politics: createInitialPoliticsState(),
     guidance: createInitialGuidanceState(),
     activities: createInitialContextualActivitiesState(),
-    updatedAt: now(),
+    rng: createChanceState(`${createdAt}|${character.firstName} ${character.lastName}`),
+    updatedAt: createdAt,
   };
 }
 
@@ -110,6 +113,7 @@ export {
   SCHEMA_VERSION_V23,
   SCHEMA_VERSION_V24,
   SCHEMA_VERSION_V25,
+  SCHEMA_VERSION_V26,
   MIGRATED_CAMPAIGN_ID,
 } from './types';
 export {
@@ -139,6 +143,7 @@ export {
   inspectGameStateV23,
   inspectGameStateV24,
   inspectGameStateV25,
+  inspectGameStateV26,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
@@ -164,6 +169,7 @@ export {
   migrateGameStateV23,
   migrateGameStateV24,
   migrateGameStateV25,
+  migrateGameStateV26,
 } from './validateGameState';
 export type {
   GameStateInspection,
@@ -192,6 +198,7 @@ export type {
   GameStateV23Inspection,
   GameStateV24Inspection,
   GameStateV25Inspection,
+  GameStateV26Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
@@ -235,6 +242,7 @@ export type {
   GameStateV23,
   GameStateV24,
   GameStateV25,
+  GameStateV26,
   GameStatus,
   HistoryEntry,
   InventoryItem,

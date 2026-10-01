@@ -1,4 +1,5 @@
 import { ImagePlaceholder } from '../../components/ImagePlaceholder';
+import { Icon, SystemCorners } from '../../components/Icon';
 import { TrackedJourneyCard } from '../../components/JournalPanel';
 import type { JournalJourneyView } from '../../journal/model';
 import type { EncounterDefinition } from '../../../modules/combat';
@@ -36,7 +37,8 @@ export function WorldPanel({
 }) {
   return (
     <div className="world-panel">
-      <section className="location-hero" aria-labelledby="current-location-title">
+      <section className="location-hero sys-frame" aria-labelledby="current-location-title">
+        <SystemCorners />
         <ImagePlaceholder kind="scene" label={view.location.imageLabel} src={view.location.imageSrc} priority className="location-hero__image" />
         <div className="location-hero__shade" aria-hidden="true" />
         <div className="location-hero__badges" aria-label="Estado do local">
@@ -124,12 +126,12 @@ export function WorldShortcuts({ view, onNavigate }: { view: ExplorationView; on
       </div>
       <div className="hub-card-grid hub-card-grid--compact">
         <button type="button" className="hub-card" onClick={() => onNavigate('map')}>
-          <span className="hub-card__icon" aria-hidden="true">⌖</span>
+          <span className="hub-card__icon" aria-hidden="true"><Icon name="map" /></span>
           <span><strong>Mapa</strong><small>{view.destinations.length} rota{view.destinations.length === 1 ? '' : 's'} conhecida{view.destinations.length === 1 ? '' : 's'}</small></span>
           <span aria-hidden="true">→</span>
         </button>
         <button type="button" className="hub-card" onClick={() => onNavigate('people')}>
-          <span className="hub-card__icon" aria-hidden="true">♙</span>
+          <span className="hub-card__icon" aria-hidden="true"><Icon name="character" /></span>
           <span><strong>Pessoas e criaturas</strong><small>{peopleHere === 0 ? 'Ninguém visível agora' : `${peopleHere} presença${peopleHere === 1 ? '' : 's'} neste local`}</small></span>
           <span aria-hidden="true">→</span>
         </button>

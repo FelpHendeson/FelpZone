@@ -135,6 +135,15 @@ A Árvore não precisa revelar todo o universo de habilidades no início. Descob
 
 A topologia concreta, regras de desbloqueio e quantidade de caminhos ainda não estão definidas. O conteúdo deve ser dirigido por dados e validado antes de chegar à interface.
 
+**Apresentação implementada (Progressão → Árvore).** `buildSystemStatus().skillTree` deriva, sem regra nova:
+
+- cada caminho como trilha vertical de nós, com o campo (Corpo/Poder) e a descrição do caminho;
+- nó conhecido (preenchido, com proficiência), possível (vazado) e "possibilidades ainda não compreendidas" (tracejado), sem nome nem contagem do que está oculto;
+- requisitos nomeados; requisito em outro caminho aparece como conexão (`⇄ Reforço do Corpo`);
+- **como desenvolver** cada possibilidade: o treino já revelado que a ensina (com botão Treinar), ou "um método será revelado no marco do Nível N" quando um marco compreensível revela esse treino, ou "pode nascer de uma integração no Jardim", ou "o Sistema ainda não indicou como" — nunca o nome de um treino, marco ou receita ainda não revelado;
+- habilidade nascida de integração cultivada marcada como "Cultivada no Jardim";
+- aviso quando há caminhos inteiros ainda não revelados.
+
 ## Jardim de habilidades
 
 O Jardim representa a integração entre caminhos. Seu propósito definido é combinar ou fundir habilidades para criar sinergias e aplicações que não pertencem isoladamente a um único ramo.

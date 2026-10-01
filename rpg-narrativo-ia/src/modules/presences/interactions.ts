@@ -783,6 +783,8 @@ function copyCondition(condition: GameCondition): GameCondition {
       };
     case 'bond.exists':
       return { type: 'bond.exists', fromId: condition.fromId, toId: condition.toId, bondId: condition.bondId };
+    case 'ability.has':
+      return { type: 'ability.has', abilityId: condition.abilityId };
   }
 }
 
@@ -845,6 +847,8 @@ function sameCondition(left: GameCondition, right: unknown): boolean {
       );
     case 'bond.exists':
       return right.fromId === left.fromId && right.toId === left.toId && right.bondId === left.bondId;
+    case 'ability.has':
+      return right.abilityId === left.abilityId;
   }
 }
 

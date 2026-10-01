@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react';
+import { Icon, type IconName } from './Icon';
 
 export type GameTab = 'world' | 'journal' | 'character' | 'inventory' | 'menu';
 
@@ -8,12 +9,12 @@ interface BottomNavigationProps {
   onChange: (tab: GameTab) => void;
 }
 
-const ITEMS: Array<{ id: GameTab; icon: string; label: string }> = [
-  { id: 'world', icon: '◉', label: 'Mundo' },
-  { id: 'journal', icon: '⌖', label: 'Jornadas' },
-  { id: 'character', icon: '♙', label: 'Personagem' },
-  { id: 'inventory', icon: '▣', label: 'Mochila' },
-  { id: 'menu', icon: '☰', label: 'Menu' },
+const ITEMS: Array<{ id: GameTab; icon: IconName; label: string }> = [
+  { id: 'world', icon: 'world', label: 'Mundo' },
+  { id: 'journal', icon: 'journal', label: 'Jornadas' },
+  { id: 'character', icon: 'character', label: 'Personagem' },
+  { id: 'inventory', icon: 'inventory', label: 'Mochila' },
+  { id: 'menu', icon: 'menu', label: 'Menu' },
 ];
 
 export function BottomNavigation({ active, inventoryCount, onChange }: BottomNavigationProps) {
@@ -32,7 +33,7 @@ export function BottomNavigation({ active, inventoryCount, onChange }: BottomNav
           onClick={() => onChange(item.id)}
         >
           <span className="bottom-nav__icon" aria-hidden="true">
-            {item.icon}
+            <Icon name={item.icon} />
           </span>
           <span className="bottom-nav__label">{item.label}</span>
           {item.id === 'inventory' && inventoryCount > 0 ? (

@@ -9,19 +9,37 @@ import {
 } from '../../../modules/system-interface';
 import { AttributeSummary } from '../../components/AttributeSummary';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
+import { SystemCorners } from '../../components/Icon';
+import { ImagePlaceholder } from '../../components/ImagePlaceholder';
 import { formatPeriodCost } from '../../sandbox';
+import { Portrait } from '../../components/Portrait';
 import { EmptyAction } from './shared';
+import { ProgressionTabs } from './ProgressionTabs';
+
+export type SystemSection = 'progression' | 'registry' | 'society' | 'family' | 'territory' | 'economy' | 'politics';
+
+const SECTION_TONE: Record<SystemSection, 'system' | 'registry' | 'social' | 'domain'> = {
+  progression: 'system',
+  registry: 'registry',
+  society: 'social',
+  family: 'social',
+  territory: 'domain',
+  economy: 'domain',
+  politics: 'domain',
+};
 
 export function SystemPanel({
   section,
   status,
   campaign,
+  ability,
   onAction,
   onBack,
 }: {
-  section: 'progression' | 'registry' | 'society' | 'family' | 'domain';
+  section: SystemSection;
   status: SystemStatusView;
   campaign: Campaign;
+  ability?: { name: string; imageSrc?: string };
   onAction: (action: SandboxAction) => void;
   onBack: () => void;
 }) {
@@ -35,12 +53,15 @@ export function SystemPanel({
     registry: { eyebrow: 'Reconhecimento do Sistema', title: 'Registro', description: 'Patentes, classificações e posições reconhecidas.' },
     society: { eyebrow: 'Vida compartilhada', title: 'Sociedade', description: 'Grupos, companheiros, profissões e cidadania.' },
     family: { eyebrow: 'Laços de vida', title: 'Família e lar', description: 'Parentesco, casa, linhagem e os marcos de uma vida compartilhada.' },
-    domain: { eyebrow: 'Construção de poder', title: 'Domínio', description: 'Economia, propriedades, territórios e política.' },
+    territory: { eyebrow: 'Domínio', title: 'Base e território', description: 'Reivindicações, estruturas, projetos e estoques.' },
+    economy: { eyebrow: 'Domínio', title: 'Economia', description: 'Carteiras, comércio e direitos de uso.' },
+    politics: { eyebrow: 'Domínio', title: 'Política', description: 'Mandatos, relações entre facções, acordos e leis.' },
   }[section];
 
   return (
-    <div className={`tab-panel system-panel system-panel--${section}`}>
-      <header className="system-console">
+    <div className={`tab-panel system-panel system-panel--${section} system-panel--tone-${SECTION_TONE[section]}`}>
+      <header className="system-console sys-frame">
+        <SystemCorners />
         <button type="button" className="back-button" onClick={onBack} aria-label={`Voltar de ${sectionCopy.title}`}><span aria-hidden="true">←</span></button>
         <div>
           <span className="section-kicker">{sectionCopy.eyebrow}</span>
@@ -51,156 +72,15 @@ export function SystemPanel({
       </header>
 
       <div className="system-disclosure-list">
-        {section === 'progression' ? <>
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">∞</span>
-            <span><strong>Eteris e Númen</strong><small>Fundamentos conhecidos</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            <ul className="system-note-list">
-              {status.energies.map((energy) => (
-                <li key={energy.id}><strong>{energy.name}</strong><p>{energy.description}</p></li>
-              ))}
-              {status.execution.reserves.map((reserve) => (
-                <li key={reserve.energyId}>
-                  <strong>{reserve.name}</strong>
-                  <p>
-                    {reserve.current}/{reserve.max} disponível
-                  </p>
-                </li>
-              ))}
-            </ul>
-            <ul className="system-chip-list" aria-label="Campos de aplicação">
-              {status.fields.map((field) => (
-                <li key={field.id} className="system-chip"><strong>{field.name}</strong><span>{field.description}</span></li>
-              ))}
-            </ul>
-          </div>
-        </details>
-
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">⌘</span>
-            <span><strong>Habilidades e caminhos</strong><small>{status.knownSkills.length} conhecidas</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body system-disclosure__body--stack">
-            <section aria-labelledby="system-skills-title">
-              <div className="section-heading"><h2 id="system-skills-title">Habilidades conhecidas</h2><span className="section-count">{status.knownSkills.length}</span></div>
-              {status.knownSkills.length === 0 ? <EmptyAction message="O Sistema ainda não registrou habilidades." /> : (
-                <ul className="system-skill-list">
-                  {status.knownSkills.map((skill) => (
-                    <li key={skill.skillId} className="system-skill">
-                      <div className="system-skill__head"><strong>{skill.name}</strong><span>Proficiência {skill.proficiency}</span></div>
-                      <p>{skill.description}</p><small>{skill.pathName}</small>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </section>
-
-            <section aria-labelledby="system-tree-title">
-              <div className="section-heading"><h2 id="system-tree-title">Árvore de habilidades</h2></div>
-              {status.tree.paths.length === 0 ? <EmptyAction message="Nenhum caminho revelado ainda." /> : (
-                <div className="system-tree">
-                  {status.tree.paths.map((path) => (
-                    <article key={path.pathId} className="system-tree__path">
-                      <header className="system-tree__path-head"><strong>{path.name}</strong><span>{path.field === 'corpo' ? 'Corpo' : 'Poder'}</span></header>
-                      <ul className="system-tree__nodes">
-                        {path.nodes.map((node) => (
-                          <li key={node.skillId} className={`system-tree__node system-tree__node--${node.status}`}>
-                            <strong>{node.name}</strong>
-                            <span>{node.status === 'known' ? `Conhecida · proficiência ${node.proficiency}` : 'Possível de desenvolver'}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      {path.hasHiddenSkills ? <small className="system-tree__hidden">Há possibilidades ainda não compreendidas neste caminho</small> : null}
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-        </details>
-
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">△</span>
-            <span><strong>Treinamento</strong><small>{status.trainings.length} métodos conhecidos</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            {status.trainings.length === 0 ? <EmptyAction message="Nenhum método de treino disponível agora." /> : (
-              <div className="action-card-list">
-                {status.trainings.map((training) => (
-                  <article key={training.methodId} className={training.canTrain ? 'action-card' : 'action-card action-card--blocked'}>
-                    <div className="action-card__body">
-                      <div className="action-card__title"><h3>{training.name}</h3><span>{training.targetLabel}</span></div>
-                      <p>{training.description}</p>
-                      <ul className="training-effects" aria-label="Efeitos do treino">
-                        {training.effectsSummary.map((effect) => <li key={effect}>{effect}</li>)}
-                      </ul>
-                      {training.requirementsSummary.length > 0 ? (
-                        <p className="training-requirements">Requisitos: {training.requirementsSummary.join(', ')}</p>
-                      ) : null}
-                      <div className="action-card__footer">
-                        <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
-                        <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => setPending(training)}>Treinar</button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </details>
-
-        <details className="system-disclosure">
-          <summary>
-            <span className="system-disclosure__icon" aria-hidden="true">❀</span>
-            <span><strong>Jardim</strong><small>{status.garden.cultivationPoints} ponto{status.garden.cultivationPoints === 1 ? '' : 's'} de cultivo</small></span>
-            <span className="system-disclosure__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div className="system-disclosure__body">
-            {status.garden.recipes.length === 0 ? (
-              <EmptyAction message="Nenhuma integração percebida no Jardim." />
-            ) : (
-              <div className="action-card-list">
-                {status.garden.recipes.map((recipe) => (
-                  <article key={recipe.id} className={recipe.visibility === 'available' ? 'action-card' : 'action-card action-card--blocked'}>
-                    <div className="action-card__body">
-                      <div className="action-card__title">
-                        <h3>{recipe.name ?? 'Integração percebida'}</h3>
-                        <span>{recipe.visibility === 'cultivated' ? 'Cultivada' : recipe.visibility === 'available' ? 'Disponível' : 'Percebida'}</span>
-                      </div>
-                      {recipe.description ? <p>{recipe.description}</p> : <p>Os requisitos desta integração ainda não estão claros.</p>}
-                      {recipe.cost ? (
-                        <p className="training-requirements">
-                          Custa {recipe.cost.cultivationPoints} ponto{recipe.cost.cultivationPoints === 1 ? '' : 's'} · {formatPeriodCost(recipe.cost.timeCost.periods)}
-                        </p>
-                      ) : null}
-                      <div className="action-card__footer">
-                        <small>{recipe.requirementsMet === false ? 'Requisitos em aberto' : recipe.visibility === 'cultivated' ? 'Já integrada' : 'Integração irreversível neste recorte'}</small>
-                        <button
-                          type="button"
-                          className="button button--compact"
-                          disabled={recipe.visibility !== 'available' || !recipe.requirementsMet}
-                          onClick={() => setPendingGarden(recipe.id)}
-                        >
-                          Cultivar integração
-                        </button>
-                      </div>
-                    </div>
-                  </article>
-                ))}
-              </div>
-            )}
-          </div>
-        </details>
-
-        </> : null}
+        {section === 'progression' && ability ? (
+          <section className="system-aptitude" aria-label="Aptidão inicial">
+            <ImagePlaceholder kind="icon" label={ability.name} src={ability.imageSrc} className="system-aptitude__icon" />
+            <div><span className="section-kicker">Aptidão inicial</span><strong>{ability.name}</strong></div>
+          </section>
+        ) : null}
+        {section === 'progression' ? (
+          <ProgressionTabs status={status} onTrain={setPending} onCultivate={setPendingGarden} />
+        ) : null}
         {section === 'registry' ? <>
         <details className="system-disclosure">
           <summary>
@@ -492,8 +372,8 @@ export function SystemPanel({
         </details>
 
         </> : null}
-        {section === 'domain' ? <>
-        <details className="system-disclosure">
+        {section === 'economy' ? <>
+        <details className="system-disclosure" open>
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚖</span>
             <span>
@@ -554,7 +434,9 @@ export function SystemPanel({
           </div>
         </details>
 
-        <details className="system-disclosure">
+        </> : null}
+        {section === 'territory' ? <>
+        <details className="system-disclosure" open>
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⌂</span>
             <span>
@@ -635,7 +517,9 @@ export function SystemPanel({
           </div>
         </details>
 
-        <details className="system-disclosure">
+        </> : null}
+        {section === 'politics' ? <>
+        <details className="system-disclosure" open>
           <summary>
             <span className="system-disclosure__icon" aria-hidden="true">⚑</span>
             <span>
@@ -795,7 +679,11 @@ export function SystemIdentity({
         <ul className="relationship-list" aria-label="Confiança residual">
           {state.relationships.map((relationship) => (
             <li key={relationship.characterId}>
-              <span className="relationship-list__avatar" aria-hidden="true">♙</span>
+              <Portrait
+                name={findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}
+                src={findNpc(campaign, relationship.characterId)?.image?.src}
+                className="relationship-list__avatar"
+              />
               <div><strong>{findNpc(campaign, relationship.characterId)?.name ?? relationship.characterId}</strong><span>Confiança residual</span></div>
               <strong>{relationship.trust}</strong>
             </li>

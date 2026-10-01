@@ -1,4 +1,5 @@
 import type { SandboxAction } from '../../../modules/sandbox-actions';
+import { Portrait } from '../../components/Portrait';
 import { formatPeriodCost, type BondCharacterView } from '../../sandbox';
 import { DetailScreen, EmptyAction } from './shared';
 
@@ -40,7 +41,7 @@ export function RelationshipSection({
           {bonds.map((bond) => (
             <article key={bond.npcId} className="relationship-card">
               <header>
-                <span className="relationship-list__avatar" aria-hidden="true">♙</span>
+                <Portrait name={bond.name} src={bond.portraitSrc} className="relationship-card__portrait" />
                 <div><strong>{bond.name}</strong><small>{bond.namedBonds.map((item) => item.name).join(' · ') || 'Vínculo em formação'}</small></div>
               </header>
               <div className="relationship-card__metrics">

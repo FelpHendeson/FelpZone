@@ -55,6 +55,65 @@ export interface SystemMilestoneView {
   requirements: SystemMilestoneRequirementView[];
 }
 
+export interface SystemTreeRequirementView {
+  skillId: string;
+  name: string;
+  pathName: string;
+  /** Requisito em outro caminho: a conexão entre ramos que a Árvore deve desenhar. */
+  crossPath: boolean;
+  known: boolean;
+}
+
+/** Como uma habilidade possível pode ser desenvolvida, sem revelar o que o Sistema ainda não mostrou. */
+export type SystemTreeDevelopView =
+  | { kind: 'known' }
+  | { kind: 'training'; methodId: string; methodName: string; canTrain: boolean; blockedReason?: string }
+  | { kind: 'milestone'; level: number }
+  | { kind: 'garden' }
+  | { kind: 'unrevealed' };
+
+export interface SystemTreeNodeView {
+  skillId: string;
+  name: string;
+  description: string;
+  status: 'known' | 'available';
+  proficiency: number | null;
+  /** `garden` quando a habilidade nasceu de uma integração cultivada. */
+  origin: 'path' | 'garden';
+  requirements: SystemTreeRequirementView[];
+  develop: SystemTreeDevelopView;
+}
+
+export interface SystemTreePathView {
+  pathId: string;
+  name: string;
+  description: string;
+  field: ApplicationField;
+  fieldName: string;
+  known: boolean;
+  nodes: SystemTreeNodeView[];
+  hasHiddenSkills: boolean;
+}
+
+export interface SystemGardenRequirementView {
+  text: string;
+  met: boolean;
+}
+
+export interface SystemGardenIntegrationView {
+  recipeId: string;
+  visibility: 'perceived' | 'available' | 'cultivated';
+  name: string | null;
+  description: string | null;
+  sourceNames: string[];
+  resultName: string | null;
+  requirements: SystemGardenRequirementView[];
+  requirementsMet: boolean;
+  cost: { cultivationPoints: number; periods: number } | null;
+  canCultivate: boolean;
+  blockedReason?: string;
+}
+
 export interface SystemStatusView {
   characterName: string;
   level: number;
@@ -62,11 +121,15 @@ export interface SystemStatusView {
   fields: SystemFieldView[];
   knownSkills: SystemSkillView[];
   tree: SkillTree;
+  skillTree: { paths: SystemTreePathView[]; hasHiddenPaths: boolean };
   trainings: SystemTrainingView[];
   nextMilestone: SystemMilestoneView | null;
   garden: {
     cultivationPoints: number;
     recipes: GardenRecipeView[];
+    integrations: SystemGardenIntegrationView[];
+    /** Nível do próximo marco compreensível que concede ponto de cultivo, se houver. */
+    nextPointLevel: number | null;
   };
   registry: {
     accessGranted: boolean;
