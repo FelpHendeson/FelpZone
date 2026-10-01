@@ -48,6 +48,7 @@ Leia nesta ordem:
 7. [Conteúdo e interface](docs/CONTENT-AND-UI.md): formato dos eventos, telas e placeholders.
 8. [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md): hierarquia visual, navegação e regras de densidade da interface jogável.
    - [UI/UX 2.0 — Navegação por focos](docs/UI-UX-2-NAVIGATION.md): cinco destinos principais e telas separadas por domínio.
+   - [UI/UX 3.0 — Rework visual e de informação (proposta)](docs/UI-REDESIGN-3-VISION.md): diagnóstico, paleta por domínio e roteiro de fatias; ainda não implementado. Previews de tela em [UI-REDESIGN-3-SCREENS.md](docs/UI-REDESIGN-3-SCREENS.md).
 9. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
 10. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
 11. [Horário e data](docs/SYSTEM-TIME-AND-DATE.md): relógio determinístico por períodos, já implementado.
@@ -71,6 +72,7 @@ Leia nesta ordem:
 29. [NPCs persistentes, agenda e mundo vivo](docs/SYSTEM-PERSISTENT-NPCS-LIVING-WORLD.md): Sistema 17 implementado e consolidado nas Fatias 17.1 a 17.7.
 30. [Motor e pack de mundo](docs/CONTENT-PACK.md): o código conhece leis; o primeiro dia entra como JSON validado.
     - [Imagens opcionais dos packs](docs/VISUAL-ASSETS.md): como adicionar cenas, retratos e ícones sem tornar arte obrigatória.
+    - [Prompts para geração de arte](docs/ART-GENERATION-PROMPTS.md): lista de prompts prontos para gerar (via IA externa) a arte opcional do primeiro dia.
 31. [Cenário interativo e pontos de interesse](docs/SYSTEM-18-INTERACTABLE-WORLD.md): Sistema 18 implementado e consolidado nas Fatias 18.1 a 18.7.
 32. [Relacionamentos e vínculos persistentes](docs/SYSTEM-19-RELATIONSHIPS.md): Sistema 19 implementado e consolidado nas Fatias 19.1 a 19.7.
 33. [Registro do Sistema, patentes e rankings](docs/SYSTEM-20-SYSTEM-REGISTRY-RANKINGS.md): Sistema 20 implementado e consolidado nas Fatias 20.1 a 20.7.

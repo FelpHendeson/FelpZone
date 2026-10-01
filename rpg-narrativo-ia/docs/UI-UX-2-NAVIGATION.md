@@ -4,6 +4,8 @@
 
 Esta arquitetura está **implementada como protótipo**. Ela reorganiza a apresentação dos Sistemas 1 a 29 sem alterar regras, custos, conteúdo, persistência ou balanceamento.
 
+Existe uma proposta de rework visual e de informação sobre esta base, ainda não implementada: [UI/UX 3.0 — Rework visual e de informação](UI-REDESIGN-3-VISION.md) (previews em [UI-REDESIGN-3-SCREENS.md](UI-REDESIGN-3-SCREENS.md)). Ela mantém os cinco destinos e as regras abaixo; reorganiza `Menu` em grupos e propõe uma paleta por domínio.
+
 ## Problema resolvido
 
 A interface anterior concentrava progressão, relações, grupos, família, economia, território e política em uma única página do Sistema. O mundo também apresentava local, presenças e mapa completo no mesmo fluxo. O resultado era correto, porém longo e difícil de percorrer em celular.
