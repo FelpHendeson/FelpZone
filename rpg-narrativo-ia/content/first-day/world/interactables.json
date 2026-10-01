@@ -9,7 +9,8 @@
       "initialStageId": "untouched",
       "image": {
         "kind": "scene",
-        "label": "Marcas no tronco"
+        "label": "Marcas no tronco",
+        "src": "/images/first-day/interactables/great-tree-bark-marks.webp"
       },
       "stages": [
         {

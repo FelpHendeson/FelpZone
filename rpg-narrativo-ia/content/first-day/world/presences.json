@@ -7,7 +7,8 @@
       "description": "Uma jovem sobrevivente da mesma região de transposição. Mantém distância e toma decisões próprias.",
       "image": {
         "kind": "portrait",
-        "label": "Mira Vale"
+        "label": "Mira Vale",
+        "src": "/images/first-day/npcs/mira-vale.webp"
       }
     },
     {
@@ -15,14 +16,22 @@
       "kind": "npc",
       "name": "Caio Nascimento",
       "description": "Sobrevivente atento aos riscos da região. Observa trilhas e tenta manter os outros em segurança.",
-      "image": { "kind": "portrait", "label": "Caio Nascimento" }
+      "image": {
+        "kind": "portrait",
+        "label": "Caio Nascimento",
+        "src": "/images/first-day/npcs/caio-nascimento.webp"
+      }
     },
     {
       "id": "davi-moura",
       "kind": "npc",
       "name": "Davi Moura",
       "description": "Sobrevivente ferido que encontrou abrigo provisório entre as pedras.",
-      "image": { "kind": "portrait", "label": "Davi Moura" }
+      "image": {
+        "kind": "portrait",
+        "label": "Davi Moura",
+        "src": "/images/first-day/npcs/davi-moura.webp"
+      }
     },
     {
       "id": "horned-rabbit",
@@ -31,7 +40,8 @@
       "description": "Pequeno herbívoro de chifres curtos. Deixa rastros na Mata Densa.",
       "image": {
         "kind": "icon",
-        "label": "Coelho chifrudo"
+        "label": "Coelho chifrudo",
+        "src": "/images/first-day/creatures/horned-rabbit.webp"
       }
     }
   ],

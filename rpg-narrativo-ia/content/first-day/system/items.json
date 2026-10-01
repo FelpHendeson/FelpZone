@@ -8,7 +8,12 @@
       "stackLimit": 99,
       "tags": [
         "wood"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Graveto",
+        "src": "/images/first-day/items/fallen-branch.webp"
+      }
     },
     {
       "id": "raw-water",
@@ -23,6 +28,11 @@
         "type": "need.restore",
         "need": "sede",
         "amount": 45
+      },
+      "image": {
+        "kind": "icon",
+        "label": "Água bruta",
+        "src": "/images/first-day/items/raw-water.webp"
       }
     },
     {
@@ -38,6 +48,11 @@
         "type": "need.restore",
         "need": "sede",
         "amount": 45
+      },
+      "image": {
+        "kind": "icon",
+        "label": "Água limpa",
+        "src": "/images/first-day/items/agua-limpa.webp"
       }
     },
     {
@@ -49,7 +64,12 @@
       "tags": [
         "food",
         "raw"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Carne crua de coelho chifrudo",
+        "src": "/images/first-day/items/raw-horned-rabbit-meat.webp"
+      }
     },
     {
       "id": "cooked-horned-rabbit-meat",
@@ -64,6 +84,11 @@
         "type": "need.restore",
         "need": "fome",
         "amount": 36
+      },
+      "image": {
+        "kind": "icon",
+        "label": "Carne cozida de coelho chifrudo",
+        "src": "/images/first-day/items/cooked-horned-rabbit-meat.webp"
       }
     },
     {
@@ -79,6 +104,11 @@
         "type": "need.restore",
         "need": "fome",
         "amount": 12
+      },
+      "image": {
+        "kind": "icon",
+        "label": "Fruto desconhecido",
+        "src": "/images/first-day/items/fruto-desconhecido.webp"
       }
     },
     {
@@ -89,7 +119,12 @@
       "stackLimit": 20,
       "tags": [
         "hide"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Couro de coelho chifrudo",
+        "src": "/images/first-day/items/horned-rabbit-hide.webp"
+      }
     },
     {
       "id": "horned-rabbit-horn",
@@ -99,7 +134,12 @@
       "stackLimit": 20,
       "tags": [
         "trophy"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Chifre de coelho chifrudo",
+        "src": "/images/first-day/items/horned-rabbit-horn.webp"
+      }
     },
     {
       "id": "horned-rabbit-bones",
@@ -109,7 +149,12 @@
       "stackLimit": 20,
       "tags": [
         "bone"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Ossos de coelho chifrudo",
+        "src": "/images/first-day/items/horned-rabbit-bones.webp"
+      }
     },
     {
       "id": "galho-resistente",
@@ -119,7 +164,12 @@
       "stackLimit": 20,
       "tags": [
         "wood"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Galho resistente",
+        "src": "/images/first-day/items/galho-resistente.webp"
+      }
     },
     {
       "id": "predator-fang",
@@ -129,7 +179,12 @@
       "stackLimit": 10,
       "tags": [
         "trophy"
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Presa do predador",
+        "src": "/images/first-day/items/predator-fang.webp"
+      }
     },
     {
       "id": "improvised-tool",
@@ -147,7 +202,12 @@
           "target": "damage",
           "amount": 2
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Ferramenta improvisada",
+        "src": "/images/first-day/items/improvised-tool.webp"
+      }
     },
     {
       "id": "improvised-salve",
@@ -161,6 +221,11 @@
       "use": {
         "type": "combat.heal",
         "amount": 8
+      },
+      "image": {
+        "kind": "icon",
+        "label": "Unguento improvisado",
+        "src": "/images/first-day/items/improvised-salve.webp"
       }
     }
   ]

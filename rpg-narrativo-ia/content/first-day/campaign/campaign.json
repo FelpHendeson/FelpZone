@@ -6,48 +6,93 @@
     {
       "id": "agua-limpa",
       "name": "Água limpa",
-      "description": "Um pouco de água encontrada em uma pedra oca. Cabe em duas mãos."
+      "description": "Um pouco de água encontrada em uma pedra oca. Cabe em duas mãos.",
+      "image": {
+        "kind": "icon",
+        "label": "Água limpa",
+        "src": "/images/first-day/items/agua-limpa.webp"
+      }
     },
     {
       "id": "fruto-desconhecido",
       "name": "Fruto desconhecido",
-      "description": "Polpa densa, cheiro doce. Ninguém ensinou se isso alimenta ou engana."
+      "description": "Polpa densa, cheiro doce. Ninguém ensinou se isso alimenta ou engana.",
+      "image": {
+        "kind": "icon",
+        "label": "Fruto desconhecido",
+        "src": "/images/first-day/items/fruto-desconhecido.webp"
+      }
     },
     {
       "id": "galho-resistente",
       "name": "Galho resistente",
-      "description": "Madeira viva, mais dura do que deveria. Serve como apoio ou defesa improvisada."
+      "description": "Madeira viva, mais dura do que deveria. Serve como apoio ou defesa improvisada.",
+      "image": {
+        "kind": "icon",
+        "label": "Galho resistente",
+        "src": "/images/first-day/items/galho-resistente.webp"
+      }
     }
   ],
   "abilities": [
     {
       "id": "olhar-atento",
       "name": "Olhar Atento",
-      "description": "A cautela aumenta. Ameaças e detalhes aparecem antes de chegar perto."
+      "description": "A cautela aumenta. Ameaças e detalhes aparecem antes de chegar perto.",
+      "image": {
+        "kind": "icon",
+        "label": "Olhar Atento",
+        "src": "/images/first-day/abilities/olhar-atento.webp"
+      }
     },
     {
       "id": "resiliencia",
       "name": "Resiliência",
-      "description": "Saúde e energia aumentam. O corpo aguenta melhor o primeiro dia."
+      "description": "Saúde e energia aumentam. O corpo aguenta melhor o primeiro dia.",
+      "image": {
+        "kind": "icon",
+        "label": "Resiliência",
+        "src": "/images/first-day/abilities/resiliencia.webp"
+      }
     },
     {
       "id": "voz-calma",
       "name": "Voz Calma",
-      "description": "A humanidade aumenta. Outras pessoas tendem a baixar a guarda perto de você."
+      "description": "A humanidade aumenta. Outras pessoas tendem a baixar a guarda perto de você.",
+      "image": {
+        "kind": "icon",
+        "label": "Voz Calma",
+        "src": "/images/first-day/abilities/voz-calma.webp"
+      }
     }
   ],
   "npcs": [
     {
       "id": "mira-vale",
-      "name": "Mira Vale"
+      "name": "Mira Vale",
+      "image": {
+        "kind": "portrait",
+        "label": "Mira Vale",
+        "src": "/images/first-day/npcs/mira-vale.webp"
+      }
     },
     {
       "id": "caio-nascimento",
-      "name": "Caio Nascimento"
+      "name": "Caio Nascimento",
+      "image": {
+        "kind": "portrait",
+        "label": "Caio Nascimento",
+        "src": "/images/first-day/npcs/caio-nascimento.webp"
+      }
     },
     {
       "id": "davi-moura",
-      "name": "Davi Moura"
+      "name": "Davi Moura",
+      "image": {
+        "kind": "portrait",
+        "label": "Davi Moura",
+        "src": "/images/first-day/npcs/davi-moura.webp"
+      }
     }
   ],
   "titles": [
@@ -66,7 +111,12 @@
           "flag": "camp.together",
           "value": true
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Mão Partilhada",
+        "src": "/images/first-day/titles/mao-partilhada.webp"
+      }
     },
     {
       "id": "gesto-tardio",
@@ -78,7 +128,12 @@
           "flag": "moral.repaired",
           "value": true
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Gesto Tardio",
+        "src": "/images/first-day/titles/gesto-tardio.webp"
+      }
     },
     {
       "id": "caminho-solitario",
@@ -90,7 +145,12 @@
           "flag": "camp.alone",
           "value": true
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Caminho Solitário",
+        "src": "/images/first-day/titles/caminho-solitario.webp"
+      }
     },
     {
       "id": "primeiro-abrigo",
@@ -102,13 +162,33 @@
           "flag": "camp.together",
           "value": true
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Primeiro Abrigo",
+        "src": "/images/first-day/titles/primeiro-abrigo.webp"
+      }
     },
     {
       "id": "despertar",
       "name": "Despertar",
       "description": "Você sobreviveu ao primeiro dia. O resto ainda não tem nome.",
-      "conditions": []
+      "conditions": [],
+      "image": {
+        "kind": "icon",
+        "label": "Despertar",
+        "src": "/images/first-day/titles/despertar.webp"
+      }
     }
-  ]
+  ],
+  "coverImage": {
+    "kind": "scene",
+    "label": "Capa — Primeiro Dia",
+    "src": "/images/first-day/campaign/cover.webp"
+  },
+  "endingImage": {
+    "kind": "scene",
+    "label": "Encerramento — Primeiro Dia",
+    "src": "/images/first-day/campaign/ending.webp"
+  }
 }
