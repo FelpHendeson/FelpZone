@@ -1,4 +1,4 @@
-import type { GameState } from '../../core/state/types';
+import type { DayPeriod, GameState } from '../../core/state/types';
 import type { TimeCost } from '../time';
 import type { IndexedNpcs, NPCsState } from '../npcs/types';
 import type { IndexedMap } from '../navigation/types';
@@ -34,6 +34,12 @@ export interface ContextualActivityNarrative {
   eventId: string;
 }
 
+/** Prazo da oportunidade: disponível até o fim do dia (ou até o período) indicado, inclusive. */
+export interface ContextualActivityDeadline {
+  day: number;
+  period?: DayPeriod;
+}
+
 export interface ContextualActivityDefinition {
   id: string;
   label: string;
@@ -46,6 +52,7 @@ export interface ContextualActivityDefinition {
   effects: readonly ContextualActivityEffect[];
   narrative?: ContextualActivityNarrative;
   feedback?: string;
+  availableUntil?: ContextualActivityDeadline;
 }
 
 export interface IndexedActivities {
@@ -71,6 +78,10 @@ export interface ContextualActivityKnownView {
   available: boolean;
   blockedReason?: string;
   eligibleOptionalNpcIds: readonly string[];
+  /** Dias inteiros restantes até o prazo (0 = último dia). Ausente quando não há prazo. */
+  daysLeft?: number;
+  /** Verdadeiro quando o prazo termina no período atual. */
+  lastPeriod?: boolean;
 }
 
 export interface ActivityWorldContext {

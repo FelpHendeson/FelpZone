@@ -1,3 +1,4 @@
+import { DAY_PERIODS, isDayPeriod } from '../../core/state';
 import type { GameState } from '../../core/state/types';
 import { changeRelationship } from '../relationships';
 import { deriveNpcAt, relocateNpc, rememberNpcFact } from '../npcs';
@@ -6,6 +7,7 @@ import type {
   ActivityWorldContext,
   ContextualActivitiesState,
   ContextualActivityApplied,
+  ContextualActivityDeadline,
   ContextualActivityDefinition,
   ContextualActivityEffect,
   ContextualActivityInspection,
@@ -108,6 +110,9 @@ export function planContextualActivity(
   if (!activity.repeatable && activityState.consumedActivityIds.includes(activity.id)) {
     throw new ContextualActivityError('Esta atividade já foi concluída.');
   }
+  if (activity.availableUntil && deadlinePassed(activity.availableUntil, gameState)) {
+    throw new ContextualActivityError('O prazo desta oportunidade terminou.');
+  }
   if (gameState.sandbox.navigation.currentLocationId !== activity.locationId) {
     throw new ContextualActivityError('A atividade não está disponível neste local.');
   }
@@ -192,7 +197,10 @@ export function listKnownContextualActivities(
     // known, other unmet requirements remain visible as ordinary blockers.
     .filter((activity) => activity.requirements.every((requirement) =>
       requirement.type !== 'npc.known' || requirementMet(requirement, gameState, npcs)))
-    .map((activity) => {
+    // Oportunidade com prazo vencido sai da lista: o mundo seguiu em frente.
+    .filter((activity) => !activity.availableUntil || !deadlinePassed(activity.availableUntil, gameState))
+    .map((activity) => ({ activity, ...deadlineView(activity.availableUntil, gameState) }))
+    .map(({ activity, ...deadline }) => {
       const optionalIds = activity.participants?.optionalNpcIds ?? [];
       const eligibleOptionalNpcIds = optionalIds.filter((npcId) => npcAvailable(npcs, gameState, npcId));
       try {
@@ -205,10 +213,11 @@ export function listKnownContextualActivities(
           activity.id,
           eligibleOptionalNpcIds.slice(0, minimum),
         );
-        return { activity, available: true, eligibleOptionalNpcIds };
+        return { activity, available: true, eligibleOptionalNpcIds, ...deadline };
       } catch (error) {
         return {
           activity,
+          ...deadline,
           available: false,
           blockedReason:
             error instanceof ContextualActivityError
@@ -281,6 +290,15 @@ function inspectActivity(
     return fail('O feedback da atividade é inválido.');
   }
 
+  let availableUntil: ContextualActivityDeadline | undefined;
+  if (value.availableUntil !== undefined) {
+    const raw = value.availableUntil;
+    if (!isRecord(raw) || !positiveInteger(raw.day) || (raw.period !== undefined && !isDayPeriod(raw.period))) {
+      return fail('O prazo da atividade é inválido.');
+    }
+    availableUntil = raw.period === undefined ? { day: raw.day as number } : { day: raw.day as number, period: raw.period };
+  }
+
   return {
     ok: true,
     value: {
@@ -295,8 +313,29 @@ function inspectActivity(
       effects,
       ...(narrative ? { narrative } : {}),
       ...(typeof value.feedback === 'string' ? { feedback: value.feedback } : {}),
+      ...(availableUntil ? { availableUntil } : {}),
     },
   };
+}
+
+export function deadlinePassed(deadline: ContextualActivityDeadline, state: GameState): boolean {
+  if (state.world.day !== deadline.day) return state.world.day > deadline.day;
+  if (deadline.period === undefined) return false;
+  return DAY_PERIODS.indexOf(state.world.period) > DAY_PERIODS.indexOf(deadline.period);
+}
+
+function deadlineView(
+  deadline: ContextualActivityDeadline | undefined,
+  state: GameState,
+): Pick<ContextualActivityKnownView, 'daysLeft' | 'lastPeriod'> {
+  if (!deadline) return {};
+  const daysLeft = Math.max(0, deadline.day - state.world.day);
+  const lastPeriod =
+    daysLeft === 0 &&
+    (deadline.period === undefined
+      ? state.world.period === DAY_PERIODS[DAY_PERIODS.length - 1]
+      : state.world.period === deadline.period);
+  return { daysLeft, lastPeriod };
 }
 
 function inspectParticipants(

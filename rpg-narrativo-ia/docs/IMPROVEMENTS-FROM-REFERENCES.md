@@ -9,7 +9,7 @@ Este documento junta o que a comparação com jogos parecidos (A Dark Room, Road
 | 1 | Revelação progressiva da Central do Sistema | A Dark Room | **Implementada** |
 | 2 | Janela do Sistema para conquistas, com vibração | Status windows de LitRPG | **Implementada** |
 | 3 | Incerteza declarada com semente persistida | Citizen Sleeper | Proposta — exige schema 27 |
-| 4 | Oportunidades com prazo | Roadwarden | Proposta — conteúdo + leitura de prazo |
+| 4 | Oportunidades com prazo | Roadwarden | **Implementada** (motor e interface; conteúdo no próximo arco) |
 | 5 | Vozes da aptidão nas cenas | Disco Elysium | **Implementada** (condição `ability.has`) |
 | 6 | Crônica de fim de arco | Wildermyth | Proposta — só apresentação |
 | 7 | Cenas em modo visual novel | Visual novels / LitRPG | **Implementada** |
@@ -45,16 +45,19 @@ O Menu diz quantas interfaces continuam seladas, para o jogador saber que há ma
 
 **Fora do recorte:** dados visíveis por período, stress, combate probabilístico.
 
-## 4. Oportunidades com prazo — proposta
+## 4. Oportunidades com prazo — implementada
 
-**Problema.** O relógio existe, mas quase nada expira; gastar um período raramente custa uma oportunidade.
+Atividades contextuais aceitam `availableUntil` opcional:
 
-**Proposta (no espírito de Roadwarden):**
+```json
+"availableUntil": { "day": 9 }
+"availableUntil": { "day": 9, "period": "tarde" }
+```
 
-- Atividades contextuais ganham `availableUntil: { day: number; period?: WorldPeriod }` opcional, lido pelo mesmo filtro que já trata `world.day.min`.
-- A UI mostra "expira em N dias" nas atividades com prazo e o Diário registra a oportunidade perdida como fato (não como falha).
-- Primeiro uso sugerido: no arco "Os Primeiros Senhores", uma ajuda a Davi ou Caio que só existe até um dia declarado.
-- Sem schema novo: o prazo é catálogo; o estado já guarda dia e período.
+- Sem `period`, vale até o fim do dia indicado; com `period`, até o fim daquele período. Validado na borda (dia inteiro positivo, período conhecido).
+- O cartão da atividade mostra "Expira em N dias", "Expira amanhã", "Expira hoje" ou "Último período" (os dois últimos com destaque).
+- Depois do prazo, a atividade sai da lista e `planContextualActivity` recusa a execução ("O prazo desta oportunidade terminou."). Sem schema novo: o prazo é catálogo; dia e período já estão no save.
+- Nenhuma atividade dos Dias 1–7 ganhou prazo, para não alterar rotas já fechadas por playtest. Primeiro uso previsto: o arco "Os Primeiros Senhores".
 
 ## 5. Vozes da aptidão — implementada
 

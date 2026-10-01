@@ -200,6 +200,9 @@ export interface ContextualActivityView {
   optionalParticipants: Array<{ npcId: string; name: string; eligible: boolean }>;
   minOptional: number;
   maxOptional: number;
+  /** "Último período", "Expira hoje", "Expira amanhã" ou "Expira em N dias". */
+  deadlineLabel?: string;
+  deadlineUrgent?: boolean;
 }
 
 export interface InteractableView {
@@ -690,8 +693,17 @@ function visibleActivities(state: GameState, context: SandboxContext): Contextua
       })),
       minOptional: participants?.minOptional ?? 0,
       maxOptional: participants?.maxOptional ?? 0,
+      ...describeDeadline(entry.daysLeft, entry.lastPeriod),
     };
   });
+}
+
+function describeDeadline(daysLeft: number | undefined, lastPeriod: boolean | undefined): Pick<ContextualActivityView, 'deadlineLabel' | 'deadlineUrgent'> {
+  if (daysLeft === undefined) return {};
+  if (lastPeriod) return { deadlineLabel: 'Último período', deadlineUrgent: true };
+  if (daysLeft === 0) return { deadlineLabel: 'Expira hoje', deadlineUrgent: true };
+  if (daysLeft === 1) return { deadlineLabel: 'Expira amanhã', deadlineUrgent: false };
+  return { deadlineLabel: `Expira em ${daysLeft} dias`, deadlineUrgent: false };
 }
 
 function visibleBonds(state: GameState, context: SandboxContext, campaign: Campaign): BondCharacterView[] {

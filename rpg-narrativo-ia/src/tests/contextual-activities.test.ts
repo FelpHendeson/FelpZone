@@ -7,8 +7,10 @@ import {
   createInitialContextualActivitiesState,
   inspectContextualActivityCatalog,
   inspectContextualActivitiesState,
+  listKnownContextualActivities,
   planContextualActivity,
 } from '../modules/activities';
+import { DAY_PERIODS } from '../core/state';
 import { loadFirstDayWorld } from '../modules/content';
 import { createSandboxContextFromWorld } from '../modules/sandbox';
 import { executeSandboxAction } from '../modules/sandbox-actions';
@@ -196,5 +198,53 @@ describe('Fatia A do Dia 2 — Atividades Contextuais', () => {
         catalog.value,
       ).ok,
     ).toBe(false);
+  });
+});
+
+describe('Oportunidades com prazo', () => {
+  function withDeadline(availableUntil: unknown) {
+    const raw = activityRaw();
+    (raw.activities[0] as Record<string, unknown>).availableUntil = availableUntil;
+    return inspectContextualActivityCatalog(raw, activityWorldContext());
+  }
+
+  function at(day: number, period: (typeof DAY_PERIODS)[number]) {
+    const state = stateWithMiraHere();
+    return { ...state, world: { ...state.world, day, period } };
+  }
+
+  it('valida o prazo na borda do pack', () => {
+    expect(withDeadline({ day: 3 }).ok).toBe(true);
+    expect(withDeadline({ day: 3, period: DAY_PERIODS[1] }).ok).toBe(true);
+    expect(withDeadline({ day: 0 }).ok).toBe(false);
+    expect(withDeadline({ day: 2, period: 'madrugada-eterna' }).ok).toBe(false);
+    expect(withDeadline('amanhã').ok).toBe(false);
+  });
+
+  it('mostra quantos dias restam e marca o último período', () => {
+    const inspected = withDeadline({ day: 3 });
+    if (!inspected.ok) throw new Error(inspected.reason);
+    const list = (state: ReturnType<typeof at>) =>
+      listKnownContextualActivities(inspected.value, createInitialContextualActivitiesState(), state, world.npcs);
+    expect(list(at(1, DAY_PERIODS[0]!))[0]).toMatchObject({ daysLeft: 2, lastPeriod: false });
+    expect(list(at(3, DAY_PERIODS[0]!))[0]).toMatchObject({ daysLeft: 0, lastPeriod: false });
+    expect(list(at(3, DAY_PERIODS.at(-1)!))[0]).toMatchObject({ daysLeft: 0, lastPeriod: true });
+  });
+
+  it('some da lista e recusa o plano depois do prazo, inclusive por período', () => {
+    const byDay = withDeadline({ day: 2 });
+    const byPeriod = withDeadline({ day: 1, period: DAY_PERIODS[0] });
+    if (!byDay.ok || !byPeriod.ok) throw new Error('catálogo inválido');
+    const late = at(3, DAY_PERIODS[0]!);
+    expect(listKnownContextualActivities(byDay.value, createInitialContextualActivitiesState(), late, world.npcs)).toEqual([]);
+    expect(() =>
+      planContextualActivity(byDay.value, createInitialContextualActivitiesState(), late, world.npcs, 'shared-check', []),
+    ).toThrow('prazo');
+    const laterSameDay = at(1, DAY_PERIODS[1]!);
+    expect(listKnownContextualActivities(byPeriod.value, createInitialContextualActivitiesState(), laterSameDay, world.npcs)).toEqual([]);
+    expect(
+      planContextualActivity(byPeriod.value, createInitialContextualActivitiesState(), at(1, DAY_PERIODS[0]!), world.npcs, 'shared-check', [])
+        .activityId,
+    ).toBe('shared-check');
   });
 });
