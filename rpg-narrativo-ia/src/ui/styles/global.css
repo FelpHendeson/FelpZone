@@ -5236,3 +5236,34 @@ button:disabled {
 .training-card--blocked .training-card__footer small {
   color: var(--gold);
 }
+
+/* HUD no desktop: espaço suficiente para o estado de cada necessidade sem reticências. */
+@media (min-width: 48rem) {
+  .game-hud__identity {
+    grid-template-columns: auto minmax(8rem, 1fr) minmax(22rem, 30rem);
+  }
+
+  .hud-vitals li small {
+    font-size: 0.6rem;
+    text-overflow: clip;
+  }
+}
+
+/* Celular: sem espaço para a palavra do estado; cor da borda e barra mostram a faixa, e o texto fica para leitores de tela. */
+@media (max-width: 47.99rem) {
+  .hud-vitals li small {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+
+  .hud-vitals__item--attention,
+  .hud-vitals__item--urgent,
+  .hud-vitals__item--critical {
+    border: 1px solid;
+    border-radius: 8px;
+  }
+}
