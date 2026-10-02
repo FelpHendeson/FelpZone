@@ -49,6 +49,7 @@ Leia nesta ordem:
 8. [Consolidação de UI/UX](docs/UI-UX-CONSOLIDATION.md): hierarquia visual, navegação e regras de densidade da interface jogável.
    - [UI/UX 2.0 — Navegação por focos](docs/UI-UX-2-NAVIGATION.md): cinco destinos principais e telas separadas por domínio.
    - [UI/UX 3.0 — Rework visual e de informação](docs/UI-REDESIGN-3-VISION.md): paleta por domínio, canto-trava, Menu agrupado, Domínio em sub-telas, retratos e ícones SVG; implementado nas Fatias 3.1–3.5. Previews de tela em [UI-REDESIGN-3-SCREENS.md](docs/UI-REDESIGN-3-SCREENS.md).
+   - [Proposta — Sistema-tutor, capítulos por ação e relógio em minutos](docs/PROPOSAL-GUIDANCE-CHAPTERS-CLOCK.md): para decisão do autor, ainda não implementada.
    - [Melhorias inspiradas em jogos de referência](docs/IMPROVEMENTS-FROM-REFERENCES.md): revelação progressiva da Central e janela do Sistema implementadas; incerteza, prazos, vozes da aptidão e Crônica propostos.
 9. [Fase 2 — Consolidação do motor](docs/PHASE-2-ENGINE.md): registro da fase concluída.
 10. [Visão sandbox](docs/SANDBOX-FLOW.md): novo loop de exploração e papel do motor narrativo.
