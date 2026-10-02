@@ -5136,3 +5136,102 @@ button:disabled {
 .vn-skip--in-window {
   justify-self: center;
 }
+
+/* Cartões de ação sem ícone: o corpo ocupa a largura toda (antes caía na coluna de 48px do ícone). */
+.action-card > .action-card__body:only-child {
+  grid-column: 1 / -1;
+}
+
+/* Treino — mesmo vocabulário visual da Árvore */
+.training-list {
+  display: grid;
+  gap: 12px;
+}
+
+.training-card {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  box-shadow: inset 3px 0 0 var(--accent-system);
+}
+
+.training-card--blocked {
+  box-shadow: inset 3px 0 0 var(--border-strong);
+}
+
+.training-card__head {
+  display: grid;
+  gap: 4px;
+}
+
+.training-card__target {
+  justify-self: start;
+  padding: 2px 8px;
+  border: 1px solid color-mix(in srgb, var(--accent-system) 45%, transparent);
+  border-radius: 999px;
+  color: var(--accent-system);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  overflow-wrap: anywhere;
+}
+
+.training-card__head h3 {
+  margin: 2px 0 0;
+  font-family: var(--font-story);
+  font-size: 1.12rem;
+  overflow-wrap: anywhere;
+}
+
+.training-card__description,
+.training-card__requires {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+.training-card__requires {
+  font-size: 0.78rem;
+}
+
+.training-card__effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.training-card__effects li {
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: rgba(115, 215, 180, 0.1);
+  color: var(--accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.training-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.training-card__footer small {
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
+
+.training-card--blocked .training-card__footer small {
+  color: var(--gold);
+}

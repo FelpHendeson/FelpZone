@@ -179,23 +179,24 @@ function DevelopHint({ develop, onTrain }: { develop: SystemTreeDevelopView; onT
 function TrainingList({ trainings, onTrain }: { trainings: SystemTrainingView[]; onTrain: (training: SystemTrainingView) => void }) {
   if (trainings.length === 0) return <EmptyAction message="Nenhum método de treino disponível agora." />;
   return (
-    <div className="action-card-list">
+    <div className="training-list">
       {trainings.map((training) => (
-        <article key={training.methodId} className={training.canTrain ? 'action-card' : 'action-card action-card--blocked'}>
-          <div className="action-card__body">
-            <div className="action-card__title"><h3>{training.name}</h3><span>{training.targetLabel}</span></div>
-            <p>{training.description}</p>
-            <ul className="training-effects" aria-label="Efeitos do treino">
-              {training.effectsSummary.map((effect) => <li key={effect}>{effect}</li>)}
-            </ul>
-            {training.requirementsSummary.length > 0 ? (
-              <p className="training-requirements">Requisitos: {training.requirementsSummary.join(', ')}</p>
-            ) : null}
-            <div className="action-card__footer">
-              <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
-              <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => onTrain(training)}>Treinar</button>
-            </div>
-          </div>
+        <article key={training.methodId} className={training.canTrain ? 'training-card' : 'training-card training-card--blocked'}>
+          <header className="training-card__head">
+            <span className="training-card__target">{training.targetLabel}</span>
+            <h3>{training.name}</h3>
+          </header>
+          <p className="training-card__description">{training.description}</p>
+          <ul className="training-card__effects" aria-label="Efeitos do treino">
+            {training.effectsSummary.map((effect) => <li key={effect}>{effect}</li>)}
+          </ul>
+          {training.requirementsSummary.length > 0 ? (
+            <p className="training-card__requires">Requisitos: {training.requirementsSummary.join(', ')}</p>
+          ) : null}
+          <footer className="training-card__footer">
+            <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
+            <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => onTrain(training)}>Treinar</button>
+          </footer>
         </article>
       ))}
     </div>
