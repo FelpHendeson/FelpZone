@@ -42,7 +42,7 @@ function tryAct(state: GameState, action: SandboxAction) {
 }
 
 function advanceToDayFour(state: GameState): GameState {
-  while (state.world.day < 4 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-four-awakening');
@@ -92,7 +92,7 @@ function reachDayFourCooperating(): GameState {
   });
   state = choose(state, 'help-davi-settle');
 
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -147,7 +147,7 @@ function reachDayFourIndependent(): GameState {
   expect(state.flags['day2.davi.escorted']).not.toBe(true);
   expect(state.flags['day2.survivors.contact']).toBe(true);
 
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -202,7 +202,7 @@ function reachDayFourAtDistance(): GameState {
   state = act(state, { type: 'training.train', methodId: 'focused-perception-drill' });
   state = act(state, { type: 'needs.rest', mode: 'simple' });
 
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -242,7 +242,7 @@ function reachDayFourSolo(): GameState {
   for (let count = 0; count < 2; count += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -318,7 +318,7 @@ describe('Dia 4 — cuidar do ferimento de Davi (Fatia B)', () => {
       type: 'activity.perform', activityId: 'escort-davi-to-clearing', optionalParticipantIds: [],
     });
     state = choose(state, 'help-davi-settle');
-    while (state.world.day < 3 && state.narrativeSession === null) {
+    for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
       state = act(state, { type: 'needs.rest', mode: 'simple' });
     }
     state = choose(state, 'day-three-look-around');

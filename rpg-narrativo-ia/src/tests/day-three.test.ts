@@ -80,7 +80,7 @@ function reachDayThreeCooperating(): GameState {
   });
   state = choose(state, 'help-davi-settle');
 
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -133,7 +133,7 @@ function reachDayThreeAtDistance(): GameState {
   state = act(state, { type: 'training.train', methodId: 'focused-perception-drill' });
   state = act(state, { type: 'needs.rest', mode: 'simple' });
 
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -170,7 +170,7 @@ function reachDayThreeSolo(): GameState {
   for (let count = 0; count < 2; count += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
@@ -219,7 +219,7 @@ function reachDayThreeIndependent(): GameState {
   expect(state.flags['day2.davi.help.declined']).toBe(true);
   expect(state.flags['day2.davi.escorted']).not.toBe(true);
 
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');

@@ -211,7 +211,7 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
   }
 
   if (result.timeCost.periods > 0) {
-    push('info', `Tempo: ${formatPeriodCost(result.timeCost.periods)}.`);
+    push('info', `Tempo: ${formatPeriodCost(result.timeCost.periods, result.previous.world.period)}.`);
   }
 
   const wear = Object.entries(result.needsWear.changes)

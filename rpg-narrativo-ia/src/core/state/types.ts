@@ -20,6 +20,7 @@ import type { PoliticsState } from '../../modules/politics/types';
 import type { GuidanceState } from '../../modules/guidance/types';
 import type { ContextualActivitiesState } from '../../modules/activities/types';
 import type { ChanceState } from '../../modules/chance/types';
+import type { StoryState } from '../../modules/story/types';
 import { DEFAULT_PERIODS } from '../../modules/time';
 
 export const SCHEMA_VERSION_V1 = 1 as const;
@@ -48,7 +49,8 @@ export const SCHEMA_VERSION_V23 = 23 as const;
 export const SCHEMA_VERSION_V24 = 24 as const;
 export const SCHEMA_VERSION_V25 = 25 as const;
 export const SCHEMA_VERSION_V26 = 26 as const;
-export const SCHEMA_VERSION = 27 as const;
+export const SCHEMA_VERSION_V27 = 27 as const;
+export const SCHEMA_VERSION = 28 as const;
 
 export const MIGRATED_CAMPAIGN_ID = 'first-day';
 
@@ -500,8 +502,14 @@ export interface GameState extends SharedState<Attributes> {
   activities: ContextualActivitiesState;
   /** Semente e cursor da sorte (schema 27): sorteios são reproduzíveis e não se repetem ao recarregar. */
   rng: ChanceState;
+  /** Dia de abertura de cada capítulo (schema 28): capítulos avançam por cena-chave, com prazo relativo. */
+  story: StoryState;
 }
 
-export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng'> {
+export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng' | 'story'> {
   schemaVersion: typeof SCHEMA_VERSION_V26;
+}
+
+export interface GameStateV27 extends Omit<GameState, 'schemaVersion' | 'story'> {
+  schemaVersion: typeof SCHEMA_VERSION_V27;
 }

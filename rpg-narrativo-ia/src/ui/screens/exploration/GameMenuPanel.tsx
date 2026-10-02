@@ -117,6 +117,13 @@ export function GameMenuPanel({
           detail={`${guidanceCount} tópicos disponíveis${guidanceUnseenCount > 0 ? ` · ${guidanceUnseenCount} novo${guidanceUnseenCount === 1 ? '' : 's'}` : ''}`}
           onClick={() => onNavigate('help')}
         />
+        <MenuEntry
+          icon="settings"
+          tone="system"
+          title="Configurações"
+          detail="Relógio 24h/12h e orientação do Sistema"
+          onClick={() => onNavigate('settings')}
+        />
       </MenuGroup>
 
       {hiddenCount > 0 ? (

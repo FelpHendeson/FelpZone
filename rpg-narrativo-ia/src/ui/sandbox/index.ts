@@ -1,4 +1,5 @@
-export { formatPeriodCost, sandboxDiscoveryName, sandboxItemName, sandboxStationName } from './labels';
+export { currentChapter, formatPeriodCost, sandboxDiscoveryName, sandboxItemName, sandboxStationName } from './labels';
+export type { ChapterLabel } from './labels';
 export {
   describeSandboxFeedback,
   feedbackClassName,

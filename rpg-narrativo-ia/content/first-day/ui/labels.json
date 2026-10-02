@@ -2,5 +2,41 @@
   "stations": {
     "cooking": "Cozinha",
     "heat": "Calor"
-  }
+  },
+  "chapters": [
+    {
+      "number": 1,
+      "title": "O despertar"
+    },
+    {
+      "number": 2,
+      "title": "Os outros",
+      "triggerId": "day-two-start"
+    },
+    {
+      "number": 3,
+      "title": "Convivência",
+      "triggerId": "day-three-start"
+    },
+    {
+      "number": 4,
+      "title": "Trabalho",
+      "triggerId": "day-four-start"
+    },
+    {
+      "number": 5,
+      "title": "A conversa",
+      "triggerId": "day-five-start"
+    },
+    {
+      "number": 6,
+      "title": "O caso de Davi",
+      "triggerId": "day-six-start"
+    },
+    {
+      "number": 7,
+      "title": "O Registro regional",
+      "triggerId": "day-seven-start"
+    }
+  ]
 }

@@ -80,15 +80,16 @@ function followDayTwoTracksToBank(state: GameState): GameState {
 }
 
 function continueIntoDayThree(state: GameState, expectedEventId: string, choiceId: string): GameState {
-  while (state.world.day < 3 && state.narrativeSession === null) {
+  for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
-  expect(state.world.day).toBe(3);
+  const chapterDay = state.world.day;
+  expect(chapterDay).toBe(expectedEventId === 'day-three-solo' ? 5 : 3);
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
   state = choose(state, 'day-three-look-around');
   expect(state.narrativeSession?.eventId).toBe(expectedEventId);
   state = choose(state, choiceId);
-  expect(state.world.day).toBe(3);
+  expect(state.world.day).toBe(chapterDay);
   expect(state.flags['day3.started']).toBe(true);
   expect(state.status).toBe('playing');
   expect(state.narrativeSession).toBeNull();
@@ -163,13 +164,23 @@ describe('Fatia G — playtest integrado do Dia 2', () => {
     expect(state.party.vitals).toEqual([]);
   }, 30_000);
 
-  it('não visita a Nascente nem encontra Caio e Davi, mas avança ao Dia 3 pelo relógio', () => {
+  it('não visita a Nascente nem encontra Caio e Davi: o capítulo 3 espera e só abre pela saída de segurança', () => {
     let state = beginDayTwoAlone();
     for (let count = 0; count < 2; count += 1) {
       state = act(state, { type: 'needs.rest', mode: 'simple' });
     }
     expect(state.world).toEqual({ day: 2, period: 'noite' });
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    // Sem decidir nada sobre os sobreviventes, o Dia 3 chega mas o capítulo 3 não abre.
+    for (let guard = 0; state.world.day < 4 && guard < 10; guard += 1) {
+      state = act(state, { type: 'needs.rest', mode: 'simple' });
+    }
+    expect(state.narrativeSession).toBeNull();
+    expect(state.world.day).toBe(4);
+    // A saída de segurança abre o capítulo 3 três dias depois de o capítulo 2 abrir (Dia 5).
+    for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
+      state = act(state, { type: 'needs.rest', mode: 'simple' });
+    }
+    expect(state.world.day).toBe(5);
     state = continueIntoDayThree(state, 'day-three-solo', 'day-three-solo-continue');
     expect(state.sandbox.navigation.discoveredLocationIds).not.toContain('rocky-bank');
     expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('caio-rocky-bank');

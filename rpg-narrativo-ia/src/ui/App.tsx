@@ -366,6 +366,7 @@ export function App() {
           onAction={handleSandboxAction}
           onResolveCombat={handleResolveCombat}
           onGuidanceSeen={handleGuidanceSeen}
+          worldTriggers={world.worldTriggers}
           onExit={() => {
             setFeedback(null);
             setScreen('start');

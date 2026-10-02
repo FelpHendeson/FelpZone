@@ -1,3 +1,4 @@
+import { recordChapterOpened } from '../story';
 import type { GameState } from '../../core/state';
 import { DEFAULT_PERIODS } from '../time';
 import type { IndexedWorldTriggers, WorldNarrativeTriggerDefinition } from './types';
@@ -61,6 +62,11 @@ function isWorldTriggerSourceSatisfied(
       );
     case 'world.day.min':
       return state.world.day >= source.day;
+    case 'story.chapter': {
+      const window = chapterWindow(source, state);
+      if (!window || state.world.day < window.earliest) return false;
+      return isChapterKeyResolved(source, state) || (window.fallback !== undefined && state.world.day >= window.fallback);
+    }
     case 'world.time.reached': {
       if (state.world.day > source.day) {
         return true;
@@ -92,6 +98,7 @@ export function consumeWorldTriggersMatchingNarrative(
 
   const session = state.narrativeSession;
   const flags = { ...state.flags };
+  let story = state.story;
   let changed = false;
 
   for (const trigger of catalog.definitions) {
@@ -105,6 +112,9 @@ export function consumeWorldTriggersMatchingNarrative(
     }
 
     flags[flag] = true;
+    if (trigger.source.type === 'story.chapter' && story) {
+      story = recordChapterOpened(story, trigger.id, state.world.day);
+    }
     changed = true;
   }
 
@@ -115,5 +125,45 @@ export function consumeWorldTriggersMatchingNarrative(
   return {
     ...state,
     flags,
+    ...(story ? { story } : {}),
   };
+}
+
+type ChapterSource = Extract<WorldNarrativeTriggerDefinition['source'], { type: 'story.chapter' }>;
+
+/**
+ * Janela do capítulo: dia mais cedo em que pode abrir e dia da saída de segurança.
+ * Capítulo anterior consumido sem dia registrado (save migrado) conta como já cumprido.
+ */
+export function chapterWindow(source: ChapterSource, state: GameState): { earliest: number; fallback?: number } | null {
+  if (source.after === undefined) return { earliest: source.minDay };
+  const recorded = state.story?.chapterDays[source.after];
+  const base = recorded ?? (isWorldTriggerConsumed(state, source.after) ? 0 : undefined);
+  if (base === undefined) return null;
+  return {
+    earliest: Math.max(source.minDay, base + (source.minDaysAfter ?? 1)),
+    ...(source.fallbackDaysAfter !== undefined ? { fallback: Math.max(source.minDay, base + source.fallbackDaysAfter) } : {}),
+  };
+}
+
+/** A cena-chave que libera o capítulo foi resolvida (ou a rota não tem cena-chave). */
+export function isChapterKeyResolved(source: ChapterSource, state: GameState): boolean {
+  return source.anyOf.some((group) => group.every((condition) => (state.flags[condition.flag] ?? false) === condition.value));
+}
+
+/**
+ * Capítulo pronto para virar: cena-chave resolvida, mas o dia mínimo ainda não chegou.
+ * A interface oferece "dormir até o amanhecer" para abrir o capítulo logo após a cena-chave.
+ */
+export function findPendingChapterTrigger(
+  catalog: IndexedWorldTriggers,
+  state: GameState,
+): WorldNarrativeTriggerDefinition | undefined {
+  if (state.status !== 'playing' || state.narrativeSession !== null) return undefined;
+  return catalog.definitions.find((trigger) => {
+    if (trigger.source.type !== 'story.chapter' || isWorldTriggerConsumed(state, trigger.id)) return false;
+    if (trigger.conditions?.some((condition) => state.flags[condition.flag] !== condition.value)) return false;
+    const window = chapterWindow(trigger.source, state);
+    return window !== null && state.world.day < window.earliest && isChapterKeyResolved(trigger.source, state);
+  });
 }

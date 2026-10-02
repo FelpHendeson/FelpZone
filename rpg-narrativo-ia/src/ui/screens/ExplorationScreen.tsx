@@ -31,6 +31,15 @@ import { ActionsPanel } from './exploration/ActionsPanel';
 import { InventoryPanel } from './exploration/InventoryPanel';
 import { SystemPanel } from './exploration/SystemPanel';
 import { DomainPanel } from './exploration/DomainPanel';
+import { SettingsPanel } from './exploration/SettingsPanel';
+import { HintAlert } from '../components/SystemHints';
+import { TourOverlay } from '../components/Tour';
+import { FIRST_TOUR, isTourDone, markTourDone } from '../tour';
+import { setClockContext } from '../clock';
+import { usePreferences } from '../preferences';
+import { deriveSystemHints, type HintAction } from '../system-hints';
+import { currentChapter } from '../sandbox';
+import type { IndexedWorldTriggers } from '../../modules/world-events';
 import { ChroniclePanel } from './exploration/ChroniclePanel';
 import { notableHistory } from '../../modules/narrative';
 import { DetailScreen, type DomainView, type GameView } from './exploration/shared';
@@ -51,13 +60,14 @@ interface ExplorationScreenProps {
   onResolveCombat: (encounterId: string, finalState: CombatState) => void;
   onGuidanceSeen: (topicId: string) => void;
   onExit: () => void;
+  worldTriggers?: IndexedWorldTriggers;
 }
 
 function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || isDomainView(view)) {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || view === 'settings' || isDomainView(view)) {
     return 'menu';
   }
   return view;
@@ -83,7 +93,12 @@ export function ExplorationScreen({
   onResolveCombat,
   onGuidanceSeen,
   onExit,
+  worldTriggers,
 }: ExplorationScreenProps) {
+  const preferences = usePreferences();
+  setClockContext(state.world.period, preferences.clockFormat);
+  const [tourOpen, setTourOpen] = useState(() => !isTourDone());
+  const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
   const [activeView, setActiveView] = useState<GameView>('world');
   const [actionsOpen, setActionsOpen] = useState(false);
   const [trackedJourneyId, setTrackedJourneyId] = useState<string | null>(null);
@@ -162,12 +177,25 @@ export function ExplorationScreen({
   const popupGuidance = guidancePopupDismissed
     ? null
     : unseenGuidance.find((topic) => topic.popupOnUnlock !== false) ?? null;
+  const hints = preferences.guidanceLevel === 'off' ? [] : deriveSystemHints({ state, view, journal, triggers: worldTriggers });
+  const alertKey = (id: string) => `${id}@${state.world.day}-${state.world.period}`;
+  const urgentHint =
+    preferences.guidanceLevel === 'guided' && !tourOpen && !popupGuidance
+      ? hints.find((hint) => hint.priority === 'urgente' && !dismissedAlerts.includes(alertKey(hint.id))) ?? null
+      : null;
+  const chapter = currentChapter(state.flags);
+  const handleHintAction = (action: HintAction) => {
+    if (action.kind === 'sandbox') onAction(action.action);
+    else if (action.kind === 'navigate') setActiveView(action.view);
+    else setActionsOpen(true);
+  };
 
   return (
     <main className="screen screen--exploration">
       <GameHud
         characterName={view.characterName}
         worldLabel={view.worldLabel}
+        chapterLabel={chapter ? `Capítulo ${chapter.number} · ${chapter.title}` : undefined}
         attributes={state.attributes}
         onExit={onExit}
       />
@@ -186,6 +214,8 @@ export function ExplorationScreen({
               onOpenActions={() => setActionsOpen(true)}
               onOpenJournal={() => setActiveView('journal')}
               onNavigate={setActiveView}
+              hints={preferences.guidanceLevel === 'off' ? undefined : hints}
+              onHintAction={handleHintAction}
             />
           ) : null}
           {activeView === 'map' ? (
@@ -218,6 +248,19 @@ export function ExplorationScreen({
               status={status}
               campaign={campaign}
               onAction={onAction}
+              onBack={() => setActiveView('menu')}
+            />
+          ) : null}
+          {activeView === 'settings' ? (
+            <SettingsPanel
+              clockFormat={preferences.clockFormat}
+              guidanceLevel={preferences.guidanceLevel}
+              onClockFormat={preferences.setClockFormat}
+              onGuidanceLevel={preferences.setGuidanceLevel}
+              onReplayTour={() => {
+                setActiveView('world');
+                setTourOpen(true);
+              }}
               onBack={() => setActiveView('menu')}
             />
           ) : null}
@@ -310,6 +353,24 @@ export function ExplorationScreen({
             </button>
           </div>
         </AppDialog>
+      ) : null}
+
+      <HintAlert
+        hint={urgentHint}
+        onAction={handleHintAction}
+        onClose={() => {
+          if (urgentHint) setDismissedAlerts((current) => [...current, alertKey(urgentHint.id)]);
+        }}
+      />
+
+      {tourOpen && activeView === 'world' && !popupGuidance ? (
+        <TourOverlay
+          steps={FIRST_TOUR}
+          onFinish={() => {
+            markTourDone();
+            setTourOpen(false);
+          }}
+        />
       ) : null}
 
       <BottomNavigation

@@ -4,7 +4,8 @@ import type { GameState } from '../../core/state';
 import { findAbility, findItem, findNpc } from '../../campaigns/first-day';
 import { ATTRIBUTE_LABELS, fullName, storyVars } from '../../modules/character';
 import { interpolate, notableHistory } from '../../modules/narrative';
-import { describeWorld } from '../../modules/world';
+import { describeWorldClock } from '../clock';
+import { currentChapter } from '../sandbox';
 import { describeCalendarDate, INITIAL_CALENDAR } from '../../modules/calendar';
 import { AttributeSummary } from '../components/AttributeSummary';
 import { AppDialog } from '../components/AppDialog';
@@ -41,7 +42,8 @@ export function GameScreen({ state, campaign, event, choices, onChoose, onExit }
     <main className="screen screen--game screen--play">
       <GameHud
         characterName={fullName(state.character)}
-        worldLabel={`${describeWorld(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`}
+        worldLabel={`${describeWorldClock(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`}
+        chapterLabel={chapterLabel(state.flags)}
         attributes={state.attributes}
         onExit={onExit}
       />
@@ -229,4 +231,9 @@ function InventoryPanel({ state, campaign }: { state: GameState; campaign: Campa
       })}
     </ul>
   );
+}
+
+function chapterLabel(flags: Readonly<Record<string, boolean>>): string | undefined {
+  const chapter = currentChapter(flags);
+  return chapter ? `Capítulo ${chapter.number} · ${chapter.title}` : undefined;
 }

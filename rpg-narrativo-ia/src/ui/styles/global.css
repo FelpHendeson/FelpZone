@@ -5267,3 +5267,270 @@ button:disabled {
     border-radius: 8px;
   }
 }
+
+/* Configurações */
+.settings-section {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--bg-elevated);
+}
+
+.settings-section h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
+  gap: 8px;
+}
+
+.settings-choice__item {
+  display: grid;
+  gap: 3px;
+  min-height: 56px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+}
+
+.settings-choice__item small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.settings-choice__item--active {
+  border-color: var(--accent-system);
+  background: rgba(131, 203, 234, 0.1);
+  box-shadow: inset 3px 0 0 var(--accent-system);
+}
+
+/* HUD: capítulo acima da data */
+.game-hud__clock {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.game-hud__chapter {
+  color: var(--gold);
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+}
+
+/* Sistema-tutor: cartão de orientação no Mundo */
+.system-hints {
+  --tone: var(--accent-system);
+  position: relative;
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid color-mix(in srgb, var(--tone) 40%, var(--border));
+  border-radius: 16px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--tone) 12%, transparent), rgba(10, 17, 21, 0.98));
+  box-shadow: inset 3px 0 0 var(--tone);
+}
+
+.system-hints--urgent { --tone: var(--accent-social); }
+.system-hints--important { --tone: var(--gold); }
+.system-hints--calm { box-shadow: inset 3px 0 0 var(--border-strong); }
+
+.system-hints__kicker {
+  color: var(--tone);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.system-hints__calm {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.system-hint {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px 14px;
+}
+
+.system-hint > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.system-hint strong {
+  font-size: 1rem;
+}
+
+.system-hint p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.system-hint--compact strong {
+  font-size: 0.9rem;
+}
+
+@media (max-width: 30rem) {
+  .system-hint {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .system-hint .button {
+    justify-self: start;
+  }
+}
+
+.system-hints__more {
+  justify-self: start;
+  padding: 2px 0;
+  border: 0;
+  background: transparent;
+  color: var(--tone);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.system-hints__list {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 10px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  list-style: none;
+}
+
+/* Alerta urgente reaproveita a janela do Sistema */
+.system-window__panel--alert {
+  --tone: var(--accent-social);
+}
+
+.system-window__detail {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* Selo de pessoas no cartão do local */
+.location-hero__people {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--accent-social) 60%, transparent);
+  border-radius: 999px;
+  background: rgba(60, 38, 18, 0.72);
+  color: var(--accent-social);
+  font: inherit;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  backdrop-filter: blur(8px);
+  cursor: pointer;
+}
+
+.location-hero__people span {
+  animation: vn-cue 1.6s ease-in-out infinite;
+}
+
+/* Tour de primeira vez */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.tour__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 7, 10, 0.78);
+}
+
+.tour__spotlight {
+  position: fixed;
+  border: 2px solid var(--accent-system);
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(4, 7, 10, 0.78), 0 0 24px rgba(131, 203, 234, 0.45);
+  pointer-events: none;
+  transition: top 220ms ease, left 220ms ease, width 220ms ease, height 220ms ease;
+}
+
+.tour__card {
+  --tone: var(--accent-system);
+  position: fixed;
+  left: 50%;
+  display: grid;
+  gap: 8px;
+  width: min(calc(100vw - 32px), 24rem);
+  padding: 20px 18px 16px;
+  border: 1px solid color-mix(in srgb, var(--accent-system) 55%, transparent);
+  border-radius: 8px;
+  background: rgba(9, 16, 21, 0.98);
+  box-shadow: var(--shadow-deep);
+  translate: -50% 0;
+  animation: vn-fade 220ms ease both;
+}
+
+.tour__card--above {
+  translate: -50% -100%;
+}
+
+.tour__card--center {
+  top: 50%;
+  translate: -50% -50%;
+}
+
+.tour__kicker {
+  color: var(--accent-system);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+}
+
+.tour__title {
+  font-family: var(--font-story);
+  font-size: 1.15rem;
+}
+
+.tour__text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.tour__actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__spotlight,
+  .tour__card,
+  .location-hero__people span {
+    animation: none;
+    transition: none;
+  }
+}

@@ -33,7 +33,7 @@ import { applyInteractablePlan, copyInteractablesState, createInitialInteractabl
 import { copyNpcsState, createInitialNpcsState, rememberNpcFact, INITIAL_NPCS, type NPCsState } from '../npcs';
 import { applyContextualActivityPlan, copyContextualActivitiesState, createInitialContextualActivitiesState, planContextualActivity, type ContextualActivitiesState, type ContextualActivityPlan } from '../activities';
 import type { GuidanceState } from '../guidance';
-import type { TimeCost } from '../time';
+import { DEFAULT_PERIODS, type TimeCost } from '../time';
 import { worldToTimeState } from '../world';
 import { SandboxActionError } from './errors';
 import type { SandboxAction, SandboxActionDetail } from './types';
@@ -248,7 +248,7 @@ export function executePrimary(
     const plan = planNeedsRest(attributesToNeeds(state.attributes), action.mode);
     return {
       detail: { type: 'needs.rest', plan: copyRestPlan(plan) },
-      timeCost: { periods: plan.timeCost.periods },
+      timeCost: { periods: action.untilDawn ? periodsUntilNextDawn(state.world.period) : plan.timeCost.periods },
       navigation,
       exploration,
       resources,
@@ -1156,4 +1156,10 @@ export function executePrimary(
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
     world: { day: afterEffects.world.day, period: afterEffects.world.period },
   };
+}
+
+/** Períodos até o Alvorecer do dia seguinte (do Alvorecer, um dia inteiro). */
+export function periodsUntilNextDawn(period: GameState['world']['period']): number {
+  const index = DEFAULT_PERIODS.findIndex((entry) => entry.id === period);
+  return DEFAULT_PERIODS.length - Math.max(0, index);
 }

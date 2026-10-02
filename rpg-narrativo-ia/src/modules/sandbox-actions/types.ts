@@ -62,6 +62,8 @@ export type SandboxAction =
   | {
       type: 'needs.rest';
       mode: RestMode;
+      /** Dormir até o próximo amanhecer: o custo vira os períodos que faltam até o Alvorecer seguinte. */
+      untilDawn?: boolean;
     }
   | {
       type: 'training.train';

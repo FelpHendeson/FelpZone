@@ -1,8 +1,8 @@
 import type { SystemStatusView } from '../../modules/system-interface';
 
-export type MenuDomainId = 'progression' | 'registry' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help';
+export type MenuDomainId = 'progression' | 'registry' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help' | 'settings';
 
-export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help'];
+export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help', 'settings'];
 
 export const MENU_DOMAIN_LABELS: Record<MenuDomainId, string> = {
   progression: 'Progressão',
@@ -12,6 +12,7 @@ export const MENU_DOMAIN_LABELS: Record<MenuDomainId, string> = {
   family: 'Família e lar',
   domain: 'Domínio',
   chronicle: 'Crônica',
+  settings: 'Configurações',
   map: 'Mapa completo',
   help: 'Ajuda',
 };
@@ -24,7 +25,7 @@ const anyAvailable = (actions: readonly { available: boolean }[]) => actions.som
  * Ações listadas mas bloqueadas não abrem uma interface sozinhas.
  */
 export function revealedMenuDomains(status: SystemStatusView, knownBonds: number, notableDecisions = 0): Set<MenuDomainId> {
-  const revealed = new Set<MenuDomainId>(['progression', 'map', 'help']);
+  const revealed = new Set<MenuDomainId>(['progression', 'map', 'help', 'settings']);
   if (notableDecisions > 0) {
     revealed.add('chronicle');
   }

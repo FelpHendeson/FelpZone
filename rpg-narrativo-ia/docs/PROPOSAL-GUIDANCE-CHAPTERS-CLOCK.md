@@ -2,7 +2,15 @@
 
 ## Estado da decisão
 
-**Proposta para decisão do autor. Nada aqui está implementado.** Nasce de um playtest real: um jogador morreu de fome preso numa área, sem perceber que havia pessoas ali para interagir, e é fácil atravessar os sete dias sem avançar a trama.
+**Implementado.** Decisões do autor: entra tudo; o capítulo vira após as cenas-chave; o relógio é só visual; cada ação mostra quanto do dia consome em minutos/horas.
+
+### O que foi implementado
+
+- **A — Sistema-tutor:** cartão "[ Sistema ]" no Mundo (`src/ui/system-hints`, função pura `deriveSystemHints`) com fome/sede/energia, capítulo pronto, pessoas presentes, atividades, noite chegando, área esgotada e próximo passo da jornada; popup urgente (nível **Guiada**), selo "N pessoas aqui" no herói do local, tour inicial de 5 passos e níveis Guiada/Discreta/Desligada em **Configurações** (preferência do aparelho, fora do save).
+- **B — Capítulos por cena-chave:** nova fonte de gatilho `story.chapter` (`minDay`, `anyOf`, `after`, `minDaysAfter`, `fallbackDaysAfter`). O dia em que cada capítulo abre fica em `story.chapterDays` (**schema 28**, migração 27→28 sem perda). Resolvida a cena-chave, o Sistema oferece **Dormir até o amanhecer** (`needs.rest` com `untilDawn`). Só o capítulo 2→3 tem chave real (decisão sobre os sobreviventes), com saída de segurança de 3 dias; o Registro ainda exige o dia 7. O HUD mostra o capítulo atual.
+- **C — Relógio visual:** o motor continua em períodos; a UI traduz para relógio (`src/ui/clock`): alvorecer 05:00, manhã 07:00, meio-dia 11:00, tarde 14:00, entardecer 17:00, noite 19:00. Custos aparecem como "4 h · até 11:00"; formato 24h ou 12h AM/PM em Configurações. Sem mudança de save para o relógio.
+
+O texto abaixo é a proposta original, mantida como registro. Nasce de um playtest real: um jogador morreu de fome preso numa área, sem perceber que havia pessoas ali para interagir, e é fácil atravessar os sete dias sem avançar a trama.
 
 São três mudanças independentes. Cada uma pode ser aprovada, ajustada ou recusada sozinha. Cada seção termina com **as decisões que faltam** e uma recomendação.
 

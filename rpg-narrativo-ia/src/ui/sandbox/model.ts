@@ -64,7 +64,7 @@ import {
 } from '../../modules/needs';
 import type { SandboxContext } from '../../modules/sandbox';
 import { listKnownContextualActivities } from '../../modules/activities';
-import { describeWorld } from '../../modules/world';
+import { describeWorldClock } from '../clock';
 import { describeCalendarDate, INITIAL_CALENDAR } from '../../modules/calendar';
 import { sandboxItemName, sandboxStationName } from './labels';
 import { attributesToNeedsSnapshot, buildNeedsPresentation, type NeedPresentation } from '../needs/presentation';
@@ -316,7 +316,7 @@ export function buildExplorationView(
 
   return {
     characterName: fullName(state.character),
-    worldLabel: `${describeWorld(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`,
+    worldLabel: `${describeWorldClock(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`,
     abilityName: ability?.name ?? 'Nenhuma',
     abilityImageSrc: ability?.image?.src,
     location: {

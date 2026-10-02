@@ -1,4 +1,6 @@
 import { ImagePlaceholder } from '../../components/ImagePlaceholder';
+import { SystemHintCard } from '../../components/SystemHints';
+import type { HintAction, SystemHint } from '../../system-hints';
 import { Icon, SystemCorners } from '../../components/Icon';
 import { TrackedJourneyCard } from '../../components/JournalPanel';
 import type { JournalJourneyView } from '../../journal/model';
@@ -24,7 +26,11 @@ export function WorldPanel({
   onOpenActions,
   onOpenJournal,
   onNavigate,
+  hints,
+  onHintAction,
 }: {
+  hints?: SystemHint[];
+  onHintAction?: (action: HintAction) => void;
   view: ExplorationView;
   trackedJourney?: JournalJourneyView;
   encounters: EncounterDefinition[];
@@ -42,6 +48,11 @@ export function WorldPanel({
         <ImagePlaceholder kind="scene" label={view.location.imageLabel} src={view.location.imageSrc} priority className="location-hero__image" />
         <div className="location-hero__shade" aria-hidden="true" />
         <div className="location-hero__badges" aria-label="Estado do local">
+          {peopleHere(view) > 0 ? (
+            <button type="button" className="location-hero__people" onClick={() => onNavigate('people')}>
+              <span aria-hidden="true">●</span> {peopleHere(view) === 1 ? '1 pessoa aqui' : `${peopleHere(view)} pessoas aqui`}
+            </button>
+          ) : null}
           <span>Zona descoberta</span>
           <span>Sistema ativo</span>
         </div>
@@ -80,14 +91,18 @@ export function WorldPanel({
         </div>
       </section>
 
-      <details className="world-briefing">
-        <summary>
-          <span aria-hidden="true">❖</span>
-          <strong>Orientação do Sistema</strong>
-          <small>Consultar</small>
-        </summary>
-        <p>{EXPLORATION_INTRO}</p>
-      </details>
+      {hints && onHintAction ? (
+        <SystemHintCard hints={hints} onAction={onHintAction} />
+      ) : (
+        <details className="world-briefing">
+          <summary>
+            <span aria-hidden="true">❖</span>
+            <strong>Orientação do Sistema</strong>
+            <small>Consultar</small>
+          </summary>
+          <p>{EXPLORATION_INTRO}</p>
+        </details>
+      )}
 
       {trackedJourney ? (
         <TrackedJourneyCard journey={trackedJourney} onOpenJournal={onOpenJournal} />
@@ -458,4 +473,8 @@ export function MapNode({ destination, onAction }: { destination: DestinationVie
       <span className="map-node__arrow" aria-hidden="true">→</span>
     </button>
   );
+}
+
+function peopleHere(view: ExplorationView): number {
+  return view.presences.filter((presence) => presence.kind === 'npc').length;
 }

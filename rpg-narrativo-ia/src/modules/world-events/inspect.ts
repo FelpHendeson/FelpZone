@@ -219,6 +219,45 @@ function inspectSource(
       };
   }
 
+  if (value.type === 'story.chapter') {
+    if (
+      !Number.isSafeInteger(value.minDay) ||
+      (value.minDay as number) <= 0 ||
+      (value.after !== undefined && (typeof value.after !== 'string' || value.after.trim() === '')) ||
+      (value.minDaysAfter !== undefined && (!Number.isSafeInteger(value.minDaysAfter) || (value.minDaysAfter as number) < 0)) ||
+      (value.fallbackDaysAfter !== undefined &&
+        (value.after === undefined || !Number.isSafeInteger(value.fallbackDaysAfter) || (value.fallbackDaysAfter as number) < ((value.minDaysAfter as number | undefined) ?? 1))) ||
+      !Array.isArray(value.anyOf) ||
+      value.anyOf.length === 0 ||
+      value.anyOf.length > 32
+    ) {
+      return fail('O capítulo do gatilho é inválido.');
+    }
+    const anyOf: { type: 'flag.is'; flag: string; value: boolean }[][] = [];
+    for (const group of value.anyOf as unknown[]) {
+      if (!Array.isArray(group) || group.length === 0 || group.length > 16) return fail('O capítulo do gatilho é inválido.');
+      const conditions: { type: 'flag.is'; flag: string; value: boolean }[] = [];
+      for (const entry of group) {
+        if (!isRecord(entry) || entry.type !== 'flag.is' || typeof entry.flag !== 'string' || entry.flag.trim() === '' || typeof entry.value !== 'boolean') {
+          return fail('O capítulo do gatilho é inválido.');
+        }
+        conditions.push({ type: 'flag.is', flag: entry.flag, value: entry.value });
+      }
+      anyOf.push(conditions);
+    }
+    return {
+      ok: true,
+      value: {
+        type: 'story.chapter',
+        minDay: value.minDay as number,
+        anyOf,
+        ...(typeof value.after === 'string' ? { after: value.after } : {}),
+        ...(value.minDaysAfter !== undefined ? { minDaysAfter: value.minDaysAfter as number } : {}),
+        ...(value.fallbackDaysAfter !== undefined ? { fallbackDaysAfter: value.fallbackDaysAfter as number } : {}),
+      },
+    };
+  }
+
   return fail('O tipo de origem do gatilho é desconhecido.');
 }
 

@@ -33,6 +33,7 @@ import { InteractableError, copyInteractablesState, createInitialInteractablesSt
 import { NpcError, copyNpcsState, createInitialNpcsState, INITIAL_NPCS, type NPCsState } from '../npcs';
 import { ContextualActivityError, copyContextualActivitiesState, createInitialContextualActivitiesState, type ContextualActivitiesState } from '../activities';
 import type { ChanceState } from '../chance';
+import { copyStoryState, type StoryState } from '../story';
 import type { GuidanceState } from '../guidance';
 import { WorldError } from '../world';
 import { SandboxActionError } from './errors';
@@ -171,7 +172,11 @@ export function requireAction(value: unknown): SandboxAction {
       throw new SandboxActionError('A modalidade de repouso é inválida.');
     }
 
-    return { type: 'needs.rest', mode: value.mode };
+    if (value.untilDawn !== undefined && typeof value.untilDawn !== 'boolean') {
+      throw new SandboxActionError('A modalidade de repouso é inválida.');
+    }
+
+    return value.untilDawn ? { type: 'needs.rest', mode: value.mode, untilDawn: true } : { type: 'needs.rest', mode: value.mode };
   }
 
   if (value.type === 'training.train') {
@@ -457,6 +462,7 @@ export interface GameStatePatch {
   politics?: PoliticsState;
   activities?: ContextualActivitiesState;
   rng?: ChanceState;
+  story?: StoryState;
   guidance?: GuidanceState;
   npcs?: NPCsState;
   status?: GameState['status'];
@@ -524,6 +530,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
       patch.activities ?? base.activities ?? createInitialContextualActivitiesState(),
     ),
     rng: { ...(patch.rng ?? base.rng) },
+    story: copyStoryState(patch.story ?? base.story),
     updatedAt: patch.updatedAt,
   };
 }
@@ -557,7 +564,7 @@ export function copyAction(action: SandboxAction): SandboxAction {
   }
 
   if (action.type === 'needs.rest') {
-    return { type: 'needs.rest', mode: action.mode };
+    return action.untilDawn ? { type: 'needs.rest', mode: action.mode, untilDawn: true } : { type: 'needs.rest', mode: action.mode };
   }
 
   if (action.type === 'training.train') {

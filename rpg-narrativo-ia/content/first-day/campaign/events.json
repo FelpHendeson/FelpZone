@@ -2137,7 +2137,7 @@
   {
     "id": "day-three-awakening",
     "title": "Ninguém virá buscar vocês",
-    "body": "A noite passou porque o mundo continuou girando. Quando o relógio registra o terceiro dia, ninguém chega para explicar o Reset ou decidir o que vocês devem fazer. O que mudou depende dos caminhos que você cruzou ontem.",
+    "body": "A noite passou porque o mundo continuou girando. Outro dia começa, e ninguém chega para explicar o Reset ou decidir o que vocês devem fazer. O que mudou depende dos caminhos que você cruzou ontem.",
     "image": {
       "kind": "scene",
       "label": "Amanhecer do terceiro dia"
@@ -2370,7 +2370,7 @@
   {
     "id": "day-four-awakening",
     "title": "Mais um dia sem explicação",
-    "body": "O relógio marca o quarto dia. Ninguém chegou durante a noite para dizer o que fazer ou assumir o que ainda está por resolver. O que você levou do terceiro dia — cooperação, distância ou nenhum dos dois — continua sendo o que orienta hoje.",
+    "body": "Mais um dia começa. Ninguém chegou durante a noite para dizer o que fazer ou assumir o que ainda está por resolver. O que você levou dos últimos dias — cooperação, distância ou nenhum dos dois — continua sendo o que orienta hoje.",
     "image": {
       "kind": "scene",
       "label": "Amanhecer do quarto dia"
@@ -2470,7 +2470,7 @@
   {
     "id": "day-five-awakening",
     "title": "O quinto amanhecer",
-    "body": "O relógio marca o quinto dia. Nada foi resolvido de uma vez só, mas o que aconteceu até aqui — quem você encontrou, quem evitou, o que cuidou ou deixou passar — continua orientando o que vem agora.",
+    "body": "Mais um dia começa. Nada foi resolvido de uma vez só, mas o que aconteceu até aqui — quem você encontrou, quem evitou, o que cuidou ou deixou passar — continua orientando o que vem agora.",
     "image": {
       "kind": "scene",
       "label": "Amanhecer do quinto dia"
@@ -2593,7 +2593,7 @@
   {
     "id": "day-six-awakening",
     "title": "O sexto amanhecer",
-    "body": "O relógio marca o sexto dia. O que foi dito ontem sobre como o grupo deveria decidir as coisas ainda não encontrou um caso real para testar essa ideia.",
+    "body": "Outro dia começa. O que foi dito ontem sobre como o grupo deveria decidir as coisas ainda não encontrou um caso real para testar essa ideia.",
     "image": {
       "kind": "scene",
       "label": "Amanhecer do sexto dia"

@@ -78,7 +78,8 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
     expect(self).toBeGreaterThan(-1);
     expect(people).toBeGreaterThan(self);
     expect(world).toBeGreaterThan(people);
-    expect(html.match(/class="menu-entry /g)).toHaveLength(9);
+    expect(html.match(/class="menu-entry /g)).toHaveLength(10);
+    expect(html).toContain("<strong>Configurações</strong>");
     expect(html).toContain('<strong>Crônica</strong>');
     // Sociedade passa a viver em "Pessoas", não junto do Domínio.
     const society = html.indexOf('<strong>Sociedade</strong>');

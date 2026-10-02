@@ -25,6 +25,7 @@ import { createInitialWorld } from '../../modules/world';
 import { createInitialGuidanceState } from '../../modules/guidance';
 import { createInitialContextualActivitiesState } from '../../modules/activities';
 import { createChanceState } from '../../modules/chance';
+import { createInitialStoryState } from '../../modules/story';
 
 export function createInitialState(
   character: CharacterIdentityInput,
@@ -78,6 +79,7 @@ export function createInitialState(
     guidance: createInitialGuidanceState(),
     activities: createInitialContextualActivitiesState(),
     rng: createChanceState(`${createdAt}|${character.firstName} ${character.lastName}`),
+    story: createInitialStoryState(),
     updatedAt: createdAt,
   };
 }
@@ -114,6 +116,7 @@ export {
   SCHEMA_VERSION_V24,
   SCHEMA_VERSION_V25,
   SCHEMA_VERSION_V26,
+  SCHEMA_VERSION_V27,
   MIGRATED_CAMPAIGN_ID,
 } from './types';
 export {
@@ -144,6 +147,7 @@ export {
   inspectGameStateV24,
   inspectGameStateV25,
   inspectGameStateV26,
+  inspectGameStateV27,
   migrateGameStateV1,
   migrateGameStateV2,
   migrateGameStateV3,
@@ -170,6 +174,7 @@ export {
   migrateGameStateV24,
   migrateGameStateV25,
   migrateGameStateV26,
+  migrateGameStateV27,
 } from './validateGameState';
 export type {
   GameStateInspection,
@@ -199,6 +204,7 @@ export type {
   GameStateV24Inspection,
   GameStateV25Inspection,
   GameStateV26Inspection,
+  GameStateV27Inspection,
 } from './validateGameState';
 export {
   ATTRIBUTE_IDS,
@@ -243,6 +249,7 @@ export type {
   GameStateV24,
   GameStateV25,
   GameStateV26,
+  GameStateV27,
   GameStatus,
   HistoryEntry,
   InventoryItem,

@@ -55,7 +55,7 @@ describe('catálogo de gatilhos de mundo', () => {
       });
       expect(active.value.definitions[2]).toMatchObject({
         id: 'day-two-start',
-        source: { type: 'world.day.min', day: 2 },
+        source: { type: 'story.chapter', minDay: 2, anyOf: [[{ type: 'flag.is', flag: 'night.resolved', value: true }]] },
         eventId: 'day-two-awakening',
       });
       expect(active.value.definitions[3]).toMatchObject({
@@ -65,31 +65,31 @@ describe('catálogo de gatilhos de mundo', () => {
       });
       expect(active.value.definitions[4]).toMatchObject({
         id: 'day-three-start',
-        source: { type: 'world.day.min', day: 3 },
+        source: { type: 'story.chapter', minDay: 3, after: 'day-two-start', fallbackDaysAfter: 3 },
         conditions: [{ type: 'flag.is', flag: 'day2.started', value: true }],
         eventId: 'day-three-awakening',
       });
       expect(active.value.definitions[5]).toMatchObject({
         id: 'day-four-start',
-        source: { type: 'world.day.min', day: 4 },
+        source: { type: 'story.chapter', minDay: 4, after: 'day-three-start', anyOf: [[{ type: 'flag.is', flag: 'day3.started', value: true }]] },
         conditions: [{ type: 'flag.is', flag: 'day3.started', value: true }],
         eventId: 'day-four-awakening',
       });
       expect(active.value.definitions[6]).toMatchObject({
         id: 'day-five-start',
-        source: { type: 'world.day.min', day: 5 },
+        source: { type: 'story.chapter', minDay: 5, after: 'day-four-start', anyOf: [[{ type: 'flag.is', flag: 'day4.started', value: true }]] },
         conditions: [{ type: 'flag.is', flag: 'day4.started', value: true }],
         eventId: 'day-five-awakening',
       });
       expect(active.value.definitions[7]).toMatchObject({
         id: 'day-six-start',
-        source: { type: 'world.day.min', day: 6 },
+        source: { type: 'story.chapter', minDay: 6, after: 'day-five-start', anyOf: [[{ type: 'flag.is', flag: 'day5.started', value: true }]] },
         conditions: [{ type: 'flag.is', flag: 'day5.started', value: true }],
         eventId: 'day-six-awakening',
       });
       expect(active.value.definitions[8]).toMatchObject({
         id: 'day-seven-start',
-        source: { type: 'world.day.min', day: 7 },
+        source: { type: 'story.chapter', minDay: 7, after: 'day-six-start', anyOf: [[{ type: 'flag.is', flag: 'day6.started', value: true }]] },
         conditions: [{ type: 'flag.is', flag: 'day6.started', value: true }],
         eventId: 'day-seven-registry',
       });

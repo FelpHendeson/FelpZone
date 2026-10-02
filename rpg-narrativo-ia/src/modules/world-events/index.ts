@@ -3,6 +3,9 @@ export { WorldEventError } from './errors';
 export { indexWorldTriggerCatalog, inspectWorldTriggerCatalog } from './inspect';
 export {
   consumeWorldTriggersMatchingNarrative,
+  chapterWindow,
+  findPendingChapterTrigger,
+  isChapterKeyResolved,
   isDiscoveryRevealedInWorld,
   isWorldTriggerConsumed,
   listEligibleWorldTriggers,

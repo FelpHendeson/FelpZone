@@ -6,18 +6,22 @@ import { SystemCorners } from './Icon';
 interface GameHudProps {
   characterName: string;
   worldLabel: string;
+  chapterLabel?: string;
   attributes: Attributes;
   onExit: () => void;
 }
 
-export function GameHud({ characterName, worldLabel, attributes, onExit }: GameHudProps) {
+export function GameHud({ characterName, worldLabel, chapterLabel, attributes, onExit }: GameHudProps) {
   const needs = buildNeedsPresentation(attributes);
 
   return (
     <header className="game-hud sys-frame">
       <SystemCorners />
       <div className="game-hud__time">
-        <span>{worldLabel}</span>
+        <span className="game-hud__clock">
+          {chapterLabel ? <strong className="game-hud__chapter">{chapterLabel}</strong> : null}
+          <span>{worldLabel}</span>
+        </span>
         <button type="button" className="icon-button" onClick={onExit} aria-label="Voltar ao menu inicial">
           ☰
         </button>

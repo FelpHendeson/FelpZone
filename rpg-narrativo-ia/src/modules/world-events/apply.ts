@@ -1,3 +1,4 @@
+import { createInitialStoryState, recordChapterOpened } from '../story';
 import { startNarrativeSession } from '../../core/engine/startNarrativeSession';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state';
@@ -22,6 +23,9 @@ export function applyWorldNarrativeTrigger(
 
   return {
     ...opened,
+    ...(trigger.source.type === 'story.chapter'
+      ? { story: recordChapterOpened(opened.story ?? createInitialStoryState(), trigger.id, opened.world.day) }
+      : {}),
     flags: {
       ...opened.flags,
       [worldTriggerConsumedFlag(trigger.id)]: true,
