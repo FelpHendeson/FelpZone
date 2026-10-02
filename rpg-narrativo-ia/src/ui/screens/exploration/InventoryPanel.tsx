@@ -107,13 +107,39 @@ export function InventoryPanel({ view, onAction }: { view: ExplorationView; onAc
               {item.consumable ? (
                 <>
                   <NeedEffectList effects={item.effects} compact />
-                  <button
-                    type="button"
-                    className="button button--compact inventory-grid__consume"
-                    onClick={() => onAction({ type: 'needs.consume', itemId: item.itemId })}
-                  >
-                    Consumir
-                  </button>
+                  {item.portions ? (
+                    <>
+                      {item.portions.remaining < item.portions.perUnit ? (
+                        <small className="inventory-grid__portions">
+                          Aberto: {item.portions.remaining} de {item.portions.perUnit} {item.portions.plural}
+                        </small>
+                      ) : null}
+                      {item.portions.remaining > 1 ? (
+                        <button
+                          type="button"
+                          className="button button--compact inventory-grid__consume"
+                          onClick={() => onAction({ type: 'needs.consume', itemId: item.itemId, portions: 1 })}
+                        >
+                          {item.portions.verb} 1 {item.portions.singular}
+                        </button>
+                      ) : null}
+                      <button
+                        type="button"
+                        className="button button--compact inventory-grid__consume"
+                        onClick={() => onAction({ type: 'needs.consume', itemId: item.itemId })}
+                      >
+                        {item.portions.remaining < item.portions.perUnit ? 'Terminar' : `${item.portions.verb} tudo`}
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className="button button--compact inventory-grid__consume"
+                      onClick={() => onAction({ type: 'needs.consume', itemId: item.itemId })}
+                    >
+                      Consumir
+                    </button>
+                  )}
                 </>
               ) : null}
               {item.canEquip ? (

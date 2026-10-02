@@ -9,7 +9,7 @@ import { attemptSandboxAction, resolveWorldNarrativeState } from '../ui/sandbox'
 import { now } from './helpers';
 import { SCHEMA_VERSION, SCHEMA_VERSION_V27 } from '../core/state';
 import { findPendingChapterTrigger, inspectWorldTriggerCatalog } from '../modules/world-events';
-import { periodsUntilNextDawn } from '../modules/sandbox-actions';
+import { minutesUntilNextDawn } from '../modules/sandbox-actions';
 
 const world = loadFirstDayWorld();
 const campaign = world.campaign;
@@ -49,17 +49,20 @@ function beginDayTwoAlone(): GameState {
     type: 'presence.interact', presenceId: 'mira-awakening-clearing',
     interactionId: 'avoid-mira-awakening-clearing',
   });
-  state = act(state, { type: 'exploration.explore' });
+  // Cada ação consome minutos: o jogador descansa até a noite chegar.
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   expect(state.narrativeSession?.eventId).toBe('first-night');
   state = choose(state, 'assess-first-night');
   state = choose(state, 'walk-away');
   state = choose(state, 'alone-summary');
-  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   expect(state.narrativeSession?.eventId).toBe('day-two-awakening');
   state = choose(state, 'day-two-assess');
   expect(state.narrativeSession?.eventId).toBe('day-two-alone');
   state = choose(state, 'day-two-alone-continue');
-  expect(state.world).toEqual({ day: 2, period: 'manha' });
+  expect(state.world).toEqual({ day: 2, period: 'alvorecer', minute: 300 });
   expect(state.flags['day2.started']).toBe(true);
   expect(state.flags['camp.alone']).toBe(true);
   expect(state.flags['mira.contact.avoided']).toBe(true);
@@ -132,11 +135,26 @@ describe('Capítulos por ação', () => {
     expect(state.narrativeSession?.eventId).toBe('day-four-awakening');
   }, 30_000);
 
-  it('dormir até o amanhecer custa exatamente os períodos que faltam', () => {
-    expect(periodsUntilNextDawn('alvorecer')).toBe(6);
-    expect(periodsUntilNextDawn('noite')).toBe(1);
-    expect(periodsUntilNextDawn('manha')).toBe(5);
+  it('dormir até o amanhecer custa exatamente os minutos que faltam até as 05:00', () => {
+    expect(minutesUntilNextDawn({ day: 1, period: 'alvorecer', minute: 300 })).toBe(24 * 60);
+    expect(minutesUntilNextDawn({ day: 1, period: 'noite', minute: 21 * 60 + 30 })).toBe(7 * 60 + 30);
+    expect(minutesUntilNextDawn({ day: 2, period: 'madrugada', minute: 60 })).toBe(4 * 60);
+    expect(minutesUntilNextDawn({ day: 1, period: 'manha' })).toBe(22 * 60);
   });
+
+  it('a virada da meia-noite não abre capítulo: ele espera o amanhecer', () => {
+    let state = meetCaioAndDecide();
+    const minutesToMidnight = 24 * 60 - (state.world.minute ?? 0);
+    state = { ...state, world: { day: 3, period: 'madrugada', minute: 30 } };
+    expect(minutesToMidnight).toBeGreaterThan(0);
+    expect(findPendingChapterTrigger(world.worldTriggers, state)?.id).toBe('day-three-start');
+    const rested = act(state, { type: 'needs.rest', mode: 'simple' });
+    expect(rested.world).toMatchObject({ day: 3, period: 'madrugada' });
+    expect(rested.narrativeSession).toBeNull();
+    const dawn = act(rested, { type: 'needs.rest', mode: 'simple', untilDawn: true });
+    expect(dawn.world).toMatchObject({ day: 3, period: 'alvorecer', minute: 300 });
+    expect(dawn.narrativeSession?.eventId).toBe('day-three-awakening');
+  }, 30_000);
 
   it('valida o formato do capítulo na borda do pack', () => {
     const base = { id: 'x', campaignId: campaign.id, eventId: 'day-three-awakening' };

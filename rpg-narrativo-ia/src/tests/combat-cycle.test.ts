@@ -66,8 +66,8 @@ describe('Fatia 12.12 — ciclo de combate ponta a ponta', () => {
     const resolution = buildCombatResolution(terminal, getEncounter(INITIAL_COMBAT, 'clearing-predator'));
     const result = executeSandboxAction(state, { type: 'combat.resolve', resolution }, { now });
 
-    expect(result.timeCost.periods).toBe(1);
-    expect(result.needsWear.periodsApplied).toBe(1);
+    expect(result.timeCost.minutes).toBe(15);
+    expect(result.needsWear.minutesApplied).toBe(15);
     expect(result.current.attributes.saude).toBe(terminal.player.health);
     expect(result.current.attributes.saude).toBeLessThanOrEqual(saudeAntes);
     expect(result.current.attributes.cautela).toBe(cautelaAntes + 2);

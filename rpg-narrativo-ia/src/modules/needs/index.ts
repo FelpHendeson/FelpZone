@@ -1,4 +1,4 @@
-import { inspectTimeCost } from '../time';
+import { MAX_ADVANCE_MINUTES, NOMINAL_PERIOD_MINUTES, copyTimeCost, inspectTimeCost, isTimeCostPositive, sameTimeCost, type TimeCost } from '../time';
 import { DEFAULT_CONSUMABLES, DEFAULT_NEEDS_DECAY, DEFAULT_REST_MODES, INITIAL_NEEDS_SNAPSHOT } from './catalogs';
 import { ImmutableIndex } from './immutable-index';
 import {
@@ -7,6 +7,7 @@ import {
   NeedsError,
   type AppliedNeedEffect,
   type ConsumableDefinition,
+  type ConsumptionPortion,
   type IndexedConsumables,
   type IndexedRestModes,
   type NeedBand,
@@ -34,6 +35,7 @@ export {
 export type {
   AppliedNeedEffect,
   ConsumableDefinition,
+  ConsumptionPortion,
   IndexedConsumables,
   IndexedRestModes,
   NeedBand,
@@ -183,6 +185,76 @@ export function applyNeedsWear(
   };
 }
 
+/**
+ * Desgaste proporcional ao tempo real da ação. As taxas do catálogo valem por
+ * `NOMINAL_PERIOD_MINUTES` (4 h); cada minuto aplica a fração acumulada calculada
+ * sobre o minuto absoluto da partida, então dividir uma ação em partes dá o mesmo total.
+ */
+export function applyNeedsWearOverMinutes(
+  snapshot: NeedsSnapshot,
+  startAbsoluteMinute: number,
+  minutes: number,
+  periodsApplied = 0,
+  config: NeedsDecayConfig = DEFAULT_NEEDS_DECAY,
+): NeedsWearResult {
+  const previous = requireSnapshot(snapshot);
+  const resolvedConfig = requireDecayConfig(config);
+  if (!Number.isSafeInteger(startAbsoluteMinute) || startAbsoluteMinute < 0) {
+    throw new NeedsError('O minuto inicial do desgaste é inválido.');
+  }
+  if (!Number.isSafeInteger(minutes) || minutes < 0 || minutes > MAX_ADVANCE_MINUTES) {
+    throw new NeedsError('A duração do desgaste é inválida.');
+  }
+  const current = copySnapshot(previous);
+  const criticalPeriods = { fome: 0, sede: 0, energia: 0 };
+  let requestedHealthDamage = 0;
+  const tick = (rate: number, minute: number) =>
+    Math.floor((rate * (minute + 1)) / NOMINAL_PERIOD_MINUTES) - Math.floor((rate * minute) / NOMINAL_PERIOD_MINUTES);
+
+  for (let offset = 0; offset < minutes; offset += 1) {
+    const minute = startAbsoluteMinute + offset;
+    current.fome = clampNeed(current.fome + tick(resolvedConfig.hungerPerPeriod, minute));
+    current.sede = clampNeed(current.sede + tick(resolvedConfig.thirstPerPeriod, minute));
+    current.energia = clampNeed(current.energia - tick(resolvedConfig.energyLossPerPeriod, minute));
+
+    let damage = 0;
+    if (current.fome === 100) {
+      const amount = tick(resolvedConfig.healthLossAtMaxHunger, minute);
+      if (amount > 0) criticalPeriods.fome += 1;
+      damage += amount;
+    }
+    if (current.sede === 100) {
+      const amount = tick(resolvedConfig.healthLossAtMaxThirst, minute);
+      if (amount > 0) criticalPeriods.sede += 1;
+      damage += amount;
+    }
+    if (current.energia === 0) {
+      const amount = tick(resolvedConfig.healthLossAtZeroEnergy, minute);
+      if (amount > 0) criticalPeriods.energia += 1;
+      damage += amount;
+    }
+    if (damage > 0) {
+      requestedHealthDamage += damage;
+      if (current.saude >= resolvedConfig.minimumHealthFromNeeds) {
+        current.saude = Math.max(resolvedConfig.minimumHealthFromNeeds, current.saude - damage);
+      }
+    }
+  }
+
+  return {
+    previous: copySnapshot(previous),
+    current,
+    summary: {
+      periodsApplied,
+      minutesApplied: minutes,
+      changes: getDelta(previous, current),
+      criticalPeriods,
+      requestedHealthDamage,
+      appliedHealthDamage: Math.max(0, previous.saude - current.saude),
+    },
+  };
+}
+
 export function inspectConsumableCatalog(value: unknown): NeedsInspection<IndexedConsumables> {
   if (!Array.isArray(value)) {
     return fail('O catálogo de consumíveis é inválido.');
@@ -226,6 +298,7 @@ export function planNeedsConsumption(
   snapshot: NeedsSnapshot,
   itemId: string,
   catalog: IndexedConsumables = INITIAL_CONSUMABLES,
+  options: { portion?: ConsumptionPortion; minutesPerUnit?: number } = {},
 ): NeedsConsumptionPlan {
   const previous = requireSnapshot(snapshot);
   const indexed = requireConsumableIndex(catalog);
@@ -239,16 +312,47 @@ export function planNeedsConsumption(
     throw new NeedsError('Este item não é consumível.');
   }
 
-  const applied = applyEffects(previous, consumable.effects);
+  const portion = options.portion ? requirePortion(options.portion) : undefined;
+  const effects = portion
+    ? consumable.effects
+        .map((effect) => ({ needId: effect.needId, amount: shareOf(effect.amount, portion) }))
+        .filter((effect) => effect.amount !== 0)
+    : consumable.effects.map(copyEffect);
+  const applied = applyEffects(previous, effects);
+  const minutes = options.minutesPerUnit === undefined
+    ? undefined
+    : Math.max(1, portion ? shareOf(options.minutesPerUnit, portion) : options.minutesPerUnit);
   return {
     previous: copySnapshot(previous),
     current: applied.current,
     itemId: consumable.itemId,
     quantity: 1,
-    effects: consumable.effects.map(copyEffect),
+    effects,
     appliedEffects: applied.appliedEffects,
-    timeCost: { periods: 0 },
+    timeCost: minutes === undefined ? { periods: 0 } : { periods: 0, minutes },
+    ...(portion ? { portion: { ...portion } } : {}),
   };
+}
+
+/**
+ * Parte inteira de `total` correspondente às porções `from`..`to` de `of`. Somar as partes
+ * de uma unidade inteira devolve exatamente `total`, então comer aos poucos não perde nada.
+ */
+export function shareOf(total: number, portion: ConsumptionPortion): number {
+  const sign = total < 0 ? -1 : 1;
+  const magnitude = Math.abs(total);
+  return sign * (Math.floor((magnitude * portion.to) / portion.of) - Math.floor((magnitude * portion.from) / portion.of));
+}
+
+function requirePortion(portion: ConsumptionPortion): ConsumptionPortion {
+  const valid =
+    Number.isSafeInteger(portion.of) && portion.of >= 1 &&
+    Number.isSafeInteger(portion.from) && portion.from >= 0 &&
+    Number.isSafeInteger(portion.to) && portion.to > portion.from && portion.to <= portion.of;
+  if (!valid) {
+    throw new NeedsError('A porção consumida é inválida.');
+  }
+  return { from: portion.from, to: portion.to, of: portion.of };
 }
 
 export function inspectRestCatalog(value: unknown): NeedsInspection<IndexedRestModes> {
@@ -273,7 +377,7 @@ export function inspectRestCatalog(value: unknown): NeedsInspection<IndexedRestM
     }
 
     const timeCost = inspectTimeCost(entry.timeCost);
-    if (!timeCost.ok || timeCost.value.periods <= 0) {
+    if (!timeCost.ok || !isTimeCostPositive(timeCost.value)) {
       return fail('O custo do repouso precisa ser um inteiro positivo válido.');
     }
 
@@ -281,7 +385,7 @@ export function inspectRestCatalog(value: unknown): NeedsInspection<IndexedRestM
     restModes.push(freezeRestDefinition({
       id: entry.id,
       effects: effects.value,
-      timeCost: { periods: timeCost.value.periods },
+      timeCost: copyTimeCost(timeCost.value),
     }));
   }
 
@@ -326,7 +430,7 @@ export function planNeedsRest(
     mode: rest.id,
     effects: rest.effects.map(copyEffect),
     appliedEffects: applied.appliedEffects,
-    timeCost: { periods: rest.timeCost.periods },
+    timeCost: copyTimeCost(rest.timeCost),
   };
 }
 
@@ -485,7 +589,7 @@ function freezeRestDefinition(definition: RestDefinition): Readonly<RestDefiniti
   return Object.freeze({
     id: definition.id,
     effects: Object.freeze(definition.effects.map((effect) => Object.freeze(copyEffect(effect)))),
-    timeCost: Object.freeze({ periods: definition.timeCost.periods }),
+    timeCost: Object.freeze(copyTimeCost(definition.timeCost)),
   });
 }
 
@@ -521,7 +625,7 @@ function sameRestDefinition(left: Readonly<RestDefinition>, right: unknown): boo
     right.id === left.id &&
     sameEffects(left.effects, right.effects) &&
     isRecord(right.timeCost) &&
-    right.timeCost.periods === left.timeCost.periods
+    sameTimeCost(right.timeCost as unknown as TimeCost, left.timeCost)
   );
 }
 

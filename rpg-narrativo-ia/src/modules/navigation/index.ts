@@ -1,3 +1,4 @@
+import { copyTimeCost } from '../time';
 import { evaluateConditions, inspectImageReference, type GameCondition, type ImageReference } from '../../core/events';
 import { isAttributeId, type GameState } from '../../core/state/types';
 import { inspectTimeCost, type TimeCost } from '../time';
@@ -608,7 +609,7 @@ function readTravelCost(location: LocationNode): TimeCost {
     throw new NavigationError('A localização possui custo de viagem inválido.');
   }
 
-  return { periods: inspected.value.periods };
+  return copyTimeCost(inspected.value);
 }
 
 function readUniqueExistingIds(value: unknown, map: IndexedMap): NavigationInspection<string[]> {

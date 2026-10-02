@@ -47,17 +47,19 @@ function beginDayTwoAlone(): GameState {
     type: 'presence.interact', presenceId: 'mira-awakening-clearing',
     interactionId: 'avoid-mira-awakening-clearing',
   });
-  state = act(state, { type: 'exploration.explore' });
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   expect(state.narrativeSession?.eventId).toBe('first-night');
   state = choose(state, 'assess-first-night');
   state = choose(state, 'walk-away');
   state = choose(state, 'alone-summary');
-  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   expect(state.narrativeSession?.eventId).toBe('day-two-awakening');
   state = choose(state, 'day-two-assess');
   expect(state.narrativeSession?.eventId).toBe('day-two-alone');
   state = choose(state, 'day-two-alone-continue');
-  expect(state.world).toEqual({ day: 2, period: 'manha' });
+  expect(state.world).toEqual({ day: 2, period: 'alvorecer', minute: 300 });
   expect(state.flags['day2.started']).toBe(true);
   expect(state.flags['camp.alone']).toBe(true);
   expect(state.flags['mira.contact.avoided']).toBe(true);
@@ -81,7 +83,7 @@ function followDayTwoTracksToBank(state: GameState): GameState {
 
 function continueIntoDayThree(state: GameState, expectedEventId: string, choiceId: string): GameState {
   for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   }
   const chapterDay = state.world.day;
   expect(chapterDay).toBe(expectedEventId === 'day-three-solo' ? 5 : 3);
@@ -117,6 +119,10 @@ describe('Fatia G — playtest integrado do Dia 2', () => {
     expect(getObjectiveStatus(world.objectives, state.objectives, 'day-two-others')).toBe('completed');
 
     state = act(state, { type: 'navigation.move', locationId: 'spring-lake' });
+    // Caio só vem à Nascente à tarde: o jogador espera por ele.
+    while (state.world.period !== 'tarde') {
+      state = act(state, { type: 'needs.rest', mode: 'simple' });
+    }
     state = act(state, {
       type: 'activity.perform', activityId: 'discuss-water-with-caio', optionalParticipantIds: [],
     });
@@ -126,8 +132,6 @@ describe('Fatia G — playtest integrado do Dia 2', () => {
     state = act(state, { type: 'resource.collect', nodeId: 'spring', units: 1 });
     expect(state.inventory.find((entry) => entry.itemId === 'raw-water')?.quantity).toBe(1);
     expect(getObjectiveStatus(world.objectives, state.objectives, 'more-than-one-mouth')).toBe('completed');
-    expect(state.world.period).toBe('noite');
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
     state = continueIntoDayThree(state, 'day-three-cooperation', 'day-three-cooperation-continue');
     expect(state.flags['day2.davi.escorted']).toBe(true);
     expect(state.flags['day2.water.position.shared']).toBe(true);
@@ -155,8 +159,7 @@ describe('Fatia G — playtest integrado do Dia 2', () => {
     }
     state = act(state, { type: 'navigation.move', locationId: 'awakening-clearing' });
     state = act(state, { type: 'training.train', methodId: 'focused-perception-drill' });
-    expect(state.world.period).toBe('noite');
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    expect(state.world.day).toBe(2);
     state = continueIntoDayThree(state, 'day-three-distance', 'day-three-distance-continue');
     expect(state.flags['day2.survivors.contact']).not.toBe(true);
     expect(state.flags['day2.survivors.avoided']).toBe(true);
@@ -166,19 +169,15 @@ describe('Fatia G — playtest integrado do Dia 2', () => {
 
   it('não visita a Nascente nem encontra Caio e Davi: o capítulo 3 espera e só abre pela saída de segurança', () => {
     let state = beginDayTwoAlone();
-    for (let count = 0; count < 2; count += 1) {
-      state = act(state, { type: 'needs.rest', mode: 'simple' });
-    }
-    expect(state.world).toEqual({ day: 2, period: 'noite' });
     // Sem decidir nada sobre os sobreviventes, o Dia 3 chega mas o capítulo 3 não abre.
     for (let guard = 0; state.world.day < 4 && guard < 10; guard += 1) {
-      state = act(state, { type: 'needs.rest', mode: 'simple' });
+      state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     }
     expect(state.narrativeSession).toBeNull();
     expect(state.world.day).toBe(4);
     // A saída de segurança abre o capítulo 3 três dias depois de o capítulo 2 abrir (Dia 5).
     for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-      state = act(state, { type: 'needs.rest', mode: 'simple' });
+      state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     }
     expect(state.world.day).toBe(5);
     state = continueIntoDayThree(state, 'day-three-solo', 'day-three-solo-continue');

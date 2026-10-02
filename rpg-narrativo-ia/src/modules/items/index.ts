@@ -9,6 +9,8 @@ import {
   CONSUMABLE_USE_TYPES,
   EQUIPMENT_SLOTS,
   ITEM_KINDS,
+  MAX_CONSUME_MINUTES,
+  MAX_PORTIONS,
   PREPARATION_SLOT_COUNT,
   RESTORABLE_NEEDS,
   type CatalogItemDefinition,
@@ -27,6 +29,7 @@ export { INITIAL_ITEMS_CATALOG } from './initial-items';
 export {
   COMBAT_VALUE_TARGETS,
   CONSUMABLE_USE_TYPES,
+  DEFAULT_CONSUME_MINUTES,
   EQUIPMENT_SLOTS,
   ITEM_KINDS,
   PREPARATION_SLOT_COUNT,
@@ -48,6 +51,7 @@ export type {
   ItemsInspection,
   ItemsState,
   MaterialDefinition,
+  NeedRestoreUse,
   PreparationSlotState,
   PreparationState,
   RestorableNeed,
@@ -442,7 +446,22 @@ function inspectUse(value: unknown): ItemsInspection<ConsumableUseDefinition> {
   if (!includes(RESTORABLE_NEEDS, value.need) || !positiveSafeInteger(value.amount) || value.amount > 100) {
     return fail('A restauração do consumível é inválida.');
   }
-  return { ok: true, value: { type: 'need.restore', need: value.need, amount: value.amount } };
+  if (value.minutes !== undefined && (!positiveSafeInteger(value.minutes) || value.minutes > MAX_CONSUME_MINUTES)) {
+    return fail('A duração do consumo é inválida.');
+  }
+  if (value.portions !== undefined && (!positiveSafeInteger(value.portions) || value.portions > MAX_PORTIONS)) {
+    return fail('As porções do consumível são inválidas.');
+  }
+  return {
+    ok: true,
+    value: {
+      type: 'need.restore',
+      need: value.need,
+      amount: value.amount,
+      ...(value.minutes !== undefined ? { minutes: value.minutes } : {}),
+      ...(value.portions !== undefined ? { portions: value.portions } : {}),
+    },
+  };
 }
 
 function inspectTags(value: unknown): ItemsInspection<string[]> {

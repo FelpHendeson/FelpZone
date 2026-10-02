@@ -8,6 +8,7 @@ export interface PeriodPhaseDefinition {
 }
 
 export const DEFAULT_PERIOD_PHASES = [
+  { periodId: 'madrugada', phase: 'night' },
   { periodId: 'alvorecer', phase: 'twilight' },
   { periodId: 'manha', phase: 'daylight' },
   { periodId: 'meio-dia', phase: 'daylight' },

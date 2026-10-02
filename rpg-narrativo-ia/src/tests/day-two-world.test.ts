@@ -69,7 +69,7 @@ function offerHelpToDavi(flags: Record<string, boolean> = {}): GameState {
 
 function advanceToDayThree(state: GameState): GameState {
   for (let attempt = 0; attempt < 8 && state.world.day < 3; attempt += 1) {
-    const rested = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple' }, options).current;
+    const rested = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple', untilDawn: true }, options).current;
     state = resolveWorldNarrativeState(rested, context, world.campaign, world.worldTriggers.definitions).current;
   }
   return state;
@@ -218,7 +218,7 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
 
   it('acompanha Davi com Caio, cobra um período, reloca o NPC e abre a chegada antes de outros gatilhos', () => {
     const state = offerHelpToDavi();
-    expect(state.world).toEqual({ day: 2, period: 'manha' });
+    expect(state.world).toMatchObject({ day: 2, period: 'alvorecer' });
 
     const result = executeSandboxAction(state, {
       type: 'activity.perform',
@@ -226,8 +226,8 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
       optionalParticipantIds: ['caio-nascimento'],
     }, options);
 
-    expect(result.timeCost.periods).toBe(1);
-    expect(result.current.world).toEqual({ day: 2, period: 'meio-dia' });
+    expect(result.timeCost.minutes).toBe(90);
+    expect(result.current.world.minute! - (state.world.minute ?? 0)).toBe(90);
     expect(result.detail).toMatchObject({
       type: 'activity.perform',
       plan: { participantNpcIds: ['davi-moura', 'caio-nascimento'] },
@@ -236,7 +236,7 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
     expect(result.current.activities.consumedActivityIds).toContain('escort-davi-to-clearing');
     expect(result.current.flags['day2.davi.escorted']).toBe(true);
     expect(result.current.guidance.unlockedTopicIds).toContain('contextual-activities');
-    expect(deriveNpcAt(world.npcs, result.current.sandbox.npcs, 'davi-moura', 'meio-dia', () => true)?.locationId)
+    expect(deriveNpcAt(world.npcs, result.current.sandbox.npcs, 'davi-moura', result.current.world.period, () => true)?.locationId)
       .toBe('awakening-clearing');
 
     const settled = choose(result.current, 'help-davi-settle');
@@ -297,6 +297,10 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
     }, options)).toThrow('requisitos');
     state = executeSandboxAction(state, { type: 'resource.collect', nodeId: 'spring', units: 1 }, options).current;
     state = executeSandboxAction(state, { type: 'resource.collect', nodeId: 'spring', units: 1 }, options).current;
+    // Caio só chega à Nascente à tarde: o jogador espera descansando.
+    while (state.world.period !== 'tarde') {
+      state = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple' }, options).current;
+    }
     expect(state.world.period).toBe('tarde');
     expect(deriveNpcAt(world.npcs, state.sandbox.npcs, 'caio-nascimento', state.world.period,
       (locationId) => state.sandbox.navigation.discoveredLocationIds.includes(locationId))?.locationId)
@@ -308,7 +312,8 @@ describe('Dia 2 — Fatia B: mundo e sobreviventes', () => {
       type: 'activity.perform', activityId: 'discuss-water-with-caio', optionalParticipantIds: [],
     }, options);
     expect(conversation.current.narrativeSession?.eventId).toBe('water-question');
-    expect(conversation.current.world.period).toBe('entardecer');
+    expect(conversation.current.world.period).toBe('tarde');
+    expect(conversation.timeCost.minutes).toBe(30);
     expect(conversation.current.inventory.find((entry) => entry.itemId === 'raw-water')?.quantity).toBe(waterBefore);
     expect(conversation.current.sandbox.npcs.entries.find((entry) => entry.npcId === 'caio-nascimento')?.memoryFactIds)
       .toContain('caio-water-question-raised');

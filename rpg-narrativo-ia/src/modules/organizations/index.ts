@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import type { GameState } from '../../core/state/types';
 import { OrganizationError } from './errors';
 import { ImmutableIndex } from './immutable-index';
@@ -195,7 +196,7 @@ export function planOrganizationAction(
   assertEffectsExecutable(catalog, state, action.effects, gameState);
   return {
     actionId: action.id,
-    timeCost: { periods: action.timeCost.periods },
+    timeCost: copyTimeCost(action.timeCost),
     feedback: action.feedback,
     effects: action.effects,
   };
@@ -479,9 +480,7 @@ function inspectAction(
     !nonEmpty(value.label) ||
     !nonEmpty(value.hint) ||
     (value.npcId !== undefined && !nonEmpty(value.npcId)) ||
-    !isRecord(value.timeCost) ||
-    !Number.isInteger(value.timeCost.periods) ||
-    (value.timeCost.periods as number) < 0 ||
+    readTimeCost(value.timeCost) === null ||
     typeof value.once !== 'boolean' ||
     !Array.isArray(value.requirements) ||
     !Array.isArray(value.effects) ||
@@ -513,7 +512,7 @@ function inspectAction(
       label: value.label,
       hint: value.hint,
       ...(typeof value.npcId === 'string' ? { npcId: value.npcId } : {}),
-      timeCost: { periods: value.timeCost.periods as number },
+      timeCost: readTimeCost(value.timeCost)!,
       once: value.once,
       requirements,
       effects,

@@ -156,7 +156,7 @@
       "name": "Predador Arisco",
       "description": "Uma criatura esguia rosna entre a vegetação, medindo se você é presa ou ameaça.",
       "timeCost": {
-        "periods": 1
+        "minutes": 15
       },
       "requiredDiscoveryIds": [
         "wary-predator-tracks"
@@ -175,7 +175,7 @@
       "name": "Predadores da Clareira",
       "description": "Dois predadores flanqueiam o grupo. Mira só entra neste confronto se estiver ativa na companhia.",
       "timeCost": {
-        "periods": 1
+        "minutes": 25
       },
       "requiredDiscoveryIds": [
         "wary-predator-tracks"

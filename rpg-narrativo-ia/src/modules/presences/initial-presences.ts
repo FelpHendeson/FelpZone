@@ -2,5 +2,5 @@ import catalog from '../../../content/first-day/world/presences.json' with { typ
 import interactions from '../../../content/first-day/world/presence-interactions.json' with { type: 'json' };
 import type { PresenceCatalog, PresenceInteractionCatalog } from './types';
 
-export const INITIAL_PRESENCE_CATALOG = catalog as PresenceCatalog;
-export const INITIAL_PRESENCE_INTERACTIONS = interactions as PresenceInteractionCatalog;
+export const INITIAL_PRESENCE_CATALOG = catalog as unknown as PresenceCatalog;
+export const INITIAL_PRESENCE_INTERACTIONS = interactions as unknown as PresenceInteractionCatalog;

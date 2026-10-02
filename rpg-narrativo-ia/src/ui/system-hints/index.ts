@@ -1,7 +1,8 @@
 import type { GameState } from '../../core/state';
 import type { NeedId } from '../../modules/needs';
 import type { SandboxAction } from '../../modules/sandbox-actions';
-import { periodsUntilNextDawn } from '../../modules/sandbox-actions';
+import { minutesUntilNextDawn } from '../../modules/sandbox-actions';
+import { formatDuration } from '../clock';
 import { findPendingChapterTrigger, isWorldTriggerConsumed, type IndexedWorldTriggers } from '../../modules/world-events';
 import type { JournalView } from '../journal/model';
 import { currentChapter, type ExplorationView } from '../sandbox';
@@ -73,7 +74,7 @@ export function deriveSystemHints(input: {
       detail: 'A cena-chave foi resolvida. Durma até o amanhecer para começar o próximo capítulo — ou aproveite o resto do dia antes.',
       action: {
         kind: 'sandbox',
-        label: `Dormir até o amanhecer (${periodsUntilNextDawn(state.world.period)} período${periodsUntilNextDawn(state.world.period) === 1 ? '' : 's'})`,
+        label: `Dormir até o amanhecer (${formatDuration(minutesUntilNextDawn(state.world))})`,
         action: { type: 'needs.rest', mode: view.rest.mode, untilDawn: true },
       },
     });

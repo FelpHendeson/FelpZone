@@ -1,3 +1,4 @@
+import { readTimeCost } from '../time';
 import { isApplicationField, isEnergyKind } from '../energetics';
 import {
   DEFAULT_ACTION_PHASES,
@@ -341,7 +342,7 @@ function inspectEncounter(
   if (!nonEmpty(value.opponentId) || !combatantIds.has(value.opponentId)) {
     return fail('O encontro referencia um combatente inexistente.');
   }
-  if (!isRecord(value.timeCost) || !positiveSafeInteger(value.timeCost.periods)) {
+  if (readTimeCost(value.timeCost, { positive: true }) === null) {
     return fail('O custo temporal do encontro é inválido.');
   }
   const requirements = inspectRequiredDiscoveries(value.requiredDiscoveryIds);
@@ -369,7 +370,7 @@ function inspectEncounter(
       opponentId: value.opponentId,
       name: value.name,
       description: value.description,
-      timeCost: { periods: value.timeCost.periods },
+      timeCost: readTimeCost(value.timeCost)!,
       requiredDiscoveryIds: requirements.value,
       ...(additional.value.length > 0 ? { additionalOpponentIds: additional.value } : {}),
       ...(nonEmpty(value.requiredOrganizationId) ? { requiredOrganizationId: value.requiredOrganizationId } : {}),

@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import type { GameState } from '../../core/state/types';
 import { itemQuantity } from '../inventory';
 import { EconomyError } from './errors';
@@ -270,7 +271,7 @@ export function planEconomyAction(
   assertEffectsExecutable(catalog, state, action.effects, gameState);
   return {
     actionId: action.id,
-    timeCost: { periods: action.timeCost.periods },
+    timeCost: copyTimeCost(action.timeCost),
     feedback: action.feedback,
     effects: action.effects,
   };
@@ -357,10 +358,7 @@ function inspectAction(
     seen.has(value.id) ||
     !nonEmpty(value.label) ||
     !nonEmpty(value.hint) ||
-    !isRecord(value.timeCost) ||
-    typeof value.timeCost.periods !== 'number' ||
-    !Number.isSafeInteger(value.timeCost.periods) ||
-    value.timeCost.periods < 0 ||
+    readTimeCost(value.timeCost) === null ||
     typeof value.once !== 'boolean' ||
     !Array.isArray(value.requirements) ||
     !Array.isArray(value.effects) ||
@@ -401,7 +399,7 @@ function inspectAction(
       label: value.label,
       hint: value.hint,
       ...(value.npcId ? { npcId: value.npcId } : {}),
-      timeCost: { periods: value.timeCost.periods },
+      timeCost: readTimeCost(value.timeCost)!,
       once: value.once,
       requirements: Object.freeze(requirements),
       effects: Object.freeze(effects),

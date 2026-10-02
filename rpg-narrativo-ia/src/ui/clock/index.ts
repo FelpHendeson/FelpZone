@@ -1,34 +1,21 @@
-import type { DayPeriod } from '../../core/state';
-import { DEFAULT_PERIODS } from '../../modules/time';
+import type { WorldState } from '../../core/state';
+import {
+  DEFAULT_PERIODS,
+  MINUTES_PER_DAY,
+  PERIOD_START_MINUTES,
+  resolveCostMinutes,
+  type TimeCost,
+} from '../../modules/time';
+import { worldMinute } from '../../modules/world';
 
 /**
- * Relógio só de exibição (decisão do autor): o motor continua contando períodos; cada período
- * ganha uma faixa de horário canônica e a interface mostra horas e duração das ações.
+ * Exibição do relógio canônico do motor (minuto do dia). A preferência 24h/12h é do aparelho;
+ * o motor nunca depende dela.
  */
 export type ClockFormat = '24h' | '12h';
 
-const DAY_MINUTES = 24 * 60;
-
-/** Início de cada período, em minutos desde 00:00. A Noite vai até 04:59 do dia seguinte. */
-export const PERIOD_START_MINUTES: Readonly<Record<DayPeriod, number>> = {
-  alvorecer: 5 * 60,
-  manha: 7 * 60,
-  'meio-dia': 11 * 60,
-  tarde: 14 * 60,
-  entardecer: 17 * 60,
-  noite: 19 * 60,
-};
-
-const ORDER: readonly DayPeriod[] = ['alvorecer', 'manha', 'meio-dia', 'tarde', 'entardecer', 'noite'];
-
-export function periodLengthMinutes(period: DayPeriod): number {
-  const index = ORDER.indexOf(period);
-  const next = ORDER[(index + 1) % ORDER.length]!;
-  return (PERIOD_START_MINUTES[next] - PERIOD_START_MINUTES[period] + DAY_MINUTES) % DAY_MINUTES;
-}
-
 export function formatClock(minutes: number, format: ClockFormat): string {
-  const normalized = ((minutes % DAY_MINUTES) + DAY_MINUTES) % DAY_MINUTES;
+  const normalized = ((minutes % MINUTES_PER_DAY) + MINUTES_PER_DAY) % MINUTES_PER_DAY;
   const hours = Math.floor(normalized / 60);
   const mins = String(normalized % 60).padStart(2, '0');
   if (format === '24h') return `${String(hours).padStart(2, '0')}:${mins}`;
@@ -37,29 +24,35 @@ export function formatClock(minutes: number, format: ClockFormat): string {
   return `${twelve}:${mins} ${suffix}`;
 }
 
-/** Duração de um custo em períodos a partir do período atual (do início dele ao início do período de chegada). */
-export function durationOf(periods: number, from: DayPeriod): { minutes: number; arrivesAt: number } {
-  let minutes = 0;
-  let index = ORDER.indexOf(from);
-  for (let step = 0; step < periods; step += 1) {
-    minutes += periodLengthMinutes(ORDER[index]!);
-    index = (index + 1) % ORDER.length;
-  }
-  return { minutes, arrivesAt: PERIOD_START_MINUTES[from] + minutes };
-}
-
 export function formatDuration(minutes: number): string {
-  if (minutes <= 0) return 'alguns minutos';
+  if (minutes <= 0) return 'instantâneo';
   const hours = Math.floor(minutes / 60);
   const rest = minutes % 60;
   if (hours === 0) return `${rest} min`;
   return rest === 0 ? `${hours} h` : `${hours} h ${rest} min`;
 }
 
-export function describeCost(periods: number, from: DayPeriod, format: ClockFormat): string {
-  if (periods <= 0) return 'alguns minutos';
-  const { minutes, arrivesAt } = durationOf(periods, from);
-  return `${formatDuration(minutes)} · até ${formatClock(arrivesAt, format)}`;
+/** Duração concreta do custo a partir do horário do mundo, e o minuto absoluto do dia de chegada. */
+export function durationFrom(cost: TimeCost, world: WorldState): { minutes: number; arrivesAt: number } {
+  const start = worldMinute(world);
+  const minutes = resolveCostMinutes(cost, { day: world.day, minute: start });
+  return { minutes, arrivesAt: start + minutes };
+}
+
+/** "30 min · até 07:30" — com o horário de chegada; "instantâneo" quando não consome tempo. */
+export function describeCost(cost: TimeCost, world: WorldState, format: ClockFormat): string {
+  const { minutes, arrivesAt } = durationFrom(cost, world);
+  if (minutes <= 0) return 'instantâneo';
+  const night = crossesNightfall(worldMinute(world), minutes) ? ' · entra na noite' : '';
+  return `${formatDuration(minutes)} · até ${formatClock(arrivesAt, format)}${night}`;
+}
+
+/** A ação começa antes das 19:00 e termina depois dela (avisa antes de o jogador escurecer o dia). */
+export function crossesNightfall(startMinute: number, minutes: number): boolean {
+  const nightfall = PERIOD_START_MINUTES.noite;
+  const untilNightfall = startMinute < nightfall ? nightfall - startMinute : MINUTES_PER_DAY - startMinute + nightfall;
+  const startsAtNight = startMinute >= nightfall || startMinute < PERIOD_START_MINUTES.alvorecer;
+  return !startsAtNight && minutes >= untilNightfall;
 }
 
 // --- Preferência e contexto de exibição -------------------------------------------------------
@@ -82,19 +75,22 @@ export function writeClockFormat(format: ClockFormat): void {
   }
 }
 
-let current: { period: DayPeriod | null; format: ClockFormat } = { period: null, format: '24h' };
+let current: { world: WorldState | null; format: ClockFormat } = { world: null, format: '24h' };
 
 /** Definido pela tela de jogo a cada renderização, antes dos filhos, para os rótulos de custo. */
-export function setClockContext(period: DayPeriod | null, format: ClockFormat): void {
-  current = { period, format };
+export function setClockContext(world: WorldState | null, format: ClockFormat): void {
+  current = { world, format };
 }
 
-export function getClockContext(): { period: DayPeriod | null; format: ClockFormat } {
+export function getClockContext(): { world: WorldState | null; format: ClockFormat } {
   return current;
 }
 
-/** "Dia 3 · 07:00 · Manhã" — o horário é o início da faixa do período atual. */
-export function describeWorldClock(world: { day: number; period: DayPeriod }, format: ClockFormat = current.format): string {
-  const label = DEFAULT_PERIODS.find((entry) => entry.id === world.period)?.label ?? world.period;
-  return `Dia ${world.day} · ${formatClock(PERIOD_START_MINUTES[world.period], format)} · ${label}`;
+export function periodLabel(world: WorldState): string {
+  return DEFAULT_PERIODS.find((entry) => entry.id === world.period)?.label ?? world.period;
+}
+
+/** "Dia 3 · 07:40 · Manhã". */
+export function describeWorldClock(world: WorldState, format: ClockFormat = current.format): string {
+  return `Dia ${world.day} · ${formatClock(worldMinute(world), format)} · ${periodLabel(world)}`;
 }

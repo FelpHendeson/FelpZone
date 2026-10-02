@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import { getSkillProficiency, isSkillKnown, INITIAL_SKILLS, type IndexedSkills, type SkillsProgressState } from '../skills';
 import { INITIAL_MASTERY } from '../mastery';
 import { GardenError } from './errors';
@@ -178,7 +179,7 @@ export function planGardenCultivation(
     recipeId: recipe.id,
     resultSkillId: recipe.resultSkillId,
     initialProficiency: recipe.initialProficiency,
-    cost: { cultivationPoints: recipe.cost.cultivationPoints, timeCost: { periods: recipe.cost.timeCost.periods } },
+    cost: { cultivationPoints: recipe.cost.cultivationPoints, timeCost: copyTimeCost(recipe.cost.timeCost) },
   };
 }
 
@@ -256,8 +257,7 @@ function inspectRecipe(
   if (
     !isRecord(value.cost) ||
     !positiveSafeInteger(value.cost.cultivationPoints) ||
-    !isRecord(value.cost.timeCost) ||
-    !positiveSafeInteger(value.cost.timeCost.periods)
+    readTimeCost(value.cost.timeCost, { positive: true }) === null
   ) {
     return fail('O custo do Jardim é inválido.');
   }
@@ -286,7 +286,7 @@ function inspectRecipe(
       description: value.description,
       sourceSkillIds,
       requirements,
-      cost: { cultivationPoints: value.cost.cultivationPoints, timeCost: { periods: value.cost.timeCost.periods } },
+      cost: { cultivationPoints: value.cost.cultivationPoints, timeCost: readTimeCost(value.cost.timeCost)! },
       resultSkillId: value.resultSkillId,
       initialProficiency: value.initialProficiency,
       visibility: { type: value.visibility.type },

@@ -7,7 +7,7 @@
       "label": "Observar",
       "hint": "Observar a sobrevivente antes de decidir se vale a pena fazer contato.",
       "timeCost": {
-        "periods": 1
+        "minutes": 15
       },
       "effects": [
         {
@@ -26,7 +26,7 @@
       "label": "Fazer contato",
       "hint": "Chamar a atenção da sobrevivente e deixar que ela escolha a distância.",
       "timeCost": {
-        "periods": 1
+        "minutes": 30
       },
       "narrative": {
         "campaignId": "first-day",
@@ -53,7 +53,7 @@
       "label": "Evitar contato",
       "hint": "Deixar a sobrevivente seguir sem revelar sua posição.",
       "timeCost": {
-        "periods": 0
+        "minutes": 5
       },
       "effects": [
         {
@@ -77,7 +77,7 @@
       "label": "Observar",
       "hint": "Observar o animal à distância, sem iniciar diálogo.",
       "timeCost": {
-        "periods": 1
+        "minutes": 15
       },
       "effects": [
         {
@@ -96,7 +96,7 @@
       "label": "Evitar",
       "hint": "Dar espaço ao animal e seguir em frente.",
       "timeCost": {
-        "periods": 0
+        "minutes": 5
       },
       "effects": [
         {
@@ -115,7 +115,7 @@
       "label": "Observar os sobreviventes",
       "hint": "Entender a relação entre os dois antes de revelar sua posição.",
       "timeCost": {
-        "periods": 1
+        "minutes": 20
       },
       "effects": [
         {
@@ -134,7 +134,7 @@
       "label": "Fazer contato",
       "hint": "Mostrar-se e deixar claro que veio conversar.",
       "timeCost": {
-        "periods": 1
+        "minutes": 40
       },
       "effects": [
         {
@@ -171,7 +171,7 @@
       "label": "Evitar contato",
       "hint": "Recuar antes que os dois confirmem sua presença.",
       "timeCost": {
-        "periods": 0
+        "minutes": 5
       },
       "effects": [
         {
@@ -205,7 +205,7 @@
       "label": "Avaliar o ferimento",
       "hint": "Observar a dificuldade de Davi sem se aproximar.",
       "timeCost": {
-        "periods": 1
+        "minutes": 15
       },
       "effects": [
         {
@@ -224,7 +224,7 @@
       "label": "Perguntar sobre Davi",
       "hint": "Aproximar-se o suficiente para entender a situação do ferimento.",
       "timeCost": {
-        "periods": 1
+        "minutes": 20
       },
       "effects": [
         {
@@ -266,7 +266,7 @@
       "label": "Não se envolver",
       "hint": "Deixar que os dois resolvam a situação por conta própria.",
       "timeCost": {
-        "periods": 0
+        "minutes": 5
       },
       "effects": [
         {

@@ -11,7 +11,7 @@
     ],
     "createsStructureId": "campfire",
     "timeCost": {
-      "periods": 1
+      "minutes": 50
     },
     "discovery": {
       "type": "known"
@@ -37,7 +37,7 @@
       "cooking"
     ],
     "timeCost": {
-      "periods": 1
+      "minutes": 30
     },
     "discovery": {
       "type": "known"
@@ -64,7 +64,7 @@
       }
     ],
     "timeCost": {
-      "periods": 1
+      "minutes": 45
     },
     "discovery": {
       "type": "known"
@@ -87,7 +87,7 @@
       }
     ],
     "timeCost": {
-      "periods": 1
+      "minutes": 30
     },
     "discovery": {
       "type": "known"

@@ -3,7 +3,7 @@
     "locationId": "awakening-clearing",
     "progressPerAction": 10,
     "timeCost": {
-      "periods": 1
+      "minutes": 60
     },
     "discoveries": [
       {
@@ -106,7 +106,7 @@
     "locationId": "great-tree",
     "progressPerAction": 10,
     "timeCost": {
-      "periods": 1
+      "minutes": 60
     },
     "discoveries": [
       {
@@ -131,7 +131,7 @@
     "locationId": "spring-lake",
     "progressPerAction": 30,
     "timeCost": {
-      "periods": 0
+      "minutes": 20
     },
     "discoveries": [
       {
@@ -184,7 +184,7 @@
   {
     "locationId": "rocky-bank",
     "progressPerAction": 30,
-    "timeCost": { "periods": 1 },
+    "timeCost": { "minutes": 60 },
     "discoveries": [
       {
         "id": "survivors-rocky-bank",
@@ -201,7 +201,7 @@
     "locationId": "dense-woods",
     "progressPerAction": 10,
     "timeCost": {
-      "periods": 1
+      "minutes": 90
     },
     "discoveries": [
       {

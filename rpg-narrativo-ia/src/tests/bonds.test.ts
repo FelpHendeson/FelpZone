@@ -117,7 +117,7 @@ describe('Sistema 19 — relacionamentos e vínculos', () => {
     );
     expect(hasNamedBond(honored.current.bonds, PLAYER_ACTOR_ID, 'mira-vale', 'mira-friendship')).toBe(false);
     expect(honored.current.flags['mira.promise.honored']).toBe(true);
-    expect(honored.current.world.period).not.toBe(afterTalk.world.period);
+    expect(honored.current.world.minute).not.toBe(afterTalk.world.minute);
 
     const formed = executeSandboxAction(honored.current, { type: 'bond.act', actionId: 'form-mira-friendship' });
     expect(hasNamedBond(formed.current.bonds, PLAYER_ACTOR_ID, 'mira-vale', 'mira-friendship')).toBe(true);

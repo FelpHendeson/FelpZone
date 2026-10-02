@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 import type { ApplicationField, EnergyKind } from '../energetics';
 import type { SkillTree } from '../skills';
 import type { GardenRecipeView } from '../garden';
@@ -38,7 +39,7 @@ export interface SystemTrainingView {
   name: string;
   description: string;
   targetLabel: string;
-  costPeriods: number;
+  cost: TimeCost;
   effectsSummary: string[];
   requirementsSummary: string[];
   canTrain: boolean;
@@ -109,7 +110,7 @@ export interface SystemGardenIntegrationView {
   resultName: string | null;
   requirements: SystemGardenRequirementView[];
   requirementsMet: boolean;
-  cost: { cultivationPoints: number; periods: number } | null;
+  cost: { cultivationPoints: number; timeCost: TimeCost } | null;
   canCultivate: boolean;
   blockedReason?: string;
 }
@@ -155,7 +156,7 @@ export interface SystemStatusView {
     actionId: string;
     label: string;
     hint: string;
-    costPeriods: number;
+    cost: TimeCost;
     available: boolean;
     blockedReason?: string;
   }[];
@@ -164,7 +165,7 @@ export interface SystemStatusView {
     actionId: string;
     label: string;
     hint: string;
-    costPeriods: number;
+    cost: TimeCost;
     available: boolean;
     blockedReason?: string;
   }[];
@@ -173,7 +174,7 @@ export interface SystemStatusView {
     actionId: string;
     label: string;
     hint: string;
-    costPeriods: number;
+    cost: TimeCost;
     available: boolean;
     blockedReason?: string;
   }[];
@@ -182,7 +183,7 @@ export interface SystemStatusView {
     actionId: string;
     label: string;
     hint: string;
-    costPeriods: number;
+    cost: TimeCost;
     available: boolean;
     blockedReason?: string;
   }[];
@@ -191,7 +192,7 @@ export interface SystemStatusView {
     actionId: string;
     label: string;
     hint: string;
-    costPeriods: number;
+    cost: TimeCost;
     available: boolean;
     blockedReason?: string;
   }[];
@@ -207,7 +208,7 @@ export interface SystemStatusView {
     actionId: string;
     label: string;
     hint: string;
-    costPeriods: number;
+    cost: TimeCost;
     available: boolean;
     blockedReason?: string;
   }[];

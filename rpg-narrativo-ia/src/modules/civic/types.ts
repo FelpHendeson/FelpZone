@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 export type CivicGrantKind = 'citizenship' | 'profession' | 'title' | 'office';
 export type CivicIntent = 'grant-citizenship' | 'revoke-citizenship' | 'grant-profession';
 export type CivicAuthorityPermission =
@@ -76,7 +77,7 @@ export interface CivicActionDefinition {
   label: string;
   hint: string;
   npcId?: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   once: boolean;
   requirements: readonly CivicRequirement[];
   effects: readonly CivicEffect[];
@@ -136,7 +137,7 @@ export interface CivicState {
 
 export interface CivicActionPlan {
   actionId: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   feedback: string;
   effects: readonly CivicEffect[];
 }

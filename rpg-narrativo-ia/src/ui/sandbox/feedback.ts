@@ -3,7 +3,7 @@ import type { SandboxActionResult } from '../../modules/sandbox-actions';
 import { deriveNeedsBands, type NeedId } from '../../modules/needs';
 import { attributesToNeedsSnapshot, formatNeedDelta, needLabel } from '../needs/presentation';
 import { getTrainingMethod } from '../../modules/training';
-import { formatPeriodCost, sandboxDiscoveryName, sandboxItemName } from './labels';
+import { formatTimeCost, sandboxDiscoveryName, sandboxItemName } from './labels';
 
 export const FEEDBACK_KINDS = ['info', 'success', 'warning', 'discovery', 'journey', 'critical'] as const;
 export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
@@ -210,8 +210,8 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
     }
   }
 
-  if (result.timeCost.periods > 0) {
-    push('info', `Tempo: ${formatPeriodCost(result.timeCost.periods, result.previous.world.period)}.`);
+  if ((result.timeCost.minutes ?? 0) > 0) {
+    push('info', `Tempo: ${formatTimeCost(result.timeCost, result.previous.world)}.`);
   }
 
   const wear = Object.entries(result.needsWear.changes)

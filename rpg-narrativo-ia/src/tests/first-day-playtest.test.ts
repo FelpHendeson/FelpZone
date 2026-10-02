@@ -77,7 +77,15 @@ function reachPostTrainingSandbox(): GameState {
 
   state = choose(state, 'first-numen-practice-continue');
   expect(state.narrativeSession).toBeNull();
-  expect(state.world).toEqual({ day: 1, period: 'meio-dia' });
+  // O treino leva 1 h: começa às 07:00 e termina às 08:00, ainda de manhã.
+  expect(state.world).toEqual({ day: 1, period: 'manha', minute: 8 * 60 });
+  return state;
+}
+
+function restUntilNarrative(state: GameState): GameState {
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   return state;
 }
 
@@ -98,7 +106,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     let state = reachPostTrainingSandbox();
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world).toEqual({ day: 1, period: 'tarde' });
+    expect(state.world).toEqual({ day: 1, period: 'manha', minute: 9 * 60 });
     const clearingAfterFirstLook = state.sandbox.exploration.locations.find(
       (entry) => entry.locationId === 'awakening-clearing',
     );
@@ -113,7 +121,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.world).toEqual(beforeSpringTravel);
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world).toEqual({ day: 1, period: 'tarde' });
+    expect(state.world).toEqual({ day: 1, period: 'manha', minute: 9 * 60 + 20 });
     expect(
       state.sandbox.exploration.locations
         .find((entry) => entry.locationId === 'spring-lake')
@@ -126,7 +134,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.world).toEqual(beforeReturn);
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world).toEqual({ day: 1, period: 'entardecer' });
+    expect(state.world).toEqual({ day: 1, period: 'manha', minute: 10 * 60 + 20 });
     expect(state.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
     expect(state.narrativeSession).toBeNull();
 
@@ -135,7 +143,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
       presenceId: 'mira-awakening-clearing',
       interactionId: 'talk-mira-awakening-clearing',
     });
-    expect(state.world).toEqual({ day: 1, period: 'noite' });
+    expect(state.world).toEqual({ day: 1, period: 'manha', minute: 10 * 60 + 50 });
     expect(state.narrativeSession?.eventId).toBe('survivor-meet');
     expect(state.flags[worldTriggerConsumedFlag('first-night')]).not.toBe(true);
 
@@ -143,6 +151,11 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.narrativeSession?.eventId).toBe('moral-choice');
 
     state = choose(state, 'share-information');
+    // A conversa acontece de manhã; a noite só chega quando o relógio passa das 19:00.
+    expect(state.narrativeSession).toBeNull();
+    expect(state.flags[worldTriggerConsumedFlag('first-night')]).not.toBe(true);
+    state = restUntilNarrative(state);
+    expect(state.world).toMatchObject({ day: 1, period: 'noite' });
     expect(state.narrativeSession?.eventId).toBe('first-night');
     expect(state.flags[worldTriggerConsumedFlag('first-night')]).toBe(true);
 
@@ -157,7 +170,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.status).toBe('playing');
     expect(state.flags['night.route.shared']).toBe(true);
 
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     expect(state.world.day).toBe(2);
     expect(state.narrativeSession?.eventId).toBe('day-two-awakening');
 
@@ -177,11 +190,11 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     let state = reachPostTrainingSandbox();
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world.period).toBe('tarde');
+    expect(state.world.minute).toBe(9 * 60);
     expect(state.sandbox.presences.discoveredPresenceIds).not.toContain('mira-awakening-clearing');
 
     state = act(state, { type: 'exploration.explore' });
-    expect(state.world.period).toBe('entardecer');
+    expect(state.world.minute).toBe(10 * 60);
     expect(state.sandbox.presences.discoveredPresenceIds).toContain('mira-awakening-clearing');
 
     state = act(state, {
@@ -194,7 +207,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.sandbox.presences.resolvedPresenceIds).toContain('mira-awakening-clearing');
     expect(getObjectiveStatus(world.objectives, state.objectives, 'first-steps')).not.toBe('completed');
 
-    state = act(state, { type: 'exploration.explore' });
+    state = restUntilNarrative(state);
     expect(state.world.period).toBe('noite');
     expect(state.narrativeSession?.eventId).toBe('first-night');
 
@@ -208,7 +221,7 @@ describe('Fatia G — playtest integrado do primeiro dia', () => {
     expect(state.narrativeSession).toBeNull();
     expect(state.flags['night.route.alone']).toBe(true);
 
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     expect(state.world.day).toBe(2);
     expect(state.narrativeSession?.eventId).toBe('day-two-awakening');
 

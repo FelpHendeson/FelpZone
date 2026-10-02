@@ -222,14 +222,16 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
       { context, now: () => STAMP },
     );
 
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 15 });
     expect(result.current.flags['saw.horned.rabbit']).toBe(true);
     expect(result.current.narrativeSession).toBeNull();
     expect(result.current.sandbox.presences.resolvedPresenceIds).toEqual([]);
     expect(result.current.sandbox.navigation.currentLocationId).toBe('dense-woods');
     expect(result.current.updatedAt).toBe(STAMP);
     expect(result.feedback).toMatch(/coelho chifrudo/);
-    expect(result.current.world.day !== previousDay || result.current.world.period !== previousPeriod).toBe(true);
+    expect(result.current.world.day).toBe(previousDay);
+    expect(result.current.world.period).toBe(previousPeriod);
+    expect(result.current.world.minute).toBe((result.previous.world.minute ?? 0) + 15);
   });
 
   it('preserva o efeito de período da interação antes de aplicar seu custo temporal', () => {
@@ -263,7 +265,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
     );
 
     expect(result.dayCycle.time.previous).toEqual({ day: rabbit.world.day, periodId: 'entardecer' });
-    expect(result.current.world).toEqual({ day: rabbit.world.day, period: 'noite' });
+    expect(result.current.world).toMatchObject({ day: rabbit.world.day, period: 'noite' });
   });
 
   it('interação narrativa abre sessão válida sem custo duplicado e resolve quando declarado', () => {
@@ -279,7 +281,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
       { context, campaign: firstDayCampaign, now: () => STAMP },
     );
 
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 30 });
     expect(result.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'survivor-meet' });
     expect(result.current.sandbox.presences.resolvedPresenceIds).toEqual(['mira-awakening-clearing']);
     expect(result.current.sandbox.navigation.currentLocationId).toBe(location);
@@ -344,7 +346,7 @@ describe('Fatia 8.4 — estado, save e orquestração de presenças', () => {
       { context, now: () => STAMP },
     );
 
-    expect(observed.timeCost.periods).toBeGreaterThan(0);
+    expect(observed.timeCost.minutes).toBeGreaterThan(0);
     expect(observed.synchronization.renewedNodeIds).toEqual([]);
     expect(observed.synchronization.recoveredPopulationIds).toEqual([]);
   });

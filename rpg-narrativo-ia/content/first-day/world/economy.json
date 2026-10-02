@@ -48,7 +48,7 @@
       "label": "Vender um graveto para Mira",
       "hint": "O preço vem da oferta declarada. A interface não informa o valor.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 15 },
       "once": false,
       "requirements": [
         { "type": "flag.is", "flag": "mira.friendship.formed", "value": true },
@@ -66,7 +66,7 @@
       "label": "Comprar a ferramenta de Mira",
       "hint": "Estoque limitado. Repetir a confirmação não duplica a compra.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 15 },
       "once": true,
       "requirements": [
         { "type": "flag.is", "flag": "mira.friendship.formed", "value": true },
@@ -85,7 +85,7 @@
       "label": "Receber o direito ao esconderijo",
       "hint": "Propriedade é um direito, não um item nem um lar.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 30 },
       "once": true,
       "requirements": [
         { "type": "flag.is", "flag": "economy.improvised-tool.bought", "value": true }

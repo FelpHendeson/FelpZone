@@ -61,7 +61,7 @@ describe('Fatia 9.5 — sobrevivência ponta a ponta', () => {
       act({ type: 'navigation.move', locationId: 'awakening-clearing' });
       act({ type: 'crafting.craft', recipeId: 'cook-horned-rabbit-meat' });
       act({ type: 'needs.consume', itemId: 'cooked-horned-rabbit-meat' });
-      act({ type: 'needs.rest', mode: 'campfire' });
+      act({ type: 'needs.rest', mode: 'campfire', untilDawn: true });
 
       const population = getPopulation(current.sandbox.resources, 'horned-rabbits');
       expect(population.locallyExtinct).toBe(false);
@@ -75,7 +75,7 @@ describe('Fatia 9.5 — sobrevivência ponta a ponta', () => {
     expect(daysSurvived).toBe(7);
     expect(rabbitsCollected / daysSurvived).toBeLessThanOrEqual(2);
     expect(finalPopulation.locallyExtinct).toBe(false);
-    expect(current.attributes).toMatchObject({ saude: 100, energia: 96, fome: 6, sede: 25 });
+    expect(current.attributes).toMatchObject({ saude: 100, energia: 89, fome: 16, sede: 30 });
     expect(current.attributes.saude).toBeGreaterThan(1);
     expect(current.attributes.fome).toBeLessThan(100);
     expect(current.attributes.sede).toBeLessThan(100);

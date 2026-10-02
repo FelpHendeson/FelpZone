@@ -84,8 +84,8 @@ describe('Fatia D — introdução energética do primeiro dia', () => {
       throw new Error(attempt.error);
     }
 
-    expect(attempt.result.timeCost.periods).toBe(1);
-    expect(attempt.result.needsWear.periodsApplied).toBe(1);
+    expect(attempt.result.timeCost.minutes).toBe(60);
+    expect(attempt.result.needsWear.minutesApplied).toBe(60);
     expect(getSkillProficiency(attempt.current.system, 'sharpened-senses')).toBe(1);
     expect(attempt.current.narrativeSession?.eventId).toBe('first-numen-practice');
     expect(attempt.openedTrigger?.id).toBe('first-numen-practice');

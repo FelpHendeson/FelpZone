@@ -13,7 +13,6 @@ import {
 import {
   TimeError,
   advanceTime,
-  createInitialTime,
   DEFAULT_PERIODS,
   MAX_ADVANCE_PERIODS,
   type PeriodDefinition,
@@ -27,6 +26,7 @@ const SHORT_DAY: readonly PeriodDefinition[] = [
 ];
 
 const EXPECTED_PHASES: Record<string, DaylightPhase> = {
+  madrugada: 'night',
   alvorecer: 'twilight',
   manha: 'daylight',
   'meio-dia': 'daylight',
@@ -34,6 +34,10 @@ const EXPECTED_PHASES: Record<string, DaylightPhase> = {
   entardecer: 'twilight',
   noite: 'night',
 };
+
+function dawn(): TimeState {
+  return { day: 1, periodId: 'alvorecer' };
+}
 
 function freezeState(state: TimeState): TimeState {
   return Object.freeze({ ...state });
@@ -58,7 +62,7 @@ function eventKey(event: DayCycleEvent): string {
 
 describe('ciclo diário', () => {
   it('emite encerramento e início na transição simples entre períodos', () => {
-    const result = advanceDayCycle(createInitialTime(), { periods: 1 });
+    const result = advanceDayCycle(dawn(), { periods: 1 });
 
     expect(result.time.previous).toEqual({ day: 1, periodId: 'alvorecer' });
     expect(result.time.current).toEqual({ day: 1, periodId: 'manha' });
@@ -74,20 +78,20 @@ describe('ciclo diário', () => {
     const night: TimeState = { day: 1, periodId: 'noite' };
     const result = advanceDayCycle(night, { periods: 1 });
 
-    expect(result.time.current).toEqual({ day: 2, periodId: 'alvorecer' });
+    expect(result.time.current).toEqual({ day: 2, periodId: 'madrugada' });
     expect(result.time.daysAdvanced).toBe(1);
     expect(result.events).toEqual([
       { type: 'period.ended', day: 1, periodId: 'noite' },
       { type: 'day.ended', day: 1 },
-      { type: 'period.started', day: 2, periodId: 'alvorecer' },
+      { type: 'period.started', day: 2, periodId: 'madrugada' },
       { type: 'day.started', day: 2 },
     ]);
-    expect(result.phase).toBe('twilight');
+    expect(result.phase).toBe('night');
   });
 
   it('emite a sequência cronológica ao atravessar vários períodos', () => {
     const afternoon: TimeState = { day: 1, periodId: 'tarde' };
-    const time = advanceTime(afternoon, { periods: 4 });
+    const time = advanceTime(afternoon, { periods: 5 });
     const result = interpretDayCycle(time);
 
     expect(result.time.current).toEqual({ day: 2, periodId: 'manha' });
@@ -98,16 +102,18 @@ describe('ciclo diário', () => {
       { type: 'period.started', day: 1, periodId: 'noite' },
       { type: 'period.ended', day: 1, periodId: 'noite' },
       { type: 'day.ended', day: 1 },
-      { type: 'period.started', day: 2, periodId: 'alvorecer' },
+      { type: 'period.started', day: 2, periodId: 'madrugada' },
       { type: 'day.started', day: 2 },
+      { type: 'period.ended', day: 2, periodId: 'madrugada' },
+      { type: 'period.started', day: 2, periodId: 'alvorecer' },
       { type: 'period.ended', day: 2, periodId: 'alvorecer' },
       { type: 'period.started', day: 2, periodId: 'manha' },
     ]);
-    expect(advanceDayCycle(afternoon, { periods: 4 }).events).toEqual(result.events);
+    expect(advanceDayCycle(afternoon, { periods: 5 }).events).toEqual(result.events);
   });
 
   it('emite a sequência completa ao atravessar vários dias', () => {
-    const result = advanceDayCycle(createInitialTime(), { periods: 13 });
+    const result = advanceDayCycle(dawn(), { periods: 15 });
     const started = result.events.filter((event) => event.type === 'period.started');
     const ended = result.events.filter((event) => event.type === 'period.ended');
     const daysEnded = result.events.filter((event) => event.type === 'day.ended');
@@ -115,9 +121,9 @@ describe('ciclo diário', () => {
 
     expect(result.time.current).toEqual({ day: 3, periodId: 'manha' });
     expect(result.time.daysAdvanced).toBe(2);
-    expect(result.time.crossedPeriods).toHaveLength(13);
-    expect(ended).toHaveLength(13);
-    expect(started).toHaveLength(13);
+    expect(result.time.crossedPeriods).toHaveLength(15);
+    expect(ended).toHaveLength(15);
+    expect(started).toHaveLength(15);
     expect(started.map((event) => event.periodId)).toEqual(result.time.crossedPeriods);
     expect(daysEnded).toEqual([
       { type: 'day.ended', day: 1 },
@@ -143,8 +149,9 @@ describe('ciclo diário', () => {
     expect(result.phase).toBe('night');
   });
 
-  it('associa a fase visual correta a cada um dos seis períodos', () => {
+  it('associa a fase visual correta a cada um dos sete períodos', () => {
     expect(DEFAULT_PERIODS.map((period) => period.id)).toEqual([
+      'madrugada',
       'alvorecer',
       'manha',
       'meio-dia',
@@ -153,6 +160,7 @@ describe('ciclo diário', () => {
       'noite',
     ]);
     expect(DEFAULT_PERIOD_PHASES.map((entry) => [entry.periodId, entry.phase])).toEqual([
+      ['madrugada', 'night'],
       ['alvorecer', 'twilight'],
       ['manha', 'daylight'],
       ['meio-dia', 'daylight'],
@@ -167,16 +175,17 @@ describe('ciclo diário', () => {
   });
 
   it('devolve a fase correspondente ao período final do avanço', () => {
-    expect(advanceDayCycle(createInitialTime(), { periods: 0 }).phase).toBe('twilight');
+    expect(advanceDayCycle(dawn(), { periods: 0 }).phase).toBe('twilight');
     expect(advanceDayCycle({ day: 1, periodId: 'manha' }, { periods: 1 }).phase).toBe('daylight');
     expect(advanceDayCycle({ day: 1, periodId: 'tarde' }, { periods: 1 }).phase).toBe('twilight');
     expect(advanceDayCycle({ day: 1, periodId: 'entardecer' }, { periods: 1 }).phase).toBe('night');
-    expect(advanceDayCycle({ day: 1, periodId: 'noite' }, { periods: 1 }).phase).toBe('twilight');
+    expect(advanceDayCycle({ day: 1, periodId: 'noite' }, { periods: 1 }).phase).toBe('night');
+    expect(advanceDayCycle({ day: 2, periodId: 'madrugada' }, { periods: 1 }).phase).toBe('twilight');
     expect(interpretDayCycle(advanceTime({ day: 2, periodId: 'meio-dia' }, { periods: 1 })).phase).toBe('daylight');
   });
 
   it('produz os mesmos eventos e a mesma fase para os mesmos dados', () => {
-    const state = createInitialTime();
+    const state = dawn();
     const cost = { periods: 8 };
     const first = advanceDayCycle(state, cost);
     const second = advanceDayCycle(state, cost);
@@ -188,7 +197,7 @@ describe('ciclo diário', () => {
   });
 
   it('não duplica fronteiras atravessadas', () => {
-    const result = advanceDayCycle(createInitialTime(), { periods: 13 });
+    const result = advanceDayCycle(dawn(), { periods: 13 });
     const keys = result.events.map(eventKey);
 
     expect(new Set(keys).size).toBe(result.events.length);
@@ -199,7 +208,7 @@ describe('ciclo diário', () => {
   });
 
   it('não omite períodos intermediários', () => {
-    const result = advanceDayCycle(createInitialTime(), { periods: 3 });
+    const result = advanceDayCycle(dawn(), { periods: 3 });
     const started = result.events.filter((event) => event.type === 'period.started');
     const ended = result.events.filter((event) => event.type === 'period.ended');
 
@@ -259,17 +268,17 @@ describe('ciclo diário', () => {
     expect(inspectDaylightPhaseConfig(DEFAULT_PERIOD_PHASES, DEFAULT_PERIODS).ok).toBe(true);
 
     expect(() => getDaylightPhase('alvorecer', [])).toThrow(DayCycleError);
-    expect(() => getDaylightPhase('madrugada')).toThrow(DayCycleError);
-    expect(() => advanceDayCycle(createInitialTime(), { periods: 1 }, DEFAULT_PERIODS, incomplete)).toThrow(
+    expect(() => getDaylightPhase('crepusculo')).toThrow(DayCycleError);
+    expect(() => advanceDayCycle(dawn(), { periods: 1 }, DEFAULT_PERIODS, incomplete)).toThrow(
       DayCycleError,
     );
-    expect(() => interpretDayCycle(advanceTime(createInitialTime(), { periods: 1 }), DEFAULT_PERIODS, duplicated)).toThrow(
+    expect(() => interpretDayCycle(advanceTime(dawn(), { periods: 1 }), DEFAULT_PERIODS, duplicated)).toThrow(
       DayCycleError,
     );
   });
 
   it('usa o limite operacional do relógio existente', () => {
-    const start = createInitialTime();
+    const start = dawn();
     const snapshot = structuredClone(start);
     const result = advanceDayCycle(start, { periods: MAX_ADVANCE_PERIODS });
     const started = result.events.filter((event) => event.type === 'period.started');
@@ -277,18 +286,18 @@ describe('ciclo diário', () => {
     expect(MAX_ADVANCE_PERIODS).toBe(10_000);
     expect(start).toEqual(snapshot);
     expect(result.time.crossedPeriods).toHaveLength(MAX_ADVANCE_PERIODS);
-    expect(result.time.current).toEqual({ day: 1667, periodId: 'entardecer' });
-    expect(result.time.daysAdvanced).toBe(1666);
+    expect(result.time.current).toEqual({ day: 1429, periodId: 'entardecer' });
+    expect(result.time.daysAdvanced).toBe(1428);
     expect(started).toHaveLength(MAX_ADVANCE_PERIODS);
     expect(started[0]).toEqual({ type: 'period.started', day: 1, periodId: 'manha' });
-    expect(started.at(-1)).toEqual({ type: 'period.started', day: 1667, periodId: 'entardecer' });
-    expect(result.events.filter((event) => event.type === 'day.ended')).toHaveLength(1666);
+    expect(started.at(-1)).toEqual({ type: 'period.started', day: 1429, periodId: 'entardecer' });
+    expect(result.events.filter((event) => event.type === 'day.ended')).toHaveLength(1428);
     expect(result.phase).toBe('twilight');
     expect(() => advanceDayCycle(start, { periods: MAX_ADVANCE_PERIODS + 1 })).toThrow(DayCycleError);
   });
 
   it('propaga de forma controlada os erros de advanceTime', () => {
-    const time = freezeState(createInitialTime());
+    const time = freezeState(dawn());
     const invalidCost = Object.freeze({ periods: -1 });
     const overflow: TimeState = {
       day: Number.MAX_SAFE_INTEGER,
@@ -298,9 +307,9 @@ describe('ciclo diário', () => {
     expect(() => advanceDayCycle(time, invalidCost)).toThrow(DayCycleError);
     expect(() => advanceDayCycle(time, { periods: 1.5 })).toThrow(DayCycleError);
     expect(() => advanceDayCycle(time, { periods: MAX_ADVANCE_PERIODS + 1 })).toThrow(DayCycleError);
-    expect(() => advanceDayCycle({ day: 1, periodId: 'madrugada' }, { periods: 1 })).toThrow(DayCycleError);
+    expect(() => advanceDayCycle({ day: 1, periodId: 'crepusculo' }, { periods: 1 })).toThrow(DayCycleError);
     expect(() => advanceDayCycle(overflow, { periods: 1 })).toThrow(DayCycleError);
-    expect(time).toEqual(createInitialTime());
+    expect(time).toEqual(dawn());
 
     try {
       advanceDayCycle(time, { periods: MAX_ADVANCE_PERIODS + 1 });

@@ -5,7 +5,7 @@ import {
   type GameEffect,
 } from '../../core/events';
 import { isAttributeId, isDayPeriod } from '../../core/state/types';
-import { inspectTimeCost } from '../time';
+import { copyTimeCost as copySharedTimeCost, inspectTimeCost, sameTimeCost } from '../time';
 import { PresenceError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_PRESENCE_INTERACTIONS } from './initial-presences';
@@ -701,7 +701,7 @@ function freezeInteraction(interaction: PresenceInteractionDefinition): Presence
 }
 
 function copyTimeCost(cost: PresenceInteractionDefinition['timeCost']): PresenceInteractionDefinition['timeCost'] {
-  return { periods: cost.periods };
+  return copySharedTimeCost(cost);
 }
 
 function copyNarrative(narrative: PresenceNarrativeReference): PresenceNarrativeReference {
@@ -800,7 +800,7 @@ function sameInteraction(left: PresenceInteractionDefinition, right: unknown): b
     right.label === left.label &&
     right.hint === left.hint &&
     isRecord(right.timeCost) &&
-    right.timeCost.periods === left.timeCost.periods &&
+    sameTimeCost(right.timeCost as unknown as PresenceInteractionDefinition['timeCost'], left.timeCost) &&
     right.feedback === left.feedback &&
     right.resolvesPresence === left.resolvesPresence &&
     sameConditions(left.conditions, right.conditions) &&

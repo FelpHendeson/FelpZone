@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import { DAY_PERIODS, isDayPeriod } from '../../core/state';
 import type { GameState } from '../../core/state/types';
 import { changeRelationship } from '../relationships';
@@ -140,7 +141,7 @@ export function planContextualActivity(
   return {
     activityId: activity.id,
     participantNpcIds,
-    timeCost: { periods: activity.timeCost.periods },
+    timeCost: copyTimeCost(activity.timeCost),
     effects: activity.effects.map(copyEffect),
     ...(activity.narrative ? { narrative: { ...activity.narrative } } : {}),
     ...(activity.feedback ? { feedback: activity.feedback } : {}),
@@ -302,8 +303,7 @@ function inspectActivity(
     !nonEmpty(value.description) ||
     !nonEmpty(value.locationId) ||
     !world.map.locations.has(value.locationId) ||
-    !isRecord(value.timeCost) ||
-    !nonNegativeInteger(value.timeCost.periods) ||
+    readTimeCost(value.timeCost) === null ||
     typeof value.repeatable !== 'boolean' ||
     !Array.isArray(value.requirements) ||
     !Array.isArray(value.effects)
@@ -373,7 +373,7 @@ function inspectActivity(
       label: value.label,
       description: value.description,
       locationId: value.locationId,
-      timeCost: { periods: value.timeCost.periods as number },
+      timeCost: readTimeCost(value.timeCost)!,
       repeatable: value.repeatable,
       requirements,
       ...(participants ? { participants } : {}),

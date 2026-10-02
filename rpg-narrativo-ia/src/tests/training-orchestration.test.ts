@@ -27,8 +27,8 @@ describe('Fatia 11.3 — ação integrada de treino', () => {
     );
 
     expect(result.detail.type).toBe('training.train');
-    expect(result.timeCost.periods).toBe(1);
-    expect(result.needsWear.periodsApplied).toBe(1);
+    expect(result.timeCost.minutes).toBe(60);
+    expect(result.needsWear.minutesApplied).toBe(60);
     expect(getSkillProficiency(result.current.system, 'sharpened-senses')).toBe(1);
     expect(getSkillProficiency(before.system, 'sharpened-senses')).toBe(0);
     expect(result.current.world).not.toEqual(before.world);
@@ -43,8 +43,8 @@ describe('Fatia 11.3 — ação integrada de treino', () => {
       { now },
     );
 
-    expect(result.timeCost.periods).toBe(2);
-    expect(result.needsWear.periodsApplied).toBe(2);
+    expect(result.timeCost.minutes).toBe(120);
+    expect(result.needsWear.minutesApplied).toBe(120);
     expect(isSkillKnown(result.current.system, 'steady-body')).toBe(true);
     expect(isSkillKnown(before.system, 'steady-body')).toBe(false);
   });

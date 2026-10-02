@@ -145,8 +145,8 @@ describe('superfície mobile do sandbox', () => {
     const worldBefore = { ...ready.world };
     const attempt = mustCommit(ready, { type: 'navigation.move', locationId: 'great-tree' });
 
-    expect(attempt.result.timeCost).toEqual({ periods: 1 });
-    expect(attempt.result.dayCycle.time.crossedPeriods).toHaveLength(1);
+    expect(attempt.result.timeCost).toEqual({ periods: 0, minutes: 30 });
+    expect(attempt.current.world.minute).toBe((worldBefore.minute ?? 0) + 30);
     expect(attempt.current.sandbox.navigation.currentLocationId).toBe('great-tree');
     expect(attempt.previous.sandbox.navigation.currentLocationId).toBe('awakening-clearing');
     expect(attempt.current.world).not.toEqual(worldBefore);
@@ -161,8 +161,8 @@ describe('superfície mobile do sandbox', () => {
       (entry) => entry.locationId === 'awakening-clearing',
     );
 
-    expect(attempt.result.timeCost).toEqual({ periods: 1 });
-    expect(attempt.result.dayCycle.time.crossedPeriods).toHaveLength(1);
+    expect(attempt.result.timeCost).toEqual({ periods: 0, minutes: 60 });
+    expect(attempt.current.world.minute).toBe((worldBefore.minute ?? 0) + 60);
     expect(location?.progress).toBe(10);
     expect(location?.explorationCount).toBe(1);
     expect(attempt.current.world).not.toEqual(worldBefore);
@@ -188,7 +188,7 @@ describe('superfície mobile do sandbox', () => {
     const availableBefore = getResourceNode(ready.sandbox.resources, 'fallen-sticks').availableUnits;
     const attempt = mustCommit(ready, { type: 'resource.collect', nodeId: 'fallen-sticks', units: 1 });
 
-    expect(attempt.result.timeCost).toEqual({ periods: 1 });
+    expect(attempt.result.timeCost).toEqual({ periods: 0, minutes: 30 });
     expect(itemQuantity(attempt.current.inventory, 'fallen-branch')).toBe(1);
     expect(getResourceNode(attempt.current.sandbox.resources, 'fallen-sticks').availableUnits).toBe(
       availableBefore - 1,
@@ -240,7 +240,7 @@ describe('superfície mobile do sandbox', () => {
     expect(recipe?.craftable).toBe(true);
 
     const attempt = mustCommit(current, { type: 'crafting.craft', recipeId: 'build-campfire' });
-    expect(attempt.result.timeCost).toEqual({ periods: 1 });
+    expect(attempt.result.timeCost).toEqual({ periods: 0, minutes: 50 });
     expect(itemQuantity(attempt.current.inventory, 'fallen-branch')).toBe(0);
     expect(attempt.current.sandbox.crafting.structures).toEqual([
       expect.objectContaining({

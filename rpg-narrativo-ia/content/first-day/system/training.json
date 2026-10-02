@@ -9,7 +9,7 @@
         "id": "sharpened-senses"
       },
       "cost": {
-        "periods": 1
+        "minutes": 60
       },
       "effects": [
         {
@@ -29,7 +29,7 @@
         "id": "body-reinforcement"
       },
       "cost": {
-        "periods": 2
+        "minutes": 120
       },
       "effects": [
         {

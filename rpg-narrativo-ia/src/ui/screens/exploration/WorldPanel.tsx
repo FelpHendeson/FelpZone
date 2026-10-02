@@ -7,7 +7,7 @@ import type { JournalJourneyView } from '../../journal/model';
 import type { EncounterDefinition } from '../../../modules/combat';
 import type { SandboxAction } from '../../../modules/sandbox-actions';
 import {
-  formatPeriodCost,
+  formatTimeCost,
   type DestinationView,
   type ExplorationView,
   type InteractableView,
@@ -66,6 +66,15 @@ export function WorldPanel({
             <div className="progress-bar" aria-label={`${view.location.progress}% explorado`}>
               <span style={{ width: `${view.location.progress}%` }} />
             </div>
+            {view.location.canExplore && view.location.exploreShortMinutes ? (
+              <button
+                type="button"
+                className="location-progress__short"
+                onClick={() => onAction({ type: 'exploration.explore', minutes: view.location.exploreShortMinutes })}
+              >
+                Explorar só {formatTimeCost({ periods: 0, minutes: view.location.exploreShortMinutes })}
+              </button>
+            ) : null}
           </div>
           <div className="location-hero__actions">
             <button
@@ -77,7 +86,7 @@ export function WorldPanel({
               <span aria-hidden="true">⌕</span>
               <span>
                 <strong>Explorar</strong>
-                <small>{view.location.exploreDisabledReason ?? formatPeriodCost(view.location.exploreCostPeriods)}</small>
+                <small>{view.location.exploreDisabledReason ?? formatTimeCost(view.location.exploreCost)}</small>
               </span>
             </button>
             <button type="button" className="button location-hero__secondary" onClick={onOpenActions}>
@@ -183,7 +192,7 @@ export function ThreatSection({
             <div className="threat-card__body">
               <h3>{encounter.name}</h3>
               <p>{encounter.description}</p>
-              <p className="threat-card__cost">{blockedReason ?? `Enfrentar custa ${formatPeriodCost(encounter.timeCost.periods)}`}</p>
+              <p className="threat-card__cost">{blockedReason ?? `Enfrentar custa ${formatTimeCost(encounter.timeCost)}`}</p>
             </div>
             <button
               type="button"
@@ -249,7 +258,7 @@ export function InteractableSection({
                     }
                   >
                     {action.label}
-                    <small>{action.blockedReason ?? formatPeriodCost(action.costPeriods)}</small>
+                    <small>{action.blockedReason ?? formatTimeCost(action.cost)}</small>
                   </button>
                 ))}
               </div>
@@ -366,7 +375,7 @@ export function PresenceCard({
                     }
                   >
                     <span>{interaction.label}</span>
-                    <small>{formatPeriodCost(interaction.costPeriods)}</small>
+                    <small>{formatTimeCost(interaction.cost)}</small>
                   </button>
                   {interaction.hint ? (
                     <p id={hintId} className="presence-action__hint">
@@ -468,7 +477,7 @@ export function MapNode({ destination, onAction }: { destination: DestinationVie
       {destination.imageSrc ? <ImagePlaceholder kind="scene" label={destination.name} src={destination.imageSrc} className="map-node__image" /> : null}
       <span className="map-node__copy">
         <strong>{destination.name}</strong>
-        <small>{destination.blockedReason ?? `${destination.relationLabel} · ${formatPeriodCost(destination.costPeriods)}`}</small>
+        <small>{destination.blockedReason ?? `${destination.relationLabel} · ${formatTimeCost(destination.cost)}`}</small>
       </span>
       <span className="map-node__arrow" aria-hidden="true">→</span>
     </button>

@@ -27,7 +27,9 @@
       "use": {
         "type": "need.restore",
         "need": "sede",
-        "amount": 45
+        "amount": 45,
+        "minutes": 6,
+        "portions": 3
       },
       "image": {
         "kind": "icon",
@@ -47,7 +49,9 @@
       "use": {
         "type": "need.restore",
         "need": "sede",
-        "amount": 45
+        "amount": 45,
+        "minutes": 6,
+        "portions": 3
       },
       "image": {
         "kind": "icon",
@@ -83,7 +87,9 @@
       "use": {
         "type": "need.restore",
         "need": "fome",
-        "amount": 36
+        "amount": 36,
+        "minutes": 20,
+        "portions": 2
       },
       "image": {
         "kind": "icon",
@@ -103,7 +109,9 @@
       "use": {
         "type": "need.restore",
         "need": "fome",
-        "amount": 12
+        "amount": 12,
+        "minutes": 5,
+        "portions": 1
       },
       "image": {
         "kind": "icon",

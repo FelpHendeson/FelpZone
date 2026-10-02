@@ -82,7 +82,7 @@ describe('Fatia 9.4 — superfície de necessidades', () => {
     expect(simple).toMatchObject({
       mode: 'simple',
       label: 'Repousar',
-      costPeriods: 2,
+      cost: { periods: 0, minutes: 120 },
       recommended: true,
     });
 
@@ -123,14 +123,16 @@ describe('Fatia 9.4 — superfície de necessidades', () => {
     expect(describeSandboxFeedback(consumed, context).message).toContain('Consumiu Água bruta. Sede −45.');
     expect(describeSandboxFeedback(consumed, context).message).not.toContain('Desgaste:');
     expect(describeSandboxFeedback(rested, context).message).toContain('Energia +24.');
-    expect(describeSandboxFeedback(rested, context).message).toContain('Desgaste: Energia −4, Fome +6, Sede +10.');
+    // 2 h de repouso a partir das 07:00: o desgaste é proporcional a essas horas.
+    expect(describeSandboxFeedback(rested, context).message).toContain('Tempo: 2 h · até 09:00.');
+    expect(describeSandboxFeedback(rested, context).message).toContain('Desgaste: Energia −1, Fome +1, Sede +3.');
   });
 
   it('mantém recuperação disponível e comunica condição crítica sem modal', () => {
     const state = withState({
       attributes: { ...enterExploration().attributes, sede: 95 },
     });
-    const result = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple' }, { context });
+    const result = executeSandboxAction(state, { type: 'needs.rest', mode: 'simple', untilDawn: true }, { context });
     const feedback = describeSandboxFeedback(result, context);
 
     expect(result.current.attributes.sede).toBe(100);

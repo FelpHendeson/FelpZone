@@ -21,7 +21,7 @@
       "npcId": "mira-vale",
       "label": "Cumprir a promessa",
       "hint": "Honrar o combinado com Mira.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 30 },
       "once": true,
       "requirements": [
         { "type": "flag.is", "flag": "mira.promise.made", "value": true },
@@ -41,7 +41,7 @@
       "npcId": "mira-vale",
       "label": "Quebrar a promessa",
       "hint": "Deixar o combinado de lado.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 15 },
       "once": true,
       "requirements": [
         { "type": "flag.is", "flag": "mira.promise.made", "value": true },
@@ -60,7 +60,7 @@
       "npcId": "mira-vale",
       "label": "Propor amizade",
       "hint": "Nomear o vínculo somente se Mira e a história permitirem.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 30 },
       "once": true,
       "effects": [
         { "type": "bond.form", "bondId": "mira-friendship", "fromId": "player", "toId": "mira-vale" },

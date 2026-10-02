@@ -1,3 +1,4 @@
+import { copyTimeCost } from '../time';
 import { evaluateConditions, type GameCondition } from '../../core/events';
 import { isAttributeId, type GameState, type InventoryItem } from '../../core/state/types';
 import {
@@ -5,7 +6,7 @@ import {
   type ExplorationState,
   type IndexedExploration,
 } from '../exploration';
-import { addItem } from '../inventory';
+import { addItem, copyInventoryItem } from '../inventory';
 import {
   inspectNavigationState,
   type IndexedMap,
@@ -359,7 +360,7 @@ export function getResourceYields(definitions: IndexedResources, nodeId: string)
 
 export function getCollectionCost(definitions: IndexedResources, nodeId: string): TimeCost {
   const cost = requireNodeDefinition(requireIndexedDefinitions(definitions), nodeId).collectionCost;
-  return { periods: cost.periods };
+  return copyTimeCost(cost);
 }
 
 export function collectResource(
@@ -454,7 +455,7 @@ export function collectResource(
     },
     collectedUnits,
     yields,
-    timeCost: { periods: definition.collectionCost.periods },
+    timeCost: copyTimeCost(definition.collectionCost),
     collectedAt: copyTime(now),
   };
 
@@ -738,7 +739,7 @@ function inspectNodeDefinition(
     locationId: value.locationId,
     name: value.name,
     capacity: value.capacity,
-    collectionCost: { periods: timeCost.value.periods },
+    collectionCost: copyTimeCost(timeCost.value),
     renewal: renewal.value,
     yields: yields.value,
   };
@@ -1361,7 +1362,7 @@ function copyPopulationState(state: PopulationState): PopulationState {
 }
 
 function copyInventory(items: readonly InventoryItem[]): InventoryItem[] {
-  return items.map((item) => ({ itemId: item.itemId, quantity: item.quantity }));
+  return items.map(copyInventoryItem);
 }
 
 function copyYield(yieldItem: ResourceYield): ResourceYield {

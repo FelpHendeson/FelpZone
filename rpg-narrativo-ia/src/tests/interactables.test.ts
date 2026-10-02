@@ -150,7 +150,7 @@ describe('Sistema 18 — cenário interativo', () => {
     });
     expect(examined.current.sandbox.interactables.objects[0]?.stageId).toBe('examined');
     expect(examined.current.sandbox.interactables.objects[0]?.revealedFactIds).toEqual(['pattern-noticed']);
-    expect(examined.current.world.period).not.toBe(discovered.world.period);
+    expect(examined.current.world.minute).not.toBe(discovered.world.minute);
 
     const deciphered = executeSandboxAction(examined.current, {
       type: 'interactable.interact',

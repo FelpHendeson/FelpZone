@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 export type SettlementIntent = 'assign-role';
 
 export type SettlementRequirement =
@@ -74,7 +75,7 @@ export interface SettlementActionDefinition {
   label: string;
   hint: string;
   npcId?: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   once: boolean;
   requirements: readonly SettlementRequirement[];
   effects: readonly SettlementEffect[];
@@ -146,7 +147,7 @@ export interface SettlementsState {
 
 export interface SettlementActionPlan {
   actionId: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   feedback: string;
   effects: readonly SettlementEffect[];
 }

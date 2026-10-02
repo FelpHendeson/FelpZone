@@ -81,8 +81,8 @@ describe('Fatia 10.3 — objetivos no orquestrador de ações', () => {
     const result = run(state, { type: 'exploration.explore' }, catalog);
 
     expectCompleted(result);
-    expect(result.timeCost.periods).toBe(1);
-    expect(result.dayCycle.time.crossedPeriods).toHaveLength(1);
+    expect(result.timeCost.minutes).toBe(60);
+    expect(result.dayCycle.time.crossedPeriods).toHaveLength(0);
     expect(result.current.updatedAt).toBe(STAMP);
 
     const repeated = run(result.current, { type: 'exploration.explore' }, catalog);
@@ -155,7 +155,7 @@ describe('Fatia 10.3 — objetivos no orquestrador de ações', () => {
     );
     const consumed = run(withWater, { type: 'needs.consume', itemId: 'raw-water' }, consumeCatalog);
     expectCompleted(consumed);
-    expect(consumed.timeCost.periods).toBe(0);
+    expect(consumed.timeCost.minutes).toBe(6);
     expect(consumed.current.inventory).toEqual([{ itemId: 'raw-water', quantity: 1 }]);
 
     const restCatalog = objectiveCatalog({ type: 'world.day.min', day: 2 });
@@ -163,10 +163,10 @@ describe('Fatia 10.3 — objetivos no orquestrador de ações', () => {
       { ...exploring(restCatalog), world: { day: 1, period: 'noite' } },
       restCatalog,
     );
-    const rested = run(atNight, { type: 'needs.rest', mode: 'simple' }, restCatalog);
+    const rested = run(atNight, { type: 'needs.rest', mode: 'simple', untilDawn: true }, restCatalog);
     expectCompleted(rested);
-    expect(rested.timeCost.periods).toBe(2);
-    expect(rested.dayCycle.time.crossedPeriods).toHaveLength(2);
+    expect(rested.timeCost.minutes).toBe(10 * 60);
+    expect(rested.dayCycle.time.crossedPeriods).toEqual(['madrugada', 'alvorecer']);
     expect(rested.current.world.day).toBe(2);
   });
 

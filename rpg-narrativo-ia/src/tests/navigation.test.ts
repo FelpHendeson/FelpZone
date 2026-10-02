@@ -383,9 +383,9 @@ describe('navegação hierárquica', () => {
     const prepared = reveal(map, createInitialNavigation(), ['horned-rabbit-forest']);
     const result = moveToLocation(map, prepared, 'horned-rabbit-forest');
 
-    expect(getTravelCost(map, 'horned-rabbit-forest')).toEqual({ periods: 1 });
-    expect(getTravelCost(map, 'great-tree')).toEqual({ periods: 1 });
-    expect(result.travelCost).toEqual({ periods: 1 });
+    expect(getTravelCost(map, 'horned-rabbit-forest')).toEqual({ periods: 0, minutes: 60 });
+    expect(getTravelCost(map, 'great-tree')).toEqual({ periods: 0, minutes: 30 });
+    expect(result.travelCost).toEqual({ periods: 0, minutes: 60 });
   });
 
   it('trata custo ausente como zero períodos', () => {

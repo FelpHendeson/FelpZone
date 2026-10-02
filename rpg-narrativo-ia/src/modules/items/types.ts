@@ -26,9 +26,20 @@ export const RESTORABLE_NEEDS = ['fome', 'sede'] as const;
 
 export type RestorableNeed = (typeof RESTORABLE_NEEDS)[number];
 
-export type ConsumableUseDefinition =
-  | { type: 'combat.heal'; amount: number }
-  | { type: 'need.restore'; need: RestorableNeed; amount: number };
+/** Consumo de necessidade: duração da unidade inteira e em quantas porções ela se divide. */
+export interface NeedRestoreUse {
+  type: 'need.restore';
+  need: RestorableNeed;
+  amount: number;
+  minutes?: number;
+  portions?: number;
+}
+
+export type ConsumableUseDefinition = { type: 'combat.heal'; amount: number } | NeedRestoreUse;
+
+export const DEFAULT_CONSUME_MINUTES = 5;
+export const MAX_CONSUME_MINUTES = 240;
+export const MAX_PORTIONS = 12;
 
 export interface ItemDefinition {
   id: string;

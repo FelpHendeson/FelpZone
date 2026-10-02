@@ -1,3 +1,5 @@
+import { copyInventoryItem } from '../inventory';
+import { copyTimeCost, isTimeCostPositive } from '../time';
 import { evaluateConditions, type GameCondition } from '../../core/events';
 import { isAttributeId, type GameState, type InventoryItem } from '../../core/state/types';
 import {
@@ -202,7 +204,7 @@ export function inspectRecipeAccess(
 ): CraftingAccess {
   const context = requireCraftContext(map, navigation, definitions, state, inventory);
   const recipe = requireRecipe(context.definitions, recipeId);
-  const timeCost = { periods: recipe.timeCost.periods };
+  const timeCost = copyTimeCost(recipe.timeCost);
   const access: CraftingAccess = {
     craftable: false,
     missingInputs: missingInputs(recipe.inputs, context.inventory),
@@ -276,7 +278,7 @@ export function craftRecipe(
     consumed: recipe.inputs.map(copyIngredient),
     produced,
     locationId: context.navigation.currentLocationId,
-    timeCost: { periods: recipe.timeCost.periods },
+    timeCost: copyTimeCost(recipe.timeCost),
   };
 
   if (created) {
@@ -463,7 +465,7 @@ function inspectRecipeDefinition(
     return fail(timeCost.reason);
   }
 
-  if (timeCost.value.periods < 1) {
+  if (!isTimeCostPositive(timeCost.value)) {
     return fail('O custo de tempo da receita precisa ser um inteiro positivo.');
   }
 
@@ -528,7 +530,7 @@ function inspectRecipeDefinition(
       kind: value.kind,
       inputs: inputs.value,
       outputs: outputs.value,
-      timeCost: { periods: timeCost.value.periods },
+      timeCost: copyTimeCost(timeCost.value),
       discovery: discovery.value,
     };
 
@@ -549,7 +551,7 @@ function inspectRecipeDefinition(
     kind: 'structure',
     inputs: inputs.value,
     createsStructureId: value.createsStructureId as string,
-    timeCost: { periods: timeCost.value.periods },
+    timeCost: copyTimeCost(timeCost.value),
     discovery: discovery.value,
   };
 
@@ -1157,7 +1159,7 @@ function copyRecipe(recipe: RecipeDefinition): RecipeDefinition {
     name: recipe.name,
     kind: recipe.kind,
     inputs: recipe.inputs.map(copyIngredient),
-    timeCost: { periods: recipe.timeCost.periods },
+    timeCost: copyTimeCost(recipe.timeCost),
     discovery: recipe.discovery.type === 'known' ? { type: 'known' } : { type: 'flag', flag: recipe.discovery.flag },
   };
 
@@ -1185,7 +1187,7 @@ function copyIngredient(ingredient: RecipeIngredient): RecipeIngredient {
 }
 
 function copyInventory(items: readonly InventoryItem[]): InventoryItem[] {
-  return items.map((item) => ({ itemId: item.itemId, quantity: item.quantity }));
+  return items.map(copyInventoryItem);
 }
 
 function copyConditions(conditions: readonly GameCondition[]): GameCondition[] {

@@ -11,7 +11,7 @@ import { AttributeSummary } from '../../components/AttributeSummary';
 import { ConfirmDialog } from '../../components/ConfirmDialog';
 import { SystemCorners } from '../../components/Icon';
 import { ImagePlaceholder } from '../../components/ImagePlaceholder';
-import { formatPeriodCost } from '../../sandbox';
+import { formatTimeCost } from '../../sandbox';
 import { Portrait } from '../../components/Portrait';
 import { EmptyAction } from './shared';
 import { ProgressionTabs } from './ProgressionTabs';
@@ -232,7 +232,7 @@ export function SystemPanel({
                       </div>
                       <p>{action.hint}</p>
                       <div className="action-card__footer">
-                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <small>{action.blockedReason ?? `Custa ${formatTimeCost(action.cost)}`}</small>
                         <button
                           type="button"
                           className="button button--compact"
@@ -292,7 +292,7 @@ export function SystemPanel({
                       </div>
                       <p>{action.hint}</p>
                       <div className="action-card__footer">
-                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <small>{action.blockedReason ?? `Custa ${formatTimeCost(action.cost)}`}</small>
                         <button
                           type="button"
                           className="button button--compact"
@@ -353,7 +353,7 @@ export function SystemPanel({
                       </div>
                       <p>{action.hint}</p>
                       <div className="action-card__footer">
-                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <small>{action.blockedReason ?? `Custa ${formatTimeCost(action.cost)}`}</small>
                         <button
                           type="button"
                           className="button button--compact"
@@ -416,7 +416,7 @@ export function SystemPanel({
                       </div>
                       <p>{action.hint}</p>
                       <div className="action-card__footer">
-                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <small>{action.blockedReason ?? `Custa ${formatTimeCost(action.cost)}`}</small>
                         <button
                           type="button"
                           className="button button--compact"
@@ -499,7 +499,7 @@ export function SystemPanel({
                       </div>
                       <p>{action.hint}</p>
                       <div className="action-card__footer">
-                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <small>{action.blockedReason ?? `Custa ${formatTimeCost(action.cost)}`}</small>
                         <button
                           type="button"
                           className="button button--compact"
@@ -582,7 +582,7 @@ export function SystemPanel({
                       </div>
                       <p>{action.hint}</p>
                       <div className="action-card__footer">
-                        <small>{action.blockedReason ?? `Custa ${formatPeriodCost(action.costPeriods)}`}</small>
+                        <small>{action.blockedReason ?? `Custa ${formatTimeCost(action.cost)}`}</small>
                         <button
                           type="button"
                           className="button button--compact"
@@ -607,7 +607,7 @@ export function SystemPanel({
         title={pending ? `Treinar: ${pending.name}` : ''}
         message={
           pending
-            ? `${pending.targetLabel}. Custa ${formatPeriodCost(pending.costPeriods)}. ${pending.effectsSummary.join('. ')}.`
+            ? `${pending.targetLabel}. Custa ${formatTimeCost(pending.cost)}. ${pending.effectsSummary.join('. ')}.`
             : ''
         }
         confirmLabel="Confirmar treino"
@@ -624,7 +624,7 @@ export function SystemPanel({
         title={gardenRecipe?.name ? `Cultivar: ${gardenRecipe.name}` : 'Cultivar integração'}
         message={
           gardenRecipe?.cost
-            ? `Custa ${gardenRecipe.cost.cultivationPoints} ponto${gardenRecipe.cost.cultivationPoints === 1 ? '' : 's'} de cultivo e ${formatPeriodCost(gardenRecipe.cost.timeCost.periods)}. A integração é permanente neste recorte.`
+            ? `Custa ${gardenRecipe.cost.cultivationPoints} ponto${gardenRecipe.cost.cultivationPoints === 1 ? '' : 's'} de cultivo e ${formatTimeCost(gardenRecipe.cost.timeCost)}. A integração é permanente neste recorte.`
             : 'A integração consome cultivo e tempo.'
         }
         confirmLabel="Confirmar cultivo"

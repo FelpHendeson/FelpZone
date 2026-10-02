@@ -26,8 +26,8 @@ describe('Fatia 11.6 — ciclo de fortalecimento ponta a ponta', () => {
       { type: 'training.train', methodId: 'focused-perception-drill' },
       { now },
     );
-    expect(trained.timeCost.periods).toBe(1);
-    expect(trained.needsWear.periodsApplied).toBe(1);
+    expect(trained.timeCost.minutes).toBe(60);
+    expect(trained.needsWear.minutesApplied).toBe(60);
     expect(trained.current.world).not.toEqual(start.world);
     expect(getSkillProficiency(trained.current.system, 'sharpened-senses')).toBe(1);
 

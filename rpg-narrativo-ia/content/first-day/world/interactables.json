@@ -49,7 +49,7 @@
       "label": "Examinar marcas",
       "hint": "Olhar de perto os sulcos no tronco.",
       "timeCost": {
-        "periods": 1
+        "minutes": 20
       },
       "once": true,
       "effects": [
@@ -71,7 +71,7 @@
       "label": "Decifrar o padrão",
       "hint": "Usar os sentidos aguçados para ler o traçado.",
       "timeCost": {
-        "periods": 1
+        "minutes": 45
       },
       "once": true,
       "requirements": [

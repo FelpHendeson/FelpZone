@@ -227,7 +227,7 @@ describe('exploração e descobertas', () => {
 
     expect(result.progressGained).toBe(10);
     expect(result.location.current.progress).toBe(10);
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 60 });
     expect(canExploreLocation(map, createInitialNavigation(), definitions, START)).toBe(true);
     expect(canExploreLocation(map, createInitialNavigation(), definitions, 'great-tree')).toBe(false);
   });
@@ -727,7 +727,7 @@ describe('exploração e descobertas', () => {
     const result = exploreCurrentLocation(map, createInitialNavigation(), definitions, createInitialExploration());
 
     expect(time).toEqual(snapshot);
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 60 });
   });
 
   it('rejeita definição inválida', () => {

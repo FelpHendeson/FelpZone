@@ -58,7 +58,7 @@
       "id": "take-camp-mandate",
       "label": "Assumir o mandato do acampamento",
       "hint": "Sem reivindicação territorial não há representação política.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 45 },
       "once": true,
       "requirements": [
         { "type": "flag.is", "flag": "settlement.awakening-camp.claimed", "value": true }
@@ -73,7 +73,7 @@
       "id": "propose-shared-watch",
       "label": "Propor vigia compartilhada a Mira",
       "hint": "Só um enviado com mandato propõe o acordo.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 30 },
       "once": true,
       "requirements": [
         { "type": "politics.has-mandate", "factionId": "camp-circle", "officeId": "envoy" }
@@ -89,7 +89,7 @@
       "label": "Aceitar o pacto pela Clareira",
       "hint": "Mira só aceita com mandato válido e amizade.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 20 },
       "once": true,
       "requirements": [
         { "type": "politics.agreement-status", "agreementId": "shared-watch-pact", "status": "proposed" }
@@ -109,7 +109,7 @@
       "label": "Recusar o pacto pela Clareira",
       "hint": "A recusa também é atômica: nada fica pela metade.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 20 },
       "once": true,
       "requirements": [
         { "type": "politics.agreement-status", "agreementId": "shared-watch-pact", "status": "proposed" }

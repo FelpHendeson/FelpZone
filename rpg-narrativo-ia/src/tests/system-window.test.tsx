@@ -39,7 +39,7 @@ describe('Revelação progressiva da Central do Sistema', () => {
 
   it('revela cada interface quando surge estado ou ação real nela', () => {
     const status = buildSystemStatus(enterExploration(), context);
-    const action = { actionId: 'a', label: 'Agir', hint: '', costPeriods: 1, available: true };
+    const action = { actionId: 'a', label: 'Agir', hint: '', cost: { periods: 1 }, available: true };
     expect(revealedMenuDomains(status, 1).has('relationships')).toBe(true);
     expect(revealedMenuDomains({ ...status, settlementActions: [action] }, 0).has('domain')).toBe(true);
     expect(revealedMenuDomains({ ...status, civicActions: [action] }, 0).has('society')).toBe(true);

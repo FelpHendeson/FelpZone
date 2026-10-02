@@ -104,6 +104,8 @@ export interface CharacterIdentityInput extends LegacyCharacterIdentity {
 export interface InventoryItem {
   itemId: string;
   quantity: number;
+  /** Porções que restam na unidade já aberta (consumo parcial). Ausente = nenhuma aberta. */
+  openPortions?: number;
 }
 
 export interface Relationship {
@@ -114,6 +116,8 @@ export interface Relationship {
 export interface WorldState {
   day: number;
   period: DayPeriod;
+  /** Minuto do dia (0–1439). Ausente em saves antigos: vale o início do período. */
+  minute?: number;
 }
 
 export interface ProgressionState {

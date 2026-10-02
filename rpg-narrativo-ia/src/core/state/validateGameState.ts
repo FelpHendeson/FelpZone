@@ -1,3 +1,4 @@
+import { copyInventoryItem } from '../../modules/inventory';
 import { inspectTimeState } from '../../modules/time';
 import { INITIAL_NEEDS_SNAPSHOT } from '../../modules/needs';
 import {
@@ -67,6 +68,7 @@ import {
 } from '../../modules/activities';
 import { createChanceState, inspectChanceState, type ChanceState } from '../../modules/chance';
 import { createInitialStoryState, inspectStoryState, type StoryState } from '../../modules/story';
+import { copyWorld, isWorldClockConsistent } from '../../modules/world';
 import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
@@ -1010,14 +1012,14 @@ function migrateGameStateV5ToV6(
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copyNarrativeSession(state.narrativeSession),
     attributes: { ...state.attributes },
-    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    inventory: state.inventory.map(copyInventoryItem),
     relationships: state.relationships.map((entry) => ({
       characterId: entry.characterId,
       trust: entry.trust,
     })),
     flags: { ...state.flags },
     history: state.history.map((entry) => ({ ...entry })),
-    world: { day: state.world.day, period: state.world.period },
+    world: copyWorld(state.world),
     progression: {
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
@@ -1054,11 +1056,11 @@ function migrateGameStateV4ToV5(state: GameStateV4, context?: SandboxContext): G
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copyNarrativeSession(state.narrativeSession),
     attributes: { ...state.attributes, sede: INITIAL_NEEDS_SNAPSHOT.sede },
-    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    inventory: state.inventory.map(copyInventoryItem),
     relationships: state.relationships.map((entry) => ({ characterId: entry.characterId, trust: entry.trust })),
     flags: { ...state.flags },
     history: state.history.map((entry) => ({ ...entry })),
-    world: { day: state.world.day, period: state.world.period },
+    world: copyWorld(state.world),
     progression: {
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
@@ -1094,14 +1096,14 @@ function migrateGameStateV3ToV4(state: GameStateV3, context?: SandboxContext): G
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copyNarrativeSession(state.narrativeSession),
     attributes: { ...state.attributes },
-    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    inventory: state.inventory.map(copyInventoryItem),
     relationships: state.relationships.map((entry) => ({
       characterId: entry.characterId,
       trust: entry.trust,
     })),
     flags: { ...state.flags },
     history: state.history.map((entry) => ({ ...entry })),
-    world: { day: state.world.day, period: state.world.period },
+    world: copyWorld(state.world),
     progression: {
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
@@ -1130,14 +1132,14 @@ function migrateGameStateV2ToV3(state: GameStateV2, context?: SandboxContext): G
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     narrativeSession: copySessionFromLegacy(state.status, state.currentEventId),
     attributes: { ...state.attributes },
-    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    inventory: state.inventory.map(copyInventoryItem),
     relationships: state.relationships.map((entry) => ({
       characterId: entry.characterId,
       trust: entry.trust,
     })),
     flags: { ...state.flags },
     history: state.history.map((entry) => ({ ...entry })),
-    world: { day: state.world.day, period: state.world.period },
+    world: copyWorld(state.world),
     progression: {
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
@@ -1155,14 +1157,14 @@ function migrateGameStateV1ToV2(state: GameStateV1, context?: SandboxContext): G
     character: { firstName: state.character.firstName, lastName: state.character.lastName },
     currentEventId: state.currentEventId,
     attributes: { ...state.attributes },
-    inventory: state.inventory.map((item) => ({ itemId: item.itemId, quantity: item.quantity })),
+    inventory: state.inventory.map(copyInventoryItem),
     relationships: state.relationships.map((entry) => ({
       characterId: entry.characterId,
       trust: entry.trust,
     })),
     flags: { ...state.flags },
     history: state.history.map((entry) => ({ ...entry })),
-    world: { day: state.world.day, period: state.world.period },
+    world: copyWorld(state.world),
     progression: {
       abilityIds: [...state.progression.abilityIds],
       titleIds: [...state.progression.titleIds],
@@ -2847,8 +2849,16 @@ function readInventory(value: unknown): GameState['inventory'] | undefined {
       return undefined;
     }
 
+    if (entry.openPortions !== undefined && !isPositiveSafeInteger(entry.openPortions)) {
+      return undefined;
+    }
+
     seen.add(entry.itemId);
-    items.push({ itemId: entry.itemId, quantity: entry.quantity });
+    items.push(
+      entry.openPortions === undefined
+        ? { itemId: entry.itemId, quantity: entry.quantity }
+        : { itemId: entry.itemId, quantity: entry.quantity, openPortions: entry.openPortions },
+    );
   }
 
   return items;
@@ -2943,10 +2953,14 @@ function readWorld(value: unknown): GameState['world'] | undefined {
     return undefined;
   }
 
-  return {
-    day: inspected.value.day,
-    period: inspected.value.periodId,
-  };
+  const world = { day: inspected.value.day, period: inspected.value.periodId, minute: value.minute };
+  if (!isWorldClockConsistent(world)) {
+    return undefined;
+  }
+
+  return value.minute === undefined
+    ? { day: world.day, period: world.period }
+    : { day: world.day, period: world.period, minute: value.minute as number };
 }
 
 function readProgression(value: unknown): GameState['progression'] | undefined {

@@ -19,6 +19,7 @@ import {
   planNeedsConsumption,
   planNeedsRest,
   type NeedsSnapshot,
+  applyNeedsWearOverMinutes,
 } from '../modules/needs';
 import { ImmutableIndex } from '../modules/needs/immutable-index';
 
@@ -174,7 +175,7 @@ describe('necessidades e sobrevivência leve — modelo puro', () => {
       current: { saude: 70, energia: 74, fome: 30, sede: 25 },
       mode: 'simple',
       effects: [{ needId: 'energia', amount: 24 }],
-      timeCost: { periods: 2 },
+      timeCost: { periods: 0, minutes: 120 },
     });
     expect(campfire).toMatchObject({
       current: { saude: 76, energia: 90, fome: 30, sede: 25 },
@@ -183,7 +184,7 @@ describe('necessidades e sobrevivência leve — modelo puro', () => {
         { needId: 'energia', amount: 40 },
         { needId: 'saude', amount: 6 },
       ],
-      timeCost: { periods: 2 },
+      timeCost: { periods: 0, minutes: 120 },
     });
     expect(start).toEqual({ saude: 70, energia: 50, fome: 30, sede: 25 });
   });
@@ -288,14 +289,16 @@ describe('necessidades e sobrevivência leve — modelo puro', () => {
     let rests = 0;
 
     for (let day = 1; day <= 7; day += 1) {
-      needs = applyNeedsWear(needs, 4).current;
+      // 16 h acordado (05:00 → 21:00) e 8 h de sono (21:00 → 05:00), com desgaste por minuto.
+      const dawn = (day - 1) * 24 * 60 + 5 * 60;
+      needs = applyNeedsWearOverMinutes(needs, dawn, 16 * 60).current;
       needs = planNeedsConsumption(needs, 'raw-water').current;
       waterUsed += 1;
       needs = planNeedsConsumption(needs, 'cooked-horned-rabbit-meat').current;
       meatUsed += 1;
 
       const rest = planNeedsRest(needs, 'simple');
-      needs = applyNeedsWear(rest.current, rest.timeCost.periods).current;
+      needs = applyNeedsWearOverMinutes(rest.current, dawn + 16 * 60, 8 * 60).current;
       rests += 1;
     }
 

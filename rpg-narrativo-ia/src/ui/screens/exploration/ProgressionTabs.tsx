@@ -7,7 +7,7 @@ import type {
   SystemTreeNodeView,
   SystemTreePathView,
 } from '../../../modules/system-interface';
-import { formatPeriodCost } from '../../sandbox';
+import { formatTimeCost } from '../../sandbox';
 import { EmptyAction } from './shared';
 
 type ProgressionTab = 'tree' | 'training' | 'garden' | 'basics';
@@ -194,7 +194,7 @@ function TrainingList({ trainings, onTrain }: { trainings: SystemTrainingView[];
             <p className="training-card__requires">Requisitos: {training.requirementsSummary.join(', ')}</p>
           ) : null}
           <footer className="training-card__footer">
-            <small>{training.blockedReason ?? `Custa ${formatPeriodCost(training.costPeriods)}`}</small>
+            <small>{training.blockedReason ?? `Custa ${formatTimeCost(training.cost)}`}</small>
             <button type="button" className="button button--compact" disabled={!training.canTrain} onClick={() => onTrain(training)}>Treinar</button>
           </footer>
         </article>
@@ -275,7 +275,7 @@ function GardenIntegration({ integration, onCultivate }: { integration: SystemGa
       <div className="garden-card__footer">
         <small>
           {integration.cost
-            ? `${integration.cost.cultivationPoints} ponto${integration.cost.cultivationPoints === 1 ? '' : 's'} · ${formatPeriodCost(integration.cost.periods)} · permanente`
+            ? `${integration.cost.cultivationPoints} ponto${integration.cost.cultivationPoints === 1 ? '' : 's'} · ${formatTimeCost(integration.cost.timeCost)} · permanente`
             : 'Custo ainda desconhecido'}
           {!integration.canCultivate && integration.blockedReason && integration.visibility !== 'cultivated' ? ` — ${integration.blockedReason}` : ''}
         </small>

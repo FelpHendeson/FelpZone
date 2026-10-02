@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 export type EconomyIntent = 'trade' | 'grant-property';
 export type EconomyOfferKind = 'buy' | 'sell';
 
@@ -48,7 +49,7 @@ export interface EconomyActionDefinition {
   label: string;
   hint: string;
   npcId?: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   once: boolean;
   requirements: readonly EconomyRequirement[];
   effects: readonly EconomyEffect[];
@@ -99,7 +100,7 @@ export interface EconomyState {
 
 export interface EconomyActionPlan {
   actionId: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   feedback: string;
   effects: readonly EconomyEffect[];
 }

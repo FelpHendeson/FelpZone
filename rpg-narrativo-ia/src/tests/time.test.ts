@@ -29,11 +29,13 @@ function freezeState(state: TimeState): TimeState {
 }
 
 describe('horário e data', () => {
-  it('cria o estado inicial no dia 1 ao alvorecer', () => {
+  it('cria o estado inicial no dia 1 na madrugada; o mundo começa ao alvorecer', () => {
     const time = createInitialTime();
 
-    expect(time).toEqual({ day: 1, periodId: 'alvorecer' });
+    expect(time).toEqual({ day: 1, periodId: 'madrugada' });
+    expect(createInitialWorld()).toEqual({ day: 1, period: 'alvorecer', minute: 300 });
     expect(DEFAULT_PERIODS.map((period) => period.id)).toEqual([
+      'madrugada',
       'alvorecer',
       'manha',
       'meio-dia',
@@ -41,11 +43,11 @@ describe('horário e data', () => {
       'entardecer',
       'noite',
     ]);
-    expect(getPeriod(time)).toEqual({ id: 'alvorecer', label: 'Alvorecer' });
+    expect(getPeriod(time)).toEqual({ id: 'madrugada', label: 'Madrugada' });
   });
 
   it('avança dentro do mesmo dia', () => {
-    const previous = createInitialTime();
+    const previous: TimeState = { day: 1, periodId: 'alvorecer' };
     const result = advanceTime(previous, { periods: 2 });
 
     expect(result.previous).toEqual({ day: 1, periodId: 'alvorecer' });
@@ -55,32 +57,32 @@ describe('horário e data', () => {
     expect(getPeriod(result.current)).toEqual({ id: 'meio-dia', label: 'Meio-dia' });
   });
 
-  it('avança da noite para o alvorecer do dia seguinte', () => {
+  it('avança da noite para a madrugada do dia seguinte (o dia vira à meia-noite)', () => {
     const night: TimeState = { day: 1, periodId: 'noite' };
     const result = advanceTime(night, { periods: 1 });
 
     expect(result.previous).toEqual(night);
-    expect(result.current).toEqual({ day: 2, periodId: 'alvorecer' });
-    expect(result.crossedPeriods).toEqual(['alvorecer']);
+    expect(result.current).toEqual({ day: 2, periodId: 'madrugada' });
+    expect(result.crossedPeriods).toEqual(['madrugada']);
     expect(result.daysAdvanced).toBe(1);
   });
 
   it('avança por vários períodos e informa os atravessados', () => {
     const afternoon: TimeState = { day: 1, periodId: 'tarde' };
-    const result = advanceTime(afternoon, { periods: 4 });
+    const result = advanceTime(afternoon, { periods: 5 });
 
     expect(result.current).toEqual({ day: 2, periodId: 'manha' });
-    expect(result.crossedPeriods).toEqual(['entardecer', 'noite', 'alvorecer', 'manha']);
+    expect(result.crossedPeriods).toEqual(['entardecer', 'noite', 'madrugada', 'alvorecer', 'manha']);
     expect(result.daysAdvanced).toBe(1);
   });
 
   it('avança por vários dias sem perder o período de destino', () => {
-    const start = createInitialTime();
-    const result = advanceTime(start, { periods: 13 });
+    const start: TimeState = { day: 1, periodId: 'alvorecer' };
+    const result = advanceTime(start, { periods: 15 });
 
     expect(result.current).toEqual({ day: 3, periodId: 'manha' });
     expect(result.daysAdvanced).toBe(2);
-    expect(result.crossedPeriods).toHaveLength(13);
+    expect(result.crossedPeriods).toHaveLength(15);
     expect(result.crossedPeriods[0]).toBe('manha');
     expect(result.crossedPeriods.at(-1)).toBe('manha');
     expect(result.crossedPeriods.filter((id) => id === 'alvorecer')).toEqual(['alvorecer', 'alvorecer']);
@@ -133,7 +135,7 @@ describe('horário e data', () => {
   });
 
   it('rejeita período inexistente no estado', () => {
-    const invalid: TimeState = { day: 1, periodId: 'madrugada' };
+    const invalid: TimeState = { day: 1, periodId: 'crepusculo' };
 
     expect(inspectTimeState(invalid).ok).toBe(false);
     expect(() => getPeriod(invalid)).toThrow(TimeError);
@@ -142,7 +144,7 @@ describe('horário e data', () => {
   });
 
   it('formata dia e período em português', () => {
-    expect(formatTime(createInitialTime())).toBe('Dia 1 · Alvorecer');
+    expect(formatTime(createInitialTime())).toBe('Dia 1 · Madrugada');
     expect(formatTime({ day: 2, periodId: 'manha' })).toBe('Dia 2 · Manhã');
     expect(formatTime({ day: 3, periodId: 'meio-dia' })).toBe('Dia 3 · Meio-dia');
     expect(formatTime({ day: 8, periodId: 'entardecer' })).toBe('Dia 8 · Entardecer');
@@ -197,12 +199,16 @@ describe('horário e data', () => {
 
     expect(game.schemaVersion).toBe(SCHEMA_VERSION);
     expect(raw.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(raw.world).toEqual({ day: 1, period: 'alvorecer' });
+    expect(raw.world).toMatchObject({ day: 1, period: 'alvorecer' });
     expect(parseGameState(serializeGameState(game))).toEqual({ status: 'ok', state: game });
 
-    const invalidPeriod = { ...raw, world: { day: 1, period: 'madrugada' } };
+    const invalidPeriod = { ...raw, world: { day: 1, period: 'crepusculo' } };
     const invalidDay = { ...raw, world: { day: 0, period: 'alvorecer' } };
+    const minuteOutsidePeriod = { ...raw, world: { day: 1, period: 'alvorecer', minute: 900 } };
+    const legacyWithoutMinute = { ...raw, world: { day: 1, period: 'noite' } };
     expect(parseGameState(JSON.stringify(invalidPeriod)).status).toBe('corrupt');
+    expect(parseGameState(JSON.stringify(minuteOutsidePeriod)).status).toBe('corrupt');
+    expect(parseGameState(JSON.stringify(legacyWithoutMinute)).status).toBe('ok');
     expect(parseGameState(JSON.stringify(invalidDay)).status).toBe('corrupt');
   });
 
@@ -210,9 +216,9 @@ describe('horário e data', () => {
     const state = createInitialState({ firstName: 'Ana', lastName: 'Cruz' }, firstDayCampaign, () => 't0');
     const next = applyEffects(state, [{ type: 'world.period', period: 'noite' }]);
 
-    expect(createInitialWorld()).toEqual({ day: 1, period: 'alvorecer' });
-    expect(state.world).toEqual({ day: 1, period: 'alvorecer' });
-    expect(next.world).toEqual({ day: 1, period: 'noite' });
+    expect(createInitialWorld()).toEqual({ day: 1, period: 'alvorecer', minute: 300 });
+    expect(state.world).toMatchObject({ day: 1, period: 'alvorecer' });
+    expect(next.world).toEqual({ day: 1, period: 'noite', minute: 19 * 60 });
     expect(next.world).not.toBe(state.world);
   });
 
@@ -244,10 +250,10 @@ describe('horário e data', () => {
     expect(inspectTimeCost({ periods: MAX_ADVANCE_PERIODS }).ok).toBe(true);
     expect(start).toEqual(snapshot);
     expect(result.crossedPeriods).toHaveLength(MAX_ADVANCE_PERIODS);
-    expect(result.current).toEqual({ day: 1667, periodId: 'entardecer' });
-    expect(result.daysAdvanced).toBe(1666);
-    expect(result.crossedPeriods[0]).toBe('manha');
-    expect(result.crossedPeriods.at(-1)).toBe('entardecer');
+    expect(result.current).toEqual({ day: 1429, periodId: 'tarde' });
+    expect(result.daysAdvanced).toBe(1428);
+    expect(result.crossedPeriods[0]).toBe('alvorecer');
+    expect(result.crossedPeriods.at(-1)).toBe('tarde');
   });
 
   it('lança TimeError se o dia resultante ultrapassar Number.MAX_SAFE_INTEGER', () => {
@@ -284,7 +290,7 @@ describe('horário e data', () => {
     const raw = JSON.parse(serializeGameState(game)) as { schemaVersion: number; world: Record<string, unknown> };
 
     expect(raw.schemaVersion).toBe(SCHEMA_VERSION);
-    expect(raw.world).toEqual({ day: 1, period: 'alvorecer' });
+    expect(raw.world).toMatchObject({ day: 1, period: 'alvorecer' });
     expect(parseGameState(serializeGameState(game))).toEqual({ status: 'ok', state: game });
     expect(
       parseGameState(

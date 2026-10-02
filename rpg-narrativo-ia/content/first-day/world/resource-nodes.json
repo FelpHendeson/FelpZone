@@ -7,7 +7,7 @@
     "capacity": 4,
     "maxCollectionPerAction": 2,
     "collectionCost": {
-      "periods": 1
+      "minutes": 30
     },
     "renewal": {
       "type": "short",
@@ -28,7 +28,7 @@
     "capacity": 3,
     "maxCollectionPerAction": 1,
     "collectionCost": {
-      "periods": 1
+      "minutes": 10
     },
     "renewal": {
       "type": "short",
@@ -49,7 +49,7 @@
     "capacity": 8,
     "maxCollectionPerAction": 2,
     "collectionCost": {
-      "periods": 1
+      "minutes": 45
     },
     "renewal": {
       "type": "population",

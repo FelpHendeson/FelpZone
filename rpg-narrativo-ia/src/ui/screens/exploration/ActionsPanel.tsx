@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { SandboxAction } from '../../../modules/sandbox-actions';
 import {
-  formatPeriodCost,
+  formatTimeCost,
   type ContextualActivityView,
   type ExplorationView,
   type RecipeView,
@@ -63,7 +63,7 @@ export function ActionsPanel({
               className="button button--compact rest-card__button"
               onClick={() => onAction({ type: 'needs.rest', mode: view.rest.mode })}
             >
-              {view.rest.label} · {formatPeriodCost(view.rest.costPeriods)}
+              {view.rest.label} · {formatTimeCost(view.rest.cost)}
             </button>
           </div>
         </article>
@@ -130,7 +130,7 @@ export function ContextualActivityCard({
       <div className="action-card__body">
         <div className="action-card__title">
           <h3>{activity.label}</h3>
-          <span>{formatPeriodCost(activity.costPeriods)}</span>
+          <span>{formatTimeCost(activity.cost)}</span>
         </div>
         {activity.chanceLabel ? (
           <p className={`chance-badge chance-badge--${activity.chanceBand}`}>
@@ -210,7 +210,7 @@ export function ResourceCard({ resource, onAction }: { resource: ResourceView; o
           <span style={{ width: `${Math.min(100, resource.availableUnits * 10)}%` }} />
         </div>
         <div className="action-card__footer">
-          <small>{resource.blockedReason ?? `Até ${resource.maxCollectable} por coleta · ${formatPeriodCost(resource.costPeriods)}`}</small>
+          <small>{resource.blockedReason ?? `Até ${resource.maxCollectable} por coleta · ${formatTimeCost(resource.cost)}`}</small>
           <button
             type="button"
             className="button button--compact"
@@ -247,7 +247,7 @@ export function RecipeCard({ recipe, onAction }: { recipe: RecipeView; onAction:
         <div className="action-card__footer">
           <small>
             {recipe.blockedReason ??
-              `${formatPeriodCost(recipe.costPeriods)}${recipe.stationTags.length ? ` · ${recipe.stationTags.join(', ')}` : ''}`}
+              `${formatTimeCost(recipe.cost)}${recipe.stationTags.length ? ` · ${recipe.stationTags.join(', ')}` : ''}`}
           </small>
           <button
             type="button"

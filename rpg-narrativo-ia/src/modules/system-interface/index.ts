@@ -1,3 +1,4 @@
+import { copyTimeCost } from '../time';
 import type { GameState } from '../../core/state/types';
 import { INITIAL_ENERGETICS } from '../energetics';
 import {
@@ -133,7 +134,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
@@ -148,7 +149,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
@@ -163,7 +164,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
@@ -178,7 +179,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
@@ -193,7 +194,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
@@ -215,7 +216,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         ...(entry.blockedReason ? { blockedReason: entry.blockedReason } : {}),
       })),
@@ -393,7 +394,7 @@ function buildTrainings(
       name: method.name,
       description: method.description,
       targetLabel: describeTarget(method, catalogs),
-      costPeriods: method.cost.periods,
+      cost: copyTimeCost(method.cost),
       effectsSummary: method.effects.map((effect) => describeEffect(effect, catalogs)),
       requirementsSummary: method.requirements.map((requirement) =>
         describeMasteryRequirement(requirement, (skillId) => resolveSkillName(skillId, catalogs)),
@@ -556,7 +557,7 @@ function buildGardenIntegrations(
           met: requirement.met,
         })),
         requirementsMet: recipe.requirementsMet ?? false,
-        cost: recipe.cost ? { cultivationPoints: recipe.cost.cultivationPoints, periods: recipe.cost.timeCost.periods } : null,
+        cost: recipe.cost ? { cultivationPoints: recipe.cost.cultivationPoints, timeCost: copyTimeCost(recipe.cost.timeCost) } : null,
         canCultivate,
         ...(blockedReason ? { blockedReason } : {}),
       };

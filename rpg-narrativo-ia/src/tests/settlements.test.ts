@@ -73,7 +73,7 @@ describe('Sistema 28 — bases, territórios e assentamentos', () => {
     expect(finishedSupply.settlements.projects[0]?.supplied).toEqual([{ itemId: 'fallen-branch', quantity: 2 }]);
     expect(finishedSupply.settlements.structures).toEqual([]);
 
-    const built = executeSandboxAction(finishedSupply, { type: 'needs.rest', mode: 'simple' }).current;
+    const built = executeSandboxAction(finishedSupply, { type: 'needs.rest', mode: 'simple', untilDawn: true }).current;
     expect(built.settlements.projects).toEqual([]);
     expect(built.settlements.structures).toEqual([{ territoryId: 'awakening-camp', structureTypeId: 'lean-to' }]);
 
@@ -81,11 +81,14 @@ describe('Sistema 28 — bases, territórios e assentamentos', () => {
     expect(assigned.settlements.assignments).toEqual([
       { territoryId: 'awakening-camp', npcId: 'mira-vale', roleId: 'watcher' },
     ]);
-    expect(assigned.settlements.storage).toEqual([
+    // Pedir a vigia leva 15 minutos e não atravessa período: ainda não há produção.
+    expect(assigned.settlements.storage).toEqual([]);
+
+    const firstPeriod = executeSandboxAction(assigned, { type: 'needs.rest', mode: 'simple' }).current;
+    expect(firstPeriod.settlements.storage).toEqual([
       { territoryId: 'awakening-camp', itemId: 'fallen-branch', quantity: 1 },
     ]);
-
-    const capped = executeSandboxAction(assigned, { type: 'needs.rest', mode: 'simple' }).current;
+    const capped = executeSandboxAction(firstPeriod, { type: 'needs.rest', mode: 'simple', untilDawn: true }).current;
     expect(capped.settlements.storage[0]?.quantity).toBe(3);
     const stillCapped = executeSandboxAction(capped, { type: 'needs.rest', mode: 'simple' }).current;
     expect(stillCapped.settlements.storage[0]?.quantity).toBe(3);

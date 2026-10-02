@@ -36,6 +36,7 @@ import { HintAlert } from '../components/SystemHints';
 import { TourOverlay } from '../components/Tour';
 import { FIRST_TOUR, isTourDone, markTourDone } from '../tour';
 import { setClockContext } from '../clock';
+import { worldMinute } from '../../modules/world';
 import { usePreferences } from '../preferences';
 import { deriveSystemHints, type HintAction } from '../system-hints';
 import { currentChapter } from '../sandbox';
@@ -96,7 +97,7 @@ export function ExplorationScreen({
   worldTriggers,
 }: ExplorationScreenProps) {
   const preferences = usePreferences();
-  setClockContext(state.world.period, preferences.clockFormat);
+  setClockContext(state.world, preferences.clockFormat);
   const [tourOpen, setTourOpen] = useState(() => !isTourDone());
   const [dismissedAlerts, setDismissedAlerts] = useState<string[]>([]);
   const [activeView, setActiveView] = useState<GameView>('world');
@@ -194,7 +195,8 @@ export function ExplorationScreen({
     <main className="screen screen--exploration">
       <GameHud
         characterName={view.characterName}
-        worldLabel={view.worldLabel}
+        worldLabel={view.calendarLabel}
+        clock={{ day: state.world.day, minute: worldMinute(state.world), format: preferences.clockFormat }}
         chapterLabel={chapter ? `Capítulo ${chapter.number} · ${chapter.title}` : undefined}
         attributes={state.attributes}
         onExit={onExit}

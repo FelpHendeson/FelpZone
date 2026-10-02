@@ -40,6 +40,8 @@ export type SandboxAction =
     }
   | {
       type: 'exploration.explore';
+      /** Sessão parcial (minutos); ausente = sessão completa do local. */
+      minutes?: number;
     }
   | {
       type: 'resource.collect';
@@ -58,6 +60,8 @@ export type SandboxAction =
   | {
       type: 'needs.consume';
       itemId: string;
+      /** Quantas porções consumir agora; ausente = o restante da unidade atual. */
+      portions?: number;
     }
   | {
       type: 'needs.rest';

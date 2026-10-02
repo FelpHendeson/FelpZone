@@ -4,7 +4,7 @@ import { type Attributes, type GameState, type InventoryItem, type NarrativeSess
 import { craftRecipe } from '../crafting';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
-import { addItem, canRemoveItem, removeItem } from '../inventory';
+import { addItem, canRemoveItem, consumePortions, openPortionsOf, removeItem } from '../inventory';
 import { planNeedsConsumption, planNeedsRest } from '../needs';
 import { collectResource } from '../resources';
 import { type SandboxContext } from '../sandbox';
@@ -13,7 +13,7 @@ import { getSkillProficiency, increaseSkillProficiency, learnSkill, type SkillsP
 import { applyTrainingPlan, copyTrainingPlan, planTraining } from '../training';
 import { combatResolutionEffects, listAvailableEncounters, verifyCombatResolution } from '../combat';
 import { applyMastery, type MasteryResult } from '../mastery';
-import { canAcceptQuantity, copyItemsState, createInitialItemsState, type ItemsState } from '../items';
+import { DEFAULT_CONSUME_MINUTES, canAcceptQuantity, copyItemsState, createInitialItemsState, type IndexedItems, type ItemsState, type NeedRestoreUse } from '../items';
 import { buildCombatLoadout, equipItem, unequipSlot } from '../equipment';
 import { assignPreparation, clearPreparation, consumePreparedSlot } from '../preparation';
 import { copyPersistentConditions, createInitialLingering, type PersistentConditionState } from '../conditions';
@@ -33,8 +33,8 @@ import { applyInteractablePlan, copyInteractablesState, createInitialInteractabl
 import { copyNpcsState, createInitialNpcsState, rememberNpcFact, INITIAL_NPCS, type NPCsState } from '../npcs';
 import { applyContextualActivityPlan, copyContextualActivitiesState, createInitialContextualActivitiesState, planContextualActivity, type ContextualActivitiesState, type ContextualActivityPlan } from '../activities';
 import type { GuidanceState } from '../guidance';
-import { DEFAULT_PERIODS, type TimeCost } from '../time';
-import { worldToTimeState } from '../world';
+import { copyTimeCost, minutesUntilDawn, type TimeCost } from '../time';
+import { copyWorld, worldMinute, worldToTimeState } from '../world';
 import { SandboxActionError } from './errors';
 import type { SandboxAction, SandboxActionDetail } from './types';
 import { activeCatalogs, applyNeedsToAttributes, attributesToNeeds, copyConsumptionPlan, copyCrafting, copyExploration, copyInventory, copyNarrativeSession, copyNavigation, copyPresenceState, copyResolution, copyResources, copyRestPlan, copySystem, createInteractionPlanCopy, distinctCombatSkills, hasActiveCampfire, requireActiveCatalog, requireNpcPresent } from './action-helpers';
@@ -131,7 +131,7 @@ export function executePrimary(
     interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
     status: state.status,
     narrativeSession: copyNarrativeSession(state.narrativeSession),
-    world: { day: state.world.day, period: state.world.period },
+    world: copyWorld(state.world),
   };
 
   if (action.type === 'navigation.move') {
@@ -156,6 +156,7 @@ export function executePrimary(
       context.exploration,
       exploration,
       state,
+      action.minutes,
     );
     return {
       detail: { type: 'exploration.explore', result },
@@ -221,20 +222,31 @@ export function executePrimary(
   }
 
   if (action.type === 'needs.consume') {
-    const plan = planNeedsConsumption(attributesToNeeds(state.attributes), action.itemId);
-    if (!canRemoveItem(inventory, plan.itemId, plan.quantity)) {
+    const use = consumableUseOf(catalogs.items, action.itemId);
+    const portionsPerUnit = use?.portions ?? 1;
+    const remaining = openPortionsOf(inventory, action.itemId) ?? portionsPerUnit;
+    const take = action.portions ?? remaining;
+    if (take < 1 || take > remaining) {
+      throw new SandboxActionError('Não há tantas porções abertas deste item.');
+    }
+    const eaten = portionsPerUnit - remaining;
+    const plan = planNeedsConsumption(attributesToNeeds(state.attributes), action.itemId, undefined, {
+      ...(portionsPerUnit > 1 && take < portionsPerUnit ? { portion: { from: eaten, to: eaten + take, of: portionsPerUnit } } : {}),
+      minutesPerUnit: use?.minutes ?? DEFAULT_CONSUME_MINUTES,
+    });
+    if (!canRemoveItem(inventory, plan.itemId, 1)) {
       throw new SandboxActionError('O item consumível não está disponível no inventário.');
     }
 
     return {
       detail: { type: 'needs.consume', plan: copyConsumptionPlan(plan) },
-      timeCost: { periods: plan.timeCost.periods },
+      timeCost: copyTimeCost(plan.timeCost),
       navigation,
       exploration,
       resources,
       crafting,
       presences,
-      inventory: removeItem(inventory, plan.itemId, plan.quantity),
+      inventory: consumePortions(inventory, plan.itemId, take, portionsPerUnit),
       ...unchanged,
       attributes: applyNeedsToAttributes(unchanged.attributes, plan.current),
     };
@@ -248,7 +260,7 @@ export function executePrimary(
     const plan = planNeedsRest(attributesToNeeds(state.attributes), action.mode);
     return {
       detail: { type: 'needs.rest', plan: copyRestPlan(plan) },
-      timeCost: { periods: action.untilDawn ? periodsUntilNextDawn(state.world.period) : plan.timeCost.periods },
+      timeCost: action.untilDawn ? { periods: 0, minutes: minutesUntilNextDawn(state.world) } : copyTimeCost(plan.timeCost),
       navigation,
       exploration,
       resources,
@@ -273,7 +285,7 @@ export function executePrimary(
     });
     return {
       detail: { type: 'training.train', plan: copyTrainingPlan(trainingPlan) },
-      timeCost: { periods: trainingPlan.timeCost.periods },
+      timeCost: copyTimeCost(trainingPlan.timeCost),
       navigation,
       exploration,
       resources,
@@ -392,7 +404,7 @@ export function executePrimary(
 
     return {
       detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
-      timeCost: { periods: encounter.timeCost.periods },
+      timeCost: copyTimeCost(encounter.timeCost),
       navigation,
       exploration,
       resources,
@@ -430,7 +442,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
       mastery,
     };
   }
@@ -439,7 +451,7 @@ export function executePrimary(
     const result = equipItem(requireActiveCatalog(catalogs.items, 'itens'), unchanged.items, inventory, action.itemId);
     return {
       detail: { type: 'equipment.equip', result },
-      timeCost: { periods: 0 },
+      timeCost: { periods: 0, minutes: 2 },
       navigation,
       exploration,
       resources,
@@ -455,7 +467,7 @@ export function executePrimary(
     const result = unequipSlot(unchanged.items, action.slot);
     return {
       detail: { type: 'equipment.unequip', result },
-      timeCost: { periods: 0 },
+      timeCost: { periods: 0, minutes: 2 },
       navigation,
       exploration,
       resources,
@@ -471,7 +483,7 @@ export function executePrimary(
     const result = assignPreparation(requireActiveCatalog(catalogs.items, 'itens'), unchanged.items, inventory, action.slot, action.itemId);
     return {
       detail: { type: 'preparation.assign', result },
-      timeCost: { periods: 0 },
+      timeCost: { periods: 0, minutes: 1 },
       navigation,
       exploration,
       resources,
@@ -487,7 +499,7 @@ export function executePrimary(
     const result = clearPreparation(unchanged.items, action.slot);
     return {
       detail: { type: 'preparation.clear', result },
-      timeCost: { periods: 0 },
+      timeCost: { periods: 0, minutes: 1 },
       navigation,
       exploration,
       resources,
@@ -516,7 +528,7 @@ export function executePrimary(
     }
     return {
       detail: { type: 'garden.cultivate', plan },
-      timeCost: { periods: plan.cost.timeCost.periods },
+      timeCost: copyTimeCost(plan.cost.timeCost),
       navigation,
       exploration,
       resources,
@@ -562,7 +574,7 @@ export function executePrimary(
     const afterEffects = worldEffects.length > 0 ? applyEffects(state, worldEffects, context.bonds) : state;
     return {
       detail: { type: 'interactable.interact', plan: interactablePlan },
-      timeCost: { periods: interactablePlan.timeCost.periods },
+      timeCost: copyTimeCost(interactablePlan.timeCost),
       interactablePlan,
       navigation: nextNavigation,
       exploration,
@@ -598,7 +610,7 @@ export function executePrimary(
       interactables: nextInteractables,
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -633,7 +645,7 @@ export function executePrimary(
     const afterEffects = applyEffects({ ...state, organizations: nextOrganizations }, worldEffects, context.bonds);
     return {
       detail: { type: 'organization.act', plan: organizationPlan },
-      timeCost: { periods: organizationPlan.timeCost.periods },
+      timeCost: copyTimeCost(organizationPlan.timeCost),
       organizationPlan,
       navigation,
       exploration,
@@ -669,7 +681,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -687,7 +699,7 @@ export function executePrimary(
     const afterEffects = applyEffects({ ...state, family: nextFamily }, worldEffects, context.bonds);
     return {
       detail: { type: 'family.act', plan: familyPlan },
-      timeCost: { periods: familyPlan.timeCost.periods },
+      timeCost: copyTimeCost(familyPlan.timeCost),
       familyPlan,
       navigation,
       exploration,
@@ -723,7 +735,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -741,7 +753,7 @@ export function executePrimary(
     const afterEffects = applyEffects({ ...state, civic: nextCivic }, worldEffects, context.bonds);
     return {
       detail: { type: 'civic.act', plan: civicPlan },
-      timeCost: { periods: civicPlan.timeCost.periods },
+      timeCost: copyTimeCost(civicPlan.timeCost),
       civicPlan,
       navigation,
       exploration,
@@ -777,7 +789,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -814,7 +826,7 @@ export function executePrimary(
     );
     return {
       detail: { type: 'economy.act', plan: economyPlan },
-      timeCost: { periods: economyPlan.timeCost.periods },
+      timeCost: copyTimeCost(economyPlan.timeCost),
       economyPlan,
       navigation,
       exploration,
@@ -850,7 +862,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -887,7 +899,7 @@ export function executePrimary(
     );
     return {
       detail: { type: 'settlement.act', plan: settlementPlan },
-      timeCost: { periods: settlementPlan.timeCost.periods },
+      timeCost: copyTimeCost(settlementPlan.timeCost),
       settlementPlan,
       navigation,
       exploration,
@@ -923,7 +935,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -941,7 +953,7 @@ export function executePrimary(
     const afterEffects = applyEffects({ ...state, politics: nextPolitics }, worldEffects, context.bonds);
     return {
       detail: { type: 'politics.act', plan: politicsPlan },
-      timeCost: { periods: politicsPlan.timeCost.periods },
+      timeCost: copyTimeCost(politicsPlan.timeCost),
       politicsPlan,
       navigation,
       exploration,
@@ -977,7 +989,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -1007,7 +1019,7 @@ export function executePrimary(
     }
     return {
       detail: { type: 'bond.act', plan: bondPlan },
-      timeCost: { periods: bondPlan.timeCost.periods },
+      timeCost: copyTimeCost(bondPlan.timeCost),
       bondPlan,
       navigation,
       exploration,
@@ -1043,7 +1055,7 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-      world: { day: afterEffects.world.day, period: afterEffects.world.period },
+      world: copyWorld(afterEffects.world),
     };
   }
 
@@ -1068,7 +1080,7 @@ export function executePrimary(
     );
     return {
       detail: { type: 'activity.perform', plan: activityPlan },
-      timeCost: { periods: activityPlan.timeCost.periods },
+      timeCost: copyTimeCost(activityPlan.timeCost),
       activityPlan,
       navigation,
       exploration,
@@ -1118,7 +1130,7 @@ export function executePrimary(
 
   return {
     detail: { type: 'presence.interact', plan: createInteractionPlanCopy(plan) },
-    timeCost: { periods: plan.timeCost.periods },
+    timeCost: copyTimeCost(plan.timeCost),
     plan,
     navigation,
     exploration,
@@ -1154,12 +1166,17 @@ export function executePrimary(
       interactables: copyInteractablesState(state.sandbox.interactables ?? createInitialInteractablesState()),
       status: afterEffects.status,
       narrativeSession: copyNarrativeSession(afterEffects.narrativeSession),
-    world: { day: afterEffects.world.day, period: afterEffects.world.period },
+    world: copyWorld(afterEffects.world),
   };
 }
 
-/** Períodos até o Alvorecer do dia seguinte (do Alvorecer, um dia inteiro). */
-export function periodsUntilNextDawn(period: GameState['world']['period']): number {
-  const index = DEFAULT_PERIODS.findIndex((entry) => entry.id === period);
-  return DEFAULT_PERIODS.length - Math.max(0, index);
+/** Minutos até o próximo Alvorecer (05:00). */
+export function minutesUntilNextDawn(world: GameState['world']): number {
+  return minutesUntilDawn(worldMinute(world));
+}
+
+/** Uso de consumo declarado no catálogo de itens (duração e porções), quando houver. */
+function consumableUseOf(items: IndexedItems | undefined, itemId: string): NeedRestoreUse | undefined {
+  const item = items?.byId.get(itemId);
+  return item?.kind === 'consumable' && item.use.type === 'need.restore' ? item.use : undefined;
 }

@@ -6,7 +6,7 @@
       "description": "Seguir devagar com Davi até um ponto menos exposto onde ele possa descansar.",
       "locationId": "rocky-bank",
       "timeCost": {
-        "periods": 1
+        "minutes": 90
       },
       "repeatable": false,
       "requirements": [
@@ -72,7 +72,7 @@
       "description": "Ouvir a preocupação de Caio sobre o uso da Nascente e deixar clara sua posição.",
       "locationId": "spring-lake",
       "timeCost": {
-        "periods": 1
+        "minutes": 30
       },
       "repeatable": false,
       "requirements": [
@@ -131,7 +131,7 @@
       "description": "Caio quer decidir com você quem cobre a vigília desta noite na Margem Rochosa.",
       "locationId": "rocky-bank",
       "timeCost": {
-        "periods": 1
+        "minutes": 45
       },
       "repeatable": false,
       "requirements": [
@@ -191,7 +191,7 @@
       "description": "Davi ainda evita apoiar a perna ferida; verificar de longe não é mais suficiente.",
       "locationId": "awakening-clearing",
       "timeCost": {
-        "periods": 1
+        "minutes": 40
       },
       "repeatable": false,
       "requirements": [

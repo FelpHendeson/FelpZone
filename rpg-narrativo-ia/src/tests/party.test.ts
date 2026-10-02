@@ -153,7 +153,7 @@ describe('Sistema 23 — party e combate coletivo', () => {
     expect(combat.outcome).toBe('victory');
     const resolution = buildCombatResolution(combat, getEncounter(INITIAL_COMBAT, 'clearing-pair'));
     const result = executeSandboxAction(ready, { type: 'combat.resolve', resolution });
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 25 });
     expect(result.current.world.day).toBe(worldBefore.day);
     expect(result.current.party.vitals.find((entry) => entry.actorId === 'mira-vale')?.health).toBeGreaterThanOrEqual(1);
     expect(result.current.party.vitals.find((entry) => entry.actorId === 'mira-vale')?.health).toBe(

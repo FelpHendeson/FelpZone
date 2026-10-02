@@ -43,7 +43,7 @@ export const DEFAULT_REST_MODES = Object.freeze([
   Object.freeze({
     id: 'simple',
     effects: Object.freeze([Object.freeze({ needId: 'energia', amount: 24 })]),
-    timeCost: Object.freeze({ periods: 2 }),
+    timeCost: Object.freeze({ periods: 0, minutes: 120 }),
   }),
   Object.freeze({
     id: 'campfire',
@@ -51,6 +51,6 @@ export const DEFAULT_REST_MODES = Object.freeze([
       Object.freeze({ needId: 'energia', amount: 40 }),
       Object.freeze({ needId: 'saude', amount: 6 }),
     ]),
-    timeCost: Object.freeze({ periods: 2 }),
+    timeCost: Object.freeze({ periods: 0, minutes: 120 }),
   }),
 ]) satisfies readonly Readonly<RestDefinition>[];

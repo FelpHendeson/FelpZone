@@ -2,10 +2,10 @@ import { startNarrativeSession } from '../../core/engine';
 import type { Campaign } from '../../core/events';
 import { defaultNow, type GameState } from '../../core/state';
 import { synchronizeKnownRecipes } from '../crafting';
-import { advanceDayCycle } from '../day-cycle';
+import { interpretDayCycle } from '../day-cycle';
 import { reevaluateDiscoveries } from '../exploration';
 import { INITIAL_OBJECTIVES, synchronizeObjectives, type IndexedObjectives } from '../objectives';
-import { applyNeedsWear } from '../needs';
+import { applyNeedsWearOverMinutes } from '../needs';
 import { applyPopulationDayCycle, synchronizeResourceRenewal } from '../resources';
 import { type SandboxContext } from '../sandbox';
 import { synchronizeDiscoveredPresences } from '../presences';
@@ -19,7 +19,8 @@ import { createInitialEconomyState } from '../economy';
 import { INITIAL_SETTLEMENTS, advanceSettlements, copySettlementsState, createInitialSettlementsState } from '../settlements';
 import { createInitialPoliticsState } from '../politics';
 import { synchronizeDiscoveredInteractables } from '../interactables';
-import { timeStateToWorld, worldToTimeState } from '../world';
+import { advanceWorld, worldMinute, worldToTimeState } from '../world';
+import { absoluteMinute, resolveCostMinutes } from '../time';
 import { SandboxActionError } from './errors';
 import { summarizeSynchronization } from './synchronization';
 import type { SandboxAction, SandboxActionOptions, SandboxActionResult } from './types';
@@ -68,7 +69,10 @@ function runTransaction(
   const initialTime = worldToTimeState(previous.world);
   const executed = executePrimary(previous, action, context, initialTime);
   const detail = executed.detail;
-  const timeCost = { periods: executed.timeCost.periods };
+  const startWorld = executed.world;
+  const startMinute = worldMinute(startWorld);
+  const minutes = resolveCostMinutes(executed.timeCost, { day: startWorld.day, minute: startMinute });
+  const timeCost = { periods: executed.timeCost.periods, minutes };
   if (executed.mastery && executed.mastery.grantedCultivationPoints > 0) {
     executed.garden = grantCultivationPoints(executed.garden, executed.mastery.grantedCultivationPoints);
   }
@@ -86,10 +90,23 @@ function runTransaction(
   let interactables = executed.interactables;
 
   // Efeitos declarativos da ação são aplicados antes do custo temporal dela.
-  const dayCycle = advanceDayCycle(worldToTimeState(executed.world), timeCost);
-  const world = timeStateToWorld(dayCycle.time.current);
-  const clockAdvanced = timeCost.periods > 0;
-  const needsWear = applyNeedsWear(attributesToNeeds(executed.attributes), timeCost.periods);
+  // O relógio anda em minutos; sistemas por período reagem a cada fronteira cruzada.
+  const advanced = advanceWorld(startWorld, minutes);
+  const world = advanced.world;
+  const dayCycle = interpretDayCycle({
+    previous: worldToTimeState(startWorld),
+    current: worldToTimeState(world),
+    crossedPeriods: [...advanced.advance.crossedPeriods],
+    daysAdvanced: advanced.advance.daysAdvanced,
+  });
+  const periodsCrossed = advanced.advance.crossedPeriods.length;
+  const clockAdvanced = minutes > 0;
+  const needsWear = applyNeedsWearOverMinutes(
+    attributesToNeeds(executed.attributes),
+    absoluteMinute({ day: startWorld.day, minute: startMinute }),
+    minutes,
+    periodsCrossed,
+  );
   const attributes = applyNeedsToAttributes(executed.attributes, needsWear.current);
 
   const resourcesBeforeRecovery = copyResources(resources);
@@ -101,10 +118,10 @@ function runTransaction(
     resources = synchronizeResourceRenewal(context.resources, resources, dayCycle.time.current);
   }
   const resourcesAfterRenewal = copyResources(resources);
-  if (clockAdvanced && lingering.entries.length > 0) {
+  if (periodsCrossed > 0 && lingering.entries.length > 0) {
     const conditions = requireActiveCatalog(catalogs.conditions, 'condições');
-    const lingeringDamage = lingeringWorldDamage(lingering, timeCost.periods, conditions);
-    lingering = advanceLingering(conditions, lingering, timeCost.periods);
+    const lingeringDamage = lingeringWorldDamage(lingering, periodsCrossed, conditions);
+    lingering = advanceLingering(conditions, lingering, periodsCrossed);
     if (lingeringDamage > 0) {
       attributes.saude = Math.max(1, attributes.saude - lingeringDamage);
     }
@@ -192,11 +209,11 @@ function runTransaction(
     family: familySync.current,
     civic: executed.civic ?? previous.civic ?? createInitialCivicState(),
     economy: executed.economy ?? previous.economy ?? createInitialEconomyState(),
-    settlements: clockAdvanced
+    settlements: periodsCrossed > 0
       ? advanceSettlements(
           context.settlements ?? INITIAL_SETTLEMENTS,
           executed.settlements ?? previous.settlements ?? createInitialSettlementsState(),
-          timeCost.periods,
+          periodsCrossed,
         )
       : copySettlementsState(executed.settlements ?? previous.settlements ?? createInitialSettlementsState()),
     politics: executed.politics ?? previous.politics ?? createInitialPoliticsState(),

@@ -163,6 +163,7 @@ describe('Fatia E — sandbox inicial e primeiro contato', () => {
     expect(state.flags['mira.shared-information']).toBe(true);
     expect(state.flags['camp.together']).toBeUndefined();
     expect(state.flags['camp.alone']).toBeUndefined();
-    expect(state.world.period).toBe('noite');
+    // A conversa leva 30 minutos e acontece de manhã: a noite ainda não chegou.
+    expect(state.world).toEqual({ day: 1, period: 'manha', minute: 10 * 60 + 50 });
   });
 });

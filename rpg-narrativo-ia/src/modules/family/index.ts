@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import type { GameState } from '../../core/state/types';
 import {
   deriveActorAge,
@@ -127,8 +128,7 @@ export function inspectFamilyCatalog(value: unknown): FamilyInspection<IndexedFa
       !nonEmpty(entry.label) ||
       !nonEmpty(entry.hint) ||
       (entry.npcId !== undefined && !nonEmpty(entry.npcId)) ||
-      !isRecord(entry.timeCost) ||
-      !nonNegativeSafeInteger(entry.timeCost.periods) ||
+      readTimeCost(entry.timeCost) === null ||
       typeof entry.once !== 'boolean' ||
       !Array.isArray(entry.requirements) ||
       !entry.requirements.every(isRequirement) ||
@@ -150,7 +150,7 @@ export function inspectFamilyCatalog(value: unknown): FamilyInspection<IndexedFa
       label: entry.label,
       hint: entry.hint,
       ...(entry.npcId ? { npcId: entry.npcId } : {}),
-      timeCost: { periods: entry.timeCost.periods as number },
+      timeCost: readTimeCost(entry.timeCost)!,
       once: entry.once,
       requirements: entry.requirements.map((requirement) => ({ ...requirement })),
       effects: Object.freeze(effects),
@@ -294,7 +294,7 @@ export function planFamilyAction(
   assertEffectsExecutable(catalog, state, action.effects);
   return {
     actionId: action.id,
-    timeCost: { periods: action.timeCost.periods },
+    timeCost: copyTimeCost(action.timeCost),
     feedback: action.feedback,
     effects: action.effects,
   };
@@ -574,10 +574,6 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 
 function nonEmpty(value: unknown): value is string {
   return typeof value === 'string' && value.trim().length > 0;
-}
-
-function nonNegativeSafeInteger(value: unknown): value is number {
-  return typeof value === 'number' && Number.isInteger(value) && Number.isSafeInteger(value) && value >= 0;
 }
 
 function isIntent(value: unknown): value is FamilyIntent {

@@ -466,8 +466,8 @@ describe('orquestrador de ações do sandbox', () => {
 
       expect(result.current.sandbox.navigation.currentLocationId).toBe(REGION);
       expect(result.current.sandbox.navigation.visitedLocationIds).toContain(REGION);
-      expect(result.current.world).toEqual({ day: 1, period: 'manha' });
-      expect(result.timeCost).toEqual({ periods: 1 });
+      expect(result.current.world).toMatchObject({ day: 1, period: 'manha' });
+      expect(result.timeCost).toMatchObject({ periods: 1 });
       expect(result.dayCycle.time.current).toEqual({ day: 1, periodId: 'manha' });
       expect(result.current.inventory).toEqual(inventory);
       expect(result.current.sandbox.exploration).toEqual(exploration);
@@ -484,8 +484,8 @@ describe('orquestrador de ações do sandbox', () => {
       expect(result.current.sandbox.exploration.locations[0]?.progress).toBe(10);
       expect(result.current.sandbox.navigation.discoveredLocationIds).toContain(HIDEOUT);
       expect(result.current.sandbox.navigation.unlockedLocationIds).toContain(HIDEOUT);
-      expect(result.current.world).toEqual({ day: 1, period: 'manha' });
-      expect(result.timeCost).toEqual({ periods: 1 });
+      expect(result.current.world).toMatchObject({ day: 1, period: 'manha' });
+      expect(result.timeCost).toMatchObject({ periods: 1 });
       expect(result.synchronization.revealedDiscoveryIds).toEqual(
         expect.arrayContaining(['camp-mark', 'short-find', HIDEOUT]),
       );
@@ -495,7 +495,7 @@ describe('orquestrador de ações do sandbox', () => {
       const state = completeCamp(playing(context), ['camp-mark', 'short-find', 'long-find', 'none-find', 'pop-find', HIDEOUT], context);
       const result = executeSandboxAction(state, { type: 'exploration.explore' }, { context, now: () => STAMP });
 
-      expect(result.timeCost).toEqual({ periods: 0 });
+      expect(result.timeCost).toMatchObject({ periods: 0 });
       expect(result.current.world).toEqual(state.world);
       expect(result.dayCycle.events).toEqual([]);
       expect(result.current.sandbox.resources).toEqual(state.sandbox.resources);
@@ -520,8 +520,8 @@ describe('orquestrador de ações do sandbox', () => {
 
       expect(result.detail.result.collectedAt).toEqual({ day: 1, periodId: 'alvorecer' });
       expect(node(result.current, 'short-node').lastCollectedAt).toEqual({ day: 1, periodId: 'alvorecer' });
-      expect(result.current.world).toEqual({ day: 1, period: 'manha' });
-      expect(result.timeCost).toEqual({ periods: 1 });
+      expect(result.current.world).toMatchObject({ day: 1, period: 'manha' });
+      expect(result.timeCost).toMatchObject({ periods: 1 });
     });
   });
 
@@ -534,8 +534,8 @@ describe('orquestrador de ações do sandbox', () => {
         { itemId: 'test-leaf', quantity: 1 },
         { itemId: 'test-cord', quantity: 1 },
       ]);
-      expect(result.current.world).toEqual({ day: 1, period: 'manha' });
-      expect(result.timeCost).toEqual({ periods: 1 });
+      expect(result.current.world).toMatchObject({ day: 1, period: 'manha' });
+      expect(result.timeCost).toMatchObject({ periods: 1 });
     });
 
     it('construir fogueira cria estrutura no local atual', () => {
@@ -546,7 +546,8 @@ describe('orquestrador de ações do sandbox', () => {
         { structureId: 'campfire', locationId: START, active: true },
       ]);
       expect(result.current.inventory).toEqual([]);
-      expect(result.current.world).toEqual({ day: 1, period: 'manha' });
+      // Montar a fogueira leva 50 minutos: do alvorecer (05:00) às 05:50.
+      expect(result.current.world).toEqual({ day: 1, period: 'alvorecer', minute: 350 });
     });
   });
 
@@ -555,8 +556,8 @@ describe('orquestrador de ações do sandbox', () => {
       const state = discoverAroundCamp(playing(context), context);
       const result = executeSandboxAction(state, { type: 'navigation.move', locationId: REGION }, { context, now: () => STAMP });
 
-      expect(state.world).toEqual({ day: 1, period: 'alvorecer' });
-      expect(result.current.world).toEqual({ day: 1, period: 'manha' });
+      expect(state.world).toMatchObject({ day: 1, period: 'alvorecer' });
+      expect(result.current.world).toMatchObject({ day: 1, period: 'manha' });
       expect(result.current.world.period).not.toBe('meio-dia');
       expect(result.dayCycle.time.daysAdvanced).toBe(0);
       expect(result.dayCycle.events).toEqual([
@@ -572,7 +573,7 @@ describe('orquestrador de ações do sandbox', () => {
       );
       const result = executeSandboxAction(state, { type: 'navigation.move', locationId: REGION }, { context, now: () => STAMP });
 
-      expect(result.current.world).toEqual({ day: 2, period: 'alvorecer' });
+      expect(result.current.world).toMatchObject({ day: 2, period: 'madrugada' });
       expect(result.dayCycle.time.daysAdvanced).toBe(1);
       expect(result.dayCycle.events.filter((event) => event.type === 'day.started')).toEqual([
         { type: 'day.started', day: 2 },
@@ -580,7 +581,7 @@ describe('orquestrador de ações do sandbox', () => {
       expect(result.dayCycle.events).toEqual([
         { type: 'period.ended', day: 1, periodId: 'noite' },
         { type: 'day.ended', day: 1 },
-        { type: 'period.started', day: 2, periodId: 'alvorecer' },
+        { type: 'period.started', day: 2, periodId: 'madrugada' },
         { type: 'day.started', day: 2 },
       ]);
     });
@@ -728,7 +729,7 @@ describe('orquestrador de ações do sandbox', () => {
         { context, now: () => STAMP },
       );
       expect(node(shortCollect.current, 'short-node').availableUnits).toBe(1);
-      expect(shortCollect.current.world).toEqual({ day: 1, period: 'manha' });
+      expect(shortCollect.current.world).toMatchObject({ day: 1, period: 'manha' });
       expect(shortCollect.synchronization.renewedNodeIds).toEqual([]);
 
       const tooEarly = executeSandboxAction(
@@ -736,7 +737,7 @@ describe('orquestrador de ações do sandbox', () => {
         { type: 'exploration.explore' },
         { context, now: () => STAMP },
       );
-      expect(tooEarly.current.world).toEqual({ day: 1, period: 'manha' });
+      expect(tooEarly.current.world).toMatchObject({ day: 1, period: 'manha' });
       expect(node(tooEarly.current, 'short-node').availableUnits).toBe(1);
 
       const onTime = executeSandboxAction(
@@ -744,7 +745,7 @@ describe('orquestrador de ações do sandbox', () => {
         { type: 'navigation.move', locationId: REGION },
         { context, now: () => STAMP },
       );
-      expect(onTime.current.world).toEqual({ day: 1, period: 'meio-dia' });
+      expect(onTime.current.world).toMatchObject({ day: 1, period: 'meio-dia' });
       expect(node(onTime.current, 'short-node').availableUnits).toBe(2);
       expect(onTime.synchronization.renewedNodeIds).toEqual(['short-node']);
 
@@ -761,7 +762,7 @@ describe('orquestrador de ações do sandbox', () => {
       );
       expect(node(beforeLong.current, 'long-node').availableUnits).toBe(0);
       const afterLong = executeSandboxAction(beforeLong.current, { type: 'navigation.move', locationId: TRAIL }, { context, now: () => STAMP });
-      expect(afterLong.current.world).toEqual({ day: 2, period: 'manha' });
+      expect(afterLong.current.world).toMatchObject({ day: 2, period: 'alvorecer' });
       expect(node(afterLong.current, 'long-node').availableUnits).toBe(1);
       expect(afterLong.synchronization.renewedNodeIds).toEqual(['long-node']);
     });
@@ -822,7 +823,7 @@ describe('orquestrador de ações do sandbox', () => {
       const opened = withState(closed.current, { flags: { ready: true, 'recipe.ready': true } }, context);
       const result = executeSandboxAction(opened, { type: 'exploration.explore' }, { context, now: () => STAMP });
 
-      expect(result.timeCost).toEqual({ periods: 0 });
+      expect(result.timeCost).toMatchObject({ periods: 0 });
       expect(result.current.world).toEqual(opened.world);
       expect(result.synchronization.revealedDiscoveryIds).toEqual(['secret-cache']);
       expect(result.synchronization.learnedRecipeIds).toEqual(['flag-weave']);

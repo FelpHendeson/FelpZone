@@ -43,7 +43,7 @@ function withCampfire(
 }
 
 describe('Fatia 9.3 — ações e passagem do tempo', () => {
-  it('aplica desgaste uma vez para cada período cobrado por uma ação existente', () => {
+  it('aplica desgaste proporcional aos minutos da ação (1 h de exploração)', () => {
     const state = freshState();
     const snapshot = structuredClone(state);
 
@@ -53,19 +53,21 @@ describe('Fatia 9.3 — ações e passagem do tempo', () => {
       { now: () => STAMP },
     );
 
-    expect(result.timeCost).toEqual({ periods: 1 });
-    expect(result.current.world).toEqual({ day: 1, period: 'manha' });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 60 });
+    // 05:00 → 06:00. As taxas valem por 4 h (fome 3, sede 5, energia 2) e acumulam por minuto.
+    expect(result.current.world).toEqual({ day: 1, period: 'alvorecer', minute: 6 * 60 });
     expect(result.current.attributes).toEqual({
       saude: 80,
-      energia: 68,
-      fome: 33,
-      sede: 30,
+      energia: 69,
+      fome: 31,
+      sede: 26,
       humanidade: 50,
       cautela: 40,
     });
     expect(result.needsWear).toEqual({
-      periodsApplied: 1,
-      changes: { saude: 0, energia: -2, fome: 3, sede: 5 },
+      periodsApplied: 0,
+      minutesApplied: 60,
+      changes: { saude: 0, energia: -1, fome: 1, sede: 1 },
       criticalPeriods: { fome: 0, sede: 0, energia: 0 },
       requestedHealthDamage: 0,
       appliedHealthDamage: 0,
@@ -73,7 +75,7 @@ describe('Fatia 9.3 — ações e passagem do tempo', () => {
     expect(state).toEqual(snapshot);
   });
 
-  it('aplica primeiro o efeito do repouso e depois exatamente dois períodos de desgaste', () => {
+  it('aplica primeiro o efeito do repouso e depois o desgaste das 2 h de descanso', () => {
     const state = withAttributes(freshState(), {
       saude: 60,
       energia: 30,
@@ -92,42 +94,46 @@ describe('Fatia 9.3 — ações e passagem do tempo', () => {
       return;
     }
     expect(result.detail.plan.current.energia).toBe(54);
-    expect(result.timeCost).toEqual({ periods: 2 });
-    expect(result.needsWear.periodsApplied).toBe(2);
-    expect(result.needsWear.changes).toEqual({ saude: 0, energia: -4, fome: 6, sede: 10 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 120 });
+    expect(result.needsWear.periodsApplied).toBe(1);
+    expect(result.needsWear.minutesApplied).toBe(120);
+    expect(result.needsWear.changes).toEqual({ saude: 0, energia: -1, fome: 2, sede: 2 });
     expect(result.current.attributes).toEqual({
       saude: 60,
-      energia: 50,
-      fome: 26,
-      sede: 20,
+      energia: 53,
+      fome: 22,
+      sede: 12,
       humanidade: 50,
       cautela: 40,
     });
-    expect(result.current.world).toEqual({ day: 1, period: 'meio-dia' });
+    expect(result.current.world).toEqual({ day: 1, period: 'manha', minute: 7 * 60 });
   });
 
   it('mantém o piso de saúde quando necessidades críticas atravessam vários períodos', () => {
-    const state = withAttributes(freshState(), {
+    const critical = withAttributes(freshState(), {
       saude: 2,
       energia: 0,
       fome: 100,
       sede: 100,
     });
+    // Dormir das 21:00 às 05:00: 8 h, o equivalente a dois períodos nominais de desgaste.
+    const state = { ...critical, world: { day: 1, period: 'noite' as const, minute: 21 * 60 } };
 
     const result = executeSandboxAction(
       state,
-      { type: 'needs.rest', mode: 'simple' },
+      { type: 'needs.rest', mode: 'simple', untilDawn: true },
       { now: () => STAMP },
     );
 
+    expect(result.timeCost.minutes).toBe(8 * 60);
     expect(result.current.attributes.saude).toBe(1);
     expect(result.current.attributes.energia).toBe(20);
-    expect(result.needsWear.criticalPeriods).toEqual({ fome: 2, sede: 2, energia: 0 });
+    expect(result.needsWear.criticalPeriods).toEqual({ fome: 4, sede: 6, energia: 0 });
     expect(result.needsWear.requestedHealthDamage).toBe(10);
     expect(result.needsWear.appliedHealthDamage).toBe(1);
   });
 
-  it('consome exatamente uma unidade sem cobrar tempo ou desgaste', () => {
+  it('consome exatamente uma unidade em poucos minutos, sem desgaste perceptível', () => {
     const state = withAttributes(
       withInventory(freshState(), [
         { itemId: 'raw-water', quantity: 2 },
@@ -154,7 +160,8 @@ describe('Fatia 9.3 — ações e passagem do tempo', () => {
       { itemId: 'fallen-branch', quantity: 1 },
     ]);
     expect(result.current.attributes.sede).toBe(25);
-    expect(result.current.world).toEqual(state.world);
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 6 });
+    expect(result.current.world).toEqual({ day: 1, period: 'alvorecer', minute: 5 * 60 + 6 });
     expect(result.needsWear.periodsApplied).toBe(0);
     expect(result.needsWear.changes).toEqual({ saude: 0, energia: 0, fome: 0, sede: 0 });
   });
@@ -204,10 +211,10 @@ describe('Fatia 9.3 — ações e passagem do tempo', () => {
       { now: () => STAMP },
     );
     expect(result.current.attributes.saude).toBe(56);
-    expect(result.current.attributes.energia).toBe(56);
-    expect(result.current.attributes.fome).toBe(36);
-    expect(result.current.attributes.sede).toBe(35);
-    expect(result.timeCost.periods).toBe(2);
+    expect(result.current.attributes.energia).toBe(59);
+    expect(result.current.attributes.fome).toBe(32);
+    expect(result.current.attributes.sede).toBe(27);
+    expect(result.timeCost.minutes).toBe(120);
   });
 
   it('falha atomicamente para item ausente, não consumível e ações malformadas', () => {

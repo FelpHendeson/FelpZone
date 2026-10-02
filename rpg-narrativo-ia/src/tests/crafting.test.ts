@@ -41,7 +41,7 @@ import {
   type IndexedMap,
   type NavigationState,
 } from '../modules/navigation';
-import { MAX_ADVANCE_PERIODS, advanceTime, createInitialTime } from '../modules/time';
+import { MAX_ADVANCE_PERIODS, advanceClock, createInitialTime } from '../modules/time';
 import { freshState } from './helpers';
 
 const START = DEFAULT_STARTING_LOCATION_ID;
@@ -637,7 +637,7 @@ describe('crafting, estruturas e cozinha', () => {
       'build-campfire',
     );
 
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 50 });
     expect(result.timeCost).toEqual(getRecipe(definitions, 'build-campfire').timeCost);
     expect(
       inspectRecipeAccess(
@@ -648,7 +648,7 @@ describe('crafting, estruturas e cozinha', () => {
         [{ itemId: 'fallen-branch', quantity: 3 }],
         'build-campfire',
       ).timeCost,
-    ).toEqual({ periods: 1 });
+    ).toEqual({ periods: 0, minutes: 50 });
   });
 
   it('o relógio não é alterado pelo crafting', () => {
@@ -683,10 +683,12 @@ describe('crafting, estruturas e cozinha', () => {
       'build-campfire',
     );
 
-    expect(result.timeCost).toEqual({ periods: 1 });
-    const once = advanceTime(time, result.timeCost);
-    expect(once.current).toEqual({ day: 1, periodId: 'manha' });
-    expect(advanceTime(time, result.timeCost).current).toEqual(once.current);
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 50 });
+    const start = { day: 1, minute: 300 };
+    const once = advanceClock(start, result.timeCost.minutes!);
+    expect(once.current).toEqual({ day: 1, minute: 350 });
+    expect(advanceClock(start, result.timeCost.minutes!).current).toEqual(once.current);
+    expect(start).toEqual({ day: 1, minute: 300 });
     expect(time).toEqual(createInitialTime());
   });
 

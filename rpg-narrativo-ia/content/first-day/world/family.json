@@ -35,7 +35,7 @@
       "label": "Propor uma parceria de vida",
       "hint": "Mira só aceita se a amizade já existir. Parceria não é vínculo afetivo nem posse.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 60 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }],
       "effects": [
@@ -49,7 +49,7 @@
       "label": "Fundar o acampamento compartilhado",
       "hint": "Um lar comum na Clareira, sem transferir propriedade.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 120 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "family.mira-partnership.formed", "value": true }],
       "effects": [
@@ -63,7 +63,7 @@
       "label": "Acolher Rowan",
       "hint": "Assumir responsabilidade por um dependente de conteúdo, que permanece um ator.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 60 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "family.clearing-camp.founded", "value": true }],
       "effects": [

@@ -2,8 +2,9 @@ import type { IndexedExploration } from '../../modules/exploration';
 import type { IndexedItems } from '../../modules/items';
 import labels from '../../../content/first-day/ui/labels.json' with { type: 'json' };
 import { worldTriggerConsumedFlag } from '../../modules/world-events';
-import type { DayPeriod } from '../../core/state';
-import { describeCost, getClockContext } from '../clock';
+import type { WorldState } from '../../core/state';
+import type { TimeCost } from '../../modules/time';
+import { describeCost, formatDuration, getClockContext } from '../clock';
 
 export function sandboxItemName(itemId: string, items?: IndexedItems): string {
   if (typeof itemId !== 'string' || itemId.trim() === '') {
@@ -29,13 +30,14 @@ export function sandboxStationName(tag: string, stations: Readonly<Record<string
   return stations[tag] ?? tag;
 }
 
-/** Custo de uma ação mostrado em horas a partir do período atual ("4 h · até 11:00"). */
-export function formatPeriodCost(periods: number, from?: DayPeriod): string {
+/** Custo de uma ação a partir do horário atual ("30 min · até 07:30"). */
+export function formatTimeCost(cost: TimeCost, from?: WorldState): string {
   const context = getClockContext();
-  const period = from ?? context.period;
-  if (period) return describeCost(periods, period, context.format);
-  if (periods <= 0) return 'alguns minutos';
-  return periods === 1 ? '1 período' : `${periods} períodos`;
+  const world = from ?? context.world;
+  if (world) return describeCost(cost, world, context.format);
+  if (cost.minutes !== undefined) return formatDuration(cost.minutes);
+  if (cost.periods <= 0) return 'instantâneo';
+  return cost.periods === 1 ? '1 período' : `${cost.periods} períodos`;
 }
 
 export interface ChapterLabel {

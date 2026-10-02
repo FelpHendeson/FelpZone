@@ -52,7 +52,7 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
 
   it('agrupa a Central do Sistema em três seções sem perder nenhum destino', () => {
     const { view, status } = setup();
-    const action = { actionId: 'a', label: 'Agir', hint: '', costPeriods: 1, available: true };
+    const action = { actionId: 'a', label: 'Agir', hint: '', cost: { periods: 1 }, available: true };
     const unlocked = {
       ...status,
       registry: { ...status.registry, accessGranted: true },

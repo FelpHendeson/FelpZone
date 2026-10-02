@@ -158,19 +158,19 @@ describe('Fatia 8.5 — view-model de presenças', () => {
         interactionId: 'observe-mira-awakening-clearing',
         kind: 'observe',
         label: 'Observar',
-        costPeriods: 1,
+        cost: { periods: 0, minutes: 15 },
         available: true,
       }),
       expect.objectContaining({
         interactionId: 'talk-mira-awakening-clearing',
         kind: 'talk',
-        costPeriods: 1,
+        cost: { periods: 0, minutes: 30 },
         available: true,
       }),
       expect.objectContaining({
         interactionId: 'avoid-mira-awakening-clearing',
         kind: 'avoid',
-        costPeriods: 0,
+        cost: { periods: 0, minutes: 5 },
         available: true,
       }),
     ]);
@@ -194,13 +194,13 @@ describe('Fatia 8.5 — view-model de presenças', () => {
       expect.objectContaining({
         interactionId: 'observe-horned-rabbit-dense-woods',
         label: 'Observar',
-        costPeriods: 1,
+        cost: { periods: 0, minutes: 15 },
         available: true,
       }),
       expect.objectContaining({
         interactionId: 'avoid-horned-rabbit-dense-woods',
         label: 'Evitar',
-        costPeriods: 0,
+        cost: { periods: 0, minutes: 5 },
         available: true,
       }),
     ]);
@@ -219,7 +219,7 @@ describe('Fatia 8.5 — view-model de presenças', () => {
                 kind: interaction.kind,
                 label: interaction.label,
                 hint: interaction.hint,
-                timeCost: { periods: interaction.timeCost.periods },
+                timeCost: { ...interaction.timeCost },
                 conditions: [{ type: 'flag.is', flag: 'can.talk.mira', value: true }],
                 narrative: interaction.narrative
                   ? { campaignId: interaction.narrative.campaignId, eventId: interaction.narrative.eventId }
@@ -237,18 +237,18 @@ describe('Fatia 8.5 — view-model de presenças', () => {
       expect.objectContaining({
         interactionId: 'observe-mira-awakening-clearing',
         available: true,
-        costPeriods: 1,
+        cost: { periods: 0, minutes: 15 },
       }),
       expect.objectContaining({
         interactionId: 'talk-mira-awakening-clearing',
         available: false,
         blockedReason: 'As condições da interação não foram satisfeitas.',
-        costPeriods: 1,
+        cost: { periods: 0, minutes: 30 },
       }),
       expect.objectContaining({
         interactionId: 'avoid-mira-awakening-clearing',
         available: true,
-        costPeriods: 0,
+        cost: { periods: 0, minutes: 5 },
       }),
     ]);
   });

@@ -1,4 +1,5 @@
 import { DEFAULT_PERIODS, type PeriodDefinition } from './periods';
+import { MAX_ADVANCE_MINUTES, minutesUntilPeriodBoundary, type ClockTime } from './clock';
 
 export const MAX_ADVANCE_PERIODS = 10_000;
 
@@ -14,8 +15,13 @@ export interface TimeState {
   periodId: string;
 }
 
+/**
+ * Custo de tempo de uma ação. `minutes` é a duração exata; sem ela, `periods` mantém a
+ * semântica legada (avançar até o início do N-ésimo período seguinte).
+ */
 export interface TimeCost {
   periods: number;
+  minutes?: number;
 }
 
 export interface TimeAdvanceResult {
@@ -156,6 +162,16 @@ export function inspectTimeState(
 }
 
 export function inspectTimeCost(cost: unknown): TimeInspection<TimeCost> {
+  if (isRecord(cost) && cost.minutes !== undefined) {
+    if (cost.periods !== undefined && cost.periods !== 0) {
+      return fail('O custo de tempo declara minutos e períodos ao mesmo tempo.');
+    }
+    if (!isNonNegativeSafeInteger(cost.minutes) || cost.minutes > MAX_ADVANCE_MINUTES) {
+      return fail('A duração em minutos precisa ser um inteiro não negativo dentro do limite.');
+    }
+    return { ok: true, value: { periods: 0, minutes: cost.minutes } };
+  }
+
   if (!isRecord(cost) || !isNonNegativeSafeInteger(cost.periods)) {
     return fail('O custo de tempo precisa ser um inteiro não negativo.');
   }
@@ -170,7 +186,34 @@ export function inspectTimeCost(cost: unknown): TimeInspection<TimeCost> {
   };
 }
 
+/** Lê um custo de conteúdo; `positive` exige que consuma algum tempo. */
+export function readTimeCost(value: unknown, options: { positive?: boolean } = {}): TimeCost | null {
+  const inspected = inspectTimeCost(value);
+  if (!inspected.ok) return null;
+  if (options.positive && !isTimeCostPositive(inspected.value)) return null;
+  return inspected.value;
+}
+
+export function copyTimeCost(cost: TimeCost): TimeCost {
+  return cost.minutes === undefined ? { periods: cost.periods } : { periods: cost.periods, minutes: cost.minutes };
+}
+
+/** O custo consome algum tempo (minutos ou períodos). */
+export function isTimeCostPositive(cost: TimeCost): boolean {
+  return cost.minutes !== undefined ? cost.minutes > 0 : cost.periods > 0;
+}
+
+export function sameTimeCost(left: TimeCost, right: TimeCost): boolean {
+  return left.periods === right.periods && left.minutes === right.minutes;
+}
+
+/** Duração concreta do custo a partir do horário atual. */
+export function resolveCostMinutes(cost: TimeCost, time: ClockTime): number {
+  return cost.minutes ?? minutesUntilPeriodBoundary(time, cost.periods);
+}
+
 export { DEFAULT_PERIODS } from './periods';
+export * from './clock';
 export type { DefaultPeriodId, PeriodDefinition } from './periods';
 
 function requireConfig(config: readonly PeriodDefinition[]): readonly PeriodDefinition[] {

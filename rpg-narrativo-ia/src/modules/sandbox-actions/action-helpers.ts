@@ -1,3 +1,4 @@
+import { copyInventoryItem } from '../inventory';
 import { EngineError } from '../../core/engine';
 import { inspectGameState, type Attributes, type GameState, type InventoryItem, type NarrativeSession, type ProgressionState, type Relationship } from '../../core/state';
 import { CraftingError, type CraftingState } from '../crafting';
@@ -35,7 +36,8 @@ import { ContextualActivityError, copyContextualActivitiesState, createInitialCo
 import type { ChanceState } from '../chance';
 import { copyStoryState, type StoryState } from '../story';
 import type { GuidanceState } from '../guidance';
-import { WorldError } from '../world';
+import { WorldError, copyWorld } from '../world';
+import { copyTimeCost } from '../time';
 import { SandboxActionError } from './errors';
 import type { SandboxAction, SandboxActionResult } from './types';
 
@@ -124,7 +126,13 @@ export function requireAction(value: unknown): SandboxAction {
   }
 
   if (value.type === 'exploration.explore') {
-    return { type: 'exploration.explore' };
+    if (value.minutes === undefined) {
+      return { type: 'exploration.explore' };
+    }
+    if (typeof value.minutes !== 'number' || !Number.isSafeInteger(value.minutes) || value.minutes <= 0) {
+      throw new SandboxActionError('A duração da exploração é inválida.');
+    }
+    return { type: 'exploration.explore', minutes: value.minutes };
   }
 
   if (value.type === 'resource.collect') {
@@ -164,7 +172,13 @@ export function requireAction(value: unknown): SandboxAction {
       throw new SandboxActionError('O item consumível é inválido.');
     }
 
-    return { type: 'needs.consume', itemId: value.itemId };
+    if (value.portions === undefined) {
+      return { type: 'needs.consume', itemId: value.itemId };
+    }
+    if (typeof value.portions !== 'number' || !Number.isSafeInteger(value.portions) || value.portions <= 0) {
+      throw new SandboxActionError('A porção consumida é inválida.');
+    }
+    return { type: 'needs.consume', itemId: value.itemId, portions: value.portions };
   }
 
   if (value.type === 'needs.rest') {
@@ -484,7 +498,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     })),
     flags: { ...(patch.flags ?? base.flags) },
     history: base.history.map((entry) => ({ ...entry })),
-    world: { day: patch.world.day, period: patch.world.period },
+    world: copyWorld(patch.world),
     progression: {
       abilityIds: [...(patch.progression ?? base.progression).abilityIds],
       titleIds: [...(patch.progression ?? base.progression).titleIds],
@@ -548,7 +562,7 @@ export function copyAction(action: SandboxAction): SandboxAction {
   }
 
   if (action.type === 'exploration.explore') {
-    return { type: 'exploration.explore' };
+    return action.minutes === undefined ? { type: 'exploration.explore' } : { type: 'exploration.explore', minutes: action.minutes };
   }
 
   if (action.type === 'resource.collect') {
@@ -560,7 +574,9 @@ export function copyAction(action: SandboxAction): SandboxAction {
   }
 
   if (action.type === 'needs.consume') {
-    return { type: 'needs.consume', itemId: action.itemId };
+    return action.portions === undefined
+      ? { type: 'needs.consume', itemId: action.itemId }
+      : { type: 'needs.consume', itemId: action.itemId, portions: action.portions };
   }
 
   if (action.type === 'needs.rest') {
@@ -701,7 +717,7 @@ export function createInteractionPlanCopy(plan: PresenceInteractionPlan): Presen
   const copied: PresenceInteractionPlan = {
     interactionId: plan.interactionId,
     presenceId: plan.presenceId,
-    timeCost: { periods: plan.timeCost.periods },
+    timeCost: copyTimeCost(plan.timeCost),
     effects: plan.effects.map((effect) => ({ ...effect })),
     resolvesPresence: plan.resolvesPresence,
   };
@@ -725,7 +741,8 @@ export function copyConsumptionPlan(plan: NeedsConsumptionPlan): NeedsConsumptio
     quantity: 1,
     effects: plan.effects.map((effect) => ({ ...effect })),
     appliedEffects: plan.appliedEffects.map((effect) => ({ ...effect })),
-    timeCost: { periods: plan.timeCost.periods },
+    timeCost: copyTimeCost(plan.timeCost),
+    ...(plan.portion ? { portion: { ...plan.portion } } : {}),
   };
 }
 
@@ -736,13 +753,14 @@ export function copyRestPlan(plan: NeedsRestPlan): NeedsRestPlan {
     mode: plan.mode,
     effects: plan.effects.map((effect) => ({ ...effect })),
     appliedEffects: plan.appliedEffects.map((effect) => ({ ...effect })),
-    timeCost: { periods: plan.timeCost.periods },
+    timeCost: copyTimeCost(plan.timeCost),
   };
 }
 
 export function copyNeedsWearSummary(summary: SandboxActionResult['needsWear']): SandboxActionResult['needsWear'] {
   return {
     periodsApplied: summary.periodsApplied,
+    ...(summary.minutesApplied !== undefined ? { minutesApplied: summary.minutesApplied } : {}),
     changes: { ...summary.changes },
     criticalPeriods: { ...summary.criticalPeriods },
     requestedHealthDamage: summary.requestedHealthDamage,
@@ -785,7 +803,7 @@ export function resolveNarrativeSessionPatch(
 }
 
 export function copyInventory(items: readonly InventoryItem[]): InventoryItem[] {
-  return items.map((item) => ({ itemId: item.itemId, quantity: item.quantity }));
+  return items.map(copyInventoryItem);
 }
 
 export function copyNarrativeSession(session: NarrativeSession | null): NarrativeSession | null {

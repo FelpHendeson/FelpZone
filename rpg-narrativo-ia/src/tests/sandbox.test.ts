@@ -38,8 +38,7 @@ import {
   inspectSandboxState,
   type SandboxContext,
 } from '../modules/sandbox';
-import { timeStateToWorld, worldToTimeState, WorldError } from '../modules/world';
-import { createInitialTime } from '../modules/time';
+import { timeStateToWorld, worldToTimeState, WorldError, createInitialWorld } from '../modules/world';
 import { continueAfterIntro, asV1, asV2, freshState, now } from './helpers';
 
 const START = DEFAULT_STARTING_LOCATION_ID;
@@ -87,7 +86,7 @@ describe('estado integrado e persistência principal', () => {
     const raw = parsedJson(state);
     const sandbox = raw.sandbox as Record<string, unknown>;
 
-    expect(raw.world).toEqual({ day: 1, period: 'alvorecer' });
+    expect(raw.world).toMatchObject({ day: 1, period: 'alvorecer' });
     expect(raw.inventory).toEqual([]);
     expect(raw.flags).toEqual({});
     expect(sandbox).not.toHaveProperty('time');
@@ -101,7 +100,7 @@ describe('estado integrado e persistência principal', () => {
     expect(sandbox).not.toHaveProperty('definitions');
     expect(JSON.stringify(raw)).not.toContain('DaylightPhase');
     expect(Object.keys(sandbox).sort()).toEqual(['crafting', 'exploration', 'interactables', 'navigation', 'npcs', 'presences', 'resources']);
-    expect(state.world).toEqual(timeStateToWorld(createInitialTime()));
+    expect(state.world).toEqual(createInitialWorld());
   });
 
   it('realiza roundtrip exato de um save atual válido', () => {
@@ -181,7 +180,7 @@ describe('estado integrado e persistência principal', () => {
     expect(parsed.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 2 }]);
     expect(parsed.state.flags).toEqual({ 'ability.olhar-atento': true });
     expect(parsed.state.history).toHaveLength(1);
-    expect(parsed.state.world).toEqual({ day: 3, period: 'noite' });
+    expect(parsed.state.world).toMatchObject({ day: 3, period: 'noite' });
     expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
     expect(parsed.state.progression).toEqual(current.progression);
     expect(parsed.state.sandbox).toEqual({ ...createInitialSandboxState(), npcs: { entries: [] } });
@@ -319,12 +318,12 @@ describe('estado integrado e persistência principal', () => {
     const time = Object.freeze({ day: 2, periodId: 'tarde' });
 
     expect(worldToTimeState(world)).toEqual({ day: 2, periodId: 'tarde' });
-    expect(timeStateToWorld(time)).toEqual({ day: 2, period: 'tarde' });
-    expect(world).toEqual({ day: 2, period: 'tarde' });
+    expect(timeStateToWorld(time)).toEqual({ day: 2, period: 'tarde', minute: 14 * 60 });
+    expect(world).toMatchObject({ day: 2, period: 'tarde' });
     expect(time).toEqual({ day: 2, periodId: 'tarde' });
-    expect(timeStateToWorld(worldToTimeState(world))).toEqual(world);
+    expect(timeStateToWorld(worldToTimeState(world))).toMatchObject(world);
     expect(() => worldToTimeState(Object.freeze({ day: 0, period: 'alvorecer' }))).toThrow(WorldError);
-    expect(() => timeStateToWorld(Object.freeze({ day: 1, periodId: 'madrugada' }))).toThrow(WorldError);
+    expect(() => timeStateToWorld(Object.freeze({ day: 1, periodId: 'crepusculo' }))).toThrow(WorldError);
   });
 
   it('preserva o fluxo narrativo até a exploração e o save concluído quando a sessão posterior é reaberta', () => {
@@ -595,7 +594,7 @@ describe('contexto do sandbox na criação e persistência', () => {
     expect(parsed.state.character).toEqual(current.character);
     expect(parsed.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 2 }]);
     expect(parsed.state.flags).toEqual({ 'ability.olhar-atento': true });
-    expect(parsed.state.world).toEqual({ day: 3, period: 'noite' });
+    expect(parsed.state.world).toMatchObject({ day: 3, period: 'noite' });
     expect(parsed.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
     expect(parsed.state.sandbox).toEqual({ ...createInitialSandboxState(context), npcs: { entries: [] } });
     expect(parsed.state.sandbox.navigation.currentLocationId).toBe(CUSTOM_START);

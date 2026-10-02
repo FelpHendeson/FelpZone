@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 export type PoliticsIntent = 'accept-agreement' | 'refuse-agreement';
 export type PoliticsAgreementStatus = 'proposed' | 'active' | 'refused';
 
@@ -60,7 +61,7 @@ export interface PoliticsActionDefinition {
   label: string;
   hint: string;
   npcId?: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   once: boolean;
   requirements: readonly PoliticsRequirement[];
   effects: readonly PoliticsEffect[];
@@ -130,7 +131,7 @@ export interface PoliticsState {
 
 export interface PoliticsActionPlan {
   actionId: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   feedback: string;
   effects: readonly PoliticsEffect[];
 }

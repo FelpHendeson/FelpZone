@@ -30,7 +30,7 @@
       "cost": {
         "cultivationPoints": 1,
         "timeCost": {
-          "periods": 2
+          "minutes": 120
         }
       },
       "resultSkillId": "sensing-guard",

@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 export type OrganizationPermission = 'invite' | 'assign-role' | 'remove-member' | 'disband' | 'leave';
 export type OrganizationIntent = 'join' | 'leave';
 
@@ -47,7 +48,7 @@ export interface OrganizationActionDefinition {
   label: string;
   hint: string;
   npcId?: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   once: boolean;
   requirements: readonly OrganizationRequirement[];
   effects: readonly OrganizationEffect[];
@@ -95,7 +96,7 @@ export type OrganizationInspection<T> = { ok: true; value: T } | { ok: false; re
 
 export interface OrganizationActionPlan {
   actionId: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   feedback: string;
   effects: readonly OrganizationEffect[];
 }

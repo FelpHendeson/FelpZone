@@ -49,7 +49,7 @@
       "label": "Propor um grupo",
       "hint": "Convidar Mira para uma companhia temporária.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 30 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }],
       "effects": [
@@ -65,7 +65,7 @@
       "label": "Pedir que Mira batede o caminho",
       "hint": "Atribuir o cargo de batedor permitido pelo grupo.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 15 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "clearing-party.formed", "value": true }],
       "effects": [
@@ -78,7 +78,7 @@
       "id": "disband-clearing-party",
       "label": "Encerrar o grupo",
       "hint": "Dissolver a companhia temporária.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 15 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "clearing-party.formed", "value": true }],
       "effects": [

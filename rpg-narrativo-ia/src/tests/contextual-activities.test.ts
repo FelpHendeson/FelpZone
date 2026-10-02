@@ -216,7 +216,7 @@ describe('Oportunidades com prazo', () => {
 
   it('valida o prazo na borda do pack', () => {
     expect(withDeadline({ day: 3 }).ok).toBe(true);
-    expect(withDeadline({ day: 3, period: DAY_PERIODS[1] }).ok).toBe(true);
+    expect(withDeadline({ day: 3, period: DAY_PERIODS[2] }).ok).toBe(true);
     expect(withDeadline({ day: 0 }).ok).toBe(false);
     expect(withDeadline({ day: 2, period: 'madrugada-eterna' }).ok).toBe(false);
     expect(withDeadline('amanhã').ok).toBe(false);
@@ -227,24 +227,24 @@ describe('Oportunidades com prazo', () => {
     if (!inspected.ok) throw new Error(inspected.reason);
     const list = (state: ReturnType<typeof at>) =>
       listKnownContextualActivities(inspected.value, createInitialContextualActivitiesState(), state, world.npcs);
-    expect(list(at(1, DAY_PERIODS[0]!))[0]).toMatchObject({ daysLeft: 2, lastPeriod: false });
-    expect(list(at(3, DAY_PERIODS[0]!))[0]).toMatchObject({ daysLeft: 0, lastPeriod: false });
+    expect(list(at(1, DAY_PERIODS[1]!))[0]).toMatchObject({ daysLeft: 2, lastPeriod: false });
+    expect(list(at(3, DAY_PERIODS[1]!))[0]).toMatchObject({ daysLeft: 0, lastPeriod: false });
     expect(list(at(3, DAY_PERIODS.at(-1)!))[0]).toMatchObject({ daysLeft: 0, lastPeriod: true });
   });
 
   it('some da lista e recusa o plano depois do prazo, inclusive por período', () => {
     const byDay = withDeadline({ day: 2 });
-    const byPeriod = withDeadline({ day: 1, period: DAY_PERIODS[0] });
+    const byPeriod = withDeadline({ day: 1, period: DAY_PERIODS[1] });
     if (!byDay.ok || !byPeriod.ok) throw new Error('catálogo inválido');
-    const late = at(3, DAY_PERIODS[0]!);
+    const late = at(3, DAY_PERIODS[1]!);
     expect(listKnownContextualActivities(byDay.value, createInitialContextualActivitiesState(), late, world.npcs)).toEqual([]);
     expect(() =>
       planContextualActivity(byDay.value, createInitialContextualActivitiesState(), late, world.npcs, 'shared-check', []),
     ).toThrow('prazo');
-    const laterSameDay = at(1, DAY_PERIODS[1]!);
+    const laterSameDay = at(1, DAY_PERIODS[2]!);
     expect(listKnownContextualActivities(byPeriod.value, createInitialContextualActivitiesState(), laterSameDay, world.npcs)).toEqual([]);
     expect(
-      planContextualActivity(byPeriod.value, createInitialContextualActivitiesState(), at(1, DAY_PERIODS[0]!), world.npcs, 'shared-check', [])
+      planContextualActivity(byPeriod.value, createInitialContextualActivitiesState(), at(1, DAY_PERIODS[1]!), world.npcs, 'shared-check', [])
         .activityId,
     ).toBe('shared-check');
   });

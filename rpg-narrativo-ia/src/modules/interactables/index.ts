@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import { evaluateConditions, inspectImageReference, type GameCondition, type GameEffect, type ImageReference } from '../../core/events';
 import { isAttributeId, isDayPeriod, type GameState } from '../../core/state/types';
 import type { ExplorationState, IndexedExploration } from '../exploration';
@@ -230,7 +231,7 @@ export function planInteractableAction(
   return {
     actionId: action.id,
     interactableId: action.interactableId,
-    timeCost: { periods: action.timeCost.periods },
+    timeCost: copyTimeCost(action.timeCost),
     effects: action.effects.map(copyEffect),
     feedback: action.feedback,
   };
@@ -432,7 +433,7 @@ function inspectAction(
   if (value.once !== undefined && typeof value.once !== 'boolean') {
     return fail(`A ação ${value.id} possui consumo inválido.`);
   }
-  if (!isRecord(value.timeCost) || !positiveSafeInteger(value.timeCost.periods)) {
+  if (readTimeCost(value.timeCost, { positive: true }) === null) {
     return fail(`O custo temporal da ação ${value.id} é inválido.`);
   }
   const requirements = inspectRequirements(value.requirements, value.id, items);
@@ -451,7 +452,7 @@ function inspectAction(
       stageId: value.stageId,
       label: value.label,
       hint: value.hint,
-      timeCost: { periods: value.timeCost.periods },
+      timeCost: readTimeCost(value.timeCost)!,
       once: value.once,
       requirements: requirements.value,
       effects: effects.value,
@@ -721,7 +722,7 @@ function freezeDefinition(definition: InteractableDefinition): InteractableDefin
 function freezeAction(action: InteractableActionDefinition): InteractableActionDefinition {
   return Object.freeze({
     ...action,
-    timeCost: Object.freeze({ periods: action.timeCost.periods }),
+    timeCost: Object.freeze(copyTimeCost(action.timeCost)),
     requirements: action.requirements
       ? Object.freeze(action.requirements.map((requirement) => Object.freeze({ ...requirement })))
       : undefined,

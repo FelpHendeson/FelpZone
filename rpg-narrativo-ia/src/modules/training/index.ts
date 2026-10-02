@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import {
   INITIAL_SKILLS,
   areSkillRequirementsMet,
@@ -102,7 +103,7 @@ export function planTraining(
   }
   return {
     methodId: method.id,
-    timeCost: { periods: method.cost.periods },
+    timeCost: copyTimeCost(method.cost),
     effects: applicableEffects,
   };
 }
@@ -152,7 +153,7 @@ function copyEffect(effect: TrainingEffect): TrainingEffect {
 export function copyTrainingPlan(plan: TrainingPlan): TrainingPlan {
   return {
     methodId: plan.methodId,
-    timeCost: { periods: plan.timeCost.periods },
+    timeCost: copyTimeCost(plan.timeCost),
     effects: plan.effects.map(copyEffect),
   };
 }
@@ -174,7 +175,7 @@ function inspectMethod(
     return target;
   }
 
-  if (!isRecord(value.cost) || !positiveSafeInteger(value.cost.periods)) {
+  if (readTimeCost(value.cost, { positive: true }) === null) {
     return fail('O custo em períodos do método de treinamento é inválido.');
   }
 
@@ -203,7 +204,7 @@ function inspectMethod(
       name: value.name,
       description: value.description,
       target: target.value,
-      cost: { periods: value.cost.periods },
+      cost: readTimeCost(value.cost)!,
       effects,
       requirements: requirements.value,
     },

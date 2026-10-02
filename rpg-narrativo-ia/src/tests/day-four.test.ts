@@ -43,7 +43,7 @@ function tryAct(state: GameState, action: SandboxAction) {
 
 function advanceToDayFour(state: GameState): GameState {
   for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   }
   expect(state.narrativeSession?.eventId).toBe('day-four-awakening');
   state = choose(state, 'day-four-look-around');
@@ -67,11 +67,13 @@ function reachDayFourCooperating(): GameState {
     type: 'presence.interact', presenceId: 'mira-awakening-clearing',
     interactionId: 'avoid-mira-awakening-clearing',
   });
-  state = act(state, { type: 'exploration.explore' });
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   state = choose(state, 'assess-first-night');
   state = choose(state, 'walk-away');
   state = choose(state, 'alone-summary');
-  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   state = choose(state, 'day-two-assess');
   state = choose(state, 'day-two-alone-continue');
 
@@ -93,7 +95,7 @@ function reachDayFourCooperating(): GameState {
   state = choose(state, 'help-davi-settle');
 
   for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
   state = choose(state, 'day-three-look-around');
@@ -124,11 +126,13 @@ function reachDayFourIndependent(): GameState {
     type: 'presence.interact', presenceId: 'mira-awakening-clearing',
     interactionId: 'avoid-mira-awakening-clearing',
   });
-  state = act(state, { type: 'exploration.explore' });
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   state = choose(state, 'assess-first-night');
   state = choose(state, 'walk-away');
   state = choose(state, 'alone-summary');
-  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   state = choose(state, 'day-two-assess');
   state = choose(state, 'day-two-alone-continue');
 
@@ -148,7 +152,7 @@ function reachDayFourIndependent(): GameState {
   expect(state.flags['day2.survivors.contact']).toBe(true);
 
   for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
   state = choose(state, 'day-three-look-around');
@@ -174,11 +178,13 @@ function reachDayFourAtDistance(): GameState {
     type: 'presence.interact', presenceId: 'mira-awakening-clearing',
     interactionId: 'avoid-mira-awakening-clearing',
   });
-  state = act(state, { type: 'exploration.explore' });
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   state = choose(state, 'assess-first-night');
   state = choose(state, 'walk-away');
   state = choose(state, 'alone-summary');
-  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   state = choose(state, 'day-two-assess');
   state = choose(state, 'day-two-alone-continue');
 
@@ -203,7 +209,7 @@ function reachDayFourAtDistance(): GameState {
   state = act(state, { type: 'needs.rest', mode: 'simple' });
 
   for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
   state = choose(state, 'day-three-look-around');
@@ -231,11 +237,13 @@ function reachDayFourSolo(): GameState {
     type: 'presence.interact', presenceId: 'mira-awakening-clearing',
     interactionId: 'avoid-mira-awakening-clearing',
   });
-  state = act(state, { type: 'exploration.explore' });
+  for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+    state = act(state, { type: 'needs.rest', mode: 'simple' });
+  }
   state = choose(state, 'assess-first-night');
   state = choose(state, 'walk-away');
   state = choose(state, 'alone-summary');
-  state = act(state, { type: 'needs.rest', mode: 'simple' });
+  state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   state = choose(state, 'day-two-assess');
   state = choose(state, 'day-two-alone-continue');
 
@@ -243,7 +251,7 @@ function reachDayFourSolo(): GameState {
     state = act(state, { type: 'needs.rest', mode: 'simple' });
   }
   for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
   }
   expect(state.narrativeSession?.eventId).toBe('day-three-awakening');
   state = choose(state, 'day-three-look-around');
@@ -295,11 +303,13 @@ describe('Dia 4 — cuidar do ferimento de Davi (Fatia B)', () => {
       type: 'presence.interact', presenceId: 'mira-awakening-clearing',
       interactionId: 'avoid-mira-awakening-clearing',
     });
-    state = act(state, { type: 'exploration.explore' });
+    for (let guard = 0; state.narrativeSession === null && guard < 12; guard += 1) {
+      state = act(state, { type: 'needs.rest', mode: 'simple' });
+    }
     state = choose(state, 'assess-first-night');
     state = choose(state, 'walk-away');
     state = choose(state, 'alone-summary');
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     state = choose(state, 'day-two-assess');
     state = choose(state, 'day-two-alone-continue');
     state = act(state, { type: 'navigation.move', locationId: 'spring-lake' });
@@ -319,7 +329,7 @@ describe('Dia 4 — cuidar do ferimento de Davi (Fatia B)', () => {
     });
     state = choose(state, 'help-davi-settle');
     for (let guard = 0; state.narrativeSession === null && guard < 30; guard += 1) {
-      state = act(state, { type: 'needs.rest', mode: 'simple' });
+      state = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     }
     state = choose(state, 'day-three-look-around');
     state = choose(state, 'day-three-cooperation-continue');
@@ -427,11 +437,10 @@ describe('Dia 4 — robustez e falhas de disponibilidade (Fatia C)', () => {
     expect(woundEarly?.available).toBe(true);
     expect(woundEarly?.eligibleOptionalNpcIds).not.toContain('caio-nascimento');
 
-    // needs.rest custa 2 períodos por vez: de 'manha' isso nunca cai exatamente em
-    // 'entardecer' (paridade de índice diferente). Uma exploração local custa 1 período e
-    // ajusta a paridade antes de descansar mais uma vez.
-    state = act(state, { type: 'exploration.explore' });
-    state = act(state, { type: 'needs.rest', mode: 'simple' });
+    // O jogador descansa (2 h por vez) até o entardecer, quando a agenda traz Caio à Clareira.
+    while (state.world.period !== 'entardecer') {
+      state = act(state, { type: 'needs.rest', mode: 'simple' });
+    }
     expect(state.world.period).toBe('entardecer');
     const atEntardecer = listKnownContextualActivities(activitiesCatalog, state.activities, state, npcCatalog);
     const woundLater = atEntardecer.find((entry) => entry.activity.id === 'tend-davi-wound-with-caio');
@@ -520,7 +529,7 @@ describe('Dia 4 — playtest integrado e fechamento (Fatia D)', () => {
   it('save/reload após o cuidado retoma o sandbox sem duplicar relógio, consumo ou escolha', () => {
     let state = reachDayFourCooperating();
     const dayBefore = state.world.day;
-    const periodBefore = state.world.period;
+    const minuteBefore = state.world.minute;
 
     state = act(state, {
       type: 'activity.perform', activityId: 'tend-davi-wound-with-caio', optionalParticipantIds: [],
@@ -529,7 +538,7 @@ describe('Dia 4 — playtest integrado e fechamento (Fatia D)', () => {
     expect(state.status).toBe('playing');
     expect(state.narrativeSession).toBeNull();
     expect(state.world.day).toBe(dayBefore);
-    expect(state.world.period).not.toBe(periodBefore);
+    expect(state.world.minute).not.toBe(minuteBefore);
     expect(
       state.activities.consumedActivityIds.filter((id) => id === 'tend-davi-wound-with-caio'),
     ).toHaveLength(1);

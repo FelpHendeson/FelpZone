@@ -97,7 +97,7 @@ describe('sessão narrativa e schema atual', () => {
       expect(fromV1.state.sandbox).toEqual(freshState().sandbox);
       expect(fromV1.state.inventory).toEqual([{ itemId: 'agua-limpa', quantity: 1 }]);
       expect(fromV1.state.flags).toEqual({ ready: true });
-      expect(fromV1.state.world).toEqual({ day: 2, period: 'tarde' });
+      expect(fromV1.state.world).toMatchObject({ day: 2, period: 'tarde' });
       expect(fromV1.state.updatedAt).toBe('2026-08-31T12:00:00.000Z');
     }
     expect(v1).toEqual(v1Snapshot);
@@ -211,8 +211,8 @@ describe('saída da introdução', () => {
     const result = executeSandboxAction(exploring, { type: 'exploration.explore' }, { now });
     expect(result.current.sandbox.exploration.locations[0]?.progress).toBeGreaterThan(0);
     expect(result.current.sandbox.exploration.locations[0]?.explorationCount).toBe(1);
-    expect(result.timeCost).toEqual({ periods: 1 });
-    expect(result.current.world.period).not.toBe(exploring.world.period);
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 60 });
+    expect(result.current.world.minute).toBe((exploring.world.minute ?? 0) + 60);
     expect(result.current.progression.abilityIds).toEqual([abilityId]);
     expect(result.current.flags[flag]).toBe(true);
     expect(result.current.narrativeSession).toBeNull();

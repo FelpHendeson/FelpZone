@@ -3,4 +3,4 @@ import type { CombatCatalog } from './types';
 
 export const PLAYER_COMBAT_MAX_HEALTH = 20;
 
-export const INITIAL_COMBAT_CATALOG = raw as CombatCatalog;
+export const INITIAL_COMBAT_CATALOG = raw as unknown as CombatCatalog;

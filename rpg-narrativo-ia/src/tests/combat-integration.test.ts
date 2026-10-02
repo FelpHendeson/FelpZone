@@ -57,8 +57,8 @@ describe('Fatia 12.10 — transação terminal atômica de combate', () => {
     const finalState = terminal('victory', 80);
     const result = executeSandboxAction(before, resolveAction(finalState), { now });
 
-    expect(result.timeCost.periods).toBe(1);
-    expect(result.needsWear.periodsApplied).toBe(1);
+    expect(result.timeCost.minutes).toBe(15);
+    expect(result.needsWear.minutesApplied).toBe(15);
     expect(result.current.attributes.saude).toBe(finalState.player.health);
     expect(result.current.attributes.cautela).toBe(before.attributes.cautela + 2);
     expect(result.current.flags[combatEncounterResolvedFlag('clearing-predator')]).toBe(true);
@@ -71,7 +71,7 @@ describe('Fatia 12.10 — transação terminal atômica de combate', () => {
     const result = executeSandboxAction(before, resolveAction(defeat), { now });
 
     expect(result.current.attributes.saude).toBe(1);
-    expect(result.timeCost.periods).toBe(1);
+    expect(result.timeCost.minutes).toBe(15);
     expect(result.current.flags[combatEncounterResolvedFlag('clearing-predator')]).toBeUndefined();
   });
 
@@ -81,7 +81,7 @@ describe('Fatia 12.10 — transação terminal atômica de combate', () => {
     const result = executeSandboxAction(before, resolveAction(finalState), { now });
 
     expect(result.current.attributes.saude).toBe(finalState.player.health);
-    expect(result.timeCost.periods).toBe(1);
+    expect(result.timeCost.minutes).toBe(15);
     expect(result.current.flags[combatEncounterResolvedFlag('clearing-predator')]).toBeUndefined();
   });
 

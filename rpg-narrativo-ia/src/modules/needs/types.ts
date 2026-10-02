@@ -41,6 +41,8 @@ export interface NeedsDelta {
 
 export interface NeedsWearSummary {
   periodsApplied: number;
+  /** Minutos de desgaste aplicados (ausente no desgaste legado por períodos). */
+  minutesApplied?: number;
   changes: NeedsDelta;
   criticalPeriods: {
     fome: number;
@@ -100,6 +102,14 @@ export interface NeedsConsumptionPlan {
   effects: NeedEffect[];
   appliedEffects: AppliedNeedEffect[];
   timeCost: TimeCost;
+  /** Parte consumida da unidade (porções `from`..`to` de `of`); ausente = unidade inteira. */
+  portion?: ConsumptionPortion;
+}
+
+export interface ConsumptionPortion {
+  from: number;
+  to: number;
+  of: number;
 }
 
 export interface NeedsRestPlan {

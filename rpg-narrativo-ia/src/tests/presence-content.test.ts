@@ -80,7 +80,7 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
     const historyBefore = revealed.history.length;
 
     const talked = talkMira(revealed);
-    expect(talked.result.timeCost).toEqual({ periods: 1 });
+    expect(talked.result.timeCost).toEqual({ periods: 0, minutes: 30 });
     expect(talked.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'survivor-meet' });
     expect(talked.current.world).not.toEqual(worldBefore);
     expect(toAppScreen(talked.current)).toBe('game');
@@ -156,19 +156,23 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
       interactionId: 'observe-horned-rabbit-dense-woods',
     });
 
-    expect(observed.result.timeCost).toEqual({ periods: 1 });
+    expect(observed.result.timeCost).toEqual({ periods: 0, minutes: 15 });
     expect(observed.current.narrativeSession).toBeNull();
     expect(observed.current.flags['saw.horned.rabbit']).toBe(true);
     expect(observed.feedback).toMatch(/coelho chifrudo/);
     expect(toAppScreen(observed.current)).toBe('exploration');
     expect(observed.current.sandbox.navigation.currentLocationId).toBe('dense-woods');
     expect(Object.keys(observed.current.attributes)).toEqual([...ATTRIBUTE_IDS]);
+    // Observar leva 15 minutos: o desgaste é proporcional a esse tempo, não a um período inteiro.
+    const wear = observed.result.needsWear.changes;
+    expect(observed.result.needsWear.minutesApplied).toBe(15);
     expect(observed.current.attributes).toEqual({
       ...attributesBefore,
-      energia: attributesBefore.energia - 2,
-      fome: attributesBefore.fome + 3,
-      sede: attributesBefore.sede + 5,
+      energia: attributesBefore.energia + wear.energia,
+      fome: attributesBefore.fome + wear.fome,
+      sede: attributesBefore.sede + wear.sede,
     });
+    expect(wear.sede).toBeLessThanOrEqual(1);
     expect(JSON.stringify(observed.current)).not.toMatch(/combat|hp|vida da criatura/i);
 
     const avoided = mustCommit(observed.current, {
@@ -176,8 +180,8 @@ describe('Fatia 8.6 — conteúdo jogável de Mira e do coelho', () => {
       presenceId: 'horned-rabbit-dense-woods',
       interactionId: 'avoid-horned-rabbit-dense-woods',
     });
-    expect(avoided.result.timeCost).toEqual({ periods: 0 });
-    expect(avoided.current.world).toEqual(observed.current.world);
+    expect(avoided.result.timeCost).toEqual({ periods: 0, minutes: 5 });
+    expect(avoided.current.world.minute).toBe((observed.current.world.minute ?? 0) + 5);
     expect(avoided.current.flags['avoided.horned.rabbit']).toBe(true);
     expect(avoided.current.narrativeSession).toBeNull();
     expect(viewOf(avoided.current).presences[0]?.status).toBe('available');

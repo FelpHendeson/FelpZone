@@ -204,7 +204,7 @@ describe('gatilhos de mundo no sandbox', () => {
       throw new Error(attempt.error);
     }
 
-    expect(attempt.result.timeCost).toEqual({ periods: 1 });
+    expect(attempt.result.timeCost).toEqual({ periods: 0, minutes: 60 });
     expect(attempt.openedTrigger?.id).toBe('first-priority');
     expect(attempt.current.narrativeSession).toEqual({ campaignId: 'first-day', eventId: 'first-priority' });
     expect(attempt.current.flags[consumedFlag]).toBe(true);

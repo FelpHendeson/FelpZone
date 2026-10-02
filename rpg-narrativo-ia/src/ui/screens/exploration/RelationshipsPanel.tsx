@@ -1,6 +1,6 @@
 import type { SandboxAction } from '../../../modules/sandbox-actions';
 import { Portrait } from '../../components/Portrait';
-import { formatPeriodCost, type BondCharacterView } from '../../sandbox';
+import { formatTimeCost, type BondCharacterView } from '../../sandbox';
 import { DetailScreen, EmptyAction } from './shared';
 
 export function RelationshipsPanel({
@@ -102,7 +102,7 @@ export function BondActionGroup({
             title={action.blockedReason ?? action.hint}
             onClick={() => onAction(toBondSandboxAction(actionType, action.actionId))}
           >
-            {action.label}<small>{action.blockedReason ?? formatPeriodCost(action.costPeriods)}</small>
+            {action.label}<small>{action.blockedReason ?? formatTimeCost(action.cost)}</small>
           </button>
         ))}
       </div>

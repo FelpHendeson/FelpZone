@@ -3,7 +3,12 @@ export interface PeriodDefinition {
   label: string;
 }
 
+/**
+ * Períodos do dia em ordem a partir da meia-noite. O dia vira às 00:00 (Madrugada);
+ * cada período começa no minuto declarado em `PERIOD_START_MINUTES` (`./clock`).
+ */
 export const DEFAULT_PERIODS = [
+  { id: 'madrugada', label: 'Madrugada' },
   { id: 'alvorecer', label: 'Alvorecer' },
   { id: 'manha', label: 'Manhã' },
   { id: 'meio-dia', label: 'Meio-dia' },

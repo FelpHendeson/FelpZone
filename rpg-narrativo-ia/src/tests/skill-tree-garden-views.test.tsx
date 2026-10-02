@@ -96,7 +96,7 @@ describe('Jardim — requisitos conhecidos, fontes → resultado e pontos', () =
       visibility: 'available',
       resultName: 'Sentinela Interior',
       canCultivate: true,
-      cost: { cultivationPoints: 1, periods: 2 },
+      cost: { cultivationPoints: 1, timeCost: { periods: 0, minutes: 120 } },
     });
     const noPoint = { ...ready, garden: { cultivationPoints: 0, completedRecipeIds: [] } };
     expect(buildSystemStatus(noPoint, context).garden.integrations[0]).toMatchObject({
@@ -122,7 +122,7 @@ describe('Progressão em abas', () => {
     const html = renderToStaticMarkup(<ProgressionTabs status={status} onTrain={noop} onCultivate={noop} initialTab="garden" />);
     expect(html).toContain('garden-chip--result');
     expect(html).toContain('Sentinela Interior');
-    expect(html).toContain('1 ponto · 2 períodos · permanente');
+    expect(html).toContain('1 ponto · 2 h · permanente');
     expect(html).toContain('✓');
   });
 });

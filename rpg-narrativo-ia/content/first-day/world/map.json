@@ -18,7 +18,7 @@
         "src": "/images/first-day/locations/horned-rabbit-forest.webp"
       },
       "travelCost": {
-        "periods": 1
+        "minutes": 60
       },
       "children": [
         {
@@ -41,7 +41,7 @@
             "src": "/images/first-day/locations/great-tree.webp"
           },
           "travelCost": {
-            "periods": 1
+            "minutes": 30
           },
           "children": [
             {
@@ -54,7 +54,7 @@
                 "src": "/images/first-day/locations/great-tree-hollow.webp"
               },
               "travelCost": {
-                "periods": 1
+                "minutes": 15
               },
               "visibility": "hidden",
               "lockedReason": "O oco permanece encoberto até o padrão nas marcas ser lido."
@@ -81,7 +81,7 @@
                 "src": "/images/first-day/locations/rocky-bank.webp"
               },
               "travelCost": {
-                "periods": 0
+                "minutes": 20
               },
               "visibility": "hidden",
               "lockedReason": "A dobra de pedra ainda não foi encontrada."
@@ -98,7 +98,7 @@
             "src": "/images/first-day/locations/dense-woods.webp"
           },
           "travelCost": {
-            "periods": 1
+            "minutes": 45
           },
           "children": [
             {
@@ -111,7 +111,7 @@
                 "src": "/images/first-day/locations/hidden-cave.webp"
               },
               "travelCost": {
-                "periods": 1
+                "minutes": 30
               },
               "visibility": "hidden",
               "lockedReason": "A entrada está encoberta pela vegetação."

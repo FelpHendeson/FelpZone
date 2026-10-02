@@ -25,7 +25,7 @@ describe('Fatia 12.8 — descoberta e disponibilidade de encontros', () => {
 
   it('o encontro protótipo declara custo temporal e o requisito de descoberta', () => {
     const encounter = INITIAL_COMBAT.encounters.find((entry) => entry.id === 'clearing-predator');
-    expect(encounter?.timeCost).toEqual({ periods: 1 });
+    expect(encounter?.timeCost).toEqual({ periods: 0, minutes: 15 });
     expect(encounter?.requiredDiscoveryIds).toEqual(['wary-predator-tracks']);
   });
 

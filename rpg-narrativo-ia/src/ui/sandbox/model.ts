@@ -1,3 +1,4 @@
+import { copyTimeCost, type TimeCost } from '../../modules/time';
 import type { Campaign, ImageKind } from '../../core/events';
 import type { GameState, InventoryItem } from '../../core/state';
 import { findAbility, findNpc } from '../../campaigns/first-day';
@@ -50,6 +51,7 @@ import {
   EQUIPMENT_SLOTS,
   INITIAL_ITEMS,
   availableQuantity,
+  type CatalogItemDefinition,
   type EquipmentSlot,
   type ItemKind,
 } from '../../modules/items';
@@ -81,7 +83,7 @@ export interface DestinationView {
   imageSrc?: string;
   relation?: LocationRelation;
   relationLabel?: string;
-  costPeriods: number;
+  cost: TimeCost;
   accessible: boolean;
   blockedReason?: string;
 }
@@ -92,7 +94,7 @@ export interface ResourceView {
   availableUnits: number;
   maxCollectable: number;
   yields: Array<{ itemId: string; name: string; quantityPerUnit: number }>;
-  costPeriods: number;
+  cost: TimeCost;
   collectable: boolean;
   blockedReason?: string;
 }
@@ -104,7 +106,7 @@ export interface RecipeView {
   products: Array<{ itemId: string; name: string; quantity: number }>;
   structureName?: string;
   stationTags: string[];
-  costPeriods: number;
+  cost: TimeCost;
   craftable: boolean;
   blockedReason?: string;
 }
@@ -122,6 +124,8 @@ export interface InventoryViewItem {
   equipped: boolean;
   preparedSlots: number[];
   effects: NeedEffectView[];
+  /** Consumo parcial: porções por unidade, quantas restam na unidade aberta e o nome da porção. */
+  portions?: { perUnit: number; remaining: number; singular: string; plural: string; verb: string };
 }
 
 export interface EquipmentSlotView {
@@ -147,7 +151,7 @@ export interface RestView {
   mode: RestMode;
   label: string;
   description: string;
-  costPeriods: number;
+  cost: TimeCost;
   effects: NeedEffectView[];
   recommended: boolean;
 }
@@ -157,7 +161,7 @@ export interface PresenceInteractionView {
   kind: PresenceInteractionKind;
   label: string;
   hint?: string;
-  costPeriods: number;
+  cost: TimeCost;
   available: boolean;
   blockedReason?: string;
 }
@@ -184,7 +188,7 @@ export interface InteractableActionView {
   actionId: string;
   label: string;
   hint?: string;
-  costPeriods: number;
+  cost: TimeCost;
   available: boolean;
   blockedReason?: string;
 }
@@ -193,7 +197,7 @@ export interface ContextualActivityView {
   activityId: string;
   label: string;
   description: string;
-  costPeriods: number;
+  cost: TimeCost;
   available: boolean;
   blockedReason?: string;
   requiredParticipants: Array<{ npcId: string; name: string }>;
@@ -224,7 +228,7 @@ export interface BondActionView {
   actionId: string;
   label: string;
   hint?: string;
-  costPeriods: number;
+  cost: TimeCost;
   available: boolean;
   blockedReason?: string;
 }
@@ -248,6 +252,7 @@ export interface BondCharacterView {
 export interface ExplorationView {
   characterName: string;
   worldLabel: string;
+  calendarLabel: string;
   abilityName: string;
   abilityImageSrc?: string;
   location: {
@@ -259,7 +264,9 @@ export interface ExplorationView {
     progress: number;
     canExplore: boolean;
     exploreDisabledReason?: string;
-    exploreCostPeriods: number;
+    exploreCost: TimeCost;
+    /** Sessão curta oferecida quando a exploração completa é longa (progresso proporcional). */
+    exploreShortMinutes?: number;
   };
   destinations: DestinationView[];
   resources: ResourceView[];
@@ -317,6 +324,7 @@ export function buildExplorationView(
   return {
     characterName: fullName(state.character),
     worldLabel: `${describeWorldClock(state.world)} · ${describeCalendarDate(INITIAL_CALENDAR, state.world.day)}`,
+    calendarLabel: describeCalendarDate(INITIAL_CALENDAR, state.world.day),
     abilityName: ability?.name ?? 'Nenhuma',
     abilityImageSrc: ability?.image?.src,
     location: {
@@ -328,7 +336,8 @@ export function buildExplorationView(
       progress: exploration.progress,
       canExplore: hasDefinition && !complete,
       exploreDisabledReason: exploreDisabledReason(hasDefinition, complete),
-      exploreCostPeriods: definition?.timeCost.periods ?? 0,
+      exploreCost: definition ? copyTimeCost(definition.timeCost) : { periods: 0 },
+      exploreShortMinutes: shortSessionMinutes(definition?.timeCost.minutes),
     },
     destinations: listVisibleDestinations(context.map, state.sandbox.navigation, state).map((destination) => ({
       locationId: destination.location.id,
@@ -336,7 +345,7 @@ export function buildExplorationView(
       imageSrc: destination.location.image?.src,
       relation: destination.relation,
       relationLabel: RELATION_LABELS[destination.relation],
-      costPeriods: destination.travelCost.periods,
+      cost: copyTimeCost(destination.travelCost),
       accessible: destination.accessible,
       blockedReason: destination.blockedReason,
     })),
@@ -425,7 +434,7 @@ function visibleResources(state: GameState, context: SandboxContext, locationId:
         name: sandboxItemName(entry.itemId, context.items),
         quantityPerUnit: entry.quantityPerUnit,
       })),
-      costPeriods: getCollectionCost(context.resources, node.id).periods,
+      cost: copyTimeCost(getCollectionCost(context.resources, node.id)),
       collectable: access.collectable,
       blockedReason: resourceBlockedReason(access.blockedReason, pressure),
     });
@@ -490,7 +499,7 @@ function visibleRecipes(state: GameState, context: SandboxContext): RecipeView[]
       })),
       structureName: structure?.name,
       stationTags: (recipe.requiredStationTags ?? []).map((tag) => sandboxStationName(tag, context.stationLabels)),
-      costPeriods: access.timeCost.periods,
+      cost: copyTimeCost(access.timeCost),
       craftable: access.craftable,
       blockedReason: access.blockedReason,
     });
@@ -534,8 +543,28 @@ function copyInventory(items: readonly InventoryItem[], state: GameState, contex
       effects: INITIAL_CONSUMABLES.byItemId.has(item.itemId)
         ? planNeedsConsumption(snapshot, item.itemId).appliedEffects.map(copyNeedEffect)
         : [],
+      ...portionView(definition, item),
     };
   });
+}
+
+function portionView(
+  definition: CatalogItemDefinition | undefined,
+  item: InventoryItem,
+): { portions?: InventoryViewItem['portions'] } {
+  if (definition?.kind !== 'consumable' || definition.use.type !== 'need.restore') return {};
+  const perUnit = definition.use.portions ?? 1;
+  if (perUnit <= 1) return {};
+  const drink = definition.tags.includes('drink');
+  return {
+    portions: {
+      perUnit,
+      remaining: item.openPortions ?? perUnit,
+      singular: drink ? 'gole' : 'porção',
+      plural: drink ? 'goles' : 'porções',
+      verb: drink ? 'Beber' : 'Comer',
+    },
+  };
 }
 
 function visibleNpcs(state: GameState, context: SandboxContext): DerivedNpcView[] {
@@ -572,7 +601,7 @@ function buildRestView(state: GameState, locationId: string): RestView {
     description: campfireAvailable
       ? 'A fogueira ativa melhora o descanso e permite recuperar um pouco de saúde.'
       : 'Recupere energia em qualquer local. Uma fogueira ativa torna o repouso mais eficiente.',
-    costPeriods: plan.timeCost.periods,
+    cost: copyTimeCost(plan.timeCost),
     effects: plan.appliedEffects.map(copyNeedEffect),
     recommended: energy?.band === 'urgent' || energy?.band === 'critical',
   };
@@ -618,7 +647,7 @@ function visiblePresences(state: GameState, context: SandboxContext, locationId:
           interactionId: knownInteraction.interaction.id,
           kind: knownInteraction.interaction.kind,
           label: knownInteraction.interaction.label,
-          costPeriods: knownInteraction.interaction.timeCost.periods,
+          cost: copyTimeCost(knownInteraction.interaction.timeCost),
           available: knownInteraction.available,
         };
 
@@ -664,7 +693,7 @@ function visibleInteractables(state: GameState, context: SandboxContext, locatio
       actionId: entry.action.id,
       label: entry.action.label,
       hint: entry.action.hint,
-      costPeriods: entry.action.timeCost.periods,
+      cost: copyTimeCost(entry.action.timeCost),
       available: entry.available,
       blockedReason: entry.blockedReason,
     })),
@@ -682,7 +711,7 @@ function visibleActivities(state: GameState, context: SandboxContext): Contextua
       activityId: entry.activity.id,
       label: entry.activity.label,
       description: entry.activity.description,
-      costPeriods: entry.activity.timeCost.periods,
+      cost: copyTimeCost(entry.activity.timeCost),
       available: entry.available,
       blockedReason: entry.blockedReason,
       requiredParticipants: (participants?.requiredNpcIds ?? []).map((npcId) => ({
@@ -756,7 +785,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })),
@@ -769,7 +798,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })) : [],
@@ -782,7 +811,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })) : [],
@@ -795,7 +824,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })) : [],
@@ -808,7 +837,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })) : [],
@@ -821,7 +850,7 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })) : [],
@@ -834,11 +863,17 @@ function visibleBonds(state: GameState, context: SandboxContext, campaign: Campa
         actionId: entry.action.id,
         label: entry.action.label,
         hint: entry.action.hint,
-        costPeriods: entry.action.timeCost.periods,
+        cost: copyTimeCost(entry.action.timeCost),
         available: entry.available,
         blockedReason: entry.blockedReason,
       })) : [],
     });
   }
   return views;
+}
+
+/** Metade da sessão completa, em múltiplos de 15 min, quando a completa dura 45 min ou mais. */
+function shortSessionMinutes(full: number | undefined): number | undefined {
+  if (full === undefined || full < 45) return undefined;
+  return Math.max(15, Math.floor(full / 2 / 15) * 15);
 }

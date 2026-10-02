@@ -55,7 +55,7 @@
       "label": "Pedir residência na Clareira",
       "hint": "Mira reconhece a residência. Cidadania não é patente nem ranking.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 45 },
       "once": true,
       "requirements": [{ "type": "flag.is", "flag": "mira.friendship.formed", "value": true }],
       "effects": [
@@ -76,7 +76,7 @@
       "label": "Começar o ofício de coletor",
       "hint": "A residência reconhece o ofício. Progresso virá de prática verificável.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 60 },
       "once": true,
       "requirements": [
         { "type": "civic.has-grant", "kind": "citizenship", "definitionId": "clearing-resident", "active": true }
@@ -99,7 +99,7 @@
       "label": "Assumir a guarda da Clareira",
       "hint": "Ofício incompatível com o de coletor.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 60 },
       "once": true,
       "requirements": [
         { "type": "civic.has-grant", "kind": "citizenship", "definitionId": "clearing-resident", "active": true }
@@ -120,7 +120,7 @@
       "id": "practice-foraging",
       "label": "Praticar coleta reconhecida",
       "hint": "Registra prática profissional com fonte reproduzível.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 90 },
       "once": false,
       "requirements": [
         { "type": "civic.has-grant", "kind": "profession", "definitionId": "clearing-forager", "active": true }
@@ -134,7 +134,7 @@
       "id": "use-clearing-gather-right",
       "label": "Usar o direito de coleta da Clareira",
       "hint": "Só funciona no escopo que concedeu a residência.",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 60 },
       "once": true,
       "requirements": [
         { "type": "civic.has-permission", "permissionId": "clearing-gather", "scopeId": "awakening-clearing" },
@@ -151,7 +151,7 @@
       "label": "Devolver a residência reconhecida",
       "hint": "A revogação guarda o histórico e retira o privilégio.",
       "npcId": "mira-vale",
-      "timeCost": { "periods": 1 },
+      "timeCost": { "minutes": 20 },
       "once": true,
       "requirements": [
         { "type": "civic.has-grant", "kind": "citizenship", "definitionId": "clearing-resident", "active": true }

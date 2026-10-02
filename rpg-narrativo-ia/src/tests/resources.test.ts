@@ -158,7 +158,7 @@ function patchNode(state: ResourcesState, nodeId: string, patch: Partial<Resourc
 
 const CUSTOM_PERIODS = [
   ...DEFAULT_PERIODS,
-  { id: 'madrugada', label: 'Madrugada' },
+  { id: 'vigilia', label: 'Vigília' },
 ];
 
 describe('recursos e ecologia', () => {
@@ -436,7 +436,7 @@ describe('recursos e ecologia', () => {
     expect(result.timeCost).toEqual(getCollectionCost(definitions, 'fallen-sticks'));
     expect(result.collectedAt).toEqual(collectedAt);
     expect(collectedAt).toEqual(createInitialTime());
-    expect(result.timeCost).toEqual({ periods: 1 });
+    expect(result.timeCost).toEqual({ periods: 0, minutes: 30 });
   });
 
   it('nunca renova a política none', () => {
@@ -1465,7 +1465,7 @@ describe('recursos e ecologia', () => {
     const exploration = worldExploration(map);
     const definitions = worldResources(map, exploration);
     const explorationState = revealed(START, ['fallen-sticks'], 25);
-    const collectedAt = { day: 1, periodId: 'madrugada' };
+    const collectedAt = { day: 1, periodId: 'vigilia' };
     const first = collectResource(
       map,
       createInitialNavigation(),

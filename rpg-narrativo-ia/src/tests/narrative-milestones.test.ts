@@ -233,7 +233,7 @@ describe('Fatia C — critérios e marcos narrativos', () => {
         {
           ...nightTrigger,
           id: 'invalid-time',
-          source: { type: 'world.time.reached', day: 1, period: 'madrugada' },
+          source: { type: 'world.time.reached', day: 1, period: 'crepusculo' },
         },
       ],
       triggerContext(),
@@ -255,7 +255,7 @@ describe('Fatia C — critérios e marcos narrativos', () => {
       throw new Error(attempt.error);
     }
 
-    expect(attempt.result.timeCost).toEqual({ periods: 1 });
+    expect(attempt.result.timeCost).toEqual({ periods: 0, minutes: 60 });
     expect(attempt.current.world).toEqual(attempt.result.current.world);
     expect(attempt.current.narrativeSession?.eventId).toBe('first-priority');
     expect(attempt.openedTrigger?.id).toBe(skillTrigger.id);

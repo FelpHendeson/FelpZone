@@ -63,6 +63,8 @@ function isWorldTriggerSourceSatisfied(
     case 'world.day.min':
       return state.world.day >= source.day;
     case 'story.chapter': {
+      // Capítulos abrem no amanhecer: a virada da meia-noite sozinha não basta.
+      if (state.world.period === 'madrugada') return false;
       const window = chapterWindow(source, state);
       if (!window || state.world.day < window.earliest) return false;
       return isChapterKeyResolved(source, state) || (window.fallback !== undefined && state.world.day >= window.fallback);
@@ -164,6 +166,7 @@ export function findPendingChapterTrigger(
     if (trigger.source.type !== 'story.chapter' || isWorldTriggerConsumed(state, trigger.id)) return false;
     if (trigger.conditions?.some((condition) => state.flags[condition.flag] !== condition.value)) return false;
     const window = chapterWindow(trigger.source, state);
-    return window !== null && state.world.day < window.earliest && isChapterKeyResolved(trigger.source, state);
+    if (window === null || !isChapterKeyResolved(trigger.source, state)) return false;
+    return state.world.day < window.earliest || state.world.period === 'madrugada';
   });
 }

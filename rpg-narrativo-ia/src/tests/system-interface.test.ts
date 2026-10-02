@@ -39,7 +39,7 @@ describe('Fatia 11.5 — Status diegético derivado', () => {
     expect(methods).not.toContain('body-reinforcement-routine');
     const drill = status.trainings.find((training) => training.methodId === 'focused-perception-drill');
     expect(drill?.canTrain).toBe(true);
-    expect(drill?.costPeriods).toBe(1);
+    expect(drill?.cost).toEqual({ periods: 0, minutes: 60 });
     expect(drill?.effectsSummary).toEqual(['Aprofunda Sentidos Aguçados (+1)']);
   });
 

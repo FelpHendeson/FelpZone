@@ -32,6 +32,11 @@
       "fallbackLocationId": "awakening-clearing",
       "entries": [
         {
+          "period": "madrugada",
+          "locationId": "awakening-clearing",
+          "availability": "hidden"
+        },
+        {
           "period": "alvorecer",
           "locationId": "spring-lake",
           "availability": "available"
@@ -68,6 +73,11 @@
       "npcId": "rowan-vale",
       "fallbackLocationId": "awakening-clearing",
       "entries": [
+        {
+          "period": "madrugada",
+          "locationId": "awakening-clearing",
+          "availability": "hidden"
+        },
         {
           "period": "alvorecer",
           "locationId": "awakening-clearing",
@@ -106,6 +116,11 @@
       "fallbackLocationId": "rocky-bank",
       "entries": [
         {
+          "period": "madrugada",
+          "locationId": "rocky-bank",
+          "availability": "hidden"
+        },
+        {
           "period": "alvorecer",
           "locationId": "rocky-bank",
           "availability": "available"
@@ -142,6 +157,11 @@
       "npcId": "davi-moura",
       "fallbackLocationId": "rocky-bank",
       "entries": [
+        {
+          "period": "madrugada",
+          "locationId": "rocky-bank",
+          "availability": "hidden"
+        },
         {
           "period": "alvorecer",
           "locationId": "rocky-bank",

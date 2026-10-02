@@ -1,3 +1,4 @@
+import type { TimeCost } from '../time';
 export type FamilyIntent = 'partner' | 'household' | 'ward';
 export type HouseholdRole = 'resident' | 'responsible';
 
@@ -34,7 +35,7 @@ export interface FamilyActionDefinition {
   label: string;
   hint: string;
   npcId?: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   once: boolean;
   requirements: readonly FamilyRequirement[];
   effects: readonly FamilyEffect[];
@@ -84,7 +85,7 @@ export interface FamilyState {
 
 export interface FamilyActionPlan {
   actionId: string;
-  timeCost: { periods: number };
+  timeCost: TimeCost;
   feedback: string;
   effects: readonly FamilyEffect[];
 }

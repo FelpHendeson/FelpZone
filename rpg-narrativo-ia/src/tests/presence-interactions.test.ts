@@ -450,7 +450,7 @@ describe('planejamento puro de interação', () => {
     expect(plan).toEqual({
       interactionId: 'talk-mira-awakening-clearing',
       presenceId: 'mira-awakening-clearing',
-      timeCost: { periods: 1 },
+      timeCost: { periods: 0, minutes: 30 },
       effects: [
         { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-first-talk' },
         { type: 'npc.rememberFact', npcId: 'mira-vale', factId: 'mira-seeks-water' },

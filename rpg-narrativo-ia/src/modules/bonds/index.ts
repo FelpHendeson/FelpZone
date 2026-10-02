@@ -1,3 +1,4 @@
+import { copyTimeCost, readTimeCost } from '../time';
 import { evaluateCondition } from '../../core/events/conditions';
 import type { GameCondition, GameEffect } from '../../core/events';
 import { BondError } from './errors';
@@ -319,7 +320,7 @@ export function planBondAction(
   return {
     actionId: action.id,
     npcId: action.npcId,
-    timeCost: { periods: action.timeCost.periods },
+    timeCost: copyTimeCost(action.timeCost),
     effects: action.effects.map(copyEffect),
     feedback: action.feedback,
   };
@@ -504,9 +505,7 @@ function inspectAction(
     actionById.has(value.id) ||
     !nonEmpty(value.npcId) ||
     !nonEmpty(value.label) ||
-    !isRecord(value.timeCost) ||
-    !Number.isInteger(value.timeCost.periods) ||
-    (value.timeCost.periods as number) < 0 ||
+    readTimeCost(value.timeCost) === null ||
     !Array.isArray(value.effects) ||
     value.effects.length === 0
   ) {
@@ -535,7 +534,7 @@ function inspectAction(
       npcId: value.npcId,
       label: value.label,
       ...(nonEmpty(value.hint) ? { hint: value.hint } : {}),
-      timeCost: { periods: value.timeCost.periods as number },
+      timeCost: readTimeCost(value.timeCost)!,
       ...(value.once === true ? { once: true } : {}),
       ...(requirements.length > 0 ? { requirements } : {}),
       effects,
@@ -740,7 +739,7 @@ function freezeBond(bond: BondDefinition): BondDefinition {
 function freezeAction(action: BondActionDefinition): BondActionDefinition {
   return Object.freeze({
     ...action,
-    timeCost: Object.freeze({ periods: action.timeCost.periods }),
+    timeCost: Object.freeze(copyTimeCost(action.timeCost)),
     ...(action.requirements ? { requirements: Object.freeze(action.requirements.map((requirement) => ({ ...requirement }))) } : {}),
     effects: Object.freeze(action.effects.map(copyEffect)),
   });

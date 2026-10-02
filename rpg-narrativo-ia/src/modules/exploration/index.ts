@@ -1,3 +1,4 @@
+import { copyTimeCost } from '../time';
 import { evaluateConditions, type GameCondition } from '../../core/events';
 import { isAttributeId, type GameState } from '../../core/state/types';
 import {
@@ -166,6 +167,7 @@ export function exploreCurrentLocation(
   definitions: IndexedExploration,
   state: ExplorationState,
   conditions?: ExplorationConditionSource,
+  sessionMinutes?: number,
 ): ExplorationResult {
   const indexedMap = requireIndexedMap(map);
   const previousNavigation = requireNavigation(navigation, indexedMap);
@@ -177,6 +179,8 @@ export function exploreCurrentLocation(
   if (!definition) {
     throw new ExplorationError('Não há definição de exploração para a localização atual.');
   }
+
+  const session = resolveExplorationSession(definition, sessionMinutes);
 
   const previousLocation = getLocationExploration(previous, locationId);
 
@@ -198,7 +202,7 @@ export function exploreCurrentLocation(
     throw new ExplorationError('A contagem de exploração é inválida.');
   }
 
-  const progressGained = Math.min(definition.progressPerAction, MAX_EXPLORATION_PROGRESS - previousLocation.progress);
+  const progressGained = Math.min(session.progress, MAX_EXPLORATION_PROGRESS - previousLocation.progress);
   const currentProgress = previousLocation.progress + progressGained;
   const evaluate = resolveEvaluator(conditions);
   const discoveries = collectNewDiscoveries(
@@ -221,10 +225,35 @@ export function exploreCurrentLocation(
     currentLocation,
     progressGained,
     discoveries,
-    timeCost: { periods: definition.timeCost.periods },
+    timeCost: session.timeCost,
     previousNavigation,
     currentNavigation: applyDiscoveryNavigationEffects(indexedMap, previousNavigation, discoveries),
   });
+}
+
+/** Duração mínima de uma sessão parcial de exploração. */
+export const MIN_EXPLORATION_SESSION_MINUTES = 15;
+
+/**
+ * Sessão de exploração: a completa (custo e progresso declarados) ou uma parcial, mais curta,
+ * com progresso proporcional. O progresso fica salvo no local, então explorar é retomável.
+ */
+export function resolveExplorationSession(
+  definition: LocationExplorationDefinition,
+  sessionMinutes?: number,
+): { progress: number; timeCost: TimeCost; partial: boolean } {
+  const full = definition.timeCost.minutes;
+  if (sessionMinutes === undefined || full === undefined || sessionMinutes >= full) {
+    return { progress: definition.progressPerAction, timeCost: copyTimeCost(definition.timeCost), partial: false };
+  }
+  if (!Number.isSafeInteger(sessionMinutes) || sessionMinutes < MIN_EXPLORATION_SESSION_MINUTES) {
+    throw new ExplorationError(`Uma sessão de exploração precisa de pelo menos ${MIN_EXPLORATION_SESSION_MINUTES} minutos.`);
+  }
+  return {
+    progress: Math.max(1, Math.floor((definition.progressPerAction * sessionMinutes) / full)),
+    timeCost: { periods: 0, minutes: sessionMinutes },
+    partial: true,
+  };
 }
 
 export function reevaluateDiscoveries(
@@ -451,7 +480,7 @@ function inspectLocationDefinition(
     value: {
       locationId: value.locationId,
       progressPerAction: value.progressPerAction,
-      timeCost: { periods: timeCost.value.periods },
+      timeCost: copyTimeCost(timeCost.value),
       discoveries,
     },
   };
@@ -777,7 +806,7 @@ function createResult(input: {
     },
     progressGained: input.progressGained,
     discoveries: input.discoveries.map(copyDiscovery),
-    timeCost: { periods: input.timeCost.periods },
+    timeCost: copyTimeCost(input.timeCost),
     navigation: {
       previous: copyNavigation(input.previousNavigation),
       current: copyNavigation(input.currentNavigation),

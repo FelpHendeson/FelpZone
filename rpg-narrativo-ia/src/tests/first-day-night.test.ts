@@ -19,7 +19,8 @@ function atEntardecer(options: {
   const base = playFirstDay(['awake-calm', 'system-touch', 'ability-perception']);
   return {
     ...base,
-    world: { day: 1, period: 'entardecer' },
+    // 18:30: uma exploração de 1 h atravessa as 19:00 e abre a noite.
+    world: { day: 1, period: 'entardecer', minute: 18 * 60 + 30 },
     attributes: {
       ...base.attributes,
       energia: options.energy ?? base.attributes.energia,
@@ -70,7 +71,7 @@ describe('Fatia F — primeira noite adaptativa', () => {
   it('abre a primeira noite pelo relógio e permite uma vigília compartilhada sem encerrar a partida', () => {
     const night = act(atEntardecer({ trust: 12 }), { type: 'exploration.explore' });
 
-    expect(night.current.world).toEqual({ day: 1, period: 'noite' });
+    expect(night.current.world).toMatchObject({ day: 1, period: 'noite' });
     expect(night.openedTrigger?.id).toBe('first-night');
     expect(night.current.narrativeSession?.eventId).toBe('first-night');
 
@@ -86,9 +87,9 @@ describe('Fatia F — primeira noite adaptativa', () => {
     expect(state.status).toBe('playing');
     expect(state.flags['camp.together']).toBe(true);
     expect(state.flags['night.resolved']).toBe(true);
-    expect(state.world).toEqual({ day: 1, period: 'noite' });
+    expect(state.world).toMatchObject({ day: 1, period: 'noite' });
 
-    const rested = act(state, { type: 'needs.rest', mode: 'simple' });
+    const rested = act(state, { type: 'needs.rest', mode: 'simple', untilDawn: true });
     expect(rested.current.world.day).toBe(2);
     expect(rested.openedTrigger?.id).toBe('day-two-start');
     expect(rested.current.narrativeSession?.eventId).toBe('day-two-awakening');
@@ -120,7 +121,7 @@ describe('Fatia F — primeira noite adaptativa', () => {
     expect(state.flags['night.campfire']).toBe(true);
     expect(state.flags['night.route.alone']).toBe(true);
 
-    const rested = act(state, { type: 'needs.rest', mode: 'campfire' });
+    const rested = act(state, { type: 'needs.rest', mode: 'campfire', untilDawn: true });
     expect(rested.current.world.day).toBe(2);
     expect(rested.current.narrativeSession?.eventId).toBe('day-two-awakening');
 
@@ -142,7 +143,7 @@ describe('Fatia F — primeira noite adaptativa', () => {
   });
 
   it('não perde a primeira noite se um descanso no entardecer atravessar direto para o Dia 2', () => {
-    const skippedVisualNight = act(atEntardecer(), { type: 'needs.rest', mode: 'simple' });
+    const skippedVisualNight = act(atEntardecer(), { type: 'needs.rest', mode: 'simple', untilDawn: true });
 
     expect(skippedVisualNight.current.world.day).toBe(2);
     expect(skippedVisualNight.openedTrigger?.id).toBe('first-night');
