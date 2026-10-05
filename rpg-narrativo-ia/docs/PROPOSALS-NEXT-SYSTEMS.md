@@ -4,6 +4,7 @@
 
 - **Item 1:** implementado; veja [Combate por rodadas e Ecos](SYSTEM-ECHOES-ROUND-COMBAT.md), seção 5.
 - **Item 2:** implementado; veja a seção 7 do mesmo documento.
+- **Item 3:** implementado; veja a seção 8 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -137,6 +138,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 3. Clima e hora do dia no combate
+
+**Implementado.** O clima é derivado e não salvo, com efeitos leves; os duelos de Ecos ficam em campo neutro.
 
 **O que é:** o relógio e as estações que já existem (estação seca e estação úmida no calendário) passam a mudar o combate. Cada arquétipo ganha o seu melhor e o seu pior momento.
 

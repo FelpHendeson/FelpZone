@@ -1,0 +1,173 @@
+{
+  "weathers": [
+    {
+      "id": "clear",
+      "name": "Céu limpo",
+      "icon": "☀",
+      "description": "Luz firme e ar parado."
+    },
+    {
+      "id": "cloudy",
+      "name": "Nublado",
+      "icon": "☁",
+      "description": "Céu fechado, sem chuva."
+    },
+    {
+      "id": "rain",
+      "name": "Chuvoso",
+      "icon": "☂",
+      "description": "A água pesa nas flechas e dispersa o Númen."
+    },
+    {
+      "id": "mist",
+      "name": "Névoa",
+      "icon": "≋",
+      "description": "Difícil ler o outro; fácil achar uma brecha."
+    },
+    {
+      "id": "wind",
+      "name": "Ventania",
+      "icon": "〰",
+      "description": "Rajadas desviam tiros e arremessos."
+    }
+  ],
+  "firstDay": "clear",
+  "seasonWeights": {
+    "dry": {
+      "clear": 5,
+      "cloudy": 3,
+      "wind": 3,
+      "mist": 1,
+      "rain": 1
+    },
+    "wet": {
+      "clear": 2,
+      "cloudy": 3,
+      "rain": 4,
+      "mist": 3,
+      "wind": 1
+    }
+  },
+  "fieldEffects": [
+    {
+      "id": "rain-reach",
+      "label": "Chuva: golpes de longe causam 2 a menos",
+      "when": {
+        "weather": [
+          "rain"
+        ]
+      },
+      "side": "all",
+      "match": {
+        "ranges": [
+          "reach"
+        ]
+      },
+      "damage": -2
+    },
+    {
+      "id": "rain-numen",
+      "label": "Chuva: o Númen dispersa — conjurações preparam 1 tempo a mais",
+      "when": {
+        "weather": [
+          "rain"
+        ]
+      },
+      "side": "all",
+      "match": {
+        "classification": "poder"
+      },
+      "prepare": 1
+    },
+    {
+      "id": "mist-intent",
+      "label": "Névoa: a leitura do oponente mostra uma ação a menos",
+      "when": {
+        "weather": [
+          "mist"
+        ]
+      },
+      "side": "player",
+      "intent": -1
+    },
+    {
+      "id": "mist-stab",
+      "label": "Névoa: golpes pelas brechas causam 1 a mais",
+      "when": {
+        "weather": [
+          "mist"
+        ]
+      },
+      "side": "all",
+      "match": {
+        "poses": [
+          "stab"
+        ]
+      },
+      "damage": 1
+    },
+    {
+      "id": "wind-shots",
+      "label": "Vento: tiros e arremessos causam 1 a menos",
+      "when": {
+        "weather": [
+          "wind"
+        ]
+      },
+      "side": "all",
+      "match": {
+        "poses": [
+          "shoot",
+          "throw"
+        ]
+      },
+      "damage": -1
+    },
+    {
+      "id": "night-creatures",
+      "label": "Noite: criaturas ficam mais rápidas (+2 de velocidade)",
+      "when": {
+        "periods": [
+          "noite",
+          "madrugada"
+        ]
+      },
+      "side": "foes",
+      "speed": 2
+    },
+    {
+      "id": "dawn-numen",
+      "label": "Amanhecer: conjurações custam 1 de Númen a menos",
+      "when": {
+        "periods": [
+          "alvorecer"
+        ]
+      },
+      "side": "player",
+      "match": {
+        "classification": "poder"
+      },
+      "cost": -1
+    },
+    {
+      "id": "clear-afternoon-shots",
+      "label": "Tarde limpa: tiros causam 1 a mais",
+      "when": {
+        "weather": [
+          "clear"
+        ],
+        "periods": [
+          "meio-dia",
+          "tarde"
+        ]
+      },
+      "side": "player",
+      "match": {
+        "poses": [
+          "shoot"
+        ]
+      },
+      "damage": 1
+    }
+  ]
+}

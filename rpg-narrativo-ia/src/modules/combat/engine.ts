@@ -32,6 +32,8 @@ import {
   type CombatActionView,
   type CombatantState,
   type CombatEffect,
+  type CombatEnvironment,
+  type CombatFieldEffect,
   type CombatLoadoutSnapshot,
   type CombatOutcome,
   type ComboDefinition,
@@ -66,6 +68,8 @@ export interface CreateCombatOptions {
   runtime?: CombatRuntime;
   /** Tempos por rodada do jogador (Iniciados têm um a mais). */
   playerRoundTicks?: number;
+  /** Clima e hora do dia do confronto. */
+  environment?: CombatEnvironment;
 }
 
 export function emptyCombatLoadout(): CombatLoadoutSnapshot {
@@ -163,6 +167,7 @@ export function createCombat(
     distance: encounter.startDistance ?? 'far',
     rounds: [],
     lastRound: [],
+    ...(options.environment ? { environment: copyEnvironment(options.environment) } : {}),
   };
 }
 
@@ -758,7 +763,63 @@ function cloneState(state: CombatState): CombatState {
     ...(state.rounds ? { rounds: state.rounds.map((round) => ({ player: [...round.player], opponent: [...round.opponent] })) } : {}),
     ...(state.lastRound ? { lastRound: state.lastRound.map((entry) => ({ ...entry })) } : {}),
     ...(state.triggeredCombos ? { triggeredCombos: [...state.triggeredCombos] } : {}),
+    ...(state.environment ? { environment: copyEnvironment(state.environment) } : {}),
   };
+}
+
+function copyEnvironment(environment: CombatEnvironment): CombatEnvironment {
+  return {
+    label: environment.label,
+    effects: environment.effects.map((effect) => ({
+      ...effect,
+      ...(effect.match
+        ? {
+            match: {
+              ...(effect.match.ranges ? { ranges: [...effect.match.ranges] } : {}),
+              ...(effect.match.poses ? { poses: [...effect.match.poses] } : {}),
+              ...(effect.match.classification ? { classification: effect.match.classification } : {}),
+            },
+          }
+        : {}),
+    })),
+  };
+}
+
+/** Efeitos de campo que valem para esta ação deste combatente. */
+function fieldEffectsFor(state: CombatState, actorId: string, action?: CombatActionDefinition): CombatFieldEffect[] {
+  const effects = state.environment?.effects ?? [];
+  if (effects.length === 0) return [];
+  const side = roleOf(state, actorId) === 'opponent' ? 'foes' : 'player';
+  return effects.filter((effect) => {
+    if (effect.side !== 'all' && effect.side !== side) return false;
+    const match = effect.match;
+    if (!match) return true;
+    if (!action) return false;
+    if (match.ranges && !match.ranges.includes(action.range ?? 'melee')) return false;
+    if (match.poses && (!action.pose || !match.poses.includes(action.pose))) return false;
+    if (match.classification && action.classification !== match.classification) return false;
+    return true;
+  });
+}
+
+/** Tempo da ação na rodada: modificadores do combatente somados ao clima e à hora do dia. */
+function roundTiming(state: CombatState, actorId: string, action: CombatActionDefinition, catalogs: Required<CombatRuntime>) {
+  const base = modifiersFor(state, actorId, catalogs);
+  const field = fieldEffectsFor(state, actorId, action);
+  if (field.length === 0) return timingFor(action, base, catalogs);
+  const sum = (key: 'prepare' | 'cost' | 'speed') => field.reduce((total, effect) => total + (effect[key] ?? 0), 0);
+  return timingFor(action, { ...base, prepare: base.prepare + sum('prepare'), cost: base.cost + sum('cost'), speed: base.speed + sum('speed') }, catalogs);
+}
+
+/** Soma o dano de campo ao primeiro golpe da ação (nunca abaixo de 1). */
+function applyFieldDamage<T extends CombatEffect>(effects: T[], delta: number): T[] {
+  if (delta === 0) return effects;
+  let applied = false;
+  return effects.map((effect) => {
+    if (effect.type !== 'damage' || applied) return effect;
+    applied = true;
+    return { ...effect, amount: Math.max(1, effect.amount + delta) } as T;
+  });
 }
 
 interface TimelineStep {
@@ -980,7 +1041,7 @@ export function actionTicks(
 ): number {
   const catalogs = resolveRuntime(runtime);
   const action = requireAction(catalog, state, actionId);
-  return durationOf(timingFor(action, modifiersFor(state, actorId, catalogs), catalogs));
+  return durationOf(roundTiming(state, actorId, action, catalogs));
 }
 
 /** Valida uma sequência e devolve a posição de cada ação na trilha de tempos. */
@@ -1003,7 +1064,7 @@ export function checkRoundPlan(
       return { ok: false, reason: 'A ação não está no banco de ações.', usedTicks: cursor - 1, slots };
     }
     const action = requireAction(catalog, state, actionId);
-    const timing = timingFor(action, modifiersFor(state, actorId, catalogs), catalogs);
+    const timing = roundTiming(state, actorId, action, catalogs);
     const blocked = describeBlockedAction({ ...actor, execution }, action, timing, roleOf(state, actorId), catalogs);
     if (blocked) return { ok: false, reason: blocked, usedTicks: cursor - 1, slots };
     if ((timing.cooldown > 0 || actionId.startsWith(PREPARED_ACTION_PREFIX)) && usedOnce.has(actionId)) {
@@ -1048,7 +1109,7 @@ export function planCombatantRound(
   let execution = copyExecutionState(actor.execution);
   const roundIndex = (state.rounds ?? []).length;
   const options = actor.actionIds.map((id) => requireAction(catalog, state, id));
-  const timingOf = (action: CombatActionDefinition) => timingFor(action, modifiersFor(state, actorId, catalogs), catalogs);
+  const timingOf = (action: CombatActionDefinition) => roundTiming(state, actorId, action, catalogs);
 
   const usable = (action: CombatActionDefinition) => {
     const timing = timingOf(action);
@@ -1113,7 +1174,8 @@ export function readOpponentIntent(
   runtime: CombatRuntime = {},
 ): { revealed: CombatActionDefinition[]; hidden: number } {
   const plan = planCombatantRound(catalog, state, state.opponent.id, style, runtime);
-  const count = (state.knownSkillIds ?? []).includes('sharpened-senses') ? 2 : 1;
+  const reading = fieldEffectsFor(state, 'player').reduce((total, effect) => total + (effect.intent ?? 0), 0);
+  const count = Math.max(0, ((state.knownSkillIds ?? []).includes('sharpened-senses') ? 2 : 1) + reading);
   return {
     revealed: plan.slice(0, count).map((id) => requireAction(catalog, state, id)),
     hidden: Math.max(0, plan.length - count),
@@ -1213,7 +1275,7 @@ export function resolveRound(
     let previous: RoundStep | undefined;
     for (const actionId of plan.actionIds) {
       const action = requireAction(catalog, state, actionId);
-      const timing = timingFor(action, modifiersFor(state, plan.actorId, catalogs), catalogs);
+      const timing = roundTiming(state, plan.actorId, action, catalogs);
       actor.execution = payCost(actor.execution, timing.cost);
       const combo = previous ? catalog.comboByPair?.get(`${previous.action.id}>${action.id}`) : undefined;
       const step: RoundStep = {
@@ -1291,6 +1353,10 @@ export function resolveRound(
     }
     let coreEffects = step.action.effects.filter((effect) => effect.type !== 'move' && effect.type !== 'evade');
     if (combo) coreEffects = applyComboToEffects(coreEffects, combo);
+    coreEffects = applyFieldDamage(
+      coreEffects,
+      fieldEffectsFor(state, actor.id, step.action).reduce((total, effect) => total + (effect.damage ?? 0), 0),
+    );
     const healthBefore = target.health;
     const guardBefore = target.guard;
     if (combo?.bonus.type === 'ignore-guard' && target !== actor) target.guard = 0;

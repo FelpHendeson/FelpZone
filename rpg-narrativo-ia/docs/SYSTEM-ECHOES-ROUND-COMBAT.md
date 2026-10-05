@@ -284,3 +284,34 @@ As técnicas são ações de combate `equipmentOnly`: só entram no banco quando
 - **Planejador:** um combo já descoberto aparece nomeado entre as duas cartas ("◆ Corte em Avanço"). Com Sentidos Aguçados, um combo ainda desconhecido aparece como "◇ Sequência possível", e há uma dica quando a última ação planejada abre um combo desconhecido.
 - **Reprodução da rodada:** o combo tem uma linha em destaque.
 - **Tela Personagem:** a seção "Sequências registradas" lista os combos descobertos (x/9).
+
+## 8. Clima e hora do dia no combate
+
+**Decisão:** terceira proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 3). O efeito é leve e nunca decide o combate sozinho. Os duelos de Ecos são em campo neutro, e o clima ainda não afeta a sobrevivência.
+
+### Clima do dia (`content/first-day/world/weather.json`, módulo `src/modules/weather`)
+
+- **Os cinco climas:** Céu limpo, Nublado, Chuvoso, Névoa e Ventania.
+- **Sorteio:** o clima é **derivado, não salvo**. Sai da semente da partida (`rng.seed`) e do dia, pesado pela estação do calendário. É o mesmo ao recarregar e no replay do combate.
+- **Estações:** na estação úmida chove e há névoa com mais frequência; na seca, o tempo fica limpo ou com vento.
+- **Primeiro dia:** é sempre de céu limpo (`firstDay`), para não atrapalhar os primeiros confrontos.
+- **Onde aparece:** no topo da tela, ao lado da hora (ícone e nome, com a descrição ao passar o dedo ou o mouse).
+
+### Efeitos de campo (`fieldEffects`)
+
+Cada efeito declara quando vale (`when`: clima e/ou períodos), a quem (`side`: jogador, criaturas ou todos) e a quais ações (`match`: alcance, pose ou tipo de energia). O efeito soma dano ao primeiro golpe (nunca abaixo de 1), tempos de preparação, custo de energia, velocidade ou ações visíveis na leitura do oponente.
+
+| Quando | Efeito |
+| --- | --- |
+| Chuvoso | golpes de longe causam 2 a menos; conjurações preparam 1 tempo a mais |
+| Névoa | a leitura do oponente mostra uma ação a menos; golpes pelas brechas causam 1 a mais |
+| Ventania | tiros e arremessos causam 1 a menos |
+| Noite e madrugada | criaturas com +2 de velocidade |
+| Alvorecer | conjurações do jogador custam 1 de Númen a menos |
+| Tarde limpa | tiros do jogador causam 1 a mais |
+
+### Motor e verificação
+
+- **No combate:** `CombatState.environment` guarda o rótulo e os efeitos. O planejador, a IA, a duração das ações, o custo e a leitura de intenção usam o mesmo cálculo (`roundTiming`).
+- **No confronto do mundo:** o ambiente é montado com o clima e o período do momento, tanto ao abrir o combate quanto na verificação por replay. Um resultado só confere se tiver sido jogado com o mesmo ambiente.
+- **Na tela de combate:** uma faixa abaixo do título mostra o clima, o período e os efeitos ativos.

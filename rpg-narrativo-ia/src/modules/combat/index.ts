@@ -697,6 +697,8 @@ export {
 export { INITIAL_COMBAT_CATALOG, PLAYER_COMBAT_MAX_HEALTH } from './initial-combat';
 
 export type {
+  CombatEnvironment,
+  CombatFieldEffect,
   ComboBonus,
   ComboDefinition,
   CombatActionDefinition,

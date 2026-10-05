@@ -159,6 +159,20 @@ export function CombatScreen({
           Rodada {state.turn + (phase === 'playback' || finished ? 0 : 1)} · {shown.distance === 'near' ? 'Perto' : 'Longe'}
           {numen ? ` · Númen ${numen.current}/${numenMax}` : ''}
         </p>
+        {state.environment ? (
+          <div className="combat-field" aria-label="Clima e hora do dia">
+            <strong>{state.environment.label}</strong>
+            {state.environment.effects.length > 0 ? (
+              <ul>
+                {state.environment.effects.map((effect) => (
+                  <li key={effect.id}>{effect.label}</li>
+                ))}
+              </ul>
+            ) : (
+              <span>Sem efeitos no combate.</span>
+            )}
+          </div>
+        ) : null}
       </header>
 
       <div className="combat-arena">

@@ -17,6 +17,7 @@ import {
 } from '../archetypes';
 import { discoverCombos, type ComboDiscoveryState } from '../combat';
 import { craftRecipe } from '../crafting';
+import { INITIAL_WEATHER, combatEnvironmentFor } from '../weather';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
 import { addItem, canRemoveItem, consumePortions, openPortionsOf, removeItem } from '../inventory';
@@ -428,6 +429,7 @@ export function executePrimary(
       allies,
       runtime: { conditions: catalogs.conditions, execution: context.execution },
       playerRoundTicks: portrait.roundTicks,
+      environment: combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar),
     });
     const archetypeProgress = recordArchetypeCombat(
       INITIAL_ARCHETYPES,

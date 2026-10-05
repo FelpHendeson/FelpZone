@@ -21,10 +21,12 @@ interface GameHudProps {
   archetypeId?: string;
   /** Patente do arquétipo (Aprendiz ou Iniciado); sem ela, o nome do arquétipo. */
   rankTitle?: string;
+  /** Clima do dia (ícone e nome). */
+  weather?: { icon: string; name: string; description: string };
   onExit: () => void;
 }
 
-export function GameHud({ characterName, worldLabel, chapterLabel, clock, attributes, portrait, archetypeId, rankTitle, onExit }: GameHudProps) {
+export function GameHud({ characterName, worldLabel, chapterLabel, clock, attributes, portrait, archetypeId, rankTitle, weather, onExit }: GameHudProps) {
   const customSrc = useCustomPortrait();
   const needs = buildNeedsPresentation(attributes);
   const shown = useAnimatedClock(clock?.day ?? 1, clock?.minute ?? 0);
@@ -41,6 +43,12 @@ export function GameHud({ characterName, worldLabel, chapterLabel, clock, attrib
             <span aria-live="off">
               Dia {shown.day} · <time className="game-hud__hour">{formatClock(shown.minute, clock.format)}</time> ·{' '}
               {periodName(shown.minute)}
+              {weather ? (
+                <span className="game-hud__weather" title={weather.description}>
+                  {' · '}
+                  <span aria-hidden="true">{weather.icon}</span> {weather.name}
+                </span>
+              ) : null}
               {worldLabel ? ` · ${worldLabel}` : ''}
               {shown.animating ? <small className="game-hud__elapsed">+{formatDuration(shown.elapsed)}</small> : null}
             </span>

@@ -21,6 +21,7 @@ export interface VerifyCombatResolutionOptions {
   allies?: import('./engine').AllySnapshot[];
   runtime?: CombatRuntime;
   playerRoundTicks?: number;
+  environment?: import('./types').CombatEnvironment;
 }
 
 export function combatEncounterResolvedFlag(encounterId: string): string {
@@ -132,6 +133,7 @@ export function verifyCombatResolution(
     allies: options.allies ?? [],
     runtime: options.runtime,
     playerRoundTicks: options.playerRoundTicks,
+    environment: options.environment,
   });
   if (resolution.playerPlans) {
     // Combate planejado: cada rodada é reproduzida com a sequência declarada; a IA replaneja igual.

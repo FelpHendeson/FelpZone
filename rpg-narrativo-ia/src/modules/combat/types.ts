@@ -122,6 +122,29 @@ export interface CombatCatalog {
   encounters: readonly EncounterDefinition[];
 }
 
+/**
+ * Efeito de campo (clima e hora do dia) sobre o combate. `side` diz a quem vale; `match`, a quais
+ * ações. Os números são somados: dano ao primeiro golpe (mínimo 1), tempos de preparação, custo de
+ * energia, velocidade e quantas ações a leitura de intenção mostra.
+ */
+export interface CombatFieldEffect {
+  id: string;
+  label: string;
+  side: 'player' | 'foes' | 'all';
+  match?: { ranges?: CombatRange[]; poses?: ActionPose[]; classification?: ApplicationField };
+  damage?: number;
+  prepare?: number;
+  cost?: number;
+  speed?: number;
+  intent?: number;
+}
+
+/** Ambiente do confronto: o rótulo (clima e período) e os efeitos que valem nele. */
+export interface CombatEnvironment {
+  label: string;
+  effects: CombatFieldEffect[];
+}
+
 /** Efeito extra de um combo, aplicado quando a segunda ação acerta. */
 export const COMBO_BONUS_TYPES = ['damage', 'critical', 'ignore-guard', 'uninterruptible'] as const;
 
@@ -209,6 +232,8 @@ export interface CombatState {
   lastRound?: RoundEvent[];
   /** Combos que o jogador acionou neste combate, sem repetição, na ordem em que aconteceram. */
   triggeredCombos?: string[];
+  /** Clima e hora do dia (ausente em duelos de Ecos: campo neutro). */
+  environment?: CombatEnvironment;
 }
 
 /** Sequências que cada lado declarou antes de "Pronto". */

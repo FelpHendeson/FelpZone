@@ -16,6 +16,7 @@ import {
 } from '../../modules/party';
 import { buildCombatLoadout } from '../../modules/equipment';
 import { withArchetypeBonus } from '../../modules/archetypes';
+import { INITIAL_WEATHER, combatEnvironmentFor, weatherFor } from '../../modules/weather';
 import { CombatScreen } from './CombatScreen';
 import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
 import {
@@ -215,6 +216,7 @@ export function ExplorationScreen({
       allies,
       runtime: { conditions: context.conditions, execution: context.execution },
       playerRoundTicks: portrait.roundTicks,
+      environment: combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar),
     });
     return (
       <CombatScreen
@@ -273,6 +275,7 @@ export function ExplorationScreen({
         portrait={state.character.portrait}
         archetypeId={state.character.archetypeId}
         rankTitle={status.archetype.title}
+        weather={weatherFor(INITIAL_WEATHER, state.rng.seed, state.world.day, context.calendar)}
         onExit={onExit}
       />
 
