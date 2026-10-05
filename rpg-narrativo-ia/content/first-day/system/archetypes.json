@@ -1,0 +1,124 @@
+{
+  "archetypes": [
+    {
+      "id": "apprentice-mage",
+      "name": "Aprendiz de Mago",
+      "summary": "Molda o Númen em projéteis à distância. Frágil se for alcançado.",
+      "description": "Desde o despertar, o Eteris parece responder a você antes de responder aos outros. O Sistema o reconhece como alguém que vai aprender a moldar o Númen.",
+      "pose": "cast",
+      "palette": {
+        "primary": "#7b6cf0",
+        "secondary": "#cbbcff"
+      },
+      "startingItems": [
+        {
+          "itemId": "living-branch-staff",
+          "quantity": 1
+        }
+      ],
+      "equip": [
+        "living-branch-staff"
+      ],
+      "signatureActionIds": [
+        "numen-bolt"
+      ],
+      "prop": "staff"
+    },
+    {
+      "id": "apprentice-swordsman",
+      "name": "Aprendiz de Espadachim",
+      "summary": "Corpo a corpo, cortes em sequência. Precisa fechar a distância.",
+      "description": "Suas mãos procuram uma lâmina antes de procurar abrigo. O Sistema o reconhece como alguém que vai aprender a lutar de perto.",
+      "pose": "slash",
+      "palette": {
+        "primary": "#d9a441",
+        "secondary": "#f4dca0"
+      },
+      "startingItems": [
+        {
+          "itemId": "chipped-stone-blade",
+          "quantity": 1
+        }
+      ],
+      "equip": [
+        "chipped-stone-blade"
+      ],
+      "signatureActionIds": [
+        "twin-cut"
+      ],
+      "prop": "sword"
+    },
+    {
+      "id": "apprentice-archer",
+      "name": "Aprendiz de Arqueiro",
+      "summary": "Mira de longe e mantém a distância. Tiros lentos, mas fortes.",
+      "description": "Você mede distâncias sem perceber e nota o vento nas folhas. O Sistema o reconhece como alguém que vai aprender a acertar de longe.",
+      "pose": "shoot",
+      "palette": {
+        "primary": "#4fae6f",
+        "secondary": "#bfe8c9"
+      },
+      "startingItems": [
+        {
+          "itemId": "rustic-bow",
+          "quantity": 1
+        }
+      ],
+      "equip": [
+        "rustic-bow"
+      ],
+      "signatureActionIds": [
+        "aimed-shot"
+      ],
+      "prop": "bow"
+    },
+    {
+      "id": "apprentice-assassin",
+      "name": "Aprendiz de Assassino",
+      "summary": "Rápido e preciso. Ataca primeiro e deixa feridas que sangram.",
+      "description": "Você se move sem fazer barulho e enxerga pontos fracos. O Sistema o reconhece como alguém que vai aprender a decidir um confronto num instante.",
+      "pose": "stab",
+      "palette": {
+        "primary": "#c2455a",
+        "secondary": "#f0b3bd"
+      },
+      "startingItems": [
+        {
+          "itemId": "bone-dagger",
+          "quantity": 1
+        }
+      ],
+      "equip": [
+        "bone-dagger"
+      ],
+      "signatureActionIds": [
+        "shadow-strike"
+      ],
+      "prop": "dagger"
+    },
+    {
+      "id": "apprentice-pathless",
+      "name": "Aprendiz sem caminho definido",
+      "summary": "Nenhuma assinatura ainda. Começa com mantimentos e liberdade para seguir qualquer caminho.",
+      "description": "O Sistema hesita ao ler você: nenhuma inclinação se destaca. Isso não é fraqueza — é um caminho que ainda não foi escrito.",
+      "pose": "stand",
+      "palette": {
+        "primary": "#8aa3b5",
+        "secondary": "#d8e3ea"
+      },
+      "startingItems": [
+        {
+          "itemId": "fruto-desconhecido",
+          "quantity": 2
+        },
+        {
+          "itemId": "agua-limpa",
+          "quantity": 1
+        }
+      ],
+      "equip": [],
+      "signatureActionIds": [],
+      "prop": "none"
+    }
+  ]
+}

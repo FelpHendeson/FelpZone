@@ -8,14 +8,14 @@ import {
   type CombatState,
 } from '../modules/combat';
 import { describeMasteryProgress } from '../modules/system-interface';
-import type { CharacterSex, GameState } from '../core/state';
+import type { GameState } from '../core/state';
 import { createPersistence, type GamePersistence, type LoadResult } from '../infrastructure/persistence';
 import { normalizeIdentity } from '../modules/character';
 import { markGuidanceTopicSeen } from '../modules/guidance';
 import { createSandboxContextFromWorld, type SandboxContext } from '../modules/sandbox';
 import type { SandboxAction } from '../modules/sandbox-actions';
 import { ConfirmDialog } from './components/ConfirmDialog';
-import { CreateCharacterScreen } from './screens/CreateCharacterScreen';
+import { CreateCharacterScreen, type CharacterCreation } from './screens/CreateCharacterScreen';
 import { ExplorationScreen } from './screens/ExplorationScreen';
 import { GameScreen } from './screens/GameScreen';
 import { StartScreen } from './screens/StartScreen';
@@ -169,9 +169,14 @@ export function App() {
     setScreen('create');
   }
 
-  function handleCreate(firstName: string, lastName: string, sex: Exclude<CharacterSex, 'unspecified'>) {
+  function handleCreate(character: CharacterCreation) {
     const next = startGame(
-      { ...normalizeIdentity(firstName, lastName), sex },
+      {
+        ...normalizeIdentity(character.firstName, character.lastName),
+        sex: character.sex,
+        archetypeId: character.archetypeId,
+        portrait: character.portrait,
+      },
       campaign,
       undefined,
       sandboxContext,

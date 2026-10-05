@@ -1,5 +1,6 @@
 import type { CharacterIdentityInput, GameState } from './types';
-import { SCHEMA_VERSION } from './types';
+import { SCHEMA_VERSION, copyCharacterIdentity } from './types';
+import { INITIAL_ARCHETYPES, applyArchetypeStart } from '../../modules/archetypes';
 import { createInitialAttributes } from '../../modules/character';
 import { createInitialProgression } from '../../modules/progression';
 import { createInitialSandboxState, createSandboxContext, type SandboxContext } from '../../modules/sandbox';
@@ -36,20 +37,26 @@ export function createInitialState(
 ): GameState {
   const context = sandboxContext ?? createSandboxContext();
   const createdAt = now();
+  // O arquétipo de aprendiz já desperta com o equipamento de assinatura nas mãos.
+  const start = character.archetypeId
+    ? applyArchetypeStart(INITIAL_ARCHETYPES, character.archetypeId, [], createInitialItemsState(), context.items)
+    : { inventory: [], items: createInitialItemsState() };
   return {
     schemaVersion: SCHEMA_VERSION,
     status: 'playing',
-    character: {
+    character: copyCharacterIdentity({
       firstName: character.firstName,
       lastName: character.lastName,
       sex: character.sex ?? 'unspecified',
-    },
+      ...(character.archetypeId ? { archetypeId: character.archetypeId } : {}),
+      ...(character.portrait ? { portrait: character.portrait } : {}),
+    }),
     narrativeSession: {
       campaignId: campaign.id,
       eventId: campaign.firstEventId,
     },
     attributes: createInitialAttributes(),
-    inventory: [],
+    inventory: start.inventory,
     relationships: [],
     flags: {},
     history: [],
@@ -62,7 +69,7 @@ export function createInitialState(
     },
     objectives: createInitialObjectivesState(objectiveCatalog),
     system: createInitialSkillsProgress(context.skills ?? INITIAL_SKILLS),
-    items: createInitialItemsState(),
+    items: start.items,
     lingering: createInitialLingering(),
     garden: createInitialGardenState(),
     bonds: createInitialBondsState(),
@@ -118,7 +125,11 @@ export {
   SCHEMA_VERSION_V26,
   SCHEMA_VERSION_V27,
   MIGRATED_CAMPAIGN_ID,
+  PORTRAIT_OPTION_COUNT,
+  copyCharacterIdentity,
+  isPortraitConfig,
 } from './types';
+export type { PortraitConfig } from './types';
 export {
   inspectGameState,
   inspectGameStateV1,

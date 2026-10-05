@@ -106,3 +106,47 @@ O que é preciso decidir antes de construir:
 - **Custo e privacidade:** não guardar nada além do resultado do duelo.
 
 O jogo continua funcionando sem rede: o online é uma camada opcional sobre os Ecos.
+
+## 4. Arquétipos de aprendiz, silhuetas e retratos
+
+**Decisão do autor:** começar pelos arquétipos de aprendiz, escolhidos na criação do personagem. Para as imagens, seguir a recomendação: silhuetas em vetor sem rosto, retrato montável, imagem própria do aparelho e prompts para IA.
+
+### Arquétipos (`content/first-day/system/archetypes.json`, módulo `src/modules/archetypes`)
+
+| Arquétipo | Equipamento de assinatura (já equipado) | Técnica concedida |
+| --- | --- | --- |
+| Aprendiz de Mago | Cajado de Galho Vivo | Seta de Númen: 2 tempos, alcança de longe, 6 de dano, 2 de Númen, interrompível |
+| Aprendiz de Espadachim | Lâmina de Pedra Lascada | Corte Duplo: 2 tempos, corpo a corpo, 4 + 3 de dano |
+| Aprendiz de Arqueiro | Arco Rústico | Tiro Mirado: 3 tempos, alcança de longe, 8 de dano, interrompível |
+| Aprendiz de Assassino | Adaga de Osso | Golpe Furtivo: 1 tempo, velocidade 17, 2 de dano + Sangramento |
+| Aprendiz sem caminho definido | nenhum (2 frutos e 1 água limpa) | nenhuma: liberdade para seguir qualquer caminho |
+
+Regras:
+
+- **O arquétipo é identidade e não tranca caminhos.** As técnicas de assinatura são `equipmentOnly`: só entram no banco quando o equipamento as concede (`combat.action.available`). Trocar de arma muda o banco.
+- **O catálogo é validado contra itens e combate.** Toda técnica de assinatura precisa vir do equipamento inicial, e todo item equipado precisa estar entre os itens iniciais.
+- **Persistência:** `GameState.character.archetypeId` e `character.portrait` são opcionais e aditivos, sem mudar a versão do save. Saves antigos seguem válidos.
+- **Ecos:** o Selo do Desperto leva o arquétipo e a técnica de assinatura. Um Selo com a técnica, mas sem o arquétipo que a concede, é recusado.
+
+### Silhuetas (`src/ui/components/Silhouette.tsx`)
+
+- **A figura:** sem rosto e sem gênero, montada por articulações, com 14 poses (`ACTION_POSES`) e adereços (lâmina, adaga, arco, cajado).
+- **Origem da pose:**
+  - cada ação de combate pode declarar `pose` no pack;
+  - sem ela, a pose é deduzida dos efeitos;
+  - as habilidades usam a pose da primeira técnica que liberam.
+- **Onde aparecem:**
+  - nas cartas do banco de ações, com as técnicas de assinatura primeiro;
+  - na Árvore de habilidades;
+  - na escolha de arquétipo e na tela Personagem.
+- **Cor:** acompanha a paleta do arquétipo.
+
+### Retrato (`src/ui/components/PortraitAvatar.tsx`)
+
+- **Retrato montável:** busto em silhueta sem rosto, com 6 tons de pele, 6 cortes (incluindo capuz) e 6 cores de cabelo. A capa e o contorno usam a cor do arquétipo.
+- **Imagem própria:**
+  - é recortada para 192 px e fica só no aparelho (`reset.portrait.custom`); o save guarda apenas `{ kind: 'custom' }`;
+  - sem a imagem, aparece o busto padrão;
+  - não viaja no Selo do Eco.
+- **Onde aparece:** no topo da tela (com o nome do arquétipo), na tela Personagem e na confirmação da criação.
+- **Arte por IA:** a carta de arquétipo aceita `image` no pack, que substitui a silhueta quando existir. Os prompts estão em [Prompts para geração de arte](ART-GENERATION-PROMPTS.md), seção 8A.

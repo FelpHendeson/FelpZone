@@ -14,6 +14,7 @@ import { CombatError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_COMBAT_CATALOG } from './initial-combat';
 import {
+  ACTION_POSES,
   COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_RANGES,
@@ -235,6 +236,12 @@ function inspectAction(
   if (value.playerUsable !== undefined && typeof value.playerUsable !== 'boolean') {
     return fail('A disponibilidade da ação de combate é inválida.');
   }
+  if (value.equipmentOnly !== undefined && typeof value.equipmentOnly !== 'boolean') {
+    return fail('A concessão por equipamento da ação de combate é inválida.');
+  }
+  if (value.pose !== undefined && !includes(ACTION_POSES, value.pose)) {
+    return fail('A pose da ação de combate é inválida.');
+  }
 
   return {
     ok: true,
@@ -255,6 +262,8 @@ function inspectAction(
       ...(value.cooldown ? { cooldown: value.cooldown } : {}),
       ...(value.interruptible ? { interruptible: true } : {}),
       ...(value.playerUsable === false ? { playerUsable: false } : {}),
+      ...(value.equipmentOnly === true ? { equipmentOnly: true } : {}),
+      ...(value.pose !== undefined ? { pose: value.pose } : {}),
     },
   };
 }
@@ -618,6 +627,7 @@ function fail<T>(reason: string): CombatInspection<T> {
 }
 
 export {
+  ACTION_POSES,
   COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_OUTCOMES,
@@ -646,6 +656,7 @@ export type {
   EncounterDefinition,
   IndexedCombat,
   CombatLoadoutSnapshot,
+  ActionPose,
   CombatDistance,
   CombatRoundRecord,
   PlannedSlot,

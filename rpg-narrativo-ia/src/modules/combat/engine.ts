@@ -101,7 +101,7 @@ export function createCombat(
   const loadout = copyLoadout(options.loadout ?? emptyCombatLoadout());
   const prepared = (options.prepared ?? []).map((entry) => ({ ...entry }));
   const playerActionIds = catalog.actions
-    .filter((action) => action.playerUsable !== false)
+    .filter((action) => action.playerUsable !== false && action.equipmentOnly !== true)
     .filter((action) => action.skillId === undefined || known.has(action.skillId))
     .map((action) => action.id);
   for (const actionId of loadout.grantedActionIds) {
@@ -173,10 +173,16 @@ export const DUEL_ENCOUNTER_ID = 'duel';
 export const DUEL_OPPONENT_ID = 'rival';
 
 /** Banco de ações que um Desperto leva para um duelo: ações base e as liberadas por habilidades. */
-export function duelActionBank(catalog: IndexedCombat, knownSkillIds: readonly string[]): string[] {
+export function duelActionBank(
+  catalog: IndexedCombat,
+  knownSkillIds: readonly string[],
+  grantedActionIds: readonly string[] = [],
+): string[] {
   const known = new Set(knownSkillIds);
+  const granted = new Set(grantedActionIds);
   return catalog.actions
     .filter((action) => action.playerUsable !== false)
+    .filter((action) => action.equipmentOnly !== true || granted.has(action.id))
     .filter((action) => action.skillId === undefined || known.has(action.skillId))
     .map((action) => action.id);
 }

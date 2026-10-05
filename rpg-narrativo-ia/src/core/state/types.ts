@@ -94,12 +94,46 @@ export interface LegacyCharacterIdentity {
   lastName: string;
 }
 
+/**
+ * Retrato escolhido na criação: silhueta montável (índices de tom de pele, corte e cor do
+ * cabelo) ou imagem própria guardada só no aparelho (`custom`). Opcional e aditivo.
+ */
+export type PortraitConfig =
+  | { kind: 'silhouette'; skin: number; hair: number; hairColor: number }
+  | { kind: 'custom' };
+
 export interface CharacterIdentity extends LegacyCharacterIdentity {
   sex: CharacterSex;
+  /** Arquétipo de aprendiz escolhido na criação (opcional: saves antigos não têm). */
+  archetypeId?: string;
+  portrait?: PortraitConfig;
 }
 
 export interface CharacterIdentityInput extends LegacyCharacterIdentity {
   sex?: CharacterSex;
+  archetypeId?: string;
+  portrait?: PortraitConfig;
+}
+
+export const PORTRAIT_OPTION_COUNT = 6;
+
+export function isPortraitConfig(value: unknown): value is PortraitConfig {
+  if (typeof value !== 'object' || value === null) return false;
+  const record = value as Record<string, unknown>;
+  if (record.kind === 'custom') return Object.keys(record).length === 1;
+  const index = (entry: unknown) => typeof entry === 'number' && Number.isSafeInteger(entry) && entry >= 0 && entry < PORTRAIT_OPTION_COUNT;
+  return record.kind === 'silhouette' && index(record.skin) && index(record.hair) && index(record.hairColor);
+}
+
+/** Copia a identidade preservando os campos opcionais. */
+export function copyCharacterIdentity(character: CharacterIdentity): CharacterIdentity {
+  return {
+    firstName: character.firstName,
+    lastName: character.lastName,
+    sex: character.sex,
+    ...(character.archetypeId ? { archetypeId: character.archetypeId } : {}),
+    ...(character.portrait ? { portrait: { ...character.portrait } } : {}),
+  };
 }
 
 export interface InventoryItem {

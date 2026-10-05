@@ -59,7 +59,17 @@ export interface CombatActionDefinition {
   interruptible?: boolean;
   /** `false` para ações exclusivas de criaturas (garras, mordidas): não entram no banco do jogador. */
   playerUsable?: boolean;
+  /** Só entra no banco quando um equipamento a concede (técnicas de assinatura dos arquétipos). */
+  equipmentOnly?: boolean;
+  /** Pose da silhueta que ilustra a técnica na carta. */
+  pose?: ActionPose;
 }
+
+export const ACTION_POSES = [
+  'strike', 'slash', 'stab', 'shoot', 'cast', 'guard', 'dodge', 'advance', 'retreat', 'lunge', 'throw', 'feint', 'heal', 'stand',
+] as const;
+
+export type ActionPose = (typeof ACTION_POSES)[number];
 
 export interface CombatantTemplate {
   id: string;

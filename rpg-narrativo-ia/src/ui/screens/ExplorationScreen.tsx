@@ -49,6 +49,7 @@ import { HintAlert } from '../components/SystemHints';
 import { TourOverlay } from '../components/Tour';
 import { FIRST_TOUR, isTourDone, markTourDone } from '../tour';
 import { setClockContext } from '../clock';
+import { archetypeOf } from '../silhouettes';
 import { worldMinute } from '../../modules/world';
 import { usePreferences } from '../preferences';
 import { deriveSystemHints, type HintAction } from '../system-hints';
@@ -149,7 +150,11 @@ export function ExplorationScreen({
 
   const mySeal = createEchoSeal(
     combat,
-    { name: `${state.character.firstName} ${state.character.lastName}`, knownSkillIds: state.system.entries.map((entry) => entry.skillId) },
+    {
+      name: `${state.character.firstName} ${state.character.lastName}`,
+      knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+      archetypeId: state.character.archetypeId,
+    },
     echoStyle,
   );
 
@@ -159,6 +164,8 @@ export function ExplorationScreen({
       <CombatScreen
         initialState={duel.start}
         encounterName={`${mySeal.name} × ${duel.rival.name}`}
+        tint={archetypeOf(state.character.archetypeId)?.palette.primary}
+        opponentTint={archetypeOf(duel.rival.archetypeId)?.palette.primary}
         kicker={hotSeat ? 'Prova do Eco · mesma tela' : `Prova do Eco · Eco ${ECHO_STYLE_LABELS[duel.rival.style].toLowerCase()}`}
         combat={combat}
         conditions={context.conditions}
@@ -209,6 +216,7 @@ export function ExplorationScreen({
       <CombatScreen
         initialState={initialCombat}
         encounterName={encounter?.name ?? 'Confronto'}
+        tint={archetypeOf(state.character.archetypeId)?.palette.primary}
         combat={combat}
         conditions={context.conditions}
         execution={context.execution}
@@ -257,6 +265,8 @@ export function ExplorationScreen({
         clock={{ day: state.world.day, minute: worldMinute(state.world), format: preferences.clockFormat }}
         chapterLabel={chapter ? `Capítulo ${chapter.number} · ${chapter.title}` : undefined}
         attributes={state.attributes}
+        portrait={state.character.portrait}
+        archetypeId={state.character.archetypeId}
         onExit={onExit}
       />
 

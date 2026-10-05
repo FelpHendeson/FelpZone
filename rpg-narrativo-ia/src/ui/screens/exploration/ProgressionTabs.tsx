@@ -8,6 +8,8 @@ import type {
   SystemTreePathView,
 } from '../../../modules/system-interface';
 import { formatTimeCost } from '../../sandbox';
+import { Silhouette } from '../../components/Silhouette';
+import { poseForSkill } from '../../silhouettes';
 import { EmptyAction } from './shared';
 
 type ProgressionTab = 'tree' | 'training' | 'garden' | 'basics';
@@ -126,6 +128,7 @@ function SkillNode({ node, onTrain }: { node: SystemTreeNodeView; onTrain: (meth
     <li className={`skill-node skill-node--${node.status}${node.origin === 'garden' ? ' skill-node--garden' : ''}`}>
       <span className="skill-node__marker" aria-hidden="true" />
       <div className="skill-node__body">
+        <Silhouette pose={poseForSkill(node.skillId)} size={48} tint={node.status === 'known' ? 'var(--accent)' : 'var(--text-muted)'} className="skill-node__silhouette" />
         <div className="skill-node__head">
           <strong>{node.name}</strong>
           {node.status === 'known' ? (

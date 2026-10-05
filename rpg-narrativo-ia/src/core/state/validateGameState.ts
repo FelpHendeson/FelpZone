@@ -134,6 +134,9 @@ import {
   type GameStateV27,
   type GameStatus,
   type NarrativeSession,
+  type PortraitConfig,
+  copyCharacterIdentity,
+  isPortraitConfig,
 } from './types';
 
 export type GameStateInspection =
@@ -2769,10 +2772,19 @@ function readCharacter(value: unknown): GameState['character'] | undefined {
     return undefined;
   }
 
-  return {
+  if (value.archetypeId !== undefined && (typeof value.archetypeId !== 'string' || value.archetypeId.trim() === '' || value.archetypeId.length > 64)) {
+    return undefined;
+  }
+  if (value.portrait !== undefined && !isPortraitConfig(value.portrait)) {
+    return undefined;
+  }
+
+  return copyCharacterIdentity({
     ...legacy,
     sex: value.sex as GameState['character']['sex'],
-  };
+    ...(typeof value.archetypeId === 'string' ? { archetypeId: value.archetypeId } : {}),
+    ...(value.portrait !== undefined ? { portrait: value.portrait as PortraitConfig } : {}),
+  });
 }
 
 function readLegacyCharacter(value: unknown): GameStateV23['character'] | undefined {

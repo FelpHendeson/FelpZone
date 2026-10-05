@@ -6,6 +6,7 @@ import {
   type CombatStyle,
   type IndexedCombat,
 } from '../combat';
+import { INITIAL_ARCHETYPES, archetypeSignatureActions, type IndexedArchetypes } from '../archetypes';
 
 /**
  * Ecos — interação entre jogadores pela lore do Sistema. Cada Desperto deixa um *Eco*: o
@@ -35,6 +36,8 @@ export const ECHO_STYLE_LABELS: Record<CombatStyle, string> = {
 export interface EchoSeal {
   version: 1;
   name: string;
+  /** Arquétipo de aprendiz do dono (a técnica de assinatura entra no banco do Eco). */
+  archetypeId?: string;
   knownSkillIds: string[];
   actionIds: string[];
   style: CombatStyle;
@@ -83,15 +86,18 @@ export function copyEchoesState(state: EchoesState): EchoesState {
 /** O Selo do Desperto a partir do que o Sistema já reconhece no personagem. */
 export function createEchoSeal(
   catalog: IndexedCombat,
-  input: { name: string; knownSkillIds: readonly string[] },
+  input: { name: string; knownSkillIds: readonly string[]; archetypeId?: string },
   style: CombatStyle = 'balanced',
+  archetypes: IndexedArchetypes = INITIAL_ARCHETYPES,
 ): EchoSeal {
   const knownSkillIds = [...new Set(input.knownSkillIds)].sort();
+  const archetypeId = input.archetypeId && archetypes.byId.has(input.archetypeId) ? input.archetypeId : undefined;
   return {
     version: 1,
     name: input.name.trim().slice(0, MAX_NAME) || 'Desperto',
+    ...(archetypeId ? { archetypeId } : {}),
     knownSkillIds,
-    actionIds: duelActionBank(catalog, knownSkillIds),
+    actionIds: duelActionBank(catalog, knownSkillIds, archetypeSignatureActions(archetypes, archetypeId)),
     style,
   };
 }
@@ -239,7 +245,11 @@ function inspectSeal(value: unknown, catalog: IndexedCombat): EchoInspection<Ech
     return fail('As habilidades do Selo são inválidas.');
   }
   const knownSkillIds = [...new Set(value.knownSkillIds as string[])].sort();
-  const bank = new Set(duelActionBank(catalog, knownSkillIds));
+  if (value.archetypeId !== undefined && (typeof value.archetypeId !== 'string' || !INITIAL_ARCHETYPES.byId.has(value.archetypeId))) {
+    return fail('O arquétipo do Selo não é reconhecido.');
+  }
+  const archetypeId = value.archetypeId as string | undefined;
+  const bank = new Set(duelActionBank(catalog, knownSkillIds, archetypeSignatureActions(INITIAL_ARCHETYPES, archetypeId)));
   if (!Array.isArray(value.actionIds) || value.actionIds.length === 0 || value.actionIds.some((id) => typeof id !== 'string' || !bank.has(id))) {
     return fail('O Selo traz ações que essas habilidades não liberam.');
   }
@@ -248,6 +258,7 @@ function inspectSeal(value: unknown, catalog: IndexedCombat): EchoInspection<Ech
     value: {
       version: 1,
       name: value.name.trim(),
+      ...(archetypeId ? { archetypeId } : {}),
       knownSkillIds,
       actionIds: [...new Set(value.actionIds as string[])],
       style: value.style as CombatStyle,
@@ -293,6 +304,7 @@ function fromBase64Url(payload: string): string {
 function canonical(seal: EchoSeal): string {
   return JSON.stringify({
     name: seal.name,
+    archetypeId: seal.archetypeId ?? null,
     knownSkillIds: [...seal.knownSkillIds].sort(),
     actionIds: [...seal.actionIds].sort(),
     style: seal.style,

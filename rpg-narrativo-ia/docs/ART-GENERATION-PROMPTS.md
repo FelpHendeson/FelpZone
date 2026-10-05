@@ -263,9 +263,37 @@ Estes dois campos existem no contrato mas ainda não têm valor definido no pack
 
 ---
 
+## 8A. Arquétipos de aprendiz e equipamentos de assinatura
+
+As cartas de arquétipo e de técnica usam, por padrão, **silhuetas em vetor sem rosto** (`src/ui/components/Silhouette.tsx`), para o jogador se imaginar ali. A arte gerada é opcional e entra por cima. A silhueta continua sendo a referência de pose e enquadramento.
+
+**Carta do arquétipo** (`system/archetypes.json`, campo `image`, tipo `portrait`, 4:5 ou 1:1). Mantenha a figura de costas ou em contraluz, sem rosto definido, para não impor uma identidade ao jogador.
+
+- `apprentice-mage` → `/images/first-day/archetypes/apprentice-mage.webp`
+  > A faceless backlit silhouette of a young apprentice mage holding a living wooden branch staff, a small sphere of pale violet energy gathering in the open palm, standing in a misty forest clearing at dawn, figure seen from behind three-quarter, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a single violet accent, no UI, no text, no watermark, no border, 4:5.
+- `apprentice-swordsman` → `/images/first-day/archetypes/apprentice-swordsman.webp`
+  > A faceless backlit silhouette of a young apprentice swordsman mid-slash with a crude chipped stone blade bound to a bone hilt, motion arc of the cut, forest clearing at dawn, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a warm amber accent, no UI, no text, no watermark, no border, 4:5.
+- `apprentice-archer` → `/images/first-day/archetypes/apprentice-archer.webp`
+  > A faceless backlit silhouette of a young apprentice archer drawing a rustic wooden bow, arrow nocked, wind moving the grass, edge of a forest at dawn, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a moss green accent, no UI, no text, no watermark, no border, 4:5.
+- `apprentice-assassin` → `/images/first-day/archetypes/apprentice-assassin.webp`
+  > A faceless shadowed silhouette of a young apprentice assassin crouched low, short bone dagger held forward, half hidden among ferns at dusk, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a dark crimson accent, no UI, no text, no watermark, no border, 4:5.
+- `apprentice-pathless` → `/images/first-day/archetypes/apprentice-pathless.webp`
+  > A faceless backlit silhouette of a young survivor standing still at the edge of a clearing at dawn, empty hands, a small worn satchel, looking at several diverging paths, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a pale blue-grey accent, no UI, no text, no watermark, no border, 4:5.
+
+**Equipamentos de assinatura** (`system/items.json`, campo `image`, tipo `icon`, 1:1):
+
+- `living-branch-staff` → `/images/first-day/items/living-branch-staff.webp`: *a short staff of a living branch with small leaves still growing, faint violet glow at the tip, single object centered, neutral background*.
+- `chipped-stone-blade` → `/images/first-day/items/chipped-stone-blade.webp`: *a crude knapped stone blade bound to a bone hilt with sinew, single object centered, neutral background*.
+- `rustic-bow` → `/images/first-day/items/rustic-bow.webp`: *a rustic short bow of bent wood and gut string, single object centered, neutral background*.
+- `bone-dagger` → `/images/first-day/items/bone-dagger.webp`: *a short dagger carved from bone, wrapped grip, single object centered, neutral background*.
+
+Acrescente a cada item o bloco de estilo da seção 1. Os retratos dos jogadores **não** entram nesta lista: eles montam o retrato em silhueta ou escolhem uma imagem própria, que fica só no aparelho.
+
+---
+
 ## 9. Como aplicar depois de gerar
 
-1. Salve o arquivo exportado em `public/images/first-day/<subpasta>/<nome>.webp` (subpastas sugeridas acima: `locations/`, `npcs/`, `creatures/`, `interactables/`, `items/`, `abilities/`, `titles/`, `campaign/` — organização livre, o motor só valida o caminho, não a pasta).
+1. Salve o arquivo exportado em `public/images/first-day/<subpasta>/<nome>.webp` (subpastas sugeridas acima: `locations/`, `archetypes/`, `npcs/`, `creatures/`, `interactables/`, `items/`, `abilities/`, `titles/`, `campaign/` — organização livre, o motor só valida o caminho, não a pasta).
 2. No JSON do pack correspondente, adicione `src` ao objeto `image` já existente, por exemplo:
 
 ```json

@@ -3,6 +3,10 @@ import type { GameState } from '../../../core/state';
 import type { SystemStatusView } from '../../../modules/system-interface';
 import { SystemCorners } from '../../components/Icon';
 import { Portrait } from '../../components/Portrait';
+import { PortraitAvatar } from '../../components/PortraitAvatar';
+import { Silhouette } from '../../components/Silhouette';
+import { useCustomPortrait } from '../../portrait';
+import { archetypeOf } from '../../silhouettes';
 import { EmptyAction } from './shared';
 import { SystemIdentity } from './SystemPanel';
 
@@ -17,14 +21,34 @@ export function CharacterPanel({
   campaign: Campaign;
   abilityName: string;
 }) {
+  const customSrc = useCustomPortrait();
+  const archetype = archetypeOf(state.character.archetypeId);
   return (
     <div className="tab-panel character-panel">
       <header className="character-hero sys-frame">
         <SystemCorners />
-        <Portrait name={status.characterName} className="character-hero__avatar" />
-        <div><span className="section-kicker">Sobrevivente</span><h1>{status.characterName}</h1><p>{abilityName}</p></div>
+        {state.character.portrait || archetype ? (
+          <PortraitAvatar portrait={state.character.portrait} archetypeId={state.character.archetypeId} customSrc={customSrc} size={64} className="character-hero__avatar" />
+        ) : (
+          <Portrait name={status.characterName} className="character-hero__avatar" />
+        )}
+        <div>
+          <span className="section-kicker">{archetype?.name ?? 'Sobrevivente'}</span>
+          <h1>{status.characterName}</h1>
+          <p>{abilityName}</p>
+        </div>
         <span className="system-console__level">Nível <strong>{status.level}</strong></span>
       </header>
+      {archetype ? (
+        <section className="archetype-panel" aria-label="Arquétipo" style={{ ['--archetype' as string]: archetype.palette.primary }}>
+          <Silhouette pose={archetype.pose} prop={archetype.prop} tint="var(--text)" glow={archetype.palette.primary} size={72} />
+          <div>
+            <span className="section-kicker">Arquétipo de aprendiz</span>
+            <strong>{archetype.name}</strong>
+            <p>{archetype.summary}</p>
+          </div>
+        </section>
+      ) : null}
       <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} />
       <section className="system-calendar" aria-label="Calendário pessoal">
         <span className="section-kicker">Linha da vida</span>

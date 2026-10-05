@@ -16,7 +16,8 @@
         "prepare": 0,
         "execute": 1,
         "recover": 1
-      }
+      },
+      "pose": "strike"
     },
     {
       "id": "guard",
@@ -34,7 +35,8 @@
         "prepare": 0,
         "execute": 1,
         "recover": 0
-      }
+      },
+      "pose": "guard"
     },
     {
       "id": "focus-strike",
@@ -54,7 +56,8 @@
         "execute": 1,
         "recover": 1
       },
-      "interruptible": true
+      "interruptible": true,
+      "pose": "strike"
     },
     {
       "id": "mend",
@@ -78,7 +81,8 @@
         "prepare": 1,
         "execute": 1,
         "recover": 0
-      }
+      },
+      "pose": "heal"
     },
     {
       "id": "ember-cut",
@@ -127,7 +131,8 @@
         "prepare": 0,
         "execute": 1,
         "recover": 1
-      }
+      },
+      "pose": "guard"
     },
     {
       "id": "numen-spark",
@@ -154,7 +159,8 @@
           "type": "damage",
           "amount": 12
         }
-      ]
+      ],
+      "pose": "cast"
     },
     {
       "id": "advance",
@@ -173,7 +179,8 @@
           "type": "move",
           "to": "near"
         }
-      ]
+      ],
+      "pose": "advance"
     },
     {
       "id": "retreat",
@@ -192,7 +199,8 @@
           "type": "move",
           "to": "far"
         }
-      ]
+      ],
+      "pose": "retreat"
     },
     {
       "id": "dodge",
@@ -211,7 +219,8 @@
           "type": "evade",
           "ticks": 2
         }
-      ]
+      ],
+      "pose": "dodge"
     },
     {
       "id": "lunge",
@@ -235,7 +244,8 @@
           "type": "damage",
           "amount": 6
         }
-      ]
+      ],
+      "pose": "lunge"
     },
     {
       "id": "throw-stone",
@@ -254,7 +264,8 @@
           "type": "damage",
           "amount": 3
         }
-      ]
+      ],
+      "pose": "throw"
     },
     {
       "id": "feint",
@@ -277,7 +288,8 @@
         {
           "type": "interrupt"
         }
-      ]
+      ],
+      "pose": "feint"
     },
     {
       "id": "rooted-stance",
@@ -302,7 +314,8 @@
           "count": 1,
           "conditionId": "hindered"
         }
-      ]
+      ],
+      "pose": "guard"
     },
     {
       "id": "sentinel-reflex",
@@ -327,7 +340,8 @@
           "type": "guard",
           "amount": 3
         }
-      ]
+      ],
+      "pose": "dodge"
     },
     {
       "id": "spark-dart",
@@ -355,7 +369,8 @@
           "type": "damage",
           "amount": 5
         }
-      ]
+      ],
+      "pose": "cast"
     },
     {
       "id": "peck-dive",
@@ -446,6 +461,108 @@
         {
           "type": "damage",
           "amount": 10
+        }
+      ]
+    },
+    {
+      "id": "numen-bolt",
+      "name": "Seta de Númen",
+      "description": "O aprendiz de mago condensa Númen na ponta do cajado e o dispara. Alcança de longe, mas pode ser interrompida.",
+      "speed": 11,
+      "target": "opponent",
+      "range": "reach",
+      "classification": "poder",
+      "originEnergyId": "numen",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 0
+      },
+      "cost": {
+        "energyId": "numen",
+        "amount": 2
+      },
+      "interruptible": true,
+      "equipmentOnly": true,
+      "pose": "cast",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "id": "twin-cut",
+      "name": "Corte Duplo",
+      "description": "Dois cortes em sequência com a lâmina: o segundo aproveita a abertura do primeiro.",
+      "speed": 12,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "equipmentOnly": true,
+      "pose": "slash",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 4
+        },
+        {
+          "type": "damage",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "aimed-shot",
+      "name": "Tiro Mirado",
+      "description": "Respira, mira e solta a flecha. Lento e interrompível, mas acerta de longe com força.",
+      "speed": 10,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 1
+      },
+      "interruptible": true,
+      "equipmentOnly": true,
+      "pose": "shoot",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 8
+        }
+      ]
+    },
+    {
+      "id": "shadow-strike",
+      "name": "Golpe Furtivo",
+      "description": "Um corte rápido com a adaga num ponto exposto. Deixa uma ferida que sangra.",
+      "speed": 17,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "equipmentOnly": true,
+      "pose": "stab",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 2
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "bleeding",
+          "duration": 2,
+          "potency": 1
         }
       ]
     }

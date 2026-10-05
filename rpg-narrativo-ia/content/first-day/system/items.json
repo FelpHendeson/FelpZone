@@ -235,6 +235,82 @@
         "label": "Unguento improvisado",
         "src": "/images/first-day/items/improvised-salve.webp"
       }
+    },
+    {
+      "id": "living-branch-staff",
+      "name": "Cajado de Galho Vivo",
+      "description": "Um galho que ainda pulsa com Eteris. Conduz a Seta de Númen.",
+      "kind": "equipment",
+      "stackLimit": 1,
+      "tags": [
+        "weapon",
+        "archetype",
+        "mage"
+      ],
+      "slot": "main-hand",
+      "grants": [
+        {
+          "type": "combat.action.available",
+          "actionId": "numen-bolt"
+        }
+      ]
+    },
+    {
+      "id": "chipped-stone-blade",
+      "name": "Lâmina de Pedra Lascada",
+      "description": "Pedra lascada presa a um cabo de osso. Permite o Corte Duplo.",
+      "kind": "equipment",
+      "stackLimit": 1,
+      "tags": [
+        "weapon",
+        "archetype",
+        "swordsman"
+      ],
+      "slot": "main-hand",
+      "grants": [
+        {
+          "type": "combat.action.available",
+          "actionId": "twin-cut"
+        }
+      ]
+    },
+    {
+      "id": "rustic-bow",
+      "name": "Arco Rústico",
+      "description": "Arco de galho resistente e tendão. Permite o Tiro Mirado.",
+      "kind": "equipment",
+      "stackLimit": 1,
+      "tags": [
+        "weapon",
+        "archetype",
+        "archer"
+      ],
+      "slot": "main-hand",
+      "grants": [
+        {
+          "type": "combat.action.available",
+          "actionId": "aimed-shot"
+        }
+      ]
+    },
+    {
+      "id": "bone-dagger",
+      "name": "Adaga de Osso",
+      "description": "Curta, leve e afiada. Permite o Golpe Furtivo.",
+      "kind": "equipment",
+      "stackLimit": 1,
+      "tags": [
+        "weapon",
+        "archetype",
+        "assassin"
+      ],
+      "slot": "main-hand",
+      "grants": [
+        {
+          "type": "combat.action.available",
+          "actionId": "shadow-strike"
+        }
+      ]
     }
   ]
 }

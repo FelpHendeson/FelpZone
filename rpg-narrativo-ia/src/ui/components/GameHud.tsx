@@ -1,5 +1,8 @@
 import type { CSSProperties } from 'react';
-import type { Attributes } from '../../core/state';
+import type { Attributes, PortraitConfig } from '../../core/state';
+import { useCustomPortrait } from '../portrait';
+import { PortraitAvatar } from './PortraitAvatar';
+import { archetypeOf } from '../silhouettes';
 import { DEFAULT_PERIODS, periodAtMinute } from '../../modules/time';
 import { formatClock, formatDuration, type ClockFormat } from '../clock';
 import { skyAt } from '../clock/sky';
@@ -14,10 +17,13 @@ interface GameHudProps {
   /** Relógio do mundo: com ele o HUD anima a passagem do tempo e tinge o céu pela hora. */
   clock?: { day: number; minute: number; format: ClockFormat };
   attributes: Attributes;
+  portrait?: PortraitConfig;
+  archetypeId?: string;
   onExit: () => void;
 }
 
-export function GameHud({ characterName, worldLabel, chapterLabel, clock, attributes, onExit }: GameHudProps) {
+export function GameHud({ characterName, worldLabel, chapterLabel, clock, attributes, portrait, archetypeId, onExit }: GameHudProps) {
+  const customSrc = useCustomPortrait();
   const needs = buildNeedsPresentation(attributes);
   const shown = useAnimatedClock(clock?.day ?? 1, clock?.minute ?? 0);
   const sky = clock ? skyAt(shown.minute) : null;
@@ -45,11 +51,15 @@ export function GameHud({ characterName, worldLabel, chapterLabel, clock, attrib
         </button>
       </div>
       <div className="game-hud__identity">
-        <span className="avatar-placeholder" aria-hidden="true">
-          {initials(characterName)}
-        </span>
+        {portrait !== undefined || archetypeId ? (
+          <PortraitAvatar portrait={portrait} archetypeId={archetypeId} customSrc={customSrc} size={38} className="game-hud__portrait" />
+        ) : (
+          <span className="avatar-placeholder" aria-hidden="true">
+            {initials(characterName)}
+          </span>
+        )}
         <div className="game-hud__name">
-          <span>Sobrevivente</span>
+          <span title={archetypeOf(archetypeId)?.name}>{archetypeOf(archetypeId)?.name ?? 'Sobrevivente'}</span>
           <strong>{characterName}</strong>
         </div>
         <ul className="hud-vitals" aria-label="Condição atual">

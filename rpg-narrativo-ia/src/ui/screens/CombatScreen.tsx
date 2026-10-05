@@ -18,6 +18,8 @@ import {
 import { INITIAL_CONDITIONS, type IndexedConditions } from '../../modules/conditions';
 import { INITIAL_EXECUTION, type IndexedExecution } from '../../modules/execution';
 import type { CompanionOrderView } from '../../modules/party';
+import { Silhouette } from '../components/Silhouette';
+import { poseForAction } from '../silhouettes';
 
 /** Como o oponente decide a rodada: IA por regras (encontros e Ecos) ou outra pessoa no mesmo aparelho. */
 export type CombatOpponentControl =
@@ -35,6 +37,9 @@ interface CombatScreenProps {
   kicker?: string;
   finishLabel?: string;
   resultDetail?: (state: CombatState) => string;
+  /** Cor das silhuetas nas cartas (a do arquétipo de quem planeja). */
+  tint?: string;
+  opponentTint?: string;
   onFinish: (finalState: CombatState) => void;
 }
 
@@ -53,6 +58,8 @@ export function CombatScreen({
   kicker = 'Confronto',
   finishLabel = 'Voltar ao mundo',
   resultDetail = defaultResultDetail,
+  tint = 'var(--accent)',
+  opponentTint = 'var(--danger)',
   onFinish,
 }: CombatScreenProps) {
   const [state, setState] = useState<CombatState>(initialState);
@@ -273,7 +280,7 @@ export function CombatScreen({
           ) : null}
 
           <section className="combat-actions" aria-label="Banco de ações">
-            {actor.actionIds.map((actionId) => {
+            {signatureFirst(actor.actionIds, planningOpponent ? [] : state.loadout.grantedActionIds).map((actionId) => {
               const action = actionFor(combat, state, actionId);
               const ticks = actionTicks(combat, state, actorId, actionId, runtime);
               const attempt = checkRoundPlan(combat, state, actorId, [...current, actionId], runtime);
@@ -281,10 +288,11 @@ export function CombatScreen({
                 <button
                   key={actionId}
                   type="button"
-                  className={attempt.ok ? 'combat-action' : 'combat-action combat-action--blocked'}
+                  className={attempt.ok ? 'combat-action combat-action--card' : 'combat-action combat-action--card combat-action--blocked'}
                   disabled={!attempt.ok}
                   onClick={() => setCurrent([...current, actionId])}
                 >
+                  <Silhouette pose={poseForAction(action)} size={44} tint={planningOpponent ? opponentTint : tint} className="combat-action__figure" />
                   <strong>{action.name}</strong>
                   <small>{describeAction(action, conditionCatalog, ticks)}</small>
                   {!attempt.ok && attempt.reason && !(attempt.reason.startsWith('Não cabe') && usedTicks >= ROUND_TICKS) ? (
@@ -328,6 +336,12 @@ function RoundPlayback({ events, total, compact = false, onSkip }: { events: Rou
       ) : null}
     </section>
   );
+}
+
+/** Técnicas de assinatura (concedidas pelo equipamento) abrem o banco de ações. */
+function signatureFirst(actionIds: readonly string[], granted: readonly string[]): string[] {
+  const signature = new Set(granted);
+  return [...actionIds.filter((id) => signature.has(id)), ...actionIds.filter((id) => !signature.has(id))];
 }
 
 function defaultOrders(views: CompanionOrderView[]): Record<string, string> {

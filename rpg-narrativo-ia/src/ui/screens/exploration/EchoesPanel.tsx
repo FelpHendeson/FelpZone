@@ -11,6 +11,7 @@ import {
   type EchoSeal,
 } from '../../../modules/echoes';
 import { Choice } from './SettingsPanel';
+import { archetypeOf } from '../../silhouettes';
 import { DetailScreen } from './shared';
 
 export type EchoDuelMode = 'challenge' | 'hot-seat';
@@ -78,7 +79,8 @@ export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle
       <section className="echo-card" aria-labelledby="echo-seal">
         <h2 id="echo-seal">Seu Selo do Desperto</h2>
         <p>
-          {mySeal.name} · {mySeal.actionIds.length} ações · {mySeal.knownSkillIds.length} habilidade{mySeal.knownSkillIds.length === 1 ? '' : 's'}.
+          {mySeal.name}
+          {archetypeOf(mySeal.archetypeId) ? ` · ${archetypeOf(mySeal.archetypeId)!.name}` : ''} · {mySeal.actionIds.length} ações · {mySeal.knownSkillIds.length} habilidade{mySeal.knownSkillIds.length === 1 ? '' : 's'}.
           Quem enfrentar o seu Eco luta contra a IA seguindo o estilo que você escolher.
         </p>
         <Choice
@@ -104,7 +106,9 @@ export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle
         {rival && rival.ok ? (
           <div className="echo-rival">
             <p>
-              <strong>Eco de {rival.value.name}</strong> · {ECHO_STYLE_LABELS[rival.value.style]} · {rival.value.actionIds.length} ações
+              <strong>Eco de {rival.value.name}</strong>
+              {archetypeOf(rival.value.archetypeId) ? ` · ${archetypeOf(rival.value.archetypeId)!.name}` : ''} · {ECHO_STYLE_LABELS[rival.value.style]} ·{' '}
+              {rival.value.actionIds.length} ações
             </p>
             <div className="echo-actions">
               <button type="button" className="button button--primary" onClick={() => onDuel(rival.value, 'challenge')}>
