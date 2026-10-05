@@ -50,6 +50,10 @@ export interface AllySnapshot {
   maxHealth: number;
   health?: number;
   actionIds: readonly string[];
+  /** Estilo tático da IA do companheiro (padrão: equilibrado). */
+  style?: CombatStyle;
+  /** Tempos por rodada (Iniciados têm um a mais). */
+  roundTicks?: number;
 }
 
 export interface CombatRuntime {
@@ -886,6 +890,8 @@ function createAllyCombatant(ally: AllySnapshot): CombatantState {
     actionIds: [...ally.actionIds],
     conditions: [],
     execution: createInitialExecutionState(),
+    ...(ally.style && ally.style !== 'balanced' ? { style: ally.style } : {}),
+    ...(checkRoundTicks(ally.roundTicks) !== ROUND_TICKS ? { roundTicks: checkRoundTicks(ally.roundTicks) } : {}),
   };
 }
 
@@ -1466,7 +1472,7 @@ function allyRoundPlan(
   orderedActionId: string | undefined,
   runtime: CombatRuntime | undefined,
 ): string[] {
-  const planned = planCombatantRound(catalog, state, ally.id, 'balanced', runtime);
+  const planned = planCombatantRound(catalog, state, ally.id, ally.style ?? 'balanced', runtime);
   if (orderedActionId === undefined) return planned;
   if (!ally.actionIds.includes(orderedActionId)) {
     throw new CombatError('A orientação de companheiro não está disponível.');

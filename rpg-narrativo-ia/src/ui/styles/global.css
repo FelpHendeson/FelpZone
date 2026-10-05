@@ -6612,3 +6612,42 @@ span.portrait-avatar {
   font-size: 1.6rem;
   opacity: 0.6;
 }
+
+/* Eco aliado. */
+.echo-ally-chooser__list {
+  display: grid;
+  gap: 10px;
+}
+
+.echo-ally-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.echo-ally-option:hover,
+.echo-ally-option:focus-visible {
+  border-color: var(--accent);
+}
+
+.echo-ally-option span {
+  display: grid;
+  gap: 2px;
+}
+
+.echo-ally-option small {
+  color: var(--text-muted);
+}
+
+.echo-subtitle {
+  margin: 10px 0 4px;
+  font-size: 0.95rem;
+}

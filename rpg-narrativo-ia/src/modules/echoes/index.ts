@@ -1,7 +1,9 @@
 import {
+  INITIAL_COMBAT,
   createDuel,
   duelActionBank,
   resolveRound,
+  type AllySnapshot,
   type CombatState,
   type CombatStyle,
   type IndexedCombat,
@@ -19,8 +21,14 @@ import { INITIAL_ARCHETYPES, archetypeRank, archetypeSignatureActions, type Arch
  */
 export const ECHO_SEAL_PREFIX = 'ECO1.';
 export const ECHO_RESULT_PREFIX = 'RES1.';
+export const ECHO_THANKS_PREFIX = 'AGR1.';
+/** Até quantos Ecos aliados ficam guardados no Círculo. */
+export const MAX_ECHO_ALLIES = 3;
+export const ECHO_ALLY_ID = 'echo-ally';
 /** Vitalidade igual para os dois lados: o duelo mede escolhas, não a saúde do momento. */
 export const DUEL_HEALTH = 30;
+/** O Eco aliado entra com parte da vitalidade de duelo: ajuda, mas não substitui o jogador. */
+export const ECHO_ALLY_HEALTH = Math.round(DUEL_HEALTH * 0.6);
 export const ECHO_STYLES = ['balanced', 'aggressive', 'defensive'] as const satisfies readonly CombatStyle[];
 export const MAX_ECHO_RECORDS = 50;
 const MAX_NAME = 40;
@@ -62,6 +70,31 @@ export interface EchoesState {
   records: EchoDuelRecord[];
   /** Resultados recebidos já registrados (evita contar o mesmo código duas vezes). */
   receivedResultIds: string[];
+  /** Círculo de Ecos: Selos (códigos) que podem ser chamados como aliados. */
+  allies?: string[];
+  /** Último dia de jogo em que um Eco aliado foi chamado (um por dia). */
+  lastAllyDay?: number;
+  /** Laços de Eco: quem chamou o seu Eco como aliado e quantas vezes lutaram juntos. */
+  bonds?: EchoBondRecord[];
+}
+
+export interface EchoBondRecord {
+  helperId: string;
+  helperName: string;
+  assists: number;
+  victories: number;
+  lastDay: number;
+}
+
+/** Agradecimento: quem chamou o Eco envia ao dono, que registra o laço. */
+export interface EchoThanks {
+  version: 1;
+  helperName: string;
+  helperId: string;
+  allySealId: string;
+  encounterName: string;
+  outcome: 'victory' | 'defeat' | 'fled';
+  day: number;
 }
 
 export interface EchoResult {
@@ -84,7 +117,108 @@ export function createInitialEchoesState(): EchoesState {
 }
 
 export function copyEchoesState(state: EchoesState): EchoesState {
-  return { records: state.records.map((entry) => ({ ...entry })), receivedResultIds: [...state.receivedResultIds] };
+  return {
+    records: state.records.map((entry) => ({ ...entry })),
+    receivedResultIds: [...state.receivedResultIds],
+    ...(state.allies ? { allies: [...state.allies] } : {}),
+    ...(state.lastAllyDay !== undefined ? { lastAllyDay: state.lastAllyDay } : {}),
+    ...(state.bonds ? { bonds: state.bonds.map((entry) => ({ ...entry })) } : {}),
+  };
+}
+
+/** Guarda um Selo no Círculo de Ecos (o mais antigo sai quando passa do limite). */
+export function addEchoAlly(state: EchoesState, code: string, catalog: IndexedCombat = INITIAL_COMBAT): EchoInspection<EchoesState> {
+  const seal = decodeEchoSeal(code, catalog);
+  if (!seal.ok) return seal;
+  const id = echoSealId(seal.value);
+  const trimmed = code.trim().replace(/\s+/g, '');
+  const others = (state.allies ?? []).filter((entry) => {
+    const decoded = decodeEchoSeal(entry, catalog);
+    return !decoded.ok || echoSealId(decoded.value) !== id;
+  });
+  return { ok: true, value: { ...copyEchoesState(state), allies: [...others, trimmed].slice(-MAX_ECHO_ALLIES) } };
+}
+
+export function removeEchoAlly(state: EchoesState, code: string): EchoesState {
+  return { ...copyEchoesState(state), allies: (state.allies ?? []).filter((entry) => entry !== code) };
+}
+
+/** Um Eco aliado pode ser chamado uma vez por dia de jogo. */
+export function canCallEchoAlly(state: EchoesState | undefined, day: number): boolean {
+  return (state?.allies?.length ?? 0) > 0 && state?.lastAllyDay !== day;
+}
+
+/** O Eco como companheiro de combate: vitalidade reduzida, banco do Selo e o estilo do dono. */
+export function echoAllySnapshot(seal: EchoSeal, archetypes: IndexedArchetypes = INITIAL_ARCHETYPES): AllySnapshot {
+  const roundTicks = sealRoundTicks(seal, archetypes);
+  return {
+    id: ECHO_ALLY_ID,
+    name: `Eco de ${seal.name}`,
+    maxHealth: ECHO_ALLY_HEALTH,
+    actionIds: [...seal.actionIds],
+    style: seal.style,
+    ...(roundTicks ? { roundTicks } : {}),
+  };
+}
+
+export function encodeEchoThanks(thanks: Omit<EchoThanks, 'version'>): string {
+  return encode(ECHO_THANKS_PREFIX, { version: 1, ...thanks });
+}
+
+/** Confere um agradecimento: precisa ter sido dado ao Eco deste Selo. */
+export function verifyEchoThanks(code: string, mine: EchoSeal): EchoInspection<EchoThanks & { thanksId: string }> {
+  const raw = decode(code, ECHO_THANKS_PREFIX);
+  if (!raw.ok) return raw;
+  const value = raw.value;
+  if (
+    !isRecord(value) ||
+    value.version !== 1 ||
+    !nonEmpty(value.helperName) ||
+    value.helperName.length > MAX_NAME ||
+    !nonEmpty(value.helperId) ||
+    !nonEmpty(value.allySealId) ||
+    !nonEmpty(value.encounterName) ||
+    value.encounterName.length > 80 ||
+    (value.outcome !== 'victory' && value.outcome !== 'defeat' && value.outcome !== 'fled') ||
+    !Number.isSafeInteger(value.day) ||
+    (value.day as number) < 1
+  ) {
+    return fail('O agradecimento está incompleto.');
+  }
+  if (value.allySealId !== echoSealId(mine)) return fail('Este agradecimento é para outro Eco, não para o seu.');
+  return {
+    ok: true,
+    value: {
+      version: 1,
+      helperName: value.helperName,
+      helperId: value.helperId,
+      allySealId: value.allySealId,
+      encounterName: value.encounterName,
+      outcome: value.outcome,
+      day: value.day as number,
+      thanksId: fnv1a(code.trim().replace(/\s+/g, '')),
+    },
+  };
+}
+
+/** Registra o laço de quem lutou ao lado do seu Eco (o mesmo código não conta duas vezes). */
+export function recordEchoBond(state: EchoesState, thanks: EchoThanks & { thanksId: string }, day: number): EchoesState {
+  if (state.receivedResultIds.includes(thanks.thanksId)) return copyEchoesState(state);
+  const bonds = (state.bonds ?? []).map((entry) => ({ ...entry }));
+  const bond = bonds.find((entry) => entry.helperId === thanks.helperId);
+  if (bond) {
+    bond.helperName = thanks.helperName;
+    bond.assists += 1;
+    if (thanks.outcome === 'victory') bond.victories += 1;
+    bond.lastDay = day;
+  } else {
+    bonds.unshift({ helperId: thanks.helperId, helperName: thanks.helperName, assists: 1, victories: thanks.outcome === 'victory' ? 1 : 0, lastDay: day });
+  }
+  return {
+    ...copyEchoesState(state),
+    receivedResultIds: [...state.receivedResultIds, thanks.thanksId].slice(-MAX_ECHO_RECORDS * 2),
+    bonds: bonds.slice(0, MAX_ECHO_RECORDS),
+  };
 }
 
 /** O Selo do Desperto a partir do que o Sistema já reconhece no personagem. */
@@ -202,6 +336,7 @@ export function verifyEchoResult(
 export function recordEchoDuel(state: EchoesState, record: EchoDuelRecord, resultId?: string): EchoesState {
   if (resultId && state.receivedResultIds.includes(resultId)) return copyEchoesState(state);
   return {
+    ...copyEchoesState(state),
     records: [{ ...record }, ...state.records.map((entry) => ({ ...entry }))].slice(0, MAX_ECHO_RECORDS),
     receivedResultIds: resultId ? [...state.receivedResultIds, resultId].slice(-MAX_ECHO_RECORDS * 2) : [...state.receivedResultIds],
   };
@@ -220,7 +355,7 @@ export function summarizeRivals(state: EchoesState): { rivalId: string; rivalNam
   return [...byId.values()].sort((left, right) => right.wins + right.losses - (left.wins + left.losses));
 }
 
-export function inspectEchoesState(value: unknown): EchoInspection<EchoesState> {
+export function inspectEchoesState(value: unknown, catalog: IndexedCombat = INITIAL_COMBAT): EchoInspection<EchoesState> {
   if (!isRecord(value) || !Array.isArray(value.records) || !Array.isArray(value.receivedResultIds)) {
     return fail('O registro de Ecos é inválido.');
   }
@@ -245,7 +380,47 @@ export function inspectEchoesState(value: unknown): EchoInspection<EchoesState> 
     records.push({ rivalId: entry.rivalId, rivalName: entry.rivalName, outcome: entry.outcome, kind: entry.kind, day: entry.day });
   }
   if (value.receivedResultIds.some((id) => !nonEmpty(id))) return fail('O registro de Ecos é inválido.');
-  return { ok: true, value: { records, receivedResultIds: [...(value.receivedResultIds as string[])] } };
+  const extras: Partial<EchoesState> = {};
+  if (value.allies !== undefined) {
+    if (!Array.isArray(value.allies) || value.allies.length > MAX_ECHO_ALLIES) return fail('O Círculo de Ecos é inválido.');
+    for (const code of value.allies) {
+      if (typeof code !== 'string' || !decodeEchoSeal(code, catalog).ok) return fail('O Círculo de Ecos traz um Selo inválido.');
+    }
+    extras.allies = [...(value.allies as string[])];
+  }
+  if (value.lastAllyDay !== undefined) {
+    if (!Number.isSafeInteger(value.lastAllyDay) || (value.lastAllyDay as number) < 1) return fail('O registro de Ecos é inválido.');
+    extras.lastAllyDay = value.lastAllyDay as number;
+  }
+  if (value.bonds !== undefined) {
+    if (!Array.isArray(value.bonds) || value.bonds.length > MAX_ECHO_RECORDS) return fail('Os Laços de Eco são inválidos.');
+    const bonds: EchoBondRecord[] = [];
+    for (const entry of value.bonds) {
+      const counter = (item: unknown) => Number.isSafeInteger(item) && (item as number) >= 0;
+      if (
+        !isRecord(entry) ||
+        !nonEmpty(entry.helperId) ||
+        !nonEmpty(entry.helperName) ||
+        entry.helperName.length > MAX_NAME ||
+        !counter(entry.assists) ||
+        !counter(entry.victories) ||
+        (entry.victories as number) > (entry.assists as number) ||
+        !Number.isSafeInteger(entry.lastDay) ||
+        (entry.lastDay as number) < 1
+      ) {
+        return fail('Os Laços de Eco são inválidos.');
+      }
+      bonds.push({
+        helperId: entry.helperId,
+        helperName: entry.helperName,
+        assists: entry.assists as number,
+        victories: entry.victories as number,
+        lastDay: entry.lastDay as number,
+      });
+    }
+    extras.bonds = bonds;
+  }
+  return { ok: true, value: { records, receivedResultIds: [...(value.receivedResultIds as string[])], ...extras } };
 }
 
 // --- codificação ------------------------------------------------------------------------------

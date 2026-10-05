@@ -223,6 +223,7 @@ function runTransaction(
     archetypeProgress: executed.archetypeProgress ?? previous.archetypeProgress,
     combos: executed.combos ?? previous.combos,
     bestiary: executed.bestiary ?? previous.bestiary,
+    echoes: executed.echoes ?? previous.echoes,
     character: executed.character,
     status: executed.status,
     narrativeSession: executed.narrativeSession,

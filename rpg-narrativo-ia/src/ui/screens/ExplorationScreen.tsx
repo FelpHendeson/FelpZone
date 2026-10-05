@@ -21,15 +21,21 @@ import { INITIAL_BESTIARY, bestiaryLevel, withBestiary } from '../../modules/bes
 import { BestiaryPanel } from './exploration/BestiaryPanel';
 import { CombatScreen } from './CombatScreen';
 import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
+import { EchoAllyChooser } from './exploration/EchoAllyChooser';
 import {
   ECHO_STYLE_LABELS,
+  canCallEchoAlly,
   createEchoSeal,
   createInitialEchoesState,
+  decodeEchoSeal,
+  echoAllySnapshot,
   echoSealId,
   encodeEchoResult,
+  encodeEchoThanks,
   hasWonAnyConfrontation,
   startEchoDuel,
   type EchoDuelRecord,
+  type EchoesState,
   type EchoSeal,
 } from '../../modules/echoes';
 import { AppDialog } from '../components/AppDialog';
@@ -76,7 +82,9 @@ interface ExplorationScreenProps {
   feedback?: WorldFeedbackView | null;
   actionPending?: boolean;
   onAction: (action: SandboxAction) => void;
-  onResolveCombat: (encounterId: string, finalState: CombatState) => void;
+  onResolveCombat: (encounterId: string, finalState: CombatState, echoAlly?: string) => void;
+  /** Atualiza o estado de Ecos fora das ações do mundo (Círculo, agradecimentos). */
+  onUpdateEchoes?: (echoes: EchoesState) => void;
   onGuidanceSeen: (topicId: string) => void;
   onExit: () => void;
   worldTriggers?: IndexedWorldTriggers;
@@ -115,6 +123,7 @@ export function ExplorationScreen({
   onExit,
   worldTriggers,
   onRecordEcho,
+  onUpdateEchoes,
 }: ExplorationScreenProps) {
   const preferences = usePreferences();
   setClockContext(state.world, preferences.clockFormat);
@@ -129,6 +138,9 @@ export function ExplorationScreen({
   const [echoStyle, setEchoStyle] = useState<CombatStyle>(readEchoStyle);
   const [duel, setDuel] = useState<{ rival: EchoSeal; mode: EchoDuelMode; start: CombatState } | null>(null);
   const [pendingResultCode, setPendingResultCode] = useState<string | null>(null);
+  // Eco aliado escolhido para o confronto: undefined = ainda não decidido; null = lutar sozinho.
+  const [echoAllyChoice, setEchoAllyChoice] = useState<string | null | undefined>(undefined);
+  const [pendingThanksCode, setPendingThanksCode] = useState<string | null>(null);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
   const revealedDiscoveryIds =
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
@@ -204,10 +216,25 @@ export function ExplorationScreen({
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
       ?? combat.encounters.find((entry) => entry.id === combatEncounterId);
     const portrait = withArchetypeBonus(buildCombatLoadout(items, state.items), state);
-    const allies =
+    const partyAllies =
       encounter?.requiredOrganizationId === undefined
         ? []
         : allySnapshots(party, organizations, state.organizations, state.party);
+    const circle = (state.echoes?.allies ?? [])
+      .map((code) => ({ code, seal: decodeEchoSeal(code, combat) }))
+      .flatMap((entry) => (entry.seal.ok ? [{ code: entry.code, seal: entry.seal.value }] : []));
+    if (partyAllies.length === 0 && circle.length > 0 && canCallEchoAlly(state.echoes, state.world.day) && echoAllyChoice === undefined) {
+      return (
+        <EchoAllyChooser
+          encounterName={encounter?.name ?? 'Confronto'}
+          allies={circle}
+          onChoose={(code) => setEchoAllyChoice(code)}
+          onCancel={() => setCombatEncounterId(null)}
+        />
+      );
+    }
+    const echoAlly = echoAllyChoice ? circle.find((entry) => entry.code === echoAllyChoice) : undefined;
+    const allies = echoAlly ? [...partyAllies, echoAllySnapshot(echoAlly.seal)] : partyAllies;
     const initialCombat = createCombat(combat, combatEncounterId, {
       playerName: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
@@ -233,12 +260,25 @@ export function ExplorationScreen({
         conditions={context.conditions}
         execution={context.execution}
         orderViews={
-          allies.length === 0
+          partyAllies.length === 0
             ? []
             : listCompanionOrderViews(party, organizations, state.organizations, state)
         }
         onFinish={(finalState) => {
-          onResolveCombat(combatEncounterId, finalState);
+          onResolveCombat(combatEncounterId, finalState, echoAlly?.code);
+          if (echoAlly) {
+            setPendingThanksCode(
+              encodeEchoThanks({
+                helperName: mySeal.name,
+                helperId: echoSealId(mySeal),
+                allySealId: echoSealId(echoAlly.seal),
+                encounterName: encounter?.name ?? 'Confronto',
+                outcome: finalState.outcome === 'ongoing' ? 'fled' : finalState.outcome,
+                day: state.world.day,
+              }),
+            );
+          }
+          setEchoAllyChoice(undefined);
           setCombatEncounterId(null);
         }}
       />
@@ -401,6 +441,9 @@ export function ExplorationScreen({
               mySeal={mySeal}
               echoes={state.echoes ?? createInitialEchoesState()}
               pendingResultCode={pendingResultCode}
+              pendingThanksCode={pendingThanksCode}
+              onUpdateEchoes={onUpdateEchoes}
+              day={state.world.day}
               onStyle={(style) => {
                 setEchoStyle(style);
                 writeEchoStyle(style);

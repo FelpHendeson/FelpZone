@@ -349,3 +349,35 @@ Os padrões descrevem o que a IA de combate realmente faz, conferido por simula�
 - **Menu:** a entrada **Bestiário** aparece com a primeira criatura avistada.
 - **Cartas:** as criaturas não vistas aparecem como "???". As demais mostram estrelas de 1 a 4 e só o que o nível já revelou, com dicas do próximo passo.
 - **Avisos:** o Sistema avisa quando uma criatura sobe para Enfrentada, Estudada ou Dominada.
+
+## 10. Eco aliado
+
+**Decisão:** quinta proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 5). Ficaram os valores recomendados: 60% da vitalidade de duelo e uma chamada por dia de jogo. O aliado pode entrar também contra ameaças de elite.
+
+### Círculo de Ecos
+
+- **Como entra:** em **Ecos**, depois de colar o Selo de alguém, o botão **Chamar como aliado** guarda o Selo no Círculo. Cabem até 3 (`MAX_ECHO_ALLIES`), e o mais antigo sai quando passa do limite.
+- **Tirar do Círculo:** o botão "Tirar", na lista.
+- **Antes de um confronto do mundo:** se houver Eco no Círculo, se nenhum foi chamado hoje e se o encontro não tem companheiros de grupo, o Sistema pergunta **"Chamar um Eco aliado?"**. As opções são os Ecos do Círculo, "Lutar sozinho" ou voltar.
+
+### O aliado em combate
+
+- **Como o Eco entra:** como companheiro (`echoAllySnapshot`), com **18 de vitalidade** (60% de `DUEL_HEALTH`) e o banco de ações do Selo, incluindo a técnica e o galho do arquétipo. Joga com o **estilo tático escolhido pelo dono**: o motor passou a aceitar estilo por companheiro, e o Eco Iniciado tem 6 tempos.
+- **Sem ganhos:** o Eco não ganha experiência nem itens, e a vitalidade dele não é gravada no grupo.
+- **Verificação:** a resolução leva o Selo usado (`echoAlly`), e o mundo confere que:
+  - o Selo está no Círculo;
+  - nenhum Eco foi chamado hoje;
+  - o encontro não tem companheiros de grupo;
+  - o replay foi jogado com o mesmo aliado.
+
+  Depois disso, grava `echoes.lastAllyDay`.
+
+### Laços de Eco
+
+- **Agradecimento:** depois da luta, Ecos mostra um **código de agradecimento** (`AGR1.…`) para enviar ao dono.
+- **Registro:** o dono cola o código em "Círculo de Ecos". O jogo confere que o agradecimento é para o Eco dele e registra o laço em **Laços de Eco**, com quantas vezes lutaram juntos e quantas venceram.
+- **Duplicados:** o mesmo código não conta duas vezes.
+
+### Persistência
+
+`EchoesState` ganhou `allies`, `lastAllyDay` e `bonds`, todos opcionais e aditivos. São validados na carga: Selos legíveis, no máximo 3 aliados e nunca mais vitórias do que lutas juntos.

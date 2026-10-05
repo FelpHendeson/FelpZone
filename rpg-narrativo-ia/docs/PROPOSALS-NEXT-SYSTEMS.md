@@ -6,6 +6,7 @@
 - **Item 2:** implementado; veja a seção 7 do mesmo documento.
 - **Item 3:** implementado; veja a seção 8 do mesmo documento.
 - **Item 4:** implementado; veja a seção 9 do mesmo documento.
+- **Item 5:** implementado; veja a seção 10 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -216,6 +217,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 5. Eco aliado
+
+**Implementado.** Vale com 60% da vitalidade, uma vez por dia, também contra ameaças de elite.
 
 **O que é:** você cola o Selo do Eco de um amigo e chama o Eco dele para lutar ao seu lado. É cooperação sem servidor.
 

@@ -1,5 +1,5 @@
 import { ArchetypeError, copyArchetypeProgress, type ArchetypeProgressState } from '../archetypes';
-import { copyEchoesState } from '../echoes';
+import { copyEchoesState, type EchoesState } from '../echoes';
 import { copyBestiaryState, type BestiaryState } from '../bestiary';
 import { copyComboDiscovery, type ComboDiscoveryState } from '../combat';
 import { copyInventoryItem } from '../inventory';
@@ -247,6 +247,9 @@ export function requireAction(value: unknown): SandboxAction {
     ) {
       throw new SandboxActionError('A resolução de combate é inválida.');
     }
+    if (resolution.echoAlly !== undefined && (typeof resolution.echoAlly !== 'string' || resolution.echoAlly.length > 8_000)) {
+      throw new SandboxActionError('O Eco aliado da resolução é inválido.');
+    }
 
     return {
       type: 'combat.resolve',
@@ -277,6 +280,7 @@ export function requireAction(value: unknown): SandboxAction {
         companionOrders: inspectCompanionOrderLog(resolution.companionOrders),
         allyVitals: inspectAllyVitals(resolution.allyVitals),
         ...(playerPlans ? { playerPlans } : {}),
+        ...(typeof resolution.echoAlly === 'string' ? { echoAlly: resolution.echoAlly } : {}),
       },
     };
   }
@@ -487,6 +491,7 @@ export function copyResolution(resolution: CombatResolution): CombatResolution {
     ...(resolution.playerPlans ? { playerPlans: resolution.playerPlans.map((plan) => [...plan]) } : {}),
     ...(resolution.combos ? { combos: [...resolution.combos] } : {}),
     ...(resolution.foeActionIds ? { foeActionIds: [...resolution.foeActionIds] } : {}),
+    ...(resolution.echoAlly ? { echoAlly: resolution.echoAlly } : {}),
   };
 }
 
@@ -528,6 +533,7 @@ export interface GameStatePatch {
   archetypeProgress?: ArchetypeProgressState;
   combos?: ComboDiscoveryState;
   bestiary?: BestiaryState;
+  echoes?: EchoesState;
   character?: GameState['character'];
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
@@ -595,7 +601,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     ),
     rng: { ...(patch.rng ?? base.rng) },
     story: copyStoryState(patch.story ?? base.story),
-    ...(base.echoes ? { echoes: copyEchoesState(base.echoes) } : {}),
+    ...((patch.echoes ?? base.echoes) ? { echoes: copyEchoesState((patch.echoes ?? base.echoes)!) } : {}),
     ...((patch.combos ?? base.combos) ? { combos: copyComboDiscovery((patch.combos ?? base.combos)!) } : {}),
     ...((patch.bestiary ?? base.bestiary) ? { bestiary: copyBestiaryState((patch.bestiary ?? base.bestiary)!) } : {}),
     ...((patch.archetypeProgress ?? base.archetypeProgress)

@@ -1,8 +1,14 @@
 import { useState } from 'react';
 import type { CombatStyle, IndexedCombat } from '../../../modules/combat';
 import {
+  ECHO_ALLY_HEALTH,
   ECHO_STYLE_LABELS,
+  MAX_ECHO_ALLIES,
+  addEchoAlly,
   decodeEchoSeal,
+  recordEchoBond,
+  removeEchoAlly,
+  verifyEchoThanks,
   encodeEchoSeal,
   summarizeRivals,
   verifyEchoResult,
@@ -21,6 +27,12 @@ interface EchoesPanelProps {
   mySeal: EchoSeal;
   echoes: EchoesState;
   pendingResultCode: string | null;
+  /** Agradecimento a enviar ao dono do Eco que lutou ao seu lado. */
+  pendingThanksCode?: string | null;
+  /** Grava mudanças do Círculo e dos Laços de Eco. */
+  onUpdateEchoes?: (echoes: EchoesState) => void;
+  /** Dia de jogo (para o registro dos laços). */
+  day?: number;
   onStyle: (style: CombatStyle) => void;
   onDuel: (rival: EchoSeal, mode: EchoDuelMode) => void;
   onRecord: (record: Omit<EchoDuelRecord, 'day'>, resultId?: string) => void;
@@ -28,11 +40,64 @@ interface EchoesPanelProps {
 }
 
 /** Ecos: o Selo do Desperto, a Prova do Eco (contra a IA do Eco ou na mesma tela) e os resultados. */
-export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle, onDuel, onRecord, onBack }: EchoesPanelProps) {
+export function EchoesPanel({
+  combat,
+  mySeal,
+  echoes,
+  pendingResultCode,
+  pendingThanksCode = null,
+  onUpdateEchoes,
+  day = 1,
+  onStyle,
+  onDuel,
+  onRecord,
+  onBack,
+}: EchoesPanelProps) {
   const myCode = encodeEchoSeal(mySeal);
   const [rivalCode, setRivalCode] = useState('');
   const [resultCode, setResultCode] = useState('');
   const [message, setMessage] = useState<string | null>(null);
+  const [thanksCode, setThanksCode] = useState('');
+  const [circleMessage, setCircleMessage] = useState<string | null>(null);
+  const circle = (echoes.allies ?? []).map((code) => ({ code, seal: decodeEchoSeal(code, combat) }));
+  const allyAvailableToday = (echoes.allies?.length ?? 0) > 0 && echoes.lastAllyDay !== day;
+
+  function addAlly() {
+    const added = addEchoAlly(echoes, rivalCode, combat);
+    if (!added.ok) {
+      setCircleMessage(added.reason);
+      return;
+    }
+    if (rival?.ok && rival.value.name === mySeal.name && rival.value.actionIds.join() === mySeal.actionIds.join()) {
+      setCircleMessage('Este é o seu próprio Selo.');
+      return;
+    }
+    onUpdateEchoes?.(added.value);
+    setCircleMessage(
+      (echoes.allies?.length ?? 0) >= MAX_ECHO_ALLIES
+        ? `Eco guardado no Círculo. O mais antigo saiu (limite de ${MAX_ECHO_ALLIES}).`
+        : 'Eco guardado no Círculo. Ele pode lutar ao seu lado antes de um confronto, uma vez por dia.',
+    );
+  }
+
+  function receiveThanks() {
+    const verified = verifyEchoThanks(thanksCode, mySeal);
+    if (!verified.ok) {
+      setCircleMessage(verified.reason);
+      return;
+    }
+    if (echoes.receivedResultIds.includes(verified.value.thanksId)) {
+      setCircleMessage('Este agradecimento já foi registrado.');
+      return;
+    }
+    onUpdateEchoes?.(recordEchoBond(echoes, verified.value, day));
+    setThanksCode('');
+    setCircleMessage(
+      `Seu Eco lutou ao lado de ${verified.value.helperName} contra ${verified.value.encounterName}${
+        verified.value.outcome === 'victory' ? ' e venceram' : ''
+      }. O laço foi registrado.`,
+    );
+  }
   const rival = rivalCode.trim() ? decodeEchoSeal(rivalCode, combat) : null;
   const rivals = summarizeRivals(echoes);
 
@@ -73,6 +138,14 @@ export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle
           <h2 id="echo-result">Envie o resultado</h2>
           <p>Mande este código para quem é dono do Eco. Ao registrar, o jogo dele refaz o duelo e confere o desfecho.</p>
           <CodeBox code={pendingResultCode} label="Código de resultado" />
+        </section>
+      ) : null}
+
+      {pendingThanksCode ? (
+        <section className="echo-card echo-card--result" aria-labelledby="echo-thanks">
+          <h2 id="echo-thanks">Agradeça ao seu Eco aliado</h2>
+          <p>Mande este código para quem é dono do Eco. Ao colar, o jogo dele registra que os dois lutaram juntos.</p>
+          <CodeBox code={pendingThanksCode} label="Código de agradecimento" />
         </section>
       ) : null}
 
@@ -119,12 +192,67 @@ export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle
               <button type="button" className="button" onClick={() => onDuel(rival.value, 'hot-seat')}>
                 Duelo na mesma tela
               </button>
+              {onUpdateEchoes ? (
+                <button type="button" className="button button--ghost" onClick={addAlly}>
+                  Chamar como aliado
+                </button>
+              ) : null}
             </div>
             <p className="echo-hint">
               No duelo na mesma tela, {rival.value.name} monta a própria rodada no seu aparelho; a sequência fica oculta até os
               dois declararem pronto.
             </p>
           </div>
+        ) : null}
+      </section>
+
+      <section className="echo-card" aria-labelledby="echo-circle">
+        <h2 id="echo-circle">Círculo de Ecos</h2>
+        <p className="echo-hint">
+          Ecos aliados lutam ao seu lado num confronto do mundo, um por dia, com {ECHO_ALLY_HEALTH} de vitalidade e o estilo do dono.
+          {(echoes.allies?.length ?? 0) > 0 ? (allyAvailableToday ? ' Disponível hoje.' : ' Já chamado hoje.') : ''}
+        </p>
+        {circle.length === 0 ? (
+          <p className="echo-hint">Cole o Selo de alguém acima e toque em "Chamar como aliado" para guardá-lo aqui.</p>
+        ) : (
+          <ul className="echo-rivals">
+            {circle.map(({ code, seal }) => (
+              <li key={code}>
+                <strong>{seal.ok ? `Eco de ${seal.value.name}` : 'Selo ilegível'}</strong>
+                <span>
+                  {seal.ok ? `${archetypeOf(seal.value.archetypeId)?.name ?? 'Sem arquétipo'} · ${ECHO_STYLE_LABELS[seal.value.style]}` : ''}{' '}
+                  {onUpdateEchoes ? (
+                    <button type="button" className="button button--compact button--ghost" onClick={() => onUpdateEchoes(removeEchoAlly(echoes, code))}>
+                      Tirar
+                    </button>
+                  ) : null}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+        <label className="echo-field">
+          <span>Alguém chamou o seu Eco como aliado? Cole o agradecimento</span>
+          <textarea value={thanksCode} rows={2} spellCheck={false} placeholder="AGR1.…" onChange={(event) => setThanksCode(event.target.value)} />
+        </label>
+        <button type="button" className="button" disabled={!thanksCode.trim()} onClick={receiveThanks}>
+          Registrar laço
+        </button>
+        {circleMessage ? <p className="echo-message" role="status">{circleMessage}</p> : null}
+        {(echoes.bonds ?? []).length > 0 ? (
+          <>
+            <h3 className="echo-subtitle">Laços de Eco</h3>
+            <ul className="echo-rivals">
+              {(echoes.bonds ?? []).map((bond) => (
+                <li key={bond.helperId}>
+                  <strong>{bond.helperName}</strong>
+                  <span>
+                    {bond.assists} luta{bond.assists === 1 ? '' : 's'} juntos · {bond.victories} vitória{bond.victories === 1 ? '' : 's'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </>
         ) : null}
       </section>
 

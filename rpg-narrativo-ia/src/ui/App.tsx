@@ -1,4 +1,4 @@
-import { createInitialEchoesState, recordEchoDuel, type EchoDuelRecord } from '../modules/echoes';
+import { createInitialEchoesState, recordEchoDuel, type EchoDuelRecord, type EchoesState } from '../modules/echoes';
 import { loadFirstDayWorld } from '../modules/content';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import {
@@ -263,6 +263,13 @@ export function App() {
     }
   }
 
+  function handleUpdateEchoes(echoes: EchoesState) {
+    if (!state) {
+      return;
+    }
+    persist({ ...state, updatedAt: new Date().toISOString(), echoes });
+  }
+
   function handleRecordEcho(record: EchoDuelRecord, resultId?: string) {
     if (!state) {
       return;
@@ -274,7 +281,7 @@ export function App() {
     });
   }
 
-  function handleResolveCombat(encounterId: string, finalState: CombatState) {
+  function handleResolveCombat(encounterId: string, finalState: CombatState, echoAlly?: string) {
     if (!state) {
       return;
     }
@@ -284,7 +291,8 @@ export function App() {
       if (!combat) {
         throw new Error('O catálogo de combate do pack ativo não está disponível.');
       }
-      const resolution = buildCombatResolution(finalState, getEncounter(combat, encounterId));
+      const built = buildCombatResolution(finalState, getEncounter(combat, encounterId));
+      const resolution = echoAlly ? { ...built, echoAlly } : built;
       const before = snapshot(state);
       const attempt = commitSandboxAction(state, { type: 'combat.resolve', resolution }, sandboxContext, {
         campaign,
@@ -383,6 +391,7 @@ export function App() {
           onAction={handleSandboxAction}
           onResolveCombat={handleResolveCombat}
           onRecordEcho={handleRecordEcho}
+          onUpdateEchoes={handleUpdateEchoes}
           onGuidanceSeen={handleGuidanceSeen}
           worldTriggers={world.worldTriggers}
           onExit={() => {

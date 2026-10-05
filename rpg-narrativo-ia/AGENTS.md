@@ -52,7 +52,8 @@ A interface jogável segue o princípio **aventura primeiro, dados sob demanda**
 - Eventos não são definidos por dia: capítulos se destravam por eventos vividos (`event.seen`) e flags; o dia só entra como trava opcional (`notBeforeDay`). Textos que citam o dia usam `{{dia}}`/`{{diaOrdinal}}`.
 - Combos (`combat.json`, `combos`) são regra do motor: duas ações seguidas do mesmo combatente; a resolução só aceita os combos derivados do replay, e `GameState.combos` (aditivo) guarda os descobertos.
 - Clima (`world/weather.json`) é derivado da semente e do dia, nunca salvo; o ambiente do confronto (`CombatState.environment`) entra na criação e no replay do combate do mundo. Duelos de Ecos não têm ambiente.
-- Bestiário (`system/bestiary.json`): níveis derivados de `GameState.bestiary` (aditivo) e das pistas reveladas; as ações vistas vêm do replay (`foeActionIds`); padrões no pack devem descrever o comportamento real da IA. Arte nova de arquétipos, retratos, armas e criação entra por `npm run art:install`, a partir de `art-inbox/`.
+- Bestiário (`system/bestiary.json`): níveis derivados de `GameState.bestiary` (aditivo) e das pistas reveladas; as ações vistas vêm do replay (`foeActionIds`); padrões no pack devem descrever o comportamento real da IA.
+- Eco aliado: Selos do Círculo (`echoes.allies`) entram como companheiro (`ECHO_ALLY_ID`) uma vez por dia; a resolução declara `echoAlly` e o mundo confere Círculo, dia e replay; a vitalidade do Eco nunca vai para o grupo. Arte nova de arquétipos, retratos, armas e criação entra por `npm run art:install`, a partir de `art-inbox/`.
 - Vitória, derrota ou fuga devem formar uma única transação de mundo. React não calcula nem aplica consequências persistentes.
 - No Sistema 13, prática só nasce de treino validado ou resolução de combate reproduzida; não aceite proficiência, nível, marco ou recompensa informados pela UI.
 

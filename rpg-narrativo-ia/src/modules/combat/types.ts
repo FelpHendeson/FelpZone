@@ -200,6 +200,8 @@ export interface CombatantState {
   execution: ExecutionState;
   /** Tempos por rodada deste combatente (padrão `ROUND_TICKS`; Iniciados têm um a mais). */
   roundTicks?: number;
+  /** Estilo tático da IA (companheiros como o Eco aliado). */
+  style?: 'balanced' | 'aggressive' | 'defensive';
 }
 
 export interface CombatLogEntry {
@@ -280,6 +282,8 @@ export interface CombatResolution {
   combos?: string[];
   /** Ações que o oponente principal mostrou (derivadas do replay; alimentam o Bestiário). */
   foeActionIds?: string[];
+  /** Selo (código) do Eco aliado chamado para este confronto. */
+  echoAlly?: string;
 }
 
 export interface CombatActionView {

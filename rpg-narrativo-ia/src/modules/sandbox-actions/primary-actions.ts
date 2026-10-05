@@ -15,10 +15,11 @@ import {
   type ArchetypeProgressState,
   type ArchetypeTrainingPlan,
 } from '../archetypes';
-import { discoverCombos, type ComboDiscoveryState } from '../combat';
+import { discoverCombos, type AllySnapshot, type ComboDiscoveryState } from '../combat';
 import { craftRecipe } from '../crafting';
 import { INITIAL_WEATHER, combatEnvironmentFor } from '../weather';
 import { recordBestiaryCombat, withBestiary, type BestiaryState } from '../bestiary';
+import { ECHO_ALLY_ID, canCallEchoAlly, copyEchoesState, decodeEchoSeal, echoAllySnapshot, type EchoesState } from '../echoes';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
 import { addItem, canRemoveItem, consumePortions, openPortionsOf, removeItem } from '../inventory';
@@ -114,6 +115,7 @@ export function executePrimary(
   character?: CharacterIdentity;
   combos?: ComboDiscoveryState;
   bestiary?: BestiaryState;
+  echoes?: EchoesState;
 } {
   const catalogs = activeCatalogs(context);
   const navigation = copyNavigation(state.sandbox.navigation);
@@ -395,7 +397,7 @@ export function executePrimary(
     const portrait = withArchetypeBonus(buildCombatLoadout(items, state.items ?? createInitialItemsState()), state);
     const organizationState = state.organizations ?? createInitialOrganizationsState();
     const partyState = state.party ?? createInitialPartyState();
-    const allies =
+    const allies: AllySnapshot[] =
       encounter.requiredOrganizationId === undefined
         ? []
         : allySnapshots(
@@ -404,6 +406,18 @@ export function executePrimary(
             organizationState,
             partyState,
           );
+    // Eco aliado: só do Círculo, um por dia, e apenas em confrontos sem companheiros de grupo.
+    let echoes = state.echoes;
+    if (action.resolution.echoAlly !== undefined) {
+      const code = action.resolution.echoAlly;
+      if (allies.length > 0) throw new SandboxActionError('Este confronto já tem companheiros de grupo.');
+      if (!(state.echoes?.allies ?? []).includes(code)) throw new SandboxActionError('Este Eco não está no seu Círculo.');
+      if (!canCallEchoAlly(state.echoes, state.world.day)) throw new SandboxActionError('Um Eco aliado já foi chamado hoje.');
+      const seal = decodeEchoSeal(code, requireActiveCatalog(catalogs.combat, 'combate'));
+      if (!seal.ok) throw new SandboxActionError(seal.reason);
+      allies.push(echoAllySnapshot(seal.value));
+      echoes = { ...copyEchoesState(state.echoes!), lastAllyDay: state.world.day };
+    }
     for (const turn of action.resolution.companionOrders ?? []) {
       for (const order of turn) {
         const definition = (context.party ?? INITIAL_PARTY).companionOrders.find(
@@ -505,6 +519,7 @@ export function executePrimary(
       archetypeProgress,
       guidance,
       combos: discoverCombos(state.combos, resolution.combos ?? []).current,
+      ...(echoes ? { echoes } : {}),
       bestiary: recordBestiaryCombat(state.bestiary, encounter, { outcome: resolution.outcome, foeActionIds: resolution.foeActionIds ?? [] }),
       navigation,
       exploration,
@@ -532,7 +547,9 @@ export function executePrimary(
       execution: copyExecutionState(resolution.remainingExecution),
       party: applyPartyVitals(
         copyPartyState(afterEffects.party ?? state.party ?? createInitialPartyState()),
-        resolution.allyVitals.map((entry) => ({ actorId: entry.actorId, health: Math.max(1, entry.health) })),
+        resolution.allyVitals
+          .filter((entry) => entry.actorId !== ECHO_ALLY_ID)
+          .map((entry) => ({ actorId: entry.actorId, health: Math.max(1, entry.health) })),
       ),
       family: copyFamilyState(afterEffects.family ?? state.family ?? createInitialFamilyState()),
       civic: copyCivicState(afterEffects.civic ?? state.civic ?? createInitialCivicState()),
