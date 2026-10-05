@@ -14,6 +14,7 @@ import { PortraitAvatar } from '../ui/components/PortraitAvatar';
 import { Silhouette } from '../ui/components/Silhouette';
 import { CreateCharacterScreen } from '../ui/screens/CreateCharacterScreen';
 import { poseForAction, poseForSkill } from '../ui/silhouettes';
+import archetypesJson from '../../content/first-day/system/archetypes.json' with { type: 'json' };
 import { now } from './helpers';
 
 function start(archetypeId?: string) {
@@ -126,5 +127,33 @@ describe('Silhuetas e retratos', () => {
   it('a criação de personagem começa pelo nome e oferece os arquétipos depois', () => {
     const html = renderToStaticMarkup(<CreateCharacterScreen onBack={() => undefined} onConfirm={() => undefined} />);
     expect(html).toContain('Quem acorda neste mundo?');
+  });
+
+  it('sem imagens no pack, a criação não desenha fundo pintado', () => {
+    const html = renderToStaticMarkup(<CreateCharacterScreen onBack={() => undefined} onConfirm={() => undefined} />);
+    expect(html).not.toContain('creation-backdrop');
+  });
+
+  it('com a arte no pack, a criação mostra o fundo do despertar e pré-carrega os demais', () => {
+    const raw = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
+    raw.creation.awakening = { ...raw.creation.awakening, src: '/images/first-day/creation/awakening.webp' } as typeof raw.creation.awakening;
+    raw.archetypes[0]!.backdrop = { ...raw.archetypes[0]!.backdrop, src: '/images/first-day/creation/apprentice-mage.webp' } as typeof raw.archetypes[0]['backdrop'];
+    const catalog = inspectArchetypeCatalog(raw);
+    expect(catalog.ok).toBe(true);
+    if (!catalog.ok) return;
+    const html = renderToStaticMarkup(
+      <CreateCharacterScreen onBack={() => undefined} onConfirm={() => undefined} archetypes={catalog.value} />,
+    );
+    expect(html).toMatch(/<img[^>]*creation-backdrop__layer--active[^>]*awakening\.webp|<img[^>]*awakening\.webp[^>]*creation-backdrop__layer--active/);
+    expect(html).toContain('apprentice-mage.webp');
+  });
+
+  it('o pack recusa arte da criação fora dos espaços conhecidos ou com caminho remoto', () => {
+    const base = JSON.parse(JSON.stringify(archetypesJson)) as Record<string, unknown>;
+    expect(inspectArchetypeCatalog({ ...base, creation: { intro: { kind: 'scene', label: 'x' } } }).ok).toBe(false);
+    expect(
+      inspectArchetypeCatalog({ ...base, creation: { awakening: { kind: 'scene', label: 'x', src: 'https://example.com/a.webp' } } }).ok,
+    ).toBe(false);
+    expect(INITIAL_ARCHETYPES.creation.awakening?.label).toBeTruthy();
   });
 });

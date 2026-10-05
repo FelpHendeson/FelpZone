@@ -150,3 +150,4 @@ Regras:
   - não viaja no Selo do Eco.
 - **Onde aparece:** no topo da tela (com o nome do arquétipo), na tela Personagem e na confirmação da criação.
 - **Arte por IA:** a carta de arquétipo aceita `image` no pack, que substitui a silhueta quando existir. Os prompts estão em [Prompts para geração de arte](ART-GENERATION-PROMPTS.md), seção 8A.
+- **Fundos da criação:** o pack aceita arte para cada passo (`creation.awakening`, `creation.reflection`, `creation.registry`, `creation.cardTexture`) e um `backdrop` por arquétipo. A tela troca os fundos com esmaecimento, sob um véu que mantém o texto legível; o passo sem imagem continua com o fundo liso. Os prompts estão em [Prompts: criação de personagem](ART-PROMPTS-CHARACTER-CREATION.md).

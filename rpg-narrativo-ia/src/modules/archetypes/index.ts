@@ -24,7 +24,23 @@ export interface ArchetypeDefinition {
   signatureActionIds: string[];
   /** Arte opcional da carta (gerada por IA, por exemplo); sem ela, a silhueta aparece. */
   image?: ImageReference;
+  /** Fundo opcional da tela de escolha enquanto este arquétipo está selecionado. */
+  backdrop?: ImageReference;
 }
+
+/** Arte opcional da criação de personagem; cada passo sem imagem mantém o fundo padrão. */
+export interface CreationArt {
+  /** Passo do nome: a clareira do despertar. */
+  awakening?: ImageReference;
+  /** Passo do retrato: o reflexo na nascente. */
+  reflection?: ImageReference;
+  /** Passo da confirmação: o registro do Sistema. */
+  registry?: ImageReference;
+  /** Textura pintada atrás das cartas de arquétipo. */
+  cardTexture?: ImageReference;
+}
+
+export const CREATION_ART_SLOTS = ['awakening', 'reflection', 'registry', 'cardTexture'] as const;
 
 export const ARCHETYPE_PROPS = ['none', 'sword', 'dagger', 'bow', 'staff'] as const;
 
@@ -33,6 +49,7 @@ export type ArchetypeProp = (typeof ARCHETYPE_PROPS)[number];
 export interface IndexedArchetypes {
   readonly archetypes: readonly ArchetypeDefinition[];
   readonly byId: ReadonlyMap<string, ArchetypeDefinition>;
+  readonly creation: Readonly<CreationArt>;
 }
 
 export type ArchetypeInspection<T> = { ok: true; value: T } | { ok: false; reason: string };
@@ -70,6 +87,8 @@ export function inspectArchetypeCatalog(
     }
     const image = entry.image === undefined ? undefined : inspectImageReference(entry.image);
     if (entry.image !== undefined && !image) return fail(`A imagem do arquétipo ${entry.id} é inválida.`);
+    const backdrop = entry.backdrop === undefined ? undefined : inspectImageReference(entry.backdrop);
+    if (entry.backdrop !== undefined && !backdrop) return fail(`O fundo do arquétipo ${entry.id} é inválido.`);
     const startingItems: { itemId: string; quantity: number }[] = [];
     for (const item of entry.startingItems) {
       if (!isRecord(item) || !nonEmpty(item.itemId) || !items.byId.has(item.itemId) || !Number.isSafeInteger(item.quantity) || (item.quantity as number) < 1 || (item.quantity as number) > 10) {
@@ -109,9 +128,22 @@ export function inspectArchetypeCatalog(
       equip,
       signatureActionIds,
       ...(image ? { image } : {}),
+      ...(backdrop ? { backdrop } : {}),
     });
   }
-  return { ok: true, value: freeze(archetypes) };
+  const creation: CreationArt = {};
+  if (value.creation !== undefined) {
+    if (!isRecord(value.creation) || Object.keys(value.creation).some((key) => !(CREATION_ART_SLOTS as readonly string[]).includes(key))) {
+      return fail('A arte da criação de personagem é inválida.');
+    }
+    for (const slot of CREATION_ART_SLOTS) {
+      if (value.creation[slot] === undefined) continue;
+      const art = inspectImageReference(value.creation[slot]);
+      if (!art) return fail(`A imagem ${slot} da criação de personagem é inválida.`);
+      creation[slot] = art;
+    }
+  }
+  return { ok: true, value: freeze(archetypes, creation) };
 }
 
 export function indexArchetypeCatalog(value: unknown, items?: IndexedItems, combat?: IndexedCombat): IndexedArchetypes {
@@ -147,9 +179,9 @@ export function applyArchetypeStart(
   return { inventory: nextInventory, items: nextItems };
 }
 
-function freeze(archetypes: ArchetypeDefinition[]): IndexedArchetypes {
+function freeze(archetypes: ArchetypeDefinition[], creation: CreationArt): IndexedArchetypes {
   const frozen = Object.freeze(archetypes.map((entry) => Object.freeze({ ...entry })));
-  return Object.freeze({ archetypes: frozen, byId: new Map(frozen.map((entry) => [entry.id, entry])) });
+  return Object.freeze({ archetypes: frozen, byId: new Map(frozen.map((entry) => [entry.id, entry])), creation: Object.freeze(creation) });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

@@ -1,4 +1,22 @@
 {
+  "creation": {
+    "awakening": {
+      "kind": "scene",
+      "label": "Clareira em névoa ao amanhecer, onde alguém acabou de despertar"
+    },
+    "reflection": {
+      "kind": "scene",
+      "label": "Reflexo na água da nascente"
+    },
+    "registry": {
+      "kind": "scene",
+      "label": "Fios de luz do Sistema registrando o Desperto"
+    },
+    "cardTexture": {
+      "kind": "scene",
+      "label": "Textura de casca e pedra pintada"
+    }
+  },
   "archetypes": [
     {
       "id": "apprentice-mage",
@@ -22,7 +40,11 @@
       "signatureActionIds": [
         "numen-bolt"
       ],
-      "prop": "staff"
+      "prop": "staff",
+      "backdrop": {
+        "kind": "scene",
+        "label": "Clareira com partículas violeta de Númen"
+      }
     },
     {
       "id": "apprentice-swordsman",
@@ -46,7 +68,11 @@
       "signatureActionIds": [
         "twin-cut"
       ],
-      "prop": "sword"
+      "prop": "sword",
+      "backdrop": {
+        "kind": "scene",
+        "label": "Campo de treino improvisado com troncos marcados"
+      }
     },
     {
       "id": "apprentice-archer",
@@ -70,7 +96,11 @@
       "signatureActionIds": [
         "aimed-shot"
       ],
-      "prop": "bow"
+      "prop": "bow",
+      "backdrop": {
+        "kind": "scene",
+        "label": "Borda de mata ao vento"
+      }
     },
     {
       "id": "apprentice-assassin",
@@ -94,7 +124,11 @@
       "signatureActionIds": [
         "shadow-strike"
       ],
-      "prop": "dagger"
+      "prop": "dagger",
+      "backdrop": {
+        "kind": "scene",
+        "label": "Samambaias ao crepúsculo"
+      }
     },
     {
       "id": "apprentice-pathless",
@@ -118,7 +152,11 @@
       ],
       "equip": [],
       "signatureActionIds": [],
-      "prop": "none"
+      "prop": "none",
+      "backdrop": {
+        "kind": "scene",
+        "label": "Encruzilhada de trilhas na névoa"
+      }
     }
   ]
 }

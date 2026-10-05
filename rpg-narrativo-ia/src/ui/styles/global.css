@@ -6111,3 +6111,119 @@ span.portrait-avatar {
   border-radius: 10px;
   object-fit: cover;
 }
+
+/* Arte da criação de personagem: fundos pintados que esmaecem entre passos e arquétipos. */
+.character-create {
+  position: relative;
+  z-index: 1;
+}
+
+.creation-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--bg);
+}
+
+.creation-backdrop__layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 40%;
+  opacity: 0;
+  transform: scale(1.04);
+  transition: opacity 700ms ease, transform 1400ms ease;
+}
+
+.creation-backdrop__layer--active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Véu para manter o texto legível sobre qualquer pintura; a cor do arquétipo tinge a borda. */
+.creation-backdrop::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse at 50% 0%, color-mix(in srgb, var(--backdrop-tint, transparent) 22%, transparent), transparent 60%),
+    linear-gradient(180deg, color-mix(in srgb, var(--bg) 45%, transparent) 0%, color-mix(in srgb, var(--bg) 78%, transparent) 45%, color-mix(in srgb, var(--bg) 92%, transparent) 100%);
+  transition: background 700ms ease;
+}
+
+.creation-backdrop:not(.creation-backdrop--on)::after {
+  background: var(--bg);
+}
+
+.archetype-grid--textured .archetype-card {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--bg-elevated) 72%, transparent), color-mix(in srgb, var(--bg-elevated) 88%, transparent)),
+    var(--card-texture);
+  background-size: cover;
+  background-position: center;
+}
+
+.archetype-grid--textured .archetype-card--active {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--archetype) 22%, transparent), color-mix(in srgb, var(--bg-elevated) 82%, transparent)),
+    var(--card-texture);
+}
+
+/* O retrato aparece "dentro" do reflexo da nascente: anéis de água ao redor. */
+.portrait-preview--reflection {
+  position: relative;
+  isolation: isolate;
+  padding: 18px 0;
+}
+
+.portrait-preview--reflection::before,
+.portrait-preview--reflection::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  z-index: -1;
+  width: 168px;
+  height: 168px;
+  border: 1px solid color-mix(in srgb, #cfe3e0 45%, transparent);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  animation: reflection-ripple 4.2s ease-out infinite;
+}
+
+.portrait-preview--reflection::after {
+  animation-delay: 2.1s;
+}
+
+.portrait-preview--reflection .portrait-avatar {
+  box-shadow: 0 0 0 6px color-mix(in srgb, #cfe3e0 12%, transparent), 0 0 32px color-mix(in srgb, #9fd3d8 35%, transparent);
+}
+
+@keyframes reflection-ripple {
+  from {
+    opacity: 0.8;
+    transform: translate(-50%, -50%) scale(0.85);
+  }
+  to {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(1.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .creation-backdrop__layer,
+  .creation-backdrop::after {
+    transition: none;
+    transform: none;
+  }
+
+  .portrait-preview--reflection::before,
+  .portrait-preview--reflection::after {
+    animation: none;
+    opacity: 0.5;
+  }
+}
