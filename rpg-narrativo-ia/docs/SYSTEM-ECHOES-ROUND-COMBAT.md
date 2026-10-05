@@ -154,3 +154,60 @@ Regras:
 - **Onde aparece:** no topo da tela (com o nome do arquétipo), na tela Personagem e na confirmação da criação.
 - **Arte por IA:** a carta de arquétipo aceita `image` no pack, que substitui a silhueta quando existir. Os prompts estão em [Prompts para geração de arte](ART-GENERATION-PROMPTS.md), seção 8A.
 - **Fundos da criação:** o pack aceita arte para cada passo (`creation.awakening`, `creation.reflection`, `creation.registry`, `creation.cardTexture`) e um `backdrop` por arquétipo. A tela troca os fundos com esmaecimento, sob um véu que mantém o texto legível; o passo sem imagem continua com o fundo liso. Os prompts estão em [Prompts: criação de personagem](ART-PROMPTS-CHARACTER-CREATION.md).
+
+## 5. Galho do arquétipo e evolução para Iniciado
+
+**Decisão do autor:** executar as propostas em ordem a partir da primeira ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 1). Como o autor não escolheu a recompensa do Iniciado, ficou a da proposta: **6 tempos por rodada**. O galho de outro arquétipo é permitido, mas custa mais.
+
+### Galhos (`content/first-day/system/archetypes.json`, `branch`)
+
+| Arquétipo | Galho | Técnicas (em ordem) |
+| --- | --- | --- |
+| Mago | Caminho do Númen Moldado | Escudo de Númen (guarda 8, 2 Númen) → Seta Dupla (3 + 3 de longe) → Explosão de Númen (10 + Exposto, lenta e interrompível) |
+| Espadachim | Caminho da Lâmina | Aparar (guarda e esquiva de 1 tempo) → Corte que Abre (4 + Exposto) → Estocada do Duelista (aproxima e estoca 7) |
+| Arqueiro | Caminho do Arco | Tiro Duplo (3 + 3) → Flecha que Prende (3 + Exposto + Impedido) → Recuo Atirando (afasta e atira 4) |
+| Assassino | Caminho da Sombra | Veneno na Lâmina (1 + Envenenado por 4 turnos) → Sumir (esquiva de 3 tempos e afasta) → Golpe na Brecha (5 e interrompe, uma vez por rodada) |
+
+As técnicas são ações de combate `equipmentOnly`: só entram no banco quando aprendidas. A condição nova **Envenenado** causa 1 de dano por turno.
+
+### Requisitos e treino (`branchRules`, módulo `src/modules/archetypes/branch.ts`)
+
+- **Ordem:** cada técnica exige a anterior do mesmo galho.
+- **Galho próprio:**
+  - técnica 1: usar a técnica de assinatura 3 vezes em combate;
+  - técnica 2: 2 vitórias;
+  - técnica 3: 4 vitórias e nível 2.
+- **Galho aberto** (para o Aprendiz sem caminho definido e para saves anteriores aos arquétipos):
+  - técnica 1: 2 vitórias;
+  - técnica 2: 4 vitórias;
+  - técnica 3: 6 vitórias e nível 2.
+- **Galho distante** (de outro arquétipo): os mesmos requisitos do galho aberto, com o **dobro do tempo** de treino e **+1 de nível**.
+- **Tempo de treino:** 60, 90 e 120 minutos.
+- **Ação:** o treino é a ação `archetype.train`, feita na Árvore. Ela custa tempo de jogo e passa pelas mesmas validações das outras ações.
+- **Contadores:** o confronto do mundo (`combat.resolve`) conta os usos da assinatura, as vitórias e as vitórias de elite. Encontros com `elite: true` contam como elite; hoje só o Javali de Espinhos.
+
+### Iniciado
+
+- **Requisito:** 2 técnicas do próprio galho e 1 vitória de elite. O Aprendiz sem caminho definido pode virar Iniciado em qualquer galho. Técnicas de galho distante não contam.
+- **Título:** muda conforme o sexo do personagem, por exemplo "Espadachim Iniciado", "Espadachim Iniciada", "Maga Iniciada" ou "Arqueiro Iniciado".
+- **Anúncio:** o Sistema anuncia a patente quando ela é alcançada.
+- **Recompensa:** o Iniciado monta a rodada com **6 tempos**. É um valor por combatente (`roundTicks`, teto `MAX_ROUND_TICKS`), passado ao combate pelo mundo e conferido no replay.
+- **Patente derivada:** a patente não fica salva; ela é calculada a partir do progresso.
+
+### Persistência e Ecos
+
+- **Save:** `GameState.archetypeProgress` é opcional e aditivo, com `techniqueIds`, `signatureUses`, `victories` e `eliteVictories`. É validado na carga: só técnicas que existem, sem repetição, e no máximo tantas vitórias de elite quanto vitórias.
+- **Selo do Eco:** leva `techniqueIds` e `rank: 'initiate'`.
+  - O Selo é recusado se tiver técnica que não existe, se a patente não conferir com as técnicas, ou se trouxer ação de galho fora das técnicas declaradas.
+  - Selos sem galho mantêm a mesma identidade de antes.
+  - A vitória de elite não viaja no Selo. Como nos outros códigos, a Prova do Eco não dá recompensas.
+- **Duelo:** o Iniciado também duela com 6 tempos.
+
+### Interface
+
+- **Árvore:**
+  - um cartão de patente, com o progresso até Iniciado e os contadores;
+  - o galho próprio (ou os abertos), com silhuetas, requisitos marcados e o botão "Treinar";
+  - os galhos distantes ficam recolhidos.
+- **Topo da tela e tela Personagem:** mostram o título da patente.
+- **Combate:** a trilha mostra os tempos do combatente, 5 ou 6.

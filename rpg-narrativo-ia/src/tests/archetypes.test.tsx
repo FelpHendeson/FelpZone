@@ -17,6 +17,22 @@ import { poseForAction, poseForSkill } from '../ui/silhouettes';
 import archetypesJson from '../../content/first-day/system/archetypes.json' with { type: 'json' };
 import { now } from './helpers';
 
+/** Cópia mutável do pack de arquétipos, para montar variações nos testes. */
+interface RawPack {
+  creation: Record<string, { src?: string }>;
+  branchRules: { initiate: { techniques: number } };
+  archetypes: {
+    id: string;
+    backdrop: { src?: string };
+    branch?: { techniques: { actionId: string; tier: number }[] };
+    portraits: { id: string; image: { src?: string }; fallback: { skin: number } }[];
+  }[];
+}
+
+function rawPack(): RawPack {
+  return JSON.parse(JSON.stringify(archetypesJson)) as RawPack;
+}
+
 function start(archetypeId?: string) {
   return startGame(
     { firstName: 'Ana', lastName: 'Cruz', sex: 'female', archetypeId, portrait: { kind: 'silhouette', skin: 2, hair: 3, hairColor: 4 } },
@@ -135,9 +151,9 @@ describe('Silhuetas e retratos', () => {
   });
 
   it('com a arte no pack, a criação mostra o fundo do despertar e pré-carrega os demais', () => {
-    const raw = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
-    raw.creation.awakening = { ...raw.creation.awakening, src: '/images/first-day/creation/awakening.webp' } as typeof raw.creation.awakening;
-    raw.archetypes[0]!.backdrop = { ...raw.archetypes[0]!.backdrop, src: '/images/first-day/creation/apprentice-mage.webp' } as typeof raw.archetypes[0]['backdrop'];
+    const raw = rawPack();
+    raw.creation.awakening.src = '/images/first-day/creation/awakening.webp';
+    raw.archetypes[0]!.backdrop.src = '/images/first-day/creation/apprentice-mage.webp';
     const catalog = inspectArchetypeCatalog(raw);
     expect(catalog.ok).toBe(true);
     if (!catalog.ok) return;
@@ -183,8 +199,8 @@ describe('Retratos prontos', () => {
   it('sem arte, o retrato pronto vira o busto equivalente; com arte, mostra a imagem', () => {
     const bust = renderToStaticMarkup(<PortraitAvatar portrait={{ kind: 'preset', id: 'apprentice-mage-3' }} archetypeId="apprentice-mage" />);
     expect(bust).toContain('<svg');
-    const raw = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
-    raw.archetypes[0]!.portraits[2]!.image = { ...raw.archetypes[0]!.portraits[2]!.image, src: '/images/first-day/portraits/apprentice-mage-3.webp' } as typeof raw.archetypes[0]['portraits'][2]['image'];
+    const raw = rawPack();
+    raw.archetypes[0]!.portraits[2]!.image.src = '/images/first-day/portraits/apprentice-mage-3.webp';
     const catalog = inspectArchetypeCatalog(raw);
     expect(catalog.ok).toBe(true);
     if (!catalog.ok) return;
@@ -197,10 +213,10 @@ describe('Retratos prontos', () => {
   });
 
   it('o catálogo recusa retrato pronto repetido ou com busto fora das opções', () => {
-    const raw = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
+    const raw = rawPack();
     raw.archetypes[1]!.portraits[0]!.id = 'apprentice-mage-1';
     expect(inspectArchetypeCatalog(raw).ok).toBe(false);
-    const other = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
+    const other = rawPack();
     other.archetypes[0]!.portraits[0]!.fallback.skin = 9;
     expect(inspectArchetypeCatalog(other).ok).toBe(false);
   });

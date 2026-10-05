@@ -69,6 +69,7 @@ import {
 import { createChanceState, inspectChanceState, type ChanceState } from '../../modules/chance';
 import { createInitialStoryState, inspectStoryState, type StoryState } from '../../modules/story';
 import { copyWorld, isWorldClockConsistent } from '../../modules/world';
+import { INITIAL_ARCHETYPES, inspectArchetypeProgress } from '../../modules/archetypes';
 import { inspectEchoesState } from '../../modules/echoes';
 import {
   ATTRIBUTE_IDS,
@@ -1288,6 +1289,11 @@ function inspectCurrent(
   if (echoes && !echoes.ok) {
     return fail(echoes.reason);
   }
+  const archetypeProgress =
+    value.archetypeProgress === undefined ? undefined : inspectArchetypeProgress(value.archetypeProgress, INITIAL_ARCHETYPES);
+  if (archetypeProgress && !archetypeProgress.ok) {
+    return fail(archetypeProgress.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1424,6 +1430,7 @@ function inspectCurrent(
       rng: rng.value,
       story: story.value,
       ...(echoes?.ok ? { echoes: echoes.value } : {}),
+      ...(archetypeProgress?.ok ? { archetypeProgress: archetypeProgress.value } : {}),
     },
   };
 }

@@ -15,6 +15,7 @@ import {
   listCompanionOrderViews,
 } from '../../modules/party';
 import { buildCombatLoadout } from '../../modules/equipment';
+import { withArchetypeBonus } from '../../modules/archetypes';
 import { CombatScreen } from './CombatScreen';
 import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
 import {
@@ -154,6 +155,7 @@ export function ExplorationScreen({
       name: `${state.character.firstName} ${state.character.lastName}`,
       knownSkillIds: state.system.entries.map((entry) => entry.skillId),
       archetypeId: state.character.archetypeId,
+      progress: state.archetypeProgress,
     },
     echoStyle,
   );
@@ -197,7 +199,7 @@ export function ExplorationScreen({
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
       ?? combat.encounters.find((entry) => entry.id === combatEncounterId);
-    const portrait = buildCombatLoadout(items, state.items);
+    const portrait = withArchetypeBonus(buildCombatLoadout(items, state.items), state);
     const allies =
       encounter?.requiredOrganizationId === undefined
         ? []
@@ -211,6 +213,7 @@ export function ExplorationScreen({
       execution: state.execution,
       allies,
       runtime: { conditions: context.conditions, execution: context.execution },
+      playerRoundTicks: portrait.roundTicks,
     });
     return (
       <CombatScreen
@@ -267,6 +270,7 @@ export function ExplorationScreen({
         attributes={state.attributes}
         portrait={state.character.portrait}
         archetypeId={state.character.archetypeId}
+        rankTitle={status.archetype.title}
         onExit={onExit}
       />
 

@@ -19,10 +19,12 @@ interface GameHudProps {
   attributes: Attributes;
   portrait?: PortraitConfig;
   archetypeId?: string;
+  /** Patente do arquétipo (Aprendiz ou Iniciado); sem ela, o nome do arquétipo. */
+  rankTitle?: string;
   onExit: () => void;
 }
 
-export function GameHud({ characterName, worldLabel, chapterLabel, clock, attributes, portrait, archetypeId, onExit }: GameHudProps) {
+export function GameHud({ characterName, worldLabel, chapterLabel, clock, attributes, portrait, archetypeId, rankTitle, onExit }: GameHudProps) {
   const customSrc = useCustomPortrait();
   const needs = buildNeedsPresentation(attributes);
   const shown = useAnimatedClock(clock?.day ?? 1, clock?.minute ?? 0);
@@ -59,7 +61,7 @@ export function GameHud({ characterName, worldLabel, chapterLabel, clock, attrib
           </span>
         )}
         <div className="game-hud__name">
-          <span title={archetypeOf(archetypeId)?.name}>{archetypeOf(archetypeId)?.name ?? 'Sobrevivente'}</span>
+          <span title={rankTitle ?? archetypeOf(archetypeId)?.name}>{rankTitle ?? archetypeOf(archetypeId)?.name ?? 'Sobrevivente'}</span>
           <strong>{characterName}</strong>
         </div>
         <ul className="hud-vitals" aria-label="Condição atual">

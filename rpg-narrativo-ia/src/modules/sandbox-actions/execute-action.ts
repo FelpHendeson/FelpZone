@@ -220,6 +220,7 @@ function runTransaction(
     activities: executed.activities ?? previous.activities,
     rng: executed.rng ?? previous.rng,
     guidance: executed.guidance ?? previous.guidance,
+    archetypeProgress: executed.archetypeProgress ?? previous.archetypeProgress,
     status: executed.status,
     narrativeSession: executed.narrativeSession,
   });

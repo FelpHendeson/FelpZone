@@ -66,12 +66,22 @@ import {
   listPoliticsViews,
 } from '../politics';
 import { INITIAL_EXECUTION } from '../execution';
+import {
+  INITIAL_ARCHETYPES,
+  archetypeRank,
+  branchAccess,
+  createInitialArchetypeProgress,
+  techniqueStatus,
+} from '../archetypes';
+import { INITIAL_COMBAT, ROUND_TICKS, type IndexedCombat } from '../combat';
 import type { SandboxContext } from '../sandbox';
 import type {
   SystemGardenIntegrationView,
   SystemMilestoneView,
   SystemSkillView,
   SystemStatusView,
+  SystemArchetypeBranchView,
+  SystemArchetypeView,
   SystemTrainingView,
   SystemTreeDevelopView,
   SystemTreeNodeView,
@@ -100,6 +110,7 @@ export function buildSystemStatus(state: GameState, context?: SandboxContext): S
     knownSkills: buildKnownSkills(progress, catalogs),
     tree: deriveSkillTree(catalogs.skills, progress),
     skillTree: buildSkillTreeView(progress, state.garden, catalogs),
+    archetype: buildArchetypeView(state, context?.combat ?? INITIAL_COMBAT),
     trainings: buildTrainings(progress, catalogs),
     nextMilestone: buildNextMilestone(progress, catalogs),
     garden: {
@@ -598,6 +609,9 @@ function describeEffect(effect: TrainingEffect, catalogs: ReturnType<typeof syst
 }
 
 export type {
+  SystemArchetypeBranchView,
+  SystemArchetypeTechniqueView,
+  SystemArchetypeView,
   SystemEnergyView,
   SystemFieldView,
   SystemGardenIntegrationView,
@@ -612,3 +626,59 @@ export type {
   SystemStatusView,
   SystemTrainingView,
 } from './types';
+
+/** Galho do arquétipo na Árvore: patente, progresso até Iniciado e as técnicas de cada galho. */
+function buildArchetypeView(state: GameState, combat: IndexedCombat): SystemArchetypeView {
+  const catalog = INITIAL_ARCHETYPES;
+  const progress = state.archetypeProgress ?? createInitialArchetypeProgress();
+  const archetypeId = state.character.archetypeId;
+  const rank = archetypeRank(catalog, { archetypeId, progress, sex: state.character.sex });
+  const actionName = (id: string) => combat.actionById.get(id)?.name ?? id;
+  const order = { own: 0, open: 1, distant: 2 } as const;
+  const branches = catalog.archetypes
+    .filter((entry) => entry.branch)
+    .map((entry): SystemArchetypeBranchView => ({
+      archetypeId: entry.id,
+      archetypeName: entry.name,
+      name: entry.branch!.name,
+      description: entry.branch!.description,
+      access: branchAccess(catalog, archetypeId, entry.id),
+      color: entry.palette.primary,
+      techniques: entry.branch!.techniques.map((technique) => {
+        const status = techniqueStatus(catalog, { archetypeId, level: state.system.level, progress, actionName }, technique.actionId);
+        const action = combat.actionById.get(technique.actionId);
+        return {
+          actionId: technique.actionId,
+          name: action?.name ?? technique.actionId,
+          description: action?.description ?? '',
+          tier: technique.tier,
+          known: status.known,
+          canTrain: status.canTrain,
+          minutes: status.minutes,
+          requirements: status.requirements.map((requirement) => ({ label: requirement.label, met: requirement.met })),
+        };
+      }),
+    }))
+    .sort((left, right) => order[left.access] - order[right.access]);
+  const nextBranch = rank.next ? catalog.byId.get(rank.next.branchArchetypeId)?.branch : undefined;
+  return {
+    ...(archetypeId ? { archetypeId } : {}),
+    title: rank.title,
+    rank: rank.rank,
+    roundTicks: rank.roundTicks ?? ROUND_TICKS,
+    initiateRoundTicks: catalog.rules.initiate.roundTicks,
+    ...(rank.next && nextBranch
+      ? {
+          next: {
+            branchName: nextBranch.name,
+            techniques: rank.next.techniques,
+            techniquesNeeded: rank.next.techniquesNeeded,
+            eliteVictories: Math.min(rank.next.eliteVictories, rank.next.eliteNeeded),
+            eliteNeeded: rank.next.eliteNeeded,
+          },
+        }
+      : {}),
+    counters: { signatureUses: progress.signatureUses, victories: progress.victories, eliteVictories: progress.eliteVictories },
+    branches,
+  };
+}

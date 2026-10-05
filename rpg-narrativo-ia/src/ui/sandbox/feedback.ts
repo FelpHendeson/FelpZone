@@ -3,6 +3,7 @@ import type { SandboxActionResult } from '../../modules/sandbox-actions';
 import { deriveNeedsBands, type NeedId } from '../../modules/needs';
 import { attributesToNeedsSnapshot, formatNeedDelta, needLabel } from '../needs/presentation';
 import { getTrainingMethod } from '../../modules/training';
+import { INITIAL_ARCHETYPES, archetypeRank, createInitialArchetypeProgress } from '../../modules/archetypes';
 import { formatTimeCost, sandboxDiscoveryName, sandboxItemName } from './labels';
 
 export const FEEDBACK_KINDS = ['info', 'success', 'warning', 'discovery', 'journey', 'critical'] as const;
@@ -154,6 +155,11 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       push('success', `Treinou ${getTrainingMethod(training, result.detail.plan.methodId).name}.`);
       break;
     }
+    case 'archetype.train': {
+      const name = context.combat?.actionById.get(result.detail.plan.actionId)?.name ?? result.detail.plan.actionId;
+      push('success', `Aprendeu ${name}. A técnica entrou no seu banco de ações.`);
+      break;
+    }
     case 'combat.resolve': {
       if (result.detail.resolution.outcome === 'victory') {
         push('success', 'Você superou o confronto.');
@@ -239,6 +245,23 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       (recipeId) => context.crafting.byRecipe.get(recipeId)?.name ?? recipeId,
     );
     push('success', `Receitas aprendidas: ${names.join(', ')}.`);
+  }
+
+  const rankBefore = archetypeRank(INITIAL_ARCHETYPES, {
+    archetypeId: result.previous.character.archetypeId,
+    progress: result.previous.archetypeProgress ?? createInitialArchetypeProgress(),
+    sex: result.previous.character.sex,
+  });
+  const rankAfter = archetypeRank(INITIAL_ARCHETYPES, {
+    archetypeId: result.current.character.archetypeId,
+    progress: result.current.archetypeProgress ?? createInitialArchetypeProgress(),
+    sex: result.current.character.sex,
+  });
+  if (rankBefore.rank === 'apprentice' && rankAfter.rank === 'initiate') {
+    push(
+      'journey',
+      `[ Sistema ] Patente reconhecida: ${rankAfter.title}. Você passa a ter ${rankAfter.roundTicks} tempos por rodada.`,
+    );
   }
 
   const bands = deriveNeedsBands(attributesToNeedsSnapshot(result.current.attributes));

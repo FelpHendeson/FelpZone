@@ -63,6 +63,8 @@ export interface CreateCombatOptions {
   execution?: ExecutionState;
   allies?: readonly AllySnapshot[];
   runtime?: CombatRuntime;
+  /** Tempos por rodada do jogador (Iniciados têm um a mais). */
+  playerRoundTicks?: number;
 }
 
 export function emptyCombatLoadout(): CombatLoadoutSnapshot {
@@ -114,6 +116,7 @@ export function createCombat(
   }
 
   const maxHealth = options.playerMaxHealth ?? PLAYER_COMBAT_MAX_HEALTH;
+  const playerRoundTicks = checkRoundTicks(options.playerRoundTicks);
   if (!Number.isSafeInteger(maxHealth) || maxHealth < 1) {
     throw new CombatError('A vitalidade inicial do jogador é inválida.');
   }
@@ -143,6 +146,7 @@ export function createCombat(
       actionIds: playerActionIds,
       conditions: [],
       execution: playerExecution,
+      ...(playerRoundTicks !== ROUND_TICKS ? { roundTicks: playerRoundTicks } : {}),
     },
     opponent,
     log: [],
@@ -167,6 +171,8 @@ export interface DuelistSnapshot {
   maxHealth: number;
   actionIds: readonly string[];
   knownSkillIds?: readonly string[];
+  /** Tempos por rodada (Iniciados têm um a mais). */
+  roundTicks?: number;
 }
 
 export const DUEL_ENCOUNTER_ID = 'duel';
@@ -206,6 +212,7 @@ export function createDuel(catalog: IndexedCombat, me: DuelistSnapshot, rival: D
     actionIds: [...side.actionIds],
     conditions: [],
     execution: createInitialExecutionState(),
+    ...(checkRoundTicks(side.roundTicks) !== ROUND_TICKS ? { roundTicks: checkRoundTicks(side.roundTicks) } : {}),
   });
   return {
     encounterId: DUEL_ENCOUNTER_ID,
@@ -927,6 +934,22 @@ function compareTimeline(left: TimelineStep, right: TimelineStep): number {
 /** Tempos disponíveis para cada lado montar a sequência de uma rodada. */
 export const ROUND_TICKS = 5;
 
+/** Teto de tempos por rodada que um combatente pode ter. */
+export const MAX_ROUND_TICKS = 6;
+
+/** Tempos por rodada de um combatente. */
+export function roundTicksOf(combatant: { roundTicks?: number }): number {
+  return combatant.roundTicks ?? ROUND_TICKS;
+}
+
+function checkRoundTicks(value: number | undefined): number {
+  if (value === undefined) return ROUND_TICKS;
+  if (!Number.isSafeInteger(value) || value < ROUND_TICKS || value > MAX_ROUND_TICKS) {
+    throw new CombatError('Os tempos por rodada são inválidos.');
+  }
+  return value;
+}
+
 export type CombatStyle = 'balanced' | 'aggressive' | 'defensive';
 
 export interface PlanCheck {
@@ -985,7 +1008,7 @@ export function checkRoundPlan(
       return { ok: false, reason: `${action.name} só pode ser usada uma vez por rodada.`, usedTicks: cursor - 1, slots };
     }
     const duration = durationOf(timing);
-    if (cursor - 1 + duration > ROUND_TICKS) {
+    if (cursor - 1 + duration > roundTicksOf(actor)) {
       return { ok: false, reason: 'Não cabe nos tempos que restam nesta rodada.', usedTicks: cursor - 1, slots };
     }
     execution = payCost(execution, timing.cost);
@@ -1018,7 +1041,7 @@ export function planCombatantRound(
   if (!foe) return [];
 
   const plan: string[] = [];
-  let remaining = ROUND_TICKS;
+  let remaining = roundTicksOf(actor);
   let distance = state.distance ?? 'far';
   let execution = copyExecutionState(actor.execution);
   const roundIndex = (state.rounds ?? []).length;
@@ -1037,7 +1060,7 @@ export function planCombatantRound(
   const isDefense = (action: CombatActionDefinition) =>
     action.effects.some((effect) => effect.type === 'guard' || effect.type === 'evade');
 
-  for (let step = 0; step < ROUND_TICKS * 2; step += 1) {
+  for (let step = 0; step < roundTicksOf(actor) * 2; step += 1) {
     const candidates = options.filter(usable);
     if (candidates.length === 0) break;
     const damaging = candidates

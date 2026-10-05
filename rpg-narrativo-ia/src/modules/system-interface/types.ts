@@ -115,6 +115,41 @@ export interface SystemGardenIntegrationView {
   blockedReason?: string;
 }
 
+/** Uma técnica do galho de um arquétipo, como a Árvore a mostra. */
+export interface SystemArchetypeTechniqueView {
+  actionId: string;
+  name: string;
+  description: string;
+  tier: number;
+  known: boolean;
+  canTrain: boolean;
+  minutes: number;
+  requirements: { label: string; met: boolean }[];
+}
+
+export interface SystemArchetypeBranchView {
+  archetypeId: string;
+  archetypeName: string;
+  name: string;
+  description: string;
+  /** own: galho do próprio arquétipo; open: livre (sem caminho definido); distant: de outro arquétipo, mais caro. */
+  access: 'own' | 'open' | 'distant';
+  color: string;
+  techniques: SystemArchetypeTechniqueView[];
+}
+
+export interface SystemArchetypeView {
+  archetypeId?: string;
+  title: string;
+  rank: 'apprentice' | 'initiate';
+  roundTicks: number;
+  initiateRoundTicks: number;
+  /** Progresso até Iniciado no galho mais avançado que conta. */
+  next?: { branchName: string; techniques: number; techniquesNeeded: number; eliteVictories: number; eliteNeeded: number };
+  counters: { signatureUses: number; victories: number; eliteVictories: number };
+  branches: SystemArchetypeBranchView[];
+}
+
 export interface SystemStatusView {
   characterName: string;
   level: number;
@@ -123,6 +158,7 @@ export interface SystemStatusView {
   knownSkills: SystemSkillView[];
   tree: SkillTree;
   skillTree: { paths: SystemTreePathView[]; hasHiddenPaths: boolean };
+  archetype: SystemArchetypeView;
   trainings: SystemTrainingView[];
   nextMilestone: SystemMilestoneView | null;
   garden: {

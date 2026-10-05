@@ -1,3 +1,4 @@
+import type { ArchetypeProgressState } from '../../modules/archetypes/branch';
 import type { EchoesState } from '../../modules/echoes';
 import type { SandboxCoreState, SandboxState } from '../../modules/sandbox/types';
 import type { ObjectivesState } from '../../modules/objectives/types';
@@ -550,6 +551,8 @@ export interface GameState extends SharedState<Attributes> {
   story: StoryState;
   /** Duelos de Ecos (opcional e aditivo: saves sem duelos não têm o campo). */
   echoes?: EchoesState;
+  /** Galho do arquétipo: técnicas aprendidas e hábitos de combate (opcional e aditivo). */
+  archetypeProgress?: ArchetypeProgressState;
 }
 
 export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng' | 'story'> {

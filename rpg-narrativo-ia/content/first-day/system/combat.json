@@ -565,6 +565,337 @@
           "potency": 1
         }
       ]
+    },
+    {
+      "id": "numen-ward",
+      "name": "Escudo de Númen",
+      "description": "Uma película de Númen se fecha ao redor do corpo e absorve o próximo golpe.",
+      "speed": 15,
+      "target": "self",
+      "range": "self",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "classification": "poder",
+      "originEnergyId": "numen",
+      "cost": {
+        "energyId": "numen",
+        "amount": 2
+      },
+      "equipmentOnly": true,
+      "pose": "guard",
+      "effects": [
+        {
+          "type": "guard",
+          "amount": 8
+        }
+      ]
+    },
+    {
+      "id": "twin-bolt",
+      "name": "Seta Dupla",
+      "description": "Duas setas menores, disparadas em sequência: menos força, menos tempo exposto.",
+      "speed": 13,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "classification": "poder",
+      "originEnergyId": "numen",
+      "cost": {
+        "energyId": "numen",
+        "amount": 2
+      },
+      "equipmentOnly": true,
+      "pose": "cast",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 3
+        },
+        {
+          "type": "damage",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "numen-burst",
+      "name": "Explosão de Númen",
+      "description": "Todo o Númen reunido estoura contra o alvo e o deixa Exposto. Lenta e interrompível.",
+      "speed": 9,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 2,
+        "execute": 1,
+        "recover": 1
+      },
+      "classification": "poder",
+      "originEnergyId": "numen",
+      "cost": {
+        "energyId": "numen",
+        "amount": 4
+      },
+      "interruptible": true,
+      "cooldown": 1,
+      "equipmentOnly": true,
+      "pose": "cast",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 10
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "exposed",
+          "duration": 2,
+          "potency": 1
+        }
+      ]
+    },
+    {
+      "id": "parry",
+      "name": "Aparar",
+      "description": "A lâmina encontra o golpe no ar: pequena guarda e um instante em que o ataque desliza.",
+      "speed": 18,
+      "target": "self",
+      "range": "self",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "equipmentOnly": true,
+      "pose": "guard",
+      "effects": [
+        {
+          "type": "guard",
+          "amount": 4
+        },
+        {
+          "type": "evade",
+          "ticks": 1
+        }
+      ]
+    },
+    {
+      "id": "opening-cut",
+      "name": "Corte que Abre",
+      "description": "Um corte curto que desmonta a defesa e deixa o alvo Exposto.",
+      "speed": 13,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "equipmentOnly": true,
+      "pose": "slash",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 4
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "exposed",
+          "duration": 2,
+          "potency": 1
+        }
+      ]
+    },
+    {
+      "id": "duelist-lunge",
+      "name": "Estocada do Duelista",
+      "description": "Fecha a distância e estoca no mesmo passo. Interrompível no arranque.",
+      "speed": 14,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 0
+      },
+      "interruptible": true,
+      "equipmentOnly": true,
+      "pose": "lunge",
+      "effects": [
+        {
+          "type": "move",
+          "to": "near"
+        },
+        {
+          "type": "damage",
+          "amount": 7
+        }
+      ]
+    },
+    {
+      "id": "double-shot",
+      "name": "Tiro Duplo",
+      "description": "Duas flechas em sequência rápida, sem tempo de mira.",
+      "speed": 13,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "equipmentOnly": true,
+      "pose": "shoot",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 3
+        },
+        {
+          "type": "damage",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "pinning-arrow",
+      "name": "Flecha que Prende",
+      "description": "A flecha prende o alvo onde está: fica Exposto e travado.",
+      "speed": 12,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 0
+      },
+      "equipmentOnly": true,
+      "pose": "shoot",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 3
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "exposed",
+          "duration": 2,
+          "potency": 1
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "hindered",
+          "duration": 2,
+          "potency": 1
+        }
+      ]
+    },
+    {
+      "id": "retreating-shot",
+      "name": "Recuo Atirando",
+      "description": "Salta para trás e atira ainda no ar.",
+      "speed": 15,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "equipmentOnly": true,
+      "pose": "retreat",
+      "effects": [
+        {
+          "type": "move",
+          "to": "far"
+        },
+        {
+          "type": "damage",
+          "amount": 4
+        }
+      ]
+    },
+    {
+      "id": "poisoned-blade",
+      "name": "Veneno na Lâmina",
+      "description": "Um corte leve com a lâmina untada: o veneno trabalha por várias rodadas.",
+      "speed": 16,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "equipmentOnly": true,
+      "pose": "stab",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 1
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "poisoned",
+          "duration": 4,
+          "potency": 1
+        }
+      ]
+    },
+    {
+      "id": "vanish",
+      "name": "Sumir",
+      "description": "Some na sombra mais próxima: esquiva longa e distância.",
+      "speed": 19,
+      "target": "self",
+      "range": "self",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "equipmentOnly": true,
+      "pose": "dodge",
+      "effects": [
+        {
+          "type": "evade",
+          "ticks": 3
+        },
+        {
+          "type": "move",
+          "to": "far"
+        }
+      ]
+    },
+    {
+      "id": "gap-strike",
+      "name": "Golpe na Brecha",
+      "description": "Acha a brecha numa preparação e desfaz o movimento do alvo.",
+      "speed": 18,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "cooldown": 1,
+      "equipmentOnly": true,
+      "pose": "stab",
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 5
+        },
+        {
+          "type": "interrupt"
+        }
+      ]
     }
   ],
   "combatants": [
@@ -711,7 +1042,8 @@
       "reward": {
         "itemId": "predator-fang",
         "quantity": 2
-      }
+      },
+      "elite": true
     }
   ]
 }

@@ -1,9 +1,11 @@
 import catalogJson from '../../../content/first-day/system/archetypes.json' with { type: 'json' };
 import { PORTRAIT_OPTION_COUNT, PORTRAIT_PRESET_ID, type InventoryItem } from '../../core/state/types';
 import { inspectImageReference, type ImageReference } from '../../core/events';
-import { ACTION_POSES, INITIAL_COMBAT, type ActionPose, type IndexedCombat } from '../combat';
+import { ACTION_POSES, INITIAL_COMBAT, MAX_ROUND_TICKS, ROUND_TICKS, type ActionPose, type IndexedCombat } from '../combat';
 import { addItem } from '../inventory';
 import { INITIAL_ITEMS, copyItemsState, type IndexedItems, type ItemsState } from '../items';
+import { ArchetypeError } from './errors';
+import { archetypeCombatBonus, type ArchetypeProgressState } from './branch';
 
 /**
  * Arquétipos de aprendiz: a identidade escolhida na criação do personagem. Um arquétipo não
@@ -28,6 +30,35 @@ export interface ArchetypeDefinition {
   backdrop?: ImageReference;
   /** Retratos prontos sugeridos para este arquétipo. */
   portraits: PortraitPreset[];
+  /** Galho próprio na Árvore. Sem galho (sem caminho definido), qualquer galho fica aberto sem custo extra. */
+  branch?: ArchetypeBranch;
+  /** Título ao virar Iniciado neste galho. */
+  initiateTitle?: { male: string; female: string };
+}
+
+export interface ArchetypeBranch {
+  name: string;
+  description: string;
+  techniques: { actionId: string; tier: number }[];
+}
+
+export interface BranchRequirementSet {
+  signatureUses?: number;
+  victories?: number;
+  level?: number;
+}
+
+export interface BranchRules {
+  tiers: { tier: number; minutes: number; own: BranchRequirementSet; open: BranchRequirementSet }[];
+  /** Galho de outro arquétipo: treino mais longo e nível mais alto. */
+  distant: { minutesMultiplier: number; levelBonus: number };
+  initiate: { techniques: number; eliteVictories: number; roundTicks: number };
+}
+
+export interface BranchTechnique {
+  actionId: string;
+  archetypeId: string;
+  tier: number;
 }
 
 /**
@@ -66,16 +97,13 @@ export interface IndexedArchetypes {
   readonly byId: ReadonlyMap<string, ArchetypeDefinition>;
   readonly creation: Readonly<CreationArt>;
   readonly portraitById: ReadonlyMap<string, PortraitPreset>;
+  readonly rules: Readonly<BranchRules>;
+  readonly techniqueByActionId: ReadonlyMap<string, BranchTechnique>;
 }
 
 export type ArchetypeInspection<T> = { ok: true; value: T } | { ok: false; reason: string };
 
-export class ArchetypeError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'ArchetypeError';
-  }
-}
+export { ArchetypeError } from './errors';
 
 const COLOR = /^#[0-9a-f]{6}$/i;
 
@@ -90,6 +118,9 @@ export function inspectArchetypeCatalog(
   const archetypes: ArchetypeDefinition[] = [];
   const seen = new Set<string>();
   const seenPortraits = new Set<string>();
+  const rules = inspectBranchRules(value.branchRules);
+  if (!rules) return fail('As regras dos galhos de arquétipo são inválidas.');
+  const seenTechniques = new Set<string>();
   for (const entry of value.archetypes) {
     if (!isRecord(entry) || !nonEmpty(entry.id) || seen.has(entry.id) || !nonEmpty(entry.name) || !nonEmpty(entry.summary) || !nonEmpty(entry.description)) {
       return fail('Um arquétipo é inválido ou repetido.');
@@ -113,6 +144,18 @@ export function inspectArchetypeCatalog(
       if (!inspected || seenPortraits.has(inspected.id)) return fail(`Um retrato pronto de ${entry.id} é inválido ou repetido.`);
       seenPortraits.add(inspected.id);
       portraits.push(inspected);
+    }
+    let branch: ArchetypeBranch | undefined;
+    if (entry.branch !== undefined) {
+      branch = inspectBranch(entry.branch, rules, combat, seenTechniques);
+      if (!branch) return fail(`O galho do arquétipo ${entry.id} é inválido.`);
+    }
+    const initiateTitle = entry.initiateTitle;
+    if (
+      (branch && (!isRecord(initiateTitle) || !nonEmpty(initiateTitle.male) || !nonEmpty(initiateTitle.female))) ||
+      (!branch && initiateTitle !== undefined)
+    ) {
+      return fail(`O título de Iniciado do arquétipo ${entry.id} é inválido.`);
     }
     const backdrop = entry.backdrop === undefined ? undefined : inspectImageReference(entry.backdrop);
     if (entry.backdrop !== undefined && !backdrop) return fail(`O fundo do arquétipo ${entry.id} é inválido.`);
@@ -157,6 +200,9 @@ export function inspectArchetypeCatalog(
       ...(image ? { image } : {}),
       ...(backdrop ? { backdrop } : {}),
       portraits,
+      ...(branch && isRecord(initiateTitle)
+        ? { branch, initiateTitle: { male: String(initiateTitle.male), female: String(initiateTitle.female) } }
+        : {}),
     });
   }
   const creation: CreationArt = {};
@@ -171,7 +217,7 @@ export function inspectArchetypeCatalog(
       creation[slot] = art;
     }
   }
-  return { ok: true, value: freeze(archetypes, creation) };
+  return { ok: true, value: freeze(archetypes, creation, rules) };
 }
 
 export function indexArchetypeCatalog(value: unknown, items?: IndexedItems, combat?: IndexedCombat): IndexedArchetypes {
@@ -225,13 +271,78 @@ function inspectPortraitPreset(value: unknown, archetypeId: string): PortraitPre
   };
 }
 
-function freeze(archetypes: ArchetypeDefinition[], creation: CreationArt): IndexedArchetypes {
+function inspectRequirementSet(value: unknown): BranchRequirementSet | undefined {
+  if (!isRecord(value)) return undefined;
+  const set: BranchRequirementSet = {};
+  for (const key of Object.keys(value)) {
+    if (key !== 'signatureUses' && key !== 'victories' && key !== 'level') return undefined;
+    const amount = value[key];
+    if (!Number.isSafeInteger(amount) || (amount as number) < 1 || (amount as number) > 99) return undefined;
+    set[key] = amount as number;
+  }
+  return set;
+}
+
+function inspectBranchRules(value: unknown): BranchRules | undefined {
+  if (!isRecord(value) || !Array.isArray(value.tiers) || value.tiers.length === 0 || value.tiers.length > 6) return undefined;
+  const tiers: BranchRules['tiers'] = [];
+  for (const [index, entry] of value.tiers.entries()) {
+    if (!isRecord(entry) || entry.tier !== index + 1 || !Number.isSafeInteger(entry.minutes) || (entry.minutes as number) < 1) return undefined;
+    const own = inspectRequirementSet(entry.own);
+    const open = inspectRequirementSet(entry.open);
+    if (!own || !open) return undefined;
+    tiers.push({ tier: index + 1, minutes: entry.minutes as number, own, open });
+  }
+  const distant = value.distant;
+  const initiate = value.initiate;
+  if (
+    !isRecord(distant) || !Number.isSafeInteger(distant.minutesMultiplier) || (distant.minutesMultiplier as number) < 1 ||
+    !Number.isSafeInteger(distant.levelBonus) || (distant.levelBonus as number) < 0 ||
+    !isRecord(initiate) || !Number.isSafeInteger(initiate.techniques) || (initiate.techniques as number) < 1 ||
+    !Number.isSafeInteger(initiate.eliteVictories) || (initiate.eliteVictories as number) < 0 ||
+    !Number.isSafeInteger(initiate.roundTicks) || (initiate.roundTicks as number) < ROUND_TICKS || (initiate.roundTicks as number) > MAX_ROUND_TICKS
+  ) {
+    return undefined;
+  }
+  return {
+    tiers,
+    distant: { minutesMultiplier: distant.minutesMultiplier as number, levelBonus: distant.levelBonus as number },
+    initiate: {
+      techniques: initiate.techniques as number,
+      eliteVictories: initiate.eliteVictories as number,
+      roundTicks: initiate.roundTicks as number,
+    },
+  };
+}
+
+function inspectBranch(value: unknown, rules: BranchRules, combat: IndexedCombat, seen: Set<string>): ArchetypeBranch | undefined {
+  if (!isRecord(value) || !nonEmpty(value.name) || !nonEmpty(value.description) || !Array.isArray(value.techniques)) return undefined;
+  if (value.techniques.length === 0 || value.techniques.length > rules.tiers.length) return undefined;
+  const techniques: ArchetypeBranch['techniques'] = [];
+  for (const [index, entry] of value.techniques.entries()) {
+    if (!isRecord(entry) || !nonEmpty(entry.actionId) || entry.tier !== index + 1 || seen.has(entry.actionId)) return undefined;
+    const action = combat.actionById.get(entry.actionId);
+    // Técnica de galho só entra no banco quando aprendida: precisa ser uma ação concedida.
+    if (!action || action.equipmentOnly !== true || action.playerUsable === false) return undefined;
+    seen.add(entry.actionId);
+    techniques.push({ actionId: entry.actionId, tier: index + 1 });
+  }
+  return { name: value.name, description: value.description, techniques };
+}
+
+function freeze(archetypes: ArchetypeDefinition[], creation: CreationArt, rules: BranchRules): IndexedArchetypes {
   const frozen = Object.freeze(archetypes.map((entry) => Object.freeze({ ...entry, portraits: Object.freeze(entry.portraits.map((preset) => Object.freeze({ ...preset }))) as PortraitPreset[] })));
   return Object.freeze({
     archetypes: frozen,
     byId: new Map(frozen.map((entry) => [entry.id, entry])),
     creation: Object.freeze(creation),
     portraitById: new Map(frozen.flatMap((entry) => entry.portraits.map((preset) => [preset.id, preset] as const))),
+    rules: Object.freeze(rules),
+    techniqueByActionId: new Map(
+      frozen.flatMap((entry) =>
+        (entry.branch?.techniques ?? []).map((technique) => [technique.actionId, { ...technique, archetypeId: entry.id }] as const),
+      ),
+    ),
   });
 }
 
@@ -245,4 +356,24 @@ function nonEmpty(value: unknown): value is string {
 
 function fail(reason: string): { ok: false; reason: string } {
   return { ok: false, reason };
+}
+
+export * from './branch';
+
+/** Soma ao equipamento o que o galho do arquétipo concede: técnicas aprendidas e tempos de Iniciado. */
+export function withArchetypeBonus<T extends { loadout: { grantedActionIds: readonly string[] } }>(
+  portrait: T,
+  state: { character: { archetypeId?: string }; archetypeProgress?: ArchetypeProgressState },
+): T & { roundTicks?: number } {
+  const bonus = archetypeCombatBonus(INITIAL_ARCHETYPES, {
+    archetypeId: state.character.archetypeId,
+    progress: state.archetypeProgress,
+  });
+  const granted = [...portrait.loadout.grantedActionIds];
+  for (const actionId of bonus.grantedActionIds) if (!granted.includes(actionId)) granted.push(actionId);
+  return {
+    ...portrait,
+    loadout: { ...portrait.loadout, grantedActionIds: granted },
+    ...(bonus.roundTicks ? { roundTicks: bonus.roundTicks } : {}),
+  };
 }

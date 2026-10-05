@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import {
   FLEE_ACTION_ID,
-  ROUND_TICKS,
   actionTicks,
   checkRoundPlan,
   readOpponentIntent,
+  roundTicksOf,
   resolveRound,
   type CombatActionDefinition,
   type CombatEffect,
@@ -100,6 +100,7 @@ export function CombatScreen({
   const setCurrent = planningOpponent ? setOpponentPlan : setPlan;
   const check = checkRoundPlan(combat, state, actorId, current, runtime);
   const usedTicks = check.usedTicks;
+  const roundTicks = roundTicksOf(actor);
   const numen = actor.execution.reserves.find((entry) => entry.energyId === 'numen');
   const numenMax = executionCatalog.reserveByEnergyId.get('numen')?.max ?? 0;
   const intent = control.kind === 'ai' && state.outcome === 'ongoing' ? readOpponentIntent(combat, state, style, runtime) : null;
@@ -203,9 +204,9 @@ export function CombatScreen({
           <section className="combat-plan" aria-label="Sequência da rodada">
             <div className="combat-plan__head">
               <strong>Sua sequência</strong>
-              <span>{usedTicks}/{ROUND_TICKS} tempos</span>
+              <span>{usedTicks}/{roundTicks} tempos</span>
             </div>
-            <div className="combat-track" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${ROUND_TICKS}, minmax(0, 1fr))` }}>
+            <div className="combat-track" aria-hidden="true" style={{ gridTemplateColumns: `repeat(${roundTicks}, minmax(0, 1fr))` }}>
               {check.slots.map((slot, index) => (
                 <span
                   key={`${slot.actionId}-${index}`}
@@ -215,7 +216,7 @@ export function CombatScreen({
                   {index + 1}
                 </span>
               ))}
-              {Array.from({ length: ROUND_TICKS - usedTicks }, (_, index) => (
+              {Array.from({ length: roundTicks - usedTicks }, (_, index) => (
                 <span key={`free-${index}`} className="combat-track__free" style={{ gridColumn: `${usedTicks + index + 1} / span 1` }}>
                   {usedTicks + index + 1}
                 </span>
@@ -295,7 +296,7 @@ export function CombatScreen({
                   <Silhouette pose={poseForAction(action)} size={44} tint={planningOpponent ? opponentTint : tint} className="combat-action__figure" />
                   <strong>{action.name}</strong>
                   <small>{describeAction(action, conditionCatalog, ticks)}</small>
-                  {!attempt.ok && attempt.reason && !(attempt.reason.startsWith('Não cabe') && usedTicks >= ROUND_TICKS) ? (
+                  {!attempt.ok && attempt.reason && !(attempt.reason.startsWith('Não cabe') && usedTicks >= roundTicks) ? (
                     <small className="combat-action__why">{attempt.reason}</small>
                   ) : null}
                 </button>

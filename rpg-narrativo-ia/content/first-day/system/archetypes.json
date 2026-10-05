@@ -1,4 +1,49 @@
 {
+  "branchRules": {
+    "tiers": [
+      {
+        "tier": 1,
+        "minutes": 60,
+        "own": {
+          "signatureUses": 3
+        },
+        "open": {
+          "victories": 2
+        }
+      },
+      {
+        "tier": 2,
+        "minutes": 90,
+        "own": {
+          "victories": 2
+        },
+        "open": {
+          "victories": 4
+        }
+      },
+      {
+        "tier": 3,
+        "minutes": 120,
+        "own": {
+          "victories": 4,
+          "level": 2
+        },
+        "open": {
+          "victories": 6,
+          "level": 2
+        }
+      }
+    ],
+    "distant": {
+      "minutesMultiplier": 2,
+      "levelBonus": 1
+    },
+    "initiate": {
+      "techniques": 2,
+      "eliteVictories": 1,
+      "roundTicks": 6
+    }
+  },
   "creation": {
     "awakening": {
       "kind": "scene",
@@ -116,7 +161,29 @@
             "label": "Aprendiz de Mago, encapuzado"
           }
         }
-      ]
+      ],
+      "initiateTitle": {
+        "male": "Mago Iniciado",
+        "female": "Maga Iniciada"
+      },
+      "branch": {
+        "name": "Caminho do Númen Moldado",
+        "description": "Do disparo simples à explosão: aprender a dar forma, ritmo e proteção ao Númen.",
+        "techniques": [
+          {
+            "actionId": "numen-ward",
+            "tier": 1
+          },
+          {
+            "actionId": "twin-bolt",
+            "tier": 2
+          },
+          {
+            "actionId": "numen-burst",
+            "tier": 3
+          }
+        ]
+      }
     },
     {
       "id": "apprentice-swordsman",
@@ -216,7 +283,29 @@
             "label": "Aprendiz de Espadachim, encapuzado"
           }
         }
-      ]
+      ],
+      "initiateTitle": {
+        "male": "Espadachim Iniciado",
+        "female": "Espadachim Iniciada"
+      },
+      "branch": {
+        "name": "Caminho da Lâmina",
+        "description": "Ler o golpe do outro, abrir a guarda e fechar a distância num passo só.",
+        "techniques": [
+          {
+            "actionId": "parry",
+            "tier": 1
+          },
+          {
+            "actionId": "opening-cut",
+            "tier": 2
+          },
+          {
+            "actionId": "duelist-lunge",
+            "tier": 3
+          }
+        ]
+      }
     },
     {
       "id": "apprentice-archer",
@@ -316,7 +405,29 @@
             "label": "Aprendiz de Arqueiro, capuz de folhas"
           }
         }
-      ]
+      ],
+      "initiateTitle": {
+        "male": "Arqueiro Iniciado",
+        "female": "Arqueira Iniciada"
+      },
+      "branch": {
+        "name": "Caminho do Arco",
+        "description": "Disparar mais rápido, prender o alvo no lugar e nunca deixar que ele se aproxime.",
+        "techniques": [
+          {
+            "actionId": "double-shot",
+            "tier": 1
+          },
+          {
+            "actionId": "pinning-arrow",
+            "tier": 2
+          },
+          {
+            "actionId": "retreating-shot",
+            "tier": 3
+          }
+        ]
+      }
     },
     {
       "id": "apprentice-assassin",
@@ -416,7 +527,29 @@
             "label": "Aprendiz de Assassino, capuz e máscara"
           }
         }
-      ]
+      ],
+      "initiateTitle": {
+        "male": "Assassino Iniciado",
+        "female": "Assassina Iniciada"
+      },
+      "branch": {
+        "name": "Caminho da Sombra",
+        "description": "Veneno, desaparecimento e o golpe exato no instante em que o outro se prepara.",
+        "techniques": [
+          {
+            "actionId": "poisoned-blade",
+            "tier": 1
+          },
+          {
+            "actionId": "vanish",
+            "tier": 2
+          },
+          {
+            "actionId": "gap-strike",
+            "tier": 3
+          }
+        ]
+      }
     },
     {
       "id": "apprentice-pathless",

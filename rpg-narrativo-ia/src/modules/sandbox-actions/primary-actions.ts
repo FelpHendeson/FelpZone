@@ -1,6 +1,16 @@
 import { applyEffects } from '../../core/effects';
 import type { GameEffect } from '../../core/events';
 import { type Attributes, type GameState, type InventoryItem, type NarrativeSession, type ProgressionState, type Relationship } from '../../core/state';
+import {
+  INITIAL_ARCHETYPES,
+  applyArchetypeTraining,
+  withArchetypeBonus,
+  createInitialArchetypeProgress,
+  planArchetypeTraining,
+  recordArchetypeCombat,
+  type ArchetypeProgressState,
+  type ArchetypeTrainingPlan,
+} from '../archetypes';
 import { craftRecipe } from '../crafting';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
@@ -92,6 +102,8 @@ export function executePrimary(
   narrativeSession: NarrativeSession | null;
   world: GameState['world'];
   mastery?: MasteryResult;
+  archetypeProgress?: ArchetypeProgressState;
+  archetypePlan?: ArchetypeTrainingPlan;
 } {
   const catalogs = activeCatalogs(context);
   const navigation = copyNavigation(state.sandbox.navigation);
@@ -298,6 +310,35 @@ export function executePrimary(
     };
   }
 
+  if (action.type === 'archetype.train') {
+    const combatCatalog = requireActiveCatalog(catalogs.combat, 'combate');
+    const progress = state.archetypeProgress ?? createInitialArchetypeProgress();
+    const archetypePlan = planArchetypeTraining(
+      INITIAL_ARCHETYPES,
+      {
+        archetypeId: state.character.archetypeId,
+        sex: state.character.sex,
+        level: state.system.level,
+        progress,
+        actionName: (id) => combatCatalog.actionById.get(id)?.name ?? id,
+      },
+      action.actionId,
+    );
+    return {
+      detail: { type: 'archetype.train', plan: archetypePlan },
+      timeCost: copyTimeCost(archetypePlan.timeCost),
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      archetypeProgress: applyArchetypeTraining(progress, archetypePlan.actionId),
+      archetypePlan,
+    };
+  }
+
   if (action.type === 'combat.resolve') {
     const revealedDiscoveryIds = exploration.locations.find(
       (location) => location.locationId === navigation.currentLocationId,
@@ -316,7 +357,7 @@ export function executePrimary(
       throw new SandboxActionError('Você está ferido demais para concluir um confronto.');
     }
     const items = requireActiveCatalog(catalogs.items, 'itens');
-    const portrait = buildCombatLoadout(items, state.items ?? createInitialItemsState());
+    const portrait = withArchetypeBonus(buildCombatLoadout(items, state.items ?? createInitialItemsState()), state);
     const organizationState = state.organizations ?? createInitialOrganizationsState();
     const partyState = state.party ?? createInitialPartyState();
     const allies =
@@ -354,7 +395,18 @@ export function executePrimary(
       execution: state.execution ?? createInitialExecutionState(),
       allies,
       runtime: { conditions: catalogs.conditions, execution: context.execution },
+      playerRoundTicks: portrait.roundTicks,
     });
+    const archetypeProgress = recordArchetypeCombat(
+      INITIAL_ARCHETYPES,
+      state.character.archetypeId,
+      state.archetypeProgress ?? createInitialArchetypeProgress(),
+      {
+        playerActionIds: resolution.playerPlans ? resolution.playerPlans.flat() : resolution.playerActionIds,
+        outcome: resolution.outcome,
+        elite: encounter.elite === true,
+      },
+    );
     const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude), context.bonds);
 
     let system = afterEffects.system;
@@ -405,6 +457,7 @@ export function executePrimary(
     return {
       detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
       timeCost: copyTimeCost(encounter.timeCost),
+      archetypeProgress,
       navigation,
       exploration,
       resources,

@@ -1,3 +1,4 @@
+import { ArchetypeError, copyArchetypeProgress, type ArchetypeProgressState } from '../archetypes';
 import { copyEchoesState } from '../echoes';
 import { copyInventoryItem } from '../inventory';
 import { EngineError } from '../../core/engine';
@@ -200,6 +201,14 @@ export function requireAction(value: unknown): SandboxAction {
     }
 
     return { type: 'training.train', methodId: value.methodId };
+  }
+
+  if (value.type === 'archetype.train') {
+    if (typeof value.actionId !== 'string' || value.actionId.trim() === '') {
+      throw new SandboxActionError('A técnica do galho é inválida.');
+    }
+
+    return { type: 'archetype.train', actionId: value.actionId };
   }
 
   if (value.type === 'combat.resolve') {
@@ -504,6 +513,7 @@ export interface GameStatePatch {
   story?: StoryState;
   guidance?: GuidanceState;
   npcs?: NPCsState;
+  archetypeProgress?: ArchetypeProgressState;
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
   updatedAt?: string;
@@ -571,6 +581,9 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     rng: { ...(patch.rng ?? base.rng) },
     story: copyStoryState(patch.story ?? base.story),
     ...(base.echoes ? { echoes: copyEchoesState(base.echoes) } : {}),
+    ...((patch.archetypeProgress ?? base.archetypeProgress)
+      ? { archetypeProgress: copyArchetypeProgress((patch.archetypeProgress ?? base.archetypeProgress)!) }
+      : {}),
     updatedAt: patch.updatedAt,
   };
 }
@@ -611,6 +624,10 @@ export function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'training.train') {
     return { type: 'training.train', methodId: action.methodId };
+  }
+
+  if (action.type === 'archetype.train') {
+    return { type: 'archetype.train', actionId: action.actionId };
   }
 
   if (action.type === 'combat.resolve') {
@@ -926,6 +943,7 @@ export function rethrowDomain(error: unknown): never {
     error instanceof ContextualActivityError ||
     error instanceof PartyError ||
     error instanceof ExecutionError ||
+    error instanceof ArchetypeError ||
     error instanceof EngineError
   ) {
     throw new SandboxActionError(error.message, { cause: error });

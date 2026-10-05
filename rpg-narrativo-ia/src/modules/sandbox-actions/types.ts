@@ -1,3 +1,4 @@
+import type { ArchetypeTrainingPlan } from '../archetypes';
 import type { Campaign } from '../../core/events';
 import type { GameState } from '../../core/state/types';
 import type { CraftingResult } from '../crafting/types';
@@ -72,6 +73,11 @@ export type SandboxAction =
   | {
       type: 'training.train';
       methodId: string;
+    }
+  | {
+      /** Treina uma técnica do galho de um arquétipo. */
+      type: 'archetype.train';
+      actionId: string;
     }
   | {
       type: 'combat.resolve';
@@ -150,6 +156,7 @@ export type SandboxActionDetail =
   | { type: 'needs.consume'; plan: NeedsConsumptionPlan }
   | { type: 'needs.rest'; plan: NeedsRestPlan }
   | { type: 'training.train'; plan: TrainingPlan }
+  | { type: 'archetype.train'; plan: ArchetypeTrainingPlan }
   | { type: 'combat.resolve'; resolution: CombatResolution }
   | { type: 'equipment.equip'; result: EquipmentChangeResult }
   | { type: 'equipment.unequip'; result: EquipmentChangeResult }

@@ -33,7 +33,7 @@ export function CharacterPanel({
           <Portrait name={status.characterName} className="character-hero__avatar" />
         )}
         <div>
-          <span className="section-kicker">{archetype?.name ?? 'Sobrevivente'}</span>
+          <span className="section-kicker">{status.archetype.title}</span>
           <h1>{status.characterName}</h1>
           <p>{abilityName}</p>
         </div>
@@ -43,9 +43,17 @@ export function CharacterPanel({
         <section className="archetype-panel" aria-label="Arquétipo" style={{ ['--archetype' as string]: archetype.palette.primary }}>
           <Silhouette pose={archetype.pose} prop={archetype.prop} tint="var(--text)" glow={archetype.palette.primary} size={72} />
           <div>
-            <span className="section-kicker">Arquétipo de aprendiz</span>
-            <strong>{archetype.name}</strong>
+            <span className="section-kicker">{status.archetype.rank === 'initiate' ? 'Patente reconhecida' : 'Antes do Reset'}</span>
+            <strong>{status.archetype.title}</strong>
             <p>{archetype.summary}</p>
+            {status.archetype.rank === 'initiate' ? (
+              <p className="archetype-panel__rank">Monta a rodada com {status.archetype.roundTicks} tempos.</p>
+            ) : status.archetype.next ? (
+              <p className="archetype-panel__rank">
+                Rumo a Iniciado: {status.archetype.next.techniques}/{status.archetype.next.techniquesNeeded} técnicas ·{' '}
+                {status.archetype.next.eliteVictories}/{status.archetype.next.eliteNeeded} elite. Treine na Árvore do Sistema.
+              </p>
+            ) : null}
           </div>
         </section>
       ) : null}

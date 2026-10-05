@@ -59,7 +59,10 @@ export interface CombatActionDefinition {
   interruptible?: boolean;
   /** `false` para ações exclusivas de criaturas (garras, mordidas): não entram no banco do jogador. */
   playerUsable?: boolean;
-  /** Só entra no banco quando um equipamento a concede (técnicas de assinatura dos arquétipos). */
+  /**
+   * Só entra no banco quando concedida: pelo equipamento (técnicas de assinatura) ou pelo galho
+   * do arquétipo (técnicas aprendidas).
+   */
   equipmentOnly?: boolean;
   /** Pose da silhueta que ilustra a técnica na carta. */
   pose?: ActionPose;
@@ -92,6 +95,8 @@ export interface EncounterDefinition {
   reward?: { itemId: string; quantity: number };
   /** Distância inicial do confronto (padrão: longe). */
   startDistance?: CombatDistance;
+  /** Ameaça de elite: conta para marcos como a evolução de Aprendiz para Iniciado. */
+  elite?: boolean;
 }
 
 export const PREPARED_ACTION_PREFIX = 'prepared:';
@@ -140,6 +145,8 @@ export interface CombatantState {
   conditions: import('../conditions').ActiveCondition[];
   defenseElementId?: string;
   execution: ExecutionState;
+  /** Tempos por rodada deste combatente (padrão `ROUND_TICKS`; Iniciados têm um a mais). */
+  roundTicks?: number;
 }
 
 export interface CombatLogEntry {

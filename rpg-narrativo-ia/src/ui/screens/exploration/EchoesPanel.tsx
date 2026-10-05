@@ -80,7 +80,8 @@ export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle
         <h2 id="echo-seal">Seu Selo do Desperto</h2>
         <p>
           {mySeal.name}
-          {archetypeOf(mySeal.archetypeId) ? ` · ${archetypeOf(mySeal.archetypeId)!.name}` : ''} · {mySeal.actionIds.length} ações · {mySeal.knownSkillIds.length} habilidade{mySeal.knownSkillIds.length === 1 ? '' : 's'}.
+          {archetypeOf(mySeal.archetypeId) ? ` · ${archetypeOf(mySeal.archetypeId)!.name}` : ''}
+          {mySeal.rank === 'initiate' ? ' · Iniciado' : ''} · {mySeal.actionIds.length} ações · {mySeal.knownSkillIds.length} habilidade{mySeal.knownSkillIds.length === 1 ? '' : 's'}.
           Quem enfrentar o seu Eco luta contra a IA seguindo o estilo que você escolher.
         </p>
         <Choice
@@ -107,7 +108,8 @@ export function EchoesPanel({ combat, mySeal, echoes, pendingResultCode, onStyle
           <div className="echo-rival">
             <p>
               <strong>Eco de {rival.value.name}</strong>
-              {archetypeOf(rival.value.archetypeId) ? ` · ${archetypeOf(rival.value.archetypeId)!.name}` : ''} · {ECHO_STYLE_LABELS[rival.value.style]} ·{' '}
+              {archetypeOf(rival.value.archetypeId) ? ` · ${archetypeOf(rival.value.archetypeId)!.name}` : ''}
+              {rival.value.rank === 'initiate' ? ' · Iniciado' : ''} · {ECHO_STYLE_LABELS[rival.value.style]} ·{' '}
               {rival.value.actionIds.length} ações
             </p>
             <div className="echo-actions">

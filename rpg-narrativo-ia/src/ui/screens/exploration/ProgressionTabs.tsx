@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import type {
+  SystemArchetypeTechniqueView,
+  SystemArchetypeView,
   SystemGardenIntegrationView,
   SystemStatusView,
   SystemTrainingView,
@@ -9,7 +11,8 @@ import type {
 } from '../../../modules/system-interface';
 import { formatTimeCost } from '../../sandbox';
 import { Silhouette } from '../../components/Silhouette';
-import { poseForSkill } from '../../silhouettes';
+import { poseForAction, poseForSkill } from '../../silhouettes';
+import { INITIAL_COMBAT } from '../../../modules/combat';
 import { EmptyAction } from './shared';
 
 type ProgressionTab = 'tree' | 'training' | 'garden' | 'basics';
@@ -29,10 +32,12 @@ export function ProgressionTabs({
   status,
   onTrain,
   onCultivate,
+  onTrainTechnique,
   initialTab = 'tree',
 }: {
   status: SystemStatusView;
   onTrain: (training: SystemTrainingView) => void;
+  onTrainTechnique?: (technique: SystemArchetypeTechniqueView) => void;
   onCultivate: (recipeId: string) => void;
   initialTab?: ProgressionTab;
 }) {
@@ -63,6 +68,7 @@ export function ProgressionTabs({
       </div>
 
       <div role="tabpanel" id={`progression-panel-${tab}`} aria-labelledby={`progression-tab-${tab}`} className="progression__panel">
+        {tab === 'tree' ? <ArchetypeBranches view={status.archetype} onTrain={onTrainTechnique} /> : null}
         {tab === 'tree' ? (
           <SkillTreeView
             paths={status.skillTree.paths}
@@ -305,5 +311,114 @@ function Basics({ status }: { status: SystemStatusView }) {
         {status.fields.map((field) => <li key={field.id} className="system-chip"><strong>{field.name}</strong><span>{field.description}</span></li>)}
       </ul>
     </div>
+  );
+}
+
+/** Patente e galhos de arquétipo: o próprio (ou os abertos) primeiro; os distantes recolhidos. */
+function ArchetypeBranches({ view, onTrain }: { view: SystemArchetypeView; onTrain?: (technique: SystemArchetypeTechniqueView) => void }) {
+  const near = view.branches.filter((branch) => branch.access !== 'distant');
+  const distant = view.branches.filter((branch) => branch.access === 'distant');
+  const renderBranch = (branch: SystemArchetypeView['branches'][number]) => (
+    <section
+      key={branch.archetypeId}
+      className={`archetype-branch archetype-branch--${branch.access}`}
+      style={{ ['--archetype' as string]: branch.color }}
+      aria-labelledby={`branch-${branch.archetypeId}`}
+    >
+      <header className="archetype-branch__head">
+        <span className="skill-path__field">
+          {branch.access === 'own' ? 'Seu galho' : branch.access === 'open' ? `Galho aberto · ${branch.archetypeName}` : `Galho distante · ${branch.archetypeName}`}
+        </span>
+        <h3 id={`branch-${branch.archetypeId}`}>{branch.name}</h3>
+        <p>{branch.description}</p>
+        {branch.access === 'distant' ? <p className="archetype-branch__note">Fora do seu caminho: o treino leva o dobro do tempo e pede mais nível.</p> : null}
+      </header>
+      <ol className="skill-path__nodes">
+        {branch.techniques.map((technique) => (
+          <TechniqueNode key={technique.actionId} technique={technique} color={branch.color} onTrain={onTrain} />
+        ))}
+      </ol>
+    </section>
+  );
+  return (
+    <div className="archetype-branches">
+      <section className={`archetype-rank archetype-rank--${view.rank}`} aria-label="Patente do arquétipo">
+        <span className="section-kicker">{view.rank === 'initiate' ? 'Patente reconhecida' : 'Patente'}</span>
+        <strong>{view.title}</strong>
+        {view.rank === 'initiate' ? (
+          <p>Você monta a rodada com {view.roundTicks} tempos.</p>
+        ) : view.next ? (
+          <p>
+            Para virar Iniciado em {view.next.branchName}: {view.next.techniques}/{view.next.techniquesNeeded} técnicas do galho e{' '}
+            {view.next.eliteVictories}/{view.next.eliteNeeded} vitória sobre uma ameaça de elite. Iniciados montam a rodada com{' '}
+            {view.initiateRoundTicks} tempos.
+          </p>
+        ) : null}
+        <small>
+          Assinatura usada {view.counters.signatureUses}× · {view.counters.victories} vitória{view.counters.victories === 1 ? '' : 's'} ·{' '}
+          {view.counters.eliteVictories} de elite
+        </small>
+      </section>
+      {near.map(renderBranch)}
+      {distant.length > 0 ? (
+        <details className="archetype-branches__distant">
+          <summary>Galhos de outros arquétipos</summary>
+          {distant.map(renderBranch)}
+        </details>
+      ) : null}
+    </div>
+  );
+}
+
+function TechniqueNode({
+  technique,
+  color,
+  onTrain,
+}: {
+  technique: SystemArchetypeTechniqueView;
+  color: string;
+  onTrain?: (technique: SystemArchetypeTechniqueView) => void;
+}) {
+  const action = INITIAL_COMBAT.actionById.get(technique.actionId);
+  const status = technique.known ? 'known' : technique.canTrain ? 'available' : 'locked';
+  return (
+    <li className={`skill-node skill-node--${status === 'locked' ? 'available' : status} technique-node--${status}`}>
+      <span className="skill-node__marker" aria-hidden="true" />
+      <div className="skill-node__body">
+        <Silhouette
+          pose={action ? poseForAction(action) : 'stand'}
+          size={48}
+          tint={technique.known ? color : 'var(--text-muted)'}
+          glow={technique.known ? color : undefined}
+          className="skill-node__silhouette"
+        />
+        <div className="skill-node__head">
+          <strong>{technique.name}</strong>
+          <span className={technique.known ? 'skill-node__level' : 'skill-node__level skill-node__level--open'}>
+            {technique.known ? 'No banco de ações' : `Técnica ${technique.tier}`}
+          </span>
+        </div>
+        <p>{technique.description}</p>
+        {!technique.known && technique.requirements.length > 0 ? (
+          <ul className="technique-node__requires">
+            {technique.requirements.map((requirement) => (
+              <li key={requirement.label} className={requirement.met ? 'is-met' : undefined}>
+                <span aria-hidden="true">{requirement.met ? '✓' : '○'}</span> {requirement.label}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {!technique.known && onTrain ? (
+          <button
+            type="button"
+            className="button button--compact"
+            disabled={!technique.canTrain}
+            onClick={() => onTrain(technique)}
+          >
+            Treinar · {formatTimeCost({ periods: 0, minutes: technique.minutes })}
+          </button>
+        ) : null}
+      </div>
+    </li>
   );
 }

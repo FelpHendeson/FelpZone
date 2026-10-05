@@ -129,6 +129,20 @@
           "amount": 1
         }
       ]
+    },
+    {
+      "id": "poisoned",
+      "name": "Envenenado",
+      "description": "Veneno no sangue: dano pequeno no fim de cada turno, por mais tempo que um sangramento.",
+      "stacking": "refresh",
+      "timing": "turn-end",
+      "lingering": false,
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 1
+        }
+      ]
     }
   ]
 }

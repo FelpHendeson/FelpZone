@@ -47,6 +47,8 @@ export {
   readOpponentIntent,
   actionTicks,
   ROUND_TICKS,
+  MAX_ROUND_TICKS,
+  roundTicksOf,
   type CombatStyle,
   type PlanCheck,
   type ResolveRoundOptions,
@@ -401,6 +403,9 @@ function inspectEncounter(
   if (value.requiredOrganizationId !== undefined && !nonEmpty(value.requiredOrganizationId)) {
     return fail('A organização exigida pelo encontro é inválida.');
   }
+  if (value.elite !== undefined && typeof value.elite !== 'boolean') {
+    return fail('A marca de elite do encontro é inválida.');
+  }
   if (value.startDistance !== undefined && !includes(COMBAT_DISTANCES, value.startDistance)) {
     return fail('A distância inicial do encontro é inválida.');
   }
@@ -419,6 +424,7 @@ function inspectEncounter(
       ...(nonEmpty(value.requiredOrganizationId) ? { requiredOrganizationId: value.requiredOrganizationId } : {}),
       ...(reward.value ? { reward: reward.value } : {}),
       ...(value.startDistance !== undefined ? { startDistance: value.startDistance } : {}),
+      ...(value.elite === true ? { elite: true } : {}),
     },
   };
 }

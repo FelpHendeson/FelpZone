@@ -5,6 +5,7 @@ import type { GameState } from '../../../core/state';
 import type { SandboxAction } from '../../../modules/sandbox-actions';
 import {
   type SystemStatusView,
+  type SystemArchetypeTechniqueView,
   type SystemTrainingView,
 } from '../../../modules/system-interface';
 import { AttributeSummary } from '../../components/AttributeSummary';
@@ -46,6 +47,7 @@ export function SystemPanel({
   const [pending, setPending] = useState<SystemTrainingView | null>(null);
   const [pendingGarden, setPendingGarden] = useState<string | null>(null);
   const [pendingPatent, setPendingPatent] = useState<string | null>(null);
+  const [pendingTechnique, setPendingTechnique] = useState<SystemArchetypeTechniqueView | null>(null);
   const gardenRecipe = status.garden.recipes.find((recipe) => recipe.id === pendingGarden);
   const patent = status.registry.patents.find((entry) => entry.id === pendingPatent);
   const sectionCopy = {
@@ -79,7 +81,7 @@ export function SystemPanel({
           </section>
         ) : null}
         {section === 'progression' ? (
-          <ProgressionTabs status={status} onTrain={setPending} onCultivate={setPendingGarden} />
+          <ProgressionTabs status={status} onTrain={setPending} onCultivate={setPendingGarden} onTrainTechnique={setPendingTechnique} />
         ) : null}
         {section === 'registry' ? <>
         <details className="system-disclosure">
@@ -618,6 +620,23 @@ export function SystemPanel({
           }
         }}
         onCancel={() => setPending(null)}
+      />
+      <ConfirmDialog
+        open={pendingTechnique !== null}
+        title={pendingTechnique ? `Treinar: ${pendingTechnique.name}` : ''}
+        message={
+          pendingTechnique
+            ? `Custa ${formatTimeCost({ periods: 0, minutes: pendingTechnique.minutes })}. A técnica entra no seu banco de ações de combate.`
+            : ''
+        }
+        confirmLabel="Confirmar treino"
+        onConfirm={() => {
+          if (pendingTechnique) {
+            onAction({ type: 'archetype.train', actionId: pendingTechnique.actionId });
+            setPendingTechnique(null);
+          }
+        }}
+        onCancel={() => setPendingTechnique(null)}
       />
       <ConfirmDialog
         open={pendingGarden !== null}

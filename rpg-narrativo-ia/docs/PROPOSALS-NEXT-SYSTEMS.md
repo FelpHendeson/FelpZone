@@ -1,6 +1,9 @@
 # Propostas: próximos sistemas
 
-**Estado:** propostas para o autor escolher. Nada aqui está implementado.
+**Estado:** propostas executadas em ordem, a partir da primeira.
+
+- **Item 1:** implementado; veja [Combate por rodadas e Ecos](SYSTEM-ECHOES-ROUND-COMBAT.md), seção 5.
+- **Demais itens:** pendentes.
 
 Cada proposta traz:
 
@@ -36,6 +39,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 1. Galho do arquétipo e evolução para Iniciado
+
+**Implementado.** Recompensa escolhida: 6 tempos por rodada. O galho de outro arquétipo é permitido, mais caro.
 
 **O que é:** cada arquétipo ganha um galho próprio na Árvore de habilidades, com 3 ou 4 técnicas, e o título evolui de Aprendiz para Iniciado. Hoje cada aprendiz tem uma única técnica de assinatura, que vem da arma.
 

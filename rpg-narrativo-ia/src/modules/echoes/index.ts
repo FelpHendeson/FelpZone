@@ -6,7 +6,7 @@ import {
   type CombatStyle,
   type IndexedCombat,
 } from '../combat';
-import { INITIAL_ARCHETYPES, archetypeSignatureActions, type IndexedArchetypes } from '../archetypes';
+import { INITIAL_ARCHETYPES, archetypeRank, archetypeSignatureActions, type ArchetypeProgressState, type IndexedArchetypes } from '../archetypes';
 
 /**
  * Ecos — interação entre jogadores pela lore do Sistema. Cada Desperto deixa um *Eco*: o
@@ -41,6 +41,10 @@ export interface EchoSeal {
   knownSkillIds: string[];
   actionIds: string[];
   style: CombatStyle;
+  /** Técnicas do galho de arquétipo que o dono aprendeu (entram no banco do Eco). */
+  techniqueIds?: string[];
+  /** Patente: Iniciados duelam com um tempo a mais por rodada. */
+  rank?: 'initiate';
 }
 
 export type EchoDuelKind = 'challenge' | 'hot-seat' | 'received';
@@ -86,20 +90,29 @@ export function copyEchoesState(state: EchoesState): EchoesState {
 /** O Selo do Desperto a partir do que o Sistema já reconhece no personagem. */
 export function createEchoSeal(
   catalog: IndexedCombat,
-  input: { name: string; knownSkillIds: readonly string[]; archetypeId?: string },
+  input: { name: string; knownSkillIds: readonly string[]; archetypeId?: string; progress?: ArchetypeProgressState },
   style: CombatStyle = 'balanced',
   archetypes: IndexedArchetypes = INITIAL_ARCHETYPES,
 ): EchoSeal {
   const knownSkillIds = [...new Set(input.knownSkillIds)].sort();
   const archetypeId = input.archetypeId && archetypes.byId.has(input.archetypeId) ? input.archetypeId : undefined;
+  const techniqueIds = [...new Set(input.progress?.techniqueIds ?? [])].filter((id) => archetypes.techniqueByActionId.has(id)).sort();
+  const rank = input.progress ? archetypeRank(archetypes, { archetypeId, progress: input.progress }).rank : 'apprentice';
   return {
     version: 1,
     name: input.name.trim().slice(0, MAX_NAME) || 'Desperto',
     ...(archetypeId ? { archetypeId } : {}),
     knownSkillIds,
-    actionIds: duelActionBank(catalog, knownSkillIds, archetypeSignatureActions(archetypes, archetypeId)),
+    actionIds: duelActionBank(catalog, knownSkillIds, [...archetypeSignatureActions(archetypes, archetypeId), ...techniqueIds]),
     style,
+    ...(techniqueIds.length > 0 ? { techniqueIds } : {}),
+    ...(rank === 'initiate' ? { rank: 'initiate' as const } : {}),
   };
+}
+
+/** Tempos por rodada do Eco no duelo (Iniciados têm um a mais). */
+export function sealRoundTicks(seal: EchoSeal, archetypes: IndexedArchetypes = INITIAL_ARCHETYPES): number | undefined {
+  return seal.rank === 'initiate' ? archetypes.rules.initiate.roundTicks : undefined;
 }
 
 export function encodeEchoSeal(seal: EchoSeal): string {
@@ -121,8 +134,8 @@ export function echoSealId(seal: EchoSeal): string {
 export function startEchoDuel(catalog: IndexedCombat, mine: EchoSeal, rival: EchoSeal): CombatState {
   return createDuel(
     catalog,
-    { name: mine.name, maxHealth: DUEL_HEALTH, actionIds: mine.actionIds, knownSkillIds: mine.knownSkillIds },
-    { name: rival.name, maxHealth: DUEL_HEALTH, actionIds: rival.actionIds, knownSkillIds: rival.knownSkillIds },
+    { name: mine.name, maxHealth: DUEL_HEALTH, actionIds: mine.actionIds, knownSkillIds: mine.knownSkillIds, roundTicks: sealRoundTicks(mine) },
+    { name: rival.name, maxHealth: DUEL_HEALTH, actionIds: rival.actionIds, knownSkillIds: rival.knownSkillIds, roundTicks: sealRoundTicks(rival) },
   );
 }
 
@@ -249,7 +262,26 @@ function inspectSeal(value: unknown, catalog: IndexedCombat): EchoInspection<Ech
     return fail('O arquétipo do Selo não é reconhecido.');
   }
   const archetypeId = value.archetypeId as string | undefined;
-  const bank = new Set(duelActionBank(catalog, knownSkillIds, archetypeSignatureActions(INITIAL_ARCHETYPES, archetypeId)));
+  if (
+    value.techniqueIds !== undefined &&
+    (!Array.isArray(value.techniqueIds) ||
+      value.techniqueIds.length === 0 ||
+      value.techniqueIds.some((id) => typeof id !== 'string' || !INITIAL_ARCHETYPES.techniqueByActionId.has(id)))
+  ) {
+    return fail('O Selo traz técnicas de galho que não existem.');
+  }
+  const techniqueIds = [...new Set((value.techniqueIds as string[] | undefined) ?? [])].sort();
+  if (value.rank !== undefined) {
+    // A patente precisa ser coerente com as técnicas declaradas (a vitória de elite não viaja no Selo).
+    const claimed = archetypeRank(INITIAL_ARCHETYPES, {
+      archetypeId,
+      progress: { techniqueIds, signatureUses: 0, victories: 1_000_000, eliteVictories: 1_000_000 },
+    });
+    if (value.rank !== 'initiate' || claimed.rank !== 'initiate') return fail('A patente do Selo não confere com as técnicas.');
+  }
+  const bank = new Set(
+    duelActionBank(catalog, knownSkillIds, [...archetypeSignatureActions(INITIAL_ARCHETYPES, archetypeId), ...techniqueIds]),
+  );
   if (!Array.isArray(value.actionIds) || value.actionIds.length === 0 || value.actionIds.some((id) => typeof id !== 'string' || !bank.has(id))) {
     return fail('O Selo traz ações que essas habilidades não liberam.');
   }
@@ -262,6 +294,8 @@ function inspectSeal(value: unknown, catalog: IndexedCombat): EchoInspection<Ech
       knownSkillIds,
       actionIds: [...new Set(value.actionIds as string[])],
       style: value.style as CombatStyle,
+      ...(techniqueIds.length > 0 ? { techniqueIds } : {}),
+      ...(value.rank === 'initiate' ? { rank: 'initiate' as const } : {}),
     },
   };
 }
@@ -308,6 +342,9 @@ function canonical(seal: EchoSeal): string {
     knownSkillIds: [...seal.knownSkillIds].sort(),
     actionIds: [...seal.actionIds].sort(),
     style: seal.style,
+    // Campos novos só entram quando presentes, para Selos antigos manterem a mesma identidade.
+    ...(seal.techniqueIds ? { techniqueIds: [...seal.techniqueIds].sort() } : {}),
+    ...(seal.rank ? { rank: seal.rank } : {}),
   });
 }
 
