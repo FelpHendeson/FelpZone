@@ -247,3 +247,40 @@ As técnicas são ações de combate `equipmentOnly`: só entram no banco quando
 - **Save:** `archetypeProgress.affinity` é aditivo. Saves sem o campo começam do zero, e o campo é validado contra os caminhos do pack.
 - **Personagem:** `character.archetypeId` muda uma única vez, de sem caminho para um dos quatro, pela ação validada no motor.
 
+
+## 7. Combos dentro da rodada
+
+**Decisão:** segunda proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 2). Os combos ficam ocultos até serem descobertos, com a dica de Sentidos Aguçados, como recomendado.
+
+### Regra (`resolveRound`, `content/first-day/system/combat.json`, `combos`)
+
+- **O que é um combo:** duas ações **seguidas** do mesmo combatente, na mesma rodada.
+- **Quando vale:** a primeira ação precisa ter acontecido (não foi interrompida, não errou o alcance e não foi esquivada) e a segunda precisa chegar ao alvo.
+- **Efeitos extras possíveis:** `damage` (soma ao primeiro golpe), `critical` (dano dobrado), `ignore-guard` (atravessa a Postura Defensiva) e `uninterruptible` (a segunda ação não pode ser interrompida).
+- **Condição extra `requiresEvade`:** o combo só vale se a esquiva de quem o faz já evitou um golpe nesta rodada.
+- **Validação do pack:** ações inexistentes ou exclusivas de criaturas são recusadas, assim como bônus de dano em ação sem golpe, inabalável em ação que não pode ser interrompida, condição de esquiva sem esquiva na primeira ação e duplas repetidas.
+- **Duelos:** os combos valem também nos duelos de Ecos e nas criaturas, porque são regra do motor.
+
+| Sequência | Combo | Efeito extra |
+| --- | --- | --- |
+| Avançar → Corte Duplo | Corte em Avanço | +2 de dano |
+| Esquivar → Golpe Furtivo | Contra-ataque Sombrio | dano dobrado, se a esquiva evitou um golpe |
+| Recuar → Tiro Mirado | Distância Segura | não pode ser interrompido |
+| Postura Defensiva → Seta de Númen | Conjuração Protegida | não pode ser interrompida |
+| Finta → Golpe Preciso | Brecha Aberta | atravessa a Postura Defensiva |
+| Arremessar Pedra → Investida | Distração | +2 de dano |
+| Aparar → Corte que Abre | Resposta Imediata | dano dobrado, se o Aparar desviou um golpe |
+| Tiro Duplo → Flecha que Prende | Rajada Curta | +2 de dano |
+| Escudo de Númen → Explosão de Númen | Explosão Protegida | não pode ser interrompida |
+
+### Descoberta e verificação
+
+- **Verificação:** os combos acionados ficam em `CombatState.triggeredCombos` e vão para a resolução (`combos`) **pelo replay**. O que o cliente declarar em `combos` é ignorado.
+- **Save:** `GameState.combos.discovered` é opcional e aditivo. É validado na carga: só combos do pack, sem repetição.
+- **Aviso:** na primeira vez que um combo acontece num confronto do mundo, o Sistema avisa "Sequência registrada: …".
+
+### Interface
+
+- **Planejador:** um combo já descoberto aparece nomeado entre as duas cartas ("◆ Corte em Avanço"). Com Sentidos Aguçados, um combo ainda desconhecido aparece como "◇ Sequência possível", e há uma dica quando a última ação planejada abre um combo desconhecido.
+- **Reprodução da rodada:** o combo tem uma linha em destaque.
+- **Tela Personagem:** a seção "Sequências registradas" lista os combos descobertos (x/9).

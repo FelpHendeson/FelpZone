@@ -71,6 +71,7 @@ import { createInitialStoryState, inspectStoryState, type StoryState } from '../
 import { copyWorld, isWorldClockConsistent } from '../../modules/world';
 import { INITIAL_ARCHETYPES, inspectArchetypeProgress } from '../../modules/archetypes';
 import { inspectEchoesState } from '../../modules/echoes';
+import { INITIAL_COMBAT, inspectComboDiscovery } from '../../modules/combat';
 import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
@@ -1294,6 +1295,10 @@ function inspectCurrent(
   if (archetypeProgress && !archetypeProgress.ok) {
     return fail(archetypeProgress.reason);
   }
+  const combos = value.combos === undefined ? undefined : inspectComboDiscovery(value.combos, INITIAL_COMBAT);
+  if (combos && !combos.ok) {
+    return fail(combos.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1431,6 +1436,7 @@ function inspectCurrent(
       story: story.value,
       ...(echoes?.ok ? { echoes: echoes.value } : {}),
       ...(archetypeProgress?.ok ? { archetypeProgress: archetypeProgress.value } : {}),
+      ...(combos?.ok ? { combos: combos.value } : {}),
     },
   };
 }

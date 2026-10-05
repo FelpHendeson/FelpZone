@@ -15,6 +15,7 @@ import { ImmutableIndex } from './immutable-index';
 import { INITIAL_COMBAT_CATALOG } from './initial-combat';
 import {
   ACTION_POSES,
+  COMBO_BONUS_TYPES,
   COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_RANGES,
@@ -23,6 +24,8 @@ import {
   type CombatantTemplate,
   type CombatEffect,
   type CombatInspection,
+  type ComboBonus,
+  type ComboDefinition,
   type CombatRange,
   type EncounterDefinition,
   type IndexedCombat,
@@ -118,7 +121,50 @@ export function inspectCombatCatalog(
     encounters.push(inspected.value);
   }
 
-  return { ok: true, value: freezeCatalog(actions, combatants, encounters) };
+  const combos: ComboDefinition[] = [];
+  if (value.combos !== undefined) {
+    if (!Array.isArray(value.combos) || value.combos.length > 64) return fail('Os combos do catálogo são inválidos.');
+    const comboIds = new Set<string>();
+    const pairs = new Set<string>();
+    for (const entry of value.combos) {
+      const inspected = inspectCombo(entry, actions);
+      if (!inspected || comboIds.has(inspected.id) || pairs.has(`${inspected.first}>${inspected.second}`)) {
+        return fail('Um combo do catálogo é inválido ou repetido.');
+      }
+      comboIds.add(inspected.id);
+      pairs.add(`${inspected.first}>${inspected.second}`);
+      combos.push(inspected);
+    }
+  }
+
+  return { ok: true, value: freezeCatalog(actions, combatants, encounters, combos) };
+}
+
+function inspectCombo(value: unknown, actions: readonly CombatActionDefinition[]): ComboDefinition | undefined {
+  if (!isRecord(value) || !nonEmpty(value.id) || !nonEmpty(value.name) || !nonEmpty(value.description)) return undefined;
+  const first = actions.find((action) => action.id === value.first);
+  const second = actions.find((action) => action.id === value.second);
+  if (!first || !second || first.playerUsable === false || second.playerUsable === false) return undefined;
+  const bonus = value.bonus;
+  if (!isRecord(bonus) || !includes(COMBO_BONUS_TYPES, bonus.type)) return undefined;
+  if (bonus.type === 'damage' && (!positiveSafeInteger(bonus.amount) || (bonus.amount as number) > 20)) return undefined;
+  // O efeito extra precisa ter sentido na segunda ação: bônus de dano só em golpes; inabalável só no que pode ser interrompido.
+  if ((bonus.type === 'damage' || bonus.type === 'critical' || bonus.type === 'ignore-guard') && !second.effects.some((effect) => effect.type === 'damage')) {
+    return undefined;
+  }
+  if (bonus.type === 'uninterruptible' && second.interruptible !== true) return undefined;
+  if (value.requiresEvade !== undefined && (value.requiresEvade !== true || !first.effects.some((effect) => effect.type === 'evade'))) {
+    return undefined;
+  }
+  return {
+    id: value.id,
+    name: value.name,
+    description: value.description,
+    first: first.id,
+    second: second.id,
+    bonus: bonus.type === 'damage' ? { type: 'damage', amount: bonus.amount as number } : { type: bonus.type as Exclude<ComboBonus['type'], 'damage'> },
+    ...(value.requiresEvade === true ? { requiresEvade: true } : {}),
+  };
 }
 
 export function indexCombatCatalog(
@@ -492,7 +538,9 @@ function freezeCatalog(
   actions: CombatActionDefinition[],
   combatants: CombatantTemplate[],
   encounters: EncounterDefinition[],
+  combos: ComboDefinition[] = [],
 ): IndexedCombat {
+  const frozenCombos = Object.freeze(combos.map((combo) => Object.freeze({ ...combo, bonus: Object.freeze({ ...combo.bonus }) })));
   const frozenActions = Object.freeze(actions.map(freezeAction));
   const frozenCombatants = Object.freeze(
     combatants.map((combatant) =>
@@ -514,6 +562,8 @@ function freezeCatalog(
   );
 
   return Object.freeze({
+    combos: frozenCombos,
+    comboByPair: new ImmutableIndex(frozenCombos.map((combo) => [`${combo.first}>${combo.second}`, combo] as const)),
     actions: frozenActions,
     combatants: frozenCombatants,
     encounters: frozenEncounters,
@@ -634,6 +684,7 @@ function fail<T>(reason: string): CombatInspection<T> {
 
 export {
   ACTION_POSES,
+  COMBO_BONUS_TYPES,
   COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_OUTCOMES,
@@ -646,6 +697,8 @@ export {
 export { INITIAL_COMBAT_CATALOG, PLAYER_COMBAT_MAX_HEALTH } from './initial-combat';
 
 export type {
+  ComboBonus,
+  ComboDefinition,
   CombatActionDefinition,
   CombatActionView,
   CombatantState,
@@ -670,3 +723,11 @@ export type {
   RoundEvent,
   RoundEventKind,
 } from './types';
+
+export {
+  copyComboDiscovery,
+  createInitialComboDiscovery,
+  discoverCombos,
+  inspectComboDiscovery,
+  type ComboDiscoveryState,
+} from './combos';

@@ -168,6 +168,7 @@ export function ExplorationScreen({
         encounterName={`${mySeal.name} × ${duel.rival.name}`}
         tint={archetypeOf(state.character.archetypeId)?.palette.primary}
         opponentTint={archetypeOf(duel.rival.archetypeId)?.palette.primary}
+        discoveredCombos={state.combos?.discovered}
         kicker={hotSeat ? 'Prova do Eco · mesma tela' : `Prova do Eco · Eco ${ECHO_STYLE_LABELS[duel.rival.style].toLowerCase()}`}
         combat={combat}
         conditions={context.conditions}
@@ -220,6 +221,7 @@ export function ExplorationScreen({
         initialState={initialCombat}
         encounterName={encounter?.name ?? 'Confronto'}
         tint={archetypeOf(state.character.archetypeId)?.palette.primary}
+        discoveredCombos={state.combos?.discovered}
         combat={combat}
         conditions={context.conditions}
         execution={context.execution}

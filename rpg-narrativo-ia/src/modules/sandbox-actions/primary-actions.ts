@@ -15,6 +15,7 @@ import {
   type ArchetypeProgressState,
   type ArchetypeTrainingPlan,
 } from '../archetypes';
+import { discoverCombos, type ComboDiscoveryState } from '../combat';
 import { craftRecipe } from '../crafting';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
@@ -109,6 +110,7 @@ export function executePrimary(
   archetypeProgress?: ArchetypeProgressState;
   archetypePlan?: ArchetypeTrainingPlan;
   character?: CharacterIdentity;
+  combos?: ComboDiscoveryState;
 } {
   const catalogs = activeCatalogs(context);
   const navigation = copyNavigation(state.sandbox.navigation);
@@ -498,6 +500,7 @@ export function executePrimary(
       timeCost: copyTimeCost(encounter.timeCost),
       archetypeProgress,
       guidance,
+      combos: discoverCombos(state.combos, resolution.combos ?? []).current,
       navigation,
       exploration,
       resources,

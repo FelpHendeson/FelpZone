@@ -1045,5 +1045,102 @@
       },
       "elite": true
     }
+  ],
+  "combos": [
+    {
+      "id": "advancing-cut",
+      "name": "Corte em Avanço",
+      "description": "O passo à frente vira impulso: o primeiro corte entra mais fundo (+2 de dano).",
+      "first": "advance",
+      "second": "twin-cut",
+      "bonus": {
+        "type": "damage",
+        "amount": 2
+      }
+    },
+    {
+      "id": "shadow-counter",
+      "name": "Contra-ataque Sombrio",
+      "description": "Se a esquiva evitou um golpe, o Golpe Furtivo acha a abertura e causa dano dobrado.",
+      "first": "dodge",
+      "second": "shadow-strike",
+      "bonus": {
+        "type": "critical"
+      },
+      "requiresEvade": true
+    },
+    {
+      "id": "safe-distance",
+      "name": "Distância Segura",
+      "description": "Com a distância aberta, a mira não se desfaz: o Tiro Mirado não pode ser interrompido.",
+      "first": "retreat",
+      "second": "aimed-shot",
+      "bonus": {
+        "type": "uninterruptible"
+      }
+    },
+    {
+      "id": "guarded-cast",
+      "name": "Conjuração Protegida",
+      "description": "A guarda segura a concentração: a Seta de Númen não pode ser interrompida.",
+      "first": "guard",
+      "second": "numen-bolt",
+      "bonus": {
+        "type": "uninterruptible"
+      }
+    },
+    {
+      "id": "open-breach",
+      "name": "Brecha Aberta",
+      "description": "A Finta desmonta a defesa: o Golpe Preciso atravessa a Postura Defensiva.",
+      "first": "feint",
+      "second": "focus-strike",
+      "bonus": {
+        "type": "ignore-guard"
+      }
+    },
+    {
+      "id": "distraction",
+      "name": "Distração",
+      "description": "A pedra tira a atenção do alvo: a Investida chega com +2 de dano.",
+      "first": "throw-stone",
+      "second": "lunge",
+      "bonus": {
+        "type": "damage",
+        "amount": 2
+      }
+    },
+    {
+      "id": "instant-reply",
+      "name": "Resposta Imediata",
+      "description": "Se o Aparar desviou o golpe, o Corte que Abre entra em dobro.",
+      "first": "parry",
+      "second": "opening-cut",
+      "bonus": {
+        "type": "critical"
+      },
+      "requiresEvade": true
+    },
+    {
+      "id": "short-volley",
+      "name": "Rajada Curta",
+      "description": "Uma flecha atrás da outra: a Flecha que Prende chega com +2 de dano.",
+      "first": "double-shot",
+      "second": "pinning-arrow",
+      "bonus": {
+        "type": "damage",
+        "amount": 2
+      }
+    },
+    {
+      "id": "shielded-burst",
+      "name": "Explosão Protegida",
+      "description": "O Escudo de Númen guarda a reunião de energia: a Explosão de Númen não pode ser interrompida.",
+      "first": "numen-ward",
+      "second": "numen-burst",
+      "bonus": {
+        "type": "uninterruptible"
+      }
+    }
   ]
 }

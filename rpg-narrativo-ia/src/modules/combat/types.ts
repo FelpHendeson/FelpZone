@@ -122,7 +122,37 @@ export interface CombatCatalog {
   encounters: readonly EncounterDefinition[];
 }
 
+/** Efeito extra de um combo, aplicado quando a segunda ação acerta. */
+export const COMBO_BONUS_TYPES = ['damage', 'critical', 'ignore-guard', 'uninterruptible'] as const;
+
+export type ComboBonus =
+  | { type: 'damage'; amount: number }
+  /** Dano dobrado. */
+  | { type: 'critical' }
+  /** O golpe atravessa a Postura Defensiva do alvo. */
+  | { type: 'ignore-guard' }
+  /** A segunda ação não pode ser interrompida durante a preparação. */
+  | { type: 'uninterruptible' };
+
+/**
+ * Combo: duas ações seguidas do mesmo lado, na mesma rodada. Vale quando a primeira aconteceu
+ * (não foi interrompida nem errou o alcance) e a segunda chega ao alvo.
+ */
+export interface ComboDefinition {
+  id: string;
+  name: string;
+  description: string;
+  first: string;
+  second: string;
+  bonus: ComboBonus;
+  /** Só vale se a esquiva de quem faz o combo evitou um golpe nesta rodada. */
+  requiresEvade?: boolean;
+}
+
 export interface IndexedCombat {
+  readonly combos: readonly ComboDefinition[];
+  /** Combo pela dupla `primeira>segunda`. */
+  readonly comboByPair: ReadonlyMap<string, ComboDefinition>;
   readonly actions: readonly CombatActionDefinition[];
   readonly combatants: readonly CombatantTemplate[];
   readonly encounters: readonly EncounterDefinition[];
@@ -177,6 +207,8 @@ export interface CombatState {
   rounds?: CombatRoundRecord[];
   /** Linha do tempo da última rodada resolvida, para a reprodução na interface. */
   lastRound?: RoundEvent[];
+  /** Combos que o jogador acionou neste combate, sem repetição, na ordem em que aconteceram. */
+  triggeredCombos?: string[];
 }
 
 /** Sequências que cada lado declarou antes de "Pronto". */
@@ -185,7 +217,7 @@ export interface CombatRoundRecord {
   opponent: string[];
 }
 
-export type RoundEventKind = 'hit' | 'self' | 'miss' | 'evaded' | 'out-of-range' | 'interrupted' | 'move' | 'skipped';
+export type RoundEventKind = 'hit' | 'self' | 'miss' | 'evaded' | 'out-of-range' | 'interrupted' | 'move' | 'skipped' | 'combo';
 
 /** Um acontecimento da linha do tempo de uma rodada. */
 export interface RoundEvent {
@@ -219,6 +251,8 @@ export interface CombatResolution {
   allyVitals: { actorId: string; health: number }[];
   /** Sequências do jogador por rodada (combate planejado). Ausente no combate legado de uma ação por turno. */
   playerPlans?: string[][];
+  /** Combos que o jogador acionou (derivados do replay; nunca aceitos do cliente). */
+  combos?: string[];
 }
 
 export interface CombatActionView {

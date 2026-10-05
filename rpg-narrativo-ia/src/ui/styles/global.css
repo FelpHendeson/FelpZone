@@ -6457,3 +6457,42 @@ span.portrait-avatar {
   height: 100%;
   background: var(--archetype);
 }
+
+/* Combos da rodada. */
+.combat-sequence__combo {
+  display: block;
+  margin: 2px 0 4px 2.2rem;
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+}
+
+.combat-sequence__combo--hidden {
+  color: var(--text-muted);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.combat-plan__hint--senses {
+  color: var(--accent);
+}
+
+.combat-log__event--combo {
+  color: var(--accent);
+  font-weight: 800;
+  border-left: 3px solid var(--accent);
+  padding-left: 8px;
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.system-combos {
+  display: grid;
+  gap: 6px;
+}
+
+.system-combos__empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}

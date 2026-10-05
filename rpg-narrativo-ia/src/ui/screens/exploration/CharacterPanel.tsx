@@ -3,6 +3,7 @@ import type { GameState } from '../../../core/state';
 import type { SystemStatusView } from '../../../modules/system-interface';
 import { SystemCorners } from '../../components/Icon';
 import { Portrait } from '../../components/Portrait';
+import { INITIAL_COMBAT } from '../../../modules/combat';
 import { PortraitAvatar } from '../../components/PortraitAvatar';
 import { Silhouette } from '../../components/Silhouette';
 import { useCustomPortrait } from '../../portrait';
@@ -63,6 +64,7 @@ export function CharacterPanel({
           </div>
         </section>
       ) : null}
+      <CombosKnown discovered={state.combos?.discovered ?? []} />
       <SystemIdentity state={state} campaign={campaign} abilityName={abilityName} />
       <section className="system-calendar" aria-label="Calendário pessoal">
         <span className="section-kicker">Linha da vida</span>
@@ -78,5 +80,38 @@ export function CharacterPanel({
         </section>
       ) : null}
     </div>
+  );
+}
+
+/** Sequências registradas: combos que o jogador já fez acontecer em confrontos do mundo. */
+function CombosKnown({ discovered }: { discovered: readonly string[] }) {
+  const total = INITIAL_COMBAT.combos.length;
+  return (
+    <section className="system-combos" aria-label="Sequências registradas">
+      <span className="section-kicker">Sequências registradas · {discovered.length}/{total}</span>
+      {discovered.length === 0 ? (
+        <p className="system-combos__empty">
+          Duas ações seguidas na ordem certa formam uma sequência com efeito extra. O Sistema registra cada uma na primeira vez que
+          acontece em combate.
+        </p>
+      ) : (
+        <ul className="system-note-list">
+          {discovered.map((id) => {
+            const combo = INITIAL_COMBAT.combos.find((entry) => entry.id === id);
+            if (!combo) return null;
+            const first = INITIAL_COMBAT.actionById.get(combo.first)?.name ?? combo.first;
+            const second = INITIAL_COMBAT.actionById.get(combo.second)?.name ?? combo.second;
+            return (
+              <li key={id}>
+                <strong>◆ {combo.name}</strong>
+                <p>
+                  {first} → {second}. {combo.description}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
+      )}
+    </section>
   );
 }

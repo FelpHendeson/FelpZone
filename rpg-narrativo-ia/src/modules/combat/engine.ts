@@ -34,6 +34,7 @@ import {
   type CombatEffect,
   type CombatLoadoutSnapshot,
   type CombatOutcome,
+  type ComboDefinition,
   type CombatState,
   type IndexedCombat,
   type PlannedSlot,
@@ -756,6 +757,7 @@ function cloneState(state: CombatState): CombatState {
     ...(state.distance ? { distance: state.distance } : {}),
     ...(state.rounds ? { rounds: state.rounds.map((round) => ({ player: [...round.player], opponent: [...round.opponent] })) } : {}),
     ...(state.lastRound ? { lastRound: state.lastRound.map((entry) => ({ ...entry })) } : {}),
+    ...(state.triggeredCombos ? { triggeredCombos: [...state.triggeredCombos] } : {}),
   };
 }
 
@@ -1126,6 +1128,10 @@ interface RoundStep {
   start: number;
   lands: number;
   order: number;
+  /** Ação anterior do mesmo combatente nesta rodada (ordem do passo). */
+  previous?: number;
+  /** Combo que esta ação fecha com a anterior, se houver. */
+  combo?: ComboDefinition;
 }
 
 export function resolveRound(
@@ -1204,11 +1210,13 @@ export function resolveRound(
     let cursor = 1;
     const actor = actors.get(plan.actorId);
     if (!actor) continue;
+    let previous: RoundStep | undefined;
     for (const actionId of plan.actionIds) {
       const action = requireAction(catalog, state, actionId);
       const timing = timingFor(action, modifiersFor(state, plan.actorId, catalogs), catalogs);
       actor.execution = payCost(actor.execution, timing.cost);
-      steps.push({
+      const combo = previous ? catalog.comboByPair?.get(`${previous.action.id}>${action.id}`) : undefined;
+      const step: RoundStep = {
         actorId: plan.actorId,
         side: plan.side,
         action,
@@ -1216,7 +1224,11 @@ export function resolveRound(
         start: cursor,
         lands: cursor + timing.phases.prepare,
         order: order++,
-      });
+        ...(previous ? { previous: previous.order } : {}),
+        ...(combo ? { combo } : {}),
+      };
+      steps.push(step);
+      previous = step;
       cursor += durationOf(timing);
     }
   }
@@ -1224,6 +1236,15 @@ export function resolveRound(
   let distance = state.distance ?? 'far';
   const evading = new Map<string, { from: number; to: number }>();
   const cancelled = new Set<number>();
+  // Combos: o que já aconteceu de fato na rodada e quem já escapou de um golpe com a esquiva.
+  const happened = new Set<number>();
+  const evadedSomething = new Set<string>();
+  const triggeredCombos = [...(state.triggeredCombos ?? [])];
+  const comboReady = (step: RoundStep) =>
+    step.combo !== undefined &&
+    step.previous !== undefined &&
+    happened.has(step.previous) &&
+    (step.combo.requiresEvade !== true || evadedSomething.has(step.actorId));
   const ordered = [...steps].sort(
     (left, right) =>
       left.lands - right.lands ||
@@ -1259,15 +1280,26 @@ export function resolveRound(
     const window = target !== actor ? evading.get(target.id) : undefined;
     if (window && step.lands >= window.from && step.lands <= window.to && totalOf(step.action, 'damage') > 0) {
       record('evaded', `${step.action.name} — ${target.name} se esquiva.`);
+      evadedSomething.add(target.id);
       continue;
     }
 
-    const coreEffects = step.action.effects.filter((effect) => effect.type !== 'move' && effect.type !== 'evade');
+    const combo = comboReady(step) ? step.combo : undefined;
+    if (combo) {
+      record('combo', `Combo: ${combo.name}! ${combo.description}`);
+      if (actor.id === player.id && !triggeredCombos.includes(combo.id)) triggeredCombos.push(combo.id);
+    }
+    let coreEffects = step.action.effects.filter((effect) => effect.type !== 'move' && effect.type !== 'evade');
+    if (combo) coreEffects = applyComboToEffects(coreEffects, combo);
     const healthBefore = target.health;
+    const guardBefore = target.guard;
+    if (combo?.bonus.type === 'ignore-guard' && target !== actor) target.guard = 0;
     const modifiers = actor.id === player.id ? state.loadout.modifiers : { damage: 0, guard: 0, healing: 0 };
     const text = coreEffects.length > 0
       ? applyAction({ ...step.action, effects: coreEffects }, actor, target, modifiers, catalogs)
       : describeMovement(step.action);
+    if (combo?.bonus.type === 'ignore-guard' && target !== actor) target.guard = guardBefore;
+    happened.add(step.order);
     const moved = step.action.effects.some((effect) => effect.type === 'move');
     record(target === actor ? (moved ? 'move' : 'self') : 'hit', text);
 
@@ -1275,9 +1307,11 @@ export function resolveRound(
     const forcesInterrupt = step.action.effects.some((effect) => effect.type === 'interrupt');
     if (wounded || forcesInterrupt) {
       for (const other of steps) {
+        const steady = other.combo?.bonus.type === 'uninterruptible' && comboReady(other);
         if (
           other.actorId === target.id &&
           other.action.interruptible &&
+          !steady &&
           other.start <= step.lands &&
           step.lands < other.lands
         ) {
@@ -1322,7 +1356,25 @@ export function resolveRound(
     distance,
     rounds,
     lastRound: events,
+    ...(triggeredCombos.length > 0 ? { triggeredCombos } : {}),
   };
+}
+
+/** Aplica o efeito extra do combo aos efeitos da segunda ação (dano somado ou dobrado). */
+function applyComboToEffects<T extends CombatEffect>(effects: T[], combo: ComboDefinition): T[] {
+  if (combo.bonus.type === 'critical') {
+    return effects.map((effect) => (effect.type === 'damage' ? ({ ...effect, amount: effect.amount * 2 } as T) : effect));
+  }
+  if (combo.bonus.type === 'damage') {
+    const bonus = combo.bonus.amount;
+    let applied = false;
+    return effects.map((effect) => {
+      if (effect.type !== 'damage' || applied) return effect;
+      applied = true;
+      return { ...effect, amount: effect.amount + bonus } as T;
+    });
+  }
+  return effects;
 }
 
 function patchOf(

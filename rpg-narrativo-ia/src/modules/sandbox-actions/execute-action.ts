@@ -221,6 +221,7 @@ function runTransaction(
     rng: executed.rng ?? previous.rng,
     guidance: executed.guidance ?? previous.guidance,
     archetypeProgress: executed.archetypeProgress ?? previous.archetypeProgress,
+    combos: executed.combos ?? previous.combos,
     character: executed.character,
     status: executed.status,
     narrativeSession: executed.narrativeSession,

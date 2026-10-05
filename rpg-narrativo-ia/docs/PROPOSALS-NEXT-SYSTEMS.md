@@ -3,6 +3,7 @@
 **Estado:** propostas executadas em ordem, a partir da primeira.
 
 - **Item 1:** implementado; veja [Combate por rodadas e Ecos](SYSTEM-ECHOES-ROUND-COMBAT.md), seção 5.
+- **Item 2:** implementado; veja a seção 7 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -88,6 +89,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 2. Combos dentro da rodada
+
+**Implementado.** São 9 combos, ocultos até serem descobertos, com a dica de Sentidos Aguçados.
 
 **O que é:** certas sequências de ações, na ordem certa, ganham um efeito extra. Planejar a rodada passa a ser também compor.
 

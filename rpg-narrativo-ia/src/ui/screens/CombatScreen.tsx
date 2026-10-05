@@ -40,6 +40,8 @@ interface CombatScreenProps {
   /** Cor das silhuetas nas cartas (a do arquétipo de quem planeja). */
   tint?: string;
   opponentTint?: string;
+  /** Combos que o jogador já descobriu: aparecem nomeados entre as cartas da sequência. */
+  discoveredCombos?: readonly string[];
   onFinish: (finalState: CombatState) => void;
 }
 
@@ -60,6 +62,7 @@ export function CombatScreen({
   resultDetail = defaultResultDetail,
   tint = 'var(--accent)',
   opponentTint = 'var(--danger)',
+  discoveredCombos = [],
   onFinish,
 }: CombatScreenProps) {
   const [state, setState] = useState<CombatState>(initialState);
@@ -101,6 +104,15 @@ export function CombatScreen({
   const check = checkRoundPlan(combat, state, actorId, current, runtime);
   const usedTicks = check.usedTicks;
   const roundTicks = roundTicksOf(actor);
+  // Sentidos Aguçados percebem quando a sequência está a uma ação de um combo ainda desconhecido.
+  const senses = !planningOpponent && (state.knownSkillIds ?? []).includes('sharpened-senses');
+  const lastPlanned = current[current.length - 1];
+  const nearCombo =
+    senses &&
+    lastPlanned !== undefined &&
+    combat.combos.some(
+      (combo) => combo.first === lastPlanned && !discoveredCombos.includes(combo.id) && actor.actionIds.includes(combo.second),
+    );
   const numen = actor.execution.reserves.find((entry) => entry.energyId === 'numen');
   const numenMax = executionCatalog.reserveByEnergyId.get('numen')?.max ?? 0;
   const intent = control.kind === 'ai' && state.outcome === 'ongoing' ? readOpponentIntent(combat, state, style, runtime) : null;
@@ -226,8 +238,15 @@ export function CombatScreen({
               <ol className="combat-sequence">
                 {check.slots.map((slot, index) => {
                   const name = combat.actionById.get(slot.actionId)?.name ?? labelForPrepared(state, slot.actionId);
+                  const combo = index > 0 ? combat.comboByPair.get(`${check.slots[index - 1]!.actionId}>${slot.actionId}`) : undefined;
+                  const known = combo !== undefined && discoveredCombos.includes(combo.id);
                   return (
                     <li key={`${slot.actionId}-${index}`}>
+                      {combo && (known || senses) ? (
+                        <span className={known ? 'combat-sequence__combo' : 'combat-sequence__combo combat-sequence__combo--hidden'}>
+                          {known ? `◆ ${combo.name}` : '◇ Sequência possível'}
+                        </span>
+                      ) : null}
                       <button
                         type="button"
                         className="combat-sequence__item"
@@ -246,6 +265,7 @@ export function CombatScreen({
             ) : (
               <p className="combat-plan__hint">Toque nas ações abaixo para montar a rodada. Toque numa ação da sequência para tirá-la.</p>
             )}
+            {nearCombo ? <p className="combat-plan__hint combat-plan__hint--senses">◇ Sentidos Aguçados: a próxima ação pode fechar uma sequência ainda desconhecida.</p> : null}
             {!check.ok && check.reason ? <p className="combat-plan__error">{check.reason}</p> : null}
             <div className="combat-plan__actions">
               <button type="button" className="button button--ghost button--compact" disabled={current.length === 0} onClick={() => setCurrent([])}>

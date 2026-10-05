@@ -267,6 +267,11 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
     progress: result.current.archetypeProgress ?? createInitialArchetypeProgress(),
     sex: result.current.character.sex,
   });
+  const newCombos = (result.current.combos?.discovered ?? []).filter((id) => !(result.previous.combos?.discovered ?? []).includes(id));
+  for (const id of newCombos) {
+    const combo = context.combat?.combos.find((entry) => entry.id === id);
+    push('discovery', `[ Sistema ] Sequência registrada: ${combo?.name ?? id}. ${combo?.description ?? ''}`.trim());
+  }
   const pathBefore = pathStatus(INITIAL_ARCHETYPES, result.previous.character.archetypeId, result.previous.archetypeProgress ?? createInitialArchetypeProgress());
   const pathAfter = pathStatus(INITIAL_ARCHETYPES, result.current.character.archetypeId, result.current.archetypeProgress ?? createInitialArchetypeProgress());
   if (pathAfter?.available && !pathBefore?.available) {
