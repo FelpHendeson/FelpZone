@@ -6,7 +6,7 @@ import {
   buildCombatResolution,
   createCombat,
   getEncounter,
-  resolveTurn,
+  resolveRound,
   type CombatState,
 } from '../modules/combat';
 import {
@@ -42,7 +42,7 @@ function fightToVictory(state: GameState): CombatState {
   });
   let safety = 0;
   while (combat.outcome === 'ongoing' && safety < 50) {
-    combat = resolveTurn(INITIAL_COMBAT, combat, 'focus-strike');
+    combat = resolveRound(INITIAL_COMBAT, combat, ['advance', 'guard', 'focus-strike']);
     safety += 1;
   }
   return combat;

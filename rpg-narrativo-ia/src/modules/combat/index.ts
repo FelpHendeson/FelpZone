@@ -14,6 +14,7 @@ import { CombatError } from './errors';
 import { ImmutableIndex } from './immutable-index';
 import { INITIAL_COMBAT_CATALOG } from './initial-combat';
 import {
+  COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_RANGES,
   COMBAT_TARGETS,
@@ -34,6 +35,20 @@ export {
   listPlayerActionViews,
   listPlayerActions,
   resolveTurn,
+  resolveRound,
+  createDuel,
+  duelActionBank,
+  DUEL_ENCOUNTER_ID,
+  DUEL_OPPONENT_ID,
+  type DuelistSnapshot,
+  checkRoundPlan,
+  planCombatantRound,
+  readOpponentIntent,
+  actionTicks,
+  ROUND_TICKS,
+  type CombatStyle,
+  type PlanCheck,
+  type ResolveRoundOptions,
   type AllySnapshot,
   type CombatRuntime,
   type CreateCombatOptions,
@@ -217,6 +232,9 @@ function inspectAction(
   if (value.interruptible !== undefined && typeof value.interruptible !== 'boolean') {
     return fail('A interrupção da ação de combate é inválida.');
   }
+  if (value.playerUsable !== undefined && typeof value.playerUsable !== 'boolean') {
+    return fail('A disponibilidade da ação de combate é inválida.');
+  }
 
   return {
     ok: true,
@@ -236,6 +254,7 @@ function inspectAction(
       ...(cost.value ? { cost: cost.value } : {}),
       ...(value.cooldown ? { cooldown: value.cooldown } : {}),
       ...(value.interruptible ? { interruptible: true } : {}),
+      ...(value.playerUsable === false ? { playerUsable: false } : {}),
     },
   };
 }
@@ -270,6 +289,18 @@ function inspectEffect(value: unknown, conditions: IndexedConditions): CombatIns
         ...(nonEmpty(value.conditionId) ? { conditionId: value.conditionId } : {}),
       },
     };
+  }
+  if (value.type === 'evade') {
+    if (!positiveSafeInteger(value.ticks) || value.ticks > 3) {
+      return fail('A esquiva precisa durar de 1 a 3 tempos.');
+    }
+    return { ok: true, value: { type: 'evade', ticks: value.ticks } };
+  }
+  if (value.type === 'move') {
+    if (!includes(COMBAT_DISTANCES, value.to)) {
+      return fail('O movimento precisa declarar a distância de destino.');
+    }
+    return { ok: true, value: { type: 'move', to: value.to } };
   }
   if (!positiveSafeInteger(value.amount)) {
     return fail('O efeito da ação de combate é inválido.');
@@ -361,6 +392,9 @@ function inspectEncounter(
   if (value.requiredOrganizationId !== undefined && !nonEmpty(value.requiredOrganizationId)) {
     return fail('A organização exigida pelo encontro é inválida.');
   }
+  if (value.startDistance !== undefined && !includes(COMBAT_DISTANCES, value.startDistance)) {
+    return fail('A distância inicial do encontro é inválida.');
+  }
 
   return {
     ok: true,
@@ -375,6 +409,7 @@ function inspectEncounter(
       ...(additional.value.length > 0 ? { additionalOpponentIds: additional.value } : {}),
       ...(nonEmpty(value.requiredOrganizationId) ? { requiredOrganizationId: value.requiredOrganizationId } : {}),
       ...(reward.value ? { reward: reward.value } : {}),
+      ...(value.startDistance !== undefined ? { startDistance: value.startDistance } : {}),
     },
   };
 }
@@ -583,6 +618,7 @@ function fail<T>(reason: string): CombatInspection<T> {
 }
 
 export {
+  COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_OUTCOMES,
   COMBAT_RANGES,
@@ -610,5 +646,10 @@ export type {
   EncounterDefinition,
   IndexedCombat,
   CombatLoadoutSnapshot,
+  CombatDistance,
+  CombatRoundRecord,
+  PlannedSlot,
   PreparedConsumableState,
+  RoundEvent,
+  RoundEventKind,
 } from './types';

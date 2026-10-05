@@ -9,7 +9,7 @@ import type {
   IndexedCombat,
   PreparedConsumableState,
 } from './types';
-import { createCombat, emptyCombatLoadout, resolveTurn, type CombatRuntime } from './engine';
+import { createCombat, emptyCombatLoadout, resolveRound, resolveTurn, type CombatRuntime } from './engine';
 
 export interface VerifyCombatResolutionOptions {
   playerName?: string;
@@ -78,8 +78,14 @@ export function buildCombatResolution(state: CombatState, encounter: EncounterDe
   ) {
     throw new CombatError('O estado terminal de combate é inválido.');
   }
-  const playerActionIds = extractPlayerActionIds(state);
+  const plannedRounds = state.rounds ?? [];
+  const playerPlans = plannedRounds.length > 0 ? plannedRounds.map((round) => [...round.player]) : undefined;
+  if (playerPlans && playerPlans.length !== state.turn) {
+    throw new CombatError('O histórico terminal de combate é inválido.');
+  }
+  const playerActionIds = playerPlans ? playerPlans.flat() : extractPlayerActionIds(state);
   return {
+    ...(playerPlans ? { playerPlans } : {}),
     encounterId: encounter.id,
     outcome: state.outcome,
     turns: state.turn,
@@ -108,7 +114,7 @@ export function verifyCombatResolution(
   if (
     resolution.encounterId !== encounter.id ||
     resolution.entryHealth !== options.playerMaxHealth ||
-    resolution.turns !== resolution.playerActionIds.length ||
+    resolution.turns !== (resolution.playerPlans ?? resolution.playerActionIds).length ||
     !isPositiveSafeInteger(options.playerMaxHealth)
   ) {
     throw new CombatError('A resolução de combate não corresponde ao estado atual do mundo.');
@@ -124,6 +130,17 @@ export function verifyCombatResolution(
     allies: options.allies ?? [],
     runtime: options.runtime,
   });
+  if (resolution.playerPlans) {
+    // Combate planejado: cada rodada é reproduzida com a sequência declarada; a IA replaneja igual.
+    const orderLog = resolution.companionOrders ?? [];
+    for (const [index, plan] of resolution.playerPlans.entries()) {
+      if (replayed.outcome !== 'ongoing') {
+        throw new CombatError('A sequência de combate continua depois de um desfecho terminal.');
+      }
+      replayed = resolveRound(catalog, replayed, plan, { runtime: options.runtime, companionOrders: orderLog[index] ?? [] });
+    }
+    return compareVerified(buildCombatResolution(replayed, encounter), resolution);
+  }
   const orderLog = resolution.companionOrders ?? [];
   if (orderLog.length !== 0 && orderLog.length !== resolution.playerActionIds.length) {
     throw new CombatError('A resolução de combate não corresponde à sequência de ações informada.');
@@ -135,8 +152,12 @@ export function verifyCombatResolution(
     replayed = resolveTurn(catalog, replayed, actionId, orderLog[index] ?? [], options.runtime);
   }
 
-  const verified = buildCombatResolution(replayed, encounter);
+  return compareVerified(buildCombatResolution(replayed, encounter), resolution);
+}
+
+function compareVerified(verified: CombatResolution, resolution: CombatResolution): CombatResolution {
   if (
+    JSON.stringify(verified.playerPlans ?? null) !== JSON.stringify(resolution.playerPlans ?? null) ||
     verified.outcome !== resolution.outcome ||
     verified.turns !== resolution.turns ||
     verified.entryHealth !== resolution.entryHealth ||

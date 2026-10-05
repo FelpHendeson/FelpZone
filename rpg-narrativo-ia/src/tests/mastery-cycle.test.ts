@@ -7,7 +7,7 @@ import {
   createCombat,
   getEncounter,
   listPlayerActions,
-  resolveTurn,
+  resolveRound,
   type CombatState,
 } from '../modules/combat';
 import { getSkillProficiency, isSkillKnown } from '../modules/skills';
@@ -34,7 +34,7 @@ function winWithFocusStrike(state: GameState): SandboxAction {
   });
   let safety = 0;
   while (combat.outcome === 'ongoing' && safety < 60) {
-    combat = resolveTurn(INITIAL_COMBAT, combat, 'focus-strike');
+    combat = resolveRound(INITIAL_COMBAT, combat, ['advance', 'guard', 'focus-strike']);
     safety += 1;
   }
   return { type: 'combat.resolve', resolution: buildCombatResolution(combat, getEncounter(INITIAL_COMBAT, 'clearing-predator')) };

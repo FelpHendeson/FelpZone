@@ -2,7 +2,7 @@ import type { ClockFormat } from '../../clock';
 import type { GuidanceLevel } from '../../preferences';
 import { DetailScreen } from './shared';
 
-function Choice<T extends string>({
+export function Choice<T extends string>({
   name,
   value,
   options,

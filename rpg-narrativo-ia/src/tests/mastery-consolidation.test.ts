@@ -5,7 +5,7 @@ import {
   buildCombatResolution,
   createCombat,
   getEncounter,
-  resolveTurn,
+  resolveRound,
   type CombatState,
 } from '../modules/combat';
 import { INITIAL_MASTERY, applyMastery, areMasteryRequirementsMet, type MasteryMilestoneDefinition } from '../modules/mastery';
@@ -32,7 +32,7 @@ function victory(state: GameState): SandboxAction {
   });
   let safety = 0;
   while (combat.outcome === 'ongoing' && safety < 60) {
-    combat = resolveTurn(INITIAL_COMBAT, combat, 'focus-strike');
+    combat = resolveRound(INITIAL_COMBAT, combat, ['advance', 'guard', 'focus-strike']);
     safety += 1;
   }
   return { type: 'combat.resolve', resolution: buildCombatResolution(combat, getEncounter(INITIAL_COMBAT, 'clearing-predator')) };

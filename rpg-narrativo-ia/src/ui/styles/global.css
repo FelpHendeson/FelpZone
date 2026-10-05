@@ -5624,3 +5624,289 @@ button:disabled {
   .game-hud--sky { transition: none; }
   .game-hud__elapsed { animation: none; }
 }
+
+/* --- Combate por rodadas: banco de ações, trilha de tempos e linha do tempo ------------------- */
+.combat-intent {
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-system) 45%, var(--border));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-system) 8%, var(--bg-elevated));
+}
+
+.combat-intent p {
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  overflow-wrap: break-word;
+}
+
+.combat-turn-owner {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.combat-plan {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+}
+
+.combat-plan__head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.combat-plan__head span {
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.combat-track {
+  display: grid;
+  gap: 4px;
+}
+
+.combat-track__slot,
+.combat-track__free {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 26px;
+  border-radius: 8px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.combat-track__slot {
+  border: 1px solid var(--accent-strong);
+  background: color-mix(in srgb, var(--accent-strong) 22%, var(--bg-choice));
+  color: var(--text);
+  font-weight: 700;
+}
+
+.combat-track__free {
+  border: 1px dashed var(--border);
+  color: var(--text-muted);
+}
+
+.combat-sequence {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.combat-sequence__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  min-height: 40px;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-choice);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.combat-sequence__item strong {
+  font-size: 0.88rem;
+  overflow-wrap: break-word;
+}
+
+.combat-sequence__item small {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.combat-sequence__index {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent-strong) 30%, transparent);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.combat-plan__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.combat-plan__error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 0.8rem;
+}
+
+.combat-plan__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.combat-action__why {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+}
+
+.combat-handoff {
+  display: grid;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--accent-system);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  text-align: center;
+}
+
+.combat-handoff p {
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.combat-log__event {
+  animation: vn-fade 0.25s ease both;
+}
+
+.combat-log__tick {
+  display: inline-block;
+  min-width: 2.2em;
+  color: var(--accent-system);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.combat-log__event--interrupted,
+.combat-log__event--out-of-range,
+.combat-log__event--evaded {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.combat-log--compact {
+  max-height: 9.5rem;
+  overflow-y: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .combat-log__event { animation: none; }
+}
+
+/* --- Ecos: Selo do Desperto, Prova do Eco e rivalidades -------------------------------------- */
+.echo-card {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+}
+
+.echo-card h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.echo-card p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  overflow-wrap: break-word;
+}
+
+.echo-card--result {
+  border-color: var(--accent-system);
+}
+
+.echo-field {
+  display: grid;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.echo-field textarea,
+.echo-code textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-choice);
+  color: inherit;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  word-break: break-all;
+  resize: vertical;
+}
+
+.echo-code {
+  display: grid;
+  gap: 8px;
+}
+
+.echo-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.echo-rival {
+  display: grid;
+  gap: 8px;
+}
+
+.echo-rival strong {
+  color: var(--text);
+}
+
+.echo-error {
+  color: var(--danger) !important;
+}
+
+.echo-message {
+  color: var(--accent) !important;
+}
+
+.echo-hint {
+  font-size: 0.8rem !important;
+}
+
+.echo-rivals {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.echo-rivals li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bg-choice);
+  font-size: 0.88rem;
+}
+
+.echo-rivals li span {
+  color: var(--text-muted);
+  white-space: nowrap;
+}

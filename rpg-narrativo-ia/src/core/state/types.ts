@@ -1,3 +1,4 @@
+import type { EchoesState } from '../../modules/echoes';
 import type { SandboxCoreState, SandboxState } from '../../modules/sandbox/types';
 import type { ObjectivesState } from '../../modules/objectives/types';
 import type { SkillsProgressState } from '../../modules/skills/types';
@@ -508,6 +509,8 @@ export interface GameState extends SharedState<Attributes> {
   rng: ChanceState;
   /** Dia de abertura de cada capítulo (schema 28): capítulos avançam por cena-chave, com prazo relativo. */
   story: StoryState;
+  /** Duelos de Ecos (opcional e aditivo: saves sem duelos não têm o campo). */
+  echoes?: EchoesState;
 }
 
 export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng' | 'story'> {

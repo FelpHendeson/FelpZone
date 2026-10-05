@@ -7,7 +7,7 @@ import {
   combatEncounterResolvedFlag,
   createCombat,
   getEncounter,
-  resolveTurn,
+  resolveRound,
   type CombatState,
 } from '../modules/combat';
 import { executeSandboxAction, SandboxActionError, type SandboxAction } from '../modules/sandbox-actions';
@@ -34,14 +34,14 @@ function terminal(outcome: 'victory' | 'defeat' | 'fled', saude: number): Combat
     playerMaxHealth: saude,
   });
   if (outcome === 'fled') {
-    return resolveTurn(INITIAL_COMBAT, state, 'flee');
+    return resolveRound(INITIAL_COMBAT, state, ['flee']);
   }
   if (outcome === 'defeat') {
-    return resolveTurn(INITIAL_COMBAT, state, 'attack');
+    return resolveRound(INITIAL_COMBAT, state, ['advance', 'attack', 'attack']);
   }
   let safety = 0;
   while (state.outcome === 'ongoing' && safety < 50) {
-    state = resolveTurn(INITIAL_COMBAT, state, 'focus-strike');
+    state = resolveRound(INITIAL_COMBAT, state, ['advance', 'guard', 'focus-strike']);
     safety += 1;
   }
   return state;

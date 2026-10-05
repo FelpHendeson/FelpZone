@@ -5,7 +5,7 @@ import {
   buildCombatResolution,
   createCombat,
   getEncounter,
-  resolveTurn,
+  resolveRound,
   type CombatState,
 } from '../modules/combat';
 import { getSkillProficiency } from '../modules/skills';
@@ -27,11 +27,11 @@ function terminal(action: 'focus-strike' | 'attack' | 'flee', state: GameState):
     playerMaxHealth: state.attributes.saude,
   });
   if (action === 'flee') {
-    return resolveTurn(INITIAL_COMBAT, combat, 'flee');
+    return resolveRound(INITIAL_COMBAT, combat, ['flee']);
   }
   let safety = 0;
   while (combat.outcome === 'ongoing' && safety < 60) {
-    combat = resolveTurn(INITIAL_COMBAT, combat, action);
+    combat = resolveRound(INITIAL_COMBAT, combat, ROUND_PLANS[action]);
     safety += 1;
   }
   return combat;
@@ -40,6 +40,12 @@ function terminal(action: 'focus-strike' | 'attack' | 'flee', state: GameState):
 function resolveAction(finalState: CombatState): SandboxAction {
   return { type: 'combat.resolve', resolution: buildCombatResolution(finalState, getEncounter(INITIAL_COMBAT, 'clearing-predator')) };
 }
+
+/** Sequências por rodada: aproximar-se, proteger-se e golpear. */
+const ROUND_PLANS: Record<'focus-strike' | 'attack', string[]> = {
+  'focus-strike': ['advance', 'guard', 'focus-strike'],
+  attack: ['advance', 'attack', 'attack'],
+};
 
 describe('Fatia 13.3 — prática por vitória na transação de combate', () => {
   it('vitória usando uma habilidade concede +1 de proficiência na mesma transação', () => {

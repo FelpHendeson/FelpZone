@@ -8,6 +8,7 @@ import {
   createCombat,
   listAvailableEncounters,
   type CombatState,
+  type CombatStyle,
 } from '../../modules/combat';
 import {
   allySnapshots,
@@ -15,6 +16,18 @@ import {
 } from '../../modules/party';
 import { buildCombatLoadout } from '../../modules/equipment';
 import { CombatScreen } from './CombatScreen';
+import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
+import {
+  ECHO_STYLE_LABELS,
+  createEchoSeal,
+  createInitialEchoesState,
+  echoSealId,
+  encodeEchoResult,
+  hasWonAnyConfrontation,
+  startEchoDuel,
+  type EchoDuelRecord,
+  type EchoSeal,
+} from '../../modules/echoes';
 import { AppDialog } from '../components/AppDialog';
 import { BottomNavigation, type GameTab } from '../components/BottomNavigation';
 import { GameHud } from '../components/GameHud';
@@ -62,13 +75,14 @@ interface ExplorationScreenProps {
   onGuidanceSeen: (topicId: string) => void;
   onExit: () => void;
   worldTriggers?: IndexedWorldTriggers;
+  onRecordEcho?: (record: EchoDuelRecord, resultId?: string) => void;
 }
 
 function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || view === 'settings' || isDomainView(view)) {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || view === 'settings' || view === 'echoes' || isDomainView(view)) {
     return 'menu';
   }
   return view;
@@ -95,6 +109,7 @@ export function ExplorationScreen({
   onGuidanceSeen,
   onExit,
   worldTriggers,
+  onRecordEcho,
 }: ExplorationScreenProps) {
   const preferences = usePreferences();
   setClockContext(state.world, preferences.clockFormat);
@@ -106,6 +121,9 @@ export function ExplorationScreen({
   const [combatEncounterId, setCombatEncounterId] = useState<string | null>(null);
   const [helpTopicId, setHelpTopicId] = useState<string | null>(null);
   const [guidancePopupDismissed, setGuidancePopupDismissed] = useState(false);
+  const [echoStyle, setEchoStyle] = useState<CombatStyle>(readEchoStyle);
+  const [duel, setDuel] = useState<{ rival: EchoSeal; mode: EchoDuelMode; start: CombatState } | null>(null);
+  const [pendingResultCode, setPendingResultCode] = useState<string | null>(null);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
   const revealedDiscoveryIds =
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
@@ -128,6 +146,46 @@ export function ExplorationScreen({
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [activeView]);
+
+  const mySeal = createEchoSeal(
+    combat,
+    { name: `${state.character.firstName} ${state.character.lastName}`, knownSkillIds: state.system.entries.map((entry) => entry.skillId) },
+    echoStyle,
+  );
+
+  if (duel) {
+    const hotSeat = duel.mode === 'hot-seat';
+    return (
+      <CombatScreen
+        initialState={duel.start}
+        encounterName={`${mySeal.name} × ${duel.rival.name}`}
+        kicker={hotSeat ? 'Prova do Eco · mesma tela' : `Prova do Eco · Eco ${ECHO_STYLE_LABELS[duel.rival.style].toLowerCase()}`}
+        combat={combat}
+        conditions={context.conditions}
+        execution={context.execution}
+        control={
+          hotSeat
+            ? { kind: 'hot-seat', playerLabel: state.character.firstName, opponentLabel: duel.rival.name }
+            : { kind: 'ai', style: duel.rival.style }
+        }
+        finishLabel="Voltar aos Ecos"
+        resultDetail={(final) =>
+          final.outcome === 'victory'
+            ? `O Registro anota a vitória sobre ${duel.rival.name}. Nada muda no seu corpo: a Prova do Eco não fere de verdade.`
+            : final.outcome === 'defeat'
+              ? `${duel.rival.name} venceu desta vez. A Prova do Eco não fere de verdade.`
+              : 'Você recuou da Prova. O Registro anota a desistência.'
+        }
+        onFinish={(final) => {
+          const outcome = final.outcome === 'ongoing' ? 'fled' : final.outcome;
+          onRecordEcho?.({ rivalId: echoSealId(duel.rival), rivalName: duel.rival.name, outcome, kind: duel.mode, day: state.world.day });
+          setPendingResultCode(duel.mode === 'challenge' ? encodeEchoResult(mySeal, duel.rival, final) : null);
+          setDuel(null);
+          setActiveView('echoes');
+        }}
+      />
+    );
+  }
 
   if (combatEncounterId) {
     const encounter = encounters.find((entry) => entry.id === combatEncounterId)
@@ -307,6 +365,23 @@ export function ExplorationScreen({
               guidanceCount={unlockedGuidance.length}
               guidanceUnseenCount={unseenGuidance.length}
               notableCount={notableHistory(state.history).length}
+              echoesUnlocked={hasWonAnyConfrontation(state.flags)}
+              echoRecords={state.echoes?.records.length ?? 0}
+            />
+          ) : null}
+          {activeView === 'echoes' ? (
+            <EchoesPanel
+              combat={combat}
+              mySeal={mySeal}
+              echoes={state.echoes ?? createInitialEchoesState()}
+              pendingResultCode={pendingResultCode}
+              onStyle={(style) => {
+                setEchoStyle(style);
+                writeEchoStyle(style);
+              }}
+              onDuel={(rival, mode) => setDuel({ rival, mode, start: startEchoDuel(combat, mySeal, rival) })}
+              onRecord={(record, resultId) => onRecordEcho?.({ ...record, day: state.world.day }, resultId)}
+              onBack={() => setActiveView('menu')}
             />
           ) : null}
 
@@ -382,4 +457,23 @@ export function ExplorationScreen({
       />
     </main>
   );
+}
+
+const ECHO_STYLE_KEY = 'reset.echo.style';
+
+function readEchoStyle(): CombatStyle {
+  try {
+    const value = globalThis.localStorage?.getItem(ECHO_STYLE_KEY);
+    return value === 'aggressive' || value === 'defensive' ? value : 'balanced';
+  } catch {
+    return 'balanced';
+  }
+}
+
+function writeEchoStyle(style: CombatStyle): void {
+  try {
+    globalThis.localStorage?.setItem(ECHO_STYLE_KEY, style);
+  } catch {
+    // Preferência do aparelho: sem armazenamento, o Eco volta a Equilibrado.
+  }
 }

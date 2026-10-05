@@ -1,3 +1,4 @@
+import { createInitialEchoesState, recordEchoDuel, type EchoDuelRecord } from '../modules/echoes';
 import { loadFirstDayWorld } from '../modules/content';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import {
@@ -257,6 +258,17 @@ export function App() {
     }
   }
 
+  function handleRecordEcho(record: EchoDuelRecord, resultId?: string) {
+    if (!state) {
+      return;
+    }
+    persist({
+      ...state,
+      updatedAt: new Date().toISOString(),
+      echoes: recordEchoDuel(state.echoes ?? createInitialEchoesState(), record, resultId),
+    });
+  }
+
   function handleResolveCombat(encounterId: string, finalState: CombatState) {
     if (!state) {
       return;
@@ -365,6 +377,7 @@ export function App() {
           actionPending={actionPending}
           onAction={handleSandboxAction}
           onResolveCombat={handleResolveCombat}
+          onRecordEcho={handleRecordEcho}
           onGuidanceSeen={handleGuidanceSeen}
           worldTriggers={world.worldTriggers}
           onExit={() => {

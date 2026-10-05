@@ -6,6 +6,7 @@ import { notableHistory } from '../../modules/narrative';
 import { buildSystemStatus } from '../../modules/system-interface';
 import { buildExplorationView } from '../sandbox';
 import { MENU_DOMAIN_LABELS, revealedMenuDomains, type MenuDomainId } from './reveal';
+import { hasWonAnyConfrontation } from '../../modules/echoes';
 
 export type SystemAnnouncementKind = 'level' | 'skill' | 'proficiency' | 'patent' | 'title' | 'unlock';
 
@@ -35,7 +36,7 @@ export function takeSystemSnapshot(state: GameState, campaign: Campaign, context
     ),
     patents: Object.fromEntries(status.registry.patents.filter((entry) => entry.granted).map((entry) => [entry.id, entry.name])),
     titleIds: [...state.progression.titleIds],
-    domains: [...revealedMenuDomains(status, bonds, notableHistory(state.history).length)],
+    domains: [...revealedMenuDomains(status, bonds, notableHistory(state.history).length, hasWonAnyConfrontation(state.flags))],
   };
 }
 
@@ -86,8 +87,11 @@ export function diffSystemSnapshots(before: SystemSnapshot, after: SystemSnapsho
     announcements.push({
       id: `unlock-${domain}`,
       kind: 'unlock',
-      title: `Nova interface: ${MENU_DOMAIN_LABELS[domain]}`,
-      detail: 'Disponível na Central do Sistema.',
+      title: domain === 'echoes' ? 'Seu Eco foi registrado' : `Nova interface: ${MENU_DOMAIN_LABELS[domain]}`,
+      detail:
+        domain === 'echoes'
+          ? 'O Sistema guardou a marca das suas escolhas em combate. Troque Selos com outros Despertos na Prova do Eco (Menu → Ecos).'
+          : 'Disponível na Central do Sistema.',
     });
   }
   return announcements.sort((a, b) => KIND_ORDER[a.kind] - KIND_ORDER[b.kind]);

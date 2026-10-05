@@ -1,3 +1,4 @@
+import { copyEchoesState } from '../echoes';
 import { copyInventoryItem } from '../inventory';
 import { EngineError } from '../../core/engine';
 import { inspectGameState, type Attributes, type GameState, type InventoryItem, type NarrativeSession, type ProgressionState, type Relationship } from '../../core/state';
@@ -213,8 +214,17 @@ export function requireAction(value: unknown): SandboxAction {
       !nonNegativeSafeInteger(resolution.remainingHealth) ||
       (resolution.remainingHealth as number) > (resolution.entryHealth as number) ||
       !Array.isArray(resolution.playerActionIds) ||
-      resolution.playerActionIds.length !== resolution.turns ||
       resolution.playerActionIds.some((actionId) => typeof actionId !== 'string' || actionId.trim() === '')
+    ) {
+      throw new SandboxActionError('A resolução de combate é inválida.');
+    }
+    const playerPlans = inspectPlayerPlans(resolution.playerPlans);
+    if (
+      playerPlans === null ||
+      (playerPlans === undefined && resolution.playerActionIds.length !== resolution.turns) ||
+      (playerPlans !== undefined &&
+        (playerPlans.length !== resolution.turns ||
+          JSON.stringify(playerPlans.flat()) !== JSON.stringify(resolution.playerActionIds)))
     ) {
       throw new SandboxActionError('A resolução de combate é inválida.');
     }
@@ -247,6 +257,7 @@ export function requireAction(value: unknown): SandboxAction {
         remainingExecution: inspectResolutionExecution(resolution.remainingExecution),
         companionOrders: inspectCompanionOrderLog(resolution.companionOrders),
         allyVitals: inspectAllyVitals(resolution.allyVitals),
+        ...(playerPlans ? { playerPlans } : {}),
       },
     };
   }
@@ -406,6 +417,19 @@ export function inspectCompanionOrderLog(value: unknown): { actorId: string; act
   });
 }
 
+/** Sequências por rodada: ausente (combate legado), lista válida, ou `null` quando malformada. */
+export function inspectPlayerPlans(value: unknown): string[][] | undefined | null {
+  if (value === undefined) return undefined;
+  if (!Array.isArray(value) || value.length > 200) return null;
+  const plans: string[][] = [];
+  for (const plan of value) {
+    if (!Array.isArray(plan) || plan.length === 0 || plan.length > 10) return null;
+    if (plan.some((actionId) => typeof actionId !== 'string' || actionId.trim() === '')) return null;
+    plans.push([...(plan as string[])]);
+  }
+  return plans;
+}
+
 export function inspectAllyVitals(value: unknown): { actorId: string; health: number }[] {
   if (value === undefined) {
     return [];
@@ -441,6 +465,7 @@ export function copyResolution(resolution: CombatResolution): CombatResolution {
     remainingExecution: copyExecutionState(resolution.remainingExecution ?? createInitialExecutionState()),
     companionOrders: (resolution.companionOrders ?? []).map((turn) => turn.map((entry) => ({ ...entry }))),
     allyVitals: (resolution.allyVitals ?? []).map((entry) => ({ ...entry })),
+    ...(resolution.playerPlans ? { playerPlans: resolution.playerPlans.map((plan) => [...plan]) } : {}),
   };
 }
 
@@ -545,6 +570,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     ),
     rng: { ...(patch.rng ?? base.rng) },
     story: copyStoryState(patch.story ?? base.story),
+    ...(base.echoes ? { echoes: copyEchoesState(base.echoes) } : {}),
     updatedAt: patch.updatedAt,
   };
 }

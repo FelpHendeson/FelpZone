@@ -22,7 +22,7 @@ A interface jogável segue o princípio **aventura primeiro, dados sob demanda**
 - Priorize telas de celular e valide também em desktop.
 - Mantenha regras do jogo fora dos componentes React.
 - Modele campanhas e eventos como dados; não codifique a história diretamente na interface.
-- Não adicione API de IA, backend, login, telemetria ou serviço pago.
+- Não adicione API de IA, login, telemetria ou serviço pago sem decisão do autor. **Backend agora é permitido** (decisão de outubro de 2026), mas a partida precisa continuar funcionando offline: o servidor só pode servir camadas opcionais, como o duelo online planejado em [Combate por rodadas e Ecos](docs/SYSTEM-ECHOES-ROUND-COMBAT.md), e nenhuma chave ou segredo vai para o cliente.
 - Não crie imagens finais sem pedido explícito. Preserve placeholders locais, mas aceite referências de arte opcionais do pack conforme [Imagens opcionais dos packs](docs/VISUAL-ASSETS.md).
 - Cada módulo deve expor tipos e funções públicas sem acessar internamente outro módulo.
 - Prefira funções puras para condições, escolhas e efeitos.
@@ -46,7 +46,8 @@ A interface jogável segue o princípio **aventura primeiro, dados sob demanda**
 - Preserve a arquitetura LEGO: leis reutilizáveis pertencem ao motor, entidades e parâmetros pertencem ao pack, acontecimentos pertencem à campanha e o save guarda somente IDs e estado mutável.
 - O contrato de combatente do Sistema 12 não equivale oponente a monstro: pessoas e criaturas compartilham o mesmo contrato, diferindo apenas por conteúdo.
 - Preserve as Fatias 12.8 a 12.12: revele ameaças somente por pré-requisitos declarativos, derive a vitalidade do jogador da `saude` atual e persista somente um resultado terminal verificável.
-- Um confronto completo cobra o tempo exatamente uma vez no desfecho; turnos individuais nunca avançam o relógio.
+- Um confronto completo cobra o tempo exatamente uma vez no desfecho; rodadas individuais nunca avançam o relógio.
+- O combate é planejado por rodadas: cada lado monta uma sequência dentro de `ROUND_TICKS` tempos, os dois se declaram prontos e `resolveRound` resolve a linha do tempo. A resolução no mundo guarda `playerPlans` e é verificada por replay. Ecos (Selo do Desperto, resultado `RES1.`) nunca concedem recompensas que alterem o equilíbrio.
 - Vitória, derrota ou fuga devem formar uma única transação de mundo. React não calcula nem aplica consequências persistentes.
 - No Sistema 13, prática só nasce de treino validado ou resolução de combate reproduzida; não aceite proficiência, nível, marco ou recompensa informados pela UI.
 
@@ -56,7 +57,7 @@ A interface jogável segue o princípio **aventura primeiro, dados sob demanda**
 - integração por contratos com o motor já consolidado;
 - testes automatizados para cada nova regra;
 - documentação atualizada para refletir apenas contratos implementados;
-- nenhuma chave, segredo ou dependência de rede durante a partida.
+- nenhuma chave ou segredo no cliente, e nenhuma dependência de rede para jogar a partida (rede só para camadas opcionais).
 
 Quando houver ambiguidade, preserve a modularidade e escolha a menor solução capaz de validar a experiência.
 

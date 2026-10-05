@@ -11,7 +11,12 @@
           "type": "damage",
           "amount": 5
         }
-      ]
+      ],
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      }
     },
     {
       "id": "guard",
@@ -24,7 +29,12 @@
           "type": "guard",
           "amount": 6
         }
-      ]
+      ],
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      }
     },
     {
       "id": "focus-strike",
@@ -38,7 +48,13 @@
           "amount": 9
         }
       ],
-      "skillId": "sharpened-senses"
+      "skillId": "sharpened-senses",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 1
+      },
+      "interruptible": true
     },
     {
       "id": "mend",
@@ -57,7 +73,12 @@
           "conditionId": "bleeding"
         }
       ],
-      "skillId": "steady-body"
+      "skillId": "steady-body",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 0
+      }
     },
     {
       "id": "ember-cut",
@@ -77,7 +98,13 @@
           "duration": 2,
           "potency": 1
         }
-      ]
+      ],
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "playerUsable": false
     },
     {
       "id": "warding-focus",
@@ -95,7 +122,12 @@
           "count": 1
         }
       ],
-      "skillId": "sensing-guard"
+      "skillId": "sensing-guard",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      }
     },
     {
       "id": "numen-spark",
@@ -123,6 +155,299 @@
           "amount": 12
         }
       ]
+    },
+    {
+      "id": "advance",
+      "name": "Avançar",
+      "description": "Fecha a distância para alcançar o oponente corpo a corpo.",
+      "speed": 12,
+      "target": "self",
+      "range": "self",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "effects": [
+        {
+          "type": "move",
+          "to": "near"
+        }
+      ]
+    },
+    {
+      "id": "retreat",
+      "name": "Recuar",
+      "description": "Abre distância: golpes corpo a corpo deixam de alcançar.",
+      "speed": 12,
+      "target": "self",
+      "range": "self",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "effects": [
+        {
+          "type": "move",
+          "to": "far"
+        }
+      ]
+    },
+    {
+      "id": "dodge",
+      "name": "Esquivar",
+      "description": "Lê o movimento do oponente: golpes que chegam neste tempo e no seguinte erram.",
+      "speed": 15,
+      "target": "self",
+      "range": "self",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "effects": [
+        {
+          "type": "evade",
+          "ticks": 2
+        }
+      ]
+    },
+    {
+      "id": "lunge",
+      "name": "Investida",
+      "description": "Avança e golpeia no mesmo impulso. Pode ser interrompida durante o arranque.",
+      "speed": 9,
+      "target": "opponent",
+      "range": "melee",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 0
+      },
+      "interruptible": true,
+      "effects": [
+        {
+          "type": "move",
+          "to": "near"
+        },
+        {
+          "type": "damage",
+          "amount": 6
+        }
+      ]
+    },
+    {
+      "id": "throw-stone",
+      "name": "Arremessar Pedra",
+      "description": "Ataque fraco que alcança de longe.",
+      "speed": 11,
+      "target": "opponent",
+      "range": "reach",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "feint",
+      "name": "Finta",
+      "description": "Os Sentidos Aguçados acham a brecha: golpe leve que desmancha uma preparação em curso.",
+      "speed": 16,
+      "target": "opponent",
+      "range": "melee",
+      "skillId": "sharpened-senses",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 2
+        },
+        {
+          "type": "interrupt"
+        }
+      ]
+    },
+    {
+      "id": "rooted-stance",
+      "name": "Firmar os Pés",
+      "description": "O Corpo Firme ancora a postura: escudo rápido que solta travas do corpo.",
+      "speed": 14,
+      "target": "self",
+      "range": "self",
+      "skillId": "steady-body",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "effects": [
+        {
+          "type": "guard",
+          "amount": 5
+        },
+        {
+          "type": "condition.cleanse",
+          "count": 1,
+          "conditionId": "hindered"
+        }
+      ]
+    },
+    {
+      "id": "sentinel-reflex",
+      "name": "Reflexo Sentinela",
+      "description": "A Sentinela Interior antecipa o golpe: esquiva longa e um pequeno escudo.",
+      "speed": 18,
+      "target": "self",
+      "range": "self",
+      "skillId": "sensing-guard",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "cooldown": 1,
+      "effects": [
+        {
+          "type": "evade",
+          "ticks": 3
+        },
+        {
+          "type": "guard",
+          "amount": 3
+        }
+      ]
+    },
+    {
+      "id": "spark-dart",
+      "name": "Dardo de Fagulha",
+      "description": "A Fagulha Condutora lança um dardo de Númen que alcança de longe.",
+      "speed": 10,
+      "target": "opponent",
+      "range": "reach",
+      "skillId": "guiding-spark",
+      "classification": "poder",
+      "originEnergyId": "numen",
+      "elementId": "embers",
+      "phases": {
+        "prepare": 1,
+        "execute": 1,
+        "recover": 0
+      },
+      "cost": {
+        "energyId": "numen",
+        "amount": 2
+      },
+      "interruptible": true,
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "peck-dive",
+      "name": "Mergulho de Bico",
+      "description": "Mergulha do alto e volta para longe.",
+      "speed": 13,
+      "target": "opponent",
+      "range": "reach",
+      "playerUsable": false,
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 4
+        }
+      ]
+    },
+    {
+      "id": "venom-bite",
+      "name": "Picada Venenosa",
+      "description": "Uma picada que deixa a guarda exposta.",
+      "speed": 11,
+      "target": "opponent",
+      "range": "melee",
+      "playerUsable": false,
+      "elementId": "water",
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 1
+      },
+      "effects": [
+        {
+          "type": "damage",
+          "amount": 3
+        },
+        {
+          "type": "condition.apply",
+          "conditionId": "exposed",
+          "duration": 2,
+          "potency": 1
+        }
+      ]
+    },
+    {
+      "id": "coil",
+      "name": "Enrodilhar",
+      "description": "Fecha o corpo em espiral e endurece as escamas.",
+      "speed": 14,
+      "target": "self",
+      "range": "self",
+      "playerUsable": false,
+      "phases": {
+        "prepare": 0,
+        "execute": 1,
+        "recover": 0
+      },
+      "effects": [
+        {
+          "type": "guard",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "id": "gore-charge",
+      "name": "Carga de Espinhos",
+      "description": "Abaixa a cabeça e arremete. Lenta para armar — e interrompível.",
+      "speed": 7,
+      "target": "opponent",
+      "range": "melee",
+      "playerUsable": false,
+      "interruptible": true,
+      "phases": {
+        "prepare": 2,
+        "execute": 1,
+        "recover": 1
+      },
+      "effects": [
+        {
+          "type": "move",
+          "to": "near"
+        },
+        {
+          "type": "damage",
+          "amount": 10
+        }
+      ]
     }
   ],
   "combatants": [
@@ -133,7 +458,9 @@
       "actionIds": [
         "attack",
         "guard",
-        "ember-cut"
+        "ember-cut",
+        "advance",
+        "dodge"
       ],
       "defenseElementId": "embers"
     },
@@ -143,9 +470,43 @@
       "maxHealth": 10,
       "actionIds": [
         "attack",
-        "guard"
+        "guard",
+        "advance"
       ],
       "defenseElementId": "embers"
+    },
+    {
+      "id": "bark-crow",
+      "name": "Corvo-de-Casca",
+      "maxHealth": 12,
+      "actionIds": [
+        "peck-dive",
+        "dodge",
+        "retreat"
+      ]
+    },
+    {
+      "id": "spring-serpent",
+      "name": "Serpente da Nascente",
+      "maxHealth": 16,
+      "actionIds": [
+        "venom-bite",
+        "coil",
+        "advance",
+        "dodge"
+      ],
+      "defenseElementId": "water"
+    },
+    {
+      "id": "thorn-boar",
+      "name": "Javali de Espinhos",
+      "maxHealth": 28,
+      "actionIds": [
+        "gore-charge",
+        "attack",
+        "guard",
+        "advance"
+      ]
     }
   ],
   "encounters": [
@@ -164,13 +525,16 @@
       "reward": {
         "itemId": "predator-fang",
         "quantity": 1
-      }
+      },
+      "startDistance": "far"
     },
     {
       "id": "clearing-pair",
       "locationId": "awakening-clearing",
       "opponentId": "wary-predator",
-      "additionalOpponentIds": ["wary-scout"],
+      "additionalOpponentIds": [
+        "wary-scout"
+      ],
       "requiredOrganizationId": "clearing-party",
       "name": "Predadores da Clareira",
       "description": "Dois predadores flanqueiam o grupo. Mira só entra neste confronto se estiver ativa na companhia.",
@@ -179,7 +543,58 @@
       },
       "requiredDiscoveryIds": [
         "wary-predator-tracks"
-      ]
+      ],
+      "startDistance": "far"
+    },
+    {
+      "id": "great-tree-crow",
+      "locationId": "great-tree",
+      "opponentId": "bark-crow",
+      "name": "Corvo-de-Casca",
+      "description": "Um corvo de penas duras como casca defende o tronco e ataca de cima, sempre voltando para longe.",
+      "timeCost": {
+        "minutes": 15
+      },
+      "requiredDiscoveryIds": [
+        "bark-markings"
+      ],
+      "startDistance": "far",
+      "reward": {
+        "itemId": "galho-resistente",
+        "quantity": 1
+      }
+    },
+    {
+      "id": "spring-serpent",
+      "locationId": "spring-lake",
+      "opponentId": "spring-serpent",
+      "name": "Serpente da Nascente",
+      "description": "Algo se move sob a água rasa perto do rastro de sangue seco. A serpente ataca de perto e deixa a guarda exposta.",
+      "timeCost": {
+        "minutes": 20
+      },
+      "requiredDiscoveryIds": [
+        "dried-blood-trace"
+      ],
+      "startDistance": "near"
+    },
+    {
+      "id": "dense-woods-boar",
+      "locationId": "dense-woods",
+      "opponentId": "thorn-boar",
+      "name": "Javali de Espinhos",
+      "description": "Uma ameaça de elite: o javali arma cargas lentas e devastadoras. Interrompa a preparação ou saia do caminho.",
+      "timeCost": {
+        "minutes": 25
+      },
+      "requiredDiscoveryIds": [
+        "horned-rabbit-tracks"
+      ],
+      "startDistance": "far",
+      "reward": {
+        "itemId": "predator-fang",
+        "quantity": 2
+      }
     }
   ]
 }

@@ -18,6 +18,8 @@ export function GameMenuPanel({
   guidanceCount,
   guidanceUnseenCount,
   notableCount = 0,
+  echoesUnlocked = false,
+  echoRecords = 0,
 }: {
   status: SystemStatusView;
   view: ExplorationView;
@@ -26,11 +28,13 @@ export function GameMenuPanel({
   guidanceCount: number;
   guidanceUnseenCount: number;
   notableCount?: number;
+  echoesUnlocked?: boolean;
+  echoRecords?: number;
 }) {
   const activeOrganizations = status.organizations.length;
   const activeCivic = status.civic.filter((entry) => entry.active).length;
   const bondPeople = view.bonds.map((bond) => ({ id: bond.npcId, name: bond.name, src: bond.portraitSrc }));
-  const revealed = revealedMenuDomains(status, view.bonds.length, notableCount);
+  const revealed = revealedMenuDomains(status, view.bonds.length, notableCount, echoesUnlocked);
   const hiddenCount = ALL_MENU_DOMAINS.filter((domain) => !revealed.has(domain)).length;
   const show = (domain: MenuDomainId) => revealed.has(domain);
   const familyPeople = status.family
@@ -53,6 +57,13 @@ export function GameMenuPanel({
           detail={`${status.knownSkills.length} habilidades · ${status.trainings.length} treinos`}
           onClick={() => onNavigate('progression')}
         />
+        {show('echoes') ? <MenuEntry
+          icon="echo"
+          tone="registry"
+          title="Ecos"
+          detail={echoRecords > 0 ? `${echoRecords} Prova${echoRecords === 1 ? '' : 's'} do Eco · Selo e rivalidades` : 'Seu Selo do Desperto · duelos com outros jogadores'}
+          onClick={() => onNavigate('echoes')}
+        /> : null}
         {show('registry') ? <MenuEntry
           icon="registry"
           tone="registry"

@@ -69,6 +69,7 @@ import {
 import { createChanceState, inspectChanceState, type ChanceState } from '../../modules/chance';
 import { createInitialStoryState, inspectStoryState, type StoryState } from '../../modules/story';
 import { copyWorld, isWorldClockConsistent } from '../../modules/world';
+import { inspectEchoesState } from '../../modules/echoes';
 import {
   ATTRIBUTE_IDS,
   LEGACY_ATTRIBUTE_IDS,
@@ -1280,6 +1281,10 @@ function inspectCurrent(
   if (!story.ok) {
     return fail(story.reason);
   }
+  const echoes = value.echoes === undefined ? undefined : inspectEchoesState(value.echoes);
+  if (echoes && !echoes.ok) {
+    return fail(echoes.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1415,6 +1420,7 @@ function inspectCurrent(
       activities: activities.value,
       rng: rng.value,
       story: story.value,
+      ...(echoes?.ok ? { echoes: echoes.value } : {}),
     },
   };
 }

@@ -9,7 +9,7 @@ import {
   combatResolutionEffects,
   createCombat,
   getEncounter,
-  resolveTurn,
+  resolveRound,
   type CombatState,
 } from '../modules/combat';
 import { createInitialExecutionState } from '../modules/execution';
@@ -26,11 +26,11 @@ function fightTo(outcome: 'victory' | 'fled', saude: number): CombatState {
     playerMaxHealth: saude,
   });
   if (outcome === 'fled') {
-    return resolveTurn(INITIAL_COMBAT, state, 'flee');
+    return resolveRound(INITIAL_COMBAT, state, ['flee']);
   }
   let safety = 0;
   while (state.outcome === 'ongoing' && safety < 50) {
-    state = resolveTurn(INITIAL_COMBAT, state, 'focus-strike');
+    state = resolveRound(INITIAL_COMBAT, state, ['advance', 'guard', 'focus-strike']);
     safety += 1;
   }
   return state;

@@ -1,12 +1,13 @@
 import type { SystemStatusView } from '../../modules/system-interface';
 
-export type MenuDomainId = 'progression' | 'registry' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help' | 'settings';
+export type MenuDomainId = 'progression' | 'registry' | 'echoes' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help' | 'settings';
 
-export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help', 'settings'];
+export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'echoes', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help', 'settings'];
 
 export const MENU_DOMAIN_LABELS: Record<MenuDomainId, string> = {
   progression: 'Progressão',
   registry: 'Registro',
+  echoes: 'Ecos',
   relationships: 'Relacionamentos',
   society: 'Sociedade',
   family: 'Família e lar',
@@ -24,8 +25,16 @@ const anyAvailable = (actions: readonly { available: boolean }[]) => actions.som
  * existe algo real para consultar (estado persistido) ou fazer agora (ação disponível).
  * Ações listadas mas bloqueadas não abrem uma interface sozinhas.
  */
-export function revealedMenuDomains(status: SystemStatusView, knownBonds: number, notableDecisions = 0): Set<MenuDomainId> {
+export function revealedMenuDomains(
+  status: SystemStatusView,
+  knownBonds: number,
+  notableDecisions = 0,
+  echoesUnlocked = false,
+): Set<MenuDomainId> {
   const revealed = new Set<MenuDomainId>(['progression', 'map', 'help', 'settings']);
+  if (echoesUnlocked) {
+    revealed.add('echoes');
+  }
   if (notableDecisions > 0) {
     revealed.add('chronicle');
   }

@@ -3,7 +3,21 @@ import type { ActionCost, ActionPhases, ExecutionModifiers, ExecutionState } fro
 import type { TimeCost } from '../time';
 import type { EquipmentState } from '../items';
 
-export const COMBAT_EFFECT_TYPES = ['damage', 'heal', 'guard', 'condition.apply', 'condition.cleanse', 'interrupt'] as const;
+export const COMBAT_EFFECT_TYPES = [
+  'damage',
+  'heal',
+  'guard',
+  'condition.apply',
+  'condition.cleanse',
+  'interrupt',
+  'evade',
+  'move',
+] as const;
+
+/** Distância entre os dois lados de um confronto planejado por rodadas. */
+export const COMBAT_DISTANCES = ['near', 'far'] as const;
+
+export type CombatDistance = (typeof COMBAT_DISTANCES)[number];
 
 export type CombatEffectType = (typeof COMBAT_EFFECT_TYPES)[number];
 
@@ -13,7 +27,11 @@ export type CombatEffect =
   | { type: 'guard'; amount: number }
   | { type: 'condition.apply'; conditionId: string; duration: number; potency: number }
   | { type: 'condition.cleanse'; count: number; conditionId?: string }
-  | { type: 'interrupt' };
+  | { type: 'interrupt' }
+  /** Esquiva: golpes que caem nos próximos `ticks` tempos (contando o próprio) erram. */
+  | { type: 'evade'; ticks: number }
+  /** Movimento: muda a distância do confronto no tempo em que a ação acontece. */
+  | { type: 'move'; to: CombatDistance };
 
 export const COMBAT_TARGETS = ['opponent', 'self'] as const;
 
@@ -39,6 +57,8 @@ export interface CombatActionDefinition {
   cost?: ActionCost;
   cooldown?: number;
   interruptible?: boolean;
+  /** `false` para ações exclusivas de criaturas (garras, mordidas): não entram no banco do jogador. */
+  playerUsable?: boolean;
 }
 
 export interface CombatantTemplate {
@@ -60,6 +80,8 @@ export interface EncounterDefinition {
   timeCost: TimeCost;
   requiredDiscoveryIds: string[];
   reward?: { itemId: string; quantity: number };
+  /** Distância inicial do confronto (padrão: longe). */
+  startDistance?: CombatDistance;
 }
 
 export const PREPARED_ACTION_PREFIX = 'prepared:';
@@ -132,6 +154,37 @@ export interface CombatState {
   allies: CombatantState[];
   foes: CombatantState[];
   companionOrderLog: { actorId: string; actionId: string }[][];
+  /** Distância atual (combate por rodadas). */
+  distance?: CombatDistance;
+  /** Sequências declaradas em cada rodada, na ordem. */
+  rounds?: CombatRoundRecord[];
+  /** Linha do tempo da última rodada resolvida, para a reprodução na interface. */
+  lastRound?: RoundEvent[];
+}
+
+/** Sequências que cada lado declarou antes de "Pronto". */
+export interface CombatRoundRecord {
+  player: string[];
+  opponent: string[];
+}
+
+export type RoundEventKind = 'hit' | 'self' | 'miss' | 'evaded' | 'out-of-range' | 'interrupted' | 'move' | 'skipped';
+
+/** Um acontecimento da linha do tempo de uma rodada. */
+export interface RoundEvent {
+  tick: number;
+  actorId: string;
+  actionId: string;
+  kind: RoundEventKind;
+  text: string;
+}
+
+/** Posição de uma ação na trilha de tempos da rodada. */
+export interface PlannedSlot {
+  actionId: string;
+  start: number;
+  lands: number;
+  duration: number;
 }
 
 export interface CombatResolution {
@@ -147,6 +200,8 @@ export interface CombatResolution {
   remainingExecution: ExecutionState;
   companionOrders: { actorId: string; actionId: string }[][];
   allyVitals: { actorId: string; health: number }[];
+  /** Sequências do jogador por rodada (combate planejado). Ausente no combate legado de uma ação por turno. */
+  playerPlans?: string[][];
 }
 
 export interface CombatActionView {

@@ -5,7 +5,7 @@ import { formatNeedDelta } from '../../needs/presentation';
 import type { NeedEffectView } from '../../sandbox';
 
 export type DomainView = 'domain-territory' | 'domain-economy' | 'domain-politics';
-export type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain' | DomainView | 'chronicle' | 'settings' | 'help';
+export type GameView = GameTab | 'map' | 'people' | 'relationships' | 'progression' | 'registry' | 'society' | 'family' | 'domain' | DomainView | 'chronicle' | 'settings' | 'help' | 'echoes';
 
 export function DetailScreen({
   title,

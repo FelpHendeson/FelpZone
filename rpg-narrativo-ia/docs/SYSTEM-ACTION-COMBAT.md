@@ -10,6 +10,8 @@ Este documento especifica e registra o eixo de combate preparado pela ponte da F
 
 Números, nomes, custos e conteúdo de ações e combatentes são **protótipos** e não são cânone. Balanceamento definitivo, posicionamento, iniciativa por frações de turno, condições de status ricas, grupos e controle de aliados permanecem fora do escopo.
 
+> **Atualização (outubro de 2026):** a interface passou ao **combate planejado por rodadas** — cada lado monta uma sequência de ações em 5 tempos, os dois se declaram prontos e a linha do tempo resolve tudo. A resolução de uma ação por turno descrita abaixo continua no motor por compatibilidade. Veja [Combate por rodadas e Ecos](SYSTEM-ECHOES-ROUND-COMBAT.md).
+
 ## Problema de diversão e imersão
 
 O protótipo já permite explorar, sobreviver, fabricar, seguir jornadas e desenvolver o próprio poder pelo Sistema. Faltava um momento em que esse poder é testado contra uma ameaça: um confronto com regras claras, decisões táticas e consequências perceptíveis que devolvem o jogador à exploração.

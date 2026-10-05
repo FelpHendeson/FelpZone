@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
-import { INITIAL_COMBAT, createCombat, resolveTurn, type CombatState } from '../modules/combat';
+import { INITIAL_COMBAT, createCombat, resolveRound, type CombatState } from '../modules/combat';
 import { INITIAL_ORGANIZATIONS } from '../modules/organizations';
 import { INITIAL_PARTY, listCompanionOrderViews } from '../modules/party';
 import { CombatScreen } from '../ui/screens/CombatScreen';
@@ -28,6 +28,25 @@ describe('Fatia 12.5 — superfície de combate', () => {
     expect(html).toContain('Centelha de Númen');
     expect(html).toContain('Númen 10/10');
     expect(html).toContain('Fugir');
+    expect(html).toContain('0/5 tempos');
+    expect(html).toContain('Pronto');
+    expect(html).toContain('[ Sistema ] · Leitura');
+    expect(html).toContain('Avançar');
+  });
+
+  it('o duelo na mesma tela esconde a leitura da intenção e mostra de quem é a vez', () => {
+    const initialState = createCombat(INITIAL_COMBAT, 'clearing-predator', { playerName: 'Ana Sol' });
+    const html = renderToStaticMarkup(
+      <CombatScreen
+        initialState={initialState}
+        encounterName="Prova do Eco"
+        combat={INITIAL_COMBAT}
+        control={{ kind: 'hot-seat', playerLabel: 'Ana', opponentLabel: 'Davi' }}
+        onFinish={() => undefined}
+      />,
+    );
+    expect(html).not.toContain('[ Sistema ] · Leitura');
+    expect(html).toContain('Vez de <strong>Ana</strong>');
   });
 
   it('mostra ações liberadas por habilidades conhecidas do Sistema 11', () => {
@@ -105,7 +124,7 @@ describe('Fatia 12.5 — superfície de combate', () => {
     });
     let safety = 0;
     while (state.outcome === 'ongoing' && safety < 50) {
-      state = resolveTurn(INITIAL_COMBAT, state, 'focus-strike');
+      state = resolveRound(INITIAL_COMBAT, state, ['advance', 'guard', 'focus-strike']);
       safety += 1;
     }
     const html = renderToStaticMarkup(

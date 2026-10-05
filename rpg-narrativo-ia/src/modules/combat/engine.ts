@@ -36,7 +36,9 @@ import {
   type CombatOutcome,
   type CombatState,
   type IndexedCombat,
+  type PlannedSlot,
   type PreparedConsumableState,
+  type RoundEvent,
 } from './types';
 
 export interface AllySnapshot {
@@ -99,6 +101,7 @@ export function createCombat(
   const loadout = copyLoadout(options.loadout ?? emptyCombatLoadout());
   const prepared = (options.prepared ?? []).map((entry) => ({ ...entry }));
   const playerActionIds = catalog.actions
+    .filter((action) => action.playerUsable !== false)
     .filter((action) => action.skillId === undefined || known.has(action.skillId))
     .map((action) => action.id);
   for (const actionId of loadout.grantedActionIds) {
@@ -152,6 +155,70 @@ export function createCombat(
     allies,
     foes,
     companionOrderLog: [],
+    distance: encounter.startDistance ?? 'far',
+    rounds: [],
+    lastRound: [],
+  };
+}
+
+/** Um lado de um duelo entre Despertos: nome, vitalidade e o banco de ações que leva. */
+export interface DuelistSnapshot {
+  name: string;
+  maxHealth: number;
+  actionIds: readonly string[];
+  knownSkillIds?: readonly string[];
+}
+
+export const DUEL_ENCOUNTER_ID = 'duel';
+export const DUEL_OPPONENT_ID = 'rival';
+
+/** Banco de ações que um Desperto leva para um duelo: ações base e as liberadas por habilidades. */
+export function duelActionBank(catalog: IndexedCombat, knownSkillIds: readonly string[]): string[] {
+  const known = new Set(knownSkillIds);
+  return catalog.actions
+    .filter((action) => action.playerUsable !== false)
+    .filter((action) => action.skillId === undefined || known.has(action.skillId))
+    .map((action) => action.id);
+}
+
+/** Cria um duelo 1x1 entre dois Despertos, sem encontro do mundo nem consumíveis. */
+export function createDuel(catalog: IndexedCombat, me: DuelistSnapshot, rival: DuelistSnapshot): CombatState {
+  for (const side of [me, rival]) {
+    if (!Number.isSafeInteger(side.maxHealth) || side.maxHealth < 1) {
+      throw new CombatError('A vitalidade do duelista é inválida.');
+    }
+    if (side.actionIds.length === 0 || side.actionIds.some((id) => !catalog.actionById.has(id) || catalog.actionById.get(id)?.playerUsable === false)) {
+      throw new CombatError('O banco de ações do duelista é inválido.');
+    }
+  }
+  const combatant = (id: string, side: DuelistSnapshot): CombatantState => ({
+    id,
+    name: side.name.trim() || 'Desperto',
+    maxHealth: side.maxHealth,
+    health: side.maxHealth,
+    guard: 0,
+    actionIds: [...side.actionIds],
+    conditions: [],
+    execution: createInitialExecutionState(),
+  });
+  return {
+    encounterId: DUEL_ENCOUNTER_ID,
+    turn: 0,
+    player: combatant('player', me),
+    opponent: combatant(DUEL_OPPONENT_ID, rival),
+    log: [],
+    outcome: 'ongoing',
+    loadout: emptyCombatLoadout(),
+    prepared: [],
+    usedPrepared: [],
+    entryExecution: createInitialExecutionState(),
+    knownSkillIds: [...(me.knownSkillIds ?? [])],
+    allies: [],
+    foes: [],
+    companionOrderLog: [],
+    distance: 'far',
+    rounds: [],
+    lastRound: [],
   };
 }
 
@@ -548,9 +615,13 @@ function applyAction(
         sourceCombatantId: actor.id,
       });
       parts.push(`${action.name} aplica ${runtime.conditions.conditionById.get(effect.conditionId)?.name ?? effect.conditionId}`);
-    } else {
+    } else if (effect.type === 'condition.cleanse') {
       target.conditions = cleanseConditions(target.conditions, effect.conditionId, effect.count);
       parts.push(`${action.name} alivia uma condição`);
+    } else if (effect.type === 'evade') {
+      parts.push(`${action.name}: pronto para se esquivar`);
+    } else {
+      parts.push(effect.to === 'near' ? `${action.name}: avança` : `${action.name}: abre distância`);
     }
   }
   return parts.join('; ');
@@ -669,6 +740,9 @@ function cloneState(state: CombatState): CombatState {
     allies: (state.allies ?? []).map(copyCombatant),
     foes: (state.foes ?? []).map(copyCombatant),
     companionOrderLog: (state.companionOrderLog ?? []).map((turn) => turn.map((entry) => ({ ...entry }))),
+    ...(state.distance ? { distance: state.distance } : {}),
+    ...(state.rounds ? { rounds: state.rounds.map((round) => ({ player: [...round.player], opponent: [...round.opponent] })) } : {}),
+    ...(state.lastRound ? { lastRound: state.lastRound.map((entry) => ({ ...entry })) } : {}),
   };
 }
 
@@ -837,4 +911,448 @@ function compareTimeline(left: TimelineStep, right: TimelineStep): number {
     return 1;
   }
   return left.actorId.localeCompare(right.actorId);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Combate planejado por rodadas: cada lado monta uma sequência de ações dentro do orçamento de
+// tempos da rodada, os dois se declaram prontos e a linha do tempo resolve tudo intercalado.
+// ---------------------------------------------------------------------------------------------
+
+/** Tempos disponíveis para cada lado montar a sequência de uma rodada. */
+export const ROUND_TICKS = 5;
+
+export type CombatStyle = 'balanced' | 'aggressive' | 'defensive';
+
+export interface PlanCheck {
+  ok: boolean;
+  reason?: string;
+  usedTicks: number;
+  slots: PlannedSlot[];
+}
+
+export interface ResolveRoundOptions {
+  /** Sequência do oponente declarada por outra pessoa (duelo). Sem ela, a IA planeja. */
+  opponentPlan?: readonly string[];
+  opponentStyle?: CombatStyle;
+  /** Orientações a companheiros: a ação pedida abre a sequência dele nesta rodada. */
+  companionOrders?: readonly { actorId: string; actionId: string }[];
+  runtime?: CombatRuntime;
+}
+
+/** Quantos tempos a ação ocupa: preparação + execução + recuperação (mínimo 1). */
+export function actionTicks(
+  catalog: IndexedCombat,
+  state: CombatState,
+  actorId: string,
+  actionId: string,
+  runtime: CombatRuntime = {},
+): number {
+  const catalogs = resolveRuntime(runtime);
+  const action = requireAction(catalog, state, actionId);
+  return durationOf(timingFor(action, modifiersFor(state, actorId, catalogs), catalogs));
+}
+
+/** Valida uma sequência e devolve a posição de cada ação na trilha de tempos. */
+export function checkRoundPlan(
+  catalog: IndexedCombat,
+  state: CombatState,
+  actorId: string,
+  actionIds: readonly string[],
+  runtime: CombatRuntime = {},
+): PlanCheck {
+  const catalogs = resolveRuntime(runtime);
+  const actor = actorById(state, actorId);
+  if (!actor) return { ok: false, reason: 'O combatente não existe.', usedTicks: 0, slots: [] };
+  const slots: PlannedSlot[] = [];
+  let cursor = 1;
+  let execution = copyExecutionState(actor.execution);
+  const usedOnce = new Set<string>();
+  for (const actionId of actionIds) {
+    if (!actor.actionIds.includes(actionId)) {
+      return { ok: false, reason: 'A ação não está no banco de ações.', usedTicks: cursor - 1, slots };
+    }
+    const action = requireAction(catalog, state, actionId);
+    const timing = timingFor(action, modifiersFor(state, actorId, catalogs), catalogs);
+    const blocked = describeBlockedAction({ ...actor, execution }, action, timing, roleOf(state, actorId), catalogs);
+    if (blocked) return { ok: false, reason: blocked, usedTicks: cursor - 1, slots };
+    if ((timing.cooldown > 0 || actionId.startsWith(PREPARED_ACTION_PREFIX)) && usedOnce.has(actionId)) {
+      return { ok: false, reason: `${action.name} só pode ser usada uma vez por rodada.`, usedTicks: cursor - 1, slots };
+    }
+    const duration = durationOf(timing);
+    if (cursor - 1 + duration > ROUND_TICKS) {
+      return { ok: false, reason: 'Não cabe nos tempos que restam nesta rodada.', usedTicks: cursor - 1, slots };
+    }
+    execution = payCost(execution, timing.cost);
+    usedOnce.add(actionId);
+    slots.push({ actionId, start: cursor, lands: cursor + timing.phases.prepare, duration });
+    cursor += duration;
+  }
+  return { ok: true, usedTicks: cursor - 1, slots };
+}
+
+/**
+ * IA por regras que monta a rodada inteira de um combatente: cura quando ferido, aproxima-se se
+ * só golpeia de perto, aplica condições que o alvo ainda não tem e preenche com o melhor dano por
+ * tempo. Determinística: o mesmo estado sempre gera a mesma sequência.
+ */
+export function planCombatantRound(
+  catalog: IndexedCombat,
+  state: CombatState,
+  actorId: string,
+  style: CombatStyle = 'balanced',
+  runtime: CombatRuntime = {},
+): string[] {
+  const catalogs = resolveRuntime(runtime);
+  const actor = actorById(state, actorId);
+  if (!actor || actor.health <= 0) return [];
+  const onPlayerSide = actorId === 'player' || (state.allies ?? []).some((entry) => entry.id === actorId);
+  const foe = onPlayerSide
+    ? living([state.opponent, ...(state.foes ?? [])])[0]
+    : living([state.player, ...(state.allies ?? [])])[0];
+  if (!foe) return [];
+
+  const plan: string[] = [];
+  let remaining = ROUND_TICKS;
+  let distance = state.distance ?? 'far';
+  let execution = copyExecutionState(actor.execution);
+  const roundIndex = (state.rounds ?? []).length;
+  const options = actor.actionIds.map((id) => requireAction(catalog, state, id));
+  const timingOf = (action: CombatActionDefinition) => timingFor(action, modifiersFor(state, actorId, catalogs), catalogs);
+
+  const usable = (action: CombatActionDefinition) => {
+    const timing = timingOf(action);
+    if (durationOf(timing) > remaining) return false;
+    if ((timing.cooldown > 0 || action.id.startsWith(PREPARED_ACTION_PREFIX)) && plan.includes(action.id)) return false;
+    return describeBlockedAction({ ...actor, execution }, action, timing, roleOf(state, actorId), catalogs) === undefined;
+  };
+  const reaches = (action: CombatActionDefinition) =>
+    action.target === 'self' || (action.range ?? 'melee') !== 'melee' || distance === 'near';
+  const perTick = (action: CombatActionDefinition) => totalOf(action, 'damage') / durationOf(timingOf(action));
+  const isDefense = (action: CombatActionDefinition) =>
+    action.effects.some((effect) => effect.type === 'guard' || effect.type === 'evade');
+
+  for (let step = 0; step < ROUND_TICKS * 2; step += 1) {
+    const candidates = options.filter(usable);
+    if (candidates.length === 0) break;
+    const damaging = candidates
+      .filter((action) => totalOf(action, 'damage') > 0 && reaches(action))
+      .sort((left, right) => perTick(right) - perTick(left) || right.speed - left.speed);
+    let pick: CombatActionDefinition | undefined;
+
+    if (actor.health <= Math.floor(actor.maxHealth * 0.3)) {
+      pick = candidates.find((action) => totalOf(action, 'heal') > 0 && !plan.includes(action.id));
+    }
+    if (!pick && plan.length === 0 && (style === 'defensive' || (style === 'balanced' && roundIndex % 2 === 1))) {
+      pick = candidates.find(isDefense);
+    }
+    if (!pick && damaging.length === 0 && distance === 'far') {
+      pick = candidates.find((action) => action.effects.some((effect) => effect.type === 'move' && effect.to === 'near'));
+    }
+    if (!pick && style !== 'aggressive') {
+      pick = candidates.find(
+        (action) =>
+          reaches(action) &&
+          !plan.includes(action.id) &&
+          action.effects.some(
+            (effect) =>
+              effect.type === 'condition.apply' && !foe.conditions.some((entry) => entry.conditionId === effect.conditionId),
+          ),
+      );
+    }
+    if (!pick) pick = damaging[0];
+    if (!pick) pick = candidates.find((action) => isDefense(action) && !plan.includes(action.id));
+    if (!pick) break;
+
+    const timing = timingOf(pick);
+    plan.push(pick.id);
+    execution = payCost(execution, timing.cost);
+    remaining -= durationOf(timing);
+    for (const effect of pick.effects) {
+      if (effect.type === 'move') distance = effect.to;
+    }
+  }
+  return plan;
+}
+
+/** O que o Sistema deixa ler da intenção do oponente: a primeira ação (duas com Sentidos Aguçados). */
+export function readOpponentIntent(
+  catalog: IndexedCombat,
+  state: CombatState,
+  style: CombatStyle = 'balanced',
+  runtime: CombatRuntime = {},
+): { revealed: CombatActionDefinition[]; hidden: number } {
+  const plan = planCombatantRound(catalog, state, state.opponent.id, style, runtime);
+  const count = (state.knownSkillIds ?? []).includes('sharpened-senses') ? 2 : 1;
+  return {
+    revealed: plan.slice(0, count).map((id) => requireAction(catalog, state, id)),
+    hidden: Math.max(0, plan.length - count),
+  };
+}
+
+interface RoundStep {
+  actorId: string;
+  side: 'ally' | 'foe';
+  action: CombatActionDefinition;
+  timing: ResolvedActionTiming;
+  start: number;
+  lands: number;
+  order: number;
+}
+
+export function resolveRound(
+  catalog: IndexedCombat,
+  state: CombatState,
+  playerPlan: readonly string[],
+  options: ResolveRoundOptions = {},
+): CombatState {
+  const catalogs = resolveRuntime(options.runtime);
+  if (state.outcome !== 'ongoing') {
+    throw new CombatError('O combate já terminou.');
+  }
+  const round = state.turn + 1;
+  const log = state.log.map((entry) => ({ ...entry }));
+  let prepared = state.prepared.map((entry) => ({ ...entry }));
+  const usedPrepared = state.usedPrepared.map((entry) => ({ ...entry }));
+  const player = copyCombatant(state.player);
+  const opponent = copyCombatant(state.opponent);
+  const allies = (state.allies ?? []).map(copyCombatant);
+  const foes = (state.foes ?? []).map(copyCombatant);
+  const rounds = (state.rounds ?? []).map((entry) => ({ player: [...entry.player], opponent: [...entry.opponent] }));
+  const events: RoundEvent[] = [];
+
+  if (playerPlan.length === 1 && playerPlan[0] === FLEE_ACTION_ID) {
+    tickAllCooldowns([player, opponent, ...allies, ...foes]);
+    const text = `${state.player.name} recua do confronto.`;
+    log.push({ turn: round, actorId: 'player', actionId: FLEE_ACTION_ID, text });
+    events.push({ tick: 1, actorId: 'player', actionId: FLEE_ACTION_ID, kind: 'move', text });
+    rounds.push({ player: [FLEE_ACTION_ID], opponent: [] });
+    return {
+      ...finishTurn(state, patchOf(round, player, opponent, allies, foes, log, prepared, usedPrepared, 'fled', state)),
+      distance: state.distance ?? 'far',
+      rounds,
+      lastRound: events,
+    };
+  }
+
+  if (playerPlan.length === 0) throw new CombatError('Monte ao menos uma ação antes de declarar pronto.');
+  const playerCheck = checkRoundPlan(catalog, state, 'player', playerPlan, options.runtime);
+  if (!playerCheck.ok) throw new CombatError(playerCheck.reason ?? 'A sequência da rodada é inválida.');
+
+  const opponentPlan = options.opponentPlan
+    ? [...options.opponentPlan]
+    : planCombatantRound(catalog, state, state.opponent.id, options.opponentStyle ?? 'balanced', options.runtime);
+  if (options.opponentPlan) {
+    const check = checkRoundPlan(catalog, state, state.opponent.id, opponentPlan, options.runtime);
+    if (!check.ok) throw new CombatError(check.reason ?? 'A sequência do oponente é inválida.');
+  }
+
+  const orders = inspectCompanionOrders(options.companionOrders ?? []);
+  const plans: { actorId: string; side: 'ally' | 'foe'; actionIds: string[] }[] = [
+    { actorId: 'player', side: 'ally', actionIds: [...playerPlan] },
+    ...allies
+      .filter((ally) => ally.health > 0)
+      .map((ally) => ({
+        actorId: ally.id,
+        side: 'ally' as const,
+        actionIds: allyRoundPlan(catalog, state, ally, orders.find((entry) => entry.actorId === ally.id)?.actionId, options.runtime),
+      })),
+    { actorId: opponent.id, side: 'foe', actionIds: opponentPlan },
+    ...foes
+      .filter((foe) => foe.health > 0)
+      .map((foe) => ({
+        actorId: foe.id,
+        side: 'foe' as const,
+        actionIds: planCombatantRound(catalog, state, foe.id, 'balanced', options.runtime),
+      })),
+  ];
+
+  applyStartTicks([player, opponent, ...allies, ...foes], catalogs);
+  const actors = new Map<string, CombatantState>([player, opponent, ...allies, ...foes].map((entry) => [entry.id, entry]));
+
+  const steps: RoundStep[] = [];
+  let order = 0;
+  for (const plan of plans) {
+    let cursor = 1;
+    const actor = actors.get(plan.actorId);
+    if (!actor) continue;
+    for (const actionId of plan.actionIds) {
+      const action = requireAction(catalog, state, actionId);
+      const timing = timingFor(action, modifiersFor(state, plan.actorId, catalogs), catalogs);
+      actor.execution = payCost(actor.execution, timing.cost);
+      steps.push({
+        actorId: plan.actorId,
+        side: plan.side,
+        action,
+        timing,
+        start: cursor,
+        lands: cursor + timing.phases.prepare,
+        order: order++,
+      });
+      cursor += durationOf(timing);
+    }
+  }
+
+  let distance = state.distance ?? 'far';
+  const evading = new Map<string, { from: number; to: number }>();
+  const cancelled = new Set<number>();
+  const ordered = [...steps].sort(
+    (left, right) =>
+      left.lands - right.lands ||
+      right.timing.speed - left.timing.speed ||
+      (left.actorId === 'player' ? -1 : right.actorId === 'player' ? 1 : left.order - right.order),
+  );
+
+  for (const step of ordered) {
+    const actor = actors.get(step.actorId);
+    if (!actor || actor.health <= 0) continue;
+    const record = (kind: RoundEvent['kind'], text: string) => {
+      const line = `${actor.name}: ${text}`;
+      events.push({ tick: step.lands, actorId: actor.id, actionId: step.action.id, kind, text: line });
+      log.push({ turn: round, actorId: actor.id, actionId: step.action.id, text: line });
+    };
+    if (cancelled.has(step.order)) {
+      record('interrupted', `${step.action.name} foi interrompida antes de sair.`);
+      continue;
+    }
+    const opposing = step.side === 'ally' ? living([opponent, ...foes]) : living([player, ...allies]);
+    const target = step.action.target === 'self' ? actor : opposing[0];
+    if (!target) continue;
+
+    const movesNear = step.action.effects.some((effect) => effect.type === 'move' && effect.to === 'near');
+    if (step.action.target !== 'self' && (step.action.range ?? 'melee') === 'melee' && distance === 'far' && !movesNear) {
+      record('out-of-range', `${step.action.name} não alcança — longe demais.`);
+      continue;
+    }
+    for (const effect of step.action.effects) {
+      if (effect.type === 'move') distance = effect.to;
+      if (effect.type === 'evade') evading.set(actor.id, { from: step.lands, to: step.lands + effect.ticks - 1 });
+    }
+    const window = target !== actor ? evading.get(target.id) : undefined;
+    if (window && step.lands >= window.from && step.lands <= window.to && totalOf(step.action, 'damage') > 0) {
+      record('evaded', `${step.action.name} — ${target.name} se esquiva.`);
+      continue;
+    }
+
+    const coreEffects = step.action.effects.filter((effect) => effect.type !== 'move' && effect.type !== 'evade');
+    const healthBefore = target.health;
+    const modifiers = actor.id === player.id ? state.loadout.modifiers : { damage: 0, guard: 0, healing: 0 };
+    const text = coreEffects.length > 0
+      ? applyAction({ ...step.action, effects: coreEffects }, actor, target, modifiers, catalogs)
+      : describeMovement(step.action);
+    const moved = step.action.effects.some((effect) => effect.type === 'move');
+    record(target === actor ? (moved ? 'move' : 'self') : 'hit', text);
+
+    const wounded = target !== actor && target.health < healthBefore;
+    const forcesInterrupt = step.action.effects.some((effect) => effect.type === 'interrupt');
+    if (wounded || forcesInterrupt) {
+      for (const other of steps) {
+        if (
+          other.actorId === target.id &&
+          other.action.interruptible &&
+          other.start <= step.lands &&
+          step.lands < other.lands
+        ) {
+          cancelled.add(other.order);
+        }
+      }
+    }
+  }
+
+  const usedThisRound = new Map<string, string[]>();
+  for (const step of steps) {
+    const actor = actors.get(step.actorId);
+    if (actor && step.timing.cooldown > 0) {
+      actor.execution = setCooldown(actor.execution, step.action.id, step.timing.cooldown);
+      usedThisRound.set(step.actorId, [...(usedThisRound.get(step.actorId) ?? []), step.action.id]);
+    }
+  }
+  for (const combatant of [player, opponent, ...allies, ...foes]) {
+    combatant.execution = tickCooldowns(combatant.execution, usedThisRound.get(combatant.id) ?? []);
+    // A postura defensiva vale para a rodada em que foi erguida.
+    combatant.guard = 0;
+  }
+
+  for (const step of steps) {
+    if (step.actorId !== 'player' || !step.action.id.startsWith(PREPARED_ACTION_PREFIX) || cancelled.has(step.order)) continue;
+    const slot = Number(step.action.id.slice(PREPARED_ACTION_PREFIX.length));
+    const used = prepared.find((entry) => entry.index === slot);
+    if (!used) continue;
+    usedPrepared.push({ slot, itemId: used.itemId });
+    prepared = prepared.filter((entry) => entry.index !== slot);
+    player.actionIds = player.actionIds.filter((id) => id !== step.action.id);
+  }
+
+  applyEndTicks([player, opponent, ...allies, ...foes], catalogs);
+  rounds.push({ player: [...playerPlan], opponent: [...opponentPlan] });
+  const outcome = deriveOutcome(player, opponent, foes);
+  return {
+    ...finishTurn(state, {
+      ...patchOf(round, player, opponent, allies, foes, log, prepared, usedPrepared, outcome, state),
+      companionOrderLog: appendOrders(state, orders),
+    }),
+    distance,
+    rounds,
+    lastRound: events,
+  };
+}
+
+function patchOf(
+  turn: number,
+  player: CombatantState,
+  opponent: CombatantState,
+  allies: CombatantState[],
+  foes: CombatantState[],
+  log: CombatState['log'],
+  prepared: CombatState['prepared'],
+  usedPrepared: CombatState['usedPrepared'],
+  outcome: CombatState['outcome'],
+  state: CombatState,
+): TurnPatch {
+  return { turn, player, opponent, allies, foes, log, prepared, usedPrepared, outcome, companionOrderLog: appendOrders(state, []) };
+}
+
+/** Sequência de um companheiro: a orientação recebida primeiro, depois o que a IA dele escolheria. */
+function allyRoundPlan(
+  catalog: IndexedCombat,
+  state: CombatState,
+  ally: CombatantState,
+  orderedActionId: string | undefined,
+  runtime: CombatRuntime | undefined,
+): string[] {
+  const planned = planCombatantRound(catalog, state, ally.id, 'balanced', runtime);
+  if (orderedActionId === undefined) return planned;
+  if (!ally.actionIds.includes(orderedActionId)) {
+    throw new CombatError('A orientação de companheiro não está disponível.');
+  }
+  const plan = [orderedActionId];
+  if (!checkRoundPlan(catalog, state, ally.id, plan, runtime).ok) {
+    throw new CombatError('A orientação de companheiro não está disponível.');
+  }
+  for (const actionId of planned) {
+    if (checkRoundPlan(catalog, state, ally.id, [...plan, actionId], runtime).ok) plan.push(actionId);
+  }
+  return plan;
+}
+
+function durationOf(timing: ResolvedActionTiming): number {
+  return Math.max(1, timing.phases.prepare + timing.phases.execute + timing.phases.recover);
+}
+
+function actorById(state: CombatState, actorId: string): CombatantState | undefined {
+  return [state.player, state.opponent, ...(state.allies ?? []), ...(state.foes ?? [])].find((entry) => entry.id === actorId);
+}
+
+function roleOf(state: CombatState, actorId: string): 'player' | 'opponent' | 'ally' {
+  if (actorId === 'player') return 'player';
+  return (state.allies ?? []).some((entry) => entry.id === actorId) ? 'ally' : 'opponent';
+}
+
+function modifiersFor(state: CombatState, actorId: string, runtime: Required<CombatRuntime>) {
+  return actorId === 'player' ? playerModifiers(state, runtime) : emptyExecutionModifiers();
+}
+
+function describeMovement(action: CombatActionDefinition): string {
+  const move = action.effects.find((effect): effect is Extract<CombatEffect, { type: 'move' }> => effect.type === 'move');
+  if (move) return move.to === 'near' ? `${action.name}: fecha a distância` : `${action.name}: abre distância`;
+  return `${action.name}: pronto para se esquivar`;
 }

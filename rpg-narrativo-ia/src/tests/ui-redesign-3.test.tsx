@@ -69,6 +69,7 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
         guidanceCount={3}
         guidanceUnseenCount={0}
         notableCount={1}
+        echoesUnlocked
       />,
     );
     expect(html).not.toContain('menu-sealed');
@@ -78,7 +79,8 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
     expect(self).toBeGreaterThan(-1);
     expect(people).toBeGreaterThan(self);
     expect(world).toBeGreaterThan(people);
-    expect(html.match(/class="menu-entry /g)).toHaveLength(10);
+    expect(html.match(/class="menu-entry /g)).toHaveLength(11);
+    expect(html).toContain('<strong>Ecos</strong>');
     expect(html).toContain("<strong>Configurações</strong>");
     expect(html).toContain('<strong>Crônica</strong>');
     // Sociedade passa a viver em "Pessoas", não junto do Domínio.
