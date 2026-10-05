@@ -118,4 +118,4 @@ Para ligar uma imagem, acrescente o `src`:
 }
 ```
 
-Dá para ligar uma imagem de cada vez: o passo sem imagem mantém o fundo liso. Se preferir, mande as imagens para mim; eu converto, otimizo, ligo e confiro na tela.
+**O jeito mais fácil:** coloque os arquivos em `art-inbox/` com estes nomes e rode `npm run art:install`. O script converte, otimiza (fundos com no máximo 1080×1920, textura com 512×512), salva e preenche o `src` sozinho. Dá para ligar uma imagem de cada vez: o passo sem imagem mantém o fundo liso.

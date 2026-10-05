@@ -1,8 +1,11 @@
 import type { PortraitConfig } from '../../core/state';
-import { archetypeOf } from '../silhouettes';
+import { INITIAL_ARCHETYPES, type IndexedArchetypes } from '../../modules/archetypes';
 import { HAIR_COLORS, SKIN_TONES } from '../portrait';
 
-/** Retrato do Desperto: busto em silhueta (sem rosto) na cor do arquétipo, ou a imagem própria. */
+/**
+ * Retrato do Desperto: busto em silhueta (sem rosto) na cor do arquétipo, um retrato pronto do
+ * pack ou a imagem própria. Retrato pronto sem arte ainda usa o busto equivalente.
+ */
 export function PortraitAvatar({
   portrait,
   archetypeId,
@@ -10,6 +13,7 @@ export function PortraitAvatar({
   customSrc,
   label,
   className,
+  catalog = INITIAL_ARCHETYPES,
 }: {
   portrait?: PortraitConfig;
   archetypeId?: string;
@@ -17,19 +21,22 @@ export function PortraitAvatar({
   customSrc?: string | null;
   label?: string;
   className?: string;
+  catalog?: IndexedArchetypes;
 }) {
-  const archetype = archetypeOf(archetypeId);
+  const archetype = archetypeId ? catalog.byId.get(archetypeId) : undefined;
   const primary = archetype?.palette.primary ?? '#5f8c8c';
   const secondary = archetype?.palette.secondary ?? '#cfe3e0';
   const classes = ['portrait-avatar', className].filter(Boolean).join(' ');
-  if (portrait?.kind === 'custom' && customSrc) {
+  const preset = portrait?.kind === 'preset' ? catalog.portraitById.get(portrait.id) : undefined;
+  const imageSrc = portrait?.kind === 'custom' ? customSrc : preset?.image.src;
+  if (imageSrc) {
     return (
       <span className={classes} style={{ width: size, height: size, borderColor: primary }} role={label ? 'img' : undefined} aria-label={label}>
-        <img src={customSrc} alt="" width={size} height={size} />
+        <img src={imageSrc} alt="" width={size} height={size} loading="lazy" decoding="async" />
       </span>
     );
   }
-  const config = portrait?.kind === 'silhouette' ? portrait : { kind: 'silhouette' as const, skin: 1, hair: 1, hairColor: 1 };
+  const config = portrait?.kind === 'silhouette' ? portrait : (preset?.fallback ?? { skin: 1, hair: 1, hairColor: 1 });
   const skin = SKIN_TONES[config.skin] ?? SKIN_TONES[1];
   const hairColor = HAIR_COLORS[config.hairColor] ?? HAIR_COLORS[1];
   return (

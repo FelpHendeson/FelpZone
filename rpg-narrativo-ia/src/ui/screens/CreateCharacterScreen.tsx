@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import type { CharacterSex, PortraitConfig } from '../../core/state';
-import { INITIAL_ARCHETYPES, type IndexedArchetypes } from '../../modules/archetypes';
+import { INITIAL_ARCHETYPES, type IndexedArchetypes, type PortraitPreset } from '../../modules/archetypes';
 import { normalizeIdentity, validateIdentity } from '../../modules/character';
 import { PortraitAvatar } from '../components/PortraitAvatar';
 import { CreationBackdrop } from '../components/CreationBackdrop';
@@ -79,11 +79,11 @@ export function CreateCharacterScreen({ onBack, onConfirm, archetypes = INITIAL_
       <>
         {backdrop}
           <main className="screen character-create character-create--wide">
-          <p className="eyebrow">Inclinação do despertar</p>
-          <h1 className="title title--small">Que aprendiz o Sistema reconhece em você?</h1>
+          <p className="eyebrow">Antes do Reset</p>
+          <h1 className="title title--small">Quem você era antes de o mundo acabar?</h1>
           <p className="lede lede--tight">
-            O arquétipo é a sua identidade e define o equipamento e a técnica com que você desperta. Ele não tranca caminhos: qualquer
-            habilidade continua ao seu alcance.
+            O Sistema não atribui classes. O arquétipo é o que você trouxe da vida de antes: o jeito de lutar e a arma que improvisou
+            ao acordar. Ele não tranca caminhos: qualquer habilidade continua ao seu alcance.
           </p>
           <div
             className={art.cardTexture?.src ? 'archetype-grid archetype-grid--textured' : 'archetype-grid'}
@@ -126,7 +126,22 @@ export function CreateCharacterScreen({ onBack, onConfirm, archetypes = INITIAL_
   }
 
   if (step === 'portrait') {
-    const silhouette = portrait.kind === 'silhouette' ? portrait : { kind: 'silhouette' as const, skin: 1, hair: 1, hairColor: 1 };
+    const selectedPreset = portrait.kind === 'preset' ? archetypes.portraitById.get(portrait.id) : undefined;
+    const silhouette =
+      portrait.kind === 'silhouette' ? portrait : { kind: 'silhouette' as const, ...(selectedPreset?.fallback ?? { skin: 1, hair: 1, hairColor: 1 }) };
+    const otherArchetypes = archetypes.archetypes.filter((entry) => entry.id !== archetypeId && entry.portraits.length > 0);
+    const presetButton = (preset: PortraitPreset) => (
+      <button
+        key={preset.id}
+        type="button"
+        className="portrait-preset"
+        aria-label={preset.label}
+        aria-pressed={portrait.kind === 'preset' && portrait.id === preset.id}
+        onClick={() => setPortrait({ kind: 'preset', id: preset.id })}
+      >
+        <PortraitAvatar portrait={{ kind: 'preset', id: preset.id }} archetypeId={preset.archetypeId} size={54} catalog={archetypes} />
+      </button>
+    );
     const update = (patch: Partial<Extract<PortraitConfig, { kind: 'silhouette' }>>) => setPortrait({ ...silhouette, ...patch });
     return (
       <>
@@ -135,8 +150,26 @@ export function CreateCharacterScreen({ onBack, onConfirm, archetypes = INITIAL_
           <p className="eyebrow">Retrato</p>
           <h1 className="title title--small">Como você se imagina?</h1>
           <div className={art.reflection?.src ? 'portrait-preview portrait-preview--reflection' : 'portrait-preview'}>
-            <PortraitAvatar portrait={portrait} archetypeId={archetypeId} customSrc={customSrc} size={132} label="Prévia do retrato" />
+            <PortraitAvatar portrait={portrait} archetypeId={archetypeId} customSrc={customSrc} size={132} label="Prévia do retrato" catalog={archetypes} />
           </div>
+          {archetype.portraits.length > 0 ? (
+            <fieldset className="portrait-options">
+              <legend>Retratos prontos</legend>
+              <div className="portrait-presets">{archetype.portraits.map(presetButton)}</div>
+              {otherArchetypes.length > 0 ? (
+                <details className="portrait-presets__more">
+                  <summary>Retratos de outros arquétipos</summary>
+                  {otherArchetypes.map((entry) => (
+                    <div key={entry.id} className="portrait-presets__group">
+                      <span>{entry.name}</span>
+                      <div className="portrait-presets">{entry.portraits.map(presetButton)}</div>
+                    </div>
+                  ))}
+                </details>
+              ) : null}
+            </fieldset>
+          ) : null}
+          <p className="portrait-options__hint portrait-options__hint--center">Ou monte o seu:</p>
           <fieldset className="portrait-options">
             <legend>Tom de pele</legend>
             <div className="swatches">
@@ -194,11 +227,11 @@ export function CreateCharacterScreen({ onBack, onConfirm, archetypes = INITIAL_
           <main className="screen screen--narrow character-create">
           <p className="eyebrow">Confirmação</p>
           <div className="portrait-preview">
-            <PortraitAvatar portrait={portrait} archetypeId={archetypeId} customSrc={customSrc} size={96} />
+            <PortraitAvatar portrait={portrait} archetypeId={archetypeId} customSrc={customSrc} size={96} catalog={archetypes} />
           </div>
           <h1 className="title title--small">Começar como {identity.firstName} {identity.lastName}?</h1>
           <p className="lede">
-            Esse será o nome que o Sistema reconhece. Identidade: {sex === 'male' ? 'masculino' : 'feminino'}. Inclinação:{' '}
+            Esse será o nome que o Sistema reconhece. Identidade: {sex === 'male' ? 'masculino' : 'feminino'}. Antes do Reset:{' '}
             {archetype.name}. Não há família esperando do outro lado do vale.
           </p>
           <div className="button-stack">

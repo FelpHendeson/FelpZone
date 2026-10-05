@@ -126,6 +126,7 @@ export {
   SCHEMA_VERSION_V27,
   MIGRATED_CAMPAIGN_ID,
   PORTRAIT_OPTION_COUNT,
+  PORTRAIT_PRESET_ID,
   copyCharacterIdentity,
   isPortraitConfig,
 } from './types';

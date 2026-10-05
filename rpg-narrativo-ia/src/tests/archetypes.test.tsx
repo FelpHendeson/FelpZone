@@ -157,3 +157,58 @@ describe('Silhuetas e retratos', () => {
     expect(INITIAL_ARCHETYPES.creation.awakening?.label).toBeTruthy();
   });
 });
+
+describe('Retratos prontos', () => {
+  it('o pack traz cinco retratos por arquétipo, cada um com busto equivalente', () => {
+    expect(INITIAL_ARCHETYPES.portraitById.size).toBe(25);
+    for (const archetype of INITIAL_ARCHETYPES.archetypes) {
+      expect(archetype.portraits.map((preset) => preset.id)).toEqual([1, 2, 3, 4, 5].map((n) => `${archetype.id}-${n}`));
+      expect(archetype.portraits.some((preset) => preset.sex === 'male')).toBe(true);
+      expect(archetype.portraits.some((preset) => preset.sex === 'female')).toBe(true);
+    }
+  });
+
+  it('o save guarda só o identificador do retrato pronto e recusa identificadores malformados', () => {
+    const state = startGame(
+      { firstName: 'Ana', lastName: 'Cruz', sex: 'female', archetypeId: 'apprentice-mage', portrait: { kind: 'preset', id: 'apprentice-mage-3' } },
+      firstDayCampaign,
+      now,
+    );
+    expect(state.character.portrait).toEqual({ kind: 'preset', id: 'apprentice-mage-3' });
+    expect(parseGameState(serializeGameState(state))).toEqual({ status: 'ok', state });
+    const tampered = { ...JSON.parse(serializeGameState(state)), character: { ...state.character, portrait: { kind: 'preset', id: '../x' } } };
+    expect(parseGameState(JSON.stringify(tampered)).status).toBe('corrupt');
+  });
+
+  it('sem arte, o retrato pronto vira o busto equivalente; com arte, mostra a imagem', () => {
+    const bust = renderToStaticMarkup(<PortraitAvatar portrait={{ kind: 'preset', id: 'apprentice-mage-3' }} archetypeId="apprentice-mage" />);
+    expect(bust).toContain('<svg');
+    const raw = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
+    raw.archetypes[0]!.portraits[2]!.image = { ...raw.archetypes[0]!.portraits[2]!.image, src: '/images/first-day/portraits/apprentice-mage-3.webp' } as typeof raw.archetypes[0]['portraits'][2]['image'];
+    const catalog = inspectArchetypeCatalog(raw);
+    expect(catalog.ok).toBe(true);
+    if (!catalog.ok) return;
+    const art = renderToStaticMarkup(
+      <PortraitAvatar portrait={{ kind: 'preset', id: 'apprentice-mage-3' }} archetypeId="apprentice-mage" catalog={catalog.value} />,
+    );
+    expect(art).toContain('src="/images/first-day/portraits/apprentice-mage-3.webp"');
+    const unknown = renderToStaticMarkup(<PortraitAvatar portrait={{ kind: 'preset', id: 'removido' }} />);
+    expect(unknown).toContain('<svg');
+  });
+
+  it('o catálogo recusa retrato pronto repetido ou com busto fora das opções', () => {
+    const raw = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
+    raw.archetypes[1]!.portraits[0]!.id = 'apprentice-mage-1';
+    expect(inspectArchetypeCatalog(raw).ok).toBe(false);
+    const other = JSON.parse(JSON.stringify(archetypesJson)) as typeof archetypesJson;
+    other.archetypes[0]!.portraits[0]!.fallback.skin = 9;
+    expect(inspectArchetypeCatalog(other).ok).toBe(false);
+  });
+
+  it('as armas de assinatura têm espaço para ícone', () => {
+    for (const itemId of ['living-branch-staff', 'chipped-stone-blade', 'rustic-bow', 'bone-dagger']) {
+      expect(INITIAL_ITEMS.byId.get(itemId)?.image?.kind).toBe('icon');
+    }
+  });
+});
+

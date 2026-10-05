@@ -175,6 +175,17 @@ public/images/first-day/items/bone-dagger.webp
 
 ## 9. Como aplicar depois de gerar
 
-- **Armas:** já funcionam como os outros itens. Adicione `"src": "/images/first-day/items/<nome>.webp"` ao `image` do item em `system/items.json`; veja a seção 9 de [Prompts para geração de arte](ART-GENERATION-PROMPTS.md).
-- **Retratos prontos:** o jogo ainda não tem a galeria de retratos prontos. Quando as imagens chegarem, a criação de personagem ganha uma terceira opção de retrato, além do busto montável e da imagem própria. Ela mostra primeiro os 5 retratos do arquétipo escolhido, e os outros 20 ficam disponíveis logo abaixo. O save guardará apenas o identificador do retrato, como `{ kind: 'preset', id: 'apprentice-mage-3' }`, de forma aditiva e sem mudar a versão do save.
-- Se alguma imagem sair fora do padrão (rosto cortado no círculo, fundo carregado, estilo diferente), gere de novo só aquela. Não é preciso refazer o conjunto.
+1. Coloque as imagens em `art-inbox/`, na raiz do projeto, com o nome do arquivo indicado (por exemplo `apprentice-mage-3.png`). Essa pasta não vai para o repositório.
+   - Qualquer formato serve: png, jpg, webp ou avif.
+   - Qualquer tamanho serve.
+   - Maiúsculas, espaços e sufixos como ` (1)` no nome não atrapalham.
+2. Rode `npm run art:install`. O script:
+   - recorta, reduz e converte cada imagem para webp (retratos em 640×640, ícones em 256×256);
+   - salva em `public/images/first-day/portraits/` ou `items/`;
+   - preenche o `src` no pack.
+   Nomes que ele não reconhece aparecem numa lista à parte. Ao final, ele mostra quais espaços ainda estão sem arte.
+3. Rode `npm test` e `npm run build`.
+
+**Onde os retratos prontos aparecem:** na criação de personagem, em "Retratos prontos". Os 5 do arquétipo escolhido vêm primeiro, e os outros 20 ficam em "Retratos de outros arquétipos". Enquanto a arte não existe, cada retrato aparece como um busto montável parecido com a descrição do prompt. O save guarda só `{ kind: 'preset', id }`; se o pack deixar de ter aquele retrato, aparece o busto padrão.
+
+Se alguma imagem sair fora do padrão (rosto cortado no círculo, fundo carregado, estilo diferente), gere de novo só aquela e rode o script outra vez.

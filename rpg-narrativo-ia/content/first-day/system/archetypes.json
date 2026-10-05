@@ -22,7 +22,7 @@
       "id": "apprentice-mage",
       "name": "Aprendiz de Mago",
       "summary": "Molda o Númen em projéteis à distância. Frágil se for alcançado.",
-      "description": "Desde o despertar, o Eteris parece responder a você antes de responder aos outros. O Sistema o reconhece como alguém que vai aprender a moldar o Númen.",
+      "description": "Antes do Reset, você passava noites com livros que ninguém levava a sério e sentia coisas que não sabia nomear. Ao acordar, o Etéris parece responder a você um instante antes. Do primeiro galho que ainda brotava, você fez um cajado.",
       "pose": "cast",
       "palette": {
         "primary": "#7b6cf0",
@@ -44,13 +44,85 @@
       "backdrop": {
         "kind": "scene",
         "label": "Clareira com partículas violeta de Númen"
-      }
+      },
+      "portraits": [
+        {
+          "id": "apprentice-mage-1",
+          "label": "Aprendiz de Mago, cabelo escuro preso",
+          "sex": "female",
+          "fallback": {
+            "skin": 1,
+            "hair": 3,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Mago, cabelo escuro preso"
+          }
+        },
+        {
+          "id": "apprentice-mage-2",
+          "label": "Aprendiz de Mago, cabelo crespo curto",
+          "sex": "male",
+          "fallback": {
+            "skin": 4,
+            "hair": 1,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Mago, cabelo crespo curto"
+          }
+        },
+        {
+          "id": "apprentice-mage-3",
+          "label": "Aprendiz de Mago, cabelo ruivo curto",
+          "sex": "female",
+          "fallback": {
+            "skin": 0,
+            "hair": 1,
+            "hairColor": 4
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Mago, cabelo ruivo curto"
+          }
+        },
+        {
+          "id": "apprentice-mage-4",
+          "label": "Aprendiz de Mago, cabelo preto em coque",
+          "sex": "male",
+          "fallback": {
+            "skin": 1,
+            "hair": 3,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Mago, cabelo preto em coque"
+          }
+        },
+        {
+          "id": "apprentice-mage-5",
+          "label": "Aprendiz de Mago, encapuzado",
+          "sex": "any",
+          "fallback": {
+            "skin": 2,
+            "hair": 5,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Mago, encapuzado"
+          }
+        }
+      ]
     },
     {
       "id": "apprentice-swordsman",
       "name": "Aprendiz de Espadachim",
       "summary": "Corpo a corpo, cortes em sequência. Precisa fechar a distância.",
-      "description": "Suas mãos procuram uma lâmina antes de procurar abrigo. O Sistema o reconhece como alguém que vai aprender a lutar de perto.",
+      "description": "Antes do Reset, você treinava luta — academia, esgrima ou briga de rua. Suas mãos procuram uma lâmina antes de procurar abrigo, e a primeira pedra que você lascou virou uma.",
       "pose": "slash",
       "palette": {
         "primary": "#d9a441",
@@ -72,13 +144,85 @@
       "backdrop": {
         "kind": "scene",
         "label": "Campo de treino improvisado com troncos marcados"
-      }
+      },
+      "portraits": [
+        {
+          "id": "apprentice-swordsman-1",
+          "label": "Aprendiz de Espadachim, cabelo preto desalinhado",
+          "sex": "male",
+          "fallback": {
+            "skin": 3,
+            "hair": 4,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Espadachim, cabelo preto desalinhado"
+          }
+        },
+        {
+          "id": "apprentice-swordsman-2",
+          "label": "Aprendiz de Espadachim, trança loira",
+          "sex": "female",
+          "fallback": {
+            "skin": 0,
+            "hair": 3,
+            "hairColor": 3
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Espadachim, trança loira"
+          }
+        },
+        {
+          "id": "apprentice-swordsman-3",
+          "label": "Aprendiz de Espadachim, laterais raspadas",
+          "sex": "male",
+          "fallback": {
+            "skin": 0,
+            "hair": 0,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Espadachim, laterais raspadas"
+          }
+        },
+        {
+          "id": "apprentice-swordsman-4",
+          "label": "Aprendiz de Espadachim, cachos presos",
+          "sex": "female",
+          "fallback": {
+            "skin": 4,
+            "hair": 3,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Espadachim, cachos presos"
+          }
+        },
+        {
+          "id": "apprentice-swordsman-5",
+          "label": "Aprendiz de Espadachim, encapuzado",
+          "sex": "any",
+          "fallback": {
+            "skin": 2,
+            "hair": 5,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Espadachim, encapuzado"
+          }
+        }
+      ]
     },
     {
       "id": "apprentice-archer",
       "name": "Aprendiz de Arqueiro",
       "summary": "Mira de longe e mantém a distância. Tiros lentos, mas fortes.",
-      "description": "Você mede distâncias sem perceber e nota o vento nas folhas. O Sistema o reconhece como alguém que vai aprender a acertar de longe.",
+      "description": "Antes do Reset, você caçava com alguém mais velho e aprendeu a ler o vento. Você mede distâncias sem perceber; com madeira verde e tripa, improvisou um arco.",
       "pose": "shoot",
       "palette": {
         "primary": "#4fae6f",
@@ -100,13 +244,85 @@
       "backdrop": {
         "kind": "scene",
         "label": "Borda de mata ao vento"
-      }
+      },
+      "portraits": [
+        {
+          "id": "apprentice-archer-1",
+          "label": "Aprendiz de Arqueiro, trança lateral com pena",
+          "sex": "female",
+          "fallback": {
+            "skin": 3,
+            "hair": 2,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Arqueiro, trança lateral com pena"
+          }
+        },
+        {
+          "id": "apprentice-archer-2",
+          "label": "Aprendiz de Arqueiro, cabelo castanho bagunçado",
+          "sex": "male",
+          "fallback": {
+            "skin": 0,
+            "hair": 4,
+            "hairColor": 2
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Arqueiro, cabelo castanho bagunçado"
+          }
+        },
+        {
+          "id": "apprentice-archer-3",
+          "label": "Aprendiz de Arqueiro, corte chanel preto",
+          "sex": "female",
+          "fallback": {
+            "skin": 1,
+            "hair": 1,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Arqueiro, corte chanel preto"
+          }
+        },
+        {
+          "id": "apprentice-archer-4",
+          "label": "Aprendiz de Arqueiro, dreads curtos",
+          "sex": "male",
+          "fallback": {
+            "skin": 5,
+            "hair": 1,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Arqueiro, dreads curtos"
+          }
+        },
+        {
+          "id": "apprentice-archer-5",
+          "label": "Aprendiz de Arqueiro, capuz de folhas",
+          "sex": "any",
+          "fallback": {
+            "skin": 3,
+            "hair": 5,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Arqueiro, capuz de folhas"
+          }
+        }
+      ]
     },
     {
       "id": "apprentice-assassin",
       "name": "Aprendiz de Assassino",
       "summary": "Rápido e preciso. Ataca primeiro e deixa feridas que sangram.",
-      "description": "Você se move sem fazer barulho e enxerga pontos fracos. O Sistema o reconhece como alguém que vai aprender a decidir um confronto num instante.",
+      "description": "Antes do Reset, você sobrevivia onde ninguém olhava. Move-se sem barulho e enxerga pontos fracos. O primeiro osso afiado que encontrou virou uma adaga.",
       "pose": "stab",
       "palette": {
         "primary": "#c2455a",
@@ -128,13 +344,85 @@
       "backdrop": {
         "kind": "scene",
         "label": "Samambaias ao crepúsculo"
-      }
+      },
+      "portraits": [
+        {
+          "id": "apprentice-assassin-1",
+          "label": "Aprendiz de Assassino, franja sobre o olho",
+          "sex": "male",
+          "fallback": {
+            "skin": 0,
+            "hair": 2,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Assassino, franja sobre o olho"
+          }
+        },
+        {
+          "id": "apprentice-assassin-2",
+          "label": "Aprendiz de Assassino, coque alto",
+          "sex": "female",
+          "fallback": {
+            "skin": 3,
+            "hair": 3,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Assassino, coque alto"
+          }
+        },
+        {
+          "id": "apprentice-assassin-3",
+          "label": "Aprendiz de Assassino, cabelo raspado",
+          "sex": "male",
+          "fallback": {
+            "skin": 1,
+            "hair": 0,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Assassino, cabelo raspado"
+          }
+        },
+        {
+          "id": "apprentice-assassin-4",
+          "label": "Aprendiz de Assassino, cabelo prateado longo",
+          "sex": "female",
+          "fallback": {
+            "skin": 0,
+            "hair": 2,
+            "hairColor": 5
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Assassino, cabelo prateado longo"
+          }
+        },
+        {
+          "id": "apprentice-assassin-5",
+          "label": "Aprendiz de Assassino, capuz e máscara",
+          "sex": "any",
+          "fallback": {
+            "skin": 1,
+            "hair": 5,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz de Assassino, capuz e máscara"
+          }
+        }
+      ]
     },
     {
       "id": "apprentice-pathless",
       "name": "Aprendiz sem caminho definido",
       "summary": "Nenhuma assinatura ainda. Começa com mantimentos e liberdade para seguir qualquer caminho.",
-      "description": "O Sistema hesita ao ler você: nenhuma inclinação se destaca. Isso não é fraqueza — é um caminho que ainda não foi escrito.",
+      "description": "Antes do Reset, você levava uma vida comum. Nenhum costume antigo se destaca — e isso não é fraqueza: é um caminho que ainda não foi escrito. Você acordou com o que conseguiu juntar.",
       "pose": "stand",
       "palette": {
         "primary": "#8aa3b5",
@@ -156,7 +444,79 @@
       "backdrop": {
         "kind": "scene",
         "label": "Encruzilhada de trilhas na névoa"
-      }
+      },
+      "portraits": [
+        {
+          "id": "apprentice-pathless-1",
+          "label": "Aprendiz sem caminho definido, cabelo escuro bagunçado",
+          "sex": "male",
+          "fallback": {
+            "skin": 2,
+            "hair": 4,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz sem caminho definido, cabelo escuro bagunçado"
+          }
+        },
+        {
+          "id": "apprentice-pathless-2",
+          "label": "Aprendiz sem caminho definido, black power curto",
+          "sex": "female",
+          "fallback": {
+            "skin": 5,
+            "hair": 1,
+            "hairColor": 0
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz sem caminho definido, black power curto"
+          }
+        },
+        {
+          "id": "apprentice-pathless-3",
+          "label": "Aprendiz sem caminho definido, cabelo loiro-areia",
+          "sex": "male",
+          "fallback": {
+            "skin": 0,
+            "hair": 1,
+            "hairColor": 3
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz sem caminho definido, cabelo loiro-areia"
+          }
+        },
+        {
+          "id": "apprentice-pathless-4",
+          "label": "Aprendiz sem caminho definido, ondas castanhas",
+          "sex": "female",
+          "fallback": {
+            "skin": 1,
+            "hair": 2,
+            "hairColor": 2
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz sem caminho definido, ondas castanhas"
+          }
+        },
+        {
+          "id": "apprentice-pathless-5",
+          "label": "Aprendiz sem caminho definido, capuz de viagem",
+          "sex": "any",
+          "fallback": {
+            "skin": 2,
+            "hair": 5,
+            "hairColor": 1
+          },
+          "image": {
+            "kind": "portrait",
+            "label": "Aprendiz sem caminho definido, capuz de viagem"
+          }
+        }
+      ]
     }
   ]
 }

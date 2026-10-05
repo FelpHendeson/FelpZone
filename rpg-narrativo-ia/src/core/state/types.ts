@@ -100,7 +100,9 @@ export interface LegacyCharacterIdentity {
  */
 export type PortraitConfig =
   | { kind: 'silhouette'; skin: number; hair: number; hairColor: number }
-  | { kind: 'custom' };
+  | { kind: 'custom' }
+  /** Retrato pronto do pack; se o pack não o tiver mais, a interface mostra o busto padrão. */
+  | { kind: 'preset'; id: string };
 
 export interface CharacterIdentity extends LegacyCharacterIdentity {
   sex: CharacterSex;
@@ -117,10 +119,13 @@ export interface CharacterIdentityInput extends LegacyCharacterIdentity {
 
 export const PORTRAIT_OPTION_COUNT = 6;
 
+export const PORTRAIT_PRESET_ID = /^[a-z0-9][a-z0-9-]{0,63}$/;
+
 export function isPortraitConfig(value: unknown): value is PortraitConfig {
   if (typeof value !== 'object' || value === null) return false;
   const record = value as Record<string, unknown>;
   if (record.kind === 'custom') return Object.keys(record).length === 1;
+  if (record.kind === 'preset') return Object.keys(record).length === 2 && typeof record.id === 'string' && PORTRAIT_PRESET_ID.test(record.id);
   const index = (entry: unknown) => typeof entry === 'number' && Number.isSafeInteger(entry) && entry >= 0 && entry < PORTRAIT_OPTION_COUNT;
   return record.kind === 'silhouette' && index(record.skin) && index(record.hair) && index(record.hairColor);
 }

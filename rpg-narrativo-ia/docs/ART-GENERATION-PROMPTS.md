@@ -304,6 +304,7 @@ Acrescente a cada item o bloco de estilo da seção 1. Os 25 retratos prontos do
 }
 ```
 
-3. Rode a suíte de testes normalmente — a validação de pack confere o formato do caminho, não a existência do arquivo; nenhuma migração de save é necessária.
+3. Para arquétipos, retratos prontos, armas e fundos da criação, `npm run art:install` faz os passos 1 e 2 sozinho: veja [retratos e armas](ART-PROMPTS-ARCHETYPE-PORTRAITS.md) e [criação de personagem](ART-PROMPTS-CHARACTER-CREATION.md).
+4. Rode a suíte de testes normalmente — a validação de pack confere o formato do caminho, não a existência do arquivo; nenhuma migração de save é necessária.
 
 Pode preencher um item de cada vez, não precisa gerar tudo de uma vez.

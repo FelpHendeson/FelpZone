@@ -1,5 +1,5 @@
 import catalogJson from '../../../content/first-day/system/archetypes.json' with { type: 'json' };
-import type { InventoryItem } from '../../core/state/types';
+import { PORTRAIT_OPTION_COUNT, PORTRAIT_PRESET_ID, type InventoryItem } from '../../core/state/types';
 import { inspectImageReference, type ImageReference } from '../../core/events';
 import { ACTION_POSES, INITIAL_COMBAT, type ActionPose, type IndexedCombat } from '../combat';
 import { addItem } from '../inventory';
@@ -26,6 +26,21 @@ export interface ArchetypeDefinition {
   image?: ImageReference;
   /** Fundo opcional da tela de escolha enquanto este arquétipo está selecionado. */
   backdrop?: ImageReference;
+  /** Retratos prontos sugeridos para este arquétipo. */
+  portraits: PortraitPreset[];
+}
+
+/**
+ * Retrato pronto: arte pintada (gerada por IA, por exemplo) com um busto montável equivalente,
+ * usado enquanto a imagem não existe no pack.
+ */
+export interface PortraitPreset {
+  id: string;
+  archetypeId: string;
+  label: string;
+  sex: 'male' | 'female' | 'any';
+  fallback: { skin: number; hair: number; hairColor: number };
+  image: ImageReference;
 }
 
 /** Arte opcional da criação de personagem; cada passo sem imagem mantém o fundo padrão. */
@@ -50,6 +65,7 @@ export interface IndexedArchetypes {
   readonly archetypes: readonly ArchetypeDefinition[];
   readonly byId: ReadonlyMap<string, ArchetypeDefinition>;
   readonly creation: Readonly<CreationArt>;
+  readonly portraitById: ReadonlyMap<string, PortraitPreset>;
 }
 
 export type ArchetypeInspection<T> = { ok: true; value: T } | { ok: false; reason: string };
@@ -73,6 +89,7 @@ export function inspectArchetypeCatalog(
   }
   const archetypes: ArchetypeDefinition[] = [];
   const seen = new Set<string>();
+  const seenPortraits = new Set<string>();
   for (const entry of value.archetypes) {
     if (!isRecord(entry) || !nonEmpty(entry.id) || seen.has(entry.id) || !nonEmpty(entry.name) || !nonEmpty(entry.summary) || !nonEmpty(entry.description)) {
       return fail('Um arquétipo é inválido ou repetido.');
@@ -87,6 +104,16 @@ export function inspectArchetypeCatalog(
     }
     const image = entry.image === undefined ? undefined : inspectImageReference(entry.image);
     if (entry.image !== undefined && !image) return fail(`A imagem do arquétipo ${entry.id} é inválida.`);
+    const portraits: PortraitPreset[] = [];
+    if (entry.portraits !== undefined && (!Array.isArray(entry.portraits) || entry.portraits.length > 12)) {
+      return fail(`Os retratos do arquétipo ${entry.id} são inválidos.`);
+    }
+    for (const preset of (entry.portraits as unknown[] | undefined) ?? []) {
+      const inspected = inspectPortraitPreset(preset, entry.id);
+      if (!inspected || seenPortraits.has(inspected.id)) return fail(`Um retrato pronto de ${entry.id} é inválido ou repetido.`);
+      seenPortraits.add(inspected.id);
+      portraits.push(inspected);
+    }
     const backdrop = entry.backdrop === undefined ? undefined : inspectImageReference(entry.backdrop);
     if (entry.backdrop !== undefined && !backdrop) return fail(`O fundo do arquétipo ${entry.id} é inválido.`);
     const startingItems: { itemId: string; quantity: number }[] = [];
@@ -129,6 +156,7 @@ export function inspectArchetypeCatalog(
       signatureActionIds,
       ...(image ? { image } : {}),
       ...(backdrop ? { backdrop } : {}),
+      portraits,
     });
   }
   const creation: CreationArt = {};
@@ -179,9 +207,32 @@ export function applyArchetypeStart(
   return { inventory: nextInventory, items: nextItems };
 }
 
+function inspectPortraitPreset(value: unknown, archetypeId: string): PortraitPreset | undefined {
+  if (!isRecord(value) || typeof value.id !== 'string' || !PORTRAIT_PRESET_ID.test(value.id) || !nonEmpty(value.label)) return undefined;
+  if (value.sex !== 'male' && value.sex !== 'female' && value.sex !== 'any') return undefined;
+  const fallback = value.fallback;
+  const index = (entry: unknown) => typeof entry === 'number' && Number.isSafeInteger(entry) && entry >= 0 && entry < PORTRAIT_OPTION_COUNT;
+  if (!isRecord(fallback) || !index(fallback.skin) || !index(fallback.hair) || !index(fallback.hairColor)) return undefined;
+  const image = inspectImageReference(value.image);
+  if (!image || image.kind !== 'portrait') return undefined;
+  return {
+    id: value.id,
+    archetypeId,
+    label: value.label,
+    sex: value.sex,
+    fallback: { skin: fallback.skin as number, hair: fallback.hair as number, hairColor: fallback.hairColor as number },
+    image,
+  };
+}
+
 function freeze(archetypes: ArchetypeDefinition[], creation: CreationArt): IndexedArchetypes {
-  const frozen = Object.freeze(archetypes.map((entry) => Object.freeze({ ...entry })));
-  return Object.freeze({ archetypes: frozen, byId: new Map(frozen.map((entry) => [entry.id, entry])), creation: Object.freeze(creation) });
+  const frozen = Object.freeze(archetypes.map((entry) => Object.freeze({ ...entry, portraits: Object.freeze(entry.portraits.map((preset) => Object.freeze({ ...preset }))) as PortraitPreset[] })));
+  return Object.freeze({
+    archetypes: frozen,
+    byId: new Map(frozen.map((entry) => [entry.id, entry])),
+    creation: Object.freeze(creation),
+    portraitById: new Map(frozen.flatMap((entry) => entry.portraits.map((preset) => [preset.id, preset] as const))),
+  });
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {

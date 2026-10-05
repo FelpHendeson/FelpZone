@@ -109,7 +109,9 @@ O jogo continua funcionando sem rede: o online é uma camada opcional sobre os E
 
 ## 4. Arquétipos de aprendiz, silhuetas e retratos
 
-**Decisão do autor:** começar pelos arquétipos de aprendiz, escolhidos na criação do personagem. Para as imagens, seguir a recomendação: silhuetas em vetor sem rosto, retrato montável, imagem própria do aparelho e prompts para IA.
+**Decisão do autor:** começar pelos arquétipos de aprendiz, escolhidos na criação do personagem.
+
+**Lore:** o Sistema não atribui classes (evento "Aptidão inicial"). O arquétipo é **quem a pessoa era antes do Reset**: o jeito de lutar que trouxe da vida de antes e a arma que improvisou ao acordar. As aptidões continuam sendo identificadas pelo Sistema durante o jogo. Para as imagens, seguir a recomendação: silhuetas em vetor sem rosto, retrato montável, imagem própria do aparelho e prompts para IA.
 
 ### Arquétipos (`content/first-day/system/archetypes.json`, módulo `src/modules/archetypes`)
 
@@ -143,6 +145,7 @@ Regras:
 
 ### Retrato (`src/ui/components/PortraitAvatar.tsx`)
 
+- **Retratos prontos:** 5 por arquétipo (`portraits` no pack), com arte opcional e um busto montável equivalente enquanto a arte não existe. O save guarda `{ kind: 'preset', id }`.
 - **Retrato montável:** busto em silhueta sem rosto, com 6 tons de pele, 6 cortes (incluindo capuz) e 6 cores de cabelo. A capa e o contorno usam a cor do arquétipo.
 - **Imagem própria:**
   - é recortada para 192 px e fica só no aparelho (`reset.portrait.custom`); o save guarda apenas `{ kind: 'custom' }`;

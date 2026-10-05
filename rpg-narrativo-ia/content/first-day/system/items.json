@@ -253,7 +253,11 @@
           "type": "combat.action.available",
           "actionId": "numen-bolt"
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Cajado de Galho Vivo"
+      }
     },
     {
       "id": "chipped-stone-blade",
@@ -272,7 +276,11 @@
           "type": "combat.action.available",
           "actionId": "twin-cut"
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Lâmina de Pedra Lascada"
+      }
     },
     {
       "id": "rustic-bow",
@@ -291,7 +299,11 @@
           "type": "combat.action.available",
           "actionId": "aimed-shot"
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Arco Rústico"
+      }
     },
     {
       "id": "bone-dagger",
@@ -310,7 +322,11 @@
           "type": "combat.action.available",
           "actionId": "shadow-strike"
         }
-      ]
+      ],
+      "image": {
+        "kind": "icon",
+        "label": "Adaga de Osso"
+      }
     }
   ]
 }

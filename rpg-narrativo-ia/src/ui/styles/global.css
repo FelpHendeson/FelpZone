@@ -6227,3 +6227,57 @@ span.portrait-avatar {
     opacity: 0.5;
   }
 }
+
+/* Retratos prontos na criação de personagem. */
+.portrait-presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.portrait-preset {
+  display: inline-flex;
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+}
+
+.portrait-preset[aria-pressed='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 40%, transparent);
+}
+
+.portrait-preset:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.portrait-presets__more {
+  margin-top: 10px;
+}
+
+.portrait-presets__more summary {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.portrait-presets__group {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.portrait-presets__group > span {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.portrait-options__hint--center {
+  margin-top: 4px;
+  text-align: center;
+}
