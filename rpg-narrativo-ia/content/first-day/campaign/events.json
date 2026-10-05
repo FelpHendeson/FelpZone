@@ -1730,11 +1730,11 @@
   },
   {
     "id": "day-two-awakening",
-    "title": "O segundo dia",
-    "body": "O descanso atravessa a fronteira que a narrativa não deve fingir: o relógio do mundo realmente avançou. O Sistema registra o novo dia sem reiniciar suas escolhas, seus recursos ou o que aconteceu com outras pessoas.\n\nDia 2 começa no mesmo mundo que você deixou na noite anterior.",
+    "title": "O {{diaOrdinal}} dia",
+    "body": "O descanso atravessa a fronteira que a narrativa não deve fingir: o relógio do mundo realmente avançou. O Sistema registra o novo dia sem reiniciar suas escolhas, seus recursos ou o que aconteceu com outras pessoas.\n\nO dia {{dia}} começa no mesmo mundo que você deixou na noite anterior.",
     "image": {
       "kind": "scene",
-      "label": "Amanhecer do segundo dia"
+      "label": "Um novo amanhecer"
     },
     "choices": [
       {
@@ -1770,7 +1770,7 @@
     "choices": [
       {
         "id": "day-two-together-continue",
-        "label": "Começar o Dia 2",
+        "label": "Começar o dia",
         "effects": [
           {
             "type": "flag.set",
@@ -1791,7 +1791,7 @@
     "choices": [
       {
         "id": "day-two-alone-continue",
-        "label": "Começar o Dia 2",
+        "label": "Começar o dia",
         "effects": [
           {
             "type": "flag.set",
@@ -2140,7 +2140,7 @@
     "body": "A noite passou porque o mundo continuou girando. Outro dia começa, e ninguém chega para explicar o Reset ou decidir o que vocês devem fazer. O que mudou depende dos caminhos que você cruzou ontem.",
     "image": {
       "kind": "scene",
-      "label": "Amanhecer do terceiro dia"
+      "label": "Um novo amanhecer"
     },
     "choices": [
       {
@@ -2262,7 +2262,7 @@
   {
     "id": "day-three-independent",
     "title": "Cada um continua seu caminho",
-    "body": "Você ouviu os planos de Caio e Davi, mas não combinou de acompanhá-los. Eles decidiram continuar buscando um lugar mais seguro e outras pessoas. O terceiro dia começa sem compromisso ou vínculo forçado.",
+    "body": "Você ouviu os planos de Caio e Davi, mas não combinou de acompanhá-los. Eles decidiram continuar buscando um lugar mais seguro e outras pessoas. O dia começa sem compromisso ou vínculo forçado.",
     "conditions": [
       {
         "type": "flag.is",
@@ -2373,7 +2373,7 @@
     "body": "Mais um dia começa. Ninguém chegou durante a noite para dizer o que fazer ou assumir o que ainda está por resolver. O que você levou dos últimos dias — cooperação, distância ou nenhum dos dois — continua sendo o que orienta hoje.",
     "image": {
       "kind": "scene",
-      "label": "Amanhecer do quarto dia"
+      "label": "Um novo amanhecer"
     },
     "choices": [
       {
@@ -2396,7 +2396,7 @@
   {
     "id": "davi-wound-care",
     "title": "Um cuidado que dá trabalho",
-    "body": "Davi tenta esconder que o ferimento ainda incomoda, mas o jeito de sentar denuncia. Verificar de longe, como no segundo dia, não resolve nada — cuidar de verdade toma tempo, e ele sabe disso tanto quanto você.",
+    "body": "Davi tenta esconder que o ferimento ainda incomoda, mas o jeito de sentar denuncia. Verificar de longe, como antes, não resolve nada — cuidar de verdade toma tempo, e ele sabe disso tanto quanto você.",
     "portrait": {
       "kind": "portrait",
       "label": "Davi Moura"
@@ -2469,11 +2469,11 @@
   },
   {
     "id": "day-five-awakening",
-    "title": "O quinto amanhecer",
+    "title": "O {{diaOrdinal}} amanhecer",
     "body": "Mais um dia começa. Nada foi resolvido de uma vez só, mas o que aconteceu até aqui — quem você encontrou, quem evitou, o que cuidou ou deixou passar — continua orientando o que vem agora.",
     "image": {
       "kind": "scene",
-      "label": "Amanhecer do quinto dia"
+      "label": "Um novo amanhecer"
     },
     "choices": [
       {
@@ -2576,7 +2576,7 @@
     "choices": [
       {
         "id": "day-five-alone-continue-choice",
-        "label": "Seguir o quinto dia",
+        "label": "Seguir o dia",
         "effects": [
           {
             "type": "flag.set",
@@ -2592,11 +2592,11 @@
   },
   {
     "id": "day-six-awakening",
-    "title": "O sexto amanhecer",
+    "title": "O {{diaOrdinal}} amanhecer",
     "body": "Outro dia começa. O que foi dito ontem sobre como o grupo deveria decidir as coisas ainda não encontrou um caso real para testar essa ideia.",
     "image": {
       "kind": "scene",
-      "label": "Amanhecer do sexto dia"
+      "label": "Um novo amanhecer"
     },
     "choices": [
       {
@@ -2688,7 +2688,7 @@
   {
     "id": "day-six-alone-continue",
     "title": "Um dia sem esse caso",
-    "body": "Não há ninguém conhecido por perto para levantar essa pergunta hoje. O sexto dia segue sem esse tipo de decisão.",
+    "body": "Não há ninguém conhecido por perto para levantar essa pergunta hoje. O dia segue sem esse tipo de decisão.",
     "conditions": [
       {
         "type": "flag.is",
@@ -2699,7 +2699,7 @@
     "choices": [
       {
         "id": "day-six-alone-continue-choice",
-        "label": "Seguir o sexto dia",
+        "label": "Seguir o dia",
         "effects": [
           {
             "type": "flag.set",
@@ -2716,7 +2716,7 @@
   {
     "id": "day-seven-registry",
     "title": "Primeiro ciclo de avaliação concluído",
-    "body": "O Sistema apresenta uma mensagem que não existia antes: o primeiro ciclo de avaliação terminou. Uma nova função se abre — o Registro regional. Pela primeira vez fica claro que a região abriga muito mais gente do que qualquer coisa que você tenha visto por perto, e que ao menos uma pessoa, em algum lugar dela, cresceu em capacidade de um jeito que sete dias não deveriam permitir. O Sistema não diz quem. Só que existe.",
+    "body": "O Sistema apresenta uma mensagem que não existia antes: o primeiro ciclo de avaliação terminou. Uma nova função se abre — o Registro regional. Pela primeira vez fica claro que a região abriga muito mais gente do que qualquer coisa que você tenha visto por perto, e que ao menos uma pessoa, em algum lugar dela, cresceu em capacidade de um jeito que tão poucos dias não deveriam permitir. O Sistema não diz quem. Só que existe.",
     "image": {
       "kind": "scene",
       "label": "Registro regional habilitado"

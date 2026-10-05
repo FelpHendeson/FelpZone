@@ -44,7 +44,18 @@ export function fullName(character: LegacyCharacterIdentity): string {
   return `${character.firstName} ${character.lastName}`.trim();
 }
 
-export const STORY_VAR_KEYS = ['nome', 'sobrenome', 'nomeCompleto', 'desperto'] as const;
+export const STORY_VAR_KEYS = ['nome', 'sobrenome', 'nomeCompleto', 'desperto', 'dia', 'diaOrdinal'] as const;
+
+const ORDINAL_UNITS = ['', 'primeiro', 'segundo', 'terceiro', 'quarto', 'quinto', 'sexto', 'sétimo', 'oitavo', 'nono'];
+const ORDINAL_TENS = ['', 'décimo', 'vigésimo', 'trigésimo', 'quadragésimo', 'quinquagésimo', 'sexagésimo', 'septuagésimo', 'octogésimo', 'nonagésimo'];
+
+/** Ordinal por extenso (masculino) do dia: "terceiro", "décimo segundo"; acima de 99, "100º". */
+export function ordinalDay(day: number): string {
+  if (!Number.isSafeInteger(day) || day < 1 || day > 99) return `${day}º`;
+  const tens = ORDINAL_TENS[Math.floor(day / 10)]!;
+  const units = ORDINAL_UNITS[day % 10]!;
+  return [tens, units].filter(Boolean).join(' ');
+}
 
 const AWAKENED_FORM: Record<CharacterSex, string> = {
   male: 'Desperto',
@@ -52,12 +63,17 @@ const AWAKENED_FORM: Record<CharacterSex, string> = {
   unspecified: 'Desperto(a)',
 };
 
-export function storyVars(character: LegacyCharacterIdentity & { sex?: CharacterSex }): Record<string, string> {
+/**
+ * Variáveis de texto da história. Com o dia do mundo, os textos dizem o dia real em que a cena
+ * acontece (`{{dia}}`, `{{diaOrdinal}}`): eventos se destravam por eventos, não por data fixa.
+ */
+export function storyVars(character: LegacyCharacterIdentity & { sex?: CharacterSex }, day?: number): Record<string, string> {
   return {
     nome: character.firstName,
     sobrenome: character.lastName,
     nomeCompleto: fullName(character),
     desperto: AWAKENED_FORM[character.sex ?? 'unspecified'],
+    ...(day !== undefined ? { dia: String(day), diaOrdinal: ordinalDay(day) } : {}),
   };
 }
 

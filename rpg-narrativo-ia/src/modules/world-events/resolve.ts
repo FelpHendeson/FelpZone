@@ -1,7 +1,7 @@
 import { recordChapterOpened } from '../story';
 import type { GameState } from '../../core/state';
 import { DEFAULT_PERIODS } from '../time';
-import type { IndexedWorldTriggers, WorldNarrativeTriggerDefinition } from './types';
+import type { IndexedWorldTriggers, WorldNarrativeTriggerDefinition, WorldTriggerCondition } from './types';
 
 export const WORLD_TRIGGER_FLAG_PREFIX = 'world.trigger.';
 export const WORLD_TRIGGER_FLAG_SUFFIX = '.consumed';
@@ -37,7 +37,7 @@ export function listEligibleWorldTriggers(
     if (!isWorldTriggerSourceSatisfied(trigger, state)) {
       continue;
     }
-    if (trigger.conditions?.some((condition) => state.flags[condition.flag] !== condition.value)) {
+    if (trigger.conditions?.some((condition) => !isConditionMet(condition, state))) {
       continue;
     }
 
@@ -138,19 +138,20 @@ type ChapterSource = Extract<WorldNarrativeTriggerDefinition['source'], { type: 
  * Capítulo anterior consumido sem dia registrado (save migrado) conta como já cumprido.
  */
 export function chapterWindow(source: ChapterSource, state: GameState): { earliest: number; fallback?: number } | null {
-  if (source.after === undefined) return { earliest: source.minDay };
+  const floor = source.notBeforeDay ?? 1;
+  if (source.after === undefined) return { earliest: floor };
   const recorded = state.story?.chapterDays[source.after];
   const base = recorded ?? (isWorldTriggerConsumed(state, source.after) ? 0 : undefined);
   if (base === undefined) return null;
   return {
-    earliest: Math.max(source.minDay, base + (source.minDaysAfter ?? 1)),
-    ...(source.fallbackDaysAfter !== undefined ? { fallback: Math.max(source.minDay, base + source.fallbackDaysAfter) } : {}),
+    earliest: Math.max(floor, base + (source.minDaysAfter ?? 1)),
+    ...(source.fallbackDaysAfter !== undefined ? { fallback: Math.max(floor, base + source.fallbackDaysAfter) } : {}),
   };
 }
 
 /** A cena-chave que libera o capítulo foi resolvida (ou a rota não tem cena-chave). */
 export function isChapterKeyResolved(source: ChapterSource, state: GameState): boolean {
-  return source.anyOf.some((group) => group.every((condition) => (state.flags[condition.flag] ?? false) === condition.value));
+  return source.anyOf.some((group) => group.every((condition) => isConditionMet(condition, state)));
 }
 
 /**
@@ -164,9 +165,15 @@ export function findPendingChapterTrigger(
   if (state.status !== 'playing' || state.narrativeSession !== null) return undefined;
   return catalog.definitions.find((trigger) => {
     if (trigger.source.type !== 'story.chapter' || isWorldTriggerConsumed(state, trigger.id)) return false;
-    if (trigger.conditions?.some((condition) => state.flags[condition.flag] !== condition.value)) return false;
+    if (trigger.conditions?.some((condition) => !isConditionMet(condition, state))) return false;
     const window = chapterWindow(trigger.source, state);
     if (window === null || !isChapterKeyResolved(trigger.source, state)) return false;
     return state.world.day < window.earliest || state.world.period === 'madrugada';
   });
+}
+
+/** Condição de gatilho: flag deixada por uma escolha, ou evento da campanha já vivido. */
+export function isConditionMet(condition: WorldTriggerCondition, state: GameState): boolean {
+  if (condition.type === 'event.seen') return state.history.some((entry) => entry.eventId === condition.eventId);
+  return (state.flags[condition.flag] ?? false) === condition.value;
 }

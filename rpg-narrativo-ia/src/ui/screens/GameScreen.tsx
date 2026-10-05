@@ -28,7 +28,7 @@ type Panel = 'none' | 'history' | 'character' | 'inventory';
 export function GameScreen({ state, campaign, event, choices, onChoose, onExit }: GameScreenProps) {
   const [panel, setPanel] = useState<Panel>('none');
   const [sceneDoneFor, setSceneDoneFor] = useState<string | null>(null);
-  const vars = storyVars(state.character);
+  const vars = storyVars(state.character, state.world.day);
   const body = interpolate(event.body, vars);
   const title = interpolate(event.title, vars);
   const script = getVisibleScript(event, state);
@@ -84,7 +84,7 @@ export function GameScreen({ state, campaign, event, choices, onChoose, onExit }
               <h2 id="narrative-choices-title">Como você reage?</h2>
               <span className="section-count">{choices.length}</span>
             </div>
-            <ChoiceList choices={choices} onChoose={onChoose} />
+            <ChoiceList choices={choices.map((choice) => ({ ...choice, label: interpolate(choice.label, vars) }))} onChoose={onChoose} />
           </section>
         ) : null}
       </div>

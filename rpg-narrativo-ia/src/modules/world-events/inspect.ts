@@ -8,6 +8,7 @@ import type {
   IndexedWorldTriggers,
   WorldNarrativeTriggerDefinition,
   WorldTriggerCatalogContext,
+  WorldTriggerCondition,
   WorldTriggerInspection,
   WorldTriggerSource,
 } from './types';
@@ -88,12 +89,12 @@ function inspectTrigger(
     return fail(`O gatilho ${value.id} está duplicado.`);
   }
 
-  const source = inspectSource(value.source, exploration, skills);
+  const source = inspectSource(value.source, exploration, skills, campaign);
   if (!source.ok) {
     return source;
   }
 
-  const conditions = inspectFlagConditions(value.conditions);
+  const conditions = inspectConditions(value.conditions, campaign);
   if (!conditions.ok) {
     return conditions;
   }
@@ -131,23 +132,29 @@ function inspectTrigger(
   };
 }
 
-function inspectFlagConditions(value: unknown): WorldTriggerInspection<{ type: 'flag.is'; flag: string; value: boolean }[]> {
+function inspectCondition(entry: unknown, campaign: Campaign): WorldTriggerCondition | undefined {
+  if (!isRecord(entry)) return undefined;
+  if (entry.type === 'flag.is' && typeof entry.flag === 'string' && entry.flag.trim() !== '' && typeof entry.value === 'boolean') {
+    return { type: 'flag.is', flag: entry.flag, value: entry.value };
+  }
+  if (entry.type === 'event.seen' && typeof entry.eventId === 'string' && getEventById(campaign, entry.eventId)) {
+    return { type: 'event.seen', eventId: entry.eventId };
+  }
+  return undefined;
+}
+
+function inspectConditions(value: unknown, campaign: Campaign): WorldTriggerInspection<WorldTriggerCondition[]> {
   if (value === undefined) {
     return { ok: true, value: [] };
   }
   if (!Array.isArray(value) || value.length > 16) {
     return fail('As condições do gatilho narrativo são inválidas.');
   }
-  const conditions: { type: 'flag.is'; flag: string; value: boolean }[] = [];
+  const conditions: WorldTriggerCondition[] = [];
   for (const entry of value) {
-    if (
-      !isRecord(entry) || entry.type !== 'flag.is' ||
-      typeof entry.flag !== 'string' || entry.flag.trim() === '' ||
-      typeof entry.value !== 'boolean'
-    ) {
-      return fail('As condições do gatilho narrativo são inválidas.');
-    }
-    conditions.push({ type: 'flag.is', flag: entry.flag, value: entry.value });
+    const condition = inspectCondition(entry, campaign);
+    if (!condition) return fail('As condições do gatilho narrativo são inválidas.');
+    conditions.push(condition);
   }
   return { ok: true, value: conditions };
 }
@@ -156,6 +163,7 @@ function inspectSource(
   value: unknown,
   exploration: IndexedExploration,
   skills: IndexedSkills,
+  campaign: Campaign,
 ): WorldTriggerInspection<WorldTriggerSource> {
   if (!isRecord(value) || typeof value.type !== 'string') {
     return fail('A origem do gatilho é inválida.');
@@ -221,8 +229,7 @@ function inspectSource(
 
   if (value.type === 'story.chapter') {
     if (
-      !Number.isSafeInteger(value.minDay) ||
-      (value.minDay as number) <= 0 ||
+      (value.notBeforeDay !== undefined && (!Number.isSafeInteger(value.notBeforeDay) || (value.notBeforeDay as number) <= 0)) ||
       (value.after !== undefined && (typeof value.after !== 'string' || value.after.trim() === '')) ||
       (value.minDaysAfter !== undefined && (!Number.isSafeInteger(value.minDaysAfter) || (value.minDaysAfter as number) < 0)) ||
       (value.fallbackDaysAfter !== undefined &&
@@ -233,15 +240,14 @@ function inspectSource(
     ) {
       return fail('O capítulo do gatilho é inválido.');
     }
-    const anyOf: { type: 'flag.is'; flag: string; value: boolean }[][] = [];
+    const anyOf: WorldTriggerCondition[][] = [];
     for (const group of value.anyOf as unknown[]) {
       if (!Array.isArray(group) || group.length === 0 || group.length > 16) return fail('O capítulo do gatilho é inválido.');
-      const conditions: { type: 'flag.is'; flag: string; value: boolean }[] = [];
+      const conditions: WorldTriggerCondition[] = [];
       for (const entry of group) {
-        if (!isRecord(entry) || entry.type !== 'flag.is' || typeof entry.flag !== 'string' || entry.flag.trim() === '' || typeof entry.value !== 'boolean') {
-          return fail('O capítulo do gatilho é inválido.');
-        }
-        conditions.push({ type: 'flag.is', flag: entry.flag, value: entry.value });
+        const condition = inspectCondition(entry, campaign);
+        if (!condition) return fail('O capítulo do gatilho é inválido.');
+        conditions.push(condition);
       }
       anyOf.push(conditions);
     }
@@ -249,8 +255,8 @@ function inspectSource(
       ok: true,
       value: {
         type: 'story.chapter',
-        minDay: value.minDay as number,
         anyOf,
+        ...(value.notBeforeDay !== undefined ? { notBeforeDay: value.notBeforeDay as number } : {}),
         ...(typeof value.after === 'string' ? { after: value.after } : {}),
         ...(value.minDaysAfter !== undefined ? { minDaysAfter: value.minDaysAfter as number } : {}),
         ...(value.fallbackDaysAfter !== undefined ? { fallbackDaysAfter: value.fallbackDaysAfter as number } : {}),

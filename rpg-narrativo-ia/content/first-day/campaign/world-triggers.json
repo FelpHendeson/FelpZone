@@ -23,7 +23,7 @@
     "id": "day-two-start",
     "source": {
       "type": "story.chapter",
-      "minDay": 2,
+      "notBeforeDay": 2,
       "anyOf": [
         [
           {
@@ -50,7 +50,6 @@
     "id": "day-three-start",
     "source": {
       "type": "story.chapter",
-      "minDay": 3,
       "after": "day-two-start",
       "fallbackDaysAfter": 3,
       "anyOf": [
@@ -74,9 +73,8 @@
     "eventId": "day-three-awakening",
     "conditions": [
       {
-        "type": "flag.is",
-        "flag": "day2.started",
-        "value": true
+        "type": "event.seen",
+        "eventId": "day-two-awakening"
       }
     ]
   },
@@ -84,104 +82,69 @@
     "id": "day-four-start",
     "source": {
       "type": "story.chapter",
-      "minDay": 4,
       "after": "day-three-start",
       "anyOf": [
         [
           {
-            "type": "flag.is",
-            "flag": "day3.started",
-            "value": true
+            "type": "event.seen",
+            "eventId": "day-three-awakening"
           }
         ]
       ]
     },
     "campaignId": "first-day",
-    "eventId": "day-four-awakening",
-    "conditions": [
-      {
-        "type": "flag.is",
-        "flag": "day3.started",
-        "value": true
-      }
-    ]
+    "eventId": "day-four-awakening"
   },
   {
     "id": "day-five-start",
     "source": {
       "type": "story.chapter",
-      "minDay": 5,
       "after": "day-four-start",
       "anyOf": [
         [
           {
-            "type": "flag.is",
-            "flag": "day4.started",
-            "value": true
+            "type": "event.seen",
+            "eventId": "day-four-awakening"
           }
         ]
       ]
     },
     "campaignId": "first-day",
-    "eventId": "day-five-awakening",
-    "conditions": [
-      {
-        "type": "flag.is",
-        "flag": "day4.started",
-        "value": true
-      }
-    ]
+    "eventId": "day-five-awakening"
   },
   {
     "id": "day-six-start",
     "source": {
       "type": "story.chapter",
-      "minDay": 6,
       "after": "day-five-start",
       "anyOf": [
         [
           {
-            "type": "flag.is",
-            "flag": "day5.started",
-            "value": true
+            "type": "event.seen",
+            "eventId": "day-five-awakening"
           }
         ]
       ]
     },
     "campaignId": "first-day",
-    "eventId": "day-six-awakening",
-    "conditions": [
-      {
-        "type": "flag.is",
-        "flag": "day5.started",
-        "value": true
-      }
-    ]
+    "eventId": "day-six-awakening"
   },
   {
     "id": "day-seven-start",
     "source": {
       "type": "story.chapter",
-      "minDay": 7,
+      "notBeforeDay": 7,
       "after": "day-six-start",
       "anyOf": [
         [
           {
-            "type": "flag.is",
-            "flag": "day6.started",
-            "value": true
+            "type": "event.seen",
+            "eventId": "day-six-awakening"
           }
         ]
       ]
     },
     "campaignId": "first-day",
-    "eventId": "day-seven-registry",
-    "conditions": [
-      {
-        "type": "flag.is",
-        "flag": "day6.started",
-        "value": true
-      }
-    ]
+    "eventId": "day-seven-registry"
   }
 ]

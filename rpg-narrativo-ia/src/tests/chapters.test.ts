@@ -8,7 +8,7 @@ import type { SandboxAction } from '../modules/sandbox-actions';
 import { attemptSandboxAction, resolveWorldNarrativeState } from '../ui/sandbox';
 import { now } from './helpers';
 import { SCHEMA_VERSION, SCHEMA_VERSION_V27 } from '../core/state';
-import { findPendingChapterTrigger, inspectWorldTriggerCatalog } from '../modules/world-events';
+import { findPendingChapterTrigger, inspectWorldTriggerCatalog, resolveEligibleWorldTrigger } from '../modules/world-events';
 import { minutesUntilNextDawn } from '../modules/sandbox-actions';
 
 const world = loadFirstDayWorld();
@@ -161,11 +161,16 @@ describe('Capítulos por ação', () => {
     const ctx = { campaign, exploration: context.exploration, skills: context.skills! };
     const ok = (source: unknown) => inspectWorldTriggerCatalog([{ ...base, source }], ctx).ok;
     const flag = { type: 'flag.is', flag: 'a', value: true };
-    expect(ok({ type: 'story.chapter', minDay: 3, anyOf: [[flag]] })).toBe(true);
-    expect(ok({ type: 'story.chapter', minDay: 3, anyOf: [] })).toBe(false);
-    expect(ok({ type: 'story.chapter', minDay: 3, anyOf: [[{ ...flag, value: 'sim' }]] })).toBe(false);
-    expect(ok({ type: 'story.chapter', minDay: 3, anyOf: [[flag]], fallbackDaysAfter: 2 })).toBe(false);
-    expect(ok({ type: 'story.chapter', minDay: 3, anyOf: [[flag]], after: 'y', fallbackDaysAfter: 2 })).toBe(true);
+    expect(ok({ type: 'story.chapter', anyOf: [[flag]] })).toBe(true);
+    expect(ok({ type: 'story.chapter', notBeforeDay: 3, anyOf: [[flag]] })).toBe(true);
+    expect(ok({ type: 'story.chapter', notBeforeDay: 0, anyOf: [[flag]] })).toBe(false);
+    expect(ok({ type: 'story.chapter', anyOf: [] })).toBe(false);
+    expect(ok({ type: 'story.chapter', anyOf: [[{ ...flag, value: 'sim' }]] })).toBe(false);
+    expect(ok({ type: 'story.chapter', anyOf: [[flag]], fallbackDaysAfter: 2 })).toBe(false);
+    expect(ok({ type: 'story.chapter', anyOf: [[flag]], after: 'y', fallbackDaysAfter: 2 })).toBe(true);
+    // Eventos destravam eventos: a condição aponta para um evento que precisa existir na campanha.
+    expect(ok({ type: 'story.chapter', anyOf: [[{ type: 'event.seen', eventId: 'day-two-awakening' }]] })).toBe(true);
+    expect(ok({ type: 'story.chapter', anyOf: [[{ type: 'event.seen', eventId: 'inexistente' }]] })).toBe(false);
   });
 
   it('migra saves do schema 27 sem atrasar capítulos já abertos', () => {
@@ -178,8 +183,10 @@ describe('Capítulos por ação', () => {
     if (parsed.status !== 'ok') return;
     expect(parsed.state.schemaVersion).toBe(SCHEMA_VERSION);
     expect(parsed.state.story).toEqual({ chapterDays: {} });
-    // O capítulo 2 foi consumido sem dia registrado: conta como cumprido e o 3 continua pendente.
-    expect(findPendingChapterTrigger(world.worldTriggers, parsed.state)?.id).toBe('day-three-start');
+    // O capítulo 2 foi consumido sem dia registrado: conta como cumprido. Sem trava de dia fixo,
+    // o 3 (cena-chave já resolvida) fica disponível na hora — nada atrasa.
+    expect(findPendingChapterTrigger(world.worldTriggers, parsed.state)).toBeUndefined();
+    expect(resolveEligibleWorldTrigger(world.worldTriggers, parsed.state)?.id).toBe('day-three-start');
     const tampered = { ...JSON.parse(serializeGameState(current, context, world.objectives)), story: { chapterDays: { x: -1 } } };
     expect(parseGameState(JSON.stringify(tampered), context, world.objectives).status).toBe('corrupt');
   }, 30_000);

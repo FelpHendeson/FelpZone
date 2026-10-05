@@ -1,3 +1,4 @@
+import { storyVars } from '../../modules/character';
 import { evaluateConditions, getEventById } from '../events';
 import type { Campaign, StoryChoice, StoryEvent } from '../events/types';
 import { applyEffects } from '../effects';
@@ -74,9 +75,10 @@ export function applyChoice(
     ...withEffects,
     history: appendHistory(withEffects.history, {
       eventId: event.id,
-      eventTitle: event.title,
+      // O histórico guarda o texto do momento: o dia citado é o dia em que a escolha aconteceu.
+      eventTitle: interpolateDay(event.title, state.world.day),
       choiceId: choice.id,
-      choiceLabel: choice.label,
+      choiceLabel: interpolateDay(choice.label, state.world.day),
       notable: choice.notable === true,
     }),
     updatedAt: now(),
@@ -99,4 +101,9 @@ function requireNarrativeSession(state: GameState, campaign: Campaign) {
   }
 
   return state.narrativeSession;
+}
+
+function interpolateDay(text: string, day: number): string {
+  const vars = storyVars({ firstName: '', lastName: '' }, day);
+  return text.replace(/\{\{(dia|diaOrdinal)\}\}/g, (_match, key: string) => vars[key] ?? '');
 }

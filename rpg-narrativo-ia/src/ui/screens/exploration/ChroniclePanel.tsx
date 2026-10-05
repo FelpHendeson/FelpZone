@@ -23,7 +23,7 @@ export function ChroniclePanel({
   bonds: BondCharacterView[];
   onBack: () => void;
 }) {
-  const vars = storyVars(state.character);
+  const vars = storyVars(state.character, state.world.day);
   const decisions = notableHistory(state.history);
   const titles = state.progression.titleIds.map((id) => findTitle(campaign, id)).filter((title) => title !== undefined);
   return (

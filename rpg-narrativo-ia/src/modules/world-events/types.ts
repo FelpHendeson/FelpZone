@@ -30,15 +30,16 @@ export interface WorldTriggerTimeReachedSource {
 }
 
 /**
- * Capítulo dirigido por ação. Abre quando **algum** grupo de `anyOf` tem todas as flags
- * satisfeitas (a cena-chave do capítulo anterior foi resolvida, ou a rota não tem cena-chave)
- * e já se passaram `minDaysAfter` dias desde que o capítulo `after` abriu — nunca antes de
- * `minDay`. `fallbackDaysAfter` é a saída de segurança para rotas sem a cena-chave.
+ * Capítulo dirigido por eventos. Abre quando **algum** grupo de `anyOf` está todo satisfeito
+ * (eventos já vistos e flags deixadas pelas escolhas), no amanhecer seguinte ao capítulo `after`
+ * (`minDaysAfter`, padrão 1). O dia do mundo só entra como trava opcional: `notBeforeDay`
+ * ("isto só acontece depois do dia tal"). `fallbackDaysAfter` é a saída de segurança para rotas
+ * que nunca passam pela cena-chave.
  */
 export interface WorldTriggerChapterSource {
   type: 'story.chapter';
-  minDay: number;
-  anyOf: readonly (readonly WorldTriggerFlagCondition[])[];
+  notBeforeDay?: number;
+  anyOf: readonly (readonly WorldTriggerCondition[])[];
   after?: string;
   minDaysAfter?: number;
   fallbackDaysAfter?: number;
@@ -50,6 +51,14 @@ export interface WorldTriggerFlagCondition {
   value: boolean;
 }
 
+/** Um evento da campanha já foi vivido (está no histórico de escolhas). */
+export interface WorldTriggerEventSeenCondition {
+  type: 'event.seen';
+  eventId: string;
+}
+
+export type WorldTriggerCondition = WorldTriggerFlagCondition | WorldTriggerEventSeenCondition;
+
 export type WorldTriggerSource =
   | WorldTriggerDiscoverySource
   | WorldTriggerSkillProficiencySource
@@ -60,7 +69,7 @@ export type WorldTriggerSource =
 export interface WorldNarrativeTriggerDefinition {
   id: string;
   source: WorldTriggerSource;
-  conditions?: readonly WorldTriggerFlagCondition[];
+  conditions?: readonly WorldTriggerCondition[];
   campaignId: string;
   eventId: string;
 }

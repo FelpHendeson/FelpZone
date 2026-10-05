@@ -41,6 +41,10 @@ function reachRockyBank(flags: Record<string, boolean> = {}): GameState {
   state = {
     ...state,
     world: { day: 2, period: 'alvorecer' },
+    history: [
+      ...state.history,
+      { eventId: 'day-two-awakening', eventTitle: 'O segundo dia', choiceId: 'day-two-look-around', choiceLabel: 'Começar o dia', notable: false },
+    ],
     flags: {
       ...state.flags,
       'day2.started': true,
@@ -80,6 +84,10 @@ function atDayTwo(flags: Record<string, boolean> = {}): GameState {
   return {
     ...state,
     world: { day: 2, period: 'alvorecer' },
+    history: [
+      ...state.history,
+      { eventId: 'day-two-awakening', eventTitle: 'O segundo dia', choiceId: 'day-two-look-around', choiceLabel: 'Começar o dia', notable: false },
+    ],
     flags: {
       ...state.flags,
       'day2.started': true,
