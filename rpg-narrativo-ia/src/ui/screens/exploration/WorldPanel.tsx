@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { ImagePlaceholder } from '../../components/ImagePlaceholder';
 import { SystemHintCard } from '../../components/SystemHints';
 import type { HintAction, SystemHint } from '../../system-hints';
@@ -28,7 +29,10 @@ export function WorldPanel({
   onNavigate,
   hints,
   onHintAction,
+  marks,
 }: {
+  /** Marcas de Despertos neste local. */
+  marks?: ReactNode;
   hints?: SystemHint[];
   onHintAction?: (action: HintAction) => void;
   view: ExplorationView;
@@ -120,6 +124,7 @@ export function WorldPanel({
       <div className="world-context-grid">
         <WorldShortcuts view={view} onNavigate={onNavigate} />
         <InteractableSection interactables={view.interactables} onAction={onAction} />
+        {marks}
         {view.lingering.length > 0 ? (
           <section className="lingering-section" aria-label="Condições persistentes">
             <span className="section-kicker">Feridas que permanecem</span>

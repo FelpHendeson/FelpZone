@@ -1,4 +1,5 @@
 import { createInitialEchoesState, recordEchoDuel, type EchoDuelRecord, type EchoesState } from '../modules/echoes';
+import type { MarksState } from '../modules/marks';
 import { loadFirstDayWorld } from '../modules/content';
 import { applyChoice, bindSavedState, getAvailableChoices, getCurrentEvent, startGame } from '../core/engine';
 import {
@@ -270,6 +271,13 @@ export function App() {
     persist({ ...state, updatedAt: new Date().toISOString(), echoes });
   }
 
+  function handleUpdateMarks(marks: MarksState) {
+    if (!state) {
+      return;
+    }
+    persist({ ...state, updatedAt: new Date().toISOString(), marks });
+  }
+
   function handleRecordEcho(record: EchoDuelRecord, resultId?: string) {
     if (!state) {
       return;
@@ -392,6 +400,7 @@ export function App() {
           onResolveCombat={handleResolveCombat}
           onRecordEcho={handleRecordEcho}
           onUpdateEchoes={handleUpdateEchoes}
+          onUpdateMarks={handleUpdateMarks}
           onGuidanceSeen={handleGuidanceSeen}
           worldTriggers={world.worldTriggers}
           onExit={() => {

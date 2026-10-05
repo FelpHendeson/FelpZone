@@ -72,6 +72,7 @@ import { copyWorld, isWorldClockConsistent } from '../../modules/world';
 import { INITIAL_ARCHETYPES, inspectArchetypeProgress } from '../../modules/archetypes';
 import { inspectEchoesState } from '../../modules/echoes';
 import { inspectBestiaryState } from '../../modules/bestiary';
+import { inspectMarksState } from '../../modules/marks';
 import { INITIAL_COMBAT, inspectComboDiscovery } from '../../modules/combat';
 import {
   ATTRIBUTE_IDS,
@@ -1304,6 +1305,14 @@ function inspectCurrent(
   if (bestiary && !bestiary.ok) {
     return fail(bestiary.reason);
   }
+  const marksWorld = requireContext(context);
+  const marks =
+    value.marks === undefined
+      ? undefined
+      : inspectMarksState(value.marks, { locationIds: new Set(marksWorld.map.locations.keys()), combat: marksWorld.combat });
+  if (marks && !marks.ok) {
+    return fail(marks.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1443,6 +1452,7 @@ function inspectCurrent(
       ...(archetypeProgress?.ok ? { archetypeProgress: archetypeProgress.value } : {}),
       ...(combos?.ok ? { combos: combos.value } : {}),
       ...(bestiary?.ok ? { bestiary: bestiary.value } : {}),
+      ...(marks?.ok ? { marks: marks.value } : {}),
     },
   };
 }

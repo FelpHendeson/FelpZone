@@ -85,6 +85,12 @@ export type SandboxAction =
       archetypeId: string;
     }
   | {
+      /** Deixa uma marca no local atual para outros Despertos. */
+      type: 'mark.leave';
+      phraseId: string;
+      targetId?: string;
+    }
+  | {
       type: 'combat.resolve';
       resolution: CombatResolution;
     }
@@ -163,6 +169,7 @@ export type SandboxActionDetail =
   | { type: 'training.train'; plan: TrainingPlan }
   | { type: 'archetype.train'; plan: ArchetypeTrainingPlan }
   | { type: 'archetype.choose'; archetypeId: string }
+  | { type: 'mark.leave'; markId: string }
   | { type: 'combat.resolve'; resolution: CombatResolution }
   | { type: 'equipment.equip'; result: EquipmentChangeResult }
   | { type: 'equipment.unequip'; result: EquipmentChangeResult }

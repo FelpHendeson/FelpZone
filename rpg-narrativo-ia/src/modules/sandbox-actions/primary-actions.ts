@@ -18,7 +18,8 @@ import {
 import { discoverCombos, type AllySnapshot, type ComboDiscoveryState } from '../combat';
 import { craftRecipe } from '../crafting';
 import { INITIAL_WEATHER, combatEnvironmentFor } from '../weather';
-import { recordBestiaryCombat, withBestiary, type BestiaryState } from '../bestiary';
+import { bestiaryLevel, recordBestiaryCombat, withBestiary, type BestiaryState } from '../bestiary';
+import { INITIAL_MARKS, inspectMarkContent, leaveMark, markAuthorId, markId, type MarksState } from '../marks';
 import { ECHO_ALLY_ID, canCallEchoAlly, copyEchoesState, decodeEchoSeal, echoAllySnapshot, type EchoesState } from '../echoes';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
@@ -116,6 +117,7 @@ export function executePrimary(
   combos?: ComboDiscoveryState;
   bestiary?: BestiaryState;
   echoes?: EchoesState;
+  marks?: MarksState;
 } {
   const catalogs = activeCatalogs(context);
   const navigation = copyNavigation(state.sandbox.navigation);
@@ -348,6 +350,37 @@ export function executePrimary(
       ...unchanged,
       archetypeProgress: applyArchetypeTraining(progress, archetypePlan.actionId),
       archetypePlan,
+    };
+  }
+
+  if (action.type === 'mark.leave') {
+    const combatCatalog = requireActiveCatalog(catalogs.combat, 'combate');
+    const content = inspectMarkContent(
+      { locationId: navigation.currentLocationId, phraseId: action.phraseId, ...(action.targetId ? { targetId: action.targetId } : {}) },
+      { locationIds: new Set(context.map.locations.keys()), combat: combatCatalog },
+    );
+    if (!content) throw new SandboxActionError('A marca não pode ser deixada assim.');
+    const phrase = INITIAL_MARKS.phraseById.get(content.phraseId)!;
+    // Só se marca o que já se conhece: locais descobertos e criaturas já avistadas.
+    if (phrase.target === 'location' && !navigation.discoveredLocationIds.includes(content.targetId!)) {
+      throw new SandboxActionError('Você ainda não conhece esse lugar.');
+    }
+    if (phrase.target === 'creature' && bestiaryLevel(state, content.targetId!) < 1) {
+      throw new SandboxActionError('Você ainda não avistou essa criatura.');
+    }
+    const authorId = markAuthorId(state);
+    const marks = leaveMark(state.marks, content, authorId, state.world.day);
+    return {
+      detail: { type: 'mark.leave', markId: markId(content, authorId, state.world.day) },
+      timeCost: { periods: 0, minutes: 5 },
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      inventory,
+      ...unchanged,
+      marks,
     };
   }
 

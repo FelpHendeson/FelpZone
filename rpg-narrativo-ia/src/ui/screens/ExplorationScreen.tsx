@@ -22,6 +22,8 @@ import { BestiaryPanel } from './exploration/BestiaryPanel';
 import { CombatScreen } from './CombatScreen';
 import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
 import { EchoAllyChooser } from './exploration/EchoAllyChooser';
+import { MarksExchange, MarksSection } from './exploration/MarksSection';
+import type { MarksState } from '../../modules/marks';
 import {
   ECHO_STYLE_LABELS,
   canCallEchoAlly,
@@ -85,6 +87,8 @@ interface ExplorationScreenProps {
   onResolveCombat: (encounterId: string, finalState: CombatState, echoAlly?: string) => void;
   /** Atualiza o estado de Ecos fora das ações do mundo (Círculo, agradecimentos). */
   onUpdateEchoes?: (echoes: EchoesState) => void;
+  /** Atualiza marcas recebidas e respostas (troca de códigos, fora das ações do mundo). */
+  onUpdateMarks?: (marks: MarksState) => void;
   onGuidanceSeen: (topicId: string) => void;
   onExit: () => void;
   worldTriggers?: IndexedWorldTriggers;
@@ -124,6 +128,7 @@ export function ExplorationScreen({
   worldTriggers,
   onRecordEcho,
   onUpdateEchoes,
+  onUpdateMarks,
 }: ExplorationScreenProps) {
   const preferences = usePreferences();
   setClockContext(state.world, preferences.clockFormat);
@@ -164,6 +169,10 @@ export function ExplorationScreen({
     window.scrollTo(0, 0);
   }, [activeView]);
 
+  const markNames = {
+    location: (id: string) => context.map.locations.get(id)?.name ?? id,
+    creature: (id: string) => combat.combatantById.get(id)?.name ?? id,
+  };
   const mySeal = createEchoSeal(
     combat,
     {
@@ -340,6 +349,7 @@ export function ExplorationScreen({
               onNavigate={setActiveView}
               hints={preferences.guidanceLevel === 'off' ? undefined : hints}
               onHintAction={handleHintAction}
+              marks={<MarksSection state={state} names={markNames} onAction={onAction} />}
             />
           ) : null}
           {activeView === 'map' ? (
@@ -444,6 +454,16 @@ export function ExplorationScreen({
               pendingThanksCode={pendingThanksCode}
               onUpdateEchoes={onUpdateEchoes}
               day={state.world.day}
+              extra={
+                onUpdateMarks ? (
+                  <MarksExchange
+                    state={state}
+                    names={markNames}
+                    world={{ locationIds: new Set(context.map.locations.keys()) }}
+                    onUpdateMarks={onUpdateMarks}
+                  />
+                ) : null
+              }
               onStyle={(style) => {
                 setEchoStyle(style);
                 writeEchoStyle(style);

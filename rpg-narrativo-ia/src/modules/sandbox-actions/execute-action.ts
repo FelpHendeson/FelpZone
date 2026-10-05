@@ -224,6 +224,7 @@ function runTransaction(
     combos: executed.combos ?? previous.combos,
     bestiary: executed.bestiary ?? previous.bestiary,
     echoes: executed.echoes ?? previous.echoes,
+    marks: executed.marks ?? previous.marks,
     character: executed.character,
     status: executed.status,
     narrativeSession: executed.narrativeSession,

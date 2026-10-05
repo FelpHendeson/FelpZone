@@ -7,6 +7,7 @@
 - **Item 3:** implementado; veja a seção 8 do mesmo documento.
 - **Item 4:** implementado; veja a seção 9 do mesmo documento.
 - **Item 5:** implementado; veja a seção 10 do mesmo documento.
+- **Item 6:** implementado; veja a seção 11 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -252,6 +253,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 6. Marcas no mundo
+
+**Implementado.** Só frases pré-montadas, sem texto livre.
 
 **O que é:** você deixa uma marca num local do seu mundo e a compartilha por código. Quem importa encontra a marca no próprio jogo, como se outro Desperto tivesse passado por ali. Isso amarra com a lore das "Marcas no tronco".
 

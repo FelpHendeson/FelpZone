@@ -161,6 +161,10 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       push('success', `Aprendeu ${name}. A técnica entrou no seu banco de ações.`);
       break;
     }
+    case 'mark.leave': {
+      push('success', 'Marca deixada aqui. Em Menu → Ecos → Marcas, copie o código e mande para outro Desperto.');
+      break;
+    }
     case 'archetype.choose': {
       const archetype = INITIAL_ARCHETYPES.byId.get(result.detail.archetypeId);
       const items = (archetype?.equip ?? []).map((itemId) => context.items?.byId.get(itemId)?.name ?? itemId);

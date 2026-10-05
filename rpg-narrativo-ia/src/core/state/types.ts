@@ -1,6 +1,7 @@
 import type { ArchetypeProgressState } from '../../modules/archetypes/branch';
 import type { ComboDiscoveryState } from '../../modules/combat/combos';
 import type { BestiaryState } from '../../modules/bestiary';
+import type { MarksState } from '../../modules/marks';
 import type { EchoesState } from '../../modules/echoes';
 import type { SandboxCoreState, SandboxState } from '../../modules/sandbox/types';
 import type { ObjectivesState } from '../../modules/objectives/types';
@@ -559,6 +560,8 @@ export interface GameState extends SharedState<Attributes> {
   combos?: ComboDiscoveryState;
   /** Bestiário: confrontos, vitórias e ações vistas por criatura (opcional e aditivo). */
   bestiary?: BestiaryState;
+  /** Marcas deixadas e recebidas de outros Despertos (opcional e aditivo). */
+  marks?: MarksState;
 }
 
 export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng' | 'story'> {

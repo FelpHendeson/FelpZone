@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import type { CombatStyle, IndexedCombat } from '../../../modules/combat';
 import {
   ECHO_ALLY_HEALTH,
@@ -33,6 +33,8 @@ interface EchoesPanelProps {
   onUpdateEchoes?: (echoes: EchoesState) => void;
   /** Dia de jogo (para o registro dos laços). */
   day?: number;
+  /** Seções extras de troca entre jogadores (marcas). */
+  extra?: ReactNode;
   onStyle: (style: CombatStyle) => void;
   onDuel: (rival: EchoSeal, mode: EchoDuelMode) => void;
   onRecord: (record: Omit<EchoDuelRecord, 'day'>, resultId?: string) => void;
@@ -48,6 +50,7 @@ export function EchoesPanel({
   pendingThanksCode = null,
   onUpdateEchoes,
   day = 1,
+  extra,
   onStyle,
   onDuel,
   onRecord,
@@ -285,6 +288,7 @@ export function EchoesPanel({
           </ul>
         )}
       </section>
+      {extra}
     </DetailScreen>
   );
 }

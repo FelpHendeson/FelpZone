@@ -132,7 +132,8 @@ button:disabled {
 .choice-button,
 .history-list,
 .placeholder__label {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   word-break: break-word;
 }
 
@@ -508,7 +509,8 @@ button:disabled {
 
 .game-hud__time span {
   min-width: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .icon-button {
@@ -966,7 +968,8 @@ button:disabled {
 
 .presence-card__title h3 {
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   font-size: 1rem;
 }
 
@@ -990,7 +993,8 @@ button:disabled {
   color: var(--text-muted);
   font-size: 0.84rem;
   line-height: 1.4;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .presence-card__trust {
@@ -1044,7 +1048,8 @@ button:disabled {
   color: var(--text-muted);
   font-size: 0.72rem;
   line-height: 1.35;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .presence-action__reason {
@@ -1177,7 +1182,8 @@ button:disabled {
 
 .need-effect-list--compact li {
   padding: 4px 6px;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   font-size: 0.68rem;
 }
 
@@ -1430,7 +1436,8 @@ button:disabled {
 .journey-card__heading > div,
 .journal-record__heading > div { min-width: 0; }
 .journey-card__heading h3,
-.journal-record h3 { margin: 3px 0 0; overflow-wrap: anywhere; }
+.journal-record h3 { margin: 3px 0 0; overflow-wrap: break-word;
+  hyphens: auto; }
 .journey-card__heading > strong { flex: 0 0 auto; color: var(--accent); font-size: 0.75rem; }
 .journey-card__kind { color: var(--accent-system); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
 .journey-card > p,
@@ -1461,7 +1468,8 @@ button:disabled {
 }
 
 .journey-step > span { color: var(--accent); font-size: 1rem; text-align: center; }
-.journey-step strong { display: block; overflow-wrap: anywhere; font-size: 0.84rem; }
+.journey-step strong { display: block; overflow-wrap: break-word;
+  hyphens: auto; font-size: 0.84rem; }
 .journey-step p { margin: 3px 0 0; color: var(--text-muted); font-size: 0.76rem; }
 .journey-step small { display: block; margin-top: 4px; color: var(--text-muted); font-size: 0.68rem; }
 .journey-step--current { background: rgba(131, 203, 234, 0.08); }
@@ -1508,7 +1516,8 @@ button:disabled {
   font-size: 1.25rem;
 }
 
-.tracked-journey h2 { margin: 3px 0 0; overflow-wrap: anywhere; font-size: 1rem; }
+.tracked-journey h2 { margin: 3px 0 0; overflow-wrap: break-word;
+  hyphens: auto; font-size: 1rem; }
 .tracked-journey p { margin: 3px 0 0; color: var(--text-muted); font-size: 0.8rem; }
 .tracked-journey .button { grid-column: 1 / -1; width: 100%; min-height: var(--touch); }
 
@@ -1533,7 +1542,8 @@ button:disabled {
   background: #1b292f;
   color: var(--accent);
   font-size: 0.72rem;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .known-presence-list,
@@ -1568,7 +1578,8 @@ button:disabled {
 }
 
 .known-presence-list strong,
-.journal-history strong { overflow-wrap: anywhere; font-size: 0.84rem; }
+.journal-history strong { overflow-wrap: break-word;
+  hyphens: auto; font-size: 0.84rem; }
 .known-presence-list p,
 .journal-history p { margin: 3px 0 0; color: var(--text-muted); font-size: 0.75rem; line-height: 1.35; }
 .known-presence-list .condition-chip { white-space: nowrap; }
@@ -2332,7 +2343,8 @@ button:disabled {
 
 .map-node__copy strong,
 .map-node__copy small {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .map-node__arrow {
@@ -2487,7 +2499,8 @@ button:disabled {
 
 .system-console h1 {
   margin: 3px 0 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   font-family: var(--font-story);
   font-size: 1.35rem;
 }
@@ -2689,7 +2702,8 @@ button:disabled {
 .detail-screen__header h1,
 .character-hero h1 {
   margin: 2px 0 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   font-family: var(--font-story);
   font-size: clamp(1.25rem, 5vw, 1.7rem);
 }
@@ -2768,7 +2782,8 @@ button:disabled {
 
 .hub-card strong,
 .hub-card small {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .hub-card small {
@@ -2936,7 +2951,8 @@ button:disabled {
 }
 
 .relationship-action-group .button small {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
   color: currentColor;
   font-size: 0.65rem;
   opacity: 0.7;
@@ -3916,7 +3932,8 @@ button:disabled {
 
 .menu-entry__text strong,
 .menu-entry__text small {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .menu-entry__text small {
@@ -4148,7 +4165,8 @@ button:disabled {
 }
 
 .system-window__item strong {
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .system-window__item p {
@@ -4236,7 +4254,8 @@ button:disabled {
 
 .vn-line p {
   margin: 0;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .vn-line--narration,
@@ -4444,7 +4463,8 @@ button:disabled {
   font-size: 0.95rem;
   line-height: 1.5;
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .vn-system__lines li.is-current {
@@ -5065,7 +5085,8 @@ button:disabled {
   font-size: 0.78rem;
   font-weight: 700;
   text-align: center;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .garden-chip--result {
@@ -5181,14 +5202,16 @@ button:disabled {
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.06em;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .training-card__head h3 {
   margin: 2px 0 0;
   font-family: var(--font-story);
   font-size: 1.12rem;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
+  hyphens: auto;
 }
 
 .training-card__description,
@@ -6650,4 +6673,105 @@ span.portrait-avatar {
 .echo-subtitle {
   margin: 10px 0 4px;
   font-size: 0.95rem;
+}
+
+/* Marcas no mundo. */
+.marks-section {
+  display: grid;
+  gap: 8px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+}
+
+.marks-section__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.marks-section__empty,
+.marks-dialog__hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+}
+
+.marks-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mark-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: color-mix(in srgb, #8a6a3d 10%, var(--bg-elevated));
+}
+
+.mark-card p {
+  margin: 0;
+  font-family: var(--font-story);
+}
+
+.mark-card small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+.mark-card textarea {
+  width: 100%;
+  margin-top: 6px;
+  font-size: 0.7rem;
+}
+
+.mark-card__icon {
+  font-size: 1.1rem;
+}
+
+.mark-card--warning {
+  border-color: color-mix(in srgb, var(--danger) 45%, var(--border));
+}
+
+.mark-card--challenge {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+}
+
+.mark-card--mine {
+  border-style: dashed;
+}
+
+.marks-dialog__preview {
+  margin: 8px 0;
+  font-family: var(--font-story);
+  font-size: 1rem;
+}
+
+.marks-dialog {
+  display: grid;
+  gap: 12px;
+}
+
+.marks-dialog .field {
+  display: grid;
+  gap: 4px;
+}
+
+.marks-dialog select {
+  width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
 }

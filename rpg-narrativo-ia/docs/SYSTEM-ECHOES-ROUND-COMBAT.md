@@ -381,3 +381,40 @@ Os padrões descrevem o que a IA de combate realmente faz, conferido por simula�
 ### Persistência
 
 `EchoesState` ganhou `allies`, `lastAllyDay` e `bonds`, todos opcionais e aditivos. São validados na carga: Selos legíveis, no máximo 3 aliados e nunca mais vitórias do que lutas juntos.
+
+## 11. Marcas no mundo
+
+**Decisão:** sexta proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 6). Só há frases pré-montadas, sem texto livre, como recomendado.
+
+### Frases (`content/first-day/system/marks.json`, módulo `src/modules/marks`)
+
+| Tipo | Exemplos |
+| --- | --- |
+| ⚠ Aviso | "Perigo adiante: {criatura}.", "Não descanse aqui à noite.", "Algo observa este lugar." |
+| ✦ Dica | "Água limpa em {local}.", "Há abrigo em {local}.", "{criatura} cai com paciência: espere a abertura." |
+| ⚔ Desafio | "Vença {criatura}. Eu venci.", "Encare {criatura} e volte para contar." |
+| ✧ Saudação | "Você não está só.", "Um Desperto passou por aqui e seguiu em frente.", "Continue. O caminho fica mais claro." |
+
+O pack é validado: uma frase com alvo precisa ter `{alvo}`, uma frase sem alvo não pode ter, e desafios sempre apontam para uma criatura.
+
+### Fluxo
+
+1. **Deixar** (ação `mark.leave`, 5 minutos): na tela do local, "Deixar marca". O Desperto escolhe tipo, frase e alvo, e a marca fica naquele local.
+   - Só se marca o que já se conhece: locais descobertos e criaturas já avistadas no Bestiário.
+   - Cabem até 20 marcas deixadas; a mais antiga sai.
+2. **Compartilhar:** em **Ecos → Marcas**, cada marca deixada mostra seu código (`MRC1.…`).
+3. **Receber:** quem cola o código vê a marca **no mesmo local do próprio mundo**, na seção "Marcas de Despertos", com o nome de quem a deixou.
+   - São recusados códigos alterados, marcas repetidas, as próprias marcas e lugares ou criaturas que não existem no mundo de quem recebe.
+   - Cabem até 10 marcas recebidas.
+4. **Desafios:** ao receber um desafio, o jogo guarda quantas vitórias você já tinha sobre a criatura (pelo Bestiário). O desafio é cumprido com uma **vitória nova**.
+   - Então aparece um código de resposta (`RSP1.…`) para mandar ao autor.
+   - O autor registra a resposta, e cada Desperto conta uma vez por marca.
+   - É só reconhecimento, sem itens.
+
+### Persistência
+
+`GameState.marks` (deixadas e recebidas) é opcional e aditivo. É validado na carga contra o mapa, as criaturas e as frases. Os códigos usam o codec compartilhado `src/modules/codes`.
+
+### Texto que quebrava no meio das palavras
+
+Várias regras de CSS usavam `overflow-wrap: anywhere`, que quebra palavras em qualquer letra (por exemplo, "Pessoa s e criatur as" nos atalhos do local). Todas passaram a usar `overflow-wrap: break-word` com `hyphens: auto`: agora a palavra só quebra quando não cabe na linha, e com hífen.

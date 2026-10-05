@@ -1,0 +1,96 @@
+{
+  "limits": {
+    "left": 20,
+    "received": 10
+  },
+  "types": [
+    {
+      "id": "warning",
+      "name": "Aviso",
+      "icon": "⚠"
+    },
+    {
+      "id": "tip",
+      "name": "Dica",
+      "icon": "✦"
+    },
+    {
+      "id": "challenge",
+      "name": "Desafio",
+      "icon": "⚔"
+    },
+    {
+      "id": "greeting",
+      "name": "Saudação",
+      "icon": "✧"
+    }
+  ],
+  "phrases": [
+    {
+      "id": "danger-creature",
+      "type": "warning",
+      "text": "Perigo adiante: {alvo}.",
+      "target": "creature"
+    },
+    {
+      "id": "no-night-rest",
+      "type": "warning",
+      "text": "Não descanse aqui à noite.",
+      "target": "none"
+    },
+    {
+      "id": "watched",
+      "type": "warning",
+      "text": "Algo observa este lugar.",
+      "target": "none"
+    },
+    {
+      "id": "clean-water",
+      "type": "tip",
+      "text": "Água limpa em {alvo}.",
+      "target": "location"
+    },
+    {
+      "id": "shelter",
+      "type": "tip",
+      "text": "Há abrigo em {alvo}.",
+      "target": "location"
+    },
+    {
+      "id": "patient-creature",
+      "type": "tip",
+      "text": "{alvo} cai com paciência: espere a abertura.",
+      "target": "creature"
+    },
+    {
+      "id": "beat-creature",
+      "type": "challenge",
+      "text": "Vença {alvo}. Eu venci.",
+      "target": "creature"
+    },
+    {
+      "id": "face-creature",
+      "type": "challenge",
+      "text": "Encare {alvo} e volte para contar.",
+      "target": "creature"
+    },
+    {
+      "id": "not-alone",
+      "type": "greeting",
+      "text": "Você não está só.",
+      "target": "none"
+    },
+    {
+      "id": "passed-by",
+      "type": "greeting",
+      "text": "Um Desperto passou por aqui e seguiu em frente.",
+      "target": "none"
+    },
+    {
+      "id": "keep-going",
+      "type": "greeting",
+      "text": "Continue. O caminho fica mais claro.",
+      "target": "none"
+    }
+  ]
+}

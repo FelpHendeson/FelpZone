@@ -1,6 +1,7 @@
 import { ArchetypeError, copyArchetypeProgress, type ArchetypeProgressState } from '../archetypes';
 import { copyEchoesState, type EchoesState } from '../echoes';
 import { copyBestiaryState, type BestiaryState } from '../bestiary';
+import { copyMarksState, type MarksState } from '../marks';
 import { copyComboDiscovery, type ComboDiscoveryState } from '../combat';
 import { copyInventoryItem } from '../inventory';
 import { EngineError } from '../../core/engine';
@@ -211,6 +212,16 @@ export function requireAction(value: unknown): SandboxAction {
     }
 
     return { type: 'archetype.train', actionId: value.actionId };
+  }
+
+  if (value.type === 'mark.leave') {
+    if (typeof value.phraseId !== 'string' || value.phraseId.trim() === '' || (value.targetId !== undefined && typeof value.targetId !== 'string')) {
+      throw new SandboxActionError('A marca é inválida.');
+    }
+
+    return typeof value.targetId === 'string'
+      ? { type: 'mark.leave', phraseId: value.phraseId, targetId: value.targetId }
+      : { type: 'mark.leave', phraseId: value.phraseId };
   }
 
   if (value.type === 'archetype.choose') {
@@ -534,6 +545,7 @@ export interface GameStatePatch {
   combos?: ComboDiscoveryState;
   bestiary?: BestiaryState;
   echoes?: EchoesState;
+  marks?: MarksState;
   character?: GameState['character'];
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
@@ -604,6 +616,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     ...((patch.echoes ?? base.echoes) ? { echoes: copyEchoesState((patch.echoes ?? base.echoes)!) } : {}),
     ...((patch.combos ?? base.combos) ? { combos: copyComboDiscovery((patch.combos ?? base.combos)!) } : {}),
     ...((patch.bestiary ?? base.bestiary) ? { bestiary: copyBestiaryState((patch.bestiary ?? base.bestiary)!) } : {}),
+    ...((patch.marks ?? base.marks) ? { marks: copyMarksState((patch.marks ?? base.marks)!) } : {}),
     ...((patch.archetypeProgress ?? base.archetypeProgress)
       ? { archetypeProgress: copyArchetypeProgress((patch.archetypeProgress ?? base.archetypeProgress)!) }
       : {}),
@@ -655,6 +668,10 @@ export function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'archetype.choose') {
     return { type: 'archetype.choose', archetypeId: action.archetypeId };
+  }
+
+  if (action.type === 'mark.leave') {
+    return action.targetId ? { type: 'mark.leave', phraseId: action.phraseId, targetId: action.targetId } : { type: 'mark.leave', phraseId: action.phraseId };
   }
 
   if (action.type === 'combat.resolve') {
