@@ -30,7 +30,7 @@ Acrescente este bloco de estilo ao fim de **todo** prompt. Ele já vem incluído
 | Aprendiz de Espadachim | âmbar quente | `#d9a441` |
 | Aprendiz de Arqueiro | verde-musgo | `#4fae6f` |
 | Aprendiz de Assassino | carmim escuro | `#c2455a` |
-| Aprendiz sem caminho definido | cinza-azulado | `#8aa3b5` |
+| Aprendiz sem caminho | cinza-azulado | `#8aa3b5` |
 
 **Exportação:** `.webp`, 1024×1024 ou maior, abaixo de 2 MB. Os arquivos vão em `public/images/first-day/portraits/`.
 
@@ -120,7 +120,7 @@ Detalhe comum: a Adaga de Osso, curta, entalhada em osso, com o cabo enrolado. A
 
 ---
 
-## 6. Aprendiz sem caminho definido (`apprentice-pathless`)
+## 6. Aprendiz sem caminho (`apprentice-pathless`)
 
 Não carrega arma de assinatura. Detalhe comum: uma bolsa gasta a tiracolo, mãos vazias ou um fruto e um cantil.
 

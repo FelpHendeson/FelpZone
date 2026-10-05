@@ -71,6 +71,7 @@ import {
   archetypeRank,
   branchAccess,
   createInitialArchetypeProgress,
+  pathStatus,
   techniqueStatus,
 } from '../archetypes';
 import { INITIAL_COMBAT, ROUND_TICKS, type IndexedCombat } from '../combat';
@@ -661,6 +662,13 @@ function buildArchetypeView(state: GameState, combat: IndexedCombat): SystemArch
     }))
     .sort((left, right) => order[left.access] - order[right.access]);
   const nextBranch = rank.next ? catalog.byId.get(rank.next.branchArchetypeId)?.branch : undefined;
+  const path = pathStatus(catalog, archetypeId, progress);
+  const STYLE: Record<string, string> = {
+    'apprentice-mage': 'com Númen',
+    'apprentice-swordsman': 'de perto',
+    'apprentice-archer': 'de longe',
+    'apprentice-assassin': 'pelas brechas',
+  };
   return {
     ...(archetypeId ? { archetypeId } : {}),
     title: rank.title,
@@ -679,6 +687,27 @@ function buildArchetypeView(state: GameState, combat: IndexedCombat): SystemArch
         }
       : {}),
     counters: { signatureUses: progress.signatureUses, victories: progress.victories, eliteVictories: progress.eliteVictories },
+    ...(path
+      ? {
+          path: {
+            available: path.available,
+            victories: path.victories,
+            needed: path.needed,
+            options: path.options.map((option) => {
+              const entry = catalog.byId.get(option.archetypeId)!;
+              return {
+                archetypeId: option.archetypeId,
+                name: entry.name,
+                summary: entry.summary,
+                color: entry.palette.primary,
+                share: option.share,
+                suggested: option.suggested,
+                ...(option.share > 0 ? { reason: `${option.share}% das suas ações foram ${STYLE[option.archetypeId] ?? 'neste estilo'}` } : {}),
+              };
+            }),
+          },
+        }
+      : {}),
     branches,
   };
 }

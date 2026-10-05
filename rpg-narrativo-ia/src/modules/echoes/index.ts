@@ -275,7 +275,7 @@ function inspectSeal(value: unknown, catalog: IndexedCombat): EchoInspection<Ech
     // A patente precisa ser coerente com as técnicas declaradas (a vitória de elite não viaja no Selo).
     const claimed = archetypeRank(INITIAL_ARCHETYPES, {
       archetypeId,
-      progress: { techniqueIds, signatureUses: 0, victories: 1_000_000, eliteVictories: 1_000_000 },
+      progress: { techniqueIds, signatureUses: 0, victories: 1_000_000, eliteVictories: 1_000_000, affinity: {} },
     });
     if (value.rank !== 'initiate' || claimed.rank !== 'initiate') return fail('A patente do Selo não confere com as técnicas.');
   }

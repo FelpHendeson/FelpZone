@@ -211,6 +211,14 @@ export function requireAction(value: unknown): SandboxAction {
     return { type: 'archetype.train', actionId: value.actionId };
   }
 
+  if (value.type === 'archetype.choose') {
+    if (typeof value.archetypeId !== 'string' || value.archetypeId.trim() === '') {
+      throw new SandboxActionError('O caminho escolhido é inválido.');
+    }
+
+    return { type: 'archetype.choose', archetypeId: value.archetypeId };
+  }
+
   if (value.type === 'combat.resolve') {
     const resolution = value.resolution;
     if (
@@ -514,6 +522,7 @@ export interface GameStatePatch {
   guidance?: GuidanceState;
   npcs?: NPCsState;
   archetypeProgress?: ArchetypeProgressState;
+  character?: GameState['character'];
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
   updatedAt?: string;
@@ -523,7 +532,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
   return {
     schemaVersion: base.schemaVersion,
     status: patch.status ?? base.status,
-    character: copyCharacterIdentity(base.character),
+    character: copyCharacterIdentity(patch.character ?? base.character),
     narrativeSession: resolveNarrativeSessionPatch(patch.narrativeSession, base.narrativeSession),
     attributes: { ...(patch.attributes ?? base.attributes) },
     inventory: copyInventory(patch.inventory),
@@ -628,6 +637,10 @@ export function copyAction(action: SandboxAction): SandboxAction {
 
   if (action.type === 'archetype.train') {
     return { type: 'archetype.train', actionId: action.actionId };
+  }
+
+  if (action.type === 'archetype.choose') {
+    return { type: 'archetype.choose', archetypeId: action.archetypeId };
   }
 
   if (action.type === 'combat.resolve') {

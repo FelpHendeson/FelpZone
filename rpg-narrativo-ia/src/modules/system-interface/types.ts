@@ -147,6 +147,13 @@ export interface SystemArchetypeView {
   /** Progresso até Iniciado no galho mais avançado que conta. */
   next?: { branchName: string; techniques: number; techniquesNeeded: number; eliteVictories: number; eliteNeeded: number };
   counters: { signatureUses: number; victories: number; eliteVictories: number };
+  /** Só para o Aprendiz sem caminho: o caminho que está se formando. */
+  path?: {
+    available: boolean;
+    victories: number;
+    needed: number;
+    options: { archetypeId: string; name: string; summary: string; color: string; share: number; suggested: boolean; reason?: string }[];
+  };
   branches: SystemArchetypeBranchView[];
 }
 

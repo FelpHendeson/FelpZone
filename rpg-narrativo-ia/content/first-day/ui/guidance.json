@@ -156,6 +156,19 @@
       ],
       "category": "society",
       "popupOnUnlock": true
+    },
+    {
+      "id": "archetype-paths",
+      "title": "Caminhos",
+      "summary": "O Sistema não atribui classes: ele mostra o caminho que começou a se formar no seu jeito de lutar.",
+      "body": [
+        "Cada ação de combate deixa uma marca: lutar de perto, de longe, com Númen ou pelas brechas.",
+        "Depois de algumas vitórias, o Sistema destaca o caminho que mais combina com você. A sugestão não obriga: qualquer um dos quatro pode ser escolhido, agora ou depois.",
+        "Ao escolher, você recebe a arma e a técnica daquele caminho, e o galho dele passa a ser o seu. O que já aprendeu de outros galhos continua com você.",
+        "Só quem tem um caminho pode ser reconhecido como Iniciado."
+      ],
+      "category": "progression",
+      "popupOnUnlock": true
     }
   ]
 }

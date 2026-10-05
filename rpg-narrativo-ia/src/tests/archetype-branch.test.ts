@@ -5,6 +5,7 @@ import {
   INITIAL_ARCHETYPES,
   archetypeRank,
   createInitialArchetypeProgress,
+  pathStatus,
   recordArchetypeCombat,
   techniqueStatus,
   withArchetypeBonus,
@@ -170,13 +171,12 @@ describe('Evolução para Iniciado', () => {
     expect(archetypeRank(INITIAL_ARCHETYPES, { archetypeId: 'apprentice-archer', progress: progress({ techniqueIds: ['double-shot', 'pinning-arrow'], victories: 1, eliteVictories: 1 }), sex: 'male' }).title).toBe('Arqueiro Iniciado');
   });
 
-  it('técnicas de galho distante não contam; o sem caminho vira Iniciado em qualquer galho', () => {
-    const swordTechniques = progress({ techniqueIds: ['parry', 'opening-cut'], victories: 1, eliteVictories: 1 });
+  it('técnicas de galho distante não contam, e quem ainda não tem caminho não vira Iniciado', () => {
+    const swordTechniques = progress({ techniqueIds: ['parry', 'opening-cut'], victories: 3, eliteVictories: 1 });
     expect(archetypeRank(INITIAL_ARCHETYPES, { archetypeId: 'apprentice-mage', progress: swordTechniques }).rank).toBe('apprentice');
-    expect(archetypeRank(INITIAL_ARCHETYPES, { archetypeId: 'apprentice-pathless', progress: swordTechniques, sex: 'male' })).toMatchObject({
-      rank: 'initiate',
-      branchArchetypeId: 'apprentice-swordsman',
-      title: 'Espadachim Iniciado',
+    expect(archetypeRank(INITIAL_ARCHETYPES, { archetypeId: 'apprentice-pathless', progress: swordTechniques })).toEqual({
+      rank: 'apprentice',
+      title: 'Aprendiz sem caminho',
     });
   });
 
@@ -236,3 +236,67 @@ describe('Galho na interface e nos Ecos', () => {
     expect(echoSealId(seal)).toBe(echoSealId(createEchoSeal(INITIAL_COMBAT, { name: 'Ana', knownSkillIds: [], archetypeId: 'apprentice-mage' })));
   });
 });
+
+describe('Aprendiz sem caminho: a fase dos primeiros dias', () => {
+  const poseOf = (id: string) => INITIAL_COMBAT.actionById.get(id)?.pose;
+
+  it('o combate registra a inclinação pelo jeito de lutar, e o Sistema sugere o caminho que mais aparece', () => {
+    const next = recordArchetypeCombat(INITIAL_ARCHETYPES, 'apprentice-pathless', progress(), {
+      playerActionIds: ['throw-stone', 'retreat', 'throw-stone', 'attack'],
+      outcome: 'victory',
+      elite: false,
+      poseOf,
+    });
+    expect(next.affinity).toEqual({ 'apprentice-archer': 3, 'apprentice-swordsman': 1 });
+    const status = pathStatus(INITIAL_ARCHETYPES, 'apprentice-pathless', next)!;
+    expect(status).toMatchObject({ victories: 1, needed: 3, available: false });
+    expect(status.options.find((option) => option.suggested)).toMatchObject({ archetypeId: 'apprentice-archer', share: 75 });
+    expect(pathStatus(INITIAL_ARCHETYPES, 'apprentice-archer', next)).toBeUndefined();
+    const tie = pathStatus(INITIAL_ARCHETYPES, undefined, progress({ affinity: { 'apprentice-mage': 2, 'apprentice-archer': 2 } }))!;
+    expect(tie.options.some((option) => option.suggested)).toBe(false);
+  });
+
+  it('depois de três vitórias, escolher o caminho entrega a arma e a técnica, e vale uma vez só', () => {
+    const early = withArchetype('apprentice-pathless', progress({ victories: 2 }));
+    expect(() => executeSandboxAction(early, { type: 'archetype.choose', archetypeId: 'apprentice-archer' }, { now })).toThrow('2/3 vitórias');
+
+    const ready = withArchetype('apprentice-pathless', progress({ victories: 3, techniqueIds: ['parry'], affinity: { 'apprentice-archer': 4 } }));
+    const result = executeSandboxAction(ready, { type: 'archetype.choose', archetypeId: 'apprentice-archer' }, { now });
+    expect(result.current.character.archetypeId).toBe('apprentice-archer');
+    expect(result.current.items.equipment['main-hand']).toBe('rustic-bow');
+    expect(result.current.inventory).toContainEqual({ itemId: 'rustic-bow', quantity: 1 });
+    expect(result.current.archetypeProgress?.techniqueIds).toEqual(['parry']);
+    expect(describeSandboxFeedback(result, sandboxContext).message).toContain('Caminho registrado: Aprendiz de Arqueiro');
+    expect(parseGameState(serializeGameState(result.current))).toEqual({ status: 'ok', state: result.current });
+    expect(() => executeSandboxAction(result.current, { type: 'archetype.choose', archetypeId: 'apprentice-mage' }, { now })).toThrow('já segue um caminho');
+    expect(buildSystemStatus(result.current, sandboxContext).archetype.path).toBeUndefined();
+  });
+
+  it('a terceira vitória abre o guia do Sistema sobre caminhos e o Sistema avisa', () => {
+    let state = withArchetype('apprentice-pathless', progress({ victories: 2 }));
+    for (let count = 0; count < 3; count += 1) state = executeSandboxAction(state, { type: 'exploration.explore' }, { now }).current;
+    let combat: CombatState = createCombat(INITIAL_COMBAT, 'clearing-predator', {
+      playerName: `${state.character.firstName} ${state.character.lastName}`,
+      knownSkillIds: state.system.entries.map((entry) => entry.skillId),
+      playerMaxHealth: state.attributes.saude,
+      execution: state.execution,
+    });
+    for (let safety = 0; combat.outcome === 'ongoing' && safety < 40; safety += 1) {
+      combat = resolveRound(INITIAL_COMBAT, combat, ['advance', 'attack', 'attack']);
+    }
+    expect(combat.outcome).toBe('victory');
+    const result = executeSandboxAction(
+      state,
+      { type: 'combat.resolve', resolution: buildCombatResolution(combat, getEncounter(INITIAL_COMBAT, 'clearing-predator')) },
+      { now },
+    );
+    expect(result.current.guidance.unlockedTopicIds).toContain('archetype-paths');
+    expect(result.current.archetypeProgress?.affinity['apprentice-swordsman']).toBeGreaterThan(0);
+    expect(describeSandboxFeedback(result, sandboxContext).message).toContain('Um caminho começou a se formar');
+    const view = buildSystemStatus(result.current, sandboxContext).archetype;
+    expect(view.path).toMatchObject({ available: true, victories: 3 });
+    expect(view.path!.options.find((option) => option.suggested)).toMatchObject({ archetypeId: 'apprentice-swordsman' });
+    expect(view.path!.options.find((option) => option.suggested)!.reason).toContain('de perto');
+  });
+});
+

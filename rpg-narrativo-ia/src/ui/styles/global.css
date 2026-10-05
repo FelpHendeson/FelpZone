@@ -6391,3 +6391,69 @@ span.portrait-avatar {
   color: var(--text-muted);
   font-size: 0.8rem;
 }
+
+/* Escolha de caminho do Aprendiz sem caminho. */
+.path-choice {
+  display: grid;
+  gap: 8px;
+}
+
+.path-choice__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr));
+  gap: 10px;
+}
+
+.path-option {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 14px 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+  text-align: center;
+}
+
+.path-option strong {
+  font-size: 0.9rem;
+  overflow-wrap: break-word;
+}
+
+.path-option small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.path-option--suggested {
+  border-color: var(--archetype);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--archetype) 45%, transparent);
+  background: color-mix(in srgb, var(--archetype) 10%, var(--bg-elevated));
+}
+
+.path-option__badge {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--archetype);
+  color: #0b1014;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.path-option__meter {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text-muted) 25%, transparent);
+  overflow: hidden;
+}
+
+.path-option__meter span {
+  display: block;
+  height: 100%;
+  background: var(--archetype);
+}

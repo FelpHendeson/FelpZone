@@ -3,7 +3,7 @@ import type { SandboxActionResult } from '../../modules/sandbox-actions';
 import { deriveNeedsBands, type NeedId } from '../../modules/needs';
 import { attributesToNeedsSnapshot, formatNeedDelta, needLabel } from '../needs/presentation';
 import { getTrainingMethod } from '../../modules/training';
-import { INITIAL_ARCHETYPES, archetypeRank, createInitialArchetypeProgress } from '../../modules/archetypes';
+import { INITIAL_ARCHETYPES, archetypeRank, createInitialArchetypeProgress, pathStatus } from '../../modules/archetypes';
 import { formatTimeCost, sandboxDiscoveryName, sandboxItemName } from './labels';
 
 export const FEEDBACK_KINDS = ['info', 'success', 'warning', 'discovery', 'journey', 'critical'] as const;
@@ -160,6 +160,16 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
       push('success', `Aprendeu ${name}. A técnica entrou no seu banco de ações.`);
       break;
     }
+    case 'archetype.choose': {
+      const archetype = INITIAL_ARCHETYPES.byId.get(result.detail.archetypeId);
+      const items = (archetype?.equip ?? []).map((itemId) => context.items?.byId.get(itemId)?.name ?? itemId);
+      const techniques = (archetype?.signatureActionIds ?? []).map((id) => context.combat?.actionById.get(id)?.name ?? id);
+      push(
+        'journey',
+        `[ Sistema ] Caminho registrado: ${archetype?.name ?? result.detail.archetypeId}.${items.length ? ` Você recebe ${items.join(', ')}` : ''}${techniques.length ? ` e a técnica ${techniques.join(', ')}` : ''}. O galho dele passa a ser o seu.`,
+      );
+      break;
+    }
     case 'combat.resolve': {
       if (result.detail.resolution.outcome === 'victory') {
         push('success', 'Você superou o confronto.');
@@ -257,6 +267,11 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
     progress: result.current.archetypeProgress ?? createInitialArchetypeProgress(),
     sex: result.current.character.sex,
   });
+  const pathBefore = pathStatus(INITIAL_ARCHETYPES, result.previous.character.archetypeId, result.previous.archetypeProgress ?? createInitialArchetypeProgress());
+  const pathAfter = pathStatus(INITIAL_ARCHETYPES, result.current.character.archetypeId, result.current.archetypeProgress ?? createInitialArchetypeProgress());
+  if (pathAfter?.available && !pathBefore?.available) {
+    push('journey', '[ Sistema ] Um caminho começou a se formar. Veja na Árvore do Sistema qual combina com o seu jeito de lutar.');
+  }
   if (rankBefore.rank === 'apprentice' && rankAfter.rank === 'initiate') {
     push(
       'journey',

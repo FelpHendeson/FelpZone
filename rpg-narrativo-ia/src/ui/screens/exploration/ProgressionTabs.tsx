@@ -11,7 +11,7 @@ import type {
 } from '../../../modules/system-interface';
 import { formatTimeCost } from '../../sandbox';
 import { Silhouette } from '../../components/Silhouette';
-import { poseForAction, poseForSkill } from '../../silhouettes';
+import { archetypeOf, poseForAction, poseForSkill } from '../../silhouettes';
 import { INITIAL_COMBAT } from '../../../modules/combat';
 import { EmptyAction } from './shared';
 
@@ -33,11 +33,13 @@ export function ProgressionTabs({
   onTrain,
   onCultivate,
   onTrainTechnique,
+  onChoosePath,
   initialTab = 'tree',
 }: {
   status: SystemStatusView;
   onTrain: (training: SystemTrainingView) => void;
   onTrainTechnique?: (technique: SystemArchetypeTechniqueView) => void;
+  onChoosePath?: (option: PathOptionView) => void;
   onCultivate: (recipeId: string) => void;
   initialTab?: ProgressionTab;
 }) {
@@ -68,7 +70,7 @@ export function ProgressionTabs({
       </div>
 
       <div role="tabpanel" id={`progression-panel-${tab}`} aria-labelledby={`progression-tab-${tab}`} className="progression__panel">
-        {tab === 'tree' ? <ArchetypeBranches view={status.archetype} onTrain={onTrainTechnique} /> : null}
+        {tab === 'tree' ? <ArchetypeBranches view={status.archetype} onTrain={onTrainTechnique} onChoosePath={onChoosePath} /> : null}
         {tab === 'tree' ? (
           <SkillTreeView
             paths={status.skillTree.paths}
@@ -315,7 +317,17 @@ function Basics({ status }: { status: SystemStatusView }) {
 }
 
 /** Patente e galhos de arquétipo: o próprio (ou os abertos) primeiro; os distantes recolhidos. */
-function ArchetypeBranches({ view, onTrain }: { view: SystemArchetypeView; onTrain?: (technique: SystemArchetypeTechniqueView) => void }) {
+export type PathOptionView = NonNullable<SystemArchetypeView['path']>['options'][number];
+
+function ArchetypeBranches({
+  view,
+  onTrain,
+  onChoosePath,
+}: {
+  view: SystemArchetypeView;
+  onTrain?: (technique: SystemArchetypeTechniqueView) => void;
+  onChoosePath?: (option: PathOptionView) => void;
+}) {
   const near = view.branches.filter((branch) => branch.access !== 'distant');
   const distant = view.branches.filter((branch) => branch.access === 'distant');
   const renderBranch = (branch: SystemArchetypeView['branches'][number]) => (
@@ -347,6 +359,12 @@ function ArchetypeBranches({ view, onTrain }: { view: SystemArchetypeView; onTra
         <strong>{view.title}</strong>
         {view.rank === 'initiate' ? (
           <p>Você monta a rodada com {view.roundTicks} tempos.</p>
+        ) : view.path ? (
+          <p>
+            {view.path.available
+              ? '[ Sistema ] Um caminho começou a se formar. A sugestão vem do seu jeito de lutar; a escolha é sua, agora ou depois.'
+              : `[ Sistema ] Nos primeiros dias, experimente de tudo: qualquer galho fica aberto sem custo extra. O caminho se forma depois de ${view.path.needed} vitórias (${view.path.victories}/${view.path.needed}).`}
+          </p>
         ) : view.next ? (
           <p>
             Para virar Iniciado em {view.next.branchName}: {view.next.techniques}/{view.next.techniquesNeeded} técnicas do galho e{' '}
@@ -359,6 +377,7 @@ function ArchetypeBranches({ view, onTrain }: { view: SystemArchetypeView; onTra
           {view.counters.eliteVictories} de elite
         </small>
       </section>
+      {view.path ? <PathChoice path={view.path} onChoose={onChoosePath} /> : null}
       {near.map(renderBranch)}
       {distant.length > 0 ? (
         <details className="archetype-branches__distant">
@@ -420,5 +439,39 @@ function TechniqueNode({
         ) : null}
       </div>
     </li>
+  );
+}
+
+/** Os quatro caminhos, com a inclinação de cada um; liberados após as vitórias necessárias. */
+function PathChoice({ path, onChoose }: { path: NonNullable<SystemArchetypeView['path']>; onChoose?: (option: PathOptionView) => void }) {
+  return (
+    <section className="path-choice" aria-label="Caminhos">
+      <span className="section-kicker">{path.available ? 'Caminhos abertos' : 'Inclinação até agora'}</span>
+      <div className="path-choice__grid">
+        {path.options.map((option) => {
+          const archetype = archetypeOf(option.archetypeId);
+          return (
+            <article
+              key={option.archetypeId}
+              className={option.suggested ? 'path-option path-option--suggested' : 'path-option'}
+              style={{ ['--archetype' as string]: option.color }}
+            >
+              {option.suggested ? <span className="path-option__badge">Sugerido pelo Sistema</span> : null}
+              <Silhouette pose={archetype?.pose ?? 'stand'} prop={archetype?.prop ?? 'none'} tint="var(--text)" glow={option.color} size={56} />
+              <strong>{option.name}</strong>
+              <div className="path-option__meter" aria-label={`Inclinação ${option.share}%`}>
+                <span style={{ width: `${option.share}%` }} />
+              </div>
+              <small>{option.reason ?? 'Ainda sem sinais deste caminho.'}</small>
+              {path.available && onChoose ? (
+                <button type="button" className="button button--compact" onClick={() => onChoose(option)}>
+                  Seguir este caminho
+                </button>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
   );
 }

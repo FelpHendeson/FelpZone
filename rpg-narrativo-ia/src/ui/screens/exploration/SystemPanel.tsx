@@ -15,7 +15,7 @@ import { ImagePlaceholder } from '../../components/ImagePlaceholder';
 import { formatTimeCost } from '../../sandbox';
 import { Portrait } from '../../components/Portrait';
 import { EmptyAction } from './shared';
-import { ProgressionTabs } from './ProgressionTabs';
+import { ProgressionTabs, type PathOptionView } from './ProgressionTabs';
 
 export type SystemSection = 'progression' | 'registry' | 'society' | 'family' | 'territory' | 'economy' | 'politics';
 
@@ -48,6 +48,7 @@ export function SystemPanel({
   const [pendingGarden, setPendingGarden] = useState<string | null>(null);
   const [pendingPatent, setPendingPatent] = useState<string | null>(null);
   const [pendingTechnique, setPendingTechnique] = useState<SystemArchetypeTechniqueView | null>(null);
+  const [pendingPath, setPendingPath] = useState<PathOptionView | null>(null);
   const gardenRecipe = status.garden.recipes.find((recipe) => recipe.id === pendingGarden);
   const patent = status.registry.patents.find((entry) => entry.id === pendingPatent);
   const sectionCopy = {
@@ -81,7 +82,7 @@ export function SystemPanel({
           </section>
         ) : null}
         {section === 'progression' ? (
-          <ProgressionTabs status={status} onTrain={setPending} onCultivate={setPendingGarden} onTrainTechnique={setPendingTechnique} />
+          <ProgressionTabs status={status} onTrain={setPending} onCultivate={setPendingGarden} onTrainTechnique={setPendingTechnique} onChoosePath={setPendingPath} />
         ) : null}
         {section === 'registry' ? <>
         <details className="system-disclosure">
@@ -620,6 +621,23 @@ export function SystemPanel({
           }
         }}
         onCancel={() => setPending(null)}
+      />
+      <ConfirmDialog
+        open={pendingPath !== null}
+        title={pendingPath ? `Seguir: ${pendingPath.name}` : ''}
+        message={
+          pendingPath
+            ? `${pendingPath.summary} Você recebe a arma e a técnica deste caminho, e o galho dele passa a ser o seu. A escolha é definitiva.`
+            : ''
+        }
+        confirmLabel="Seguir este caminho"
+        onConfirm={() => {
+          if (pendingPath) {
+            onAction({ type: 'archetype.choose', archetypeId: pendingPath.archetypeId });
+            setPendingPath(null);
+          }
+        }}
+        onCancel={() => setPendingPath(null)}
       />
       <ConfirmDialog
         open={pendingTechnique !== null}

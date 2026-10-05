@@ -1,9 +1,13 @@
 import { applyEffects } from '../../core/effects';
 import type { GameEffect } from '../../core/events';
-import { type Attributes, type GameState, type InventoryItem, type NarrativeSession, type ProgressionState, type Relationship } from '../../core/state';
+import { copyCharacterIdentity, type Attributes, type CharacterIdentity, type GameState, type InventoryItem, type NarrativeSession, type ProgressionState, type Relationship } from '../../core/state';
 import {
   INITIAL_ARCHETYPES,
+  PATHS_GUIDANCE_TOPIC,
+  applyArchetypeStart,
   applyArchetypeTraining,
+  pathStatus,
+  planPathChoice,
   withArchetypeBonus,
   createInitialArchetypeProgress,
   planArchetypeTraining,
@@ -42,7 +46,7 @@ import { copyExecutionState, createInitialExecutionState, restoreReserves, type 
 import { applyInteractablePlan, copyInteractablesState, createInitialInteractablesState, planInteractableAction, type InteractableActionPlan, type InteractablesState } from '../interactables';
 import { copyNpcsState, createInitialNpcsState, rememberNpcFact, INITIAL_NPCS, type NPCsState } from '../npcs';
 import { applyContextualActivityPlan, copyContextualActivitiesState, createInitialContextualActivitiesState, planContextualActivity, type ContextualActivitiesState, type ContextualActivityPlan } from '../activities';
-import type { GuidanceState } from '../guidance';
+import { unlockGuidanceTopic, type GuidanceState } from '../guidance';
 import { copyTimeCost, minutesUntilDawn, type TimeCost } from '../time';
 import { copyWorld, worldMinute, worldToTimeState } from '../world';
 import { SandboxActionError } from './errors';
@@ -104,6 +108,7 @@ export function executePrimary(
   mastery?: MasteryResult;
   archetypeProgress?: ArchetypeProgressState;
   archetypePlan?: ArchetypeTrainingPlan;
+  character?: CharacterIdentity;
 } {
   const catalogs = activeCatalogs(context);
   const navigation = copyNavigation(state.sandbox.navigation);
@@ -339,6 +344,31 @@ export function executePrimary(
     };
   }
 
+  if (action.type === 'archetype.choose') {
+    const progress = state.archetypeProgress ?? createInitialArchetypeProgress();
+    const choice = planPathChoice(INITIAL_ARCHETYPES, state.character.archetypeId, progress, action.archetypeId);
+    const start = applyArchetypeStart(
+      INITIAL_ARCHETYPES,
+      choice.archetypeId,
+      inventory,
+      unchanged.items,
+      requireActiveCatalog(catalogs.items, 'itens'),
+    );
+    return {
+      detail: { type: 'archetype.choose', archetypeId: choice.archetypeId },
+      timeCost: copyTimeCost(choice.timeCost),
+      navigation,
+      exploration,
+      resources,
+      crafting,
+      presences,
+      ...unchanged,
+      inventory: start.inventory,
+      items: start.items,
+      character: copyCharacterIdentity({ ...state.character, archetypeId: choice.archetypeId }),
+    };
+  }
+
   if (action.type === 'combat.resolve') {
     const revealedDiscoveryIds = exploration.locations.find(
       (location) => location.locationId === navigation.currentLocationId,
@@ -405,8 +435,17 @@ export function executePrimary(
         playerActionIds: resolution.playerPlans ? resolution.playerPlans.flat() : resolution.playerActionIds,
         outcome: resolution.outcome,
         elite: encounter.elite === true,
+        poseOf: (id) => requireActiveCatalog(catalogs.combat, 'combate').actionById.get(id)?.pose,
       },
     );
+    // O guia do Sistema se abre quando o caminho de quem ainda não tem um começa a se formar.
+    let guidance = unchanged.guidance;
+    if (
+      context.guidance?.byId.has(PATHS_GUIDANCE_TOPIC) &&
+      pathStatus(INITIAL_ARCHETYPES, state.character.archetypeId, archetypeProgress)?.available
+    ) {
+      guidance = unlockGuidanceTopic(context.guidance, guidance, PATHS_GUIDANCE_TOPIC);
+    }
     const afterEffects = applyEffects(state, combatResolutionEffects(resolution, state.attributes.saude), context.bonds);
 
     let system = afterEffects.system;
@@ -458,6 +497,7 @@ export function executePrimary(
       detail: { type: 'combat.resolve', resolution: copyResolution(resolution) },
       timeCost: copyTimeCost(encounter.timeCost),
       archetypeProgress,
+      guidance,
       navigation,
       exploration,
       resources,

@@ -42,6 +42,9 @@
       "techniques": 2,
       "eliteVictories": 1,
       "roundTicks": 6
+    },
+    "path": {
+      "victories": 3
     }
   },
   "creation": {
@@ -183,7 +186,11 @@
             "tier": 3
           }
         ]
-      }
+      },
+      "affinityPoses": [
+        "cast",
+        "heal"
+      ]
     },
     {
       "id": "apprentice-swordsman",
@@ -305,7 +312,14 @@
             "tier": 3
           }
         ]
-      }
+      },
+      "affinityPoses": [
+        "slash",
+        "strike",
+        "lunge",
+        "guard",
+        "advance"
+      ]
     },
     {
       "id": "apprentice-archer",
@@ -427,7 +441,12 @@
             "tier": 3
           }
         ]
-      }
+      },
+      "affinityPoses": [
+        "shoot",
+        "throw",
+        "retreat"
+      ]
     },
     {
       "id": "apprentice-assassin",
@@ -549,13 +568,18 @@
             "tier": 3
           }
         ]
-      }
+      },
+      "affinityPoses": [
+        "stab",
+        "feint",
+        "dodge"
+      ]
     },
     {
       "id": "apprentice-pathless",
-      "name": "Aprendiz sem caminho definido",
-      "summary": "Nenhuma assinatura ainda. Começa com mantimentos e liberdade para seguir qualquer caminho.",
-      "description": "Antes do Reset, você levava uma vida comum. Nenhum costume antigo se destaca — e isso não é fraqueza: é um caminho que ainda não foi escrito. Você acordou com o que conseguiu juntar.",
+      "name": "Aprendiz sem caminho",
+      "summary": "Ainda não sabe. O Sistema observa os primeiros dias e o caminho se forma pelo jeito como você luta.",
+      "description": "Antes do Reset, você levava uma vida comum. Nos primeiros dias, você experimenta de tudo: qualquer galho fica aberto sem custo extra. Depois de algumas vitórias, o Sistema mostra qual caminho começou a se formar, e a escolha é sua.",
       "pose": "stand",
       "palette": {
         "primary": "#8aa3b5",
@@ -581,7 +605,7 @@
       "portraits": [
         {
           "id": "apprentice-pathless-1",
-          "label": "Aprendiz sem caminho definido, cabelo escuro bagunçado",
+          "label": "Aprendiz sem caminho, cabelo escuro bagunçado",
           "sex": "male",
           "fallback": {
             "skin": 2,
@@ -590,12 +614,12 @@
           },
           "image": {
             "kind": "portrait",
-            "label": "Aprendiz sem caminho definido, cabelo escuro bagunçado"
+            "label": "Aprendiz sem caminho, cabelo escuro bagunçado"
           }
         },
         {
           "id": "apprentice-pathless-2",
-          "label": "Aprendiz sem caminho definido, black power curto",
+          "label": "Aprendiz sem caminho, black power curto",
           "sex": "female",
           "fallback": {
             "skin": 5,
@@ -604,12 +628,12 @@
           },
           "image": {
             "kind": "portrait",
-            "label": "Aprendiz sem caminho definido, black power curto"
+            "label": "Aprendiz sem caminho, black power curto"
           }
         },
         {
           "id": "apprentice-pathless-3",
-          "label": "Aprendiz sem caminho definido, cabelo loiro-areia",
+          "label": "Aprendiz sem caminho, cabelo loiro-areia",
           "sex": "male",
           "fallback": {
             "skin": 0,
@@ -618,12 +642,12 @@
           },
           "image": {
             "kind": "portrait",
-            "label": "Aprendiz sem caminho definido, cabelo loiro-areia"
+            "label": "Aprendiz sem caminho, cabelo loiro-areia"
           }
         },
         {
           "id": "apprentice-pathless-4",
-          "label": "Aprendiz sem caminho definido, ondas castanhas",
+          "label": "Aprendiz sem caminho, ondas castanhas",
           "sex": "female",
           "fallback": {
             "skin": 1,
@@ -632,12 +656,12 @@
           },
           "image": {
             "kind": "portrait",
-            "label": "Aprendiz sem caminho definido, ondas castanhas"
+            "label": "Aprendiz sem caminho, ondas castanhas"
           }
         },
         {
           "id": "apprentice-pathless-5",
-          "label": "Aprendiz sem caminho definido, capuz de viagem",
+          "label": "Aprendiz sem caminho, capuz de viagem",
           "sex": "any",
           "fallback": {
             "skin": 2,
@@ -646,7 +670,7 @@
           },
           "image": {
             "kind": "portrait",
-            "label": "Aprendiz sem caminho definido, capuz de viagem"
+            "label": "Aprendiz sem caminho, capuz de viagem"
           }
         }
       ]

@@ -56,7 +56,7 @@ Ao tocar numa carta, o fundo troca para a cena daquele arquétipo e ganha um lev
 ### 3.4 `apprentice-assassin.webp`, Aprendiz de Assassino
 > Vertical 9:16 view of a dense undergrowth of tall ferns at dusk, a narrow hidden path disappearing between dark trunks, deep shadows with a thin dark crimson glow of the setting sun low behind the trees, a faint glint of something sharp half hidden in the ferns, the lower half calm and nearly black with fern silhouettes, no people, tense and silent. Painterly semi-realistic fantasy illustration, digital painting, cinematic natural lighting, muted earthy color palette with a dark crimson accent, no UI, no text, no watermark, no logo, no signature, no border, no frame, high detail.
 
-### 3.5 `apprentice-pathless.webp`, Aprendiz sem caminho definido
+### 3.5 `apprentice-pathless.webp`, Aprendiz sem caminho
 > Vertical 9:16 view of a crossroads of several narrow dirt trails splitting in different directions through a misty meadow at early morning, each trail fading into fog toward different landscapes (forest, hills, a distant floating island barely visible in the sky), soft pale blue-grey light, the lower half calm with the worn crossroads ground and low mist, no people, open and hopeful. Painterly semi-realistic fantasy illustration, digital painting, cinematic natural lighting, muted earthy color palette with a pale blue-grey accent, no UI, no text, no watermark, no logo, no signature, no border, no frame, high detail.
 
 ---

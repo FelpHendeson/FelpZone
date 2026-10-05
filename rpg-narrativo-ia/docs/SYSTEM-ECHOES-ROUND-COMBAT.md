@@ -121,7 +121,7 @@ O jogo continua funcionando sem rede: o online é uma camada opcional sobre os E
 | Aprendiz de Espadachim | Lâmina de Pedra Lascada | Corte Duplo: 2 tempos, corpo a corpo, 4 + 3 de dano |
 | Aprendiz de Arqueiro | Arco Rústico | Tiro Mirado: 3 tempos, alcança de longe, 8 de dano, interrompível |
 | Aprendiz de Assassino | Adaga de Osso | Golpe Furtivo: 1 tempo, velocidade 17, 2 de dano + Sangramento |
-| Aprendiz sem caminho definido | nenhum (2 frutos e 1 água limpa) | nenhuma: liberdade para seguir qualquer caminho |
+| Aprendiz sem caminho | nenhum (2 frutos e 1 água limpa) | nenhuma: liberdade para seguir qualquer caminho |
 
 Regras:
 
@@ -177,7 +177,7 @@ As técnicas são ações de combate `equipmentOnly`: só entram no banco quando
   - técnica 1: usar a técnica de assinatura 3 vezes em combate;
   - técnica 2: 2 vitórias;
   - técnica 3: 4 vitórias e nível 2.
-- **Galho aberto** (para o Aprendiz sem caminho definido e para saves anteriores aos arquétipos):
+- **Galho aberto** (para o Aprendiz sem caminho e para saves anteriores aos arquétipos):
   - técnica 1: 2 vitórias;
   - técnica 2: 4 vitórias;
   - técnica 3: 6 vitórias e nível 2.
@@ -188,7 +188,7 @@ As técnicas são ações de combate `equipmentOnly`: só entram no banco quando
 
 ### Iniciado
 
-- **Requisito:** 2 técnicas do próprio galho e 1 vitória de elite. O Aprendiz sem caminho definido pode virar Iniciado em qualquer galho. Técnicas de galho distante não contam.
+- **Requisito:** 2 técnicas do próprio galho e 1 vitória de elite. Só quem já tem um caminho pode ser Iniciado (veja a seção 6). Técnicas de galho distante não contam.
 - **Título:** muda conforme o sexo do personagem, por exemplo "Espadachim Iniciado", "Espadachim Iniciada", "Maga Iniciada" ou "Arqueiro Iniciado".
 - **Anúncio:** o Sistema anuncia a patente quando ela é alcançada.
 - **Recompensa:** o Iniciado monta a rodada com **6 tempos**. É um valor por combatente (`roundTicks`, teto `MAX_ROUND_TICKS`), passado ao combate pelo mundo e conferido no replay.
@@ -211,3 +211,39 @@ As técnicas são ações de combate `equipmentOnly`: só entram no banco quando
   - os galhos distantes ficam recolhidos.
 - **Topo da tela e tela Personagem:** mostram o título da patente.
 - **Combate:** a trilha mostra os tempos do combatente, 5 ou 6.
+
+## 6. Aprendiz sem caminho: a fase dos primeiros dias
+
+**Decisão do autor:** o Aprendiz sem caminho é um **estágio anterior** aos outros quatro, o estado do sobrevivente nos primeiros dias. Ele não concorre com os quatro arquétipos. O nome é "Aprendiz sem caminho", e tudo é apresentado como guia do Sistema. A escolha aparece depois de **3 vitórias**, como recomendado.
+
+### Etapas
+
+1. **Na criação**, quem ainda não sabe escolhe "Aprendiz sem caminho". Saves anteriores aos arquétipos também são tratados assim.
+2. **Nos primeiros dias:**
+   - qualquer galho fica aberto sem custo extra;
+   - cada ação de combate registra uma inclinação, pelas poses declaradas em `affinityPoses`.
+
+   | Caminho | Inclinação | Poses |
+   | --- | --- | --- |
+   | Mago | com Númen | conjurar, curar |
+   | Espadachim | de perto | cortar, golpear, investir, guardar, avançar |
+   | Arqueiro | de longe | atirar, arremessar, recuar |
+   | Assassino | pelas brechas | estocar, fintar, esquivar |
+
+3. **Quando o caminho se forma** (após `branchRules.path.victories` vitórias, hoje 3):
+   - o Sistema avisa e abre o tópico **Caminhos** do guia (`archetype-paths`);
+   - a Árvore mostra os quatro caminhos com a parcela de ações de cada um;
+   - o caminho com mais ações aparece como **Sugerido pelo Sistema**, com o motivo, por exemplo "75% das suas ações foram de longe". Num empate, nada é sugerido;
+   - a escolha é livre e pode ser adiada.
+4. **Ao escolher** (ação `archetype.choose`, 10 minutos):
+   - o personagem recebe a arma e a técnica de assinatura do caminho, já equipadas;
+   - o galho daquele caminho passa a ser o seu;
+   - técnicas já aprendidas de outros galhos continuam no banco, e os galhos dos outros arquétipos passam a ser distantes;
+   - a escolha é única: quem já tem caminho não escolhe de novo.
+5. **Iniciado** só existe depois do caminho. A progressão fica: Aprendiz sem caminho → Aprendiz de um caminho → Iniciado.
+
+### Persistência
+
+- **Save:** `archetypeProgress.affinity` é aditivo. Saves sem o campo começam do zero, e o campo é validado contra os caminhos do pack.
+- **Personagem:** `character.archetypeId` muda uma única vez, de sem caminho para um dos quatro, pela ação validada no motor.
+

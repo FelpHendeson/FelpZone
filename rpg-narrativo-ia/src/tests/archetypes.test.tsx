@@ -48,7 +48,7 @@ describe('Arquétipos de aprendiz', () => {
       'Aprendiz de Espadachim',
       'Aprendiz de Arqueiro',
       'Aprendiz de Assassino',
-      'Aprendiz sem caminho definido',
+      'Aprendiz sem caminho',
     ]);
   });
 

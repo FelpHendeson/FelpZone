@@ -43,11 +43,17 @@ export function CharacterPanel({
         <section className="archetype-panel" aria-label="Arquétipo" style={{ ['--archetype' as string]: archetype.palette.primary }}>
           <Silhouette pose={archetype.pose} prop={archetype.prop} tint="var(--text)" glow={archetype.palette.primary} size={72} />
           <div>
-            <span className="section-kicker">{status.archetype.rank === 'initiate' ? 'Patente reconhecida' : 'Antes do Reset'}</span>
+            <span className="section-kicker">{status.archetype.rank === 'initiate' ? 'Patente reconhecida' : status.archetype.path ? 'Primeiros dias' : 'Antes do Reset'}</span>
             <strong>{status.archetype.title}</strong>
             <p>{archetype.summary}</p>
             {status.archetype.rank === 'initiate' ? (
               <p className="archetype-panel__rank">Monta a rodada com {status.archetype.roundTicks} tempos.</p>
+            ) : status.archetype.path ? (
+              <p className="archetype-panel__rank">
+                {status.archetype.path.available
+                  ? 'Um caminho começou a se formar. Escolha na Árvore do Sistema.'
+                  : `O caminho se forma depois de ${status.archetype.path.needed} vitórias (${status.archetype.path.victories}/${status.archetype.path.needed}).`}
+              </p>
             ) : status.archetype.next ? (
               <p className="archetype-panel__rank">
                 Rumo a Iniciado: {status.archetype.next.techniques}/{status.archetype.next.techniquesNeeded} técnicas ·{' '}

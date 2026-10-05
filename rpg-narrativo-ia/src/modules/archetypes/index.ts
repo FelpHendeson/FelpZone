@@ -34,6 +34,8 @@ export interface ArchetypeDefinition {
   branch?: ArchetypeBranch;
   /** Título ao virar Iniciado neste galho. */
   initiateTitle?: { male: string; female: string };
+  /** Poses de combate que revelam inclinação para este caminho (para quem ainda não tem caminho). */
+  affinityPoses?: ActionPose[];
 }
 
 export interface ArchetypeBranch {
@@ -53,6 +55,8 @@ export interface BranchRules {
   /** Galho de outro arquétipo: treino mais longo e nível mais alto. */
   distant: { minutesMultiplier: number; levelBonus: number };
   initiate: { techniques: number; eliteVictories: number; roundTicks: number };
+  /** Vitórias para o Aprendiz sem caminho poder escolher um caminho. */
+  path: { victories: number };
 }
 
 export interface BranchTechnique {
@@ -157,6 +161,13 @@ export function inspectArchetypeCatalog(
     ) {
       return fail(`O título de Iniciado do arquétipo ${entry.id} é inválido.`);
     }
+    const affinityPoses = entry.affinityPoses;
+    if (
+      (branch && (!Array.isArray(affinityPoses) || affinityPoses.length === 0 || affinityPoses.some((pose) => !(ACTION_POSES as readonly unknown[]).includes(pose)))) ||
+      (!branch && affinityPoses !== undefined)
+    ) {
+      return fail(`As poses de inclinação do arquétipo ${entry.id} são inválidas.`);
+    }
     const backdrop = entry.backdrop === undefined ? undefined : inspectImageReference(entry.backdrop);
     if (entry.backdrop !== undefined && !backdrop) return fail(`O fundo do arquétipo ${entry.id} é inválido.`);
     const startingItems: { itemId: string; quantity: number }[] = [];
@@ -201,7 +212,11 @@ export function inspectArchetypeCatalog(
       ...(backdrop ? { backdrop } : {}),
       portraits,
       ...(branch && isRecord(initiateTitle)
-        ? { branch, initiateTitle: { male: String(initiateTitle.male), female: String(initiateTitle.female) } }
+        ? {
+            branch,
+            initiateTitle: { male: String(initiateTitle.male), female: String(initiateTitle.female) },
+            affinityPoses: [...new Set(affinityPoses as ActionPose[])],
+          }
         : {}),
     });
   }
@@ -295,6 +310,8 @@ function inspectBranchRules(value: unknown): BranchRules | undefined {
   }
   const distant = value.distant;
   const initiate = value.initiate;
+  const path = value.path;
+  if (!isRecord(path) || !Number.isSafeInteger(path.victories) || (path.victories as number) < 1 || (path.victories as number) > 99) return undefined;
   if (
     !isRecord(distant) || !Number.isSafeInteger(distant.minutesMultiplier) || (distant.minutesMultiplier as number) < 1 ||
     !Number.isSafeInteger(distant.levelBonus) || (distant.levelBonus as number) < 0 ||
@@ -312,6 +329,7 @@ function inspectBranchRules(value: unknown): BranchRules | undefined {
       eliteVictories: initiate.eliteVictories as number,
       roundTicks: initiate.roundTicks as number,
     },
+    path: { victories: path.victories as number },
   };
 }
 

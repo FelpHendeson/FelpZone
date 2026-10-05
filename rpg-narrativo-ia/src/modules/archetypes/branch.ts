@@ -16,10 +16,12 @@ export interface ArchetypeProgressState {
   victories: number;
   /** Vitórias sobre ameaças de elite. */
   eliteVictories: number;
+  /** Ações de combate que combinam com cada caminho (id do arquétipo → contagem). */
+  affinity: Record<string, number>;
 }
 
 export function createInitialArchetypeProgress(): ArchetypeProgressState {
-  return { techniqueIds: [], signatureUses: 0, victories: 0, eliteVictories: 0 };
+  return { techniqueIds: [], signatureUses: 0, victories: 0, eliteVictories: 0, affinity: {} };
 }
 
 export function copyArchetypeProgress(state: ArchetypeProgressState): ArchetypeProgressState {
@@ -28,10 +30,14 @@ export function copyArchetypeProgress(state: ArchetypeProgressState): ArchetypeP
     signatureUses: state.signatureUses,
     victories: state.victories,
     eliteVictories: state.eliteVictories,
+    affinity: { ...state.affinity },
   };
 }
 
 const COUNTER_LIMIT = 1_000_000;
+
+/** Tópico do guia do Sistema que explica os caminhos. */
+export const PATHS_GUIDANCE_TOPIC = 'archetype-paths';
 
 export function inspectArchetypeProgress(
   value: unknown,
@@ -49,6 +55,15 @@ export function inspectArchetypeProgress(
     if (typeof id !== 'string' || seen.has(id) || !catalog.techniqueByActionId.has(id)) return fail;
     seen.add(id);
   }
+  // `affinity` chegou depois do galho: saves sem o campo começam do zero.
+  const affinity: Record<string, number> = {};
+  if (record.affinity !== undefined) {
+    if (typeof record.affinity !== 'object' || record.affinity === null || Array.isArray(record.affinity)) return fail;
+    for (const [archetypeId, count] of Object.entries(record.affinity as Record<string, unknown>)) {
+      if (!catalog.byId.get(archetypeId)?.branch || !counter(count)) return fail;
+      affinity[archetypeId] = count as number;
+    }
+  }
   return {
     ok: true,
     value: {
@@ -56,6 +71,7 @@ export function inspectArchetypeProgress(
       signatureUses: record.signatureUses as number,
       victories: record.victories as number,
       eliteVictories: record.eliteVictories as number,
+      affinity,
     },
   };
 }
@@ -180,11 +196,20 @@ export function recordArchetypeCombat(
   catalog: IndexedArchetypes,
   archetypeId: string | undefined,
   progress: ArchetypeProgressState,
-  combat: { playerActionIds: readonly string[]; outcome: string; elite: boolean },
+  combat: { playerActionIds: readonly string[]; outcome: string; elite: boolean; poseOf?: (actionId: string) => string | undefined },
 ): ArchetypeProgressState {
   const signature = new Set(archetypeId ? (catalog.byId.get(archetypeId)?.signatureActionIds ?? []) : []);
   const next = copyArchetypeProgress(progress);
   next.signatureUses = Math.min(COUNTER_LIMIT, next.signatureUses + combat.playerActionIds.filter((id) => signature.has(id)).length);
+  for (const actionId of combat.playerActionIds) {
+    const pose = combat.poseOf?.(actionId);
+    if (!pose) continue;
+    for (const entry of catalog.archetypes) {
+      if (entry.affinityPoses?.includes(pose as never)) {
+        next.affinity[entry.id] = Math.min(COUNTER_LIMIT, (next.affinity[entry.id] ?? 0) + 1);
+      }
+    }
+  }
   if (combat.outcome === 'victory') {
     next.victories = Math.min(COUNTER_LIMIT, next.victories + 1);
     if (combat.elite) next.eliteVictories = Math.min(next.victories, next.eliteVictories + 1);
@@ -211,9 +236,8 @@ export function archetypeRank(
 ): ArchetypeRankView {
   const own = context.archetypeId ? catalog.byId.get(context.archetypeId) : undefined;
   const rule = catalog.rules.initiate;
-  const counting = catalog.archetypes.filter(
-    (entry) => entry.branch && (entry.id === context.archetypeId || !own?.branch),
-  );
+  // Só quem já tem um caminho pode ser Iniciado, e só pelo próprio galho.
+  const counting = own?.branch ? [own] : [];
   let best: ArchetypeRankView['next'];
   for (const entry of counting) {
     const learned = entry.branch!.techniques.filter((technique) => context.progress.techniqueIds.includes(technique.actionId)).length;
@@ -247,4 +271,61 @@ export function archetypeCombatBonus(
   if (!progress) return { grantedActionIds: [] };
   const rank = archetypeRank(catalog, { archetypeId: context.archetypeId, progress });
   return { grantedActionIds: [...progress.techniqueIds], ...(rank.roundTicks ? { roundTicks: rank.roundTicks } : {}) };
+}
+
+/** Quem ainda não tem caminho: o Aprendiz sem caminho e saves anteriores aos arquétipos. */
+export function isPathless(catalog: IndexedArchetypes, archetypeId: string | undefined): boolean {
+  return !(archetypeId ? catalog.byId.get(archetypeId)?.branch : undefined);
+}
+
+export interface PathOption {
+  archetypeId: string;
+  /** Parcela das ações de combate que combinaram com este caminho (0 a 100). */
+  share: number;
+  suggested: boolean;
+}
+
+export interface PathStatus {
+  victories: number;
+  needed: number;
+  available: boolean;
+  options: PathOption[];
+}
+
+/** O caminho que começou a se formar: liberado após algumas vitórias, com a sugestão pelo jeito de lutar. */
+export function pathStatus(
+  catalog: IndexedArchetypes,
+  archetypeId: string | undefined,
+  progress: ArchetypeProgressState,
+): PathStatus | undefined {
+  if (!isPathless(catalog, archetypeId)) return undefined;
+  const paths = catalog.archetypes.filter((entry) => entry.branch);
+  const total = paths.reduce((sum, entry) => sum + (progress.affinity[entry.id] ?? 0), 0);
+  const best = Math.max(0, ...paths.map((entry) => progress.affinity[entry.id] ?? 0));
+  const leaders = paths.filter((entry) => best > 0 && (progress.affinity[entry.id] ?? 0) === best);
+  return {
+    victories: Math.min(progress.victories, catalog.rules.path.victories),
+    needed: catalog.rules.path.victories,
+    available: progress.victories >= catalog.rules.path.victories,
+    options: paths.map((entry) => ({
+      archetypeId: entry.id,
+      share: total === 0 ? 0 : Math.round(((progress.affinity[entry.id] ?? 0) / total) * 100),
+      // Empate não sugere: a escolha fica inteiramente com a pessoa.
+      suggested: leaders.length === 1 && leaders[0]!.id === entry.id,
+    })),
+  };
+}
+
+/** Confere a escolha de caminho: só para quem não tem caminho, depois das vitórias, e por um caminho com galho. */
+export function planPathChoice(
+  catalog: IndexedArchetypes,
+  archetypeId: string | undefined,
+  progress: ArchetypeProgressState,
+  chosenId: string,
+): { archetypeId: string; timeCost: TimeCost } {
+  const status = pathStatus(catalog, archetypeId, progress);
+  if (!status) throw new ArchetypeError('Você já segue um caminho.');
+  if (!status.available) throw new ArchetypeError(`O caminho ainda não se formou: ${status.victories}/${status.needed} vitórias.`);
+  if (!catalog.byId.get(chosenId)?.branch) throw new ArchetypeError('Este caminho não existe.');
+  return { archetypeId: chosenId, timeCost: { periods: 0, minutes: 10 } };
 }
