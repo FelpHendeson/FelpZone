@@ -70,6 +70,7 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
         guidanceUnseenCount={0}
         notableCount={1}
         echoesUnlocked
+        bestiaryCount={1}
       />,
     );
     expect(html).not.toContain('menu-sealed');
@@ -79,7 +80,8 @@ describe('UI/UX 3.0 — rework visual e de informação', () => {
     expect(self).toBeGreaterThan(-1);
     expect(people).toBeGreaterThan(self);
     expect(world).toBeGreaterThan(people);
-    expect(html.match(/class="menu-entry /g)).toHaveLength(11);
+    expect(html.match(/class="menu-entry /g)).toHaveLength(12);
+    expect(html).toContain("<strong>Bestiário</strong>");
     expect(html).toContain('<strong>Ecos</strong>');
     expect(html).toContain("<strong>Configurações</strong>");
     expect(html).toContain('<strong>Crônica</strong>');

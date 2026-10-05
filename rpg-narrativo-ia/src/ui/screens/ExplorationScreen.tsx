@@ -17,6 +17,8 @@ import {
 import { buildCombatLoadout } from '../../modules/equipment';
 import { withArchetypeBonus } from '../../modules/archetypes';
 import { INITIAL_WEATHER, combatEnvironmentFor, weatherFor } from '../../modules/weather';
+import { INITIAL_BESTIARY, bestiaryLevel, withBestiary } from '../../modules/bestiary';
+import { BestiaryPanel } from './exploration/BestiaryPanel';
 import { CombatScreen } from './CombatScreen';
 import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
 import {
@@ -85,7 +87,7 @@ function bottomTabFor(view: GameView): GameTab {
   if (view === 'map' || view === 'people') {
     return 'world';
   }
-  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || view === 'settings' || view === 'echoes' || isDomainView(view)) {
+  if (view === 'relationships' || view === 'progression' || view === 'registry' || view === 'society' || view === 'family' || view === 'domain' || view === 'help' || view === 'chronicle' || view === 'settings' || view === 'echoes' || view === 'bestiary' || isDomainView(view)) {
     return 'menu';
   }
   return view;
@@ -216,7 +218,9 @@ export function ExplorationScreen({
       allies,
       runtime: { conditions: context.conditions, execution: context.execution },
       playerRoundTicks: portrait.roundTicks,
-      environment: combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar),
+      environment: encounter
+        ? withBestiary(combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar), state, encounter)
+        : combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar),
     });
     return (
       <CombatScreen
@@ -224,6 +228,7 @@ export function ExplorationScreen({
         encounterName={encounter?.name ?? 'Confronto'}
         tint={archetypeOf(state.character.archetypeId)?.palette.primary}
         discoveredCombos={state.combos?.discovered}
+        studied={encounter ? bestiaryLevel(state, encounter.opponentId) >= 3 : false}
         combat={combat}
         conditions={context.conditions}
         execution={context.execution}
@@ -386,8 +391,10 @@ export function ExplorationScreen({
               notableCount={notableHistory(state.history).length}
               echoesUnlocked={hasWonAnyConfrontation(state.flags)}
               echoRecords={state.echoes?.records.length ?? 0}
+              bestiaryCount={INITIAL_BESTIARY.entries.filter((entry) => bestiaryLevel(state, entry.combatantId) > 0).length}
             />
           ) : null}
+          {activeView === 'bestiary' ? <BestiaryPanel state={state} onBack={() => setActiveView('menu')} /> : null}
           {activeView === 'echoes' ? (
             <EchoesPanel
               combat={combat}

@@ -1,0 +1,59 @@
+{
+  "rules": {
+    "masteryVictories": 3
+  },
+  "entries": [
+    {
+      "combatantId": "wary-predator",
+      "region": "Clareira do Despertar",
+      "summary": "Um caçador esguio que mede a presa antes de decidir se ataca.",
+      "lore": "Vive à beira da clareira e não foge de quem parece fraco. O Sistema o classifica como ameaça de primeiro contato.",
+      "study": "Golpeia, rasga com o Corte em Brasa, ergue a Postura Defensiva, avança e se esquiva.",
+      "pattern": "Em rodadas alternadas, abre a sequência com a Postura Defensiva. Enquanto você não está sangrando, encaixa o Corte em Brasa logo no começo.",
+      "note": {
+        "npcId": "mira-vale",
+        "text": "Mira: \"Ele testa antes de morder. Se você aguenta o primeiro corte, ele hesita.\""
+      }
+    },
+    {
+      "combatantId": "wary-scout",
+      "region": "Clareira do Despertar",
+      "summary": "Um predador menor que nunca caça sozinho.",
+      "lore": "Acompanha o Predador Arisco e cerca pelo flanco. Frágil, mas insistente.",
+      "study": "Golpeia, ergue a Postura Defensiva e avança.",
+      "pattern": "Sempre avança antes de golpear duas vezes. A cada duas rodadas, começa se protegendo."
+    },
+    {
+      "combatantId": "bark-crow",
+      "region": "Grande Árvore",
+      "summary": "Um corvo de penas duras como casca que defende o tronco.",
+      "lore": "Ataca de cima e volta para longe. Golpes corpo a corpo raramente o alcançam.",
+      "study": "Mergulha com o bico, se esquiva e recua.",
+      "pattern": "Dá dois Mergulhos de Bico por rodada, mesmo de longe. A cada duas rodadas, abre com uma esquiva: golpes no primeiro tempo erram.",
+      "note": {
+        "npcId": "caio-nascimento",
+        "text": "Caio: \"Não corre atrás dele. Espera o mergulho e responde de longe.\""
+      }
+    },
+    {
+      "combatantId": "spring-serpent",
+      "region": "Nascente e Pequeno Lago",
+      "summary": "Uma serpente que se esconde na água rasa.",
+      "lore": "Ataca de perto desde o primeiro instante. A picada deixa a guarda exposta, e a água a protege de brasas.",
+      "study": "Pica com veneno, se enrodilha como escudo, avança e se esquiva.",
+      "pattern": "Pica duas vezes por rodada. Nas rodadas pares, abre se enrodilhando antes de picar: golpes no primeiro tempo batem no escudo."
+    },
+    {
+      "combatantId": "thorn-boar",
+      "region": "Mata Densa",
+      "summary": "Um javali coberto de espinhos, a primeira ameaça de elite registrada.",
+      "lore": "Arma cargas lentas e devastadoras. O Sistema o marca como elite: vencê-lo conta para a patente de Iniciado.",
+      "study": "Arremete com a Carga de Espinhos, golpeia, ergue a Postura Defensiva e avança.",
+      "pattern": "Abre o confronto de longe com a Carga de Espinhos: dois tempos para armar, e um golpe nesse intervalo a desfaz. De perto, golpeia duas vezes e alterna a guarda a cada rodada.",
+      "note": {
+        "npcId": "davi-moura",
+        "text": "Davi: \"Quando ele abaixa a cabeça, é a hora. Antes de ele sair do lugar.\""
+      }
+    }
+  ]
+}

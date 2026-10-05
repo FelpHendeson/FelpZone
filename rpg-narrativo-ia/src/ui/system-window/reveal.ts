@@ -1,13 +1,14 @@
 import type { SystemStatusView } from '../../modules/system-interface';
 
-export type MenuDomainId = 'progression' | 'registry' | 'echoes' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help' | 'settings';
+export type MenuDomainId = 'progression' | 'registry' | 'echoes' | 'bestiary' | 'relationships' | 'society' | 'family' | 'domain' | 'chronicle' | 'map' | 'help' | 'settings';
 
-export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'echoes', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help', 'settings'];
+export const ALL_MENU_DOMAINS: readonly MenuDomainId[] = ['progression', 'registry', 'echoes', 'bestiary', 'relationships', 'society', 'family', 'domain', 'chronicle', 'map', 'help', 'settings'];
 
 export const MENU_DOMAIN_LABELS: Record<MenuDomainId, string> = {
   progression: 'Progressão',
   registry: 'Registro',
   echoes: 'Ecos',
+  bestiary: 'Bestiário',
   relationships: 'Relacionamentos',
   society: 'Sociedade',
   family: 'Família e lar',
@@ -30,10 +31,14 @@ export function revealedMenuDomains(
   knownBonds: number,
   notableDecisions = 0,
   echoesUnlocked = false,
+  bestiaryUnlocked = false,
 ): Set<MenuDomainId> {
   const revealed = new Set<MenuDomainId>(['progression', 'map', 'help', 'settings']);
   if (echoesUnlocked) {
     revealed.add('echoes');
+  }
+  if (bestiaryUnlocked) {
+    revealed.add('bestiary');
   }
   if (notableDecisions > 0) {
     revealed.add('chronicle');

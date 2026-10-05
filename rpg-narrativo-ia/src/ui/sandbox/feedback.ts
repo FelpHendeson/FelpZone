@@ -3,6 +3,7 @@ import type { SandboxActionResult } from '../../modules/sandbox-actions';
 import { deriveNeedsBands, type NeedId } from '../../modules/needs';
 import { attributesToNeedsSnapshot, formatNeedDelta, needLabel } from '../needs/presentation';
 import { getTrainingMethod } from '../../modules/training';
+import { BESTIARY_LEVEL_NAMES, INITIAL_BESTIARY, bestiaryLevel } from '../../modules/bestiary';
 import { INITIAL_ARCHETYPES, archetypeRank, createInitialArchetypeProgress, pathStatus } from '../../modules/archetypes';
 import { formatTimeCost, sandboxDiscoveryName, sandboxItemName } from './labels';
 
@@ -267,6 +268,14 @@ export function describeSandboxFeedback(result: SandboxActionResult, context: Sa
     progress: result.current.archetypeProgress ?? createInitialArchetypeProgress(),
     sex: result.current.character.sex,
   });
+  for (const entry of INITIAL_BESTIARY.entries) {
+    const before = bestiaryLevel(result.previous, entry.combatantId);
+    const after = bestiaryLevel(result.current, entry.combatantId);
+    if (after > before && after >= 2) {
+      const name = context.combat?.combatantById.get(entry.combatantId)?.name ?? entry.combatantId;
+      push('discovery', `[ Sistema ] Bestiário: ${name} — ${BESTIARY_LEVEL_NAMES[after]}.`);
+    }
+  }
   const newCombos = (result.current.combos?.discovered ?? []).filter((id) => !(result.previous.combos?.discovered ?? []).includes(id));
   for (const id of newCombos) {
     const combo = context.combat?.combos.find((entry) => entry.id === id);

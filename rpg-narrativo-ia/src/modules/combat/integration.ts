@@ -89,6 +89,7 @@ export function buildCombatResolution(state: CombatState, encounter: EncounterDe
   return {
     ...(playerPlans ? { playerPlans } : {}),
     ...(state.triggeredCombos && state.triggeredCombos.length > 0 ? { combos: [...state.triggeredCombos] } : {}),
+    ...(plannedRounds.length > 0 ? { foeActionIds: [...new Set(plannedRounds.flatMap((round) => round.opponent))] } : {}),
     encounterId: encounter.id,
     outcome: state.outcome,
     turns: state.turn,

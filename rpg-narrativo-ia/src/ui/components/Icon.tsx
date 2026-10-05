@@ -16,7 +16,8 @@ export type IconName =
   | 'map'
   | 'help'
   | 'settings'
-  | 'echo';
+  | 'echo'
+  | 'bestiary';
 
 // Traço fino, 24×24, sem preenchimento — direção da UI/UX 3.0 (docs/UI-REDESIGN-3-VISION.md).
 const PATHS: Record<IconName, string[]> = {
@@ -37,6 +38,7 @@ const PATHS: Record<IconName, string[]> = {
   map: ['M4 6.5l5-2 6 2 5-2v13l-5 2-6-2-5 2z', 'M9 4.5v13', 'M15 6.5v13'],
   help: ['M12 3a9 9 0 1 0 0 18a9 9 0 1 0 0-18', 'M9.6 9.5a2.5 2.5 0 1 1 3.6 2.2c-.8.4-1.2 1-1.2 1.8v.5', 'M12 16.8v.2'],
   echo: ['M9 4a8 8 0 1 0 0 16', 'M13 7a5 5 0 1 1 0 10', 'M16 10a2 2 0 1 1 0 4'],
+  bestiary: ['M12 12.5c-3.2 0-5.5 3-5.5 5.5 0 1.3 1 2 2.2 2 1.3 0 2-.8 3.3-.8s2 .8 3.3.8c1.2 0 2.2-.7 2.2-2 0-2.5-2.3-5.5-5.5-5.5', 'M6 8.5a1.8 2.2 0 1 0 0 .1', 'M10 5a1.8 2.2 0 1 0 0 .1', 'M14 5a1.8 2.2 0 1 0 0 .1', 'M18 8.5a1.8 2.2 0 1 0 0 .1'],
   settings: ['M12 9a3 3 0 1 0 0 6a3 3 0 1 0 0-6', 'M12 3v2.5', 'M12 18.5V21', 'M3 12h2.5', 'M18.5 12H21', 'M5.6 5.6l1.8 1.8', 'M16.6 16.6l1.8 1.8', 'M5.6 18.4l1.8-1.8', 'M16.6 7.4l1.8-1.8'],
 };
 

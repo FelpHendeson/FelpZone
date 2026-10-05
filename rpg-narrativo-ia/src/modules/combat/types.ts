@@ -278,6 +278,8 @@ export interface CombatResolution {
   playerPlans?: string[][];
   /** Combos que o jogador acionou (derivados do replay; nunca aceitos do cliente). */
   combos?: string[];
+  /** Ações que o oponente principal mostrou (derivadas do replay; alimentam o Bestiário). */
+  foeActionIds?: string[];
 }
 
 export interface CombatActionView {

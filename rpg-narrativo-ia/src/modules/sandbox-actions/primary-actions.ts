@@ -18,6 +18,7 @@ import {
 import { discoverCombos, type ComboDiscoveryState } from '../combat';
 import { craftRecipe } from '../crafting';
 import { INITIAL_WEATHER, combatEnvironmentFor } from '../weather';
+import { recordBestiaryCombat, withBestiary, type BestiaryState } from '../bestiary';
 import { exploreCurrentLocation } from '../exploration';
 import { moveToLocation, discoverLocation, unlockLocation } from '../navigation';
 import { addItem, canRemoveItem, consumePortions, openPortionsOf, removeItem } from '../inventory';
@@ -112,6 +113,7 @@ export function executePrimary(
   archetypePlan?: ArchetypeTrainingPlan;
   character?: CharacterIdentity;
   combos?: ComboDiscoveryState;
+  bestiary?: BestiaryState;
 } {
   const catalogs = activeCatalogs(context);
   const navigation = copyNavigation(state.sandbox.navigation);
@@ -429,7 +431,7 @@ export function executePrimary(
       allies,
       runtime: { conditions: catalogs.conditions, execution: context.execution },
       playerRoundTicks: portrait.roundTicks,
-      environment: combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar),
+      environment: withBestiary(combatEnvironmentFor(state, INITIAL_WEATHER, context.calendar), state, encounter),
     });
     const archetypeProgress = recordArchetypeCombat(
       INITIAL_ARCHETYPES,
@@ -503,6 +505,7 @@ export function executePrimary(
       archetypeProgress,
       guidance,
       combos: discoverCombos(state.combos, resolution.combos ?? []).current,
+      bestiary: recordBestiaryCombat(state.bestiary, encounter, { outcome: resolution.outcome, foeActionIds: resolution.foeActionIds ?? [] }),
       navigation,
       exploration,
       resources,

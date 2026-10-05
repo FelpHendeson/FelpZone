@@ -1,5 +1,6 @@
 import { ArchetypeError, copyArchetypeProgress, type ArchetypeProgressState } from '../archetypes';
 import { copyEchoesState } from '../echoes';
+import { copyBestiaryState, type BestiaryState } from '../bestiary';
 import { copyComboDiscovery, type ComboDiscoveryState } from '../combat';
 import { copyInventoryItem } from '../inventory';
 import { EngineError } from '../../core/engine';
@@ -485,6 +486,7 @@ export function copyResolution(resolution: CombatResolution): CombatResolution {
     allyVitals: (resolution.allyVitals ?? []).map((entry) => ({ ...entry })),
     ...(resolution.playerPlans ? { playerPlans: resolution.playerPlans.map((plan) => [...plan]) } : {}),
     ...(resolution.combos ? { combos: [...resolution.combos] } : {}),
+    ...(resolution.foeActionIds ? { foeActionIds: [...resolution.foeActionIds] } : {}),
   };
 }
 
@@ -525,6 +527,7 @@ export interface GameStatePatch {
   npcs?: NPCsState;
   archetypeProgress?: ArchetypeProgressState;
   combos?: ComboDiscoveryState;
+  bestiary?: BestiaryState;
   character?: GameState['character'];
   status?: GameState['status'];
   narrativeSession?: NarrativeSession | null;
@@ -594,6 +597,7 @@ export function buildGameState(base: GameState, patch: GameStatePatch & { update
     story: copyStoryState(patch.story ?? base.story),
     ...(base.echoes ? { echoes: copyEchoesState(base.echoes) } : {}),
     ...((patch.combos ?? base.combos) ? { combos: copyComboDiscovery((patch.combos ?? base.combos)!) } : {}),
+    ...((patch.bestiary ?? base.bestiary) ? { bestiary: copyBestiaryState((patch.bestiary ?? base.bestiary)!) } : {}),
     ...((patch.archetypeProgress ?? base.archetypeProgress)
       ? { archetypeProgress: copyArchetypeProgress((patch.archetypeProgress ?? base.archetypeProgress)!) }
       : {}),

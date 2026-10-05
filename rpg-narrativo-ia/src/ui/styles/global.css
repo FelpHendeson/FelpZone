@@ -6527,3 +6527,88 @@ span.portrait-avatar {
 .combat-field span {
   color: var(--text-muted);
 }
+
+/* Bestiário. */
+.bestiary-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.bestiary-card {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--bg-elevated);
+}
+
+.bestiary-card header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.bestiary-card header strong {
+  font-family: var(--font-story);
+  font-size: 1.08rem;
+}
+
+.bestiary-card__level {
+  color: var(--accent);
+  font-size: 0.74rem;
+  white-space: nowrap;
+}
+
+.bestiary-card__region {
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.bestiary-card p {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.bestiary-card__stats,
+.bestiary-card__hint {
+  color: var(--text-muted);
+}
+
+.bestiary-card__hint {
+  font-style: italic;
+}
+
+.bestiary-card__section {
+  display: grid;
+  gap: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border);
+}
+
+.bestiary-card__section ul {
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.82rem;
+}
+
+.bestiary-card__note {
+  color: var(--text-muted);
+  font-family: var(--font-story);
+}
+
+.bestiary-card--unknown {
+  justify-items: center;
+  color: var(--text-muted);
+  border-style: dashed;
+}
+
+.bestiary-card__glyph {
+  font-size: 1.6rem;
+  opacity: 0.6;
+}

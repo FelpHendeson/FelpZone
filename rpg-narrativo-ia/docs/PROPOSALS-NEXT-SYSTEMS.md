@@ -5,6 +5,7 @@
 - **Item 1:** implementado; veja [Combate por rodadas e Ecos](SYSTEM-ECHOES-ROUND-COMBAT.md), seção 5.
 - **Item 2:** implementado; veja a seção 7 do mesmo documento.
 - **Item 3:** implementado; veja a seção 8 do mesmo documento.
+- **Item 4:** implementado; veja a seção 9 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -181,6 +182,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 4. Bestiário
+
+**Implementado.** As notas de NPCs só aparecem depois que o Desperto conhece a pessoa.
 
 **O que é:** um registro de cada criatura enfrentada, preenchido aos poucos pela observação. Lutar várias vezes vira conhecimento.
 

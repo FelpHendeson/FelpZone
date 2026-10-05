@@ -40,6 +40,8 @@ interface CombatScreenProps {
   /** Cor das silhuetas nas cartas (a do arquétipo de quem planeja). */
   tint?: string;
   opponentTint?: string;
+  /** O oponente já foi estudado no Bestiário: a leitura mostra a duração de cada ação. */
+  studied?: boolean;
   /** Combos que o jogador já descobriu: aparecem nomeados entre as cartas da sequência. */
   discoveredCombos?: readonly string[];
   onFinish: (finalState: CombatState) => void;
@@ -63,6 +65,7 @@ export function CombatScreen({
   tint = 'var(--accent)',
   opponentTint = 'var(--danger)',
   discoveredCombos = [],
+  studied = false,
   onFinish,
 }: CombatScreenProps) {
   const [state, setState] = useState<CombatState>(initialState);
@@ -216,7 +219,14 @@ export function CombatScreen({
             <section className="combat-intent" aria-label="Leitura do Sistema">
               <span className="section-kicker">[ Sistema ] · Leitura</span>
               <p>
-                {state.opponent.name} prepara: <strong>{intent.revealed.map((action) => action.name).join(' → ')}</strong>
+                {state.opponent.name} prepara:{' '}
+                <strong>
+                  {intent.revealed
+                    .map((action) =>
+                      studied ? `${action.name} (${actionTicks(combat, state, state.opponent.id, action.id, runtime)} t)` : action.name,
+                    )
+                    .join(' → ')}
+                </strong>
                 {intent.hidden > 0 ? ` → ${intent.hidden} ação${intent.hidden === 1 ? '' : 'ões'} oculta${intent.hidden === 1 ? '' : 's'}` : ''}
               </p>
             </section>

@@ -71,6 +71,7 @@ import { createInitialStoryState, inspectStoryState, type StoryState } from '../
 import { copyWorld, isWorldClockConsistent } from '../../modules/world';
 import { INITIAL_ARCHETYPES, inspectArchetypeProgress } from '../../modules/archetypes';
 import { inspectEchoesState } from '../../modules/echoes';
+import { inspectBestiaryState } from '../../modules/bestiary';
 import { INITIAL_COMBAT, inspectComboDiscovery } from '../../modules/combat';
 import {
   ATTRIBUTE_IDS,
@@ -1299,6 +1300,10 @@ function inspectCurrent(
   if (combos && !combos.ok) {
     return fail(combos.reason);
   }
+  const bestiary = value.bestiary === undefined ? undefined : inspectBestiaryState(value.bestiary);
+  if (bestiary && !bestiary.ok) {
+    return fail(bestiary.reason);
+  }
   const catalog = requireObjectiveCatalog(objectiveCatalog);
   const objectives = inspectObjectivesState(value.objectives, catalog);
   if (!objectives.ok) {
@@ -1437,6 +1442,7 @@ function inspectCurrent(
       ...(echoes?.ok ? { echoes: echoes.value } : {}),
       ...(archetypeProgress?.ok ? { archetypeProgress: archetypeProgress.value } : {}),
       ...(combos?.ok ? { combos: combos.value } : {}),
+      ...(bestiary?.ok ? { bestiary: bestiary.value } : {}),
     },
   };
 }

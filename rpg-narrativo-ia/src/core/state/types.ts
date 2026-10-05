@@ -1,5 +1,6 @@
 import type { ArchetypeProgressState } from '../../modules/archetypes/branch';
 import type { ComboDiscoveryState } from '../../modules/combat/combos';
+import type { BestiaryState } from '../../modules/bestiary';
 import type { EchoesState } from '../../modules/echoes';
 import type { SandboxCoreState, SandboxState } from '../../modules/sandbox/types';
 import type { ObjectivesState } from '../../modules/objectives/types';
@@ -556,6 +557,8 @@ export interface GameState extends SharedState<Attributes> {
   archetypeProgress?: ArchetypeProgressState;
   /** Combos de rodada já descobertos (opcional e aditivo). */
   combos?: ComboDiscoveryState;
+  /** Bestiário: confrontos, vitórias e ações vistas por criatura (opcional e aditivo). */
+  bestiary?: BestiaryState;
 }
 
 export interface GameStateV26 extends Omit<GameState, 'schemaVersion' | 'rng' | 'story'> {

@@ -315,3 +315,37 @@ Cada efeito declara quando vale (`when`: clima e/ou períodos), a quem (`side`: 
 - **No combate:** `CombatState.environment` guarda o rótulo e os efeitos. O planejador, a IA, a duração das ações, o custo e a leitura de intenção usam o mesmo cálculo (`roundTiming`).
 - **No confronto do mundo:** o ambiente é montado com o clima e o período do momento, tanto ao abrir o combate quanto na verificação por replay. Um resultado só confere se tiver sido jogado com o mesmo ambiente.
 - **Na tela de combate:** uma faixa abaixo do título mostra o clima, o período e os efeitos ativos.
+
+## 9. Bestiário
+
+**Decisão:** quarta proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 4). Como recomendado, o nível mais alto também traz uma nota de alguém que o Desperto conheceu, mas só depois de conhecê-lo.
+
+### Fichas (`content/first-day/system/bestiary.json`, módulo `src/modules/bestiary`)
+
+São cinco fichas: Predador Arisco, Predador Menor, Corvo-de-Casca, Serpente da Nascente e Javali de Espinhos. Cada ficha tem região, resumo, história, repertório e padrão, e algumas trazem uma nota de Mira, Caio ou Davi.
+
+Os padrões descrevem o que a IA de combate realmente faz, conferido por simulação. Exemplos:
+
+- O Corvo-de-Casca dá dois Mergulhos de Bico por rodada e, a cada duas rodadas, abre com uma esquiva.
+- O Javali de Espinhos abre de longe com a Carga de Espinhos, que é interrompível.
+
+### Níveis (derivados, não salvos)
+
+| Nível | Quando | O que revela |
+| --- | --- | --- |
+| 1 · Avistada | as pistas de algum encontro com a criatura foram reveladas no mundo | nome, região e resumo |
+| 2 · Enfrentada | houve pelo menos um confronto | história, vitalidade, afinidade, confrontos e vitórias |
+| 3 · Estudada | a criatura já mostrou todas as suas ações | repertório com a duração de cada ação; em combate, a leitura mostra a duração das ações dela |
+| 4 · Dominada | estudada e `masteryVictories` vitórias (3), ou 1 vitória com Sentidos Aguçados | padrão de comportamento, nota de quem já foi conhecido; em combate, a leitura mostra **uma ação a mais** dela |
+
+### Registro e verificação
+
+- **Save:** `GameState.bestiary` é aditivo e guarda, por criatura, confrontos, vitórias e ações vistas. É validado na carga: só criaturas do pack, só ações daquela criatura e no máximo tantas vitórias quanto confrontos.
+- **Ações vistas:** vêm da resolução verificada (`foeActionIds`, tiradas das sequências do oponente no replay). O que o cliente declarar é ignorado.
+- **Leitura extra do nível 4:** entra como efeito no ambiente do confronto (`bestiary-pattern`), montado igual na abertura do combate e no replay.
+
+### Interface
+
+- **Menu:** a entrada **Bestiário** aparece com a primeira criatura avistada.
+- **Cartas:** as criaturas não vistas aparecem como "???". As demais mostram estrelas de 1 a 4 e só o que o nível já revelou, com dicas do próximo passo.
+- **Avisos:** o Sistema avisa quando uma criatura sobe para Enfrentada, Estudada ou Dominada.

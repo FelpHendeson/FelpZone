@@ -20,6 +20,7 @@ export function GameMenuPanel({
   notableCount = 0,
   echoesUnlocked = false,
   echoRecords = 0,
+  bestiaryCount = 0,
 }: {
   status: SystemStatusView;
   view: ExplorationView;
@@ -30,11 +31,13 @@ export function GameMenuPanel({
   notableCount?: number;
   echoesUnlocked?: boolean;
   echoRecords?: number;
+  /** Criaturas já avistadas: o Bestiário aparece a partir da primeira. */
+  bestiaryCount?: number;
 }) {
   const activeOrganizations = status.organizations.length;
   const activeCivic = status.civic.filter((entry) => entry.active).length;
   const bondPeople = view.bonds.map((bond) => ({ id: bond.npcId, name: bond.name, src: bond.portraitSrc }));
-  const revealed = revealedMenuDomains(status, view.bonds.length, notableCount, echoesUnlocked);
+  const revealed = revealedMenuDomains(status, view.bonds.length, notableCount, echoesUnlocked, bestiaryCount > 0);
   const hiddenCount = ALL_MENU_DOMAINS.filter((domain) => !revealed.has(domain)).length;
   const show = (domain: MenuDomainId) => revealed.has(domain);
   const familyPeople = status.family
@@ -63,6 +66,13 @@ export function GameMenuPanel({
           title="Ecos"
           detail={echoRecords > 0 ? `${echoRecords} Prova${echoRecords === 1 ? '' : 's'} do Eco · Selo e rivalidades` : 'Seu Selo do Desperto · duelos com outros jogadores'}
           onClick={() => onNavigate('echoes')}
+        /> : null}
+        {show('bestiary') ? <MenuEntry
+          icon="bestiary"
+          tone="world"
+          title="Bestiário"
+          detail={`${bestiaryCount} criatura${bestiaryCount === 1 ? '' : 's'} registrada${bestiaryCount === 1 ? '' : 's'} · padrões e fraquezas`}
+          onClick={() => onNavigate('bestiary')}
         /> : null}
         {show('registry') ? <MenuEntry
           icon="registry"

@@ -56,7 +56,7 @@ describe('Revelação progressiva da Central do Sistema', () => {
     const html = renderToStaticMarkup(
       <GameMenuPanel status={status} view={view} campaign={firstDayCampaign} onNavigate={noop} guidanceCount={1} guidanceUnseenCount={0} />,
     );
-    const hidden = 11 - revealedMenuDomains(status, view.bonds.length).size;
+    const hidden = 12 - revealedMenuDomains(status, view.bonds.length).size;
     expect(hidden).toBeGreaterThan(0);
     expect(html).toContain('menu-sealed');
     expect(html).toContain(`${hidden} interface`);
