@@ -287,7 +287,7 @@ As cartas de arquétipo e de técnica usam, por padrão, **silhuetas em vetor se
 - `rustic-bow` → `/images/first-day/items/rustic-bow.webp`: *a rustic short bow of bent wood and gut string, single object centered, neutral background*.
 - `bone-dagger` → `/images/first-day/items/bone-dagger.webp`: *a short dagger carved from bone, wrapped grip, single object centered, neutral background*.
 
-Acrescente a cada item o bloco de estilo da seção 1. Os retratos dos jogadores **não** entram nesta lista: eles montam o retrato em silhueta ou escolhem uma imagem própria, que fica só no aparelho.
+Acrescente a cada item o bloco de estilo da seção 1. Os 25 retratos prontos dos jogadores (5 por arquétipo) e os prompts detalhados das 4 armas estão em [Prompts: retratos de arquétipo e armas de assinatura](ART-PROMPTS-ARCHETYPE-PORTRAITS.md).
 
 ---
 
