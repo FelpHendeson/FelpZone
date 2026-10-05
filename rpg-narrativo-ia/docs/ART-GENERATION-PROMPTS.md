@@ -278,7 +278,9 @@ As cartas de arquétipo e de técnica usam, por padrão, **silhuetas em vetor se
 - `apprentice-assassin` → `/images/first-day/archetypes/apprentice-assassin.webp`
   > A faceless shadowed silhouette of a young apprentice assassin crouched low, short bone dagger held forward, half hidden among ferns at dusk, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a dark crimson accent, no UI, no text, no watermark, no border, 4:5.
 - `apprentice-pathless` → `/images/first-day/archetypes/apprentice-pathless.webp`
-  > A faceless backlit silhouette of a young survivor standing still at the edge of a clearing at dawn, empty hands, a small worn satchel, looking at several diverging paths, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a pale blue-grey accent, no UI, no text, no watermark, no border, 4:5.
+  > A faceless backlit silhouette of a young survivor in the first days after waking in a strange world, holding an improvised sharpened stick, a worn satchel at the hip, standing at a crossroads where four trails fade into morning mist (faint violet motes, a cut-marked stump, an arrow in a tree, deep fern shadows), thin threads of cold blue-white light hovering nearby as if observing, no facial features visible. Painterly semi-realistic fantasy illustration, muted earthy palette with a pale blue-grey accent, no UI, no text, no watermark, no border, 4:5.
+
+  O Aprendiz sem caminho é a fase dos primeiros dias, anterior aos quatro caminhos. Por isso ele aparece com um objeto improvisado e os quatro caminhos sugeridos à frente.
 
 **Equipamentos de assinatura** (`system/items.json`, campo `image`, tipo `icon`, 1:1):
 
