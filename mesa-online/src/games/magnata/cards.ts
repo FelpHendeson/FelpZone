@@ -11,6 +11,7 @@ export type CardEffect =
 
 export interface Card {
   id: string;
+  /** `{casa}` é trocado pelo nome da casa de destino no tema da partida. */
   text: string;
   effect: CardEffect;
 }
@@ -18,12 +19,12 @@ export interface Card {
 export const DECKS: Record<DeckId, readonly Card[]> = {
   sorte: [
     { id: "sorte-partida", text: "Avance até a Partida e receba $200.", effect: { type: "move-to", tile: 0 } },
-    { id: "sorte-horizonte", text: "Vá até a Av. Horizonte.", effect: { type: "move-to", tile: 24 } },
-    { id: "sorte-matriz", text: "Passeio pela Praça da Matriz.", effect: { type: "move-to", tile: 11 } },
-    { id: "sorte-norte", text: "Embarque na Estação Norte.", effect: { type: "move-to", tile: 5 } },
-    { id: "sorte-diamante", text: "Visite a Av. Diamante.", effect: { type: "move-to", tile: 39 } },
+    { id: "sorte-horizonte", text: "Vá até {casa}.", effect: { type: "move-to", tile: 24 } },
+    { id: "sorte-matriz", text: "Dê um passeio até {casa}.", effect: { type: "move-to", tile: 11 } },
+    { id: "sorte-norte", text: "Embarque em {casa}.", effect: { type: "move-to", tile: 5 } },
+    { id: "sorte-diamante", text: "Visite {casa}.", effect: { type: "move-to", tile: 39 } },
     { id: "sorte-dividendos", text: "O banco paga dividendos de $50.", effect: { type: "collect", amount: 50 } },
-    { id: "sorte-emprestimo", text: "Seu empréstimo para construção venceu. Receba $150.", effect: { type: "collect", amount: 150 } },
+    { id: "sorte-emprestimo", text: "Seu investimento rendeu. Receba $150.", effect: { type: "collect", amount: 150 } },
     { id: "sorte-liberdade", text: "Saia livre da prisão. Guarde esta carta até usá-la.", effect: { type: "jail-card" } },
     { id: "sorte-volte", text: "Volte três casas.", effect: { type: "move-back", steps: 3 } },
     { id: "sorte-prisao", text: "Vá direto para a prisão, sem passar pela Partida.", effect: { type: "go-to-jail" } },

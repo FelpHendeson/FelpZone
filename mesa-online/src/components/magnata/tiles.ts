@@ -1,4 +1,4 @@
-import { BOARD, type Tile } from "@/games/magnata/board";
+import type { Tile } from "@/games/magnata/board";
 
 /** Linha e coluna (1 a 11) de cada casa no tabuleiro quadrado. */
 export function gridPosition(index: number): { row: number; col: number } {
@@ -31,17 +31,14 @@ export function tileIcon(tile: Tile): string | null {
   }
 }
 
-/** Rótulo curto que cabe numa casa do tabuleiro no celular. */
-export function tileLabel(tile: Tile): string {
-  if (tile.kind === "street" || tile.kind === "station") return tile.name.split(" ").at(-1)!;
+const PREFIXES = /^(rua|av\.|avenida|praça|travessa|beco|alameda|largo|estação|rodovia)\s+((da|do|das|dos|de)\s+)?/i;
+
+/** Rótulo curto que cabe numa casa do tabuleiro no celular, no tema da partida. */
+export function tileLabel(tile: Tile, themedName: string): string {
   if (tile.kind === "go-to-jail") return "Prisão!";
   if (tile.kind === "free-parking") return "Livre";
   if (tile.kind === "tax") return `$${tile.amount}`;
-  return tile.name.split(" ").at(-1)!;
+  return themedName.replace(PREFIXES, "");
 }
 
 export const DICE_FACES = ["", "⚀", "⚁", "⚂", "⚃", "⚄", "⚅"];
-
-export function tileName(index: number): string {
-  return BOARD[index].name;
-}

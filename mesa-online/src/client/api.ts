@@ -1,4 +1,5 @@
-import type { Room, RoomCommand } from "@/rooms/room";
+import type { PublicRoom } from "@/rooms/public";
+import type { RoomCommand } from "@/rooms/room";
 import type { Seat } from "./seats";
 
 export class ApiError extends Error {
@@ -30,18 +31,24 @@ function post<T>(path: string, body: unknown, token?: string): Promise<T> {
   });
 }
 
-export function createRoom(name: string) {
-  return post<Seat & { room: Room }>("/api/rooms", { name, gameId: "magnata" });
+/** Identificador do comando: um reenvio não repete o efeito no servidor. */
+function newCommandId(): string {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
-export function joinRoom(code: string, name: string) {
-  return post<Seat & { room: Room }>(`/api/rooms/${code}/join`, { name });
+export function createRoom(name: string, avatar: string) {
+  return post<Seat & { room: PublicRoom }>("/api/rooms", { name, avatar, gameId: "magnata" });
+}
+
+export function joinRoom(code: string, name: string, avatar: string) {
+  return post<Seat & { room: PublicRoom }>(`/api/rooms/${code}/join`, { name, avatar });
 }
 
 export function fetchRoom(code: string, knownVersion: number) {
-  return request<{ room?: Room; unchanged?: true }>(`/api/rooms/${code}?v=${knownVersion}`);
+  return request<{ room?: PublicRoom; unchanged?: true }>(`/api/rooms/${code}?v=${knownVersion}`);
 }
 
-export function sendCommand(code: string, token: string, command: RoomCommand) {
-  return post<{ room: Room }>(`/api/rooms/${code}/commands`, command, token);
+export function sendCommand(code: string, token: string, command: RoomCommand | Record<string, unknown>) {
+  return post<{ room: PublicRoom }>(`/api/rooms/${code}/commands`, { ...command, commandId: newCommandId() }, token);
 }

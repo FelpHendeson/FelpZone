@@ -1,5 +1,5 @@
 import { BOARD, type OwnableTile } from "@/games/magnata/board";
-import { getPlayer, legalActions, type MagnataAction, type MagnataState, type Rng } from "@/games/magnata/engine";
+import { getPlayer, legalActions, type MagnataAction, type MagnataView, type Rng } from "@/games/magnata/engine";
 import {
   blocksOpponent,
   byRentEfficiency,
@@ -24,6 +24,7 @@ const investidor: Profile = {
   unmortgageReserve: 300,
   leaveJailEarly: (ctx) => rounds(ctx.state) < 60,
   mortgageOrder: (ctx, tiles) => defaultMortgageOrder(ctx.state, ctx.me, tiles),
+  borrowToComplete: true,
 };
 
 const conservador: Profile = {
@@ -34,6 +35,7 @@ const conservador: Profile = {
   unmortgageReserve: 800,
   leaveJailEarly: () => false,
   mortgageOrder: (ctx, tiles) => defaultMortgageOrder(ctx.state, ctx.me, tiles),
+  borrowToComplete: false,
 };
 
 const colecionador: Profile = {
@@ -67,6 +69,7 @@ const colecionador: Profile = {
   unmortgageReserve: 200,
   leaveJailEarly: (ctx) => unownedCount(ctx.state) > 8,
   mortgageOrder: (ctx, tiles) => defaultMortgageOrder(ctx.state, ctx.me, tiles),
+  borrowToComplete: true,
 };
 
 export const BOTS: Record<BotKind, BotStrategy> = {
@@ -100,7 +103,7 @@ export function isBotKind(value: unknown): value is BotKind {
  * Pede a jogada ao robô e garante que ela é aceita pelo motor. Se a estratégia
  * errar, cai numa ação segura em vez de travar a partida.
  */
-export function botAction(kind: BotKind, state: MagnataState, me: string, rng: Rng): MagnataAction {
+export function botAction(kind: BotKind, state: MagnataView, me: string, rng: Rng): MagnataAction {
   const legal = legalActions(state, me);
   const chosen = BOTS[kind].decide({ state, me, legal, rng });
   if (legal.some((action) => sameAction(action, chosen)) && chosen.type !== "resign") return chosen;

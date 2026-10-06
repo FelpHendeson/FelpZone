@@ -9,6 +9,10 @@ async function roomWithTwo(store: RoomStore) {
   return { host, guest, code: host.room.code };
 }
 
+/** Relógio de teste que sempre avança uma hora: libera qualquer jogada automática pendente. */
+let clock = Date.now();
+const LATER = () => (clock += 60 * 60 * 1000);
+
 describe("salas", () => {
   it("cria, recebe jogadores e inicia a partida", async () => {
     const store = createMemoryStore();
@@ -120,7 +124,7 @@ describe("robôs na mesa", () => {
     room = await runRoomCommand(code, host.token, { kind: "set-options", roundLimit: 30 }, store);
     expect(room.options.roundLimit).toBe(30);
     room = await runRoomCommand(code, host.token, { kind: "start" }, store);
-    expect(room.game!.turnLimit).toBe(90);
+    expect(room.game!.roundLimit).toBe(30);
   });
 
   it("anfitrião sai e o comando passa para uma pessoa, nunca para um robô", async () => {
@@ -131,7 +135,8 @@ describe("robôs na mesa", () => {
   });
 
   it("partida solo anda sozinha pelas consultas até ter vencedor", async () => {
-    const store = createMemoryStore();
+    // A pessoa simulada joga mais rápido que o limite de frequência permite.
+    const store = { ...createMemoryStore(), hit: async () => true };
     const host = await createRoomFor({ name: "Ana" }, store);
     const code = host.room.code;
     for (const strategy of ["investidor", "conservador", "colecionador"]) {
@@ -148,7 +153,7 @@ describe("robôs na mesa", () => {
         const action = botAction("investidor", game, host.playerId, Math.random);
         room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
       } else {
-        room = (await readRoom(code, null, store, 0))!;
+        room = (await readRoom(code, null, store, LATER()))!;
       }
       steps += 1;
     }
@@ -168,8 +173,128 @@ describe("robôs na mesa", () => {
       const action = botAction("conservador", room.game!, host.playerId, Math.random);
       room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
     }
-    expect(await readRoom(code, room.version, store, 60_000)).toBeNull();
-    const moved = await readRoom(code, room.version, store, 0);
+    expect(await readRoom(code, room.version, store, room.updatedAt + 100)).toBeNull();
+    const moved = await readRoom(code, room.version, store, room.updatedAt + 1000);
     expect(moved!.version).toBeGreaterThan(room.version);
+  });
+});
+
+describe("correções da análise", () => {
+  it("nenhuma resposta expõe a ordem das cartas, ids de comando ou tokens", async () => {
+    const store = createMemoryStore();
+    const { host, guest, code } = await roomWithTwo(store);
+    const started = await runRoomCommand(code, host.token, { kind: "start", commandId: "comando-0001" }, store);
+    const read = await readRoom(code, null, store);
+    for (const response of [started, read, guest.room]) {
+      const text = JSON.stringify(response);
+      expect(text).not.toContain("decks");
+      expect(text).not.toContain("recentCommands");
+      expect(text).not.toContain("comando-0001");
+      expect(text).not.toContain(host.token);
+      expect(text).not.toContain(guest.token);
+      expect(text).not.toContain("sorte-");
+    }
+  });
+
+  it("comando reenviado com o mesmo id não repete o efeito", async () => {
+    const store = createMemoryStore();
+    const { host, code } = await roomWithTwo(store);
+    const body = { kind: "chat", text: "oi", commandId: "abc-123-def" };
+    const first = await runRoomCommand(code, host.token, body, store);
+    const again = await runRoomCommand(code, host.token, body, store);
+    expect(again.chat).toHaveLength(1);
+    expect(again.version).toBe(first.version);
+  });
+
+  it("limita a frequência de mensagens por jogador", async () => {
+    const store = createMemoryStore();
+    const { host, code } = await roomWithTwo(store);
+    for (let i = 0; i < 15; i += 1) await runRoomCommand(code, host.token, { kind: "chat", text: `m${i}` }, store);
+    await expect(runRoomCommand(code, host.token, { kind: "chat", text: "demais" }, store)).rejects.toMatchObject({ status: 429 });
+  });
+
+  it("limita a criação de salas por IP", async () => {
+    const store = createMemoryStore();
+    for (let i = 0; i < 12; i += 1) await createRoomFor({ name: `P${i}`, ip: "1.2.3.4" }, store);
+    await expect(createRoomFor({ name: "X", ip: "1.2.3.4" }, store)).rejects.toMatchObject({ status: 429 });
+    await expect(createRoomFor({ name: "Y", ip: "5.6.7.8" }, store)).resolves.toBeTruthy();
+  });
+
+  it("qualquer pessoa da mesa pode pedir revanche", async () => {
+    const store = createMemoryStore();
+    const { host, guest, code } = await roomWithTwo(store);
+    await runRoomCommand(code, host.token, { kind: "start" }, store);
+    await runRoomCommand(code, host.token, { kind: "leave" }, store);
+    const lobby = await runRoomCommand(code, guest.token, { kind: "rematch" }, store);
+    expect(lobby.status).toBe("lobby");
+  });
+
+  it("guarda retrato válido e escolhe um quando vem inválido", async () => {
+    const store = createMemoryStore();
+    const host = await createRoomFor({ name: "Ana", avatar: "🐼" }, store);
+    const guest = await joinRoomAs(host.room.code, { name: "Bia", avatar: "<script>" }, store);
+    expect(guest.room.players[0].avatar).toBe("🐼");
+    expect(guest.room.players[1].avatar).not.toBe("<script>");
+  });
+
+  it("valida tema, prazo e empréstimos nas opções", async () => {
+    const store = createMemoryStore();
+    const host = await createRoomFor({ name: "Ana" }, store);
+    const code = host.room.code;
+    const set = (options: Record<string, unknown>) => runRoomCommand(code, host.token, { kind: "set-options", options }, store);
+    await expect(set({ themeId: "naruto" })).rejects.toThrow("Tema");
+    await expect(set({ turnTimeout: 5 })).rejects.toThrow("Prazo");
+    await expect(set({ credit: "sim" })).rejects.toThrow("empréstimo");
+    const room = await set({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60 });
+    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60 });
+    await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
+    const started = await runRoomCommand(code, host.token, { kind: "start" }, store);
+    expect(started.game).toMatchObject({ themeId: "maceio", credit: true, roundLimit: 60 });
+  });
+});
+
+describe("ausência e piloto automático", () => {
+  async function humanTurn(timeout: number | null) {
+    const store = createMemoryStore();
+    const { host, guest, code } = await roomWithTwo(store);
+    await runRoomCommand(code, host.token, { kind: "set-options", options: { turnTimeout: timeout } }, store);
+    const room = await runRoomCommand(code, host.token, { kind: "start" }, store);
+    const current = room.game!.currentPlayerId === host.playerId ? host : guest;
+    return { store, code, room, current };
+  }
+
+  it("depois do prazo, o piloto automático joga e a pessoa fica ausente", async () => {
+    const { store, code, room, current } = await humanTurn(60);
+    expect(await readRoom(code, room.version, store, room.updatedAt + 59_000)).toBeNull();
+    const auto = (await readRoom(code, room.version, store, room.updatedAt + 60_000))!;
+    expect(auto.away).toEqual([current.playerId]);
+    expect(auto.game!.events.some((e) => e.type === "away" && e.playerId === current.playerId)).toBe(true);
+    expect(auto.game!.dice).not.toBeNull();
+  });
+
+  it("qualquer jogada da pessoa devolve o controle", async () => {
+    const { store, code, room, current } = await humanTurn(60);
+    let auto = (await readRoom(code, room.version, store, room.updatedAt + 60_000))!;
+    // O piloto continua até a vez dela acabar; depois ela age de novo na vez seguinte.
+    let guard = 0;
+    while (auto.game!.currentPlayerId === current.playerId && guard++ < 20) {
+      auto = (await readRoom(code, null, store, LATER()))!;
+    }
+    const resigned = await runRoomCommand(code, current.token, { kind: "game", action: { type: "resign" } }, store);
+    expect(resigned.away).toEqual([]);
+    expect(resigned.game!.events.some((e) => e.type === "back")).toBe(true);
+  });
+
+  it("Voltar a jogar funciona mesmo fora da própria vez", async () => {
+    const { store, code, room, current } = await humanTurn(60);
+    await readRoom(code, room.version, store, room.updatedAt + 60_000);
+    const back = await runRoomCommand(code, current.token, { kind: "back" }, store);
+    expect(back.away).toEqual([]);
+    expect(back.game!.events.at(-1)).toMatchObject({ type: "back", playerId: current.playerId });
+  });
+
+  it("sem prazo, nunca joga por uma pessoa", async () => {
+    const { store, code, room } = await humanTurn(null);
+    expect(await readRoom(code, room.version, store, LATER())).toBeNull();
   });
 });

@@ -10,7 +10,10 @@ alwaysApply: false
 - Regras de jogo ficam em TypeScript puro em `src/games/<jogo>/`, sem React, HTTP ou armazenamento.
 - O servidor é a autoridade: dados e sorteios acontecem no servidor e toda ação passa pelo motor.
 - Rotas em `src/app/api` são finas; casos de uso ficam em `src/server`.
-- Nunca exponha tokens de jogadores no estado público da sala.
+- Nunca exponha tokens de jogadores no estado público da sala; toda resposta passa por `publicRoom` (sem baralhos nem ids internos).
+- O motor emite acontecimentos estruturados (`events`), nunca frases; o texto é montado em `describe.ts` com o tema da partida.
+- Temas só mudam nomes e cores (dados em `themes.ts`); regras e preços nunca dependem do tema.
+- Regras que mudam o equilíbrio (como empréstimos) são opcionais e marcadas como variante no lobby.
 - Mantenha custo zero: Vercel Hobby + Upstash gratuito; nada de serviços pagos ou WebSocket dedicado.
 - Interface mobile-first, testada em largura de iPhone; campos com 16px para evitar zoom no Safari.
 - Use nomes e arte próprios; não copie marcas de jogos comerciais.

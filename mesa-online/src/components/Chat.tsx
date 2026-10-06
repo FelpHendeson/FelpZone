@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { Room, RoomPlayer } from "@/rooms/room";
+import type { PublicRoom } from "@/rooms/public";
+import type { RoomPlayer } from "@/rooms/room";
 import type { Send } from "./RoomScreen";
 
-export function Chat({ room, me, send }: { room: Room; me: RoomPlayer | null; send: Send }) {
+export function Chat({ room, me, send }: { room: PublicRoom; me: RoomPlayer | null; send: Send }) {
   const [text, setText] = useState("");
-  const colors = new Map(room.players.map((player) => [player.id, player.color]));
+  const avatars = new Map(room.players.map((player) => [player.id, player.avatar]));
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
@@ -20,7 +21,8 @@ export function Chat({ room, me, send }: { room: Room; me: RoomPlayer | null; se
         {room.chat.length === 0 && <li className="muted">Ninguém falou nada ainda.</li>}
         {[...room.chat].reverse().map((message) => (
           <li key={message.id}>
-            <strong style={{ color: colors.get(message.playerId) }}>{message.name}</strong> {message.text}
+            <span aria-hidden>{avatars.get(message.playerId) ?? "💬"} </span>
+            <strong>{message.name}</strong> {message.text}
           </li>
         ))}
       </ol>

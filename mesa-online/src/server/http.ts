@@ -28,3 +28,9 @@ export async function readJson(request: Request): Promise<unknown> {
 export function asObject(value: unknown): Record<string, unknown> {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : {};
 }
+
+/** IP de quem chamou, para limitar frequência. A Vercel preenche `x-forwarded-for`. */
+export function clientIp(request: Request): string | null {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  return forwarded || request.headers.get("x-real-ip");
+}

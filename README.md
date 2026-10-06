@@ -93,4 +93,4 @@ Laboratório ativo com dois projetos: o RPG, em protótipo jogável e publicado,
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
 | [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistemas 1–13 completos; 14–17 especificados | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, jornadas, presenças, progressão do Sistema, combate por turnos e evolução planejada até um mundo vivo. |
-| [Mesa Online](mesa-online/README.md) | Primeira versão jogável e publicada | Hub de jogos de tabuleiro multijogador pelo navegador do celular, com salas por código, chat e robôs para jogar sozinho. Primeiro jogo: Magnata, de compra e venda de imóveis. |
+| [Mesa Online](mesa-online/README.md) | Publicado; Evolução 1 (acontecimentos, perfis, temas, empréstimos e ausência) | Hub de jogos de tabuleiro multijogador pelo navegador do celular, com salas por código, chat, retratos, temas de tabuleiro e robôs para jogar sozinho. Primeiro jogo: Magnata, de compra e venda de imóveis. |

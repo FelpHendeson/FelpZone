@@ -1,11 +1,11 @@
 "use client";
 
 import { BOARD, mortgageValue, unmortgageCost, type OwnableTile } from "@/games/magnata/board";
-import { money, ownsWholeGroup, tileActionError, type MagnataState } from "@/games/magnata/engine";
+import { money, ownsWholeGroup, tileActionError, type MagnataView } from "@/games/magnata/engine";
 import type { Send } from "../RoomScreen";
 
 interface Props {
-  game: MagnataState;
+  game: MagnataView;
   playerId: string;
   tile: number;
   send: Send;

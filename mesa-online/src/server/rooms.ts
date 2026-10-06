@@ -1,26 +1,34 @@
 // Casos de uso das salas: ligam o modelo puro ao armazenamento e à identidade.
+// Tudo que sai daqui para o navegador passa por `publicRoom`.
 
 import { createHash, randomBytes, randomInt, timingSafeEqual } from "node:crypto";
 import type { Rng } from "@/games/magnata/engine";
 import { isGameId } from "@/games/registry";
+import { publicRoom, type PublicRoom } from "@/rooms/public";
 import {
   RoomError,
   createRoom,
   joinRoom,
   normalizeName,
   parseRoomCommand,
-  awaitingBot,
+  rememberCommand,
   runCommand,
-  stepBot,
-  type Room,
+  stepAutoplay,
 } from "@/rooms/room";
 import { getRoomStore, type RoomStore, type StoredRoom } from "./store";
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 5;
 const MAX_WRITE_ATTEMPTS = 6;
-/** Pausa entre jogadas de robô, para quem está na mesa conseguir acompanhar. */
-export const BOT_DELAY_MS = 900;
+
+/** Limites de frequência (seção 3.5 da especificação). */
+const LIMITS = {
+  create: { limit: 12, window: 600 },
+  join: { limit: 30, window: 600 },
+  command: { limit: 90, window: 60 },
+  chat: { limit: 15, window: 60 },
+} as const;
+const TOO_MANY = "Muitas ações em pouco tempo. Aguarde alguns segundos.";
 
 export interface Seat {
   playerId: string;
@@ -38,17 +46,25 @@ export function normalizeCode(input: string): string {
 }
 
 export async function createRoomFor(
-  input: { name: unknown; gameId?: unknown },
+  input: { name: unknown; gameId?: unknown; avatar?: unknown; ip?: string | null },
   store: RoomStore = getRoomStore(),
-): Promise<Seat & { room: Room }> {
+): Promise<Seat & { room: PublicRoom }> {
   const gameId = input.gameId ?? "magnata";
   if (!isGameId(gameId)) throw new RoomError("Jogo desconhecido.");
   const hostName = normalizeName(input.name);
+  await limit(store, `criar:${input.ip ?? "?"}`, LIMITS.create);
   const seat = newSeat();
   for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt += 1) {
-    const room = createRoom({ code: newCode(), gameId, hostId: seat.playerId, hostName, now: Date.now() });
+    const room = createRoom({
+      code: newCode(),
+      gameId,
+      hostId: seat.playerId,
+      hostName,
+      hostAvatar: input.avatar,
+      now: Date.now(),
+    });
     if (await store.create({ room, tokens: { [seat.playerId]: hashToken(seat.token) } })) {
-      return { ...seat, room };
+      return { ...seat, room: publicRoom(room) };
     }
   }
   throw new RoomError("Não foi possível criar a sala. Tente novamente.", 503);
@@ -56,43 +72,47 @@ export async function createRoomFor(
 
 export async function joinRoomAs(
   rawCode: string,
-  input: { name: unknown },
+  input: { name: unknown; avatar?: unknown; ip?: string | null },
   store: RoomStore = getRoomStore(),
-): Promise<Seat & { room: Room }> {
+): Promise<Seat & { room: PublicRoom }> {
+  await limit(store, `entrar:${input.ip ?? "?"}`, LIMITS.join);
   const seat = newSeat();
-  const room = await mutate(rawCode, store, (stored) => ({
-    room: joinRoom(stored.room, seat.playerId, input.name, Date.now()),
-    tokens: { ...stored.tokens, [seat.playerId]: hashToken(seat.token) },
+  const stored = await mutate(rawCode, store, (current) => ({
+    room: joinRoom(current.room, seat.playerId, input.name, input.avatar, Date.now()),
+    tokens: { ...current.tokens, [seat.playerId]: hashToken(seat.token) },
   }));
-  return { ...seat, room };
+  return { ...seat, room: publicRoom(stored.room) };
 }
 
 /**
  * Devolve a sala, ou `null` quando o cliente já tem a versão atual. Como a
  * Vercel não mantém processos rodando, é a consulta periódica de quem está na
- * mesa que faz os robôs jogarem, uma jogada por vez.
+ * mesa que faz os robôs (e o piloto automático de quem saiu) jogarem, uma
+ * jogada por vez.
  */
 export async function readRoom(
   rawCode: string,
   knownVersion: number | null,
   store: RoomStore = getRoomStore(),
-  botDelayMs = BOT_DELAY_MS,
-): Promise<Room | null> {
+  now = Date.now(),
+): Promise<PublicRoom | null> {
   const code = normalizeCode(rawCode);
   if (knownVersion !== null) {
     const meta = await store.readMeta(code);
     if (!meta) throw new RoomError("Sala não encontrada.", 404);
-    if (meta.version === knownVersion && !meta.botTurn) return null;
+    const autoplayDue = meta.autoplayAt !== null && now >= meta.autoplayAt;
+    if (meta.version === knownVersion && !autoplayDue) return null;
   }
   let stored = await store.read(code);
   if (!stored) throw new RoomError("Sala não encontrada.", 404);
-  if (awaitingBot(stored.room) && Date.now() - stored.room.updatedAt >= botDelayMs) {
-    const next = { ...stored, room: stepBot(stored.room, secureRng, Date.now()) };
-    // Se outra consulta já moveu o robô, basta devolver o estado mais novo.
+  const advanced = stepAutoplay(stored.room, secureRng, now);
+  if (advanced) {
+    const next = { ...stored, room: advanced };
+    // Se outra consulta já fez a jogada, basta devolver o estado mais novo.
     stored = (await store.replace(next, stored.room.version)) ? next : ((await store.read(code)) ?? stored);
   }
   if (knownVersion !== null && stored.room.version === knownVersion) return null;
-  return stored.room;
+  return publicRoom(stored.room);
 }
 
 export async function runRoomCommand(
@@ -100,30 +120,57 @@ export async function runRoomCommand(
   token: string | null,
   body: unknown,
   store: RoomStore = getRoomStore(),
-): Promise<Room> {
+): Promise<PublicRoom> {
   const command = parseRoomCommand(body);
   if (!command) throw new RoomError("Comando inválido.");
   if (!token) throw new RoomError("Identificação ausente. Entre na sala novamente.", 401);
-  return mutate(rawCode, store, (stored) => {
-    const playerId = playerForToken(stored, token);
+  const commandId = parseCommandId(body);
+  const tokenKey = hashToken(token).slice(0, 24);
+  await limit(store, `comando:${tokenKey}`, LIMITS.command);
+  if (command.kind === "chat") await limit(store, `chat:${tokenKey}`, LIMITS.chat);
+
+  const stored = await mutate(rawCode, store, (current) => {
+    const playerId = playerForToken(current, token);
     if (!playerId) throw new RoomError("Identificação inválida. Entre na sala novamente.", 401);
-    return { ...stored, room: runCommand(stored.room, playerId, command, secureRng, Date.now()) };
+    let room = current.room;
+    if (commandId) {
+      const remembered = rememberCommand(room, commandId);
+      // Reenvio de um comando já aplicado: devolve o estado atual sem repetir o efeito.
+      if (!remembered) return null;
+      room = remembered;
+    }
+    return { ...current, room: runCommand(room, playerId, command, secureRng, Date.now()) };
   });
+  return publicRoom(stored.room);
 }
 
+/**
+ * Lê, aplica e grava com controle de versão, repetindo quando outra escrita
+ * chega antes. `change` devolvendo `null` significa "nada a gravar".
+ */
 async function mutate(
   rawCode: string,
   store: RoomStore,
-  change: (stored: StoredRoom) => StoredRoom,
-): Promise<Room> {
+  change: (stored: StoredRoom) => StoredRoom | null,
+): Promise<StoredRoom> {
   const code = normalizeCode(rawCode);
   for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt += 1) {
     const stored = await store.read(code);
     if (!stored) throw new RoomError("Sala não encontrada.", 404);
     const next = change(stored);
-    if (await store.replace(next, stored.room.version)) return next.room;
+    if (!next) return stored;
+    if (await store.replace(next, stored.room.version)) return next;
   }
   throw new RoomError("A sala está muito movimentada. Tente novamente.", 503);
+}
+
+async function limit(store: RoomStore, key: string, rule: { limit: number; window: number }) {
+  if (!(await store.hit(key, rule.limit, rule.window))) throw new RoomError(TOO_MANY, 429);
+}
+
+function parseCommandId(body: unknown): string | null {
+  const id = (body as { commandId?: unknown } | null)?.commandId;
+  return typeof id === "string" && /^[\w-]{8,64}$/.test(id) ? id : null;
 }
 
 function playerForToken(stored: StoredRoom, token: string): string | null {

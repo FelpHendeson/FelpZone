@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { Room } from "@/rooms/room";
+import type { PublicRoom } from "@/rooms/public";
 import { ApiError, fetchRoom } from "./api";
 
 /**
@@ -9,12 +9,14 @@ import { ApiError, fetchRoom } from "./api";
  * e cresce quando nada muda, para caber no plano gratuito do Redis.
  */
 export function useRoom(code: string) {
-  const [room, setRoom] = useState<Room | null>(null);
+  const [room, setRoom] = useState<PublicRoom | null>(null);
   const [error, setError] = useState<string | null>(null);
+  /** A última consulta falhou por rede: mostrar "Reconectando…". */
+  const [offline, setOffline] = useState(false);
   const versionRef = useRef(0);
   const wakeRef = useRef<() => void>(() => {});
 
-  const applyRoom = useCallback((next: Room) => {
+  const applyRoom = useCallback((next: PublicRoom) => {
     if (next.version <= versionRef.current) return;
     versionRef.current = next.version;
     setRoom(next);
@@ -37,6 +39,7 @@ export function useRoom(code: string) {
         const result = await fetchRoom(code, versionRef.current);
         if (stopped) return;
         setError(null);
+        setOffline(false);
         if (result.room) {
           quietPolls = 0;
           applyRoom(result.room);
@@ -45,8 +48,10 @@ export function useRoom(code: string) {
         }
       } catch (caught) {
         if (stopped) return;
-        setError(caught instanceof ApiError ? caught.message : "Falha ao atualizar a sala.");
-        if (caught instanceof ApiError && caught.status === 404) return;
+        const status = caught instanceof ApiError ? caught.status : 0;
+        if (status === 0) setOffline(true);
+        else setError(caught instanceof ApiError ? caught.message : "Falha ao atualizar a sala.");
+        if (status === 404) return;
         quietPolls += 1;
       }
       schedule(quietPolls < 30 ? 1000 : quietPolls < 90 ? 2000 : 4000);
@@ -62,13 +67,15 @@ export function useRoom(code: string) {
       }
     };
     document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("online", onVisible);
     schedule(0);
     return () => {
       stopped = true;
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("online", onVisible);
     };
   }, [code, applyRoom]);
 
-  return { room, error, applyRoom };
+  return { room, error, offline, applyRoom };
 }

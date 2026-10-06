@@ -11,11 +11,13 @@ Quatro robôs jogam uma partida de Magnata entre si até que um deles vença. A 
 | Investidor, Conservador e Colecionador (seção 6) | ✅ feito, num esqueleto comum | `src/bots/profile.ts`, `src/bots/strategies.ts` |
 | Ação de segurança e validação contra `legal` | ✅ feito (`botAction`, `safeAction`) | `src/bots/strategies.ts` |
 | Robôs na mesa humana (seção 13) | ✅ feito | `src/rooms/room.ts`, `src/server/rooms.ts`, lobby |
+| Piloto automático para ausentes (estilo Conservador) | ✅ feito na Evolução 1 | `stepAutoplay` em `src/rooms/room.ts` |
+| Empréstimos do banco nas estratégias | ✅ feito na Evolução 1 | `borrowToComplete` em `src/bots/profile.ts` |
 | Robô Aleatório (6.4) | ⏳ a fazer | — |
 | `runMatch` e torneio (seções 7 e 8) | ⏳ a fazer | — |
 | Executor via HTTP (seção 9) | ⏳ a fazer | — |
 
-Medição com as estratégias implementadas: em 300 partidas de 4 robôs com limite de 60 rodadas (240 turnos), o **Investidor venceu 43%**, o **Colecionador 34%** e o **Conservador 23%**. Só 54 das 300 terminaram por falência; as demais foram decididas por patrimônio. Os testes em `src/bots/bots.test.ts` verificam `legalActions` contra o motor, as invariantes da seção 4.3 e zero ações ilegais.
+Medição com as estratégias implementadas (antes da Evolução 1): em 300 partidas de 4 robôs com limite de 60 rodadas (240 turnos), o **Investidor venceu 43%**, o **Colecionador 34%** e o **Conservador 23%**. Só 54 das 300 terminaram por falência; as demais foram decididas por patrimônio. Os testes em `src/bots/bots.test.ts` verificam `legalActions` contra o motor, as invariantes da seção 4.3 e zero ações ilegais.
 
 ## 1. Objetivos
 
@@ -112,7 +114,9 @@ patrimônio = dinheiro
 
 Desempate: maior dinheiro em caixa e, em seguida, quem joga primeiro na ordem da mesa.
 
-**Exposição na sala (implementado):** o anfitrião escolhe a duração no lobby com o comando `{ kind: "set-options", roundLimit }`, em que `roundLimit` é `null` (até alguém falir), `30`, `60` ou `100` rodadas. Ao iniciar, o servidor converte para `turnLimit = roundLimit × jogadores`.
+**Exposição na sala (implementado e revisto na Evolução 1):** o anfitrião escolhe a duração no lobby com `{ kind: "set-options", options: { roundLimit } }`, em que `roundLimit` é `null` (até restar um jogador), `30`, `60` ou `100`. O formato antigo `{ kind: "set-options", roundLimit }` continua aceito.
+
+O motor ganhou contagem de **rodadas de verdade** (`round`, `roundLimit`): a rodada vira quando a vez dá a volta na mesa, mesmo depois de falências. A sala usa `roundLimit` e `endReason` vale `"round-limit"`. O `turnLimit` continua disponível para torneios e testes.
 
 ### 4.3 Testes do motor
 
@@ -260,7 +264,7 @@ npm run bots:http -- --url http://localhost:3000 --atraso 500 --limite 200
 
 Fluxo:
 
-1. O robô 1 chama `POST /api/rooms` com `{ name, gameId: "magnata" }`, guarda `{ code, playerId, token }` e envia `{ kind: "set-options", roundLimit }`.
+1. O robô 1 chama `POST /api/rooms` com `{ name, gameId: "magnata" }`, guarda `{ code, playerId, token }` e envia `{ kind: "set-options", options: { roundLimit } }`.
 2. Os robôs 2 a 4 chamam `POST /api/rooms/{code}/join` com `{ name }`.
 3. O script imprime `Assista em: {url}/sala/{code}`. Quem abrir esse link entra como espectador, porque não tem assento.
 4. O robô 1 envia `POST /api/rooms/{code}/commands` com `{ kind: "start" }` e o cabeçalho `x-player-token`.
@@ -327,12 +331,20 @@ O anfitrião pode completar a mesa com robôs para jogar sozinho ou com menos ge
 
 - **Lobby:** o anfitrião escolhe o estilo e toca em **+ Robô**, e pode remover robôs antes de começar. Os robôs ganham nome ("Robô Investidor", "Robô Investidor 2"…) e cor livre. O assento de robô é um `RoomPlayer` com `bot: BotKind` e não tem token.
 - **Atalho:** "Jogar sozinho contra 3 robôs" na tela inicial cria a sala, adiciona um robô de cada estilo, define 60 rodadas e começa.
-- **Comandos novos** (só o anfitrião, só no lobby): `add-bot { strategy }`, `remove-bot { playerId }` e `set-options { roundLimit }`.
+- **Comandos novos** (só o anfitrião, só no lobby): `add-bot { strategy }`, `remove-bot { playerId }` e `set-options { options }`.
 - **Quem faz o robô jogar:** a Vercel não mantém processos rodando, então são as consultas periódicas (`GET /api/rooms/{code}`) que fazem o robô jogar.
   - Quando é a vez de um robô e já passaram 900 ms (`BOT_DELAY_MS`) desde a última alteração, a consulta aplica **uma** jogada dele e grava com a mesma escrita otimista por versão. Se duas consultas tentarem ao mesmo tempo, só uma vence e a outra devolve o estado novo.
   - Quando a jogada seguinte do robô seria apenas passar a vez, ela vai junto, para economizar uma espera.
-- **Consulta barata:** a chave curta da sala no Redis guarda `versão` ou `versão:b`. O `:b` indica que a vez é de um robô; só nesse caso a consulta lê a sala inteira mesmo sem mudança de versão.
+- **Consulta barata:** a chave curta da sala no Redis guarda `versão` ou `versão:momento`, em que `momento` é quando uma jogada automática fica liberada (robô, ausente ou prazo estourado). A consulta só lê a sala inteira quando a versão mudou ou esse momento já passou.
 - **Sem ninguém olhando, ninguém joga:** se todas as pessoas fecharem a página, os robôs param e retomam quando alguém voltar à sala.
 - **Saída do anfitrião:** o comando passa para outra pessoa, nunca para um robô. Uma sala só com robôs não pode ficar sem humano no lobby.
 
 Ritmo medido no navegador: com 1 pessoa e 3 robôs, uma rodada completa leva cerca de 8 s.
+
+### 13.1 Empréstimos e piloto automático (Evolução 1)
+
+- **Empréstimos:** Investidor e Colecionador pegam o menor empréstimo que cubra a compra de uma rua que **completa uma cor**. Quitam antes do vencimento quando sobram $300 depois de pagar. O Conservador nunca pega.
+  - Simulação de 300 partidas com 4 robôs e 60 rodadas: com a regra ligada, 36 terminaram por falência (contra 35 sem ela) e a média ficou em 58,6 rodadas (contra 58,4).
+  - Os robôs pegaram 13 empréstimos: 2 quitados antes e o resto cobrado no vencimento.
+  - Nenhuma ação ilegal e nenhum crescimento de caixa sem limite.
+- **Piloto automático:** quando uma pessoa estoura o prazo por jogada, a sala a marca como ausente e o assento passa a jogar como o Conservador, no mesmo ritmo dos robôs, até ela tocar em "Voltar a jogar" ou fazer qualquer jogada.

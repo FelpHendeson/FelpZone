@@ -1,9 +1,9 @@
-import type { MagnataAction, MagnataState, Rng } from "@/games/magnata/engine";
+import type { MagnataAction, MagnataView, Rng } from "@/games/magnata/engine";
 
 export type BotKind = "investidor" | "conservador" | "colecionador";
 
 export interface BotContext {
-  state: MagnataState;
+  state: MagnataView;
   me: string;
   /** Resultado de `legalActions(state, me)`. */
   legal: MagnataAction[];

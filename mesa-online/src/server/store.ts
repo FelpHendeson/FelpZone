@@ -1,8 +1,8 @@
 // Armazenamento das salas. Em produção usa Redis (Upstash, plano gratuito);
-// sem as variáveis de ambiente, cai para memória — suficiente para `npm run dev`.
+// sem as variáveis de ambiente, cai para memória — só no desenvolvimento.
 
 import { Redis } from "@upstash/redis";
-import { awaitingBot, type Room } from "@/rooms/room";
+import { RoomError, nextAutoplayAt, type Room } from "@/rooms/room";
 
 export interface StoredRoom {
   room: Room;
@@ -13,8 +13,8 @@ export interface StoredRoom {
 /** Resumo barato da sala, lido em toda consulta periódica. */
 export interface RoomMeta {
   version: number;
-  /** A vez é de um robô: a consulta precisa ler a sala para fazê-lo jogar. */
-  botTurn: boolean;
+  /** A partir de quando uma consulta deve fazer a vez andar sozinha (robô ou ausência). */
+  autoplayAt: number | null;
 }
 
 export interface RoomStore {
@@ -25,13 +25,18 @@ export interface RoomStore {
   create(stored: StoredRoom): Promise<boolean>;
   /** Substitui a sala somente se ninguém a alterou desde `expectedVersion`. */
   replace(stored: StoredRoom, expectedVersion: number): Promise<boolean>;
+  /** Conta uma ocorrência na janela; devolve `false` quando passou do limite. */
+  hit(key: string, limit: number, windowSeconds: number): Promise<boolean>;
 }
 
 /** Salas somem depois de dois dias sem nenhuma alteração. */
 const ROOM_TTL_SECONDS = 60 * 60 * 48;
+/** Prefixo versionado: salas do formato anterior deixam de ser lidas em vez de quebrar. */
+const PREFIX = "mesa:v2";
 
 export function createMemoryStore(): RoomStore {
   const rooms = new Map<string, { json: string; expiresAt: number }>();
+  const counters = new Map<string, { count: number; resetAt: number }>();
   const live = (code: string) => {
     const entry = rooms.get(code);
     if (entry && entry.expiresAt < Date.now()) rooms.delete(code);
@@ -61,6 +66,16 @@ export function createMemoryStore(): RoomStore {
       save(stored);
       return true;
     },
+    async hit(key, limit, windowSeconds) {
+      const now = Date.now();
+      const current = counters.get(key);
+      if (!current || current.resetAt <= now) {
+        counters.set(key, { count: 1, resetAt: now + windowSeconds * 1000 });
+        return true;
+      }
+      current.count += 1;
+      return current.count <= limit;
+    },
   };
 }
 
@@ -77,8 +92,13 @@ redis.call('SET', KEYS[1], ARGV[2], 'EX', ARGV[4])
 redis.call('SET', KEYS[2], ARGV[3], 'EX', ARGV[4])
 return 1`;
 
+const HIT_SCRIPT = `
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+return count`;
+
 export function createRedisStore(redis: Redis): RoomStore {
-  const keys = (code: string) => [`mesa:sala:${code}`, `mesa:sala:${code}:v`];
+  const keys = (code: string) => [`${PREFIX}:sala:${code}`, `${PREFIX}:sala:${code}:v`];
   return {
     kind: "redis",
     async read(code) {
@@ -106,22 +126,26 @@ export function createRedisStore(redis: Redis): RoomStore {
       ]);
       return Number(result) === 1;
     },
+    async hit(key, limit, windowSeconds) {
+      const count = await redis.eval(HIT_SCRIPT, [`${PREFIX}:limite:${key}`], [String(windowSeconds)]);
+      return Number(count) <= limit;
+    },
   };
 }
 
 function metaOf(room: Room): RoomMeta {
-  return { version: room.version, botTurn: awaitingBot(room) !== null };
+  return { version: room.version, autoplayAt: nextAutoplayAt(room) };
 }
 
-/** Grava "versão" ou "versão:b" na chave curta da sala. */
+/** Grava "versão" ou "versão:momento-da-jogada-automática" na chave curta da sala. */
 function encodeMeta(room: Room): string {
   const meta = metaOf(room);
-  return meta.botTurn ? `${meta.version}:b` : String(meta.version);
+  return meta.autoplayAt === null ? String(meta.version) : `${meta.version}:${meta.autoplayAt}`;
 }
 
 function parseMeta(value: string): RoomMeta {
-  const [version, flag] = value.split(":");
-  return { version: Number(version), botTurn: flag === "b" };
+  const [version, autoplayAt] = value.split(":");
+  return { version: Number(version), autoplayAt: autoplayAt ? Number(autoplayAt) : null };
 }
 
 const globalForStore = globalThis as typeof globalThis & { __mesaRoomStore?: RoomStore };
@@ -131,13 +155,15 @@ export function getRoomStore(): RoomStore {
   // A integração Upstash da Vercel pode expor qualquer um dos dois pares.
   const url = process.env.UPSTASH_REDIS_REST_URL ?? process.env.KV_REST_API_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.KV_REST_API_TOKEN;
+  if (!(url && token) && process.env.VERCEL) {
+    // Em produção, memória isolada por instância faria salas "sumirem": melhor falhar claro.
+    console.error("[mesa-online] Redis não configurado em produção.");
+    throw new RoomError("O servidor está sem banco de dados configurado. Avise quem cuida do site.", 503);
+  }
   const store =
     url && token
       ? createRedisStore(new Redis({ url, token, automaticDeserialization: false }))
       : createMemoryStore();
-  if (store.kind === "memory" && process.env.VERCEL) {
-    console.warn("[mesa-online] Redis não configurado: salas em memória não funcionam entre instâncias.");
-  }
   globalForStore.__mesaRoomStore = store;
   return store;
 }

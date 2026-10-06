@@ -1,30 +1,54 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState, useSyncExternalStore, type FormEvent } from "react";
-import { createRoom, joinRoom, sendCommand } from "@/client/api";
-import { rememberName, rememberedName, saveSeat } from "@/client/seats";
+import { useEffect, useState, type FormEvent } from "react";
+import { createRoom, fetchRoom, joinRoom, sendCommand } from "@/client/api";
+import { useProfile } from "@/client/profile";
+import { forgetRoom, saveSeat, useRecentRooms } from "@/client/seats";
 import { GAMES } from "@/games/registry";
+import { HowToPlay } from "./HowToPlay";
+import { PrefsForm } from "./PrefsForm";
+import { ProfileCard } from "./ProfileCard";
+import { Sheet } from "./Sheet";
 
-const noSubscription = () => () => {};
+type Result = { room: { code: string }; playerId: string; token: string };
 
 export function Home() {
   const router = useRouter();
-  // O nome lembrado só existe no navegador; no servidor o campo começa vazio.
-  const storedName = useSyncExternalStore(noSubscription, rememberedName, () => "");
-  const [typedName, setName] = useState<string | null>(null);
-  const name = typedName ?? storedName;
+  const profile = useProfile();
+  const recent = useRecentRooms();
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sheet, setSheet] = useState<"help" | "prefs" | null>(null);
+  const [resume, setResume] = useState<{ code: string; label: string } | null>(null);
   const game = GAMES.magnata;
+  const name = profile.name.trim();
 
-  async function run(task: () => Promise<{ room: { code: string }; playerId: string; token: string }>) {
+  // "Continuar partida": a sala mais recente com assento salvo que ainda existe.
+  const latest = recent[0]?.code ?? null;
+  useEffect(() => {
+    if (!latest) return;
+    let cancelled = false;
+    fetchRoom(latest, 0)
+      .then(({ room }) => {
+        if (cancelled || !room) return;
+        const label = room.status === "lobby" ? "no lobby" : room.status === "playing" ? "em andamento" : "terminada";
+        setResume({ code: latest, label });
+      })
+      .catch((caught) => {
+        if (!cancelled && caught?.status === 404) forgetRoom(latest);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [latest]);
+
+  async function run(task: () => Promise<Result>) {
     setBusy(true);
     setError(null);
     try {
       const result = await task();
-      rememberName(name.trim());
       saveSeat(result.room.code, { playerId: result.playerId, token: result.token });
       router.push(`/sala/${result.room.code}`);
     } catch (caught) {
@@ -33,21 +57,16 @@ export function Home() {
     }
   }
 
-  function onCreate(event: FormEvent) {
-    event.preventDefault();
-    run(() => createRoom(name));
-  }
-
   /** Cria a sala com três robôs de estilos diferentes e já começa. */
   function onSolo() {
     run(async () => {
-      const created = await createRoom(name);
-      const { code } = created.room;
+      const created = await createRoom(name, profile.avatar);
+      const { code: roomCode } = created.room;
       for (const strategy of ["investidor", "conservador", "colecionador"]) {
-        await sendCommand(code, created.token, { kind: "add-bot", strategy });
+        await sendCommand(roomCode, created.token, { kind: "add-bot", strategy });
       }
-      await sendCommand(code, created.token, { kind: "set-options", roundLimit: 60 });
-      await sendCommand(code, created.token, { kind: "start" });
+      await sendCommand(roomCode, created.token, { kind: "set-options", options: { roundLimit: 60 } });
+      await sendCommand(roomCode, created.token, { kind: "start" });
       return created;
     });
   }
@@ -55,7 +74,7 @@ export function Home() {
   function onJoin(event: FormEvent) {
     event.preventDefault();
     const normalized = code.trim().toUpperCase();
-    run(() => joinRoom(normalized, name));
+    run(() => joinRoom(normalized, name, profile.avatar));
   }
 
   return (
@@ -66,39 +85,32 @@ export function Home() {
         <p>Jogos de tabuleiro com a família e os amigos, direto no navegador do celular.</p>
       </header>
 
-      <section className="card game-card">
-        <div className="game-card-art" aria-hidden>
-          🏙️
-        </div>
-        <div>
-          <h2>{game.name}</h2>
-          <p>{game.description}</p>
-          <p className="muted">
-            {game.minPlayers} a {game.maxPlayers} jogadores
-          </p>
-        </div>
-      </section>
+      <ProfileCard profile={profile} />
+
+      {resume && (
+        <button className="card continue-card" onClick={() => router.push(`/sala/${resume.code}`)}>
+          <span className="continue-icon" aria-hidden>
+            ↩️
+          </span>
+          <span>
+            <strong>Continuar partida</strong>
+            <span className="muted">
+              Sala {resume.code} · {resume.label}
+            </span>
+          </span>
+        </button>
+      )}
 
       <section className="card">
-        <label className="field">
-          <span>Seu nome</span>
-          <input
-            value={name}
-            onChange={(event) => setName(event.target.value)}
-            maxLength={20}
-            autoComplete="nickname"
-            placeholder="Como vão te chamar na mesa"
-          />
-        </label>
-
-        <form onSubmit={onCreate}>
-          <button className="button primary block" disabled={busy || !name.trim()}>
-            Criar sala de {game.name}
+        <div className="main-actions">
+          <button className="button primary" disabled={busy || !name} onClick={() => run(() => createRoom(name, profile.avatar))}>
+            👥 Jogar com amigos
           </button>
-        </form>
-        <button className="button block" type="button" disabled={busy || !name.trim()} onClick={onSolo}>
-          🤖 Jogar sozinho contra 3 robôs
-        </button>
+          <button className="button" disabled={busy || !name} onClick={onSolo}>
+            🤖 Jogar contra robôs
+          </button>
+        </div>
+        {!name && <p className="muted small">Escreva seu nome no perfil para começar.</p>}
 
         <div className="divider">
           <span>ou entre com um código</span>
@@ -115,17 +127,52 @@ export function Home() {
             aria-label="Código da sala"
             className="code-input"
           />
-          <button className="button" disabled={busy || !name.trim() || code.trim().length !== 5}>
+          <button className="button" disabled={busy || !name || code.trim().length !== 5}>
             Entrar
           </button>
         </form>
 
-        {error && <p className="error">{error}</p>}
+        {error && (
+          <p className="error" role="alert">
+            {error}
+          </p>
+        )}
       </section>
 
-      <p className="footnote muted">
-        Sem cadastro: quem cria a sala recebe um código para compartilhar. Cada aparelho lembra quem você é na sala.
-      </p>
+      <section className="card game-card">
+        <div className="game-card-art" aria-hidden>
+          🏙️
+        </div>
+        <div>
+          <h2>{game.name}</h2>
+          <p>{game.description}</p>
+          <p className="muted">
+            {game.minPlayers} a {game.maxPlayers} participantes · pessoas e robôs · 5 temas de tabuleiro
+          </p>
+        </div>
+      </section>
+
+      <nav className="link-row" aria-label="Ajuda">
+        <button className="link-button light" onClick={() => setSheet("help")}>
+          Como jogar
+        </button>
+        <button className="link-button light" onClick={() => setSheet("prefs")}>
+          Preferências
+        </button>
+      </nav>
+
+      <p className="footnote muted">Sem cadastro: quem cria a sala recebe um código para compartilhar.</p>
+
+      {sheet === "help" && (
+        <Sheet title="Como jogar o Magnata" onClose={() => setSheet(null)}>
+          <HowToPlay />
+        </Sheet>
+      )}
+      {sheet === "prefs" && (
+        <Sheet title="Preferências" onClose={() => setSheet(null)}>
+          <PrefsForm prefs={profile.prefs} />
+        </Sheet>
+      )}
     </main>
   );
 }

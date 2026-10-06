@@ -46,11 +46,11 @@ function checkInvariants(state: MagnataState) {
   if (state.phase === "finished") expect(state.winnerId).not.toBeNull();
 }
 
-function play(kinds: BotKind[], seed: number, turnLimit: number | null, verify = false) {
+function play(kinds: BotKind[], seed: number, turnLimit: number | null, verify = false, credit = false) {
   const rng = seeded(seed);
   const seats = kinds.map((kind, index) => ({ id: `${kind}-${index}`, name: kind, color: "#000" }));
   const kindOf = new Map(seats.map((seat, index) => [seat.id, kinds[index]]));
-  let state = createMagnataGame(seats, rng, { turnLimit });
+  let state = createMagnataGame(seats, rng, { turnLimit, credit });
   let actions = 0;
   let illegal = 0;
   while (state.phase !== "finished" && actions < 50_000) {
@@ -121,6 +121,34 @@ describe("estratégias", () => {
       expect(illegal).toBe(0);
     }
   }, 120_000);
+
+  it("com empréstimos ligados, continuam legais e as partidas terminam", () => {
+    for (let seed = 1; seed <= 20; seed += 1) {
+      const { state, illegal } = play(BOT_KINDS.concat("investidor"), seed, 400, seed <= 3, true);
+      expect(state.phase).toBe("finished");
+      expect(illegal).toBe(0);
+    }
+  }, 120_000);
+
+  it("pegam empréstimo só para completar uma cor", () => {
+    const state = createMagnataGame(
+      [
+        { id: "bot", name: "Bot", color: "#000" },
+        { id: "x", name: "X", color: "#000" },
+      ],
+      seeded(4),
+      { credit: true },
+    );
+    state.currentPlayerId = "bot";
+    state.phase = "buy";
+    for (const tile of [37, 21, 23]) state.properties[tile].owner = "bot";
+    getPlayer(state, "bot").position = 39;
+    getPlayer(state, "bot").cash = 250;
+    const ctx = { state, me: "bot", legal: legalActions(state, "bot"), rng: seeded(1) };
+    expect(BOTS.colecionador.decide(ctx)).toEqual({ type: "take-loan", amount: 200 });
+    expect(BOTS.investidor.decide(ctx)).toEqual({ type: "take-loan", amount: 200 });
+    expect(BOTS.conservador.decide(ctx)).toEqual({ type: "decline" });
+  });
 
   it("pagam a dívida hipotecando em vez de falir", () => {
     for (const kind of BOT_KINDS) {

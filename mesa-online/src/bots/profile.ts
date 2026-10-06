@@ -3,7 +3,7 @@
 // então uma sequência de decisões dentro da mesma fase sempre termina.
 
 import { BOARD, groupTiles, unmortgageCost, type OwnableTile } from "@/games/magnata/board";
-import { getPlayer, ownsWholeGroup, type MagnataAction, type MagnataState } from "@/games/magnata/engine";
+import { getPlayer, ownsWholeGroup, type MagnataAction, type MagnataView } from "@/games/magnata/engine";
 import type { BotContext } from "./types";
 
 export interface Profile {
@@ -20,7 +20,12 @@ export interface Profile {
   leaveJailEarly(ctx: BotContext): boolean;
   /** Ordena propriedades para hipotecar numa dívida, da mais descartável para a menos. */
   mortgageOrder(ctx: BotContext, tiles: number[]): number[];
+  /** Pega empréstimo (quando a regra existe) para comprar a rua que completa uma cor. */
+  borrowToComplete: boolean;
 }
+
+/** Caixa que precisa sobrar para o robô quitar um empréstimo antes do vencimento. */
+const REPAY_RESERVE = 300;
 
 export function decideWith(profile: Profile, ctx: BotContext): MagnataAction {
   const { state, me, legal } = ctx;
@@ -40,7 +45,15 @@ export function decideWith(profile: Profile, ctx: BotContext): MagnataAction {
 
   if (state.phase === "buy") {
     const buy = find("buy");
-    return buy && profile.shouldBuy(ctx, player.position) ? buy : { type: "decline" };
+    if (buy && profile.shouldBuy(ctx, player.position)) return buy;
+    if (!buy && profile.borrowToComplete && completesGroupFor(state, me, player.position)) {
+      const shortfall = (BOARD[player.position] as OwnableTile).price - player.cash;
+      const loan = legal
+        .filter((action): action is Extract<MagnataAction, { type: "take-loan" }> => action.type === "take-loan")
+        .find((action) => action.amount >= shortfall);
+      if (loan) return loan;
+    }
+    return { type: "decline" };
   }
 
   // Fases "roll" e "end": primeiro investir, depois jogar.
@@ -48,6 +61,9 @@ export function decideWith(profile: Profile, ctx: BotContext): MagnataAction {
     .filter((tile) => player.cash - unmortgageCostOf(tile) >= profile.unmortgageReserve)
     .sort((a, b) => Number(ownsWholeGroup(state, me, b)) - Number(ownsWholeGroup(state, me, a)));
   if (unmortgages.length) return { type: "unmortgage", tile: unmortgages[0] };
+
+  const repay = find("repay-loan");
+  if (repay && player.loan && player.cash - player.loan.due >= REPAY_RESERVE) return repay;
 
   const builds = tilesFor(legal, "build").filter((tile) => {
     const street = BOARD[tile] as Extract<OwnableTile, { kind: "street" }>;
@@ -76,7 +92,7 @@ function unmortgageCostOf(tile: number): number {
 }
 
 /** Vende primeiro onde a construção é mais barata. */
-function cheapestToLose(state: MagnataState, tiles: number[]): number {
+function cheapestToLose(state: MagnataView, tiles: number[]): number {
   return [...tiles].sort(
     (a, b) =>
       (BOARD[a] as Extract<OwnableTile, { kind: "street" }>).houseCost -
@@ -87,16 +103,16 @@ function cheapestToLose(state: MagnataState, tiles: number[]): number {
 // ---------------------------------------------------------------------------
 // Consultas usadas pelas estratégias
 
-export function rounds(state: MagnataState): number {
+export function rounds(state: MagnataView): number {
   return state.turnNumber / Math.max(1, state.players.filter((player) => !player.bankrupt).length);
 }
 
-export function unownedCount(state: MagnataState): number {
+export function unownedCount(state: MagnataView): number {
   return Object.values(state.properties).filter((property) => property.owner === null).length;
 }
 
 /** Quantas ruas da cor de `tile` cada dono tem. */
-export function groupOwnership(state: MagnataState, tile: number): Map<string | null, number> {
+export function groupOwnership(state: MagnataView, tile: number): Map<string | null, number> {
   const street = BOARD[tile];
   const counts = new Map<string | null, number>();
   if (street.kind !== "street") return counts;
@@ -107,14 +123,14 @@ export function groupOwnership(state: MagnataState, tile: number): Map<string | 
   return counts;
 }
 
-export function completesGroupFor(state: MagnataState, playerId: string, tile: number): boolean {
+export function completesGroupFor(state: MagnataView, playerId: string, tile: number): boolean {
   const street = BOARD[tile];
   if (street.kind !== "street") return false;
   return groupTiles(street.group).every((index) => index === tile || state.properties[index].owner === playerId);
 }
 
 /** Comprar esta rua impede um adversário de completar a cor? */
-export function blocksOpponent(state: MagnataState, me: string, tile: number): boolean {
+export function blocksOpponent(state: MagnataView, me: string, tile: number): boolean {
   const street = BOARD[tile];
   if (street.kind !== "street") return false;
   const others = groupTiles(street.group).filter((index) => index !== tile);
@@ -123,7 +139,7 @@ export function blocksOpponent(state: MagnataState, me: string, tile: number): b
 }
 
 /** Ruas sem cor promissora (estações, companhias, ruas isoladas) são hipotecadas primeiro. */
-export function defaultMortgageOrder(state: MagnataState, me: string, tiles: number[]): number[] {
+export function defaultMortgageOrder(state: MagnataView, me: string, tiles: number[]): number[] {
   const promise = (tile: number) => {
     const ownership = groupOwnership(state, tile);
     return ownership.get(me) ?? 0;
