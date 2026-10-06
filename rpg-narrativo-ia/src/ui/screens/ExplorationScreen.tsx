@@ -35,6 +35,7 @@ import {
   echoSealId,
   encodeEchoResult,
   encodeEchoThanks,
+  encodeEchoSeal,
   hasWonAnyConfrontation,
   startEchoDuel,
   type EchoDuelRecord,
@@ -383,7 +384,13 @@ export function ExplorationScreen({
             <RelationshipsPanel bonds={view.bonds} onAction={onAction} onBack={() => setActiveView('menu')} />
           ) : null}
           {activeView === 'character' ? (
-            <CharacterPanel status={status} state={state} campaign={campaign} abilityName={view.abilityName} />
+            <CharacterPanel
+              status={status}
+              state={state}
+              campaign={campaign}
+              abilityName={view.abilityName}
+              sealCode={hasWonAnyConfrontation(state.flags) ? encodeEchoSeal(mySeal) : undefined}
+            />
           ) : null}
           {activeView === 'progression' ? (
             <SystemPanel

@@ -11,6 +11,7 @@
 - **Item 7:** implementado; veja a seção 12 do mesmo documento.
 - **Item 8:** implementado; veja a seção 13 do mesmo documento.
 - **Item 9:** implementado; veja a seção 14 do mesmo documento.
+- **Item 10:** implementado (sem QR code, que fica para a segunda etapa); veja a seção 15 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -401,6 +402,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 10. Carta do Desperto compartilhável
+
+**Implementado.** O QR code e o link com o Selo na URL ficam para a segunda etapa, como proposto: por enquanto o Selo vai no rodapé e no texto compartilhado. O retrato próprio é opcional e começa desmarcado.
 
 **O que é:** uma imagem pronta do seu personagem para postar ou mandar a amigos.
 

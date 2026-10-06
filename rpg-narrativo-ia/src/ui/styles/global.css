@@ -7096,3 +7096,40 @@ span.portrait-avatar {
 .settings-sound .settings-choice {
   grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.6rem), 1fr));
 }
+
+/* Carta do Desperto: botão no herói do Personagem e prévia no diálogo. */
+.character-hero__card {
+  grid-column: 1 / -1;
+  justify-self: start;
+}
+
+.awakened-card-dialog {
+  display: grid;
+  gap: 12px;
+}
+
+.awakened-card-dialog__preview {
+  max-width: 22rem;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.awakened-card {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+
+.awakened-card-dialog__option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: var(--touch);
+}
+
+.awakened-card-dialog__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}

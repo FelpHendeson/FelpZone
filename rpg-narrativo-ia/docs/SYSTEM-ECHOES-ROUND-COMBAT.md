@@ -520,3 +520,34 @@ O pack `system/audio.json` define as camadas:
 - **Som não é regra:** `src/modules/audio` só lê o pack (camadas válidas, períodos completos, poses e acontecimentos conhecidos); `src/ui/audio` sintetiza. Nada disso entra no save.
 - **Sem Web Audio:** em testes ou em navegador antigo, tudo vira silêncio, sem erro.
 - **Créditos:** se um dia entrarem arquivos de som, a origem de cada um vai em [`AUDIO-CREDITS.md`](AUDIO-CREDITS.md).
+
+## 15. Carta do Desperto
+
+**Decisão:** décima proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 10). O QR code fica para uma segunda etapa. O retrato próprio é opcional e vem desmarcado.
+
+### Onde fica
+
+Na tela **Personagem**, o botão **Gerar carta** abre a prévia com:
+
+- **Compartilhar:** usa o compartilhamento do celular, quando o aparelho aceita arquivos.
+- **Salvar imagem:** baixa `carta-do-desperto.png`.
+
+### O que a carta mostra (1080×1350, PNG)
+
+- O retrato: o pronto, o busto montado ou, só com a opção marcada, o retrato próprio. Retrato pronto sem arte instalada vira o busto equivalente.
+- O nome, a patente ou fase e o arquétipo.
+- A técnica de assinatura, com a silhueta da pose dela.
+- Três conquistas:
+  - o título mais recente;
+  - a maior vitória, isto é, a criatura de mais vida já vencida, segundo o Bestiário;
+  - os dias sobrevividos.
+- A moldura e o brilho na cor do arquétipo.
+- O **Selo do Eco** no rodapé, depois da primeira vitória. Quem recebe cola o Selo em Ecos e enfrenta o Eco. O texto compartilhado também leva o Selo, para dar para copiar.
+
+### Regras
+
+- **Só leitura:** `buildAwakenedCard` (`src/modules/awakened-card`) monta os dados a partir do estado, e nada volta para a partida.
+- **Sem servidor:** o SVG da prévia é serializado e desenhado num canvas no próprio aparelho (`src/ui/awakened-card/export.ts`).
+  - Por isso o SVG usa cores e fontes fixas.
+  - Imagens entram como data URL.
+- **Privacidade:** o retrato próprio nunca entra sem a opção marcada.

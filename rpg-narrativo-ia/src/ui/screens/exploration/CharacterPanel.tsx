@@ -10,19 +10,26 @@ import { useCustomPortrait } from '../../portrait';
 import { archetypeOf } from '../../silhouettes';
 import { EmptyAction } from './shared';
 import { SystemIdentity } from './SystemPanel';
+import { useState } from 'react';
+import { buildAwakenedCard } from '../../../modules/awakened-card';
+import { AwakenedCardDialog } from './AwakenedCardDialog';
 
 export function CharacterPanel({
   status,
   state,
   campaign,
   abilityName,
+  sealCode,
 }: {
   status: SystemStatusView;
   state: GameState;
   campaign: Campaign;
   abilityName: string;
+  /** Selo do Eco para o rodapé da carta (só depois da primeira vitória). */
+  sealCode?: string;
 }) {
   const customSrc = useCustomPortrait();
+  const [cardOpen, setCardOpen] = useState(false);
   const archetype = archetypeOf(state.character.archetypeId);
   return (
     <div className="tab-panel character-panel">
@@ -39,7 +46,19 @@ export function CharacterPanel({
           <p>{abilityName}</p>
         </div>
         <span className="system-console__level">Nível <strong>{status.level}</strong></span>
+        <button type="button" className="button button--compact character-hero__card" onClick={() => setCardOpen(true)}>
+          Gerar carta
+        </button>
       </header>
+      {cardOpen ? (
+        <AwakenedCardDialog
+          open
+          card={buildAwakenedCard({ state, rank: status.archetype, titles: campaign.titles, ...(sealCode ? { sealCode } : {}) })}
+          portrait={state.character.portrait}
+          customSrc={customSrc}
+          onClose={() => setCardOpen(false)}
+        />
+      ) : null}
       {archetype ? (
         <section className="archetype-panel" aria-label="Arquétipo" style={{ ['--archetype' as string]: archetype.palette.primary }}>
           <Silhouette pose={archetype.pose} prop={archetype.prop} tint="var(--text)" glow={archetype.palette.primary} size={72} />
