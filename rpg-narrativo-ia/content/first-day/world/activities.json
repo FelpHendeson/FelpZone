@@ -244,6 +244,517 @@
         "eventId": "davi-wound-care"
       },
       "feedback": "Davi tenta esconder o desconforto, mas o ferimento ainda incomoda de verdade."
+    },
+    {
+      "id": "talk-mira-before",
+      "label": "Conversar com Mira: antes do Reset",
+      "description": "Mira faz bandagens com a própria camiseta e parece disposta a conversar.",
+      "locationId": "awakening-clearing",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day2.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.contact.ended",
+          "value": false
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.talk.before",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "mira-vale"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "mira-vale"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "mira-vale"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "mira-vale"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "mira-talk-before"
+      },
+      "feedback": "Mira conta do plantão em que estava quando tudo mudou."
+    },
+    {
+      "id": "talk-mira-fear",
+      "label": "Conversar com Mira na Nascente",
+      "description": "Mira lava as bandagens na beira da água, esfregando forte demais.",
+      "locationId": "spring-lake",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day3.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.contact.ended",
+          "value": false
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.talk.before",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.talk.fear",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "mira-vale"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "mira-vale"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "mira-vale"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "mira-vale"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "mira-talk-fear"
+      },
+      "feedback": "Mira admite o que mais a assusta neste mundo."
+    },
+    {
+      "id": "talk-mira-roots",
+      "label": "Ver o que Mira está desenhando",
+      "description": "Mira risca linhas retas na terra da Clareira com um graveto.",
+      "locationId": "awakening-clearing",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day5.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.contact.ended",
+          "value": false
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.talk.fear",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "mira.talk.roots",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "mira-vale"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "mira-vale"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "mira-vale"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "mira-vale"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "mira-talk-roots"
+      },
+      "feedback": "Mira mostra a planta de uma enfermaria."
+    },
+    {
+      "id": "talk-caio-nights",
+      "label": "Perguntar a Caio por que ele não dorme",
+      "description": "Caio afia um galho numa pedra, no mesmo ritmo, há tempo demais.",
+      "locationId": "rocky-bank",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day3.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "caio.talk.nights",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "caio-nascimento"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "caio-nascimento"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "caio-talk-nights"
+      },
+      "feedback": "Caio conta do turno da noite que nunca terminou."
+    },
+    {
+      "id": "talk-caio-strength",
+      "label": "Conversar com Caio sobre força",
+      "description": "Caio olha para as próprias mãos depois de erguer uma pedra pesada demais.",
+      "locationId": "spring-lake",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day5.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "caio.talk.nights",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "caio.talk.strength",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "caio-nascimento"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "caio-nascimento"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "caio-nascimento"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "caio-talk-strength"
+      },
+      "feedback": "Caio fala do que as pessoas esperam do mais forte."
+    },
+    {
+      "id": "talk-davi-system-rocky-bank",
+      "label": "Ver o caderno de Davi",
+      "description": "Davi anota alguma coisa em cascas de árvore com um pedaço de carvão.",
+      "locationId": "rocky-bank",
+      "timeCost": {
+        "minutes": 40
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day3.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "davi.talk.system",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "davi-moura"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "davi-moura"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-talk-system"
+      },
+      "feedback": "Davi apresenta as três teorias dele sobre o Sistema."
+    },
+    {
+      "id": "talk-davi-home-rocky-bank",
+      "label": "Sentar com Davi",
+      "description": "Davi está quieto, girando uma pedra lisa entre os dedos.",
+      "locationId": "rocky-bank",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day4.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "davi.talk.system",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "davi.talk.home",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "davi-moura"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "davi-moura"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-talk-home"
+      },
+      "feedback": "Davi fala da irmã que ficou do outro lado do Reset."
+    },
+    {
+      "id": "talk-davi-system-clearing",
+      "label": "Ver o caderno de Davi",
+      "description": "Davi anota alguma coisa em cascas de árvore com um pedaço de carvão.",
+      "locationId": "awakening-clearing",
+      "timeCost": {
+        "minutes": 40
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day3.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "davi.talk.system",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "davi-moura"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "davi-moura"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-talk-system"
+      },
+      "feedback": "Davi apresenta as três teorias dele sobre o Sistema."
+    },
+    {
+      "id": "talk-davi-home-clearing",
+      "label": "Sentar com Davi",
+      "description": "Davi está quieto, girando uma pedra lisa entre os dedos.",
+      "locationId": "awakening-clearing",
+      "timeCost": {
+        "minutes": 30
+      },
+      "repeatable": false,
+      "hideUntilReady": true,
+      "requirements": [
+        {
+          "type": "flag.is",
+          "flag": "day4.started",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "day2.survivors.contact",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "davi.talk.system",
+          "value": true
+        },
+        {
+          "type": "flag.is",
+          "flag": "davi.talk.home",
+          "value": false
+        },
+        {
+          "type": "npc.known",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.present",
+          "npcId": "davi-moura"
+        },
+        {
+          "type": "npc.available",
+          "npcId": "davi-moura"
+        }
+      ],
+      "participants": {
+        "requiredNpcIds": [
+          "davi-moura"
+        ],
+        "optionalNpcIds": [],
+        "minOptional": 0,
+        "maxOptional": 0
+      },
+      "effects": [],
+      "narrative": {
+        "campaignId": "first-day",
+        "eventId": "davi-talk-home"
+      },
+      "feedback": "Davi fala da irmã que ficou do outro lado do Reset."
     }
   ]
 }

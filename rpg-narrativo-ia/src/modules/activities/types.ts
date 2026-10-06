@@ -88,6 +88,12 @@ export interface ContextualActivityDefinition {
   feedback?: string;
   availableUntil?: ContextualActivityDeadline;
   risk?: ContextualActivityRisk;
+  /**
+   * Conversa ou oportunidade que só aparece quando está pronta: some da lista enquanto um
+   * requisito de história (flag, dia, confiança, item, aptidão) não foi atendido e depois de
+   * concluída. Presença e disponibilidade do NPC continuam aparecendo como bloqueio comum.
+   */
+  hideUntilReady?: boolean;
 }
 
 export interface IndexedActivities {

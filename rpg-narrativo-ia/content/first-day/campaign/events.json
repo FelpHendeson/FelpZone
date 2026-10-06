@@ -588,6 +588,58 @@
     "title": "O que vem primeiro",
     "canStartSession": true,
     "body": "A fome já cobra. A garganta pede água. O vento atravessa o vale sem nenhum teto para parar.\n\nAo longe, uma linha de pedras. À direita, um recorte de vegetação baixa. À esquerda, um morro de onde talvez se veja o tamanho disto.\n\nNão dá para fazer as três coisas agora.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "A fome já cobra. A garganta pede água. O vento atravessa o vale sem nenhum teto para pará-lo."
+      },
+      {
+        "kind": "thought",
+        "text": "Água, abrigo ou entender onde eu estou. Não dá pra fazer tudo antes de escurecer."
+      },
+      {
+        "kind": "narration",
+        "text": "Ao longe, uma linha de pedras. À direita, um recorte de vegetação baixa. À esquerda, um morro de onde talvez se veja o tamanho disto."
+      },
+      {
+        "kind": "system",
+        "text": "Necessidades básicas detectadas: sede, fome, exposição. Prioridade não definida."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] A vegetação baixa à direita é mais verde que o resto. Há umidade por perto.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "system",
+        "text": "[Resiliência] O corpo aguenta mais do que parece. Subir o morro custaria menos do que você teme.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "resiliencia"
+          }
+        ]
+      },
+      {
+        "kind": "system",
+        "text": "[Voz Calma] Respire. Uma decisão de cada vez.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "voz-calma"
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Escolhe uma. A próxima vem depois."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Vale recém-formado"
@@ -735,6 +787,32 @@
     "id": "danger-alert",
     "title": "A coisa entre as folhas",
     "body": "O Olhar Atento avisa antes do som. Algo grande demais para um animal conhecido desloca a vegetação a vinte passos.\n\nA criatura mistura osso claro e musgo úmido. Não pertence à memória de {{nome}}. Os olhos, se é que são olhos, procuram movimento.\n\nJunto às raízes, um fruto denso brilha como se tivesse sido esquecido ali de propósito.",
+    "script": [
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] Movimento a vinte passos. Massa grande. Não identificado."
+      },
+      {
+        "kind": "narration",
+        "text": "O aviso chega antes do som. Algo grande demais para um animal conhecido desloca a vegetação."
+      },
+      {
+        "kind": "narration",
+        "text": "A criatura mistura osso claro e musgo úmido. Os olhos, se é que são olhos, procuram movimento."
+      },
+      {
+        "kind": "thought",
+        "text": "Isso não existe. Isso não existia ontem."
+      },
+      {
+        "kind": "narration",
+        "text": "Junto às raízes, um fruto denso brilha, como se tivesse sido esquecido ali de propósito."
+      },
+      {
+        "kind": "system",
+        "text": "Ela ainda não percebeu você."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Criatura entre a vegetação"
@@ -861,6 +939,32 @@
     "id": "danger-sudden",
     "title": "O ataque",
     "body": "O mato explode tarde demais. Uma criatura de osso e musgo atravessa o espaço onde {{nome}} acabou de pisar.\n\nNão há nome para aquilo. Há peso, cheiro de terra molhada e a certeza de que o Reset não deixou o mundo vazio.\n\nUm fruto denso rolou para perto quando ela avançou.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "O mato explode tarde demais."
+      },
+      {
+        "kind": "narration",
+        "text": "Uma criatura de osso e musgo atravessa o espaço onde {{nome}} acabou de pisar."
+      },
+      {
+        "kind": "system",
+        "text": "Ameaça. Distância: nenhuma."
+      },
+      {
+        "kind": "thought",
+        "text": "Corre. Ou não. Pensa rápido—"
+      },
+      {
+        "kind": "narration",
+        "text": "Não há nome para aquilo. Há peso, cheiro de terra molhada e a certeza de que o Reset não deixou o mundo vazio."
+      },
+      {
+        "kind": "narration",
+        "text": "Um fruto denso rola para perto quando ela avança."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Emboscada no mato"
@@ -999,6 +1103,76 @@
     "id": "survivor-meet",
     "title": "A pessoa por trás dos sinais",
     "body": "As pegadas, o ramo cortado e o movimento entre as pedras finalmente apontam para alguém.\n\nUma jovem ergue as mãos vazias quando percebe que foi vista. Ela parece tão cansada quanto alerta.\n\n— Mira — diz, sem se aproximar. — Mira Vale.\n\nEla também tem um Sistema. Isso fica evidente quando seus olhos acompanham algo que não está fisicamente no ar entre vocês. Mas ela não parece saber muito mais do que você.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "As pegadas, o ramo cortado e o movimento entre as pedras finalmente apontam para alguém."
+      },
+      {
+        "kind": "narration",
+        "text": "Uma jovem ergue as mãos vazias assim que percebe que foi vista. Parece tão cansada quanto alerta."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Calma. Eu não tô armada. Tá vendo? Nada nas mãos."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "...E eu vi você me olhando lá de trás das pedras faz um tempo. Tudo bem. Eu teria feito o mesmo.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "observed.mira",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Mira. Mira Vale."
+      },
+      {
+        "kind": "narration",
+        "text": "Os olhos dela acompanham alguma coisa no ar entre vocês — algo que não está fisicamente ali."
+      },
+      {
+        "kind": "thought",
+        "text": "Ela também tem um Sistema."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Você também vê os painéis, né? Pela sua cara, vê."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Antes que você pergunte: não, eu não sei o que é isso. Acordei no meio do mato, igual a você, imagino."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] Arranhões recentes nos antebraços. As mãos tremem um pouco. Ela não come há horas.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "system",
+        "text": "[Voz Calma] Ela está assustada, não hostil. Fale baixo e deixe que ela escolha a distância.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "voz-calma"
+          }
+        ]
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Encontro na clareira"
@@ -1129,6 +1303,48 @@
     "id": "moral-choice",
     "title": "O que vocês sabem",
     "body": "Mira evita perguntas grandes demais. Onde estão as cidades? Ela não sabe. Por que o Sistema existe? Também não.\n\nO que ela sabe é menor e mais útil: viu água em algum ponto baixo, ouviu uma criatura na mata e acordou sem encontrar ninguém conhecido.\n\nVocê decide quanto quer oferecer em troca — recurso, informação ou nada por enquanto.",
+    "script": [
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Se você quer saber onde estão as cidades, eu não sei. Por que o Sistema existe? Também não."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "O que eu sei é pouco, mas serve. Tem água num ponto mais baixo, pra lá. Ouvi alguma coisa grande na mata hoje cedo. E não encontrei ninguém conhecido."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Ninguém."
+      },
+      {
+        "kind": "narration",
+        "text": "Ela diz a última palavra rápido demais, como quem não quer ficar perto dela."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu estudava enfermagem. Segundo ano. Isso aqui... não tava em nenhuma apostila."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Você bateu de frente com aquela coisa de osso, né? Dá pra ver pelo jeito que você respira. Depois deixa eu olhar isso.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "danger.confronted",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ela está oferecendo o que tem. Agora é a minha vez."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Decisão sobre o alimento"
@@ -1329,6 +1545,24 @@
     "id": "first-night",
     "title": "A primeira noite chega",
     "body": "O primeiro ciclo de escuridão de Reset muda o peso de cada decisão. O que durante o dia parecia apenas recurso, distância ou cautela agora define como você vai atravessar horas em que quase não enxerga.\n\nO Sistema não manda você dormir e não escolhe companhia por você. Ele apenas registra que a noite chegou.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "A luz vai embora mais rápido do que deveria. O primeiro escuro de Reset não tem postes, janelas nem horizonte."
+      },
+      {
+        "kind": "system",
+        "text": "Período: noite. Visibilidade reduzida. Descanso recomendado."
+      },
+      {
+        "kind": "thought",
+        "text": "Ninguém vai me dizer onde dormir. Nem com quem."
+      },
+      {
+        "kind": "narration",
+        "text": "O que durante o dia parecia recurso, distância ou cautela agora define como você vai atravessar horas em que quase não enxerga."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "A primeira noite em Reset"
@@ -1354,6 +1588,49 @@
     "id": "dusk-trusted",
     "title": "Alguém ainda está por perto",
     "body": "Mira não se tornou sua amiga por causa de uma conversa, mas também não desapareceu. Há confiança suficiente para que uma proposta de vigília compartilhada não soe absurda.\n\nVocês podem dividir presença e atenção sem fingir que já existe uma aliança. Ou você pode preferir manter distância.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Mira não foi embora. Está a uns vinte passos, arrumando um canto entre duas raízes grandes."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu não vou fingir que a gente se conhece. Mas também não vou fingir que quero passar essa noite sozinha."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "A proposta é simples: um dorme, o outro escuta. Depois troca. Sem promessa nenhuma além disso."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "E você dividiu o que tinha comigo hoje. Aqui, isso conta.",
+        "conditions": [
+          {
+            "type": "relationship.min",
+            "characterId": "mira-vale",
+            "amount": 15
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Além do mais, você tem fogo. Isso sozinho já me convence.",
+        "conditions": [
+          {
+            "type": "crafting.structure.active",
+            "structureId": "campfire"
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Aceitar não faz dela uma aliada. Recusar não faz dela uma inimiga."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Duas pessoas avaliando a noite"
@@ -1490,6 +1767,42 @@
     "id": "dusk-wary",
     "title": "A noite sem acordo",
     "body": "Não existe confiança suficiente — ou talvez nem exista contato — para transformar a noite em companhia automática.\n\nVocê ainda pode usar o que construiu, reconhecer que o corpo chegou ao limite ou simplesmente escolher um lugar e manter distância de tudo.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "O escuro chega sem acordo nenhum."
+      },
+      {
+        "kind": "narration",
+        "text": "Não há confiança suficiente — talvez nem contato — para transformar a noite em companhia."
+      },
+      {
+        "kind": "thought",
+        "text": "Em algum lugar por aí está aquela moça da clareira. Eu escolhi não falar com ela.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "mira.contact.avoided",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "O que eu tenho é o que eu construí. E o que o meu corpo ainda aguenta."
+      },
+      {
+        "kind": "system",
+        "text": "Energia crítica. O corpo vai parar com ou sem a sua permissão.",
+        "conditions": [
+          {
+            "type": "attribute.max",
+            "attribute": "energia",
+            "amount": 25
+          }
+        ]
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Anoitecer sem acordo"
@@ -1664,6 +1977,35 @@
     "id": "night-together",
     "title": "A primeira noite, com outra respiração por perto",
     "body": "Vocês não criam regras grandiosas. Só combinam o necessário: quem fecha os olhos primeiro, quem presta atenção aos ruídos e qual distância ainda parece segura.\n\nFogo, água e comida continuam sendo recursos reais; a presença de outra pessoa não substitui nenhum deles. Mas, pela primeira vez desde o despertar, você não precisa interpretar cada som sozinho.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Vocês não criam regras grandiosas. Só combinam o necessário."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu fico com a primeira parte. Não ia conseguir dormir agora de qualquer jeito."
+      },
+      {
+        "kind": "narration",
+        "text": "O mato faz barulhos que nenhum dos dois sabe nomear. A cada um, Mira vira a cabeça — e depois volta, devagar, para não assustar você."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Sabe o que é pior? Eu fico pensando se alguém da minha turma acordou num lugar assim também. Se tá sozinho agora."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "...Desculpa. Não precisa responder. Dorme."
+      },
+      {
+        "kind": "narration",
+        "text": "Fogo, água e comida continuam sendo recursos reais; a presença de outra pessoa não substitui nenhum deles. Mas, pela primeira vez desde o despertar, você não precisa interpretar cada som sozinho."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Vigília compartilhada na primeira noite"
@@ -1698,6 +2040,34 @@
     "id": "night-alone",
     "title": "A primeira noite por conta própria",
     "body": "A noite fica sob sua responsabilidade. Se existe fogo, ele vira uma pequena fronteira de luz. Se não existe, o escuro chega mais perto. O corpo também cobra tudo que foi feito durante o dia.\n\nEstar sozinho não encerra nenhuma rota. É apenas a forma como você escolheu — ou precisou — atravessar esta primeira noite.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "A noite fica sob sua responsabilidade."
+      },
+      {
+        "kind": "narration",
+        "text": "O fogo vira uma pequena fronteira de luz. Do lado de lá dela, tudo é suposição.",
+        "conditions": [
+          {
+            "type": "crafting.structure.active",
+            "structureId": "campfire"
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Cada estalo é um bicho. Cada bicho é aquela coisa de osso. Respira."
+      },
+      {
+        "kind": "system",
+        "text": "Nenhuma ameaça no raio de percepção. Descanso disponível."
+      },
+      {
+        "kind": "thought",
+        "text": "Por conta própria não quer dizer errado. Só quer dizer que é comigo."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Primeira noite solitária"
@@ -1732,6 +2102,24 @@
     "id": "day-two-awakening",
     "title": "O {{diaOrdinal}} dia",
     "body": "O descanso atravessa a fronteira que a narrativa não deve fingir: o relógio do mundo realmente avançou. O Sistema registra o novo dia sem reiniciar suas escolhas, seus recursos ou o que aconteceu com outras pessoas.\n\nO dia {{dia}} começa no mesmo mundo que você deixou na noite anterior.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "A luz volta devagar: cinzenta primeiro, depois dourada."
+      },
+      {
+        "kind": "system",
+        "text": "Novo dia registrado: dia {{dia}}. Escolhas, recursos e relações preservados."
+      },
+      {
+        "kind": "thought",
+        "text": "Não foi um sonho. Eu meio que esperava que fosse."
+      },
+      {
+        "kind": "narration",
+        "text": "O {{diaOrdinal}} dia começa no mesmo mundo que você deixou na noite anterior."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Um novo amanhecer"
@@ -1756,6 +2144,26 @@
     "id": "day-two-together",
     "title": "Amanhecer com companhia próxima",
     "body": "Mira ainda está por perto quando a luz volta. Isso não transforma vocês em um grupo formal. Só prova que a decisão da noite teve continuidade suficiente para chegar à manhã.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Mira ainda está ali quando a luz volta, sentada, com os joelhos abraçados."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Bom dia. Acho. Eu dormi umas duas horas, mas foram duas horas de verdade."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Vou descer até a água daqui a pouco. Se quiser vir, vem. Se não, a gente se cruza por aí."
+      },
+      {
+        "kind": "thought",
+        "text": "Não somos um grupo. Mas a noite teve continuidade até a manhã. Já é alguma coisa."
+      }
+    ],
     "portrait": {
       "kind": "portrait",
       "label": "Mira Vale"
@@ -1788,6 +2196,20 @@
     "id": "day-two-alone",
     "title": "Amanhecer por conta própria",
     "body": "A luz volta sem apagar a noite anterior. Você continua com o que reuniu, o que perdeu e as decisões que tomou. Outras pessoas podem existir na região; nenhuma delas foi transformada em obrigação pela narrativa.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "A luz volta sem apagar a noite anterior."
+      },
+      {
+        "kind": "thought",
+        "text": "Passei a noite. Por conta própria, mas passei."
+      },
+      {
+        "kind": "narration",
+        "text": "Você continua com o que reuniu, o que perdeu e as decisões que tomou. Outras pessoas podem existir na região — nenhuma delas é obrigação sua."
+      }
+    ],
     "choices": [
       {
         "id": "day-two-alone-continue",
@@ -1809,6 +2231,41 @@
     "id": "day-two-human-tracks",
     "title": "Mais de um caminho",
     "body": "As marcas ao redor da Nascente não pertencem à mesma pessoa. Um passo é firme; o outro arrasta levemente antes de alcançar uma dobra de pedra. Pequenas manchas de sangue seco acompanham a trilha.\n\nAlguém ferido passou por aqui — e não estava sozinho.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "As marcas ao redor da Nascente não pertencem à mesma pessoa."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] Dois padrões de passo. Um firme. Outro que arrasta o pé esquerdo antes de apoiar.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "narration",
+        "text": "Um passo é firme; o outro arrasta antes de alcançar uma dobra de pedra. Pequenas manchas de sangue seco acompanham a trilha."
+      },
+      {
+        "kind": "thought",
+        "text": "Alguém ferido passou por aqui. E não estava sozinho."
+      },
+      {
+        "kind": "thought",
+        "text": "A Mira ia querer saber disso. Machucado é com ela.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "camp.together",
+            "value": true
+          }
+        ]
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Rastros de duas pessoas junto à Nascente"
@@ -1829,6 +2286,51 @@
     "id": "caio-first-contact",
     "title": "Quem chega primeiro",
     "body": "O homem em pé se coloca entre você e o ferido sem fazer ameaça aberta. Ele se apresenta como Caio. Atrás dele, Davi permanece apoiado nas pedras, atento à conversa.\n\nEles já passaram horas decidindo juntos o que fazer. Sua chegada muda a situação, mas não apaga o que começou antes de você.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "O homem em pé se coloca entre você e o ferido. Não ergue a mão, não pega pedra. Só ocupa o espaço."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Daí tá bom. Pode parar aí."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Caio. Ele é o Davi. Antes de qualquer coisa: o que você quer aqui?"
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ele fala assim com todo mundo, relaxa. Comigo também falou."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Davi."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Tô só avisando."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] O homem mantém o peso nos calcanhares, pronto para recuar ou avançar. Ele já fez isso antes, em outro lugar.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "narration",
+        "text": "Eles já passaram horas decidindo juntos o que fazer. Sua chegada muda a situação — não apaga o que começou antes de você."
+      }
+    ],
     "portrait": {
       "kind": "portrait",
       "label": "Caio Nascimento"
@@ -1854,6 +2356,41 @@
     "id": "caio-contact-with-mira",
     "title": "Quatro pessoas, nenhuma liderança",
     "body": "Mira se mantém próxima o bastante para ser reconhecida, sem falar por você. Caio percebe a confiança entre vocês, mas continua avaliando cada movimento. Davi corta o silêncio antes que a cautela vire impasse.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Mira chega um passo atrás de você e para onde pode ser vista, sem falar por você."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Oi. Eu sou a Mira. Tô com {{nome}} desde ontem."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Desde ontem. Certo."
+      },
+      {
+        "kind": "narration",
+        "text": "Caio percebe a confiança entre vocês e, mesmo assim, não baixa a guarda — só ajusta para onde olha."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Gente, isso tá virando reunião de condomínio. Quatro pessoas, nenhum síndico, todo mundo desconfiado. Clássico."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Essa perna aí. Faz quanto tempo?"
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Desde o... evento. Reset. Sei lá como chama."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -1883,6 +2420,31 @@
     "id": "caio-contact-after-mira-avoidance",
     "title": "Uma distância reconhecível",
     "body": "Caio nota o modo como você preserva distância. Você já fez isso antes com outra sobrevivente. Dessa vez, Davi não consegue simplesmente seguir caminho, e a perna ruim torna a decisão mais concreta.",
+    "script": [
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Você fica sempre a essa distância das pessoas?"
+      },
+      {
+        "kind": "narration",
+        "text": "Não é acusação. Caio só registra, do mesmo jeito que registraria uma pedra solta."
+      },
+      {
+        "kind": "thought",
+        "text": "Ontem eu fiz isso com outra pessoa. Ele não tem como saber. Mas percebeu o jeito."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ei, eu também ficaria longe de gente estranha no meio do mato. Só que eu não tenho essa opção."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "A perna não deixa."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -1912,6 +2474,28 @@
     "id": "caio-contact-alone",
     "title": "Três desconhecidos",
     "body": "Nenhum de vocês possui autoridade sobre os outros. Caio explica apenas o necessário: encontrou Davi depois do Reset, e a perna dele piorou durante a noite. Davi acrescenta que consegue pensar e decidir por si mesmo.",
+    "script": [
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Ninguém aqui manda em ninguém. Só pra deixar claro."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Encontrei ele ontem, perto da água. A perna piorou durante a noite."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "E eu consigo pensar e decidir sozinho, viu? A perna tá ruim. A cabeça tá ótima."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Davi Moura. Prazer. Desculpa não levantar."
+      }
+    ],
     "choices": [
       {
         "id": "alone-check-davi",
@@ -1934,6 +2518,51 @@
     "id": "davi-condition",
     "title": "Uma perna ruim",
     "body": "Davi consegue ficar de pé, mas não por muito tempo. Ele não pede que você resolva tudo. Caio quer alcançar um ponto menos exposto; Davi prefere não transformar uma lesão em ordem para ninguém.\n\nA situação exige uma decisão sobre envolvimento, não uma promessa de cura.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Davi fica de pé para provar que consegue. Dura uns dez segundos."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Viu? Ótimo. Excelente. Nota dez."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Senta."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Aqui é exposto demais. Se aquela coisa de osso passar por aqui, a gente não tem pra onde correr com ele assim."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ele quer me levar pra algum lugar mais protegido. Eu quero não virar o problema de todo mundo."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] Tornozelo inchado, sem osso exposto. Torção feia, não fratura.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Não tô pedindo pra você resolver. Só... saber se você vai estar por perto ou não."
+      },
+      {
+        "kind": "thought",
+        "text": "Ele não quer promessa de cura. Quer saber se pode contar comigo."
+      }
+    ],
     "portrait": {
       "kind": "portrait",
       "label": "Davi Moura"
@@ -2004,6 +2633,45 @@
     "id": "davi-arrives-clearing",
     "title": "Um caminho feito devagar",
     "body": "O trajeto curto exige pausas. Davi escolhe onde apoiar o pé e recusa ser carregado como carga. Quando a Clareira aparece entre as árvores, ele finalmente encontra espaço para descansar sem ficar preso entre as pedras.\n\nCaio pretende revisar os acessos e decidir no próximo dia se vale procurar outras pessoas. Davi quer comparar o que cada um descobriu sobre o Sistema. Isso ainda não é um grupo formal — apenas pessoas fazendo planos próximos umas das outras.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "O trajeto curto exige pausas. Davi escolhe onde apoiar o pé e recusa ser carregado."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Se alguém me pegar no colo, eu juro que desisto da vida."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Ninguém vai te pegar no colo. Apoia aqui."
+      },
+      {
+        "kind": "narration",
+        "text": "Quando a Clareira aparece entre as árvores, ele finalmente encontra espaço para descansar sem ficar preso entre as pedras."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ó. Ponto de spawn. Foi aqui que você acordou também?"
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Amanhã eu reviso os acessos. Vejo se vale procurar mais gente."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "E eu quero comparar o que cada um sabe do Sistema. Tipo, de verdade. Anotar tudo."
+      },
+      {
+        "kind": "thought",
+        "text": "Não é um grupo formal. São pessoas fazendo planos perto umas das outras."
+      }
+    ],
     "portrait": {
       "kind": "portrait",
       "label": "Davi Moura"
@@ -2050,6 +2718,47 @@
     "id": "water-question",
     "title": "Água para mais de um",
     "body": "Caio acompanha a borda da Nascente. Ele quer evitar que várias pessoas entrem na água ao mesmo tempo, pisoteiem o entorno ou retirem mais do que conseguem carregar.\n\nDavi precisa beber, mas não pede que alguém decida por todos. A fonte continua sendo comum; ninguém aqui possui uma regra reconhecida para ela.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Caio acompanha a borda da Nascente devagar, olhando onde o barro já cedeu."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Se cada um entrar por um lado, em dois dias isso aqui vira lama."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Não tô dizendo que é minha. Tô dizendo que é a única que a gente conhece."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Eu só preciso beber, sinceramente. Não precisa virar assembleia."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "...Mas ele não tá errado."
+      },
+      {
+        "kind": "thought",
+        "text": "A Mira diria que água parada perto de gente machucada é pedir infecção.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "camp.together",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ninguém aqui tem uma regra para isso. Ainda."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Conversa junto à Nascente"
@@ -2138,6 +2847,24 @@
     "id": "day-three-awakening",
     "title": "Ninguém virá buscar vocês",
     "body": "A noite passou porque o mundo continuou girando. Outro dia começa, e ninguém chega para explicar o Reset ou decidir o que vocês devem fazer. O que mudou depende dos caminhos que você cruzou ontem.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "A noite passou porque o mundo continuou girando."
+      },
+      {
+        "kind": "system",
+        "text": "Dia {{dia}}. Nenhum contato externo registrado."
+      },
+      {
+        "kind": "thought",
+        "text": "Ninguém vem. Se viesse, já tinha vindo."
+      },
+      {
+        "kind": "narration",
+        "text": "Ninguém chega para explicar o Reset ou decidir o que vocês devem fazer. O que mudou depende dos caminhos que você cruzou ontem."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Um novo amanhecer"
@@ -2164,6 +2891,36 @@
     "id": "day-three-cooperation",
     "title": "Planos sem promessa",
     "body": "Na Clareira, Caio aponta os acessos que quer verificar. Davi, agora com espaço para descansar, sugere comparar o que cada um aprendeu sobre o Sistema. Vocês podem seguir juntos por algum tempo ou separar os caminhos quando quiserem. Não surgiu uma liderança nem uma obrigação.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Na Clareira, Caio já está de pé antes de todo mundo."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Dois acessos fáceis, um difícil. O difícil é o que me preocupa."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Bom dia pra você também, Caio."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "{{nome}}, vem cá. Você tá em que nível? Tô tentando entender se todo mundo começou igual."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Ninguém aqui é obrigado a nada. Quem quiser ir junto, vai. Quem não quiser, tudo bem."
+      },
+      {
+        "kind": "thought",
+        "text": "Não surgiu liderança. Nem obrigação. Só planos."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2197,6 +2954,20 @@
     "id": "day-three-distance",
     "title": "Eles seguiram por conta própria",
     "body": "Ao longe, há sinais de movimento perto da Margem Rochosa. Caio e Davi encontraram um jeito de continuar sem depender de você. O espaço entre vocês continua aberto: talvez voltem a se cruzar, talvez não.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Ao longe, há sinais de movimento perto da Margem Rochosa."
+      },
+      {
+        "kind": "thought",
+        "text": "Caio e Davi. Acharam um jeito de seguir sem mim."
+      },
+      {
+        "kind": "narration",
+        "text": "O espaço entre vocês continua aberto. Talvez voltem a se cruzar, talvez não."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2230,6 +3001,24 @@
     "id": "day-three-solo",
     "title": "Fumaça além das árvores",
     "body": "Você não chegou à Nascente nem à Margem Rochosa ontem. Pela manhã, vê uma coluna fina de fumaça em algum ponto distante. Há outras pessoas tentando se organizar, mesmo sem você ter cruzado com elas. Nenhuma cena força esse encontro.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Pela manhã, uma coluna fina de fumaça sobe em algum ponto distante, além das árvores."
+      },
+      {
+        "kind": "system",
+        "text": "Fonte de calor não identificada. Distância estimada: longa."
+      },
+      {
+        "kind": "thought",
+        "text": "Fogo é gente. Gente tentando se organizar."
+      },
+      {
+        "kind": "thought",
+        "text": "Eu podia ir até lá. Ou não. Ninguém está me esperando."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2263,6 +3052,20 @@
     "id": "day-three-independent",
     "title": "Cada um continua seu caminho",
     "body": "Você ouviu os planos de Caio e Davi, mas não combinou de acompanhá-los. Eles decidiram continuar buscando um lugar mais seguro e outras pessoas. O dia começa sem compromisso ou vínculo forçado.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Você ouviu os planos de Caio e Davi, mas não combinou de acompanhá-los."
+      },
+      {
+        "kind": "narration",
+        "text": "Antes de partirem, Davi tinha gritado alguma coisa sobre \"grupo aberto, sem taxa de entrada\". Caio só balançou a cabeça."
+      },
+      {
+        "kind": "narration",
+        "text": "Eles vão continuar buscando um lugar mais seguro e outras pessoas. O dia começa sem compromisso."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2296,6 +3099,47 @@
     "id": "night-watch-proposal",
     "title": "Quem fica de olho",
     "body": "Caio admite que não dorme direito desde que encontrou Davi: prefere vigiar a arriscar que algo aconteça enquanto os dois descansam. Ele não está pedindo uma promessa permanente, só uma noite em que não precise ficar com os olhos abertos sozinho.\n\nDavi ouve calado. Sabe que ainda não consegue assumir turno nenhum, e ninguém aqui espera que ele finja o contrário.",
+    "script": [
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Vou ser direto, porque não sei ser de outro jeito."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Eu não durmo direito desde que achei o Davi. Fico de olho. A noite toda."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ele cochila sentado. Eu vi. Parece uma coruja com problema de coluna."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Não tô pedindo pra sempre. Uma noite. Uma noite em que eu não fique sozinho com os olhos abertos."
+      },
+      {
+        "kind": "narration",
+        "text": "Davi para de rir. Sabe que ainda não consegue assumir turno nenhum, e ninguém aqui espera que ele finja o contrário."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Se dependesse de mim, eu ficava. Mas ia dormir em cinco minutos e acordar com aquela coisa de osso me farejando."
+      },
+      {
+        "kind": "system",
+        "text": "[Resiliência] Seu corpo aguenta uma noite inteira de vigília. Não sem custo.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "resiliencia"
+          }
+        ]
+      }
+    ],
     "portrait": {
       "kind": "portrait",
       "label": "Caio Nascimento"
@@ -2371,6 +3215,42 @@
     "id": "day-four-awakening",
     "title": "Mais um dia sem explicação",
     "body": "Mais um dia começa. Ninguém chegou durante a noite para dizer o que fazer ou assumir o que ainda está por resolver. O que você levou dos últimos dias — cooperação, distância ou nenhum dos dois — continua sendo o que orienta hoje.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Mais um dia começa."
+      },
+      {
+        "kind": "system",
+        "text": "Dia {{dia}}. Ciclo de avaliação em andamento."
+      },
+      {
+        "kind": "thought",
+        "text": "Meus olhos ainda ardem da vigília. Mas o Caio dormiu. Valeu a pena.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day3.watch.taken-by-player",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Dividir a noite em turnos funcionou. Ninguém desmaiou, ninguém foi farejado.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day3.watch.shared",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ninguém chegou durante a noite pra dizer o que fazer. Acho que essa parte nunca vai mudar."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Um novo amanhecer"
@@ -2397,6 +3277,47 @@
     "id": "davi-wound-care",
     "title": "Um cuidado que dá trabalho",
     "body": "Davi tenta esconder que o ferimento ainda incomoda, mas o jeito de sentar denuncia. Verificar de longe, como antes, não resolve nada — cuidar de verdade toma tempo, e ele sabe disso tanto quanto você.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Davi tenta esconder que o ferimento ainda incomoda. O jeito de sentar denuncia."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Tá tudo certo. Sério. Tá ótimo."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Ele falou a mesma coisa ontem. E anteontem."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "E eu tô vivo, não tô? Contra fatos não há argumentos."
+      },
+      {
+        "kind": "narration",
+        "text": "Verificar de longe, como antes, não resolve nada. Cuidar de verdade toma tempo — e ele sabe disso tanto quanto você."
+      },
+      {
+        "kind": "thought",
+        "text": "A Mira diria pra ferver a água antes. Ela diria um monte de coisa.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "camp.together",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Só... não faz cara de pena, tá? Isso dói mais que o pé."
+      }
+    ],
     "portrait": {
       "kind": "portrait",
       "label": "Davi Moura"
@@ -2471,6 +3392,24 @@
     "id": "day-five-awakening",
     "title": "O {{diaOrdinal}} amanhecer",
     "body": "Mais um dia começa. Nada foi resolvido de uma vez só, mas o que aconteceu até aqui — quem você encontrou, quem evitou, o que cuidou ou deixou passar — continua orientando o que vem agora.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Mais um dia."
+      },
+      {
+        "kind": "system",
+        "text": "Dia {{dia}}. Variações de desenvolvimento detectadas entre usuários próximos."
+      },
+      {
+        "kind": "thought",
+        "text": "Variações? Que variações?"
+      },
+      {
+        "kind": "narration",
+        "text": "Nada foi resolvido de uma vez só. Mas quem você encontrou, quem evitou, o que cuidou ou deixou passar continua orientando o que vem agora."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Um novo amanhecer"
@@ -2495,6 +3434,52 @@
     "id": "day-five-group-conversation",
     "title": "Nem todo mundo está crescendo do mesmo jeito",
     "body": "Alguém do grupo que você já conhece comenta em voz alta o que os dois vêm percebendo há alguns dias: nem todos estão desenvolvendo o mesmo tanto de capacidade no mesmo ritmo. Não é uma acusação, é uma pergunta prática — se isso continuar assim, como vocês deveriam decidir as coisas daqui para frente? Ninguém propõe uma resposta pronta; a pergunta fica no ar, esperando a sua posição.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "É Davi quem puxa o assunto, claro. Com um graveto, ele risca números na terra."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ok, olha só. Eu fiz as contas. O Caio tá subindo mais rápido que eu. Bem mais. E não é só porque eu tô parado."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Eu treino. Todo dia. É só isso."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Não tô acusando ninguém. É uma pergunta prática."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Se isso continuar assim — uns ficando fortes rápido, outros não — como a gente decide as coisas daqui pra frente?"
+      },
+      {
+        "kind": "narration",
+        "text": "Ninguém propõe uma resposta pronta. A pergunta fica no ar, e os dois olham para você."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Eu tenho uma opinião. Mas quero ouvir a sua primeiro."
+      },
+      {
+        "kind": "thought",
+        "text": "O Caio já me disse que não quer mandar em ninguém. Será que os outros sabem disso?",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "caio.talk.nights",
+            "value": true
+          }
+        ]
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2566,6 +3551,20 @@
     "id": "day-five-alone-continue",
     "title": "Um dia sem essa conversa",
     "body": "Não há ninguém por perto para levantar essa pergunta hoje. O mundo continua do mesmo jeito, e a diferença de capacidade entre as pessoas — se existir — ainda não é assunto seu.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Não há ninguém por perto para levantar perguntas hoje."
+      },
+      {
+        "kind": "system",
+        "text": "Dia {{dia}}. Variações de desenvolvimento detectadas na região."
+      },
+      {
+        "kind": "thought",
+        "text": "Se alguém está ficando mais forte que os outros, eu não estou perto o bastante pra ver. Ainda."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2594,6 +3593,49 @@
     "id": "day-six-awakening",
     "title": "O {{diaOrdinal}} amanhecer",
     "body": "Outro dia começa. O que foi dito ontem sobre como o grupo deveria decidir as coisas ainda não encontrou um caso real para testar essa ideia.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Outro dia começa."
+      },
+      {
+        "kind": "thought",
+        "text": "Ontem eu disse que as decisões deviam ser de todo mundo. Falar é fácil.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day5.organization.stance.collective",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ontem eu disse que quem é mais capaz devia decidir. Vamos ver se eu ainda acho isso quando a decisão for sobre mim.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day5.organization.stance.capable",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ontem eu não quis escolher um lado. Hoje talvez não dê pra fugir.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day5.organization.stance.undecided",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "narration",
+        "text": "O que foi dito ontem ainda não encontrou um caso real para testar a ideia."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Um novo amanhecer"
@@ -2618,6 +3660,63 @@
     "id": "day-six-davi-question",
     "title": "Um caso concreto",
     "body": "Há mais para fazer do que o grupo consegue cobrir, e alguém pergunta diretamente: Davi ainda não se recuperou de verdade — ele deveria ser poupado enquanto isso, ou contribuir do jeito que conseguir, como qualquer outra pessoa? Ninguém finge que a resposta é óbvia.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Há mais para fazer do que o grupo consegue cobrir: lenha, água, a trilha que Caio quer limpar, o abrigo que ainda não é abrigo."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Vou falar porque alguém tem que falar."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "O Davi não se recuperou de verdade. A gente poupa ele até melhorar, ou ele faz o que conseguir, como qualquer um?"
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Eu tô aqui, viu. Dá pra perguntar pra mim."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Tô perguntando pra todo mundo. Inclusive pra você."
+      },
+      {
+        "kind": "narration",
+        "text": "Ninguém finge que a resposta é óbvia."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "...Eu só não quero ser o cara que come e não faz nada. Nem o cara que piora o pé pra provar alguma coisa."
+      },
+      {
+        "kind": "thought",
+        "text": "Eu vi esse ferimento de perto. Sei o quanto ainda falta.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day4.davi.care.attentive",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "thought",
+        "text": "Ele tem uma irmã de nove anos esperando em algum lugar. Ele não vai aceitar ser só peso.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "davi.talk.home",
+            "value": true
+          }
+        ]
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2689,6 +3788,16 @@
     "id": "day-six-alone-continue",
     "title": "Um dia sem esse caso",
     "body": "Não há ninguém conhecido por perto para levantar essa pergunta hoje. O dia segue sem esse tipo de decisão.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Não há ninguém conhecido por perto para levantar perguntas hoje."
+      },
+      {
+        "kind": "thought",
+        "text": "Quando sou só eu, a conta é simples: o que eu não fizer, ninguém faz."
+      }
+    ],
     "conditions": [
       {
         "type": "flag.is",
@@ -2717,6 +3826,124 @@
     "id": "day-seven-registry",
     "title": "Primeiro ciclo de avaliação concluído",
     "body": "O Sistema apresenta uma mensagem que não existia antes: o primeiro ciclo de avaliação terminou. Uma nova função se abre — o Registro regional. Pela primeira vez fica claro que a região abriga muito mais gente do que qualquer coisa que você tenha visto por perto, e que ao menos uma pessoa, em algum lugar dela, cresceu em capacidade de um jeito que tão poucos dias não deveriam permitir. O Sistema não diz quem. Só que existe.",
+    "script": [
+      {
+        "kind": "system",
+        "text": "Primeiro ciclo de avaliação concluído."
+      },
+      {
+        "kind": "system",
+        "text": "Nova função disponível: **REGISTRO REGIONAL**."
+      },
+      {
+        "kind": "narration",
+        "text": "O painel se expande como nunca tinha feito. Linhas, faixas, contagens."
+      },
+      {
+        "kind": "system",
+        "text": "Usuários registrados na região: muito acima do contato atual."
+      },
+      {
+        "kind": "thought",
+        "text": "Muito acima... quantos? Cem? Mil?"
+      },
+      {
+        "kind": "system",
+        "text": "Desvio de desenvolvimento detectado. 1º lugar regional: identidade reservada."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Gente. GENTE. Vocês tão vendo isso? Tem ranking. Tem RANKING.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day2.survivors.contact",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Sete dias. Se alguém chegou nisso em sete dias...",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day2.survivors.contact",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "...o que essa pessoa vai ser daqui a seis meses?",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day2.survivors.contact",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Quem quer que seja, eu espero que esteja usando isso pra ajudar alguém.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "camp.together",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Se tem registro, tem gente. Se tem gente... pode ter a Bia.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "davi.home.promised",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "E se for alguém como eu, só que sem ninguém pra dizer não?",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "caio.talk.strength",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Se ficar todo mundo mais forte, vai ter mais gente machucada também. Eu preciso daquela enfermaria.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "mira.infirmary.supported",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "narration",
+        "text": "Pela primeira vez fica claro que a região abriga muito mais gente do que qualquer coisa que você tenha visto. E que ao menos uma pessoa, em algum lugar, cresceu de um jeito que tão poucos dias não deveriam permitir."
+      },
+      {
+        "kind": "thought",
+        "text": "O Sistema não diz quem. Só que existe."
+      }
+    ],
     "image": {
       "kind": "scene",
       "label": "Registro regional habilitado"
@@ -2734,6 +3961,1064 @@
           {
             "type": "guidance.unlock",
             "topicId": "regional-registry"
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "mira-talk-before",
+    "title": "O que ficou do outro lado",
+    "body": "Mira rasga tiras da própria camiseta para fazer bandagens e conta onde estava quando o Reset aconteceu: num plantão, trocando o soro de um paciente.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Mira está sentada numa raiz, desfiando a barra da própria camiseta em tiras."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Bandagem. Ou o mais perto disso que dá pra fazer."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Pode sentar, se quiser. Eu falo mais quando as minhas mãos tão ocupadas."
+      },
+      {
+        "kind": "thought",
+        "text": "Ela quer conversar. Ou não quer ficar em silêncio. Talvez seja a mesma coisa."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu tava num plantão quando aconteceu. Estágio, hospital universitário. Quatro da manhã, aquela hora em que até os monitores parecem cansados."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu lembro de estar trocando um soro. Aí eu pisquei. E tava deitada no mato."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "O paciente do soro era um senhor. Seu Lauro. Contava a mesma piada toda noite, e eu ria toda noite."
+      },
+      {
+        "kind": "narration",
+        "text": "Ela para de rasgar o tecido por um momento."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu não sei se ele acordou em algum lugar. Não sei se alguém acordou."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "E você? O que você fazia... antes?"
+      },
+      {
+        "kind": "system",
+        "text": "[Voz Calma] Ela não precisa de consolo agora. Precisa de alguém que escute até o fim.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "voz-calma"
+          }
+        ]
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Mira Vale"
+    },
+    "choices": [
+      {
+        "id": "mira-before-share",
+        "label": "Contar a ela quem você era antes do Reset",
+        "hint": "Vocês trocam um pedaço do passado.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 8
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "humanidade",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.before",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.before.shared",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "mira-before-listen",
+        "label": "Dizer que prefere ouvir — e perguntar mais sobre o Seu Lauro",
+        "hint": "Ela fala mais do que pretendia.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 6
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.before",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.before.listened",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "mira-before-practical",
+        "label": "Lembrar que o que importa agora é o que dá para fazer hoje",
+        "hint": "Prático, mas fecha a porta que ela abriu.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 1
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.before",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.before.practical",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "mira-talk-fear",
+    "title": "Mãos que tremem",
+    "body": "Na beira da Nascente, Mira admite o que mais a assusta: travar diante de um ferimento, e virar só a pessoa que remenda os outros.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Na beira da Nascente, Mira lava as tiras de pano que fez. Esfrega forte demais."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Sabe o que me assusta? Não são as criaturas."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Sou eu. Eu passei dois anos aprendendo a não travar. E aqui eu travo."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Quando eu vi o tornozelo do Davi, fiquei uns cinco segundos parada. Cinco segundos é muito tempo.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day2.survivors.contact",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "No hospital tinha protocolo. Tinha alguém mais velho do lado. Aqui tem... isso."
+      },
+      {
+        "kind": "narration",
+        "text": "Ela aponta a mata com o queixo e levanta as mãos molhadas. Ainda tremem um pouco."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "E tem outra coisa. Quando eu cuido de alguém, sinto o Númen querendo ir pras mãos. Como se ele soubesse."
+      },
+      {
+        "kind": "system",
+        "text": "[Olhar Atento] Quando ela fala em cuidar, o ar em volta das mãos dela fica mais denso. O Númen dela responde a isso.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "olhar-atento"
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "E se isso me tornar alguém que só serve pra isso? A enfermeira do grupo. A que remenda os outros pra eles voltarem a lutar."
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Mira Vale"
+    },
+    "choices": [
+      {
+        "id": "mira-fear-steady",
+        "label": "Dizer que travar cinco segundos e depois agir ainda é agir",
+        "hint": "Ela respira fundo pela primeira vez na conversa.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 8
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "humanidade",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.fear",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.fear.steadied",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "mira-fear-choose",
+        "label": "Dizer que quem decide o que ela vai ser é ela — não o Sistema",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 8
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.fear",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.fear.autonomy",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "mira-fear-useful",
+        "label": "Dizer que ser quem remenda os outros é ser essencial",
+        "hint": "Verdade — mas é exatamente o que ela teme.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 3
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.fear",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.fear.role",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "mira-talk-roots",
+    "title": "Um lugar para ficar",
+    "body": "Mira desenha na terra a planta de uma enfermaria pequena e fixa, e pergunta o que você pensa sobre criar raízes.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "No meio da tarde, Mira desenha na terra com um graveto. Não são números, como os de Davi. São paredes."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Não ri. É uma planta."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Um cômodo com teto. Água fervida sempre. Um lugar onde quem se machucar possa deitar sem ser no chão."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Uma enfermaria. Pequena. Mas fixa."
+      },
+      {
+        "kind": "thought",
+        "text": "Fixa. Ela está falando de ficar."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "O Caio disse que é cedo. O Davi disse que é \"construção de base\" e que é a melhor parte de qualquer jogo.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day2.survivors.contact",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu sei que vai ter gente querendo sair por aí. Ver o tamanho do mundo, achar as cidades, se é que ainda existem."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "Eu entendo. De verdade. Mas alguém tem que ficar num lugar pra que os outros tenham pra onde voltar."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "mira-vale",
+        "text": "...Eu queria saber o que você pensa. A sua opinião pesa mais do que você imagina.",
+        "conditions": [
+          {
+            "type": "relationship.min",
+            "characterId": "mira-vale",
+            "amount": 30
+          }
+        ]
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Mira Vale"
+    },
+    "choices": [
+      {
+        "id": "mira-roots-help",
+        "label": "Oferecer ajuda para erguer a enfermaria quando houver material",
+        "hint": "Uma promessa pequena. Ela vai lembrar.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 10
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.roots",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.infirmary.supported",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "mira-roots-explore",
+        "label": "Dizer que pretende explorar, mas que vai voltar",
+        "hint": "Honesto. Ela entende — e guarda.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "mira-vale",
+            "amount": 5
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.roots",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.infirmary.explorer",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "mira-roots-early",
+        "label": "Dizer que ainda é cedo para criar raízes",
+        "hint": "Ela apaga o desenho com o pé, devagar.",
+        "effects": [
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.talk.roots",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "mira.infirmary.doubted",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "caio-talk-nights",
+    "title": "Por que ele não dorme",
+    "body": "Caio conta do turno da noite em que cochilou vinte minutos, quando ainda era segurança, e do parceiro que se feriu por isso.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Caio afia um galho numa pedra, no mesmo ritmo, há tempo demais."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Você quer saber por que eu não durmo. Todo mundo quer, ninguém pergunta."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Você me cobriu aquela noite. Então acho que você merece a resposta.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day3.watch.covered",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Fiz serviço militar. Temporário, nada de herói. Depois virei segurança. Galpão de carga, turno da noite."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Numa dessas noites eu cochilei. Vinte minutos. Entraram, levaram a carga, e o meu parceiro de turno levou uma pancada na cabeça que eu devia ter visto chegando."
+      },
+      {
+        "kind": "narration",
+        "text": "O galho para."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Ele ficou bem. Mais ou menos. Mas eu nunca mais dormi de verdade num turno."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Aí eu acordo aqui. E tem um garoto com o pé torto do meu lado. É o mesmo turno, entende? Só que não acaba."
+      },
+      {
+        "kind": "system",
+        "text": "[Resiliência] Você reconhece esse cansaço. Não é do corpo.",
+        "conditions": [
+          {
+            "type": "ability.has",
+            "abilityId": "resiliencia"
+          }
+        ]
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Caio Nascimento"
+    },
+    "choices": [
+      {
+        "id": "caio-nights-share",
+        "label": "Dizer que ele não precisa carregar o turno sozinho",
+        "hint": "Ele não agradece em voz alta. Mas o galho volta para a pedra mais devagar.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 8
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.talk.nights",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.nights.shared",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "caio-nights-heard",
+        "label": "Só ouvir, sem tentar consertar",
+        "hint": "Ele não gosta de ser consertado.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 6
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.talk.nights",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.nights.heard",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "caio-nights-fault",
+        "label": "Dizer que aquilo foi falha dele, e que aqui ele não pode falhar",
+        "hint": "Duro. Talvez verdadeiro. Ele não vai esquecer.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": -4
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.talk.nights",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.nights.blamed",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "caio-talk-strength",
+    "title": "Força demais",
+    "body": "Caio está ficando forte mais rápido que todo mundo, e não sabe se quer o que vem junto com isso.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Caio levanta uma pedra que dois de vocês não levantariam juntos. Depois olha para as próprias mãos como se fossem de outra pessoa."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Não era pra ser assim. Eu treinava, sim. Mas não era pra ser assim."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "O Davi fez as contas. Ele tem razão. Eu tô crescendo mais rápido que todo mundo."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "E as pessoas olham diferente quando você é o mais forte. Esperam coisas."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Eu já vi isso. No quartel, na firma. O mais forte vira chefe sem ninguém perguntar se ele quer. Ou se ele presta pra isso."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Eu não quero mandar em ninguém. Eu quero que ninguém morra no meu turno. Não é a mesma coisa."
+      },
+      {
+        "kind": "thought",
+        "text": "Não é. Mas, de fora, parece."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Você disse que quem é mais capaz devia decidir. Eu entendi. Só não sei se eu sou essa pessoa.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day5.organization.stance.capable",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "caio-nascimento",
+        "text": "Você disse que as decisões deviam ser de todo mundo. Isso me tira um peso das costas.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day5.organization.stance.collective",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Caio Nascimento"
+    },
+    "choices": [
+      {
+        "id": "caio-strength-separate",
+        "label": "Dizer que proteger e mandar podem ser coisas separadas — e que o grupo pode garantir isso",
+        "hint": "Ele repete a frase baixinho, como quem guarda.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 8
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.talk.strength",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.strength.separate",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "caio-strength-lead",
+        "label": "Dizer que, querendo ou não, ele já está liderando",
+        "hint": "Ele não gosta de ouvir. Mas vai pensar nisso.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 4
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.talk.strength",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.strength.lead",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "caio-strength-warned",
+        "label": "Avisar que força sem limite vira problema — inclusive para ele",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "caio-nascimento",
+            "amount": 2
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.talk.strength",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "caio.strength.warned",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "davi-talk-system",
+    "title": "As teorias do Davi",
+    "body": "Davi mostra o caderno de cascas de árvore onde anota tudo o que descobre sobre o Sistema e quer comparar com o que você sentiu.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Davi tem um caderno improvisado: cascas de árvore presas com cipó, riscadas com carvão."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Ok, senta. Isso aqui é sério. É ciência."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Teoria número um: é um jogo. Tem nível, tem barra, tem tutorial. Óbvio demais, por isso eu desconfio."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Teoria número dois: é uma simulação, a gente tá num servidor em algum lugar. Problema: o bug no meu pé seria muito mal programado."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Teoria número três — a minha favorita: ninguém sabe nada, e o Sistema tá aprendendo com a gente tanto quanto a gente com ele."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Agora você. Quando sentiu a Etéris pela primeira vez, como foi?"
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Pressão? Igual o Caio! Interessante. Interessantíssimo. Eu senti formigamento.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "energetics.sensation.pressure",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Calor? Ninguém aqui falou em calor ainda. Anota. Não, peraí, eu anoto.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "energetics.sensation.warmth",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Vibração... tipo celular no silencioso? Cara. CARA. Era exatamente isso que eu ia dizer.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "energetics.sensation.vibration",
+            "value": true
+          }
+        ]
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Se cada um sente de um jeito, o Sistema não é igual pra todo mundo. E se não é igual, ele tá medindo alguma coisa na gente."
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Davi Moura"
+    },
+    "choices": [
+      {
+        "id": "davi-system-compare",
+        "label": "Comparar anotações com ele, detalhe por detalhe",
+        "hint": "Ele vai lembrar que você levou a sério.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 8
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.talk.system",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.system.compared",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "davi-system-theory",
+        "label": "Propor uma teoria sua",
+        "hint": "Ele anota com o carvão e sublinha duas vezes.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 6
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.talk.system",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.system.theory",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "davi-system-warned",
+        "label": "Dizer que tratar isso como jogo pode ser perigoso",
+        "hint": "Ele sabe. É por isso que faz piada.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 2
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "cautela",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.talk.system",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.system.warned",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      }
+    ],
+    "canStartSession": true
+  },
+  {
+    "id": "davi-talk-home",
+    "title": "O que o Davi deixou",
+    "body": "Davi fala da irmã mais nova, Bia, e de por que estuda o Sistema sem parar: se houver um jeito de encontrar pessoas, ele quer ser o primeiro a entender.",
+    "script": [
+      {
+        "kind": "narration",
+        "text": "Pela primeira vez desde que você o conheceu, Davi está quieto. Gira uma pedra lisa entre os dedos."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Eu tenho uma irmã. Bia. Nove anos."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Eu era o cara que consertava o celular da família inteira. O roteador. A TV da vó. \"Chama o Davi.\""
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Aí eu acordo aqui e não consigo nem andar direito. Ninguém chama o Davi pra nada."
+      },
+      {
+        "kind": "narration",
+        "text": "Ele ri, mas o riso não chega aos olhos."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Eu fico pensando se a Bia acordou num lugar assim. Sozinha. Nove anos."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "Por isso eu estudo o Sistema feito doido. Se tiver um jeito de achar gente — um mapa, um registro, qualquer coisa — eu quero ser o primeiro a entender."
+      },
+      {
+        "kind": "speech",
+        "speakerId": "davi-moura",
+        "text": "E... valeu por aquele dia. Do pé. Você não fez cara de pena. Eu reparei.",
+        "conditions": [
+          {
+            "type": "flag.is",
+            "flag": "day4.davi.care.attentive",
+            "value": true
+          }
+        ]
+      }
+    ],
+    "portrait": {
+      "kind": "portrait",
+      "label": "Davi Moura"
+    },
+    "choices": [
+      {
+        "id": "davi-home-promised",
+        "label": "Prometer que, se surgir um jeito de procurar pessoas, vocês vão usar",
+        "hint": "Uma promessa que pode pesar depois.",
+        "notable": true,
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 10
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.talk.home",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.home.promised",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "davi-home-valued",
+        "label": "Dizer que a cabeça dele já é o que o grupo tem de mais útil",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 8
+          },
+          {
+            "type": "attribute.change",
+            "attribute": "humanidade",
+            "amount": 2
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.talk.home",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.home.valued",
+            "value": true
+          }
+        ],
+        "transition": {
+          "type": "returnToExploration"
+        }
+      },
+      {
+        "id": "davi-home-quiet",
+        "label": "Ficar em silêncio com ele um pouco",
+        "hint": "Às vezes é o que dá para oferecer.",
+        "effects": [
+          {
+            "type": "relationship.change",
+            "characterId": "davi-moura",
+            "amount": 5
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.talk.home",
+            "value": true
+          },
+          {
+            "type": "flag.set",
+            "flag": "davi.home.quiet",
+            "value": true
           }
         ],
         "transition": {

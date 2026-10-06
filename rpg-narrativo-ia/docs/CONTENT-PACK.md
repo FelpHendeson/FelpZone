@@ -94,3 +94,14 @@ O gatilho de capítulo fica em `campaign/world-triggers.json`, com `source.type:
 - `{{dia}}` vira o número do dia em que a cena acontece; `{{diaOrdinal}}` vira o ordinal por extenso (por exemplo, "O {{diaOrdinal}} amanhecer" vira "O nono amanhecer").
 - Assim, um capítulo atrasado não diz "quinto dia" no nono dia.
 - O histórico guarda o título e a escolha já com o dia do momento.
+
+## Conversas com personagens
+
+As conversas opcionais são **atividades contextuais** que abrem uma cena com falas (`narrative.eventId`). As conversas atuais estão em [Conversas com personagens](NARRATIVE-CONVERSATIONS.md).
+
+- **`hideUntilReady: true`:** a atividade só aparece na lista do local quando todos os requisitos de história estão atendidos (flags, dia, confiança, item e aptidão), e some depois de concluída. A presença e a disponibilidade do NPC (`npc.present` e `npc.available`) continuam aparecendo como bloqueio comum, para o jogador saber que a pessoa só não está ali agora.
+- **Flag ausente:** num requisito de atividade, `flag.is` com `value: false` vale para flag ausente, como já acontecia nas condições de campanha. É assim que uma conversa diz "ainda não aconteceu".
+- **Encadeamento:** a escolha da cena grava uma flag (por exemplo, `davi.talk.system`). A conversa seguinte exige essa flag e um marco de dia (`day4.started`).
+- **NPC que muda de lugar:** quando o NPC pode estar em mais de um local, a mesma conversa é declarada uma vez por local, com a mesma flag de bloqueio. Davi, por exemplo, fica na Margem Rochosa ou, se foi acompanhado, na Clareira.
+- **Ecos:** linhas condicionais em cenas posteriores retomam o que foi dito, como a irmã de Davi no Registro do dia 7.
+

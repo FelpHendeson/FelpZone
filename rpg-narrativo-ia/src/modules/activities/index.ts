@@ -254,6 +254,8 @@ export function listKnownContextualActivities(
       requirement.type !== 'npc.known' || requirementMet(requirement, gameState, npcs)))
     // Oportunidade com prazo vencido sai da lista: o mundo seguiu em frente.
     .filter((activity) => !activity.availableUntil || !deadlinePassed(activity.availableUntil, gameState))
+    // Conversas encadeadas só aparecem quando a história chegou nelas, e somem depois de vividas.
+    .filter((activity) => !activity.hideUntilReady || isReadyToShow(activity, activityState, gameState, npcs))
     .map((activity) => ({ activity, ...deadlineView(activity.availableUntil, gameState) }))
     .map(({ activity, ...deadline }) => {
       const optionalIds = activity.participants?.optionalNpcIds ?? [];
@@ -288,6 +290,18 @@ export function listKnownContextualActivities(
         };
       }
     });
+}
+
+const PRESENCE_REQUIREMENTS: ReadonlySet<ContextualActivityRequirement['type']> = new Set(['npc.present', 'npc.available']);
+
+function isReadyToShow(
+  activity: ContextualActivityDefinition,
+  activityState: ContextualActivitiesState,
+  gameState: GameState,
+  npcs: ActivityWorldContext['npcs'],
+): boolean {
+  if (!activity.repeatable && activityState.consumedActivityIds.includes(activity.id)) return false;
+  return activity.requirements.every((requirement) => PRESENCE_REQUIREMENTS.has(requirement.type) || requirementMet(requirement, gameState, npcs));
 }
 
 function inspectActivity(
@@ -357,6 +371,10 @@ function inspectActivity(
     risk = inspected.value;
   }
 
+  if (value.hideUntilReady !== undefined && typeof value.hideUntilReady !== 'boolean') {
+    return fail('A visibilidade da atividade é inválida.');
+  }
+
   let availableUntil: ContextualActivityDeadline | undefined;
   if (value.availableUntil !== undefined) {
     const raw = value.availableUntil;
@@ -382,6 +400,7 @@ function inspectActivity(
       ...(typeof value.feedback === 'string' ? { feedback: value.feedback } : {}),
       ...(availableUntil ? { availableUntil } : {}),
       ...(risk ? { risk } : {}),
+      ...(value.hideUntilReady === true ? { hideUntilReady: true } : {}),
     },
   };
 }
@@ -582,7 +601,8 @@ function requirementMet(
 ): boolean {
   switch (requirement.type) {
     case 'flag.is':
-      return state.flags[requirement.flag] === requirement.value;
+      // Flag ausente vale como falso, como nas condições de campanha.
+      return (state.flags[requirement.flag] ?? false) === requirement.value;
     case 'inventory.has':
       return (state.inventory.find((entry) => entry.itemId === requirement.itemId)?.quantity ?? 0) >= (requirement.quantity ?? 1);
     case 'relationship.min':
