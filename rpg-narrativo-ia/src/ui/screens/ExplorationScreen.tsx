@@ -62,7 +62,7 @@ import { HintAlert } from '../components/SystemHints';
 import { TourOverlay } from '../components/Tour';
 import { FIRST_TOUR, isTourDone, markTourDone } from '../tour';
 import { setClockContext } from '../clock';
-import { archetypeOf } from '../silhouettes';
+import { archetypeOf, archetypeProp } from '../silhouettes';
 import { worldMinute } from '../../modules/world';
 import { usePreferences } from '../preferences';
 import { deriveSystemHints, type HintAction } from '../system-hints';
@@ -206,6 +206,8 @@ export function ExplorationScreen({
         encounterName={`${mySeal.name} × ${duel.rival.name}`}
         tint={archetypeOf(state.character.archetypeId)?.palette.primary}
         opponentTint={archetypeOf(duel.rival.archetypeId)?.palette.primary}
+        playerProp={archetypeProp(state.character.archetypeId)}
+        opponentProp={archetypeProp(duel.rival.archetypeId)}
         discoveredCombos={state.combos?.discovered}
         kicker={hotSeat ? 'Prova do Eco · mesma tela' : `Prova do Eco · Eco ${ECHO_STYLE_LABELS[duel.rival.style].toLowerCase()}`}
         combat={combat}
@@ -277,6 +279,7 @@ export function ExplorationScreen({
         initialState={initialCombat}
         encounterName={encounter?.name ?? 'Confronto'}
         tint={archetypeOf(state.character.archetypeId)?.palette.primary}
+        playerProp={archetypeProp(state.character.archetypeId)}
         discoveredCombos={state.combos?.discovered}
         studied={encounter ? bestiaryLevel(state, encounter.opponentId) >= 3 : false}
         combat={combat}

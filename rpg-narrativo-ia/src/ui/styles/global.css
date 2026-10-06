@@ -6863,3 +6863,210 @@ span.portrait-avatar {
 .tournament-match--next {
   border-color: var(--accent);
 }
+
+/* Palco animado da rodada: ilustração; o texto da linha do tempo segue como registro. */
+.round-stage {
+  --stage-step: 650ms;
+  position: relative;
+  height: 150px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--bg-soft) 0%, var(--bg-elevated) 100%);
+  overflow: hidden;
+}
+
+.round-stage__ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 18px;
+  height: 1px;
+  background: var(--border-strong);
+}
+
+.stage-fig {
+  position: absolute;
+  bottom: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+  transition: left calc(var(--stage-step) * 0.6) ease-out;
+  color: var(--text);
+}
+
+.stage-fig__body {
+  position: relative;
+  --dir: 1;
+}
+
+.stage-fig--foe .stage-fig__body {
+  --dir: -1;
+}
+
+.stage-fig--foe .stage-fig__art {
+  transform: scaleX(-1);
+}
+
+.stage-fig__art .silhouette {
+  display: block;
+}
+
+.stage-fig__name {
+  max-width: 6.5rem;
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stage-fig--acting.stage-fig--strike,
+.stage-fig--acting.stage-fig--combo,
+.stage-fig--acting.stage-fig--miss,
+.stage-fig--acting.stage-fig--out-of-range {
+  animation: stage-lunge calc(var(--stage-step) * 0.8) ease-out;
+}
+
+.stage-fig--acting.stage-fig--move {
+  animation: stage-step calc(var(--stage-step) * 0.6) ease-out;
+}
+
+.stage-fig--acting.stage-fig--self {
+  animation: stage-pulse calc(var(--stage-step) * 0.8) ease-out;
+}
+
+.stage-fig--acting.stage-fig--interrupt {
+  opacity: 0.5;
+  animation: stage-shake calc(var(--stage-step) * 0.5) linear;
+}
+
+.stage-fig--hurt {
+  animation: stage-shake calc(var(--stage-step) * 0.5) linear;
+}
+
+.stage-fig--hurt .stage-fig__art {
+  filter: brightness(1.8) saturate(0.4);
+}
+
+.stage-fig--evading {
+  animation: stage-hop calc(var(--stage-step) * 0.7) ease-out;
+}
+
+.stage-fig__float {
+  position: absolute;
+  top: -4px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 700;
+  font-size: 0.95rem;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: stage-float calc(var(--stage-step) * 1.2) ease-out forwards;
+}
+
+.stage-fig__float--damage {
+  color: var(--danger);
+}
+
+.stage-fig__float--heal {
+  color: var(--accent);
+}
+
+.stage-fig__float--evade,
+.stage-fig__float--miss {
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.stage-fig__float--interrupt {
+  color: var(--danger);
+  font-size: 1.4rem;
+}
+
+.round-stage__banner {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  background: var(--bg);
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  animation: stage-banner calc(var(--stage-step) * 1.2) ease-out;
+}
+
+.round-stage__tick {
+  position: absolute;
+  top: 8px;
+  left: 10px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.combat-log__controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+@keyframes stage-lunge {
+  0% { transform: translateX(0); }
+  40% { transform: translateX(calc(var(--dir) * 22px)); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes stage-step {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes stage-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+}
+
+@keyframes stage-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(calc(var(--dir) * -5px)); }
+  75% { transform: translateX(calc(var(--dir) * 4px)); }
+}
+
+@keyframes stage-hop {
+  0% { transform: translate(0, 0); }
+  45% { transform: translate(calc(var(--dir) * -14px), -12px); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes stage-float {
+  0% { opacity: 0; transform: translate(-50%, 6px); }
+  25% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -18px); }
+}
+
+@keyframes stage-banner {
+  0% { opacity: 0; transform: translate(-50%, -6px); }
+  20% { opacity: 1; transform: translate(-50%, 0); }
+  100% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stage-fig {
+    transition: none;
+  }
+
+  .stage-fig__body,
+  .stage-fig__float,
+  .round-stage__banner {
+    animation: none !important;
+  }
+}

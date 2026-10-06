@@ -18,7 +18,9 @@ import {
 import { INITIAL_CONDITIONS, type IndexedConditions } from '../../modules/conditions';
 import { INITIAL_EXECUTION, type IndexedExecution } from '../../modules/execution';
 import type { CompanionOrderView } from '../../modules/party';
-import { Silhouette } from '../components/Silhouette';
+import { Silhouette, type SilhouetteProp } from '../components/Silhouette';
+import { RoundStage, type StageFigure } from '../combat/RoundStage';
+import { buildStageFrames, shapeOf } from '../combat/stage';
 import { poseForAction } from '../silhouettes';
 
 /** Como o oponente decide a rodada: IA por regras (encontros e Ecos) ou outra pessoa no mesmo aparelho. */
@@ -40,6 +42,9 @@ interface CombatScreenProps {
   /** Cor das silhuetas nas cartas (a do arquétipo de quem planeja). */
   tint?: string;
   opponentTint?: string;
+  /** Adereço das silhuetas humanas no palco da rodada (o do arquétipo de cada lado). */
+  playerProp?: SilhouetteProp;
+  opponentProp?: SilhouetteProp;
   /** O oponente já foi estudado no Bestiário: a leitura mostra a duração de cada ação. */
   studied?: boolean;
   /** Combos que o jogador já descobriu: aparecem nomeados entre as cartas da sequência. */
@@ -50,6 +55,24 @@ interface CombatScreenProps {
 type Phase = 'plan' | 'handoff' | 'plan-opponent' | 'playback';
 
 const PLAYBACK_STEP_MS = 650;
+const SPEED_KEY = 'reset.combat.speed';
+
+/** Velocidade da reprodução guardada só neste aparelho; sem armazenamento, volta ao normal. */
+function readSpeed(): 1 | 2 {
+  try {
+    return window.localStorage.getItem(SPEED_KEY) === '2' ? 2 : 1;
+  } catch {
+    return 1;
+  }
+}
+
+function storeSpeed(speed: 1 | 2) {
+  try {
+    window.localStorage.setItem(SPEED_KEY, String(speed));
+  } catch {
+    // Sem armazenamento, a escolha vale só nesta tela.
+  }
+}
 
 export function CombatScreen({
   initialState,
@@ -64,6 +87,8 @@ export function CombatScreen({
   resultDetail = defaultResultDetail,
   tint = 'var(--accent)',
   opponentTint = 'var(--danger)',
+  playerProp,
+  opponentProp,
   discoveredCombos = [],
   studied = false,
   onFinish,
@@ -74,6 +99,8 @@ export function CombatScreen({
   const [plan, setPlan] = useState<string[]>([]);
   const [opponentPlan, setOpponentPlan] = useState<string[]>([]);
   const [revealed, setRevealed] = useState(0);
+  const [speed, setSpeed] = useState<1 | 2>(readSpeed);
+  const stepMs = PLAYBACK_STEP_MS / speed;
   const [selectedOrders, setSelectedOrders] = useState<Record<string, string>>(() => defaultOrders(orderViews));
   const runtime = { conditions, execution };
   const conditionCatalog = conditions ?? INITIAL_CONDITIONS;
@@ -94,10 +121,10 @@ export function CombatScreen({
           setRevealed((value) => value + 1);
         }
       },
-      done ? 400 : PLAYBACK_STEP_MS,
+      done ? 400 : stepMs,
     );
     return () => window.clearTimeout(timer);
-  }, [phase, revealed, events.length, state]);
+  }, [phase, revealed, events.length, state, stepMs]);
 
   const planningOpponent = phase === 'plan-opponent';
   const actorId = planningOpponent ? state.opponent.id : 'player';
@@ -121,6 +148,28 @@ export function CombatScreen({
   const intent = control.kind === 'ai' && state.outcome === 'ongoing' ? readOpponentIntent(combat, state, style, runtime) : null;
   const foes = [shown.opponent, ...(shown.foes ?? [])];
   const allies = [shown.player, ...(shown.allies ?? [])];
+  const startDistance = shown.distance ?? 'far';
+  const frames = phase === 'playback' ? buildStageFrames(events, startDistance, combat, new Set(allies.map((entry) => entry.id))) : [];
+  const frame = revealed > 0 ? frames[revealed - 1] : undefined;
+  const stageAllies: StageFigure[] = allies.map((entry) => ({
+    id: entry.id,
+    name: entry.name,
+    shape: entry.id === 'player' ? 'humanoid' : shapeOf(combat, entry.id),
+    tint: entry.id === 'player' ? tint : 'var(--accent-system)',
+    ...(entry.id === 'player' && playerProp ? { prop: playerProp } : {}),
+  }));
+  const stageFoes: StageFigure[] = foes.map((entry, index) => ({
+    id: entry.id,
+    name: entry.name,
+    shape: shapeOf(combat, entry.id),
+    tint: opponentTint,
+    ...(index === 0 && opponentProp ? { prop: opponentProp } : {}),
+  }));
+
+  function changeSpeed(next: 1 | 2) {
+    setSpeed(next);
+    storeSpeed(next);
+  }
 
   function declareReady() {
     if (current.length === 0 || !check.ok) return;
@@ -192,7 +241,16 @@ export function CombatScreen({
       </div>
 
       {phase === 'playback' ? (
-        <RoundPlayback events={events.slice(0, revealed)} total={events.length} onSkip={() => setRevealed(events.length)} />
+        <>
+          <RoundStage frame={frame} distance={frame?.distance ?? startDistance} allies={stageAllies} foes={stageFoes} stepMs={stepMs} />
+          <RoundPlayback
+            events={events.slice(0, revealed)}
+            total={events.length}
+            onSkip={() => setRevealed(events.length)}
+            speed={speed}
+            onSpeed={changeSpeed}
+          />
+        </>
       ) : finished ? (
         <section className={`combat-result combat-result--${state.outcome}`} role="status">
           <strong>{outcomeTitle(state.outcome)}</strong>
@@ -359,7 +417,21 @@ export function CombatScreen({
   );
 }
 
-function RoundPlayback({ events, total, compact = false, onSkip }: { events: RoundEvent[]; total: number; compact?: boolean; onSkip?: () => void }) {
+function RoundPlayback({
+  events,
+  total,
+  compact = false,
+  onSkip,
+  speed,
+  onSpeed,
+}: {
+  events: RoundEvent[];
+  total: number;
+  compact?: boolean;
+  onSkip?: () => void;
+  speed?: 1 | 2;
+  onSpeed?: (speed: 1 | 2) => void;
+}) {
   return (
     <section className={compact ? 'combat-log combat-log--compact' : 'combat-log'} aria-label="Linha do tempo da rodada" aria-live="polite">
       {!compact ? <span className="section-kicker">A rodada acontece · {events.length}/{total}</span> : null}
@@ -374,10 +446,31 @@ function RoundPlayback({ events, total, compact = false, onSkip }: { events: Rou
           ))}
         </ul>
       )}
-      {onSkip ? (
-        <button type="button" className="button button--ghost button--compact" onClick={onSkip}>
-          Pular
-        </button>
+      {onSkip || onSpeed ? (
+        <div className="combat-log__controls">
+          {onSpeed ? (
+            <div className="chip-row" role="radiogroup" aria-label="Velocidade da reprodução">
+              {([1, 2] as const).map((value) => (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={speed === value}
+                  className="chip"
+                  aria-pressed={speed === value}
+                  onClick={() => onSpeed(value)}
+                >
+                  {value}×
+                </button>
+              ))}
+            </div>
+          ) : null}
+          {onSkip ? (
+            <button type="button" className="button button--ghost button--compact" onClick={onSkip}>
+              Pular
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </section>
   );

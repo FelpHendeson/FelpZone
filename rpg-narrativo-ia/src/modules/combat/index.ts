@@ -16,11 +16,13 @@ import { INITIAL_COMBAT_CATALOG } from './initial-combat';
 import {
   ACTION_POSES,
   COMBO_BONUS_TYPES,
+  COMBATANT_SHAPES,
   COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
   COMBAT_RANGES,
   COMBAT_TARGETS,
   type CombatActionDefinition,
+  type CombatantShape,
   type CombatantTemplate,
   type CombatEffect,
   type CombatInspection,
@@ -396,6 +398,9 @@ function inspectCombatant(
   if (value.defenseElementId !== undefined && (!nonEmpty(value.defenseElementId) || !conditions.elementById.has(value.defenseElementId))) {
     return fail('O combatente referencia um elemento de defesa inexistente.');
   }
+  if (value.shape !== undefined && !(COMBATANT_SHAPES as readonly unknown[]).includes(value.shape)) {
+    return fail('A forma do combatente é inválida.');
+  }
 
   return {
     ok: true,
@@ -405,6 +410,7 @@ function inspectCombatant(
       maxHealth: value.maxHealth,
       actionIds: ids,
       ...(value.defenseElementId ? { defenseElementId: value.defenseElementId } : {}),
+      ...(value.shape !== undefined ? { shape: value.shape as CombatantShape } : {}),
     },
   };
 }
@@ -684,6 +690,7 @@ function fail<T>(reason: string): CombatInspection<T> {
 
 export {
   ACTION_POSES,
+  COMBATANT_SHAPES,
   COMBO_BONUS_TYPES,
   COMBAT_DISTANCES,
   COMBAT_EFFECT_TYPES,
@@ -703,6 +710,7 @@ export type {
   ComboDefinition,
   CombatActionDefinition,
   CombatActionView,
+  CombatantShape,
   CombatantState,
   CombatantTemplate,
   CombatCatalog,

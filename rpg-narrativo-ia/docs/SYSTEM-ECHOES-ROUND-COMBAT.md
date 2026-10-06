@@ -444,3 +444,36 @@ Várias regras de CSS usavam `overflow-wrap: anywhere`, que quebra palavras em q
 - **Módulo:** `src/modules/echoes/tournament.ts` é puro (chave, avanço, campeão, registro e conferência do rascunho).
 - **Rascunho no aparelho:** um torneio em andamento fica salvo neste aparelho (`reset.tournament.draft`) e pode ser retomado ou descartado. O rascunho é conferido antes de abrir e é apagado quando há campeão.
 - **Sem efeito na partida:** nada do torneio entra no save da partida.
+
+## 13. Palco animado da rodada
+
+**Decisão:** oitava proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 8).
+
+### O que aparece
+
+Durante a reprodução, uma faixa acima da linha do tempo mostra o grupo do jogador à esquerda e os oponentes à direita.
+
+- **Distância:** a separação entre as figuras é a distância real (perto ou longe). Ao avançar ou recuar, as figuras deslizam.
+- **Ação:** quem age assume a pose da técnica (as mesmas poses das cartas) e dá um bote na direção do alvo.
+- **Acerto:** o alvo treme, clareia, e o dano sobe em número.
+- **Esquiva:** o alvo salta para trás na pose de esquiva.
+- **Interrupção:** a figura fica apagada, com um "✕".
+- **Fora de alcance:** aparece "longe".
+- **Cura:** um "+N" verde.
+- **Combo:** uma faixa dourada com o nome do combo.
+- **Criaturas:** silhuetas próprias de predador, corvo, serpente e javali. Despertos, Ecos e companheiros são figuras humanas com o adereço do arquétipo.
+
+### Controles
+
+- **Velocidade:** 1× (650 ms por evento) ou 2×, guardada só neste aparelho (`reset.combat.speed`).
+- **Pular:** mostra a rodada inteira de uma vez.
+- **Reduzir movimento:** com `prefers-reduced-motion`, as figuras trocam de pose sem animação.
+
+### Regras
+
+- **Só ilustração:** `buildStageFrames` (`src/ui/combat/stage.ts`) lê os eventos já resolvidos pelo motor (`lastRound`).
+  - O dano vem do texto do evento.
+  - A distância vem dos efeitos de movimento das ações, na mesma ordem do motor.
+  - Nada é decidido no palco.
+- **Forma é dado:** cada combatente pode declarar `shape` (`humanoid`, `beast`, `bird`, `serpent`, `boar`) em `system/combat.json`. Uma forma desconhecida invalida o pack. Sem `shape`, a figura é humana.
+- **Acessibilidade:** o palco é `aria-hidden`; o texto da linha do tempo, logo abaixo, continua sendo o registro lido por leitores de tela.

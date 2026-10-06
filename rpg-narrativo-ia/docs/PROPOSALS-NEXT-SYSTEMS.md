@@ -9,6 +9,7 @@
 - **Item 5:** implementado; veja a seção 10 do mesmo documento.
 - **Item 6:** implementado; veja a seção 11 do mesmo documento.
 - **Item 7:** implementado; veja a seção 12 do mesmo documento.
+- **Item 8:** implementado; veja a seção 13 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -319,6 +320,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 8. Silhuetas animadas na reprodução da rodada
+
+**Implementado.** Velocidades 1× e 2×, e "Pular" faz o papel do instantâneo. O "Reduzir movimento" segue o do aparelho.
 
 **O que é:** hoje a reprodução da rodada é texto e barra de tempos. A proposta é que as duas silhuetas se movam a cada ação: avançam, cortam, esquivam, recuam, tomam o golpe. As 14 poses já existem.
 

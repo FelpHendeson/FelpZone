@@ -80,7 +80,12 @@ export interface CombatantTemplate {
   maxHealth: number;
   actionIds: string[];
   defenseElementId?: string;
+  /** Forma da silhueta no palco da rodada; sem ela, a criatura aparece como figura humana. */
+  shape?: CombatantShape;
 }
+
+export const COMBATANT_SHAPES = ['humanoid', 'beast', 'bird', 'serpent', 'boar'] as const;
+export type CombatantShape = (typeof COMBATANT_SHAPES)[number];
 
 export interface EncounterDefinition {
   id: string;

@@ -910,7 +910,8 @@
         "advance",
         "dodge"
       ],
-      "defenseElementId": "embers"
+      "defenseElementId": "embers",
+      "shape": "beast"
     },
     {
       "id": "wary-scout",
@@ -921,7 +922,8 @@
         "guard",
         "advance"
       ],
-      "defenseElementId": "embers"
+      "defenseElementId": "embers",
+      "shape": "beast"
     },
     {
       "id": "bark-crow",
@@ -931,7 +933,8 @@
         "peck-dive",
         "dodge",
         "retreat"
-      ]
+      ],
+      "shape": "bird"
     },
     {
       "id": "spring-serpent",
@@ -943,7 +946,8 @@
         "advance",
         "dodge"
       ],
-      "defenseElementId": "water"
+      "defenseElementId": "water",
+      "shape": "serpent"
     },
     {
       "id": "thorn-boar",
@@ -954,7 +958,8 @@
         "attack",
         "guard",
         "advance"
-      ]
+      ],
+      "shape": "boar"
     }
   ],
   "encounters": [

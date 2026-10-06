@@ -22,7 +22,7 @@ import {
   type TournamentState,
 } from '../../../modules/echoes';
 import { Silhouette } from '../../components/Silhouette';
-import { archetypeOf } from '../../silhouettes';
+import { archetypeOf, archetypeProp } from '../../silhouettes';
 import { CombatScreen } from '../CombatScreen';
 import { DetailScreen } from './shared';
 
@@ -84,6 +84,8 @@ export function TournamentScreen({
           kicker={`Torneio · ${roundName(tournament, match.round)}`}
           tint={archetypeOf(a.archetypeId)?.palette.primary}
           opponentTint={archetypeOf(b.archetypeId)?.palette.primary}
+          playerProp={archetypeProp(a.archetypeId)}
+          opponentProp={archetypeProp(b.archetypeId)}
           combat={combat}
           conditions={conditions}
           execution={execution}
