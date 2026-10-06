@@ -9,7 +9,7 @@ import type { BotKind } from "@/bots/types";
 import { THEMES, THEME_IDS, tileNameIn } from "@/games/magnata/themes";
 import { GAMES } from "@/games/registry";
 import type { PublicRoom } from "@/rooms/public";
-import { ROUND_LIMITS, TURN_TIMEOUTS, type RoomPlayer } from "@/rooms/room";
+import { BOT_PACES, ROUND_LIMITS, TURN_TIMEOUTS, type BotPace, type RoomPlayer } from "@/rooms/room";
 import { Chat } from "./Chat";
 import type { Send } from "./RoomScreen";
 
@@ -23,6 +23,9 @@ interface Props {
 }
 
 const timeoutLabel = (seconds: number | null) => (seconds ? `${seconds / 60} min` : "Sem prazo");
+const PACE_LABELS: Record<BotPace, string> = { fast: "Rápido", normal: "Normal", slow: "Lento" };
+const paceLabel = (pace: BotPace) =>
+  `${PACE_LABELS[pace]} (${(BOT_PACES[pace] / 1000).toLocaleString("pt-BR")} s entre jogadas)`;
 
 export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
   const game = GAMES[room.gameId];
@@ -178,6 +181,22 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
               </span>
             </label>
 
+            <label className="field">
+              <span>Ritmo dos robôs</span>
+              <select
+                value={options.botPace ?? "normal"}
+                disabled={pending}
+                onChange={(event) => setOption({ botPace: event.target.value })}
+              >
+                {(Object.keys(BOT_PACES) as BotPace[]).map((pace) => (
+                  <option key={pace} value={pace}>
+                    {paceLabel(pace)}
+                  </option>
+                ))}
+              </select>
+              <span className="muted hint">Vale para os robôs e para o piloto automático de quem estiver ausente.</span>
+            </label>
+
             <label className="check">
               <input type="checkbox" checked={options.credit} disabled={pending} onChange={(event) => setOption({ credit: event.target.checked })} />
               <span>
@@ -193,6 +212,7 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
             </li>
             <li>Duração: {options.roundLimit ? `${options.roundLimit} rodadas` : "até restar um jogador"}</li>
             <li>Prazo por jogada: {timeoutLabel(options.turnTimeout)}</li>
+            <li>Ritmo dos robôs: {paceLabel(options.botPace ?? "normal")}</li>
             <li>Empréstimos do banco: {options.credit ? "ligados (variante)" : "desligados"}</li>
           </ul>
         )}

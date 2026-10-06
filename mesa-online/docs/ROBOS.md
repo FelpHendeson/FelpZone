@@ -333,7 +333,7 @@ O anfitrião pode completar a mesa com robôs para jogar sozinho ou com menos ge
 - **Atalho:** "Jogar sozinho contra 3 robôs" na tela inicial cria a sala, adiciona um robô de cada estilo, define 60 rodadas e começa.
 - **Comandos novos** (só o anfitrião, só no lobby): `add-bot { strategy }`, `remove-bot { playerId }` e `set-options { options }`.
 - **Quem faz o robô jogar:** a Vercel não mantém processos rodando, então são as consultas periódicas (`GET /api/rooms/{code}`) que fazem o robô jogar.
-  - Quando é a vez de um robô e já passaram 900 ms (`BOT_DELAY_MS`) desde a última alteração, a consulta aplica **uma** jogada dele e grava com a mesma escrita otimista por versão. Se duas consultas tentarem ao mesmo tempo, só uma vence e a outra devolve o estado novo.
+  - Quando é a vez de um robô e já passou o ritmo escolhido no lobby (`BOT_PACES`: 1 s, 2,5 s por padrão ou 4 s) desde a última alteração, a consulta aplica **uma** jogada dele e grava com a mesma escrita otimista por versão. Se duas consultas tentarem ao mesmo tempo, só uma vence e a outra devolve o estado novo.
   - Quando a jogada seguinte do robô seria apenas passar a vez, ela vai junto, para economizar uma espera.
 - **Consulta barata:** a chave curta da sala no Redis guarda `versão` ou `versão:momento`, em que `momento` é quando uma jogada automática fica liberada (robô, ausente ou prazo estourado). A consulta só lê a sala inteira quando a versão mudou ou esse momento já passou.
 - **Sem ninguém olhando, ninguém joga:** se todas as pessoas fecharem a página, os robôs param e retomam quando alguém voltar à sala.

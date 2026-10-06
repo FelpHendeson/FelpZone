@@ -25,6 +25,7 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
     - **tema** do tabuleiro: Clássico, Maceió, São Paulo, Brasil ou Vila Ninja (só nomes e cores, regras iguais);
     - **duração**: até restar um jogador, ou 30/60/100 rodadas com vitória por patrimônio;
     - **prazo por jogada**: depois dele, o piloto automático joga por quem sumiu, até a pessoa voltar;
+    - **ritmo dos robôs**: 1 s, 2,5 s (padrão) ou 4 s entre uma ação e outra;
     - **empréstimos do banco**: regra opcional, marcada como variante.
 - **Acontecimentos da mesa:**
   - toda jogada vira um aviso para todos: compra, aluguel (com o motivo do valor), cartas, prisão, construções, hipotecas, dívidas, falências, empréstimos e ausência;
@@ -154,7 +155,7 @@ Publicado na Vercel (projeto `felp-zone`, com Upstash Redis conectado). Inclui a
 
 ## Robôs
 
-Os robôs jogam na mesa com pessoas (estratégias em `src/bots/`) e também servem de piloto automático para quem fica ausente. Eles jogam quando os aparelhos na sala consultam o servidor, uma jogada a cada ~1 s, sem processo extra nem custo. A especificação completa, incluindo o que ainda falta (torneio em memória e robôs via HTTP), está em [`docs/ROBOS.md`](docs/ROBOS.md).
+Os robôs jogam na mesa com pessoas (estratégias em `src/bots/`) e também servem de piloto automático para quem fica ausente. Eles jogam quando os aparelhos na sala consultam o servidor, uma ação por vez, sem processo extra nem custo. O anfitrião escolhe o ritmo no lobby: rápido (1 s entre ações), normal (2,5 s, padrão) ou lento (4 s). A especificação completa, incluindo o que ainda falta (torneio em memória e robôs via HTTP), está em [`docs/ROBOS.md`](docs/ROBOS.md).
 
 ## Próximos passos
 

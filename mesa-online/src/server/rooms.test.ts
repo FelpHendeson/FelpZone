@@ -173,8 +173,12 @@ describe("robôs na mesa", () => {
       const action = botAction("conservador", room.game!, host.playerId, Math.random);
       room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
     }
-    expect(await readRoom(code, room.version, store, room.updatedAt + 100)).toBeNull();
-    const moved = await readRoom(code, room.version, store, room.updatedAt + 1000);
+    // Ritmo normal: 2,5 s entre uma jogada do robô e a seguinte.
+    expect(await readRoom(code, room.version, store, room.updatedAt + 2_400)).toBeNull();
+    const moved = await readRoom(code, room.version, store, room.updatedAt + 2_500);
+    expect(moved!.version).toBeGreaterThan(room.version);
+    // E de novo: a próxima jogada também espera o ritmo.
+    expect(await readRoom(code, moved!.version, store, moved!.updatedAt + 2_400)).toBeNull();
     expect(moved!.version).toBeGreaterThan(room.version);
   });
 });
@@ -246,7 +250,9 @@ describe("correções da análise", () => {
     await expect(set({ turnTimeout: 5 })).rejects.toThrow("Prazo");
     await expect(set({ credit: "sim" })).rejects.toThrow("empréstimo");
     const room = await set({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60 });
-    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60 });
+    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60, botPace: "normal" });
+    await expect(set({ botPace: "turbo" })).rejects.toThrow("Ritmo");
+    expect((await set({ botPace: "slow" })).options.botPace).toBe("slow");
     await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
     const started = await runRoomCommand(code, host.token, { kind: "start" }, store);
     expect(started.game).toMatchObject({ themeId: "maceio", credit: true, roundLimit: 60 });

@@ -25,8 +25,13 @@ export const ROUND_LIMITS = [30, 60, 100] as const;
 /** Prazo por jogada, em segundos, antes do piloto automático assumir. */
 export const TURN_TIMEOUTS = [60, 120, 300] as const;
 export const DEFAULT_TURN_TIMEOUT = 120;
-/** Pausa entre jogadas automáticas, para quem está na mesa conseguir acompanhar. */
-export const BOT_DELAY_MS = 900;
+/**
+ * Pausa entre jogadas automáticas (robôs e piloto automático), para quem está
+ * na mesa conseguir acompanhar cada ação.
+ */
+export const BOT_PACES = { fast: 1000, normal: 2500, slow: 4000 } as const;
+export type BotPace = keyof typeof BOT_PACES;
+export const DEFAULT_BOT_PACE: BotPace = "normal";
 /** Estilo usado pelo piloto automático de quem está ausente. */
 const AUTOPILOT: BotKind = "conservador";
 
@@ -49,6 +54,8 @@ export interface RoomOptions {
   themeId: ThemeId;
   /** Regra opcional de empréstimos do banco. */
   credit: boolean;
+  /** Ritmo das jogadas automáticas. */
+  botPace: BotPace;
 }
 
 export interface ChatMessage {
@@ -121,7 +128,13 @@ export function createRoom(params: {
     status: "lobby",
     hostId: params.hostId,
     players: [{ id: params.hostId, name, color: TOKEN_COLORS[0], avatar: avatarOr(params.hostAvatar, name) }],
-    options: { roundLimit: null, turnTimeout: DEFAULT_TURN_TIMEOUT, themeId: "classico", credit: false },
+    options: {
+      roundLimit: null,
+      turnTimeout: DEFAULT_TURN_TIMEOUT,
+      themeId: "classico",
+      credit: false,
+      botPace: DEFAULT_BOT_PACE,
+    },
     game: null,
     away: [],
     chat: [],
@@ -175,9 +188,13 @@ export function nextAutoplayAt(room: Room): number | null {
   if (room.status !== "playing" || !game || game.phase === "finished") return null;
   const player = room.players.find((candidate) => candidate.id === game.currentPlayerId);
   if (!player) return null;
-  if (player.bot || room.away.includes(player.id)) return room.updatedAt + BOT_DELAY_MS;
+  if (player.bot || room.away.includes(player.id)) return room.updatedAt + botDelay(room);
   const timeout = room.options.turnTimeout;
   return timeout ? room.updatedAt + timeout * 1000 : null;
+}
+
+export function botDelay(room: Room): number {
+  return BOT_PACES[room.options.botPace] ?? BOT_PACES[DEFAULT_BOT_PACE];
 }
 
 /** Robô que precisa jogar agora, se houver (ignora o tempo). */
@@ -321,6 +338,12 @@ function patchOptions(current: RoomOptions, patch: Record<string, unknown>): Roo
   if ("themeId" in patch) {
     if (!isThemeId(patch.themeId)) throw new RoomError("Tema desconhecido.");
     next.themeId = patch.themeId;
+  }
+  if ("botPace" in patch) {
+    if (typeof patch.botPace !== "string" || !Object.hasOwn(BOT_PACES, patch.botPace)) {
+      throw new RoomError("Ritmo dos robôs inválido.");
+    }
+    next.botPace = patch.botPace as BotPace;
   }
   if ("credit" in patch) {
     if (typeof patch.credit !== "boolean") throw new RoomError("Opção de empréstimo inválida.");

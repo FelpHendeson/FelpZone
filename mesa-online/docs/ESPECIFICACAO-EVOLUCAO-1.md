@@ -259,7 +259,7 @@ Ordem:
 
 - `room.options.turnTimeout`: `null | 60 | 120 | 300` segundos (padrão 120).
 - **Disparo:** na consulta, se é a vez de uma **pessoa** e `agora − room.updatedAt ≥ turnTimeout`, ela entra em `room.away` e um evento `away` é emitido.
-- **Enquanto ausente:** o assento joga como o robô Conservador, com o mesmo ritmo dos robôs (uma jogada por consulta, 900 ms entre elas). Nas vezes seguintes, o piloto já assume sem esperar o prazo de novo.
+- **Enquanto ausente:** o assento joga como o robô Conservador, com o mesmo ritmo dos robôs (uma jogada por consulta, no ritmo escolhido no lobby: 1 s, 2,5 s ou 4 s entre elas). Nas vezes seguintes, o piloto já assume sem esperar o prazo de novo.
 - **Volta:** qualquer comando de jogo da pessoa a tira de `away` e emite `back`. A mesa mostra "Voltar a jogar" para ela.
 - **Dívida no piloto automático:** o piloto age como o Conservador: vende, hipoteca e só declara falência quando não há outra saída. É regra anunciada no lobby.
 - Chat também conta como atividade (atualiza `updatedAt`). Quem está conversando não é considerado ausente.
@@ -388,3 +388,7 @@ Tudo das seções 3 a 9 foi implementado. Diferenças em relação ao texto acim
 - **Simulação de empréstimos:** seção 13.1 de `docs/ROBOS.md`.
 
 **Ainda não validado:** Safari de um iPhone real (hifenização, áreas seguras e som), Android real, leitor de tela e uma partida completa com a família. Essa partida é a próxima etapa recomendada.
+
+### 12.1 Ajuste depois da entrega: ritmo dos robôs
+
+A pedido de Felipe, as jogadas automáticas passaram de 900 ms para **2,5 s** entre uma ação e outra. O anfitrião pode trocar no lobby, em "Ritmo dos robôs": rápido (1 s), normal (2,5 s) ou lento (4 s). A escolha fica em `room.options.botPace` e vale também para o piloto automático. Medido no navegador: 2,5–2,6 s entre ações dos robôs. Com a consulta a cada 1 s do celular, o intervalo real fica entre 2,5 e 3,5 s.
