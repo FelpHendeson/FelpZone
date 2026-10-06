@@ -6,6 +6,7 @@ import {
   type IndexedCombat,
   type RoundEvent,
 } from '../../modules/combat';
+import { cueForEvent, cueForPose, type AudioCue, type IndexedAudio } from '../../modules/audio';
 import { poseForAction } from '../silhouettes';
 
 /**
@@ -94,4 +95,17 @@ export function buildStageFrames(
 /** Forma da silhueta de um combatente: a declarada no pack ou figura humana (Despertos, Ecos, rivais). */
 export function shapeOf(combat: IndexedCombat, combatantId: string): CombatantShape {
   return combat.combatantById.get(combatantId)?.shape ?? 'humanoid';
+}
+
+/** Sons do quadro: o da pose de quem age e, num acerto, o impacto; esquiva, erro e combo têm som próprio. */
+export function frameCues(audio: IndexedAudio, frame: StageFrame): AudioCue[] {
+  const cues: (AudioCue | undefined)[] =
+    frame.effect === 'strike'
+      ? [cueForPose(audio, frame.pose), frame.damage > 0 ? cueForEvent(audio, 'hit') : undefined]
+      : frame.effect === 'self' || frame.effect === 'move'
+        ? [cueForPose(audio, frame.pose)]
+        : frame.effect === 'skip'
+          ? []
+          : [cueForEvent(audio, frame.effect)];
+  return [...new Set(cues.filter((cue): cue is AudioCue => cue !== undefined))];
 }

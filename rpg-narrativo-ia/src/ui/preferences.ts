@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { readSoundLevel, writeSoundLevel, type SoundChannel, type SoundLevel } from './audio';
 import { readClockFormat, writeClockFormat, type ClockFormat } from './clock';
 
 /** Quanto o Sistema-tutor intervém. Preferência do aparelho, nunca do save. */
@@ -28,11 +29,17 @@ export interface Preferences {
   guidanceLevel: GuidanceLevel;
   setClockFormat: (format: ClockFormat) => void;
   setGuidanceLevel: (level: GuidanceLevel) => void;
+  sound: Record<SoundChannel, SoundLevel>;
+  setSoundLevel: (channel: SoundChannel, level: SoundLevel) => void;
 }
 
 export function usePreferences(): Preferences {
   const [clockFormat, setFormat] = useState<ClockFormat>(readClockFormat);
   const [guidanceLevel, setLevel] = useState<GuidanceLevel>(readGuidanceLevel);
+  const [soundLevels, setSoundLevels] = useState<Record<SoundChannel, SoundLevel>>(() => ({
+    ambience: readSoundLevel('ambience'),
+    effects: readSoundLevel('effects'),
+  }));
   return {
     clockFormat,
     guidanceLevel,
@@ -43,6 +50,11 @@ export function usePreferences(): Preferences {
     setGuidanceLevel: (level) => {
       writeGuidanceLevel(level);
       setLevel(level);
+    },
+    sound: soundLevels,
+    setSoundLevel: (channel, level) => {
+      writeSoundLevel(channel, level);
+      setSoundLevels((current) => ({ ...current, [channel]: level }));
     },
   };
 }

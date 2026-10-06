@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { playEventCue } from '../audio';
 import type { SystemAnnouncement } from '../system-window';
 import { ImagePlaceholder } from './ImagePlaceholder';
 import { SystemCorners } from './Icon';
@@ -22,7 +23,10 @@ export function SystemWindow({ announcements, onClose }: { announcements: System
   useEffect(() => {
     const node = dialogRef.current;
     if (!node) return;
-    if (open && !node.open) node.showModal();
+    if (open && !node.open) {
+      node.showModal();
+      playEventCue('system');
+    }
     if (!open && node.open) node.close();
   }, [open]);
 

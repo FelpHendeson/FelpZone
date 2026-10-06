@@ -20,7 +20,9 @@ import { INITIAL_EXECUTION, type IndexedExecution } from '../../modules/executio
 import type { CompanionOrderView } from '../../modules/party';
 import { Silhouette, type SilhouetteProp } from '../components/Silhouette';
 import { RoundStage, type StageFigure } from '../combat/RoundStage';
-import { buildStageFrames, shapeOf } from '../combat/stage';
+import { buildStageFrames, frameCues, shapeOf } from '../combat/stage';
+import { INITIAL_AUDIO } from '../../modules/audio';
+import { playEventCue, sound } from '../audio';
 import { poseForAction } from '../silhouettes';
 
 /** Como o oponente decide a rodada: IA por regras (encontros e Ecos) ou outra pessoa no mesmo aparelho. */
@@ -165,6 +167,17 @@ export function CombatScreen({
     tint: opponentTint,
     ...(index === 0 && opponentProp ? { prop: opponentProp } : {}),
   }));
+
+  // Som do quadro que acabou de aparecer e do fim do confronto.
+  useEffect(() => {
+    if (!frame) return;
+    for (const cue of frameCues(INITIAL_AUDIO, frame)) sound.play(cue);
+  }, [frame?.index, phase]); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!finished) return;
+    if (state.outcome === 'victory') playEventCue('victory');
+    else if (state.outcome === 'defeat') playEventCue('defeat');
+  }, [finished, state.outcome]);
 
   function changeSpeed(next: 1 | 2) {
     setSpeed(next);

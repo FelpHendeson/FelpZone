@@ -1,4 +1,5 @@
 import { Fragment, useEffect, useRef, useState, type ReactNode } from 'react';
+import { playEventCue } from '../audio';
 import type { ScriptLine } from '../../core/events';
 import { SystemCorners } from './Icon';
 import { Portrait } from './Portrait';
@@ -57,6 +58,12 @@ export function ScriptStage({ lines, playerName, speakers, interpolate, onComple
     }, delay);
     return () => window.clearInterval(timer);
   }, [current, currentText, delay]);
+
+  useEffect(() => {
+    // Virar a fala soa como página; a janela do Sistema, com o sinal dele.
+    if (index === 0 || finished) return;
+    playEventCue(lines[index]?.kind === 'system' && lines[index - 1]?.kind !== 'system' ? 'system' : 'page');
+  }, [index]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // A primeira linha não rola: a cena (imagem) abre o evento.

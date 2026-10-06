@@ -171,6 +171,8 @@ export function ExplorationScreen({
     window.scrollTo(0, 0);
   }, [activeView]);
 
+  const weather = weatherFor(INITIAL_WEATHER, state.rng.seed, state.world.day, context.calendar);
+
   const markNames = {
     location: (id: string) => context.map.locations.get(id)?.name ?? id,
     creature: (id: string) => combat.combatantById.get(id)?.name ?? id,
@@ -346,7 +348,7 @@ export function ExplorationScreen({
         portrait={state.character.portrait}
         archetypeId={state.character.archetypeId}
         rankTitle={status.archetype.title}
-        weather={weatherFor(INITIAL_WEATHER, state.rng.seed, state.world.day, context.calendar)}
+        weather={weather}
         onExit={onExit}
       />
 
@@ -408,6 +410,8 @@ export function ExplorationScreen({
               guidanceLevel={preferences.guidanceLevel}
               onClockFormat={preferences.setClockFormat}
               onGuidanceLevel={preferences.setGuidanceLevel}
+              sound={preferences.sound}
+              onSoundLevel={preferences.setSoundLevel}
               onReplayTour={() => {
                 setActiveView('world');
                 setTourOpen(true);

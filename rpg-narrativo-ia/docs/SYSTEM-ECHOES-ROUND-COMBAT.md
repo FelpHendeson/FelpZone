@@ -477,3 +477,46 @@ Durante a reprodução, uma faixa acima da linha do tempo mostra o grupo do joga
   - Nada é decidido no palco.
 - **Forma é dado:** cada combatente pode declarar `shape` (`humanoid`, `beast`, `bird`, `serpent`, `boar`) em `system/combat.json`. Uma forma desconhecida invalida o pack. Sem `shape`, a figura é humana.
 - **Acessibilidade:** o palco é `aria-hidden`; o texto da linha do tempo, logo abaixo, continua sendo o registro lido por leitores de tela.
+
+## 14. Som ambiente e de combate
+
+**Decisão:** nona proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 9). Como a origem dos sons (CC0 ou IA) ainda não foi escolhida, todos os sons são **sintetizados pelo jogo** com Web Audio. Não há arquivo para baixar, o jogo continua offline e não há licença a registrar. Gravações podem substituir a síntese depois sem mudar o pack.
+
+### Ambiente
+
+O pack `system/audio.json` define as camadas:
+
+| Momento | Camadas |
+| --- | --- |
+| Madrugada | vento baixo e corujas |
+| Alvorecer | poucos pássaros e folhas |
+| Manhã | pássaros e folhas |
+| Meio-dia e tarde | insetos, folhas ou brisa |
+| Entardecer | grilos e brisa |
+| Noite | grilos e vento |
+| Nascente e margem | + água correndo |
+| Caverna | rumor grave e gotejamento com eco (substitui o lado de fora) |
+| Chuvoso / Ventania | + chuva / + rajadas |
+
+- As camadas entram e saem com transição suave quando o período, o local ou o clima mudam.
+- O ambiente toca durante a história e a exploração; na tela inicial e na criação, silêncio.
+- Com a aba oculta, o som é suspenso.
+
+### Efeitos
+
+- **Combate:** cada quadro do palco da rodada soa pela pose de quem age (corte, estocada, flecha, conjuração, guarda, esquiva, passo, cura). Um acerto soma o impacto. Esquiva, erro, interrupção e combo têm som próprio, e o fim do confronto toca vitória ou derrota.
+- **Sistema:** a janela do Sistema toca o "ding".
+- **História:** virar a fala da visual novel soa como página; uma janela do Sistema na cena, como o "ding".
+
+### Controles
+
+- Em **Configurações → Som**, volume de ambiente e de efeitos separados (Mudo, Baixo, Médio, Alto).
+- O padrão é ambiente baixo e efeitos médios.
+- Os volumes valem só para o aparelho (`reset.sound.ambience`, `reset.sound.effects`).
+- Nada toca antes do primeiro toque ou tecla, como os navegadores exigem.
+
+### Regras
+
+- **Som não é regra:** `src/modules/audio` só lê o pack (camadas válidas, períodos completos, poses e acontecimentos conhecidos); `src/ui/audio` sintetiza. Nada disso entra no save.
+- **Sem Web Audio:** em testes ou em navegador antigo, tudo vira silêncio, sem erro.
+- **Créditos:** se um dia entrarem arquivos de som, a origem de cada um vai em [`AUDIO-CREDITS.md`](AUDIO-CREDITS.md).

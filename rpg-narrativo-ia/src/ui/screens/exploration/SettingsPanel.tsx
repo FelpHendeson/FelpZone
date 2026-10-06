@@ -1,3 +1,4 @@
+import { sound as soundEngine, type SoundChannel, type SoundLevel } from '../../audio';
 import type { ClockFormat } from '../../clock';
 import type { GuidanceLevel } from '../../preferences';
 import { DetailScreen } from './shared';
@@ -32,11 +33,20 @@ export function Choice<T extends string>({
   );
 }
 
+const SOUND_OPTIONS: Array<{ id: SoundLevel; label: string; hint: string }> = [
+  { id: 'off', label: 'Mudo', hint: '0%' },
+  { id: 'low', label: 'Baixo', hint: '25%' },
+  { id: 'mid', label: 'Médio', hint: '55%' },
+  { id: 'high', label: 'Alto', hint: '90%' },
+];
+
 export function SettingsPanel({
   clockFormat,
   guidanceLevel,
   onClockFormat,
   onGuidanceLevel,
+  sound,
+  onSoundLevel,
   onReplayTour,
   onBack,
 }: {
@@ -44,6 +54,8 @@ export function SettingsPanel({
   guidanceLevel: GuidanceLevel;
   onClockFormat: (format: ClockFormat) => void;
   onGuidanceLevel: (level: GuidanceLevel) => void;
+  sound: Record<SoundChannel, SoundLevel>;
+  onSoundLevel: (channel: SoundChannel, level: SoundLevel) => void;
   onReplayTour: () => void;
   onBack: () => void;
 }) {
@@ -61,6 +73,33 @@ export function SettingsPanel({
             { id: '12h', label: '12 horas', hint: '7:00 AM, 7:00 PM' },
           ]}
         />
+      </section>
+      <section className="settings-section" aria-labelledby="settings-sound">
+        <h2 id="settings-sound">Som</h2>
+        <p className="settings-section__hint">
+          Sons gerados pelo próprio jogo, sem arquivos: funcionam offline. Só começam depois do primeiro toque na tela.
+        </p>
+        {(
+          [
+            ['ambience', 'Ambiente', 'Natureza conforme a hora, o local e o clima'],
+            ['effects', 'Efeitos', 'Golpes, Sistema e páginas da história'],
+          ] as const
+        ).map(([channel, label, hint]) => (
+          <div key={channel} className="settings-sound">
+            <h3>
+              {label} <small>{hint}</small>
+            </h3>
+            <Choice
+              name={`Volume: ${label}`}
+              value={sound[channel]}
+              onChange={(level) => {
+                onSoundLevel(channel, level);
+                if (channel === 'effects') soundEngine.play('system');
+              }}
+              options={SOUND_OPTIONS}
+            />
+          </div>
+        ))}
       </section>
       <section className="settings-section" aria-labelledby="settings-guidance">
         <h2 id="settings-guidance">Orientação do Sistema</h2>

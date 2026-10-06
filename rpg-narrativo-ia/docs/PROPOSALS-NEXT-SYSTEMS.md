@@ -10,6 +10,7 @@
 - **Item 6:** implementado; veja a seção 11 do mesmo documento.
 - **Item 7:** implementado; veja a seção 12 do mesmo documento.
 - **Item 8:** implementado; veja a seção 13 do mesmo documento.
+- **Item 9:** implementado; veja a seção 14 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -358,6 +359,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 9. Som ambiente e de combate
+
+**Implementado.** Os sons são sintetizados pelo próprio jogo (Web Audio), sem arquivos: a decisão entre CC0 e IA fica para quando quiser trocar por gravações. Começa com ambiente baixo e efeitos médios, só depois do primeiro toque.
 
 **O que é:** ambiente sonoro que muda com a hora do dia e sons curtos nas ações. É o que mais aumenta a imersão, com pouco código.
 

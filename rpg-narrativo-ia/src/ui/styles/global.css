@@ -7070,3 +7070,29 @@ span.portrait-avatar {
     animation: none !important;
   }
 }
+
+.settings-section__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.settings-sound {
+  display: grid;
+  gap: 6px;
+}
+
+.settings-sound h3 {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.settings-sound h3 small {
+  display: block;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.settings-sound .settings-choice {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 4.6rem), 1fr));
+}

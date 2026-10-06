@@ -26,6 +26,9 @@ import { commitSandboxAction, resolveWorldNarrativeState } from './sandbox';
 import { mergeFeedback, type FeedbackEntry, type WorldFeedbackView } from './sandbox/feedback';
 import { SystemWindow } from './components/SystemWindow';
 import { pulse } from './haptics';
+import { sound, useAmbience } from './audio';
+import { INITIAL_AUDIO, ambienceFor } from '../modules/audio';
+import { INITIAL_WEATHER, weatherFor } from '../modules/weather';
 import {
   diffSystemSnapshots,
   hapticPattern,
@@ -98,6 +101,17 @@ export function App() {
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<WorldFeedbackView | null>(null);
   const [actionPending, setActionPending] = useState(false);
+  useEffect(() => sound.install(), []);
+  // O ambiente acompanha a partida (história e exploração); fora dela, silêncio.
+  useAmbience(
+    state && (screen === 'game' || screen === 'exploration')
+      ? ambienceFor(INITIAL_AUDIO, {
+          period: state.world.period,
+          locationId: state.sandbox.navigation.currentLocationId,
+          weatherId: weatherFor(INITIAL_WEATHER, state.rng.seed, state.world.day, sandboxContext.calendar).id,
+        })
+      : [],
+  );
   const [announcements, setAnnouncements] = useState<SystemAnnouncement[]>([]);
   const actionLock = useRef(false);
   const actionUnlockTimer = useRef<number | null>(null);

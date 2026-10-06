@@ -1,0 +1,52 @@
+{
+  "version": 1,
+  "ambience": {
+    "periods": {
+      "madrugada": ["night-wind"],
+      "alvorecer": ["dawn-birds", "leaves"],
+      "manha": ["birds", "leaves"],
+      "meio-dia": ["insects", "leaves"],
+      "tarde": ["insects", "breeze"],
+      "entardecer": ["crickets", "breeze"],
+      "noite": ["crickets", "night-wind"]
+    },
+    "locations": {
+      "spring-lake": { "beds": ["water"] },
+      "rocky-bank": { "beds": ["water"] },
+      "hidden-cave": { "beds": ["cave"], "replacesOutdoor": true }
+    },
+    "weather": {
+      "rain": ["rain"],
+      "wind": ["gusts"]
+    }
+  },
+  "cues": {
+    "poses": {
+      "strike": "hit",
+      "slash": "slash",
+      "stab": "stab",
+      "shoot": "shoot",
+      "cast": "cast",
+      "guard": "guard",
+      "dodge": "dodge",
+      "advance": "step",
+      "retreat": "step",
+      "lunge": "slash",
+      "throw": "shoot",
+      "feint": "dodge",
+      "heal": "heal"
+    },
+    "events": {
+      "hit": "hit",
+      "miss": "miss",
+      "evade": "dodge",
+      "interrupt": "interrupt",
+      "combo": "combo",
+      "out-of-range": "miss",
+      "victory": "victory",
+      "defeat": "defeat",
+      "system": "system",
+      "page": "page"
+    }
+  }
+}
