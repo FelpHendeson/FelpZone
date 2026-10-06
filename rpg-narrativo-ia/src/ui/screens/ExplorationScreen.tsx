@@ -22,6 +22,7 @@ import { BestiaryPanel } from './exploration/BestiaryPanel';
 import { CombatScreen } from './CombatScreen';
 import { EchoesPanel, type EchoDuelMode } from './exploration/EchoesPanel';
 import { EchoAllyChooser } from './exploration/EchoAllyChooser';
+import { TournamentScreen } from './exploration/TournamentScreen';
 import { MarksExchange, MarksSection } from './exploration/MarksSection';
 import type { MarksState } from '../../modules/marks';
 import {
@@ -146,6 +147,7 @@ export function ExplorationScreen({
   // Eco aliado escolhido para o confronto: undefined = ainda não decidido; null = lutar sozinho.
   const [echoAllyChoice, setEchoAllyChoice] = useState<string | null | undefined>(undefined);
   const [pendingThanksCode, setPendingThanksCode] = useState<string | null>(null);
+  const [tournamentOpen, setTournamentOpen] = useState(false);
   const currentLocationId = state.sandbox.navigation.currentLocationId;
   const revealedDiscoveryIds =
     state.sandbox.exploration.locations.find((location) => location.locationId === currentLocationId)
@@ -183,6 +185,18 @@ export function ExplorationScreen({
     },
     echoStyle,
   );
+
+  if (tournamentOpen) {
+    return (
+      <TournamentScreen
+        combat={combat}
+        conditions={context.conditions}
+        execution={context.execution}
+        mySeal={mySeal}
+        onBack={() => setTournamentOpen(false)}
+      />
+    );
+  }
 
   if (duel) {
     const hotSeat = duel.mode === 'hot-seat';
@@ -454,6 +468,7 @@ export function ExplorationScreen({
               pendingThanksCode={pendingThanksCode}
               onUpdateEchoes={onUpdateEchoes}
               day={state.world.day}
+              onTournament={() => setTournamentOpen(true)}
               extra={
                 onUpdateMarks ? (
                   <MarksExchange

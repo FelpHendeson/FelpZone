@@ -8,6 +8,7 @@
 - **Item 4:** implementado; veja a seção 9 do mesmo documento.
 - **Item 5:** implementado; veja a seção 10 do mesmo documento.
 - **Item 6:** implementado; veja a seção 11 do mesmo documento.
+- **Item 7:** implementado; veja a seção 12 do mesmo documento.
 - **Demais itens:** pendentes.
 
 Cada proposta traz:
@@ -286,6 +287,8 @@ Todas seguem as regras do AGENTS:
 ---
 
 ## 7. Torneio na mesma tela
+
+**Implementado.** Aprendizes criados na hora também podem participar.
 
 **O que é:** de 4 a 8 pessoas num aparelho só, em chave eliminatória, usando o duelo na mesma tela que já existe. Bom para jogar com amigos ao vivo.
 

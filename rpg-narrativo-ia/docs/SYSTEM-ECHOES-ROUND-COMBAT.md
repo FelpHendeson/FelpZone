@@ -418,3 +418,29 @@ O pack é validado: uma frase com alvo precisa ter `{alvo}`, uma frase sem alvo 
 ### Texto que quebrava no meio das palavras
 
 Várias regras de CSS usavam `overflow-wrap: anywhere`, que quebra palavras em qualquer letra (por exemplo, "Pessoa s e criatur as" nos atalhos do local). Todas passaram a usar `overflow-wrap: break-word` com `hyphens: auto`: agora a palavra só quebra quando não cabe na linha, e com hífen.
+
+## 12. Torneio na mesma tela
+
+**Decisão:** sétima proposta da lista ([Propostas](PROPOSALS-NEXT-SYSTEMS.md), item 7). Como recomendado, também entram aprendizes criados na hora, para quem não tem partida salva.
+
+### Fluxo (Ecos → Montar torneio)
+
+1. **Participantes:** de 4 a 8. O Selo de quem está jogando entra primeiro e pode ser tirado. Há duas formas de acrescentar alguém:
+   - colar o **Selo** de outro Desperto;
+   - criar um **aprendiz na hora**, com nome e arquétipo, só a técnica do arquétipo e as ações básicas.
+
+   Não entram repetidos.
+2. **Chave:** "Sortear a chave" embaralha os participantes por uma semente. Com 4, a chave vai direto à semifinal; com 5 a 8, começa nas quartas, e as folgas avançam direto.
+3. **Duelos:** cada confronto é o duelo na mesma tela que já existe.
+   - O primeiro da dupla monta a rodada, e o aparelho passa para o outro.
+   - As sequências ficam ocultas até os dois declararem pronto.
+   - A vitalidade é igual para os dois (30), em campo neutro.
+   - Os combos valem, e o Iniciado tem 6 tempos.
+   - Vitória leva o primeiro à próxima fase; derrota ou desistência leva o segundo.
+4. **Campeão:** mostra a silhueta do vencedor e o **registro do torneio** (quem venceu quem em cada fase, com um código de conferência), que pode ser copiado ou compartilhado.
+
+### Regras
+
+- **Módulo:** `src/modules/echoes/tournament.ts` é puro (chave, avanço, campeão, registro e conferência do rascunho).
+- **Rascunho no aparelho:** um torneio em andamento fica salvo neste aparelho (`reset.tournament.draft`) e pode ser retomado ou descartado. O rascunho é conferido antes de abrir e é apagado quando há campeão.
+- **Sem efeito na partida:** nada do torneio entra no save da partida.

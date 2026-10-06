@@ -6775,3 +6775,91 @@ span.portrait-avatar {
   color: var(--text);
   font: inherit;
 }
+
+/* Torneio na mesma tela. */
+.tournament-people {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+
+.tournament-people li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.tournament-people span {
+  display: grid;
+}
+
+.tournament-people small {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+}
+
+.tournament-next,
+.tournament-champion {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  padding: 16px;
+  border: 1px solid var(--accent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+  text-align: center;
+}
+
+.tournament-next strong,
+.tournament-champion strong {
+  font-family: var(--font-story);
+  font-size: 1.2rem;
+}
+
+.tournament-bracket {
+  display: grid;
+  gap: 12px;
+  margin: 14px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tournament-bracket > li > ul {
+  display: grid;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tournament-match {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  font-size: 0.85rem;
+}
+
+.tournament-match span:last-child {
+  text-align: right;
+}
+
+.tournament-match small {
+  color: var(--text-muted);
+}
+
+.tournament-match .is-winner {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.tournament-match--next {
+  border-color: var(--accent);
+}

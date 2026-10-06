@@ -543,3 +543,5 @@ function nonEmpty(value: unknown): value is string {
 function fail(reason: string): { ok: false; reason: string } {
   return { ok: false, reason };
 }
+
+export * from './tournament';

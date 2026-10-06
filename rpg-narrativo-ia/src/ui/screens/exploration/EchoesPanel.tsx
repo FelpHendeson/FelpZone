@@ -35,6 +35,8 @@ interface EchoesPanelProps {
   day?: number;
   /** Seções extras de troca entre jogadores (marcas). */
   extra?: ReactNode;
+  /** Abre o torneio na mesma tela. */
+  onTournament?: () => void;
   onStyle: (style: CombatStyle) => void;
   onDuel: (rival: EchoSeal, mode: EchoDuelMode) => void;
   onRecord: (record: Omit<EchoDuelRecord, 'day'>, resultId?: string) => void;
@@ -51,6 +53,7 @@ export function EchoesPanel({
   onUpdateEchoes,
   day = 1,
   extra,
+  onTournament,
   onStyle,
   onDuel,
   onRecord,
@@ -208,6 +211,16 @@ export function EchoesPanel({
           </div>
         ) : null}
       </section>
+
+      {onTournament ? (
+        <section className="echo-card" aria-labelledby="echo-tournament">
+          <h2 id="echo-tournament">Torneio na mesma tela</h2>
+          <p className="echo-hint">De 4 a 8 Despertos num aparelho só, em chave eliminatória. Quem não tem partida salva entra como aprendiz criado na hora.</p>
+          <button type="button" className="button" onClick={onTournament}>
+            Montar torneio
+          </button>
+        </section>
+      ) : null}
 
       <section className="echo-card" aria-labelledby="echo-circle">
         <h2 id="echo-circle">Círculo de Ecos</h2>
