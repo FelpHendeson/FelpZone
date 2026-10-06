@@ -93,6 +93,10 @@ Consumo estimado: com 4 pessoas jogando, cada uma consulta a sala cerca de uma v
 
 Primeira versão jogável e publicada na Vercel (projeto `felp-zone`, com Upstash Redis conectado). O Magnata está completo para partidas casuais, com 26 testes automatizados, e foi validado ponta a ponta com dois navegadores simulando iPhones.
 
+## Robôs
+
+A especificação de quatro robôs que jogam o Magnata entre si até alguém vencer está em [`docs/ROBOS.md`](docs/ROBOS.md). Ela cobre as mudanças no motor (ações legais, limite de turnos e vitória por patrimônio), as quatro estratégias, o torneio em memória e o executor via HTTP.
+
 ## Próximos passos
 
 1. Jogar uma partida real com a família e anotar o que confundiu ou travou.
