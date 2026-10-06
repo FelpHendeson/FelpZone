@@ -2,7 +2,7 @@
 // sem as variáveis de ambiente, cai para memória — suficiente para `npm run dev`.
 
 import { Redis } from "@upstash/redis";
-import type { Room } from "@/rooms/room";
+import { awaitingBot, type Room } from "@/rooms/room";
 
 export interface StoredRoom {
   room: Room;
@@ -10,10 +10,17 @@ export interface StoredRoom {
   tokens: Record<string, string>;
 }
 
+/** Resumo barato da sala, lido em toda consulta periódica. */
+export interface RoomMeta {
+  version: number;
+  /** A vez é de um robô: a consulta precisa ler a sala para fazê-lo jogar. */
+  botTurn: boolean;
+}
+
 export interface RoomStore {
   readonly kind: "memory" | "redis";
   read(code: string): Promise<StoredRoom | null>;
-  readVersion(code: string): Promise<number | null>;
+  readMeta(code: string): Promise<RoomMeta | null>;
   /** Cria a sala somente se o código estiver livre. */
   create(stored: StoredRoom): Promise<boolean>;
   /** Substitui a sala somente se ninguém a alterou desde `expectedVersion`. */
@@ -39,9 +46,9 @@ export function createMemoryStore(): RoomStore {
       const entry = live(code);
       return entry ? (JSON.parse(entry.json) as StoredRoom) : null;
     },
-    async readVersion(code) {
+    async readMeta(code) {
       const entry = live(code);
-      return entry ? (JSON.parse(entry.json) as StoredRoom).room.version : null;
+      return entry ? metaOf((JSON.parse(entry.json) as StoredRoom).room) : null;
     },
     async create(stored) {
       if (live(stored.room.code)) return false;
@@ -64,7 +71,8 @@ redis.call('SET', KEYS[2], ARGV[2], 'EX', ARGV[3])
 return 1`;
 
 const REPLACE_SCRIPT = `
-if redis.call('GET', KEYS[2]) ~= ARGV[1] then return 0 end
+local current = redis.call('GET', KEYS[2])
+if not current or string.match(current, '^%d+') ~= ARGV[1] then return 0 end
 redis.call('SET', KEYS[1], ARGV[2], 'EX', ARGV[4])
 redis.call('SET', KEYS[2], ARGV[3], 'EX', ARGV[4])
 return 1`;
@@ -77,14 +85,14 @@ export function createRedisStore(redis: Redis): RoomStore {
       const json = await redis.get<string>(keys(code)[0]);
       return json ? (JSON.parse(json) as StoredRoom) : null;
     },
-    async readVersion(code) {
-      const version = await redis.get<string>(keys(code)[1]);
-      return version ? Number(version) : null;
+    async readMeta(code) {
+      const meta = await redis.get<string>(keys(code)[1]);
+      return meta ? parseMeta(meta) : null;
     },
     async create(stored) {
       const result = await redis.eval(CREATE_SCRIPT, keys(stored.room.code), [
         JSON.stringify(stored),
-        String(stored.room.version),
+        encodeMeta(stored.room),
         String(ROOM_TTL_SECONDS),
       ]);
       return Number(result) === 1;
@@ -93,12 +101,27 @@ export function createRedisStore(redis: Redis): RoomStore {
       const result = await redis.eval(REPLACE_SCRIPT, keys(stored.room.code), [
         String(expectedVersion),
         JSON.stringify(stored),
-        String(stored.room.version),
+        encodeMeta(stored.room),
         String(ROOM_TTL_SECONDS),
       ]);
       return Number(result) === 1;
     },
   };
+}
+
+function metaOf(room: Room): RoomMeta {
+  return { version: room.version, botTurn: awaitingBot(room) !== null };
+}
+
+/** Grava "versão" ou "versão:b" na chave curta da sala. */
+function encodeMeta(room: Room): string {
+  const meta = metaOf(room);
+  return meta.botTurn ? `${meta.version}:b` : String(meta.version);
+}
+
+function parseMeta(value: string): RoomMeta {
+  const [version, flag] = value.split(":");
+  return { version: Number(version), botTurn: flag === "b" };
 }
 
 const globalForStore = globalThis as typeof globalThis & { __mesaRoomStore?: RoomStore };

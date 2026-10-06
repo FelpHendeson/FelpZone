@@ -106,7 +106,8 @@ export function mortgageValue(tile: OwnableTile): number {
 
 /** Valor para quitar a hipoteca: valor hipotecado + 10% de juros. */
 export function unmortgageCost(tile: OwnableTile): number {
-  return Math.ceil(mortgageValue(tile) * 1.1);
+  // Aritmética inteira: 200 * 1.1 em ponto flutuante dá 220.00000000000003.
+  return Math.ceil((mortgageValue(tile) * 11) / 10);
 }
 
 export function groupTiles(group: ColorGroup): number[] {

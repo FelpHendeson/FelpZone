@@ -2,6 +2,21 @@
 
 Quatro robôs jogam uma partida de Magnata entre si até que um deles vença. A especificação define o que construir, em que ordem e como verificar. O motor atual (`src/games/magnata/engine.ts`) é a fonte de verdade das regras: os robôs **nunca** reimplementam regra, apenas escolhem entre ações que o motor aceita.
 
+## Estado da implementação
+
+| Parte | Estado | Onde |
+| --- | --- | --- |
+| `legalActions`, `netWorth`, `turnLimit`, `endReason` (seção 4) | ✅ feito | `src/games/magnata/engine.ts` |
+| Contrato do robô (seção 5) | ✅ feito | `src/bots/types.ts` |
+| Investidor, Conservador e Colecionador (seção 6) | ✅ feito, num esqueleto comum | `src/bots/profile.ts`, `src/bots/strategies.ts` |
+| Ação de segurança e validação contra `legal` | ✅ feito (`botAction`, `safeAction`) | `src/bots/strategies.ts` |
+| Robôs na mesa humana (seção 13) | ✅ feito | `src/rooms/room.ts`, `src/server/rooms.ts`, lobby |
+| Robô Aleatório (6.4) | ⏳ a fazer | — |
+| `runMatch` e torneio (seções 7 e 8) | ⏳ a fazer | — |
+| Executor via HTTP (seção 9) | ⏳ a fazer | — |
+
+Medição com as estratégias implementadas: em 300 partidas de 4 robôs com limite de 60 rodadas (240 turnos), o **Investidor venceu 43%**, o **Colecionador 34%** e o **Conservador 23%**. Só 54 das 300 terminaram por falência; as demais foram decididas por patrimônio. Os testes em `src/bots/bots.test.ts` verificam `legalActions` contra o motor, as invariantes da seção 4.3 e zero ações ilegais.
+
 ## 1. Objetivos
 
 1. **Jogar sozinho:** 4 robôs completam uma partida sem intervenção humana e sempre terminam com um vencedor.
@@ -97,7 +112,7 @@ patrimônio = dinheiro
 
 Desempate: maior dinheiro em caixa e, em seguida, quem joga primeiro na ordem da mesa.
 
-**Exposição na sala:** `POST /api/rooms` aceita `options.turnLimit` opcional (inteiro de 40 a 2000, validado no servidor) e o repassa a `createMagnataGame` em `runCommand("start")`. A interface humana pode ganhar esse campo depois; para os robôs basta a API. Sugestão de padrão para robôs: **400 turnos** (100 rodadas com 4 jogadores).
+**Exposição na sala (implementado):** o anfitrião escolhe a duração no lobby com o comando `{ kind: "set-options", roundLimit }`, em que `roundLimit` é `null` (até alguém falir), `30`, `60` ou `100` rodadas. Ao iniciar, o servidor converte para `turnLimit = roundLimit × jogadores`.
 
 ### 4.3 Testes do motor
 
@@ -245,7 +260,7 @@ npm run bots:http -- --url http://localhost:3000 --atraso 500 --limite 200
 
 Fluxo:
 
-1. O robô 1 chama `POST /api/rooms` com `{ name, gameId: "magnata", options: { turnLimit } }` e guarda `{ code, playerId, token }`.
+1. O robô 1 chama `POST /api/rooms` com `{ name, gameId: "magnata" }`, guarda `{ code, playerId, token }` e envia `{ kind: "set-options", roundLimit }`.
 2. Os robôs 2 a 4 chamam `POST /api/rooms/{code}/join` com `{ name }`.
 3. O script imprime `Assista em: {url}/sala/{code}`. Quem abrir esse link entra como espectador, porque não tem assento.
 4. O robô 1 envia `POST /api/rooms/{code}/commands` com `{ kind: "start" }` e o cabeçalho `x-player-token`.
@@ -281,7 +296,7 @@ Cada fatia termina com `npm test`, `npm run lint` e `npm run typecheck` verdes e
 
 1. **Fatia R1 — Motor:**
    - `legalActions`, `netWorth`, `turnLimit`, `endReason` e os testes da seção 4.3;
-   - `options.turnLimit` em `POST /api/rooms` e em `runCommand("start")`, com teste no `rooms.test.ts`.
+   - duração da sala (`set-options`) repassada a `createMagnataGame` em `runCommand("start")`, com teste no `rooms.test.ts`.
 2. **Fatia R2 — Contrato e Aleatório:** `types.ts`, PRNG, `runMatch` e o robô Aleatório. Testes: determinismo, zero ações ilegais em 500 partidas, toda partida termina com vencedor.
 3. **Fatia R3 — Estratégias:** Investidor, Conservador e Colecionador, com testes unitários de decisão em estados montados à mão, por exemplo:
    - o Colecionador compra a rua que completa a cor mesmo com pouco caixa;
@@ -304,4 +319,20 @@ Cada fatia termina com `npm test`, `npm run lint` e `npm run typecheck` verdes e
 
 - **Limite padrão nas salas humanas:** os dados da seção 2 sugerem oferecer "partida curta (100 rodadas)" no lobby. Fica para depois dos robôs.
 - **Leilão e trocas:** devem aumentar muito a taxa de partidas que terminam por falência. Quando entrarem no motor, rodar o torneio de novo e atualizar a tabela da seção 2 serve como medida do efeito.
-- **Robôs completando mesa humana:** permitir que o anfitrião adicione um robô ao lobby é o passo natural depois da Fatia R5, mas exige executar robôs no servidor e não está especificado aqui.
+- **Nível de dificuldade:** hoje o estilo é a única escolha. Um "fácil" poderia ser o Aleatório com compra a 50%.
+
+## 13. Robôs na mesa humana (implementado)
+
+O anfitrião pode completar a mesa com robôs para jogar sozinho ou com menos gente.
+
+- **Lobby:** o anfitrião escolhe o estilo e toca em **+ Robô**, e pode remover robôs antes de começar. Os robôs ganham nome ("Robô Investidor", "Robô Investidor 2"…) e cor livre. O assento de robô é um `RoomPlayer` com `bot: BotKind` e não tem token.
+- **Atalho:** "Jogar sozinho contra 3 robôs" na tela inicial cria a sala, adiciona um robô de cada estilo, define 60 rodadas e começa.
+- **Comandos novos** (só o anfitrião, só no lobby): `add-bot { strategy }`, `remove-bot { playerId }` e `set-options { roundLimit }`.
+- **Quem faz o robô jogar:** a Vercel não mantém processos rodando, então são as consultas periódicas (`GET /api/rooms/{code}`) que fazem o robô jogar.
+  - Quando é a vez de um robô e já passaram 900 ms (`BOT_DELAY_MS`) desde a última alteração, a consulta aplica **uma** jogada dele e grava com a mesma escrita otimista por versão. Se duas consultas tentarem ao mesmo tempo, só uma vence e a outra devolve o estado novo.
+  - Quando a jogada seguinte do robô seria apenas passar a vez, ela vai junto, para economizar uma espera.
+- **Consulta barata:** a chave curta da sala no Redis guarda `versão` ou `versão:b`. O `:b` indica que a vez é de um robô; só nesse caso a consulta lê a sala inteira mesmo sem mudança de versão.
+- **Sem ninguém olhando, ninguém joga:** se todas as pessoas fecharem a página, os robôs param e retomam quando alguém voltar à sala.
+- **Saída do anfitrião:** o comando passa para outra pessoa, nunca para um robô. Uma sala só com robôs não pode ficar sem humano no lobby.
+
+Ritmo medido no navegador: com 1 pessoa e 3 robôs, uma rodada completa leva cerca de 8 s.

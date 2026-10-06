@@ -68,7 +68,14 @@ export interface MagnataState {
   log: LogEntry[];
   logSeq: number;
   turnNumber: number;
+  /** Turno após o qual a partida acaba e vence o maior patrimônio; `null` = sem limite. */
+  turnLimit: number | null;
   winnerId: string | null;
+  endReason: "bankruptcy" | "turn-limit" | null;
+}
+
+export interface MagnataOptions {
+  turnLimit?: number | null;
 }
 
 export type MagnataAction =
@@ -109,6 +116,7 @@ const MAX_LOG = 60;
 export function createMagnataGame(
   seats: { id: string; name: string; color: string }[],
   rng: Rng,
+  options: MagnataOptions = {},
 ): MagnataState {
   if (seats.length < 2 || seats.length > 6) {
     throw new GameRuleError("O Magnata precisa de 2 a 6 jogadores.");
@@ -143,7 +151,9 @@ export function createMagnataGame(
     log: [],
     logSeq: 0,
     turnNumber: 1,
+    turnLimit: options.turnLimit ?? null,
     winnerId: null,
+    endReason: null,
   };
   log(state, `Partida iniciada. ${players[0].name} começa.`);
   return state;
@@ -202,6 +212,55 @@ export function rentFor(state: MagnataState, tileIndex: number, diceTotal: numbe
     return UTILITY_MULTIPLIER[owned.length - 1] * diceTotal;
   }
   return 0;
+}
+
+/** Dinheiro + valor das propriedades (hipotecadas descontam a quitação) + construções. */
+export function netWorth(state: MagnataState, playerId: string): number {
+  const player = getPlayer(state, playerId);
+  if (player.bankrupt) return 0;
+  let total = player.cash;
+  for (const [index, property] of Object.entries(state.properties)) {
+    if (property.owner !== playerId) continue;
+    const tile = BOARD[Number(index)] as OwnableTile;
+    total += property.mortgaged ? tile.price - unmortgageCost(tile) : tile.price;
+    if (tile.kind === "street") total += property.houses * tile.houseCost;
+  }
+  return total;
+}
+
+/** Todas as ações que o motor aceitaria agora deste jogador. */
+export function legalActions(state: MagnataState, playerId: string): MagnataAction[] {
+  const player = state.players.find((candidate) => candidate.id === playerId);
+  if (!player || player.bankrupt || state.phase === "finished") return [];
+  const actions: MagnataAction[] = [];
+  if (state.currentPlayerId === playerId) {
+    switch (state.phase) {
+      case "roll":
+        actions.push({ type: "roll" });
+        if (player.inJail && player.cash >= JAIL_FINE) actions.push({ type: "pay-jail-fine" });
+        if (player.inJail && player.jailCards.length > 0) actions.push({ type: "use-jail-card" });
+        break;
+      case "buy":
+        if (player.cash >= (BOARD[player.position] as OwnableTile).price) actions.push({ type: "buy" });
+        actions.push({ type: "decline" });
+        break;
+      case "debt":
+        if (state.debt && player.cash >= state.debt.amount) actions.push({ type: "pay-debt" });
+        actions.push({ type: "declare-bankruptcy" });
+        break;
+      case "end":
+        actions.push({ type: "end-turn" });
+        break;
+    }
+    for (const index of Object.keys(state.properties).map(Number)) {
+      if (state.properties[index].owner !== playerId) continue;
+      for (const type of TILE_ACTIONS) {
+        if (tileActionError(state, playerId, { type, tile: index }) === null) actions.push({ type, tile: index });
+      }
+    }
+  }
+  actions.push({ type: "resign" });
+  return actions;
 }
 
 /** Fases em que o jogador da vez pode vender construções e hipotecar. */
@@ -628,6 +687,7 @@ function goBankrupt(state: MagnataState, player: MagnataPlayer, creditorId: stri
   const remaining = activePlayers(state);
   if (remaining.length === 1) {
     state.winnerId = remaining[0].id;
+    state.endReason = "bankruptcy";
     state.phase = "finished";
     state.debt = null;
     log(state, `${remaining[0].name} venceu a partida!`);
@@ -651,7 +711,23 @@ function advanceTurn(state: MagnataState) {
   state.doublesCount = 0;
   state.lastCard = null;
   state.turnNumber += 1;
+  if (state.turnLimit && state.turnNumber > state.turnLimit) {
+    finishByNetWorth(state);
+    return;
+  }
   log(state, `Vez de ${getPlayer(state, state.currentPlayerId).name}.`);
+}
+
+function finishByNetWorth(state: MagnataState) {
+  // Desempate: patrimônio, depois dinheiro, depois a ordem da mesa.
+  const [winner] = activePlayers(state)
+    .map((player, order) => ({ player, order, worth: netWorth(state, player.id) }))
+    .sort((a, b) => b.worth - a.worth || b.player.cash - a.player.cash || a.order - b.order);
+  state.winnerId = winner.player.id;
+  state.endReason = "turn-limit";
+  state.phase = "finished";
+  state.turnNumber -= 1;
+  log(state, `Limite de turnos atingido. ${winner.player.name} vence com patrimônio de ${money(winner.worth)}!`);
 }
 
 // ---------------------------------------------------------------------------

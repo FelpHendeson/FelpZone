@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createMemoryStore, type RoomStore } from "./store";
+import { botAction } from "@/bots/strategies";
 import { createRoomFor, joinRoomAs, readRoom, runRoomCommand } from "./rooms";
 
 async function roomWithTwo(store: RoomStore) {
@@ -94,5 +95,81 @@ describe("salas", () => {
     const lobby = await runRoomCommand(code, host.token, { kind: "rematch" }, store);
     expect(lobby.status).toBe("lobby");
     expect(lobby.game).toBeNull();
+  });
+});
+
+describe("robôs na mesa", () => {
+  it("anfitrião adiciona, remove e configura antes de começar", async () => {
+    const store = createMemoryStore();
+    const host = await createRoomFor({ name: "Ana" }, store);
+    const code = host.room.code;
+    await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
+    let room = await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
+    expect(room.players.map((p) => p.name)).toEqual(["Ana", "Robô Investidor", "Robô Investidor 2"]);
+    expect(new Set(room.players.map((p) => p.color)).size).toBe(3);
+
+    room = await runRoomCommand(code, host.token, { kind: "remove-bot", playerId: room.players[1].id }, store);
+    expect(room.players).toHaveLength(2);
+    await expect(runRoomCommand(code, host.token, { kind: "add-bot", strategy: "hacker" }, store)).rejects.toThrow("desconhecido");
+    await expect(runRoomCommand(code, host.token, { kind: "remove-bot", playerId: host.playerId }, store)).rejects.toThrow();
+    await expect(runRoomCommand(code, host.token, { kind: "set-options", roundLimit: 7 }, store)).rejects.toThrow("Duração");
+
+    const guest = await joinRoomAs(code, { name: "Bia" }, store);
+    await expect(runRoomCommand(code, guest.token, { kind: "add-bot", strategy: "conservador" }, store)).rejects.toThrow("Só quem criou");
+
+    room = await runRoomCommand(code, host.token, { kind: "set-options", roundLimit: 30 }, store);
+    expect(room.options.roundLimit).toBe(30);
+    room = await runRoomCommand(code, host.token, { kind: "start" }, store);
+    expect(room.game!.turnLimit).toBe(90);
+  });
+
+  it("anfitrião sai e o comando passa para uma pessoa, nunca para um robô", async () => {
+    const store = createMemoryStore();
+    const host = await createRoomFor({ name: "Ana" }, store);
+    await runRoomCommand(host.room.code, host.token, { kind: "add-bot", strategy: "colecionador" }, store);
+    await expect(runRoomCommand(host.room.code, host.token, { kind: "leave" }, store)).rejects.toThrow("última pessoa");
+  });
+
+  it("partida solo anda sozinha pelas consultas até ter vencedor", async () => {
+    const store = createMemoryStore();
+    const host = await createRoomFor({ name: "Ana" }, store);
+    const code = host.room.code;
+    for (const strategy of ["investidor", "conservador", "colecionador"]) {
+      await runRoomCommand(code, host.token, { kind: "add-bot", strategy }, store);
+    }
+    await runRoomCommand(code, host.token, { kind: "set-options", roundLimit: 30 }, store);
+    let room = await runRoomCommand(code, host.token, { kind: "start" }, store);
+
+    // Sem espera entre jogadas; consulta não faz nada se for a vez da pessoa.
+    let steps = 0;
+    while (room.status === "playing" && steps < 5000) {
+      const game = room.game!;
+      if (game.currentPlayerId === host.playerId) {
+        const action = botAction("investidor", game, host.playerId, Math.random);
+        room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
+      } else {
+        room = (await readRoom(code, null, store, 0))!;
+      }
+      steps += 1;
+    }
+    expect(room.status).toBe("finished");
+    expect(room.game!.winnerId).not.toBeNull();
+    expect(room.game!.turnNumber).toBeLessThanOrEqual(120);
+  });
+
+  it("respeita a pausa entre jogadas e avisa o cliente pela versão", async () => {
+    const store = createMemoryStore();
+    const host = await createRoomFor({ name: "Ana" }, store);
+    const code = host.room.code;
+    await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
+    let room = await runRoomCommand(code, host.token, { kind: "start" }, store);
+    // Joga a vez da pessoa até chegar a vez do robô.
+    while (room.game!.currentPlayerId === host.playerId) {
+      const action = botAction("conservador", room.game!, host.playerId, Math.random);
+      room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
+    }
+    expect(await readRoom(code, room.version, store, 60_000)).toBeNull();
+    const moved = await readRoom(code, room.version, store, 0);
+    expect(moved!.version).toBeGreaterThan(room.version);
   });
 });

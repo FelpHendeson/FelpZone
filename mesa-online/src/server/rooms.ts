@@ -9,7 +9,9 @@ import {
   joinRoom,
   normalizeName,
   parseRoomCommand,
+  awaitingBot,
   runCommand,
+  stepBot,
   type Room,
 } from "@/rooms/room";
 import { getRoomStore, type RoomStore, type StoredRoom } from "./store";
@@ -17,6 +19,8 @@ import { getRoomStore, type RoomStore, type StoredRoom } from "./store";
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
 const CODE_LENGTH = 5;
 const MAX_WRITE_ATTEMPTS = 6;
+/** Pausa entre jogadas de robô, para quem está na mesa conseguir acompanhar. */
+export const BOT_DELAY_MS = 900;
 
 export interface Seat {
   playerId: string;
@@ -63,20 +67,31 @@ export async function joinRoomAs(
   return { ...seat, room };
 }
 
-/** Devolve a sala, ou `null` quando o cliente já tem a versão atual. */
+/**
+ * Devolve a sala, ou `null` quando o cliente já tem a versão atual. Como a
+ * Vercel não mantém processos rodando, é a consulta periódica de quem está na
+ * mesa que faz os robôs jogarem, uma jogada por vez.
+ */
 export async function readRoom(
   rawCode: string,
   knownVersion: number | null,
   store: RoomStore = getRoomStore(),
+  botDelayMs = BOT_DELAY_MS,
 ): Promise<Room | null> {
   const code = normalizeCode(rawCode);
   if (knownVersion !== null) {
-    const version = await store.readVersion(code);
-    if (version === null) throw new RoomError("Sala não encontrada.", 404);
-    if (version === knownVersion) return null;
+    const meta = await store.readMeta(code);
+    if (!meta) throw new RoomError("Sala não encontrada.", 404);
+    if (meta.version === knownVersion && !meta.botTurn) return null;
   }
-  const stored = await store.read(code);
+  let stored = await store.read(code);
   if (!stored) throw new RoomError("Sala não encontrada.", 404);
+  if (awaitingBot(stored.room) && Date.now() - stored.room.updatedAt >= botDelayMs) {
+    const next = { ...stored, room: stepBot(stored.room, secureRng, Date.now()) };
+    // Se outra consulta já moveu o robô, basta devolver o estado mais novo.
+    stored = (await store.replace(next, stored.room.version)) ? next : ((await store.read(code)) ?? stored);
+  }
+  if (knownVersion !== null && stored.room.version === knownVersion) return null;
   return stored.room;
 }
 

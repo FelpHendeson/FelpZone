@@ -708,3 +708,44 @@ input:focus {
     grid-column: 1;
   }
 }
+
+/* ---------- Robôs e opções do lobby ---------- */
+
+select {
+  flex: 1;
+  min-width: 0;
+  font: inherit;
+  font-size: 16px;
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.inline-field {
+  margin: 14px 0 0;
+}
+
+.link-button {
+  margin-left: auto;
+  border: 0;
+  background: none;
+  color: var(--danger);
+  font: inherit;
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.turn-counter {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.hint {
+  flex-basis: 100%;
+  font-size: 0.85rem;
+  font-weight: 400;
+}

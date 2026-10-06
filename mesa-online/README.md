@@ -15,7 +15,8 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
 ## O que já funciona
 
 - **Hub:** criar sala, entrar por código ou link e compartilhar o convite pelo menu nativo do celular.
-- **Lobby:** lista de jogadores com cores, anfitrião que inicia a partida (2 a 6 pessoas) e chat.
+- **Lobby:** lista de jogadores com cores, anfitrião que inicia a partida (2 a 6 participantes), chat e escolha de duração (até alguém falir, ou 30/60/100 rodadas com vitória por patrimônio).
+- **Robôs:** o anfitrião completa a mesa com robôs de três estilos (Investidor, Conservador, Colecionador). "Jogar sozinho contra 3 robôs", na tela inicial, monta e inicia a partida num toque.
 - **Magnata:**
   - dados, duplas (três seguidas levam à prisão) e salário de $200 ao passar pela Partida;
   - compra de ruas, estações e companhias;
@@ -91,11 +92,11 @@ Consumo estimado: com 4 pessoas jogando, cada uma consulta a sala cerca de uma v
 
 ## Estado atual
 
-Primeira versão jogável e publicada na Vercel (projeto `felp-zone`, com Upstash Redis conectado). O Magnata está completo para partidas casuais, com 26 testes automatizados, e foi validado ponta a ponta com dois navegadores simulando iPhones.
+Primeira versão jogável e publicada na Vercel (projeto `felp-zone`, com Upstash Redis conectado). O Magnata está completo para partidas casuais, com robôs para jogar sozinho e 36 testes automatizados, e foi validado ponta a ponta com dois navegadores simulando iPhones.
 
 ## Robôs
 
-A especificação de quatro robôs que jogam o Magnata entre si até alguém vencer está em [`docs/ROBOS.md`](docs/ROBOS.md). Ela cobre as mudanças no motor (ações legais, limite de turnos e vitória por patrimônio), as quatro estratégias, o torneio em memória e o executor via HTTP.
+Os robôs já jogam na mesa com pessoas (estratégias em `src/bots/`). Eles jogam quando os aparelhos na sala consultam o servidor, uma jogada a cada ~1 s, sem processo extra nem custo. A especificação completa, incluindo o que ainda falta (torneio em memória e robôs via HTTP), está em [`docs/ROBOS.md`](docs/ROBOS.md).
 
 ## Próximos passos
 

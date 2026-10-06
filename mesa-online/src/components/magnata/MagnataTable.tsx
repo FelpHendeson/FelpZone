@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { BOARD, GROUP_COLORS, JAIL_FINE, type OwnableTile } from "@/games/magnata/board";
-import { money, type MagnataPlayer, type MagnataState } from "@/games/magnata/engine";
+import { money, netWorth, type MagnataPlayer, type MagnataState } from "@/games/magnata/engine";
 import type { Room, RoomPlayer } from "@/rooms/room";
 import { Chat } from "../Chat";
 import type { Send } from "../RoomScreen";
@@ -46,7 +46,7 @@ export function MagnataTable({ room, me, send, pending }: Props) {
       </nav>
 
       <section className="card">
-        {tab === "jogadores" && <Players game={game} myId={me?.id ?? null} />}
+        {tab === "jogadores" && <Players game={game} room={room} myId={me?.id ?? null} />}
         {tab === "propriedades" &&
           (mine ? (
             <MyProperties game={game} player={mine} send={send} pending={pending} onSelect={setSelected} />
@@ -113,6 +113,11 @@ function TurnPanel({
     return (
       <section className="card turn-card finished">
         <p className="turn-title">🏆 {winner?.name ?? "Alguém"} venceu!</p>
+        {game.endReason === "turn-limit" && winner && (
+          <p className="muted">
+            Acabaram as rodadas: venceu o maior patrimônio ({money(netWorth(game, winner.id))}).
+          </p>
+        )}
         {isHost ? (
           <button className="button primary block" disabled={pending} onClick={() => send({ kind: "rematch" })}>
             Jogar de novo
@@ -126,6 +131,12 @@ function TurnPanel({
 
   const myTurn = mine?.id === current.id;
   const tile = BOARD[current.position];
+  const isBot = room.players.some((player) => player.id === current.id && player.bot);
+  const counter = game.turnLimit ? (
+    <p className="turn-counter muted">
+      Turno {game.turnNumber} de {game.turnLimit}
+    </p>
+  ) : null;
 
   if (!myTurn) {
     return (
@@ -133,8 +144,9 @@ function TurnPanel({
         <p className="turn-title">
           <span className="token" style={{ background: current.color }} /> Vez de {current.name}
         </p>
-        <p className="muted">{waitingHint(game, current)}</p>
-        {mine && <p className="cash">Seu saldo: {money(mine.cash)}</p>}
+        <p className="muted">{isBot ? "🤖 Pensando… " : ""}{waitingHint(game, current)}</p>
+        {mine && !mine.bankrupt && <p className="cash">Seu saldo: {money(mine.cash)}</p>}
+        {counter}
       </section>
     );
   }
@@ -222,6 +234,7 @@ function TurnPanel({
           Passar a vez
         </button>
       )}
+      {counter}
     </section>
   );
 }
@@ -239,7 +252,8 @@ function waitingHint(game: MagnataState, current: MagnataPlayer): string {
   }
 }
 
-function Players({ game, myId }: { game: MagnataState; myId: string | null }) {
+function Players({ game, room, myId }: { game: MagnataState; room: Room; myId: string | null }) {
+  const bots = new Set(room.players.filter((player) => player.bot).map((player) => player.id));
   return (
     <ul className="player-list">
       {game.players.map((player) => {
@@ -248,6 +262,7 @@ function Players({ game, myId }: { game: MagnataState; myId: string | null }) {
           <li key={player.id} className={player.bankrupt ? "out" : undefined}>
             <span className="token" style={{ background: player.color }} />
             <span>
+              {bots.has(player.id) && "🤖 "}
               {player.name}
               {player.id === myId && <span className="badge subtle">você</span>}
               {player.id === game.currentPlayerId && game.phase !== "finished" && <span className="badge">vez</span>}

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useSyncExternalStore, type FormEvent } from "react";
-import { createRoom, joinRoom } from "@/client/api";
+import { createRoom, joinRoom, sendCommand } from "@/client/api";
 import { rememberName, rememberedName, saveSeat } from "@/client/seats";
 import { GAMES } from "@/games/registry";
 
@@ -36,6 +36,20 @@ export function Home() {
   function onCreate(event: FormEvent) {
     event.preventDefault();
     run(() => createRoom(name));
+  }
+
+  /** Cria a sala com três robôs de estilos diferentes e já começa. */
+  function onSolo() {
+    run(async () => {
+      const created = await createRoom(name);
+      const { code } = created.room;
+      for (const strategy of ["investidor", "conservador", "colecionador"]) {
+        await sendCommand(code, created.token, { kind: "add-bot", strategy });
+      }
+      await sendCommand(code, created.token, { kind: "set-options", roundLimit: 60 });
+      await sendCommand(code, created.token, { kind: "start" });
+      return created;
+    });
   }
 
   function onJoin(event: FormEvent) {
@@ -82,6 +96,9 @@ export function Home() {
             Criar sala de {game.name}
           </button>
         </form>
+        <button className="button block" type="button" disabled={busy || !name.trim()} onClick={onSolo}>
+          🤖 Jogar sozinho contra 3 robôs
+        </button>
 
         <div className="divider">
           <span>ou entre com um código</span>
