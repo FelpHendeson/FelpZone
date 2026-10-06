@@ -2,6 +2,8 @@
 
 Hub de jogos de tabuleiro para jogar com família e amigos pelo navegador do celular, sem cadastro e sem instalar nada. Quem cria a sala recebe um código de 5 letras; os outros entram com esse código ou pelo link compartilhado.
 
+**Versão publicada:** [felp-zone.vercel.app](https://felp-zone.vercel.app/)
+
 O primeiro jogo é o **Magnata**, um jogo de compra e venda de imóveis no estilo dos clássicos de banco imobiliário, com tabuleiro, nomes e cartas próprios.
 
 ## Problema e hipótese
@@ -89,11 +91,11 @@ Consumo estimado: com 4 pessoas jogando, cada uma consulta a sala cerca de uma v
 
 ## Estado atual
 
-Primeira versão jogável. O Magnata está completo para partidas casuais, com 26 testes automatizados, e foi validado ponta a ponta com dois navegadores simulando iPhones.
+Primeira versão jogável e publicada na Vercel (projeto `felp-zone`, com Upstash Redis conectado). O Magnata está completo para partidas casuais, com 26 testes automatizados, e foi validado ponta a ponta com dois navegadores simulando iPhones.
 
 ## Próximos passos
 
-1. Publicar na Vercel com o Upstash e jogar uma partida real com a família.
+1. Jogar uma partida real com a família e anotar o que confundiu ou travou.
 2. Trocas de propriedades entre jogadores (é o que mais muda a estratégia).
 3. Leilão quando alguém recusa a compra.
 4. Tempo máximo por jogada e ação do anfitrião para pular ou remover jogadores ausentes.

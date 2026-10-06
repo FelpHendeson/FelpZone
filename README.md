@@ -86,11 +86,11 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Laboratório ativo com dois projetos: o RPG, em protótipo jogável e publicado, e o Mesa Online, um hub de jogos de tabuleiro em primeira versão jogável. Os Sistemas 1 a 13 do RPG estão implementados e consolidados. Os Sistemas 14 a 17 estão especificados, nesta ordem: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
+Laboratório ativo com dois projetos: o RPG, em protótipo jogável e publicado, e o Mesa Online, um hub de jogos de tabuleiro em primeira versão jogável e publicada. Os Sistemas 1 a 13 do RPG estão implementados e consolidados. Os Sistemas 14 a 17 estão especificados, nesta ordem: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
 
 ## Ideias
 
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
 | [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistemas 1–13 completos; 14–17 especificados | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, jornadas, presenças, progressão do Sistema, combate por turnos e evolução planejada até um mundo vivo. |
-| [Mesa Online](mesa-online/README.md) | Primeira versão jogável; aguardando publicação | Hub de jogos de tabuleiro multijogador pelo navegador do celular, com salas por código e chat. Primeiro jogo: Magnata, de compra e venda de imóveis. |
+| [Mesa Online](mesa-online/README.md) | Primeira versão jogável e publicada | Hub de jogos de tabuleiro multijogador pelo navegador do celular, com salas por código e chat. Primeiro jogo: Magnata, de compra e venda de imóveis. |
