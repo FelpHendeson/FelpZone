@@ -1,0 +1,17 @@
+---
+description: Arquitetura e limites do hub de jogos de tabuleiro Mesa Online
+globs: mesa-online/**
+alwaysApply: false
+---
+
+# Mesa Online
+
+- Leia `mesa-online/README.md` e `mesa-online/AGENTS.md` antes de implementar; o Next.js 16 difere do que modelos antigos conhecem.
+- Regras de jogo ficam em TypeScript puro em `src/games/<jogo>/`, sem React, HTTP ou armazenamento.
+- O servidor é a autoridade: dados e sorteios acontecem no servidor e toda ação passa pelo motor.
+- Rotas em `src/app/api` são finas; casos de uso ficam em `src/server`.
+- Nunca exponha tokens de jogadores no estado público da sala.
+- Mantenha custo zero: Vercel Hobby + Upstash gratuito; nada de serviços pagos ou WebSocket dedicado.
+- Interface mobile-first, testada em largura de iPhone; campos com 16px para evitar zoom no Safari.
+- Use nomes e arte próprios; não copie marcas de jogos comerciais.
+- Teste regras, turnos, dívidas e concorrência das salas.

@@ -49,3 +49,41 @@ jobs:
 
       - name: Build PWA
         run: npm run build
+
+  mesa-online:
+    name: Mesa Online — test, lint, types and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: mesa-online
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: mesa-online/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      # O lint do Next traz um alerta sem correção (braces/micromatch) só em
+      # dependências de desenvolvimento; o que vai para produção é auditado.
+      - name: Audit production dependencies
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Run tests
+        run: npm test
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Check types
+        run: npm run typecheck
+
+      - name: Build
+        run: npm run build
