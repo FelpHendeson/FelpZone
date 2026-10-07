@@ -30,6 +30,10 @@ export function HowToPlay() {
           máximo $1.000; devolve +20% em 8 turnos seus.
         </li>
       </ul>
+      <p>
+        <strong>Câmera:</strong> 🎯 Vez acompanha quem está jogando; 🙋 Eu foca no seu peão; ✋ Livre deixa arrastar;
+        🗺️ Tudo mostra o tabuleiro inteiro. Toque num jogador na faixa de cima para focar nele.
+      </p>
       <p className="muted">Toque em qualquer casa do tabuleiro para ver preço, aluguel e dono.</p>
     </div>
   );

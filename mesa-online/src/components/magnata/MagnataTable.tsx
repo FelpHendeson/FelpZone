@@ -1,6 +1,9 @@
 "use client";
 
-import { useId, useRef, useState, type KeyboardEvent } from "react";
+import { useCallback, useId, useRef, useState, type KeyboardEvent } from "react";
+import type { Prefs } from "@/client/profile";
+import { useBeats } from "@/client/useBeats";
+import { prefersReducedMotion, useSteppedPositions } from "@/client/useSteppedPositions";
 import { BOARD, GROUP_COLORS, JAIL_FINE, isOwnable, type OwnableTile } from "@/games/magnata/board";
 import { describeEvent, tileKindLabel } from "@/games/magnata/describe";
 import {
@@ -19,7 +22,9 @@ import type { PublicRoom } from "@/rooms/public";
 import type { RoomPlayer } from "@/rooms/room";
 import { Chat } from "../Chat";
 import type { Send } from "../RoomScreen";
-import { Board } from "./Board";
+import { BoardViewport, type CameraTarget } from "./BoardViewport";
+import { EventDialog } from "./EventDialog";
+import { PlayerStrip } from "./PlayerStrip";
 import { PropertyActions } from "./PropertyActions";
 import { TileSheet } from "./TileSheet";
 
@@ -28,6 +33,7 @@ interface Props {
   me: RoomPlayer | null;
   send: Send;
   pending: boolean;
+  prefs: Prefs;
 }
 
 type Tab = "jogadores" | "bens" | "historico" | "conversa";
@@ -38,16 +44,29 @@ const TABS: [Tab, string][] = [
   ["conversa", "Conversa"],
 ];
 
-export function MagnataTable({ room, me, send, pending }: Props) {
+export function MagnataTable({ room, me, send, pending, prefs }: Props) {
   const game = room.game!;
   const [selected, setSelected] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("jogadores");
-  const [zoomed, setZoomed] = useState(false);
+  const [camera, setCamera] = useState<CameraTarget>({ mode: prefs.camera ?? "turn" });
+  const reduceMotion = prefersReducedMotion(prefs.reducedMotion);
+  const positions = useSteppedPositions(game.players, reduceMotion);
+  const { beat, waiting, next, skipAll } = useBeats(room, me?.id ?? null, prefs);
   const tabsId = useId();
   const tabRefs = useRef(new Map<Tab, HTMLButtonElement>());
   const mine = me ? (game.players.find((player) => player.id === me.id) ?? null) : null;
   const avatars = new Map(room.players.map((player) => [player.id, player.avatar]));
   const away = me ? room.away.includes(me.id) : false;
+  const meId = me?.id ?? null;
+  const onFocusPlayer = useCallback((playerId: string) => setCamera({ mode: "player", playerId }), []);
+
+  // A decisão aparece dentro da janela quando o lance mais recente é da pessoa
+  // e ainda é a vez dela: rolar, comprar, pagar ou passar a vez sem procurar botão.
+  const myTurnNow = meId !== null && game.currentPlayerId === meId && game.phase !== "finished" && !away;
+  const decision =
+    beat && waiting === 0 && myTurnNow && (beat.actorId === meId || beat.startsTurn) ? (
+      <TurnActions game={game} send={send} pending={pending} />
+    ) : null;
 
   function onTabKey(event: KeyboardEvent) {
     if (event.key !== "ArrowRight" && event.key !== "ArrowLeft") return;
@@ -68,15 +87,25 @@ export function MagnataTable({ room, me, send, pending }: Props) {
         </div>
       )}
 
-      <div className={zoomed ? "board-wrap zoomed" : "board-wrap"}>
-        <Board game={game} avatars={avatars} onSelect={setSelected} />
-      </div>
-      <div className="board-tools">
-        <button className="link-button light" onClick={() => setZoomed((value) => !value)} aria-pressed={zoomed}>
-          {zoomed ? "🔍 Tabuleiro normal" : "🔍 Ampliar tabuleiro"}
-        </button>
-        <span className="muted light small">Os robôs jogam enquanto alguém estiver com a sala aberta.</span>
-      </div>
+      <PlayerStrip
+        room={room}
+        game={game}
+        meId={meId}
+        focusedId={camera.mode === "player" ? camera.playerId : null}
+        onFocus={onFocusPlayer}
+      />
+      <BoardViewport
+        game={game}
+        positions={positions}
+        meId={meId}
+        avatars={avatars}
+        camera={camera}
+        onCamera={setCamera}
+        narratedId={beat?.actorId ?? null}
+        reduceMotion={reduceMotion}
+        onSelect={setSelected}
+      />
+      <p className="muted light small robots-note">Os robôs jogam enquanto alguém estiver com a sala aberta.</p>
 
       <TurnPanel room={room} game={game} mine={mine} me={me} avatars={avatars} send={send} pending={pending} />
       <CurrentTile game={game} avatars={avatars} onOpen={setSelected} />
@@ -131,6 +160,19 @@ export function MagnataTable({ room, me, send, pending }: Props) {
         </button>
       )}
 
+      {beat && selected === null && (
+        <EventDialog
+          beat={beat}
+          waiting={waiting}
+          room={room}
+          game={game}
+          meId={meId}
+          decision={decision}
+          onNext={next}
+          onSkipAll={skipAll}
+        />
+      )}
+
       {selected !== null && (
         <TileSheet
           game={game}
@@ -165,7 +207,6 @@ function TurnPanel({
 }) {
   const current = game.players.find((player) => player.id === game.currentPlayerId)!;
   const theme = themeOf(game.themeId);
-  const act = (type: string) => send({ kind: "game", action: { type } });
   const counter = game.roundLimit ? (
     <p className="turn-counter muted">
       Rodada {game.round} de {game.roundLimit}
@@ -225,9 +266,6 @@ function TurnPanel({
     );
   }
 
-  const price = isOwnable(BOARD[current.position]) ? (BOARD[current.position] as OwnableTile).price : 0;
-  const canBorrow = game.credit && loanLimit(game, current.id) >= LOAN_STEP;
-
   return (
     <section className="card turn-card mine">
       <p className="turn-title">
@@ -236,13 +274,29 @@ function TurnPanel({
         </span>
         Sua vez! · {money(current.cash)}
       </p>
+      <TurnActions game={game} send={send} pending={pending} />
+      {counter}
+    </section>
+  );
+}
 
+/** Decisões da vez de quem está jogando: usadas no painel e na janela de acontecimentos. */
+export function TurnActions({ game, send, pending }: { game: MagnataView; send: Send; pending: boolean }) {
+  const current = game.players.find((player) => player.id === game.currentPlayerId)!;
+  const theme = themeOf(game.themeId);
+  const tileName = tileNameIn(theme, current.position);
+  const act = (type: string) => send({ kind: "game", action: { type } });
+  const price = isOwnable(BOARD[current.position]) ? (BOARD[current.position] as OwnableTile).price : 0;
+  const canBorrow = game.credit && loanLimit(game, current.id) >= LOAN_STEP;
+
+  return (
+    <div className="turn-actions">
       {game.phase === "roll" && (
         <>
           {current.inJail && <p>Você está na prisão (tentativa {current.jailTurns + 1} de 3).</p>}
           <div className="action-row">
             <button className="button primary" disabled={pending} onClick={() => act("roll")}>
-              {current.inJail ? "Tentar dupla" : game.rollAgain ? "Rolar de novo (dupla!)" : "Rolar dados"}
+              {current.inJail ? "Tentar dupla" : game.rollAgain ? "🎲 Rolar de novo (dupla!)" : "🎲 Rolar dados"}
             </button>
             {current.inJail && (
               <button className="button" disabled={pending || current.cash < JAIL_FINE} onClick={() => act("pay-jail-fine")}>
@@ -261,7 +315,7 @@ function TurnPanel({
       {game.phase === "buy" && (
         <>
           <p>
-            Comprar <strong>{tileName}</strong> por {money(price)}?
+            Comprar <strong>{tileName}</strong> por {money(price)}? Você tem {money(current.cash)}.
           </p>
           <div className="action-row">
             <button className="button primary" disabled={pending || current.cash < price} onClick={() => act("buy")}>
@@ -286,8 +340,8 @@ function TurnPanel({
             Você deve <strong>{money(game.debt.amount)}</strong>
             {game.debt.creditorId
               ? ` para ${game.players.find((player) => player.id === game.debt!.creditorId)?.name}`
-              : ` ao ${theme.bank.toLowerCase()}`}
-            . Venda construções ou hipoteque em “Meus bens”.
+              : ` ao ${theme.bank.toLowerCase()}`}{" "}
+            e tem {money(current.cash)}. Venda construções ou hipoteque em “Meus bens”.
           </p>
           <div className="action-row">
             <button className="button primary" disabled={pending || current.cash < game.debt.amount} onClick={() => act("pay-debt")}>
@@ -311,8 +365,7 @@ function TurnPanel({
           Passar a vez
         </button>
       )}
-      {counter}
-    </section>
+    </div>
   );
 }
 

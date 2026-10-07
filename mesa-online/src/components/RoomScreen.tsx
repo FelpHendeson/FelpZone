@@ -7,14 +7,12 @@ import { sendCommand } from "@/client/api";
 import { useProfile } from "@/client/profile";
 import { claimResumeFragment, resumeLink, useSeat } from "@/client/seats";
 import { useStorageAvailable } from "@/client/storage";
-import { useNotices } from "@/client/useNotices";
 import { useRoom } from "@/client/useRoom";
 import { themeOf } from "@/games/magnata/themes";
 import type { RoomCommand } from "@/rooms/room";
 import { HowToPlay } from "./HowToPlay";
 import { Lobby } from "./Lobby";
 import { MagnataTable } from "./magnata/MagnataTable";
-import { Notices } from "./Notices";
 import { PrefsForm } from "./PrefsForm";
 import { Sheet } from "./Sheet";
 
@@ -34,7 +32,6 @@ export function RoomScreen() {
   const [copied, setCopied] = useState<"ok" | "fail" | null>(null);
 
   const me = (seat && room?.players.find((player) => player.id === seat.playerId)) || null;
-  const { notices, dismiss } = useNotices(room, me?.id ?? null, profile.prefs);
 
   // Link de retomada: "#retomar=..." vira assento salvo e some da barra de endereço.
   useEffect(() => {
@@ -143,10 +140,9 @@ export function RoomScreen() {
       {room.status === "lobby" ? (
         <Lobby room={room} me={me} send={send} pending={pending} onJoined={applyRoom} profile={profile} />
       ) : (
-        <MagnataTable room={room} me={me} send={send} pending={pending} />
+        <MagnataTable room={room} me={me} send={send} pending={pending} prefs={profile.prefs} />
       )}
 
-      <Notices notices={notices} onDismiss={dismiss} />
 
       {menu === "menu" && (
         <Sheet title={`Sala ${room.code}`} onClose={() => setMenu(null)}>

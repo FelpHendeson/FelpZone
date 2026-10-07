@@ -27,10 +27,15 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
     - **prazo por jogada**: depois dele, o piloto automático joga por quem sumiu, até a pessoa voltar;
     - **ritmo dos robôs**: 1 s, 2,5 s (padrão) ou 4 s entre uma ação e outra;
     - **empréstimos do banco**: regra opcional, marcada como variante.
-- **Acontecimentos da mesa:**
-  - toda jogada vira um aviso para todos: compra, aluguel (com o motivo do valor), cartas, prisão, construções, hipotecas, dívidas, falências, empréstimos e ausência;
-  - avisos rápidos e cartões não bloqueiam ninguém;
+- **Janelas de acontecimento:**
+  - cada jogada é narrada numa janela: dados, para onde foi, o que aconteceu (compra, aluguel com o motivo do valor, cartas, prisão, construções, dívidas, empréstimos, ausência…) e quanto o saldo de cada um mudou;
+  - na sua vez, os botões da decisão ficam dentro da janela, e ela só bloqueia a tela nesse momento;
+  - as jogadas dos outros fecham sozinhas (com barra de tempo), com "Próximo" e "Pular para agora";
   - o histórico completo fica numa aba, e quem recarrega não recebe a fila antiga de novo.
+- **Onde cada um está:**
+  - faixa fixa com todos os jogadores, saldo e variação (+/−) a cada mudança;
+  - peões com o retrato de cada um, andando casa a casa;
+  - câmera de cada pessoa: 🎯 seguir a vez, 🙋 eu, ✋ livre ou 🗺️ tabuleiro inteiro; tocar num jogador da faixa foca nele; zoom de 1,6× a 3×.
 - **Magnata:**
   - dados, duplas (três seguidas levam à prisão) e salário de $200 ao passar pela Partida;
   - compra de ruas, estações e companhias;
@@ -43,7 +48,6 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
   - falência (os bens vão para o credor ou para o banco), desistência, vitória e revanche na mesma sala (qualquer pessoa da mesa pode pedir).
 - **No celular:**
   - cartão legível da casa onde está quem joga;
-  - modo "Ampliar tabuleiro";
   - retrato do dono em cada casa, para não depender só da cor;
   - menu ⋯ com "Continuar em outro aparelho" (link pessoal de retomada), regras e preferências (avisos, animações, som).
 - **Confiabilidade:**
@@ -68,6 +72,7 @@ src/
 │   └── magnata/             # motor puro (sem React, sem HTTP)
 │       ├── engine.ts        #   regras, rodadas, empréstimos e acontecimentos estruturados
 │       ├── describe.ts      #   acontecimento → texto, no tema da partida
+│       ├── beats.ts         #   acontecimentos → lances narrados (com mudança de saldo)
 │       └── themes.ts        #   temas visuais (nomes e cores por casa)
 ├── bots/                    # estratégias dos robôs e do piloto automático
 ├── rooms/
@@ -103,7 +108,7 @@ Decisões importantes:
   - As consultas não são limitadas, porque a família costuma compartilhar a mesma rede.
 - **Salas temporárias.** Uma sala expira depois de 48 h sem alterações.
 
-As decisões desta versão, com a análise que as motivou, estão em [`docs/ESPECIFICACAO-EVOLUCAO-1.md`](docs/ESPECIFICACAO-EVOLUCAO-1.md).
+As decisões, com a análise que as motivou, estão em [`docs/ESPECIFICACAO-EVOLUCAO-1.md`](docs/ESPECIFICACAO-EVOLUCAO-1.md) e, para as janelas de acontecimento e a câmera, em [`docs/ESPECIFICACAO-EVOLUCAO-2.md`](docs/ESPECIFICACAO-EVOLUCAO-2.md).
 
 ## Como executar
 
@@ -144,7 +149,7 @@ O plano gratuito do Upstash tem limite mensal de comandos. Confira o valor atual
 
 ## Estado atual
 
-Publicado na Vercel (projeto `felp-zone`, com Upstash Redis conectado). Inclui as correções e funções da Evolução 1, cobertas por 70 testes automatizados. Também foi validado no navegador, com aparelhos iPhone simulados:
+Publicado na Vercel (projeto `felp-zone`, com Upstash Redis conectado). Inclui as Evoluções 1 e 2, cobertas por 75 testes automatizados. Também foi validado no navegador, com aparelhos iPhone simulados:
 
 - dois aparelhos receberam os mesmos avisos, sem repetição;
 - armazenamento bloqueado;

@@ -4,12 +4,16 @@ import { useMemo } from "react";
 import { AVATARS } from "@/rooms/avatars";
 import { readValue, useStoredValue, writeValue } from "./storage";
 
+/** Como a câmera do tabuleiro se comporta para esta pessoa. */
+export type CameraMode = "turn" | "me" | "free" | "all";
+
 export interface Prefs {
   /** "all" mostra tudo; "essential" só o que envolve você. */
   notices: "all" | "essential";
   /** `null` segue a configuração do aparelho. */
   reducedMotion: boolean | null;
   sound: boolean;
+  camera: CameraMode;
 }
 
 export interface Profile {
@@ -21,7 +25,7 @@ export interface Profile {
 const PROFILE_KEY = "mesa:perfil";
 const LEGACY_NAME_KEY = "mesa:nome";
 
-export const DEFAULT_PREFS: Prefs = { notices: "all", reducedMotion: null, sound: false };
+export const DEFAULT_PREFS: Prefs = { notices: "all", reducedMotion: null, sound: false, camera: "turn" };
 
 function parseProfile(raw: string | null): Profile {
   const fallback: Profile = { name: readValue(LEGACY_NAME_KEY) ?? "", avatar: AVATARS[0], prefs: DEFAULT_PREFS };
@@ -43,7 +47,7 @@ export function useProfile(): Profile {
   return useMemo(() => parseProfile(raw), [raw]);
 }
 
-export function saveProfile(patch: Partial<Profile>) {
+export function saveProfile(patch: Partial<Omit<Profile, "prefs">> & { prefs?: Partial<Prefs> }) {
   const current = parseProfile(readValue(PROFILE_KEY));
   writeValue(PROFILE_KEY, JSON.stringify({ ...current, ...patch, prefs: { ...current.prefs, ...(patch.prefs ?? {}) } }));
 }

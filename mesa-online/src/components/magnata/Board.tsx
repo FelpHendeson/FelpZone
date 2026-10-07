@@ -8,12 +8,17 @@ import { DICE_FACES, gridPosition, tileIcon, tileLabel } from "./tiles";
 
 interface Props {
   game: MagnataView;
+  /** Casa exibida de cada peão (anda casa a casa, atrás da posição real). */
+  positions: Map<string, number>;
+  /** Jogador em foco, destacado. */
+  focusId: string | null;
+  meId: string | null;
   /** Retrato de cada jogador, para marcar o dono sem depender só da cor. */
   avatars: Map<string, string>;
   onSelect: (index: number) => void;
 }
 
-export function Board({ game, avatars, onSelect }: Props) {
+export function Board({ game, positions, focusId, meId, avatars, onSelect }: Props) {
   const theme = themeOf(game.themeId);
   const colorOf = new Map(game.players.map((player) => [player.id, player.color]));
   const current = game.players.find((player) => player.id === game.currentPlayerId);
@@ -53,16 +58,11 @@ export function Board({ game, avatars, onSelect }: Props) {
                 {ownerAvatar}
               </span>
             )}
-            {here.length > 0 && (
-              <span className="tokens">
-                {here.map((player) => (
-                  <i key={player.id} style={{ background: player.color }} />
-                ))}
-              </span>
-            )}
           </button>
         );
       })}
+
+      <Pawns game={game} positions={positions} focusId={focusId} meId={meId} avatars={avatars} />
 
       <div className="board-center">
         <p className="board-title">MAGNATA</p>
@@ -82,6 +82,54 @@ export function Board({ game, avatars, onSelect }: Props) {
           </p>
         )}
       </div>
+    </div>
+  );
+}
+
+/**
+ * Peões numa camada própria, posicionados pela casa exibida: assim eles podem
+ * andar casa a casa (transição CSS) em vez de "teleportar".
+ */
+function Pawns({
+  game,
+  positions,
+  focusId,
+  meId,
+  avatars,
+}: {
+  game: MagnataView;
+  positions: Map<string, number>;
+  focusId: string | null;
+  meId: string | null;
+  avatars: Map<string, string>;
+}) {
+  const active = game.players.filter((player) => !player.bankrupt);
+  return (
+    <div className="pawns" aria-hidden>
+      {active.map((player) => {
+        const tile = positions.get(player.id) ?? player.position;
+        const { row, col } = gridPosition(tile);
+        const sharing = active.filter((other) => (positions.get(other.id) ?? other.position) === tile);
+        const slot = sharing.findIndex((other) => other.id === player.id);
+        // Até 4 peões numa casa: um em cada canto, sem se esconderem.
+        const dx = sharing.length > 1 ? (slot % 2 === 0 ? -0.2 : 0.2) : 0;
+        const dy = sharing.length > 2 ? (slot < 2 ? -0.18 : 0.18) : sharing.length > 1 ? 0.12 : 0.12;
+        return (
+          <span
+            key={player.id}
+            className={`pawn${player.id === game.currentPlayerId ? " turn" : ""}${player.id === focusId ? " focus" : ""}${
+              player.id === meId ? " me" : ""
+            }`}
+            style={{
+              left: `${((col - 1 + 0.5 + dx) / 11) * 100}%`,
+              top: `${((row - 1 + 0.5 + dy) / 11) * 100}%`,
+              borderColor: player.color,
+            }}
+          >
+            {avatars.get(player.id)}
+          </span>
+        );
+      })}
     </div>
   );
 }

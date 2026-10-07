@@ -392,3 +392,5 @@ Tudo das seções 3 a 9 foi implementado. Diferenças em relação ao texto acim
 ### 12.1 Ajuste depois da entrega: ritmo dos robôs
 
 A pedido de Felipe, as jogadas automáticas passaram de 900 ms para **2,5 s** entre uma ação e outra. O anfitrião pode trocar no lobby, em "Ritmo dos robôs": rápido (1 s), normal (2,5 s) ou lento (4 s). A escolha fica em `room.options.botPace` e vale também para o piloto automático. Medido no navegador: 2,5–2,6 s entre ações dos robôs. Com a consulta a cada 1 s do celular, o intervalo real fica entre 2,5 e 3,5 s.
+
+> **Atualização:** os avisos rápidos e cartões da seção 5.2 foram substituídos por janelas de acontecimento na [Evolução 2](ESPECIFICACAO-EVOLUCAO-2.md), depois do retorno de quem jogou.
