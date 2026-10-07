@@ -8,6 +8,7 @@ import {
   noteEvent,
   parseMagnataAction,
   type MagnataState,
+  type MagnataView,
   type Rng,
 } from "@/games/magnata/engine";
 import { isThemeId, type ThemeId } from "@/games/magnata/themes";
@@ -56,6 +57,8 @@ export interface RoomOptions {
   credit: boolean;
   /** Ritmo das jogadas automáticas. */
   botPace: BotPace;
+  /** Regra: recusar uma compra abre leilão. */
+  auctions: boolean;
 }
 
 export interface ChatMessage {
@@ -134,6 +137,7 @@ export function createRoom(params: {
       themeId: "classico",
       credit: false,
       botPace: DEFAULT_BOT_PACE,
+      auctions: true,
     },
     game: null,
     away: [],
@@ -168,27 +172,43 @@ export const isHuman = (player: RoomPlayer) => !player.bot;
 
 type Autoplay = { kind: BotKind; playerId: string; becomesAway: boolean };
 
+/** Quem precisa agir agora: a pessoa da vez, quem falta dar lance ou quem recebeu a proposta. */
+export function actorsNeeded(game: MagnataView): string[] {
+  if (game.phase === "finished") return [];
+  if (game.phase === "auction" && game.auction) return game.auction.pending;
+  if (game.phase === "trade" && game.trade) return [game.trade.toId];
+  return [game.currentPlayerId];
+}
+
 function pendingAutoplay(room: Room, now: number): Autoplay | null {
   const game = room.game;
   if (room.status !== "playing" || !game || game.phase === "finished") return null;
-  const player = room.players.find((candidate) => candidate.id === game.currentPlayerId);
-  if (!player) return null;
   const at = nextAutoplayAt(room);
   if (at === null || now < at) return null;
-  if (player.bot) return { kind: player.bot, playerId: player.id, becomesAway: false };
-  return { kind: AUTOPILOT, playerId: player.id, becomesAway: !room.away.includes(player.id) };
+  const needed = actorsNeeded(game)
+    .map((id) => room.players.find((player) => player.id === id))
+    .filter((player): player is RoomPlayer => player !== undefined);
+  const automatic = needed.find((player) => player.bot || room.away.includes(player.id));
+  if (automatic) {
+    return { kind: automatic.bot ?? AUTOPILOT, playerId: automatic.id, becomesAway: false };
+  }
+  // Prazo estourado: o piloto automático assume a primeira pessoa que falta.
+  const late = needed[0];
+  return late ? { kind: AUTOPILOT, playerId: late.id, becomesAway: !room.away.includes(late.id) } : null;
 }
 
 /**
- * Momento a partir do qual uma consulta deve fazer a vez andar sozinha, ou
- * `null` quando é a vez de uma pessoa presente sem prazo.
+ * Momento a partir do qual uma consulta deve fazer a partida andar sozinha, ou
+ * `null` quando só falta uma pessoa presente e não há prazo.
  */
 export function nextAutoplayAt(room: Room): number | null {
   const game = room.game;
   if (room.status !== "playing" || !game || game.phase === "finished") return null;
-  const player = room.players.find((candidate) => candidate.id === game.currentPlayerId);
-  if (!player) return null;
-  if (player.bot || room.away.includes(player.id)) return room.updatedAt + botDelay(room);
+  const needed = actorsNeeded(game)
+    .map((id) => room.players.find((player) => player.id === id))
+    .filter((player): player is RoomPlayer => player !== undefined);
+  if (needed.length === 0) return null;
+  if (needed.some((player) => player.bot || room.away.includes(player.id))) return room.updatedAt + botDelay(room);
   const timeout = room.options.turnTimeout;
   return timeout ? room.updatedAt + timeout * 1000 : null;
 }
@@ -244,6 +264,7 @@ export function runCommand(room: Room, playerId: string, command: RoomCommand, r
         roundLimit: room.options.roundLimit,
         credit: room.options.credit,
         themeId: room.options.themeId,
+        auctions: room.options.auctions ?? true,
       });
       return touch({ ...room, status: "playing", game, away: [] }, now);
     }
@@ -344,6 +365,10 @@ function patchOptions(current: RoomOptions, patch: Record<string, unknown>): Roo
       throw new RoomError("Ritmo dos robôs inválido.");
     }
     next.botPace = patch.botPace as BotPace;
+  }
+  if ("auctions" in patch) {
+    if (typeof patch.auctions !== "boolean") throw new RoomError("Opção de leilão inválida.");
+    next.auctions = patch.auctions;
   }
   if ("credit" in patch) {
     if (typeof patch.credit !== "boolean") throw new RoomError("Opção de empréstimo inválida.");

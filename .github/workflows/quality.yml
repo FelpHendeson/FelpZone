@@ -51,7 +51,7 @@ jobs:
         run: npm run build
 
   mesa-online:
-    name: Mesa Online — test, lint, types and build
+    name: Mesa Online — test, lint, types, build and browser
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -87,3 +87,19 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Install browser for end-to-end tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Run browser tests
+        run: npm run e2e
+
+      - name: Keep browser test report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mesa-online-playwright-report
+          path: |
+            mesa-online/playwright-report
+            mesa-online/test-results
+          retention-days: 7

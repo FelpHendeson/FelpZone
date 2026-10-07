@@ -13,6 +13,7 @@ Quatro robôs jogam uma partida de Magnata entre si até que um deles vença. A 
 | Robôs na mesa humana (seção 13) | ✅ feito | `src/rooms/room.ts`, `src/server/rooms.ts`, lobby |
 | Piloto automático para ausentes (estilo Conservador) | ✅ feito na Evolução 1 | `stepAutoplay` em `src/rooms/room.ts` |
 | Empréstimos do banco nas estratégias | ✅ feito na Evolução 1 | `borrowToComplete` em `src/bots/profile.ts` |
+| Lances de leilão, avaliação e propostas de troca (13.2) | ✅ feito na Evolução 3 | `src/bots/trades.ts`, `src/bots/profile.ts` |
 | Robô Aleatório (6.4) | ⏳ a fazer | — |
 | `runMatch` e torneio (seções 7 e 8) | ⏳ a fazer | — |
 | Executor via HTTP (seção 9) | ⏳ a fazer | — |
@@ -348,3 +349,24 @@ Ritmo medido no navegador: com 1 pessoa e 3 robôs, uma rodada completa leva cer
   - Os robôs pegaram 13 empréstimos: 2 quitados antes e o resto cobrado no vencimento.
   - Nenhuma ação ilegal e nenhum crescimento de caixa sem limite.
 - **Piloto automático:** quando uma pessoa estoura o prazo por jogada, a sala a marca como ausente e o assento passa a jogar como o Conservador, no mesmo ritmo dos robôs, até ela tocar em "Voltar a jogar" ou fazer qualquer jogada.
+
+### 13.2 Leilões e trocas (Evolução 3)
+
+- **Lances:** cada estilo calcula quanto a casa vale para ele e dá um lance secreto com ±10% de variação, arredondado para baixo em $10, sem passar da reserva de caixa:
+  - **Investidor:** até o preço (×1,4 se completa uma cor), guardando $50;
+  - **Conservador:** até o preço só se completa uma cor, senão 60% dele, guardando $300;
+  - **Colecionador:** ×1,5 se completa ou bloqueia uma cor, ×0,9 na mesma cor que já tem, ×0,5 nas outras, guardando $100.
+- **Avaliar uma proposta:** a "força" de cada lado é a soma dos preços das propriedades (hipotecada vale metade) mais um bônus igual ao preço total de cada cor completa. O robô aceita quando `ganho próprio + dinheiro recebido − peso_rival × (ganho do rival − dinheiro pago)` passa do seu limite:
+  - Investidor: limite 0, peso do rival 0,4;
+  - Conservador: limite 30, peso 0,8 (desconfiado, não propõe);
+  - Colecionador: limite 0, peso 0,6.
+- **Propor:** Investidor e Colecionador propõem no começo ou no fim da própria vez, no máximo uma proposta a cada 4 rodadas:
+  - primeiro uma permuta em que cada um completa uma cor, com dinheiro para equilibrar;
+  - senão, oferecem dinheiro (preço + 45% do valor da cor) pela casa que falta, se sobrar a reserva.
+- **Quem age fora da vez:** `actorsNeeded` (em `rooms/room.ts`) diz quem precisa agir agora: quem ainda não deu lance, quem recebeu a proposta ou quem está na vez. O piloto automático e o prazo por jogada valem para essas pessoas também.
+- **Simulação** (300 partidas, 4 robôs, 60 rodadas, leilão ligado):
+  - partidas que terminam por falência: 35 → 167;
+  - média de rodadas: 58,3 → 51,7;
+  - cerca de 8 propostas por partida, ~30% aceitas;
+  - 1.003 leilões vencidos; nenhuma ação ilegal.
+

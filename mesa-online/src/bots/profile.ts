@@ -4,6 +4,7 @@
 
 import { BOARD, groupTiles, unmortgageCost, type OwnableTile } from "@/games/magnata/board";
 import { getPlayer, ownsWholeGroup, type MagnataAction, type MagnataView } from "@/games/magnata/engine";
+import { auctionBid, findProposal, tradeValueFor } from "./trades";
 import type { BotContext } from "./types";
 
 export interface Profile {
@@ -22,6 +23,14 @@ export interface Profile {
   mortgageOrder(ctx: BotContext, tiles: number[]): number[];
   /** Pega empréstimo (quando a regra existe) para comprar a rua que completa uma cor. */
   borrowToComplete: boolean;
+  /** Estilo usado nos lances de leilão. */
+  style: "investidor" | "conservador" | "colecionador";
+  /** Propõe trocas para completar cores? */
+  proposesTrades: boolean;
+  /** Saldo mínimo (em $) que uma proposta precisa trazer para ser aceita. */
+  tradeThreshold: number;
+  /** Quanto pesa o ganho do rival numa troca (0 = indiferente, 1 = tanto quanto o meu). */
+  rivalWeight: number;
 }
 
 /** Caixa que precisa sobrar para o robô quitar um empréstimo antes do vencimento. */
@@ -32,6 +41,16 @@ export function decideWith(profile: Profile, ctx: BotContext): MagnataAction {
   const player = getPlayer(state, me);
   const find = (type: MagnataAction["type"], tile?: number) =>
     legal.find((action) => action.type === type && (tile === undefined || ("tile" in action && action.tile === tile)));
+
+  // Leilão e trocas podem pedir ação de quem não é da vez.
+  if (state.phase === "auction" && state.auction?.pending.includes(me)) {
+    return { type: "bid", amount: auctionBid(state, me, state.auction.tile, profile.style, ctx.rng) };
+  }
+  if (state.phase === "trade" && state.trade) {
+    if (state.trade.toId !== me) return { type: "cancel-trade" };
+    const accept = find("accept-trade");
+    return accept && tradeValueFor(state, me, state.trade, profile.rivalWeight) >= profile.tradeThreshold ? accept : { type: "reject-trade" };
+  }
 
   if (state.phase === "debt") {
     const pay = find("pay-debt");
@@ -64,6 +83,11 @@ export function decideWith(profile: Profile, ctx: BotContext): MagnataAction {
 
   const repay = find("repay-loan");
   if (repay && player.loan && player.cash - player.loan.due >= REPAY_RESERVE) return repay;
+
+  if (profile.proposesTrades && state.currentPlayerId === me && (state.phase === "roll" || state.phase === "end")) {
+    const proposal = findProposal(state, me, profile.buildReserve + 100);
+    if (proposal) return { type: "propose-trade", toId: proposal.toId, give: proposal.give, get: proposal.get };
+  }
 
   const builds = tilesFor(legal, "build").filter((tile) => {
     const street = BOARD[tile] as Extract<OwnableTile, { kind: "street" }>;

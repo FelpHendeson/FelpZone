@@ -14,7 +14,14 @@ export interface Prefs {
   reducedMotion: boolean | null;
   sound: boolean;
   camera: CameraMode;
+  /** Quanto tempo as janelas de acontecimento ficam abertas sozinhas. */
+  dialogPace: DialogPace;
 }
+
+export type DialogPace = "fast" | "normal" | "slow";
+
+/** Multiplicador do tempo das janelas para cada ritmo. */
+export const DIALOG_PACES: Record<DialogPace, number> = { fast: 0.6, normal: 1, slow: 1.6 };
 
 export interface Profile {
   name: string;
@@ -25,7 +32,7 @@ export interface Profile {
 const PROFILE_KEY = "mesa:perfil";
 const LEGACY_NAME_KEY = "mesa:nome";
 
-export const DEFAULT_PREFS: Prefs = { notices: "all", reducedMotion: null, sound: false, camera: "turn" };
+export const DEFAULT_PREFS: Prefs = { notices: "all", reducedMotion: null, sound: false, camera: "turn", dialogPace: "normal" };
 
 function parseProfile(raw: string | null): Profile {
   const fallback: Profile = { name: readValue(LEGACY_NAME_KEY) ?? "", avatar: AVATARS[0], prefs: DEFAULT_PREFS };

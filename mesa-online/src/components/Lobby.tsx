@@ -198,6 +198,19 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
             </label>
 
             <label className="check">
+              <input
+                type="checkbox"
+                checked={options.auctions ?? true}
+                disabled={pending}
+                onChange={(event) => setOption({ auctions: event.target.checked })}
+              />
+              <span>
+                Leilão ao recusar uma compra
+                <span className="muted hint">Quem cai numa casa à venda e não compra abre um leilão de lances secretos para todos.</span>
+              </span>
+            </label>
+
+            <label className="check">
               <input type="checkbox" checked={options.credit} disabled={pending} onChange={(event) => setOption({ credit: event.target.checked })} />
               <span>
                 Empréstimos do banco <span className="badge subtle">variante</span>
@@ -213,6 +226,7 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
             <li>Duração: {options.roundLimit ? `${options.roundLimit} rodadas` : "até restar um jogador"}</li>
             <li>Prazo por jogada: {timeoutLabel(options.turnTimeout)}</li>
             <li>Ritmo dos robôs: {paceLabel(options.botPace ?? "normal")}</li>
+            <li>Leilão ao recusar: {(options.auctions ?? true) ? "ligado" : "desligado"}</li>
             <li>Empréstimos do banco: {options.credit ? "ligados (variante)" : "desligados"}</li>
           </ul>
         )}

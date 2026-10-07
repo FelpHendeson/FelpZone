@@ -1,5 +1,13 @@
 import { BOARD, type OwnableTile } from "@/games/magnata/board";
-import { getPlayer, legalActions, type MagnataAction, type MagnataView, type Rng } from "@/games/magnata/engine";
+import {
+  applyMagnataAction,
+  getPlayer,
+  legalActions,
+  type MagnataAction,
+  type MagnataState,
+  type MagnataView,
+  type Rng,
+} from "@/games/magnata/engine";
 import {
   blocksOpponent,
   byRentEfficiency,
@@ -25,6 +33,10 @@ const investidor: Profile = {
   leaveJailEarly: (ctx) => rounds(ctx.state) < 60,
   mortgageOrder: (ctx, tiles) => defaultMortgageOrder(ctx.state, ctx.me, tiles),
   borrowToComplete: true,
+  style: "investidor",
+  proposesTrades: true,
+  tradeThreshold: 0,
+  rivalWeight: 0.4,
 };
 
 const conservador: Profile = {
@@ -36,6 +48,10 @@ const conservador: Profile = {
   leaveJailEarly: () => false,
   mortgageOrder: (ctx, tiles) => defaultMortgageOrder(ctx.state, ctx.me, tiles),
   borrowToComplete: false,
+  style: "conservador",
+  proposesTrades: false,
+  tradeThreshold: 30,
+  rivalWeight: 0.8,
 };
 
 const colecionador: Profile = {
@@ -70,6 +86,10 @@ const colecionador: Profile = {
   leaveJailEarly: (ctx) => unownedCount(ctx.state) > 8,
   mortgageOrder: (ctx, tiles) => defaultMortgageOrder(ctx.state, ctx.me, tiles),
   borrowToComplete: true,
+  style: "colecionador",
+  proposesTrades: true,
+  tradeThreshold: 0,
+  rivalWeight: 0.6,
 };
 
 export const BOTS: Record<BotKind, BotStrategy> = {
@@ -106,11 +126,39 @@ export function isBotKind(value: unknown): value is BotKind {
 export function botAction(kind: BotKind, state: MagnataView, me: string, rng: Rng): MagnataAction {
   const legal = legalActions(state, me);
   const chosen = BOTS[kind].decide({ state, me, legal, rng });
-  if (legal.some((action) => sameAction(action, chosen)) && chosen.type !== "resign") return chosen;
+  if (chosen.type !== "resign" && accepted(state, me, chosen, legal)) return chosen;
   return safeAction(legal);
 }
 
-const SAFE_ORDER: MagnataAction["type"][] = ["pay-debt", "declare-bankruptcy", "decline", "roll", "end-turn"];
+/**
+ * O motor aceitaria esta ação? Com o estado completo (servidor), testa de
+ * verdade numa cópia; com a visão pública, confere contra as ações legais.
+ */
+function accepted(state: MagnataView, me: string, action: MagnataAction, legal: MagnataAction[]): boolean {
+  // Ações da lista legal passam direto; propostas e lances de outro valor
+  // são testados no próprio motor (que copia o estado antes de mudar).
+  if (legal.some((candidate) => sameAction(candidate, action))) return true;
+  if ("decks" in state) {
+    try {
+      applyMagnataAction(state as MagnataState, me, action, () => 0.5);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  return action.type === "bid" && legal.some((candidate) => candidate.type === "bid");
+}
+
+const SAFE_ORDER: MagnataAction["type"][] = [
+  "pay-debt",
+  "declare-bankruptcy",
+  "reject-trade",
+  "cancel-trade",
+  "bid",
+  "decline",
+  "roll",
+  "end-turn",
+];
 
 export function safeAction(legal: MagnataAction[]): MagnataAction {
   for (const type of SAFE_ORDER) {

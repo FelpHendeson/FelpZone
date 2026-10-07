@@ -250,7 +250,7 @@ describe("correções da análise", () => {
     await expect(set({ turnTimeout: 5 })).rejects.toThrow("Prazo");
     await expect(set({ credit: "sim" })).rejects.toThrow("empréstimo");
     const room = await set({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60 });
-    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60, botPace: "normal" });
+    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60, botPace: "normal", auctions: true });
     await expect(set({ botPace: "turbo" })).rejects.toThrow("Ritmo");
     expect((await set({ botPace: "slow" })).options.botPace).toBe("slow");
     await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);

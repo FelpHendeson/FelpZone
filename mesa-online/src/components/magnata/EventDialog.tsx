@@ -13,17 +13,19 @@ interface Props {
   meId: string | null;
   /** Botões de decisão quando o lance deixa a pessoa com algo a fazer. */
   decision: ReactNode | null;
+  /** Multiplicador do tempo da janela (preferência de cada pessoa). */
+  pace: number;
   onNext: () => void;
   onSkipAll: () => void;
 }
 
 /** Quanto tempo cada janela fica aberta sozinha antes de passar para a próxima. */
-function autoCloseMs(beat: Beat, waiting: number, mine: boolean): number {
+export function autoCloseMs(beat: Beat, waiting: number, mine: boolean, pace = 1): number {
   // Lance da própria pessoa já superado por uma ação dela: sai rápido.
   if (mine && waiting > 0) return 700;
-  if (waiting >= 3) return 1600;
+  if (waiting >= 3) return Math.round(1600 * pace);
   const base = mine ? 3200 : 2800;
-  return Math.min(5500, base + beat.lines.length * 450);
+  return Math.round(Math.min(5500, base + beat.lines.length * 450) * pace);
 }
 
 /**
@@ -31,7 +33,7 @@ function autoCloseMs(beat: Beat, waiting: number, mine: boolean): number {
  * dinheiro de cada um mudou. Fecha sozinha (com barra de tempo), a menos que a
  * pessoa precise decidir algo — aí os botões da decisão ficam dentro dela.
  */
-export function EventDialog({ beat, waiting, room, game, meId, decision, onNext, onSkipAll }: Props) {
+export function EventDialog({ beat, waiting, room, game, meId, decision, pace, onNext, onSkipAll }: Props) {
   const titleId = useId();
   const primary = useRef<HTMLButtonElement>(null);
   const panel = useRef<HTMLDivElement>(null);
@@ -40,7 +42,7 @@ export function EventDialog({ beat, waiting, room, game, meId, decision, onNext,
   const actor = beat.actorId ? people.get(beat.actorId) : null;
   const mine = beat.actorId !== null && beat.actorId === meId;
   const holds = decision !== null || beat.level === "result";
-  const duration = holds ? null : autoCloseMs(beat, waiting, mine);
+  const duration = holds ? null : autoCloseMs(beat, waiting, mine, pace);
 
   // Fecha sozinha depois do tempo do lance.
   useEffect(() => {

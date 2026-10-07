@@ -10,6 +10,7 @@ import {
   type MagnataAction,
   type MagnataState,
 } from "@/games/magnata/engine";
+import { actorsNeeded } from "@/rooms/room";
 import { BOTS, BOT_KINDS, botAction } from "./strategies";
 import type { BotKind } from "./types";
 
@@ -57,7 +58,10 @@ function play(kinds: BotKind[], seed: number, turnLimit: number | null, verify =
     const me = state.currentPlayerId;
     const legal = legalActions(state, me);
     const chosen = BOTS[kindOf.get(me)!].decide({ state, me, legal, rng });
-    if (!legal.some((a) => a.type === chosen.type && ("tile" in a ? a.tile : -1) === ("tile" in chosen ? chosen.tile : -1))) {
+    // Lances e propostas de troca não são enumerados em `legal`: vale o que o motor aceita.
+    try {
+      applyMagnataAction(state, me, chosen, seeded(1));
+    } catch {
       illegal += 1;
     }
     if (verify) {
@@ -148,6 +152,58 @@ describe("estratégias", () => {
     expect(BOTS.colecionador.decide(ctx)).toEqual({ type: "take-loan", amount: 200 });
     expect(BOTS.investidor.decide(ctx)).toEqual({ type: "take-loan", amount: 200 });
     expect(BOTS.conservador.decide(ctx)).toEqual({ type: "decline" });
+  });
+
+  it("com leilão e trocas, cada um age na hora certa e as partidas terminam", () => {
+    let trades = 0;
+    let auctions = 0;
+    for (let seed = 1; seed <= 15; seed += 1) {
+      const rng = seeded(seed);
+      const kinds = BOT_KINDS.concat("colecionador");
+      const kindOf = (id: string) => id.split("-")[0] as BotKind;
+      let state = createMagnataGame(kinds.map((kind, i) => ({ id: `${kind}-${i}`, name: kind, color: "#000" })), rng, {
+        roundLimit: 40,
+        auctions: true,
+      });
+      let seen = 0;
+      for (let step = 0; step < 30_000 && state.phase !== "finished"; step += 1) {
+        const me = actorsNeeded(state)[0];
+        const chosen = BOTS[kindOf(me)].decide({ state, me, legal: legalActions(state, me), rng });
+        // O que o robô escolhe tem que ser aceito pelo motor.
+        expect(() => applyMagnataAction(state, me, chosen, seeded(1))).not.toThrow();
+        state = applyMagnataAction(state, me, botAction(kindOf(me), state, me, rng), rng);
+        for (const event of state.events) {
+          if (event.seq <= seen) continue;
+          if (event.type === "trade-accepted") trades += 1;
+          if (event.type === "auction-end" && event.winnerId) auctions += 1;
+        }
+        seen = state.eventSeq;
+        checkInvariants(state);
+      }
+      expect(state.phase).toBe("finished");
+    }
+    expect(trades).toBeGreaterThan(0);
+    expect(auctions).toBeGreaterThan(0);
+  }, 120_000);
+
+  it("aceitam troca em que os dois completam uma cor e recusam entregar cor de graça", () => {
+    const state = createMagnataGame(
+      [
+        { id: "bot", name: "Bot", color: "#000" },
+        { id: "x", name: "X", color: "#000" },
+      ],
+      seeded(5),
+    );
+    // Bot tem 1 e 39; X tem 3 e 37: cada um completa uma cor com a rua do outro.
+    for (const [tile, owner] of [[1, "bot"], [39, "bot"], [3, "x"], [37, "x"]] as const) state.properties[tile].owner = owner;
+    state.currentPlayerId = "x";
+    state.phase = "trade";
+    state.trade = { fromId: "x", toId: "bot", give: { tiles: [3], cash: 0 }, get: { tiles: [39], cash: 0 }, resumePhase: "roll" };
+    const ctx = () => ({ state, me: "bot", legal: legalActions(state, "bot"), rng: seeded(1) });
+    // Troca desigual: entrega Av. Diamante (cor azul) por Beco do Sol (cor marrom).
+    expect(BOTS.conservador.decide(ctx())).toEqual({ type: "reject-trade" });
+    state.trade = { fromId: "x", toId: "bot", give: { tiles: [], cash: 10 }, get: { tiles: [39], cash: 0 }, resumePhase: "roll" };
+    for (const kind of BOT_KINDS) expect(BOTS[kind].decide(ctx())).toEqual({ type: "reject-trade" });
   });
 
   it("pagam a dívida hipotecando em vez de falir", () => {

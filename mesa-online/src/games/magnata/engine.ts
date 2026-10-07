@@ -48,7 +48,33 @@ export interface PropertyState {
   mortgaged: boolean;
 }
 
-export type Phase = "roll" | "buy" | "debt" | "end" | "finished";
+export type Phase = "roll" | "buy" | "auction" | "trade" | "debt" | "end" | "finished";
+
+/** Leilão de lance fechado: cada jogador ativo dá um lance secreto (0 = passa). */
+export interface Auction {
+  tile: number;
+  /** Lances já dados. Secretos: a visão pública troca por `{}` até o fim. */
+  bids: Record<string, number>;
+  /** Quem ainda não deu lance. */
+  pending: string[];
+}
+
+export interface TradeSide {
+  tiles: number[];
+  cash: number;
+}
+
+/** Proposta de troca feita na própria vez, aguardando a resposta de outra pessoa. */
+export interface Trade {
+  fromId: string;
+  toId: string;
+  /** O que quem propõe entrega. */
+  give: TradeSide;
+  /** O que quem propõe recebe. */
+  get: TradeSide;
+  /** Fase para onde a vez volta depois da resposta. */
+  resumePhase: "roll" | "end";
+}
 
 /** O que acontece depois que uma dívida for paga. */
 type DebtResume = { kind: "move"; steps: number } | { kind: "roll" } | null;
@@ -88,6 +114,11 @@ export type GameEventPayload =
   | { type: "loan-repaid"; playerId: string; amount: number; early: boolean }
   | { type: "loan-due"; playerId: string; amount: number }
   | { type: "away" | "back"; playerId: string }
+  | { type: "auction-start"; playerId: string; tile: number }
+  | { type: "auction-bid"; playerId: string; passed: boolean }
+  | { type: "auction-end"; playerId: string; tile: number; winnerId: string | null; amount: number; bids: { playerId: string; amount: number }[] }
+  | { type: "trade-proposed"; playerId: string; toId: string; give: TradeSide; get: TradeSide }
+  | { type: "trade-accepted" | "trade-rejected" | "trade-cancelled"; playerId: string; fromId: string; toId: string; give: TradeSide; get: TradeSide }
   | { type: "game-end"; winnerId: string; reason: EndReason; netWorth: number | null };
 
 export type GameEvent = GameEventPayload & { seq: number; round: number };
@@ -119,6 +150,10 @@ export interface MagnataState {
   themeId: string;
   winnerId: string | null;
   endReason: EndReason | null;
+  /** Regra: recusar uma compra abre leilão. */
+  auctions: boolean;
+  auction: Auction | null;
+  trade: Trade | null;
 }
 
 /** O estado sem a ordem secreta dos baralhos, como o navegador recebe. */
@@ -129,6 +164,7 @@ export interface MagnataOptions {
   roundLimit?: number | null;
   credit?: boolean;
   themeId?: string;
+  auctions?: boolean;
 }
 
 export type MagnataAction =
@@ -146,6 +182,11 @@ export type MagnataAction =
   | { type: "declare-bankruptcy" }
   | { type: "take-loan"; amount: number }
   | { type: "repay-loan" }
+  | { type: "bid"; amount: number }
+  | { type: "propose-trade"; toId: string; give: TradeSide; get: TradeSide }
+  | { type: "accept-trade" }
+  | { type: "reject-trade" }
+  | { type: "cancel-trade" }
   | { type: "resign" };
 
 export const TILE_ACTIONS = ["build", "sell-building", "mortgage", "unmortgage"] as const;
@@ -159,6 +200,9 @@ const SIMPLE_ACTIONS = [
   "pay-debt",
   "declare-bankruptcy",
   "repay-loan",
+  "accept-trade",
+  "reject-trade",
+  "cancel-trade",
   "resign",
 ] as const;
 
@@ -222,6 +266,9 @@ export function createMagnataGame(
     roundLimit: options.roundLimit ?? null,
     credit: options.credit ?? false,
     themeId: options.themeId ?? "classico",
+    auctions: options.auctions ?? false,
+    auction: null,
+    trade: null,
     winnerId: null,
     endReason: null,
   };
@@ -243,6 +290,17 @@ export function parseMagnataAction(input: unknown): MagnataAction | null {
     }
     return { type, tile } as MagnataAction;
   }
+  if (type === "bid") {
+    if (typeof amount !== "number" || !Number.isInteger(amount) || amount < 0) return null;
+    return { type, amount };
+  }
+  if (type === "propose-trade") {
+    const { toId, give, get } = input as { toId?: unknown; give?: unknown; get?: unknown };
+    const side = parseTradeSide(give);
+    const other = parseTradeSide(get);
+    if (typeof toId !== "string" || !side || !other) return null;
+    return { type, toId, give: side, get: other };
+  }
   if (type === "take-loan") {
     if (typeof amount !== "number" || !Number.isInteger(amount) || amount <= 0 || amount % LOAN_STEP !== 0) {
       return null;
@@ -250,6 +308,15 @@ export function parseMagnataAction(input: unknown): MagnataAction | null {
     return { type, amount };
   }
   return null;
+}
+
+function parseTradeSide(input: unknown): TradeSide | null {
+  if (typeof input !== "object" || input === null) return null;
+  const { tiles, cash } = input as { tiles?: unknown; cash?: unknown };
+  if (!Array.isArray(tiles) || tiles.length > 28) return null;
+  if (!tiles.every((tile) => typeof tile === "number" && Number.isInteger(tile) && tile >= 0 && tile < BOARD_SIZE)) return null;
+  if (typeof cash !== "number" || !Number.isInteger(cash) || cash < 0) return null;
+  return { tiles: [...new Set(tiles as number[])].sort((a, b) => a - b), cash };
 }
 
 /** Registra um acontecimento vindo de fora do motor (ausência da sala). */
@@ -361,6 +428,21 @@ export function legalActions(state: MagnataView, playerId: string): MagnataActio
   const player = state.players.find((candidate) => candidate.id === playerId);
   if (!player || player.bankrupt || state.phase === "finished") return [];
   const actions: MagnataAction[] = [];
+  // Leilão e troca envolvem quem não é da vez. Lances e propostas não são
+  // enumerados por inteiro (seriam milhares); aqui vão exemplos válidos.
+  if (state.phase === "auction" && state.auction?.pending.includes(playerId)) {
+    actions.push({ type: "bid", amount: 0 });
+    const price = (BOARD[state.auction.tile] as OwnableTile).price;
+    const half = Math.min(player.cash, Math.floor(price / 20) * 10);
+    if (half > 0) actions.push({ type: "bid", amount: half });
+  }
+  if (state.phase === "trade" && state.trade) {
+    if (state.trade.toId === playerId) {
+      if (tradeError(state, state.trade) === null) actions.push({ type: "accept-trade" });
+      actions.push({ type: "reject-trade" });
+    }
+    if (state.trade.fromId === playerId) actions.push({ type: "cancel-trade" });
+  }
   if (state.currentPlayerId === playerId) {
     switch (state.phase) {
       case "roll":
@@ -469,9 +551,33 @@ export function applyMagnataAction(
     return state;
   }
 
+  // Lances e respostas de troca podem vir de quem não é da vez.
+  if (action.type === "bid") {
+    placeBid(state, player, action.amount);
+    return state;
+  }
+  if (action.type === "accept-trade" || action.type === "reject-trade") {
+    answerTrade(state, player, action.type === "accept-trade");
+    return state;
+  }
+
   if (state.currentPlayerId !== playerId) throw new GameRuleError("Aguarde a sua vez.");
 
   switch (action.type) {
+    case "propose-trade": {
+      if (state.phase !== "roll" && state.phase !== "end") throw new GameRuleError("Trocas só podem ser propostas no começo ou no fim da sua vez.");
+      const trade: Trade = { fromId: player.id, toId: action.toId, give: action.give, get: action.get, resumePhase: state.phase };
+      const error = tradeError(state, trade);
+      if (error) throw new GameRuleError(error);
+      state.trade = trade;
+      state.phase = "trade";
+      emit(state, { type: "trade-proposed", playerId: player.id, toId: trade.toId, give: trade.give, get: trade.get });
+      break;
+    }
+    case "cancel-trade":
+      requirePhase(state, "trade");
+      closeTrade(state, "trade-cancelled", player.id);
+      break;
     case "roll":
       requirePhase(state, "roll");
       roll(state, player, rng);
@@ -489,7 +595,14 @@ export function applyMagnataAction(
     case "decline":
       requirePhase(state, "buy");
       emit(state, { type: "decline", playerId: player.id, tile: player.position });
-      state.phase = phaseAfterResolution(state, player);
+      if (state.auctions && activePlayers(state).length > 1) {
+        // Recusou: a casa vai a leilão entre todos que ainda jogam (inclusive quem recusou).
+        state.auction = { tile: player.position, bids: {}, pending: activePlayers(state).map((candidate) => candidate.id) };
+        state.phase = "auction";
+        emit(state, { type: "auction-start", playerId: player.id, tile: player.position });
+      } else {
+        state.phase = phaseAfterResolution(state, player);
+      }
       break;
     case "end-turn":
       requirePhase(state, "end");
@@ -598,6 +711,101 @@ function applyTileAction(
       emit(state, { type: "unmortgage", playerId: player.id, tile: action.tile, amount: unmortgageCost(tile) });
       break;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Leilão e trocas
+
+function placeBid(state: MagnataState, player: MagnataPlayer, amount: number) {
+  requirePhase(state, "auction");
+  const auction = state.auction!;
+  if (!auction.pending.includes(player.id)) throw new GameRuleError("Você já deu seu lance.");
+  if (!Number.isInteger(amount) || amount < 0) throw new GameRuleError("Lance inválido.");
+  if (amount > player.cash) throw new GameRuleError("Seu lance passa do dinheiro que você tem.");
+  auction.bids[player.id] = amount;
+  auction.pending = auction.pending.filter((id) => id !== player.id);
+  emit(state, { type: "auction-bid", playerId: player.id, passed: amount === 0 });
+  if (auction.pending.length === 0) closeAuction(state);
+}
+
+/** Revela os lances: o maior leva; empate fica com quem vem primeiro a partir da vez. */
+function closeAuction(state: MagnataState) {
+  const auction = state.auction!;
+  const order = state.players.map((player) => player.id);
+  const start = order.indexOf(state.currentPlayerId);
+  const seat = (id: string) => (order.indexOf(id) - start + order.length) % order.length;
+  const bids = Object.entries(auction.bids)
+    .filter(([id]) => !getPlayer(state, id).bankrupt)
+    .map(([playerId, amount]) => ({ playerId, amount }))
+    .sort((a, b) => b.amount - a.amount || seat(a.playerId) - seat(b.playerId));
+  const best = bids[0];
+  const winner = best && best.amount > 0 ? getPlayer(state, best.playerId) : null;
+  if (winner) {
+    winner.cash -= best.amount;
+    state.properties[auction.tile].owner = winner.id;
+  }
+  emit(state, {
+    type: "auction-end",
+    playerId: state.currentPlayerId,
+    tile: auction.tile,
+    winnerId: winner?.id ?? null,
+    amount: winner ? best.amount : 0,
+    bids,
+  });
+  state.auction = null;
+  state.phase = phaseAfterResolution(state, getPlayer(state, state.currentPlayerId));
+}
+
+/** Por que a troca não pode acontecer agora (ou `null` se pode). Revalidada no aceite. */
+export function tradeError(state: MagnataView, trade: Trade): string | null {
+  if (trade.fromId === trade.toId) return "Escolha outra pessoa para trocar.";
+  const from = state.players.find((player) => player.id === trade.fromId);
+  const to = state.players.find((player) => player.id === trade.toId);
+  if (!from || !to || from.bankrupt || to.bankrupt) return "Essa pessoa não está mais na partida.";
+  if (trade.give.tiles.length + trade.get.tiles.length + trade.give.cash + trade.get.cash === 0) return "A troca está vazia.";
+  if (trade.give.tiles.length + trade.get.tiles.length === 0) return "Inclua pelo menos uma propriedade.";
+  for (const [side, ownerId] of [
+    [trade.give, trade.fromId],
+    [trade.get, trade.toId],
+  ] as const) {
+    for (const tile of side.tiles) {
+      const property = state.properties[tile];
+      if (!property || property.owner !== ownerId) return "Uma das propriedades mudou de dono.";
+      const info = BOARD[tile];
+      if (info.kind === "street" && groupTiles(info.group).some((index) => state.properties[index].houses > 0)) {
+        return "Venda as construções da cor antes de trocar essas ruas.";
+      }
+    }
+  }
+  if (from.cash < trade.give.cash) return `${from.name} não tem esse dinheiro.`;
+  if (to.cash < trade.get.cash) return `${to.name} não tem esse dinheiro.`;
+  return null;
+}
+
+function answerTrade(state: MagnataState, player: MagnataPlayer, accept: boolean) {
+  requirePhase(state, "trade");
+  const trade = state.trade!;
+  if (trade.toId !== player.id) throw new GameRuleError("Essa proposta não é para você.");
+  if (!accept) {
+    closeTrade(state, "trade-rejected", player.id);
+    return;
+  }
+  const error = tradeError(state, trade);
+  if (error) throw new GameRuleError(error);
+  const from = getPlayer(state, trade.fromId);
+  const to = player;
+  for (const tile of trade.give.tiles) state.properties[tile].owner = to.id;
+  for (const tile of trade.get.tiles) state.properties[tile].owner = from.id;
+  from.cash += trade.get.cash - trade.give.cash;
+  to.cash += trade.give.cash - trade.get.cash;
+  closeTrade(state, "trade-accepted", player.id);
+}
+
+function closeTrade(state: MagnataState, type: "trade-accepted" | "trade-rejected" | "trade-cancelled", actorId: string) {
+  const trade = state.trade!;
+  emit(state, { type, playerId: actorId, fromId: trade.fromId, toId: trade.toId, give: trade.give, get: trade.get });
+  state.trade = null;
+  state.phase = trade.resumePhase;
 }
 
 // ---------------------------------------------------------------------------
@@ -840,12 +1048,29 @@ function goBankrupt(state: MagnataState, player: MagnataPlayer, creditorId: stri
   const wasCurrent = state.currentPlayerId === player.id;
   if (wasCurrent) state.debt = null;
 
+  // Proposta envolvendo quem saiu deixa de valer.
+  if (state.trade && (state.trade.fromId === player.id || state.trade.toId === player.id)) {
+    const trade = state.trade;
+    state.trade = null;
+    emit(state, { type: "trade-cancelled", playerId: player.id, fromId: trade.fromId, toId: trade.toId, give: trade.give, get: trade.get });
+    if (!wasCurrent) state.phase = trade.resumePhase;
+  }
+  // Quem sai de um leilão deixa de dar lance; se era o último, o leilão fecha.
+  if (state.auction) {
+    delete state.auction.bids[player.id];
+    state.auction.pending = state.auction.pending.filter((id) => id !== player.id);
+    if (wasCurrent) state.auction = null;
+    else if (state.auction.pending.length === 0 && activePlayers(state).length > 1) closeAuction(state);
+  }
+
   const remaining = activePlayers(state);
   if (remaining.length === 1) {
     state.winnerId = remaining[0].id;
     state.endReason = "bankruptcy";
     state.phase = "finished";
     state.debt = null;
+    state.auction = null;
+    state.trade = null;
     emit(state, { type: "game-end", winnerId: remaining[0].id, reason: "bankruptcy", netWorth: null });
     return;
   }

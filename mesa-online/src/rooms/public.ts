@@ -12,5 +12,7 @@ export function publicRoom(room: Room): PublicRoom {
   if (!game) return { ...rest, game: null };
   const { decks: _decks, ...view } = game;
   void _decks;
-  return { ...rest, game: view };
+  // Lances do leilão são secretos até o fim: só se sabe quem ainda falta.
+  const auction = view.auction ? { ...view.auction, bids: {} } : null;
+  return { ...rest, game: { ...view, auction } };
 }

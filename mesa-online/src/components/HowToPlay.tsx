@@ -26,6 +26,15 @@ export function HowToPlay() {
           tiver limite de rodadas, vence o maior patrimônio.
         </li>
         <li>
+          <strong>Leilão</strong> (ligado por padrão): se quem caiu numa casa à venda não comprar, todos dão um lance
+          secreto. Quem der mais leva e paga ao banco; empate fica com quem vem primeiro na ordem a partir da vez.
+        </li>
+        <li>
+          <strong>Trocas:</strong> na sua vez, antes de rolar ou ao terminar, toque em 🤝 Propor troca e combine
+          propriedades e dinheiro com outra pessoa. A partida espera a resposta; ruas de uma cor com construções não
+          entram na troca.
+        </li>
+        <li>
           <strong>Empréstimos</strong> (só se a sala ligar a regra): até metade do valor das suas propriedades livres, no
           máximo $1.000; devolve +20% em 8 turnos seus.
         </li>

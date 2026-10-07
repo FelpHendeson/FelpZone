@@ -26,11 +26,12 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
     - **duração**: até restar um jogador, ou 30/60/100 rodadas com vitória por patrimônio;
     - **prazo por jogada**: depois dele, o piloto automático joga por quem sumiu, até a pessoa voltar;
     - **ritmo dos robôs**: 1 s, 2,5 s (padrão) ou 4 s entre uma ação e outra;
+    - **leilão ao recusar uma compra**: ligado por padrão;
     - **empréstimos do banco**: regra opcional, marcada como variante.
 - **Janelas de acontecimento:**
   - cada jogada é narrada numa janela: dados, para onde foi, o que aconteceu (compra, aluguel com o motivo do valor, cartas, prisão, construções, dívidas, empréstimos, ausência…) e quanto o saldo de cada um mudou;
   - na sua vez, os botões da decisão ficam dentro da janela, e ela só bloqueia a tela nesse momento;
-  - as jogadas dos outros fecham sozinhas (com barra de tempo), com "Próximo" e "Pular para agora";
+  - as jogadas dos outros fecham sozinhas (com barra de tempo, em ritmo rápido, normal ou devagar, à escolha de cada pessoa), com "Próximo" e "Pular para agora";
   - o histórico completo fica numa aba, e quem recarrega não recebe a fila antiga de novo.
 - **Onde cada um está:**
   - faixa fixa com todos os jogadores, saldo e variação (+/−) a cada mudança;
@@ -45,6 +46,8 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
   - prisão com fiança, carta de liberdade ou três tentativas;
   - cartas de Sorte e Surpresa e impostos;
   - dívidas que travam o turno até serem pagas;
+  - **leilão** de lances secretos quando alguém recusa uma compra (todos participam, inclusive robôs);
+  - **trocas** de propriedades e dinheiro entre jogadores, propostas na própria vez e revalidadas no aceite;
   - falência (os bens vão para o credor ou para o banco), desistência, vitória e revanche na mesma sala (qualquer pessoa da mesa pode pedir).
 - **No celular:**
   - cartão legível da casa onde está quem joga;
@@ -57,13 +60,14 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
   - a sessão continua jogável mesmo se o navegador bloquear o armazenamento;
   - indicador "Reconectando…".
 
-Ainda não existem: leilão de propriedade recusada, troca de propriedades entre jogadores e limite de casas do banco.
+Ainda não existe: limite de casas do banco.
 
 ## Tecnologias e arquitetura
 
 - **Next.js 16 + React 19 + TypeScript:** front e API no mesmo projeto e no mesmo deploy da Vercel.
 - **Upstash Redis (plano gratuito):** guarda as salas em produção. Sem configuração, o app usa memória, o que basta para desenvolvimento local; em produção, sem Redis, a API responde com erro claro.
 - **Vitest:** testes do motor, temas, textos, robôs e salas.
+- **Playwright:** testes de navegador (iPhone simulado no Chromium) contra a versão de produção, no CI a cada push.
 
 ```text
 src/
@@ -74,14 +78,16 @@ src/
 │       ├── describe.ts      #   acontecimento → texto, no tema da partida
 │       ├── beats.ts         #   acontecimentos → lances narrados (com mudança de saldo)
 │       └── themes.ts        #   temas visuais (nomes e cores por casa)
-├── bots/                    # estratégias dos robôs e do piloto automático
+├── bots/                    # estratégias dos robôs, lances de leilão e propostas de troca
 ├── rooms/
 │   ├── room.ts              # modelo puro da sala: lobby, opções, chat, ausência, revanche
 │   └── public.ts            # o que o navegador pode ver (sem segredos)
 ├── server/                  # casos de uso, identidade, limites e armazenamento (memória/Redis)
 ├── app/api/rooms/...        # rotas HTTP finas que chamam src/server
 ├── client/                  # API, sincronização, avisos, perfil e identidade no aparelho
-└── components/              # telas: início, lobby, chat, avisos e mesa do Magnata
+└── components/              # telas: início, lobby, chat e mesa do Magnata (magnata/: tabuleiro,
+                             #   câmera, janelas, painel da vez, leilão e trocas, bens, histórico)
+e2e/                         # testes de navegador (Playwright)
 ```
 
 A arquitetura segue os princípios do RPG Narrativo: regras em TypeScript puro e testável, dados separados da interface e componentes React que apenas exibem o estado e disparam ações. O código não é compartilhado entre os dois projetos, porque cada experimento do FelpZone é independente. O que foi reaproveitado é a forma de organizar.
@@ -108,7 +114,7 @@ Decisões importantes:
   - As consultas não são limitadas, porque a família costuma compartilhar a mesma rede.
 - **Salas temporárias.** Uma sala expira depois de 48 h sem alterações.
 
-As decisões, com a análise que as motivou, estão em [`docs/ESPECIFICACAO-EVOLUCAO-1.md`](docs/ESPECIFICACAO-EVOLUCAO-1.md) e, para as janelas de acontecimento e a câmera, em [`docs/ESPECIFICACAO-EVOLUCAO-2.md`](docs/ESPECIFICACAO-EVOLUCAO-2.md).
+As decisões, com a análise que as motivou, estão em [`docs/ESPECIFICACAO-EVOLUCAO-1.md`](docs/ESPECIFICACAO-EVOLUCAO-1.md) para as janelas de acontecimento e a câmera, em [`docs/ESPECIFICACAO-EVOLUCAO-2.md`](docs/ESPECIFICACAO-EVOLUCAO-2.md), e para leilão, trocas e testes de navegador, em [`docs/ESPECIFICACAO-EVOLUCAO-3.md`](docs/ESPECIFICACAO-EVOLUCAO-3.md).
 
 ## Como executar
 
@@ -129,7 +135,10 @@ npm test          # motor, temas, textos, robôs e salas
 npm run lint
 npm run typecheck
 npm run build
+npm run e2e       # navegador: precisa do build; sobe `next start` na porta 3100
 ```
+
+Na primeira vez, instale o navegador dos testes com `npx playwright install chromium`.
 
 ## Publicação na Vercel (custo zero)
 

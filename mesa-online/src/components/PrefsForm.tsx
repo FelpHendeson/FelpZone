@@ -1,6 +1,6 @@
 "use client";
 
-import { saveProfile, type Prefs } from "@/client/profile";
+import { DIALOG_PACES, saveProfile, type DialogPace, type Prefs } from "@/client/profile";
 
 export function PrefsForm({ prefs }: { prefs: Prefs }) {
   return (
@@ -13,6 +13,17 @@ export function PrefsForm({ prefs }: { prefs: Prefs }) {
         >
           <option value="all">Todos os acontecimentos</option>
           <option value="essential">Só o essencial (o que envolve você)</option>
+        </select>
+      </label>
+      <label className="field">
+        <span>Tempo das janelas</span>
+        <select
+          value={prefs.dialogPace in DIALOG_PACES ? prefs.dialogPace : "normal"}
+          onChange={(event) => saveProfile({ prefs: { ...prefs, dialogPace: event.target.value as DialogPace } })}
+        >
+          <option value="fast">Rápido</option>
+          <option value="normal">Normal</option>
+          <option value="slow">Devagar (dá tempo de ler tudo)</option>
         </select>
       </label>
       <label className="field">

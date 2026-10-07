@@ -367,6 +367,73 @@ export function describeEvent(event: GameEvent, ctx: DescribeContext): Notice {
         actorId: event.playerId,
         involvesMe: involves(event.playerId),
       };
+    case "auction-start":
+      return {
+        ...base,
+        icon: "🔨",
+        title: "Leilão",
+        text: `${name(event.playerId)} não comprou ${tile(event.tile)}. A casa vai a leilão: cada um dá um lance secreto (ou passa).`,
+        level: "card",
+        tone: "info",
+        actorId: event.playerId,
+        involvesMe: true,
+      };
+    case "auction-bid":
+      return {
+        ...base,
+        icon: event.passed ? "🙅" : "✋",
+        title: `${name(event.playerId)} ${event.passed ? "passou no leilão" : "deu um lance"}`,
+        text: "",
+        level: "quick",
+        tone: "neutral",
+        actorId: event.playerId,
+        involvesMe: involves(event.playerId),
+      };
+    case "auction-end": {
+      const reveal = event.bids
+        .filter((bid) => bid.amount > 0)
+        .map((bid) => `${name(bid.playerId)} ${money(bid.amount)}`)
+        .join(", ");
+      return {
+        ...base,
+        icon: "🔨",
+        title: "Fim do leilão",
+        text: event.winnerId
+          ? `${name(event.winnerId)} levou ${tile(event.tile)} por ${money(event.amount)}.${reveal ? ` Lances: ${reveal}.` : ""}`
+          : `Ninguém deu lance: ${tile(event.tile)} continua à venda.`,
+        level: "card",
+        tone: event.winnerId ? (involves(event.winnerId) ? "good" : "info") : "neutral",
+        actorId: event.winnerId ?? event.playerId,
+        involvesMe: involves(event.winnerId) || event.bids.some((bid) => involves(bid.playerId)),
+      };
+    }
+    case "trade-proposed":
+    case "trade-accepted":
+    case "trade-rejected":
+    case "trade-cancelled": {
+      const side = (s: { tiles: number[]; cash: number }) =>
+        [...s.tiles.map(tile), ...(s.cash > 0 ? [money(s.cash)] : [])].join(" + ") || "nada";
+      const deal = `${name(event.type === "trade-proposed" ? event.playerId : event.fromId)} entrega ${side(event.give)} e recebe ${side(event.get)}`;
+      const toId = event.type === "trade-proposed" ? event.toId : event.toId;
+      const fromId = event.type === "trade-proposed" ? event.playerId : event.fromId;
+      const titles = {
+        "trade-proposed": `Proposta de troca para ${name(toId)}`,
+        "trade-accepted": "Troca feita",
+        "trade-rejected": "Troca recusada",
+        "trade-cancelled": "Troca cancelada",
+      } as const;
+      const tones = { "trade-proposed": "info", "trade-accepted": "good", "trade-rejected": "neutral", "trade-cancelled": "neutral" } as const;
+      return {
+        ...base,
+        icon: "🤝",
+        title: titles[event.type],
+        text: `${deal}.${event.type === "trade-rejected" ? ` ${name(toId)} não aceitou.` : ""}`,
+        level: "card",
+        tone: tones[event.type],
+        actorId: event.playerId,
+        involvesMe: involves(fromId, toId),
+      };
+    }
     case "game-end": {
       const why =
         event.reason === "bankruptcy"

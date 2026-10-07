@@ -1629,3 +1629,107 @@ select {
 :root.reduce-motion .event-timer {
   animation-name: timer-run;
 }
+
+/* Leilão e trocas */
+.color-dot {
+  display: inline-block;
+  width: 0.75em;
+  height: 0.75em;
+  margin-right: 6px;
+  border-radius: 3px;
+  vertical-align: baseline;
+}
+
+.bid-field input {
+  font-size: 1.1rem;
+}
+
+.trade-summary {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.trade-summary p {
+  margin: 4px 0;
+}
+
+.trade-builder fieldset {
+  margin: 0 0 12px;
+  padding: 8px 10px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+
+.trade-builder legend {
+  padding: 0 4px;
+  font-weight: 700;
+}
+
+.trade-partners {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.partner-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 40px;
+  padding: 4px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  cursor: pointer;
+}
+
+.partner-chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.partner-chip.active {
+  border-color: var(--felt);
+  background: var(--felt);
+  color: #fff;
+}
+
+.partner-chip:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.trade-tiles {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  max-height: 32dvh;
+  overflow-y: auto;
+}
+
+.trade-tiles .check {
+  min-height: 36px;
+  align-items: center;
+}
+
+.trade-tiles .check.disabled {
+  opacity: 0.55;
+}
+
+.trade-preview {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.trade-tiles .check {
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+.trade-tiles .check input {
+  margin-top: 0;
+}
