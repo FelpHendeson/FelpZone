@@ -1,3 +1,4 @@
+import type { MagnataView } from "./engine";
 import { describe, expect, it } from "vitest";
 import { STARTING_CASH } from "./board";
 import { applyMagnataAction, createMagnataGame, getPlayer, legalActions, type MagnataAction, type MagnataState } from "./engine";
@@ -67,7 +68,7 @@ describe("leilão", () => {
     const room = { ...createRoom({ code: "AAAAA", gameId: "magnata", hostId: "ana", hostName: "Ana", now: 0 }), status: "playing" as const, game: state };
     const text = JSON.stringify(publicRoom(room));
     expect(text).not.toContain("777");
-    expect(publicRoom(room).game!.auction!.pending).toEqual(["ana", "caio"]);
+    expect((publicRoom(room).game as MagnataView).auction!.pending).toEqual(["ana", "caio"]);
   });
 
   it("sem a regra de leilão, recusar só passa adiante", () => {

@@ -2,7 +2,7 @@
 
 import { money, netWorth, type MagnataView } from "@/games/magnata/engine";
 import type { PublicRoom } from "@/rooms/public";
-
+import { Honors } from "../Badges";
 
 export function PlayersPanel({ game, room, myId }: { game: MagnataView; room: PublicRoom; myId: string | null }) {
   const people = new Map(room.players.map((player) => [player.id, player]));
@@ -18,7 +18,7 @@ export function PlayersPanel({ game, room, myId }: { game: MagnataView; room: Pu
               {seat?.avatar}
             </span>
             <span>
-              {player.name}
+              {player.name} <Honors wins={seat?.wins} badges={seat?.badges} />
               {player.id === myId && <span className="badge subtle">você</span>}
               {seat?.bot && <span className="badge subtle">robô</span>}
               {room.away.includes(player.id) && <span className="badge subtle">ausente</span>}

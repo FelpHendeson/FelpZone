@@ -1,4 +1,5 @@
-import { asObject, clientIp, handle, json, readJson } from "@/server/http";
+import { SESSION_COOKIE } from "@/server/accounts";
+import { asObject, clientIp, handle, json, readCookie, readJson } from "@/server/http";
 import { joinRoomAs } from "@/server/rooms";
 
 export async function POST(request: Request, ctx: RouteContext<"/api/rooms/[code]/join">) {
@@ -9,6 +10,7 @@ export async function POST(request: Request, ctx: RouteContext<"/api/rooms/[code
       name: body.name,
       avatar: body.avatar,
       ip: clientIp(request),
+      session: readCookie(request, SESSION_COOKIE),
     });
     return json({ room, playerId, token }, 201);
   });

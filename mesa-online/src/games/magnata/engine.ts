@@ -16,8 +16,9 @@ import {
   type OwnableTile,
 } from "./board";
 import { DECKS, findCard } from "./cards";
+import { GameRuleError, type Rng } from "../rules";
 
-export type Rng = () => number;
+export { GameRuleError, type Rng };
 
 export interface Loan {
   /** Valor recebido. */
@@ -212,8 +213,6 @@ export const LOAN_CAP = 1000;
 export const LOAN_TERM_TURNS = 8;
 /** Taxa fixa de 20%, em aritmética inteira. */
 export const loanDue = (amount: number) => (amount * 12) / 10;
-
-export class GameRuleError extends Error {}
 
 const MAX_EVENTS = 120;
 

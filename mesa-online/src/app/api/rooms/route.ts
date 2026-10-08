@@ -1,4 +1,5 @@
-import { asObject, clientIp, handle, json, readJson } from "@/server/http";
+import { SESSION_COOKIE } from "@/server/accounts";
+import { asObject, clientIp, handle, json, readCookie, readJson } from "@/server/http";
 import { createRoomFor } from "@/server/rooms";
 
 export async function POST(request: Request) {
@@ -8,7 +9,9 @@ export async function POST(request: Request) {
       name: body.name,
       gameId: body.gameId,
       avatar: body.avatar,
+      options: body.options,
       ip: clientIp(request),
+      session: readCookie(request, SESSION_COOKIE),
     });
     return json({ room, playerId, token }, 201);
   });

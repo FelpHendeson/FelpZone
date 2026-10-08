@@ -8,7 +8,7 @@ import { ApiError, fetchRoom } from "./api";
  * Mantém a sala sincronizada por consulta periódica. O intervalo começa curto
  * e cresce quando nada muda, para caber no plano gratuito do Redis.
  */
-export function useRoom(code: string) {
+export function useRoom(code: string, token: string | null = null) {
   const [room, setRoom] = useState<PublicRoom | null>(null);
   const [error, setError] = useState<string | null>(null);
   /** A última consulta falhou por rede: mostrar "Reconectando…". */
@@ -36,7 +36,7 @@ export function useRoom(code: string) {
     async function poll() {
       if (document.hidden) return schedule(5000);
       try {
-        const result = await fetchRoom(code, versionRef.current);
+        const result = await fetchRoom(code, versionRef.current, token);
         if (stopped) return;
         setError(null);
         setOffline(false);
@@ -60,6 +60,8 @@ export function useRoom(code: string) {
     wakeRef.current = () => {
       quietPolls = 0;
     };
+    // Novo token (entrou na sala ou retomou o assento): busca a visão completa de novo.
+    versionRef.current = 0;
     const onVisible = () => {
       if (!document.hidden) {
         quietPolls = 0;
@@ -75,7 +77,7 @@ export function useRoom(code: string) {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("online", onVisible);
     };
-  }, [code, applyRoom]);
+  }, [code, token, applyRoom]);
 
   return { room, error, offline, applyRoom };
 }

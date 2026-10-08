@@ -1,4 +1,7 @@
+import type { Me, PublicProfile } from "@/accounts/account";
+import type { GameId } from "@/games/registry";
 import type { PublicRoom } from "@/rooms/public";
+import type { Plaza, Where } from "@/accounts/plaza";
 import type { RoomCommand } from "@/rooms/room";
 import type { Seat } from "./seats";
 
@@ -37,18 +40,52 @@ function newCommandId(): string {
   return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
-export function createRoom(name: string, avatar: string) {
-  return post<Seat & { room: PublicRoom }>("/api/rooms", { name, avatar, gameId: "magnata" });
+export function createRoom(name: string, avatar: string, gameId: GameId = "magnata", options: Record<string, unknown> = {}) {
+  return post<Seat & { room: PublicRoom }>("/api/rooms", { name, avatar, gameId, options });
 }
 
 export function joinRoom(code: string, name: string, avatar: string) {
   return post<Seat & { room: PublicRoom }>(`/api/rooms/${code}/join`, { name, avatar });
 }
 
-export function fetchRoom(code: string, knownVersion: number) {
-  return request<{ room?: PublicRoom; unchanged?: true }>(`/api/rooms/${code}?v=${knownVersion}`);
+/** Com o token do assento, a resposta inclui o que só esta pessoa pode ver (a mão no dominó). */
+export function fetchRoom(code: string, knownVersion: number, token?: string | null) {
+  return request<{ room?: PublicRoom; unchanged?: true }>(`/api/rooms/${code}?v=${knownVersion}`, {
+    headers: token ? { "x-player-token": token } : {},
+  });
 }
 
 export function sendCommand(code: string, token: string, command: RoomCommand | Record<string, unknown>) {
   return post<{ room: PublicRoom }>(`/api/rooms/${code}/commands`, { ...command, commandId: newCommandId() }, token);
 }
+
+// ---------------------------------------------------------------------------
+// Conta, praça e perfis
+
+export const fetchMe = () => request<{ me: Me | null }>("/api/conta");
+
+export const signUpAccount = (input: { email: string; nickname: string; password: string; avatar: string }) =>
+  post<{ me: Me }>("/api/conta", input);
+
+export const logInAccount = (input: { email: string; password: string }) => post<{ me: Me }>("/api/conta/entrar", input);
+
+export const logOutAccount = () => post<{ ok: true }>("/api/conta/sair", {});
+
+export const claimBonus = () => post<{ me: Me }>("/api/conta/bonus", {});
+
+export const changeAccountAvatar = (avatar: string) => post<{ me: Me }>("/api/conta/retrato", { avatar });
+
+export function fetchPlaza(where: Where | null, takeInbox: boolean) {
+  const params = new URLSearchParams();
+  if (where) {
+    params.set("onde", where.status);
+    if (where.status !== "menu") params.set("jogo", where.gameId);
+  }
+  if (!takeInbox) params.set("avisos", "0");
+  return request<Plaza>(`/api/praca?${params}`);
+}
+
+export const postPlaza = (body: { kind: "chat"; text: string } | { kind: "wave"; to: string } | { kind: "invite"; to: string; code: string }) =>
+  post<{ ok: true }>("/api/praca", body);
+
+export const fetchProfile = (nickname: string) => request<{ profile: PublicProfile }>(`/api/jogadores/${encodeURIComponent(nickname)}`);

@@ -100,7 +100,7 @@ test("amigos: sala, conversa, leilão e troca entre duas pessoas", async ({ brow
   const code = ana.page.url().split("/").pop()!;
 
   await bia.page.getByLabel("Código da sala").fill(code.toLowerCase());
-  await bia.page.getByRole("button", { name: "Entrar" }).click();
+  await bia.page.locator("form.join-row").getByRole("button", { name: "Entrar" }).click();
   await bia.page.waitForURL(new RegExp(code));
   await expect(ana.page.getByText("Bia").first()).toBeVisible();
 

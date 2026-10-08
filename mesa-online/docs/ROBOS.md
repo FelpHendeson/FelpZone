@@ -14,6 +14,7 @@ Quatro robôs jogam uma partida de Magnata entre si até que um deles vença. A 
 | Piloto automático para ausentes (estilo Conservador) | ✅ feito na Evolução 1 | `stepAutoplay` em `src/rooms/room.ts` |
 | Empréstimos do banco nas estratégias | ✅ feito na Evolução 1 | `borrowToComplete` em `src/bots/profile.ts` |
 | Lances de leilão, avaliação e propostas de troca (13.2) | ✅ feito na Evolução 3 | `src/bots/trades.ts`, `src/bots/profile.ts` |
+| Robôs do dominó: Fácil, Médio e Difícil (13.3) | ✅ feito na Evolução 4 | `src/games/domino/bots.ts` |
 | Robô Aleatório (6.4) | ⏳ a fazer | — |
 | `runMatch` e torneio (seções 7 e 8) | ⏳ a fazer | — |
 | Executor via HTTP (seção 9) | ⏳ a fazer | — |
@@ -369,4 +370,13 @@ Ritmo medido no navegador: com 1 pessoa e 3 robôs, uma rodada completa leva cer
   - média de rodadas: 58,3 → 51,7;
   - cerca de 8 propostas por partida, ~30% aceitas;
   - 1.003 leilões vencidos; nenhuma ação ilegal.
+
+### 13.3 Robôs do dominó (Evolução 4)
+
+- **Onde:** `src/games/domino/bots.ts`. Só olham a própria mão e a mesa (nunca a mão dos outros nem o monte).
+- **Fácil:** uma pedra válida qualquer.
+- **Médio:** a pedra mais pesada, com preferência para carroças. É o piloto automático de quem está ausente no dominó.
+- **Difícil:** soma os pontos da jogada no 5 em 5 (×4), o peso da pedra, um bônus para carroças e quantas pedras dele continuam servindo nas pontas novas (×3).
+- **Medição:** mais de 170 partidas só de robôs nas quatro modalidades e em todas as metas terminam sem jogada recusada e sem perder pedras. No 5 em 5, o Difícil vence o Fácil na maioria das 60 partidas do teste.
+- **Na mesa com pessoas:** o adaptador `src/games/modules.ts` faz o robô jogar pelas mesmas consultas periódicas do Magnata. Depois de cada mão, a mesa espera 6 s antes de começar a próxima sozinha.
 

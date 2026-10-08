@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { createMemoryStore, type RoomStore } from "./store";
 import { botAction } from "@/bots/strategies";
 import { createRoomFor, joinRoomAs, readRoom, runRoomCommand } from "./rooms";
+import type { MagnataView } from "@/games/magnata/engine";
+import type { PublicRoom } from "@/rooms/public";
+
+/** A partida do Magnata na visão pública da sala. */
+const magnata = (room: PublicRoom | null) => room!.game as MagnataView;
 
 async function roomWithTwo(store: RoomStore) {
   const host = await createRoomFor({ name: "Ana" }, store);
@@ -58,14 +63,14 @@ describe("salas", () => {
     const store = createMemoryStore();
     const { host, guest, code } = await roomWithTwo(store);
     const room = await runRoomCommand(code, host.token, { kind: "start" }, store);
-    const first = room.game!.currentPlayerId === host.playerId ? host : guest;
+    const first = magnata(room).currentPlayerId === host.playerId ? host : guest;
     const second = first === host ? guest : host;
 
     await expect(
       runRoomCommand(code, second.token, { kind: "game", action: { type: "roll" } }, store),
     ).rejects.toThrow("Aguarde a sua vez");
     const after = await runRoomCommand(code, first.token, { kind: "game", action: { type: "roll" } }, store);
-    expect(after.game!.dice).not.toBeNull();
+    expect(magnata(after).dice).not.toBeNull();
     expect(after.version).toBe(room.version + 1);
   });
 
@@ -94,7 +99,7 @@ describe("salas", () => {
     await runRoomCommand(code, host.token, { kind: "start" }, store);
     const room = await runRoomCommand(code, guest.token, { kind: "leave" }, store);
     expect(room.status).toBe("finished");
-    expect(room.game!.winnerId).toBe(host.playerId);
+    expect(magnata(room).winnerId).toBe(host.playerId);
 
     const lobby = await runRoomCommand(code, host.token, { kind: "rematch" }, store);
     expect(lobby.status).toBe("lobby");
@@ -124,7 +129,7 @@ describe("robôs na mesa", () => {
     room = await runRoomCommand(code, host.token, { kind: "set-options", roundLimit: 30 }, store);
     expect(room.options.roundLimit).toBe(30);
     room = await runRoomCommand(code, host.token, { kind: "start" }, store);
-    expect(room.game!.roundLimit).toBe(30);
+    expect(magnata(room).roundLimit).toBe(30);
   });
 
   it("anfitrião sai e o comando passa para uma pessoa, nunca para um robô", async () => {
@@ -148,7 +153,7 @@ describe("robôs na mesa", () => {
     // Sem espera entre jogadas; consulta não faz nada se for a vez da pessoa.
     let steps = 0;
     while (room.status === "playing" && steps < 5000) {
-      const game = room.game!;
+      const game = magnata(room);
       if (game.currentPlayerId === host.playerId) {
         const action = botAction("investidor", game, host.playerId, Math.random);
         room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
@@ -158,8 +163,8 @@ describe("robôs na mesa", () => {
       steps += 1;
     }
     expect(room.status).toBe("finished");
-    expect(room.game!.winnerId).not.toBeNull();
-    expect(room.game!.turnNumber).toBeLessThanOrEqual(120);
+    expect(magnata(room).winnerId).not.toBeNull();
+    expect(magnata(room).turnNumber).toBeLessThanOrEqual(120);
   });
 
   it("respeita a pausa entre jogadas e avisa o cliente pela versão", async () => {
@@ -169,8 +174,8 @@ describe("robôs na mesa", () => {
     await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
     let room = await runRoomCommand(code, host.token, { kind: "start" }, store);
     // Joga a vez da pessoa até chegar a vez do robô.
-    while (room.game!.currentPlayerId === host.playerId) {
-      const action = botAction("conservador", room.game!, host.playerId, Math.random);
+    while (magnata(room).currentPlayerId === host.playerId) {
+      const action = botAction("conservador", magnata(room), host.playerId, Math.random);
       room = await runRoomCommand(code, host.token, { kind: "game", action }, store);
     }
     // Ritmo normal: 2,5 s entre uma jogada do robô e a seguinte.
@@ -250,7 +255,7 @@ describe("correções da análise", () => {
     await expect(set({ turnTimeout: 5 })).rejects.toThrow("Prazo");
     await expect(set({ credit: "sim" })).rejects.toThrow("empréstimo");
     const room = await set({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60 });
-    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60, botPace: "normal", auctions: true });
+    expect(room.options).toEqual({ themeId: "maceio", turnTimeout: null, credit: true, roundLimit: 60, botPace: "normal", auctions: true, dominoMode: "bloqueio", dominoTarget: 50, stake: 0 });
     await expect(set({ botPace: "turbo" })).rejects.toThrow("Ritmo");
     expect((await set({ botPace: "slow" })).options.botPace).toBe("slow");
     await runRoomCommand(code, host.token, { kind: "add-bot", strategy: "investidor" }, store);
@@ -265,7 +270,7 @@ describe("ausência e piloto automático", () => {
     const { host, guest, code } = await roomWithTwo(store);
     await runRoomCommand(code, host.token, { kind: "set-options", options: { turnTimeout: timeout } }, store);
     const room = await runRoomCommand(code, host.token, { kind: "start" }, store);
-    const current = room.game!.currentPlayerId === host.playerId ? host : guest;
+    const current = magnata(room).currentPlayerId === host.playerId ? host : guest;
     return { store, code, room, current };
   }
 
@@ -274,8 +279,8 @@ describe("ausência e piloto automático", () => {
     expect(await readRoom(code, room.version, store, room.updatedAt + 59_000)).toBeNull();
     const auto = (await readRoom(code, room.version, store, room.updatedAt + 60_000))!;
     expect(auto.away).toEqual([current.playerId]);
-    expect(auto.game!.events.some((e) => e.type === "away" && e.playerId === current.playerId)).toBe(true);
-    expect(auto.game!.dice).not.toBeNull();
+    expect(magnata(auto).events.some((e) => e.type === "away" && e.playerId === current.playerId)).toBe(true);
+    expect(magnata(auto).dice).not.toBeNull();
   });
 
   it("qualquer jogada da pessoa devolve o controle", async () => {
@@ -283,12 +288,12 @@ describe("ausência e piloto automático", () => {
     let auto = (await readRoom(code, room.version, store, room.updatedAt + 60_000))!;
     // O piloto continua até a vez dela acabar; depois ela age de novo na vez seguinte.
     let guard = 0;
-    while (auto.game!.currentPlayerId === current.playerId && guard++ < 20) {
+    while (magnata(auto).currentPlayerId === current.playerId && guard++ < 20) {
       auto = (await readRoom(code, null, store, LATER()))!;
     }
     const resigned = await runRoomCommand(code, current.token, { kind: "game", action: { type: "resign" } }, store);
     expect(resigned.away).toEqual([]);
-    expect(resigned.game!.events.some((e) => e.type === "back")).toBe(true);
+    expect(magnata(resigned).events.some((e) => e.type === "back")).toBe(true);
   });
 
   it("Voltar a jogar funciona mesmo fora da própria vez", async () => {
@@ -296,7 +301,7 @@ describe("ausência e piloto automático", () => {
     await readRoom(code, room.version, store, room.updatedAt + 60_000);
     const back = await runRoomCommand(code, current.token, { kind: "back" }, store);
     expect(back.away).toEqual([]);
-    expect(back.game!.events.at(-1)).toMatchObject({ type: "back", playerId: current.playerId });
+    expect(magnata(back).events.at(-1)).toMatchObject({ type: "back", playerId: current.playerId });
   });
 
   it("sem prazo, nunca joga por uma pessoa", async () => {

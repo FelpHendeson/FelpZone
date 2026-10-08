@@ -7,6 +7,7 @@ import { isGameId } from "@/games/registry";
 import { publicRoom, type PublicRoom } from "@/rooms/public";
 import {
   RoomError,
+  type Room,
   createRoom,
   joinRoom,
   normalizeName,
@@ -15,6 +16,8 @@ import {
   runCommand,
   stepAutoplay,
 } from "@/rooms/room";
+import { holdStakes, identityFor, releaseStakes, settleResult } from "./accounts";
+import { getKv, type Kv } from "./kv";
 import { getRoomStore, type RoomStore, type StoredRoom } from "./store";
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -46,14 +49,17 @@ export function normalizeCode(input: string): string {
 }
 
 export async function createRoomFor(
-  input: { name: unknown; gameId?: unknown; avatar?: unknown; ip?: string | null },
+  input: { name: unknown; gameId?: unknown; avatar?: unknown; options?: unknown; ip?: string | null; session?: string | null },
   store: RoomStore = getRoomStore(),
+  kv: Kv = getKv(),
 ): Promise<Seat & { room: PublicRoom }> {
   const gameId = input.gameId ?? "magnata";
   if (!isGameId(gameId)) throw new RoomError("Jogo desconhecido.");
-  const hostName = normalizeName(input.name);
+  const identity = await identityFor(input.session ?? null, { kv, store });
+  const hostName = identity ? identity.nickname : normalizeName(input.name);
   await limit(store, `criar:${input.ip ?? "?"}`, LIMITS.create);
   const seat = newSeat();
+  const options = typeof input.options === "object" && input.options !== null ? (input.options as Record<string, unknown>) : {};
   for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt += 1) {
     const room = createRoom({
       code: newCode(),
@@ -61,10 +67,12 @@ export async function createRoomFor(
       hostId: seat.playerId,
       hostName,
       hostAvatar: input.avatar,
+      identity,
+      options,
       now: Date.now(),
     });
     if (await store.create({ room, tokens: { [seat.playerId]: hashToken(seat.token) } })) {
-      return { ...seat, room: publicRoom(room) };
+      return { ...seat, room: publicRoom(room, seat.playerId) };
     }
   }
   throw new RoomError("Não foi possível criar a sala. Tente novamente.", 503);
@@ -72,16 +80,18 @@ export async function createRoomFor(
 
 export async function joinRoomAs(
   rawCode: string,
-  input: { name: unknown; avatar?: unknown; ip?: string | null },
+  input: { name: unknown; avatar?: unknown; ip?: string | null; session?: string | null },
   store: RoomStore = getRoomStore(),
+  kv: Kv = getKv(),
 ): Promise<Seat & { room: PublicRoom }> {
   await limit(store, `entrar:${input.ip ?? "?"}`, LIMITS.join);
+  const identity = await identityFor(input.session ?? null, { kv, store });
   const seat = newSeat();
   const stored = await mutate(rawCode, store, (current) => ({
-    room: joinRoom(current.room, seat.playerId, input.name, input.avatar, Date.now()),
+    room: joinRoom(current.room, seat.playerId, input.name, input.avatar, Date.now(), identity),
     tokens: { ...current.tokens, [seat.playerId]: hashToken(seat.token) },
   }));
-  return { ...seat, room: publicRoom(stored.room) };
+  return { ...seat, room: publicRoom(stored.room, seat.playerId) };
 }
 
 /**
@@ -95,6 +105,8 @@ export async function readRoom(
   knownVersion: number | null,
   store: RoomStore = getRoomStore(),
   now = Date.now(),
+  token: string | null = null,
+  kv: Kv = getKv(),
 ): Promise<PublicRoom | null> {
   const code = normalizeCode(rawCode);
   if (knownVersion !== null) {
@@ -109,10 +121,15 @@ export async function readRoom(
   if (advanced) {
     const next = { ...stored, room: advanced };
     // Se outra consulta já fez a jogada, basta devolver o estado mais novo.
-    stored = (await store.replace(next, stored.room.version)) ? next : ((await store.read(code)) ?? stored);
+    if (await store.replace(next, stored.room.version)) {
+      await afterWrite(stored.room, next.room, store, kv);
+      stored = next;
+    } else {
+      stored = (await store.read(code)) ?? stored;
+    }
   }
   if (knownVersion !== null && stored.room.version === knownVersion) return null;
-  return publicRoom(stored.room);
+  return publicRoom(stored.room, token ? playerForToken(stored, token) : null);
 }
 
 export async function runRoomCommand(
@@ -120,6 +137,7 @@ export async function runRoomCommand(
   token: string | null,
   body: unknown,
   store: RoomStore = getRoomStore(),
+  kv: Kv = getKv(),
 ): Promise<PublicRoom> {
   const command = parseRoomCommand(body);
   if (!command) throw new RoomError("Comando inválido.");
@@ -129,19 +147,45 @@ export async function runRoomCommand(
   await limit(store, `comando:${tokenKey}`, LIMITS.command);
   if (command.kind === "chat") await limit(store, `chat:${tokenKey}`, LIMITS.chat);
 
-  const stored = await mutate(rawCode, store, (current) => {
-    const playerId = playerForToken(current, token);
-    if (!playerId) throw new RoomError("Identificação inválida. Entre na sala novamente.", 401);
-    let room = current.room;
-    if (commandId) {
-      const remembered = rememberCommand(room, commandId);
-      // Reenvio de um comando já aplicado: devolve o estado atual sem repetir o efeito.
-      if (!remembered) return null;
-      room = remembered;
-    }
-    return { ...current, room: runCommand(room, playerId, command, secureRng, Date.now()) };
-  });
-  return publicRoom(stored.room);
+  let playerId: string | null = null;
+  const stored = await mutate(
+    rawCode,
+    store,
+    (current) => {
+      playerId = playerForToken(current, token);
+      if (!playerId) throw new RoomError("Identificação inválida. Entre na sala novamente.", 401);
+      let room = current.room;
+      if (commandId) {
+        const remembered = rememberCommand(room, commandId);
+        // Reenvio de um comando já aplicado: devolve o estado atual sem repetir o efeito.
+        if (!remembered) return null;
+        room = remembered;
+      }
+      return { ...current, room: runCommand(room, playerId, command, secureRng, Date.now()) };
+    },
+    {
+      // Partida começando: separa a entrada de cada conta antes de gravar.
+      before: async (previous, next) => {
+        if (next.room.match && next.room.match.id !== previous.room.match?.id) await holdStakes(next.room, { kv, store });
+      },
+      conflict: async (previous, next) => {
+        if (next.room.match && next.room.match.id !== previous.room.match?.id) {
+          await releaseStakes(next.room.match.id, accountIds(next.room), { kv, store });
+        }
+      },
+      after: (previous, next) => afterWrite(previous.room, next.room, store, kv),
+    },
+  );
+  return publicRoom(stored.room, playerId);
+}
+
+const accountIds = (room: Room) => room.players.filter((player) => player.userId).map((player) => player.userId!);
+
+/** Partida que acabou de terminar: paga o pote e conta vitórias (também é refeito ao ler a conta). */
+async function afterWrite(previous: Room, next: Room, store: RoomStore, kv: Kv) {
+  if (next.status !== "finished" || previous.status === "finished") return;
+  const result = next.results.at(-1);
+  if (result) await settleResult(result, { kv, store }).catch((error) => console.error(error));
 }
 
 /**
@@ -152,6 +196,11 @@ async function mutate(
   rawCode: string,
   store: RoomStore,
   change: (stored: StoredRoom) => StoredRoom | null,
+  hooks: {
+    before?: (previous: StoredRoom, next: StoredRoom) => Promise<void>;
+    conflict?: (previous: StoredRoom, next: StoredRoom) => Promise<void>;
+    after?: (previous: StoredRoom, next: StoredRoom) => Promise<void>;
+  } = {},
 ): Promise<StoredRoom> {
   const code = normalizeCode(rawCode);
   for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt += 1) {
@@ -159,7 +208,12 @@ async function mutate(
     if (!stored) throw new RoomError("Sala não encontrada.", 404);
     const next = change(stored);
     if (!next) return stored;
-    if (await store.replace(next, stored.room.version)) return next;
+    await hooks.before?.(stored, next);
+    if (await store.replace(next, stored.room.version)) {
+      await hooks.after?.(stored, next);
+      return next;
+    }
+    await hooks.conflict?.(stored, next);
   }
   throw new RoomError("A sala está muito movimentada. Tente novamente.", 503);
 }

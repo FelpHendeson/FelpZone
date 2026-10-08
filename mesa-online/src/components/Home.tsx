@@ -5,13 +5,22 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createRoom, fetchRoom, joinRoom, sendCommand } from "@/client/api";
 import { useProfile } from "@/client/profile";
 import { forgetRoom, saveSeat, useRecentRooms } from "@/client/seats";
-import { GAMES } from "@/games/registry";
+import { useAccount } from "@/client/useAccount";
+import { usePlaza } from "@/client/usePlaza";
+import { DOMINO_MODES, type DominoMode } from "@/games/domino/engine";
+import { GAMES, GAME_IDS, type GameId } from "@/games/registry";
+import { AccountPanel } from "./AccountPanel";
+import { DominoRules } from "./domino/DominoRules";
 import { HowToPlay } from "./HowToPlay";
+import { NoticeList, PlazaPanel } from "./PlazaPanel";
 import { PrefsForm } from "./PrefsForm";
 import { ProfileCard } from "./ProfileCard";
 import { Sheet } from "./Sheet";
 
 type Result = { room: { code: string }; playerId: string; token: string };
+
+const DOMINO_MODE_IDS = Object.keys(DOMINO_MODES) as DominoMode[];
+const MENU = { status: "menu" } as const;
 
 export function Home() {
   const router = useRouter();
@@ -21,9 +30,15 @@ export function Home() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"help" | "prefs" | null>(null);
-  const [resume, setResume] = useState<{ code: string; label: string } | null>(null);
-  const game = GAMES.magnata;
-  const name = profile.name.trim();
+  const [resume, setResume] = useState<{ code: string; label: string; lobby: boolean } | null>(null);
+  const [gameId, setGameId] = useState<GameId>("magnata");
+  const [mode, setMode] = useState<DominoMode>("bloqueio");
+  const { me, loaded } = useAccount();
+  const { plaza, notices, dismiss, refresh } = usePlaza(MENU, { full: true, enabled: true });
+  const game = GAMES[gameId];
+  const name = me ? me.nickname : profile.name.trim();
+  const avatar = me ? me.avatar : profile.avatar;
+  const options = gameId === "domino" ? { dominoMode: mode } : {};
 
   // "Continuar partida": a sala mais recente com assento salvo que ainda existe.
   const latest = recent[0]?.code ?? null;
@@ -34,7 +49,7 @@ export function Home() {
       .then(({ room }) => {
         if (cancelled || !room) return;
         const label = room.status === "lobby" ? "no lobby" : room.status === "playing" ? "em andamento" : "terminada";
-        setResume({ code: latest, label });
+        setResume({ code: latest, label, lobby: room.status === "lobby" });
       })
       .catch((caught) => {
         if (!cancelled && caught?.status === 404) forgetRoom(latest);
@@ -57,15 +72,17 @@ export function Home() {
     }
   }
 
-  /** Cria a sala com três robôs de estilos diferentes e já começa. */
+  /** Cria a sala com robôs e já começa: 3 no Magnata e nas Duplas, 2 no dominó individual. */
   function onSolo() {
     run(async () => {
-      const created = await createRoom(name, profile.avatar);
+      const created = await createRoom(name, avatar, gameId, options);
       const { code: roomCode } = created.room;
-      for (const strategy of ["investidor", "conservador", "colecionador"]) {
+      const bots =
+        gameId === "magnata" ? ["investidor", "conservador", "colecionador"] : mode === "duplas" ? ["medio", "dificil", "medio"] : ["medio", "dificil"];
+      for (const strategy of bots) {
         await sendCommand(roomCode, created.token, { kind: "add-bot", strategy });
       }
-      await sendCommand(roomCode, created.token, { kind: "set-options", options: { roundLimit: 60 } });
+      if (gameId === "magnata") await sendCommand(roomCode, created.token, { kind: "set-options", options: { roundLimit: 60 } });
       await sendCommand(roomCode, created.token, { kind: "start" });
       return created;
     });
@@ -74,7 +91,7 @@ export function Home() {
   function onJoin(event: FormEvent) {
     event.preventDefault();
     const normalized = code.trim().toUpperCase();
-    run(() => joinRoom(normalized, name, profile.avatar));
+    run(() => joinRoom(normalized, name, avatar));
   }
 
   return (
@@ -85,7 +102,10 @@ export function Home() {
         <p>Jogos de tabuleiro com a família e os amigos, direto no navegador do celular.</p>
       </header>
 
-      <ProfileCard profile={profile} />
+      <NoticeList notices={notices} onDismiss={dismiss} onJoin={(roomCode) => router.push(`/sala/${roomCode}`)} />
+
+      <AccountPanel me={me} loaded={loaded} profile={profile} />
+      {loaded && !me && <ProfileCard profile={profile} />}
 
       {resume && (
         <button className="card continue-card" onClick={() => router.push(`/sala/${resume.code}`)}>
@@ -102,15 +122,49 @@ export function Home() {
       )}
 
       <section className="card">
+        <h2>Novo jogo</h2>
+        <div className="game-picker" role="radiogroup" aria-label="Escolha o jogo">
+          {GAME_IDS.map((id) => (
+            <button
+              key={id}
+              role="radio"
+              aria-checked={gameId === id}
+              className={gameId === id ? "game-option active" : "game-option"}
+              onClick={() => setGameId(id)}
+            >
+              <span className="game-option-art" aria-hidden>
+                {GAMES[id].emoji}
+              </span>
+              <strong>{GAMES[id].name}</strong>
+              <span className="muted small">
+                {GAMES[id].minPlayers} a {GAMES[id].maxPlayers} jogadores
+              </span>
+            </button>
+          ))}
+        </div>
+        {gameId === "domino" && (
+          <label className="field">
+            <span>Modalidade</span>
+            <select value={mode} onChange={(event) => setMode(event.target.value as DominoMode)}>
+              {DOMINO_MODE_IDS.map((id) => (
+                <option key={id} value={id}>
+                  {DOMINO_MODES[id].name} — {DOMINO_MODES[id].short}
+                </option>
+              ))}
+            </select>
+            <span className="muted hint">{DOMINO_MODES[mode].description}</span>
+          </label>
+        )}
+        <p className="muted small">{game.description}</p>
         <div className="main-actions">
-          <button className="button primary" disabled={busy || !name} onClick={() => run(() => createRoom(name, profile.avatar))}>
+          <button className="button primary" disabled={busy || !name} onClick={() => run(() => createRoom(name, avatar, gameId, options))}>
             👥 Jogar com amigos
           </button>
           <button className="button" disabled={busy || !name} onClick={onSolo}>
             🤖 Jogar contra robôs
           </button>
         </div>
-        {!name && <p className="muted small">Escreva seu nome no perfil para começar.</p>}
+        {!name && <p className="muted small">Entre na sua conta ou escreva seu nome para começar.</p>}
 
         <div className="divider">
           <span>ou entre com um código</span>
@@ -139,18 +193,7 @@ export function Home() {
         )}
       </section>
 
-      <section className="card game-card">
-        <div className="game-card-art" aria-hidden>
-          🏙️
-        </div>
-        <div>
-          <h2>{game.name}</h2>
-          <p>{game.description}</p>
-          <p className="muted">
-            {game.minPlayers} a {game.maxPlayers} participantes · pessoas e robôs · 5 temas de tabuleiro
-          </p>
-        </div>
-      </section>
+      <PlazaPanel plaza={plaza} me={me} inviteCode={resume?.lobby ? resume.code : null} onRefresh={refresh} />
 
       <nav className="link-row" aria-label="Ajuda">
         <button className="link-button light" onClick={() => setSheet("help")}>
@@ -161,11 +204,11 @@ export function Home() {
         </button>
       </nav>
 
-      <p className="footnote muted">Sem cadastro: quem cria a sala recebe um código para compartilhar.</p>
+      <p className="footnote muted">Conta é opcional: como convidado, quem cria a sala recebe um código para compartilhar.</p>
 
       {sheet === "help" && (
-        <Sheet title="Como jogar o Magnata" onClose={() => setSheet(null)}>
-          <HowToPlay />
+        <Sheet title={`Como jogar ${game.name}`} onClose={() => setSheet(null)}>
+          {gameId === "domino" ? <DominoRules /> : <HowToPlay />}
         </Sheet>
       )}
       {sheet === "prefs" && (

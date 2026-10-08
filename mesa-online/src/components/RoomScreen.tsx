@@ -7,9 +7,15 @@ import { sendCommand } from "@/client/api";
 import { useProfile } from "@/client/profile";
 import { claimResumeFragment, resumeLink, useSeat } from "@/client/seats";
 import { useStorageAvailable } from "@/client/storage";
+import { refreshMe, useAccount } from "@/client/useAccount";
+import { usePlaza } from "@/client/usePlaza";
 import { useRoom } from "@/client/useRoom";
 import { themeOf } from "@/games/magnata/themes";
+import { isMagnata } from "@/games/modules";
+import type { PublicRoom } from "@/rooms/public";
 import type { RoomCommand } from "@/rooms/room";
+import { DominoRules } from "./domino/DominoRules";
+import { DominoTable } from "./domino/DominoTable";
 import { HowToPlay } from "./HowToPlay";
 import { Lobby } from "./Lobby";
 import { MagnataTable } from "./magnata/MagnataTable";
@@ -22,8 +28,9 @@ export function RoomScreen() {
   const params = useParams<{ code: string }>();
   const router = useRouter();
   const code = (params.code ?? "").toUpperCase();
-  const { room, error, offline, applyRoom } = useRoom(code);
   const seat = useSeat(code);
+  const { room, error, offline, applyRoom } = useRoom(code, seat?.token ?? null);
+  const { me: account } = useAccount();
   const profile = useProfile();
   const storageOk = useStorageAvailable();
   const [notice, setNotice] = useState<string | null>(null);
@@ -33,13 +40,25 @@ export function RoomScreen() {
 
   const me = (seat && room?.players.find((player) => player.id === seat.playerId)) || null;
 
+  // Sinal de presença para a lista de online (só para quem tem conta).
+  usePlaza(room ? { status: room.status === "lobby" ? "lobby" : "playing", gameId: room.gameId } : null, {
+    full: false,
+    enabled: Boolean(account),
+  });
+
+  // Partida terminada: fichas, vitórias e selos mudaram.
+  const finished = room?.status === "finished";
+  useEffect(() => {
+    if (finished && account) void refreshMe();
+  }, [finished, account]);
+
   // Link de retomada: "#retomar=..." vira assento salvo e some da barra de endereço.
   useEffect(() => {
     claimResumeFragment(code);
   }, [code]);
 
   // Cores do tema escolhido na sala.
-  const themeId = room?.game?.themeId ?? room?.options.themeId;
+  const themeId = room && isMagnata(room.game) ? room.game.themeId : room?.options.themeId;
   useEffect(() => {
     const palette = themeOf(themeId).palette;
     const root = document.documentElement.style;
@@ -139,8 +158,13 @@ export function RoomScreen() {
 
       {room.status === "lobby" ? (
         <Lobby room={room} me={me} send={send} pending={pending} onJoined={applyRoom} profile={profile} />
+      ) : room.gameId === "domino" ? (
+        <DominoTable room={room} me={me} send={send} pending={pending} />
       ) : (
-        <MagnataTable room={room} me={me} send={send} pending={pending} prefs={profile.prefs} />
+        <>
+          <MatchResultBanner room={room} />
+          <MagnataTable room={room} me={me} send={send} pending={pending} prefs={profile.prefs} />
+        </>
       )}
 
 
@@ -177,8 +201,8 @@ export function RoomScreen() {
         </Sheet>
       )}
       {menu === "help" && (
-        <Sheet title="Como jogar o Magnata" onClose={() => setMenu(null)}>
-          <HowToPlay />
+        <Sheet title={room.gameId === "domino" ? "Como jogar dominó" : "Como jogar o Magnata"} onClose={() => setMenu(null)}>
+          {room.gameId === "domino" ? <DominoRules /> : <HowToPlay />}
         </Sheet>
       )}
       {menu === "prefs" && (
@@ -187,5 +211,18 @@ export function RoomScreen() {
         </Sheet>
       )}
     </main>
+  );
+}
+
+/** Fim de partida com aposta: quanto cada vencedor levou do pote. */
+function MatchResultBanner({ room }: { room: PublicRoom }) {
+  const result = room.status === "finished" ? room.results.find((item) => item.matchId === room.match?.id) : null;
+  if (!result || result.stake === 0) return null;
+  const names = new Map(result.seats.map((seat) => [seat.playerId, seat.name]));
+  return (
+    <p className="banner pot-banner" role="status">
+      🪙 Pote de {result.pot.toLocaleString("pt-BR")} fichas:{" "}
+      {result.winners.map((id) => `${names.get(id)} +${result.payouts[id].toLocaleString("pt-BR")}`).join(", ")}
+    </p>
   );
 }

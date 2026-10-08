@@ -4,12 +4,23 @@ import { useState, type FormEvent } from "react";
 import { joinRoom } from "@/client/api";
 import { saveProfile, type Profile } from "@/client/profile";
 import { saveSeat } from "@/client/seats";
-import { BOTS, BOT_KINDS } from "@/bots/strategies";
-import type { BotKind } from "@/bots/types";
+import { useAccount } from "@/client/useAccount";
+import { DOMINO_MODES, DOMINO_TARGETS, type DominoMode } from "@/games/domino/engine";
 import { THEMES, THEME_IDS, tileNameIn } from "@/games/magnata/themes";
+import { GAME_MODULES } from "@/games/modules";
 import { GAMES } from "@/games/registry";
 import type { PublicRoom } from "@/rooms/public";
-import { BOT_PACES, ROUND_LIMITS, TURN_TIMEOUTS, type BotPace, type RoomPlayer } from "@/rooms/room";
+import {
+  BOT_PACES,
+  ROUND_LIMITS,
+  STAKES,
+  TURN_TIMEOUTS,
+  maxPlayers,
+  minPlayers,
+  type BotPace,
+  type RoomPlayer,
+} from "@/rooms/room";
+import { Honors } from "./Badges";
 import { Chat } from "./Chat";
 import type { Send } from "./RoomScreen";
 
@@ -26,17 +37,27 @@ const timeoutLabel = (seconds: number | null) => (seconds ? `${seconds / 60} min
 const PACE_LABELS: Record<BotPace, string> = { fast: "Rápido", normal: "Normal", slow: "Lento" };
 const paceLabel = (pace: BotPace) =>
   `${PACE_LABELS[pace]} (${(BOT_PACES[pace] / 1000).toLocaleString("pt-BR")} s entre jogadas)`;
+const DOMINO_MODE_IDS = Object.keys(DOMINO_MODES) as DominoMode[];
+const targetLabel = (mode: DominoMode, target: number | null) =>
+  target === null ? "Mão única" : `${target} ${mode === "duplas" ? "pontos (batidas)" : "pontos"}`;
+const stakeLabel = (stake: number) => (stake ? `${stake.toLocaleString("pt-BR")} fichas por pessoa` : "Sem aposta");
 
 export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
   const game = GAMES[room.gameId];
+  const bots = GAME_MODULES[room.gameId].bots;
+  const botKinds = Object.keys(bots);
   const isHost = me?.id === room.hostId;
-  const full = room.players.length >= game.maxPlayers;
+  const max = maxPlayers(room);
+  const full = room.players.length >= max;
   const [share, setShare] = useState<"idle" | "copied" | "manual">("idle");
-  const [strategy, setStrategy] = useState<BotKind>("investidor");
+  const [strategy, setStrategy] = useState<string>(botKinds[0]);
   const { options } = room;
+  const isDomino = room.gameId === "domino";
+  const dominoMode = options.dominoMode ?? "bloqueio";
   const theme = THEMES[options.themeId] ?? THEMES.classico;
   const otherHumans = room.players.filter((player) => !player.bot && player.id !== me?.id).length;
-  const missing = Math.max(0, game.minPlayers - room.players.length);
+  const missing = Math.max(0, minPlayers(room) - room.players.length);
+  const stake = options.stake ?? 0;
 
   const setOption = (patch: Record<string, unknown>) => send({ kind: "set-options", options: patch });
 
@@ -65,7 +86,8 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
     <>
       <section className="card code-card">
         <p className="muted">
-          {game.name} · código da sala
+          {game.emoji} {game.name}
+          {isDomino ? ` · ${DOMINO_MODES[dominoMode].name}` : ""} · código da sala
         </p>
         <p className="room-code">{room.code}</p>
         <button className="button" onClick={onShare}>
@@ -86,15 +108,17 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
 
       <section className="card">
         <h2>
-          Jogadores <span className="muted">({room.players.length}/{game.maxPlayers})</span>
+          Jogadores <span className="muted">({room.players.length}/{max})</span>
         </h2>
         <ul className="player-list">
-          {room.players.map((player) => (
+          {room.players.map((player, index) => (
             <li key={player.id}>
               <span className="avatar" style={{ borderColor: player.color }} aria-hidden>
                 {player.avatar}
               </span>
               <span>{player.name}</span>
+              <Honors wins={player.wins} badges={player.badges} />
+              {isDomino && dominoMode === "duplas" && <span className="badge subtle">dupla {index % 2 === 0 ? "A" : "B"}</span>}
               {player.id === room.hostId && <span className="badge">anfitrião</span>}
               {player.id === me?.id && <span className="badge subtle">você</span>}
               {player.bot && <span className="badge subtle">robô</span>}
@@ -107,22 +131,25 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
           ))}
         </ul>
 
-        {!me && !full && <JoinForm code={room.code} profile={profile} onJoined={onJoined} />}
+        {isDomino && dominoMode === "duplas" && (
+          <p className="muted small">Duplas pela ordem da lista: 1º e 3º contra 2º e 4º.</p>
+        )}
+        {!me && !full && <JoinForm code={room.code} profile={profile} onJoined={onJoined} stake={stake} />}
         {!me && full && <p className="muted">A sala está cheia.</p>}
 
         {isHost && !full && (
           <div className="join-row">
-            <select value={strategy} onChange={(event) => setStrategy(event.target.value as BotKind)} aria-label="Estilo do robô">
-              {BOT_KINDS.map((kind) => (
+            <select value={strategy} onChange={(event) => setStrategy(event.target.value)} aria-label="Estilo do robô">
+              {botKinds.map((kind) => (
                 <option key={kind} value={kind}>
-                  {BOTS[kind].name}
+                  {bots[kind].name}
                 </option>
               ))}
             </select>
             <button className="button" disabled={pending} onClick={() => send({ kind: "add-bot", strategy })}>
               + Robô
             </button>
-            <p className="muted hint">{BOTS[strategy].description}</p>
+            <p className="muted hint">{bots[strategy]?.description}</p>
           </div>
         )}
       </section>
@@ -131,6 +158,38 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
         <h2>Mesa</h2>
         {isHost ? (
           <div className="options">
+            {isDomino && (
+              <>
+                <label className="field">
+                  <span>Modalidade</span>
+                  <select value={dominoMode} disabled={pending} onChange={(event) => setOption({ dominoMode: event.target.value })}>
+                    {DOMINO_MODE_IDS.map((id) => (
+                      <option key={id} value={id}>
+                        {DOMINO_MODES[id].name} — {DOMINO_MODES[id].short}
+                      </option>
+                    ))}
+                  </select>
+                  <span className="muted hint">{DOMINO_MODES[dominoMode].description}</span>
+                </label>
+                <label className="field">
+                  <span>Meta</span>
+                  <select
+                    value={options.dominoTarget ?? ""}
+                    disabled={pending}
+                    onChange={(event) => setOption({ dominoTarget: event.target.value ? Number(event.target.value) : null })}
+                  >
+                    {DOMINO_TARGETS[dominoMode].map((target) => (
+                      <option key={String(target)} value={target ?? ""}>
+                        {targetLabel(dominoMode, target)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </>
+            )}
+            <StakeField stake={stake} disabled={pending} onChange={(value) => setOption({ stake: value })} />
+            {!isDomino && (
+            <>
             <label className="field">
               <span>Tema do tabuleiro</span>
               <select value={options.themeId} disabled={pending} onChange={(event) => setOption({ themeId: event.target.value })}>
@@ -159,6 +218,8 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
               </select>
               {options.roundLimit && <span className="muted hint">Ao fim das rodadas, vence o maior patrimônio.</span>}
             </label>
+            </>
+            )}
 
             <label className="field">
               <span>Prazo por jogada</span>
@@ -197,6 +258,8 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
               <span className="muted hint">Vale para os robôs e para o piloto automático de quem estiver ausente.</span>
             </label>
 
+            {!isDomino && (
+            <>
             <label className="check">
               <input
                 type="checkbox"
@@ -217,17 +280,29 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
                 <span className="muted hint">Muda as regras: até metade do valor das propriedades livres, devolvendo +20% em 8 turnos.</span>
               </span>
             </label>
+            </>
+            )}
           </div>
         ) : (
           <ul className="summary">
-            <li>
-              Tema: {theme.emoji} {theme.name}
-            </li>
-            <li>Duração: {options.roundLimit ? `${options.roundLimit} rodadas` : "até restar um jogador"}</li>
+            {isDomino ? (
+              <>
+                <li>Modalidade: {DOMINO_MODES[dominoMode].name}</li>
+                <li>Meta: {targetLabel(dominoMode, options.dominoTarget ?? null)}</li>
+              </>
+            ) : (
+              <>
+                <li>
+                  Tema: {theme.emoji} {theme.name}
+                </li>
+                <li>Duração: {options.roundLimit ? `${options.roundLimit} rodadas` : "até restar um jogador"}</li>
+                <li>Leilão ao recusar: {(options.auctions ?? true) ? "ligado" : "desligado"}</li>
+                <li>Empréstimos do banco: {options.credit ? "ligados (variante)" : "desligados"}</li>
+              </>
+            )}
+            <li>Aposta: {stakeLabel(stake)}</li>
             <li>Prazo por jogada: {timeoutLabel(options.turnTimeout)}</li>
             <li>Ritmo dos robôs: {paceLabel(options.botPace ?? "normal")}</li>
-            <li>Leilão ao recusar: {(options.auctions ?? true) ? "ligado" : "desligado"}</li>
-            <li>Empréstimos do banco: {options.credit ? "ligados (variante)" : "desligados"}</li>
           </ul>
         )}
       </section>
@@ -263,6 +338,26 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
   );
 }
 
+function StakeField({ stake, disabled, onChange }: { stake: number; disabled: boolean; onChange: (value: number) => void }) {
+  return (
+    <label className="field">
+      <span>Aposta (fichas virtuais)</span>
+      <select value={stake} disabled={disabled} onChange={(event) => onChange(Number(event.target.value))}>
+        {STAKES.map((value) => (
+          <option key={value} value={value}>
+            {stakeLabel(value)}
+          </option>
+        ))}
+      </select>
+      <span className="muted hint">
+        {stake
+          ? "Todos precisam entrar com a conta. Quem vence leva o pote; robôs apostam com fichas da casa."
+          : "Sem aposta, convidados sem conta também jogam."}
+      </span>
+    </label>
+  );
+}
+
 function ThemePreview({ themeId }: { themeId: keyof typeof THEMES }) {
   const theme = THEMES[themeId];
   return (
@@ -282,16 +377,17 @@ function ThemePreview({ themeId }: { themeId: keyof typeof THEMES }) {
   );
 }
 
-function JoinForm({ code, profile, onJoined }: { code: string; profile: Profile; onJoined: (room: PublicRoom) => void }) {
+function JoinForm({ code, profile, onJoined, stake }: { code: string; profile: Profile; onJoined: (room: PublicRoom) => void; stake: number }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { me: account } = useAccount();
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setBusy(true);
     setError(null);
     try {
-      const result = await joinRoom(code, profile.name, profile.avatar);
+      const result = await joinRoom(code, account ? account.nickname : profile.name, account ? account.avatar : profile.avatar);
       saveSeat(code, { playerId: result.playerId, token: result.token });
       onJoined(result.room);
     } catch (caught) {
@@ -301,20 +397,30 @@ function JoinForm({ code, profile, onJoined }: { code: string; profile: Profile;
     }
   }
 
+  if (!account && stake > 0) {
+    return <p className="muted">Esta mesa tem aposta de {stake.toLocaleString("pt-BR")} fichas: entre na sua conta pelo início para jogar.</p>;
+  }
+
   return (
     <form className="join-row" onSubmit={onSubmit}>
       <span className="avatar" aria-hidden>
-        {profile.avatar}
+        {account ? account.avatar : profile.avatar}
       </span>
-      <input
-        value={profile.name}
-        onChange={(event) => saveProfile({ name: event.target.value })}
-        maxLength={20}
-        placeholder="Seu nome"
-        aria-label="Seu nome"
-        autoComplete="nickname"
-      />
-      <button className="button primary" disabled={busy || !profile.name.trim()}>
+      {account ? (
+        <span className="grow">
+          Entrar como <strong>{account.nickname}</strong>
+        </span>
+      ) : (
+        <input
+          value={profile.name}
+          onChange={(event) => saveProfile({ name: event.target.value })}
+          maxLength={20}
+          placeholder="Seu nome"
+          aria-label="Seu nome"
+          autoComplete="nickname"
+        />
+      )}
+      <button className="button primary" disabled={busy || (!account && !profile.name.trim())}>
         Entrar
       </button>
       {error && (

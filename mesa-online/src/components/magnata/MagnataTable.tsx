@@ -4,6 +4,7 @@ import { useCallback, useId, useRef, useState, type KeyboardEvent } from "react"
 import { DIALOG_PACES, type Prefs } from "@/client/profile";
 import { useBeats } from "@/client/useBeats";
 import { prefersReducedMotion, useSteppedPositions } from "@/client/useSteppedPositions";
+import type { MagnataView } from "@/games/magnata/engine";
 import type { PublicRoom } from "@/rooms/public";
 import type { RoomPlayer } from "@/rooms/room";
 import { Chat } from "../Chat";
@@ -35,7 +36,7 @@ const TABS: [Tab, string][] = [
 ];
 
 export function MagnataTable({ room, me, send, pending, prefs }: Props) {
-  const game = room.game!;
+  const game = room.game as MagnataView;
   const [selected, setSelected] = useState<number | null>(null);
   const [tab, setTab] = useState<Tab>("jogadores");
   const [trading, setTrading] = useState(false);

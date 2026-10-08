@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buildBeats, type Beat } from "@/games/magnata/beats";
 import { themeOf } from "@/games/magnata/themes";
+import { isMagnata } from "@/games/modules";
 import type { PublicRoom } from "@/rooms/public";
 import type { Prefs } from "./profile";
 import { playChime } from "./sound";
@@ -24,7 +25,7 @@ export function useBeats(room: PublicRoom | null, meId: string | null, prefs: Pr
     setQueue((current) => (replace ? beats : [...current, ...beats]));
   }, []);
 
-  const game = room?.game ?? null;
+  const game = room && isMagnata(room.game) ? room.game : null;
 
   useEffect(() => {
     if (!game || !room) {

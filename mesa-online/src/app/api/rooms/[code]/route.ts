@@ -6,7 +6,13 @@ export async function GET(request: NextRequest, ctx: RouteContext<"/api/rooms/[c
   return handle(async () => {
     const { code } = await ctx.params;
     const known = Number(request.nextUrl.searchParams.get("v"));
-    const room = await readRoom(code, Number.isInteger(known) && known > 0 ? known : null);
+    const room = await readRoom(
+      code,
+      Number.isInteger(known) && known > 0 ? known : null,
+      undefined,
+      Date.now(),
+      request.headers.get("x-player-token"),
+    );
     return json(room ? { room } : { unchanged: true });
   });
 }

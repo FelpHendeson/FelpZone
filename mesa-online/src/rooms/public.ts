@@ -1,18 +1,21 @@
 // O que o navegador pode ver de uma sala. Toda resposta da API passa por aqui,
-// então segredos (ordem dos baralhos, ids internos de comandos) nunca saem.
+// então segredos (baralhos, monte, mãos dos outros, ids internos de comandos)
+// nunca saem. A visão depende de quem pergunta: cada um vê a própria mão.
 
-import type { MagnataView } from "@/games/magnata/engine";
+import { GAME_MODULES, type GameView } from "@/games/modules";
 import type { Room } from "./room";
 
-export type PublicRoom = Omit<Room, "recentCommands" | "game"> & { game: MagnataView | null };
+export type PublicRoom = Omit<Room, "recentCommands" | "game"> & { game: GameView | null };
 
-export function publicRoom(room: Room): PublicRoom {
+export function publicRoom(room: Room, viewerId: string | null = null): PublicRoom {
   const { recentCommands: _commands, game, ...rest } = room;
   void _commands;
-  if (!game) return { ...rest, game: null };
-  const { decks: _decks, ...view } = game;
-  void _decks;
-  // Lances do leilão são secretos até o fim: só se sabe quem ainda falta.
-  const auction = view.auction ? { ...view.auction, bids: {} } : null;
-  return { ...rest, game: { ...view, auction } };
+  return {
+    ...rest,
+    // Salas gravadas antes das contas não têm estes campos.
+    match: rest.match ?? null,
+    results: rest.results ?? [],
+    options: { ...rest.options, stake: rest.options.stake ?? 0 },
+    game: game ? GAME_MODULES[room.gameId].view(game, viewerId) : null,
+  };
 }
