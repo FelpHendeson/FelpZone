@@ -18,6 +18,7 @@ import {
 } from "@/rooms/room";
 import { holdStakes, identityFor, releaseStakes, settleResult } from "./accounts";
 import { getKv, type Kv } from "./kv";
+import { notifyTurn } from "./push";
 import { getRoomStore, type RoomStore, type StoredRoom } from "./store";
 
 const CODE_ALPHABET = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
@@ -181,8 +182,13 @@ export async function runRoomCommand(
 
 const accountIds = (room: Room) => room.players.filter((player) => player.userId).map((player) => player.userId!);
 
-/** Partida que acabou de terminar: paga o pote e conta vitórias (também é refeito ao ler a conta). */
+/**
+ * Depois de gravar: avisa no celular quem passou a ter que jogar e, se a
+ * partida acabou de terminar, paga o pote e conta vitórias (isso também é
+ * refeito ao ler a conta).
+ */
 async function afterWrite(previous: Room, next: Room, store: RoomStore, kv: Kv) {
+  notifyTurn(previous, next, { kv, store });
   if (next.status !== "finished" || previous.status === "finished") return;
   const result = next.results.at(-1);
   if (result) await settleResult(result, { kv, store }).catch((error) => console.error(error));

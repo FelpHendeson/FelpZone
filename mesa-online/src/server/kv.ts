@@ -14,16 +14,17 @@ export const keys = {
   card: (id: string) => `${PREFIX}:cartao:${id}`,
   where: (id: string) => `${PREFIX}:onde:${id}`,
   inbox: (id: string) => `${PREFIX}:avisos:${id}`,
+  group: (id: string) => `${PREFIX}:grupo:${id}`,
+  groupCode: (code: string) => `${PREFIX}:grupo-codigo:${code}`,
+  groupChat: (id: string) => `${PREFIX}:grupo:${id}:conversa`,
+  push: (id: string) => `${PREFIX}:push:${id}`,
   online: `${PREFIX}:online`,
-  plaza: `${PREFIX}:praca`,
 };
 
 export interface PlazaSnapshot {
-  /** Conta da sessão, se houver. */
-  userId: string | null;
   /** Para cada pessoa online: [cartão, onde está] (JSON). */
   online: [string | null, string | null][];
-  /** Mensagens da praça, da mais nova para a mais velha (JSON). */
+  /** Mensagens da conversa pedida, da mais nova para a mais velha (JSON). */
   chat: string[];
   /** Avisos recebidos (JSON), já retirados da caixa. */
   inbox: string[];
@@ -42,10 +43,17 @@ export interface Kv {
   push(key: string, value: string, max: number, ttlSeconds?: number): Promise<void>;
   hit(key: string, limit: number, windowSeconds: number): Promise<boolean>;
   /**
-   * Atualização do menu: identifica a sessão, marca presença (com onde a
-   * pessoa está), limpa quem sumiu e devolve online, praça e avisos.
+   * Atualização do menu: marca presença (com onde a pessoa está), limpa quem
+   * sumiu e devolve quem está online, a conversa pedida e os avisos.
    */
-  plaza(input: { sessionKey: string | null; where: string | null; now: number; windowMs: number; takeInbox: boolean }): Promise<PlazaSnapshot>;
+  plaza(input: {
+    userId: string | null;
+    where: string | null;
+    now: number;
+    windowMs: number;
+    takeInbox: boolean;
+    chatKey: string | null;
+  }): Promise<PlazaSnapshot>;
 }
 
 const WHERE_TTL_SECONDS = 120;
@@ -102,8 +110,7 @@ export function createMemoryKv(): Kv {
       current.count += 1;
       return current.count <= limit;
     },
-    async plaza({ sessionKey, where, now, windowMs, takeInbox }) {
-      const userId = sessionKey ? read(sessionKey) : null;
+    async plaza({ userId, where, now, windowMs, takeInbox, chatKey }) {
       if (userId) {
         online.set(userId, now);
         if (where !== null) write(keys.where(userId), where, WHERE_TTL_SECONDS);
@@ -116,9 +123,8 @@ export function createMemoryKv(): Kv {
         lists.delete(keys.inbox(userId));
       }
       return {
-        userId,
         online: ids.map((id) => [read(keys.card(id)), read(keys.where(id))]),
-        chat: lists.get(keys.plaza) ?? [],
+        chat: chatKey ? (lists.get(chatKey) ?? []) : [],
         inbox,
       };
     },
@@ -143,33 +149,33 @@ local count = redis.call('INCR', KEYS[1])
 if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
 return count`;
 
-// KEYS: [1] sessão (ou vazia), [2] online, [3] praça. ARGV: agora, janela, onde, retirar avisos, prefixo, validade do "onde".
+// KEYS: [1] online, [2] conversa (ou vazia). ARGV: agora, janela, onde, retirar avisos, prefixo, validade do "onde", conta.
 const PLAZA_SCRIPT = `
-local uid = false
-if KEYS[1] ~= '' then uid = redis.call('GET', KEYS[1]) end
+local uid = ARGV[7]
 local now = tonumber(ARGV[1])
 local since = now - tonumber(ARGV[2])
 local prefix = ARGV[5]
-if uid then
-  redis.call('ZADD', KEYS[2], now, uid)
+if uid ~= '' then
+  redis.call('ZADD', KEYS[1], now, uid)
   if ARGV[3] ~= '' then redis.call('SET', prefix .. ':onde:' .. uid, ARGV[3], 'EX', ARGV[6]) end
 end
-redis.call('ZREMRANGEBYSCORE', KEYS[2], '-inf', '(' .. since)
-local ids = redis.call('ZREVRANGEBYSCORE', KEYS[2], '+inf', since)
+redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', '(' .. since)
+local ids = redis.call('ZREVRANGEBYSCORE', KEYS[1], '+inf', since)
 local online = {}
 for i, id in ipairs(ids) do
   local card = redis.call('GET', prefix .. ':cartao:' .. id)
   local where = redis.call('GET', prefix .. ':onde:' .. id)
   online[i] = { card or '', where or '' }
 end
-local chat = redis.call('LRANGE', KEYS[3], 0, ${CHAT_MAX - 1})
+local chat = {}
+if KEYS[2] ~= '' then chat = redis.call('LRANGE', KEYS[2], 0, ${CHAT_MAX - 1}) end
 local inbox = {}
-if uid and ARGV[4] == '1' then
+if uid ~= '' and ARGV[4] == '1' then
   local key = prefix .. ':avisos:' .. uid
   inbox = redis.call('LRANGE', key, 0, -1)
   redis.call('DEL', key)
 end
-return { uid or '', online, chat, inbox }`;
+return { online, chat, inbox }`;
 
 export function createRedisKv(redis: Redis): Kv {
   return {
@@ -213,22 +219,20 @@ export function createRedisKv(redis: Redis): Kv {
 
 type PlazaInput = Parameters<Kv["plaza"]>[0];
 
-async function plazaByScript(redis: Redis, { sessionKey, where, now, windowMs, takeInbox }: PlazaInput): Promise<PlazaSnapshot> {
-  const [uid, online, chat, inbox] = (await redis.eval(
+async function plazaByScript(redis: Redis, { userId, where, now, windowMs, takeInbox, chatKey }: PlazaInput): Promise<PlazaSnapshot> {
+  const [online, chat, inbox] = (await redis.eval(
     PLAZA_SCRIPT,
-    [sessionKey ?? "", keys.online, keys.plaza],
-    [String(now), String(windowMs), where ?? "", takeInbox ? "1" : "0", PREFIX, String(WHERE_TTL_SECONDS)],
-  )) as [string, [string, string][], string[], string[]];
+    [keys.online, chatKey ?? ""],
+    [String(now), String(windowMs), where ?? "", takeInbox ? "1" : "0", PREFIX, String(WHERE_TTL_SECONDS), userId ?? ""],
+  )) as [[string, string][], string[], string[]];
   return {
-    userId: uid || null,
     online: (online ?? []).map(([card, place]) => [card || null, place || null]),
     chat: chat ?? [],
     inbox: inbox ?? [],
   };
 }
 
-async function plazaBySteps(redis: Redis, { sessionKey, where, now, windowMs, takeInbox }: PlazaInput): Promise<PlazaSnapshot> {
-  const userId = sessionKey ? ((await redis.get<string>(sessionKey)) ?? null) : null;
+async function plazaBySteps(redis: Redis, { userId, where, now, windowMs, takeInbox, chatKey }: PlazaInput): Promise<PlazaSnapshot> {
   if (userId) {
     await redis.zadd(keys.online, { score: now, member: userId });
     if (where !== null) await redis.set(keys.where(userId), where, { ex: WHERE_TTL_SECONDS });
@@ -237,13 +241,13 @@ async function plazaBySteps(redis: Redis, { sessionKey, where, now, windowMs, ta
   const ids = (await redis.zrange<string[]>(keys.online, "+inf", now - windowMs, { byScore: true, rev: true })) ?? [];
   const cards = ids.length ? await redis.mget<(string | null)[]>(...ids.map(keys.card)) : [];
   const places = ids.length ? await redis.mget<(string | null)[]>(...ids.map(keys.where)) : [];
-  const chat = (await redis.lrange<string>(keys.plaza, 0, CHAT_MAX - 1)) ?? [];
+  const chat = chatKey ? ((await redis.lrange<string>(chatKey, 0, CHAT_MAX - 1)) ?? []) : [];
   let inbox: string[] = [];
   if (userId && takeInbox) {
     inbox = (await redis.lrange<string>(keys.inbox(userId), 0, -1)) ?? [];
     await redis.del(keys.inbox(userId));
   }
-  return { userId, online: ids.map((_, index) => [cards[index] ?? null, places[index] ?? null]), chat, inbox };
+  return { online: ids.map((_, index) => [cards[index] ?? null, places[index] ?? null]), chat, inbox };
 }
 
 export { INBOX_MAX, CHAT_MAX };

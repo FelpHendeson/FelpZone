@@ -18,29 +18,20 @@ import {
   validatePassword,
   type Account,
   type Me,
-  type PlayerCard,
   type PublicProfile,
 } from "@/accounts/account";
 import { avatarOr, isAvatar } from "@/rooms/avatars";
 import { RoomError, type Identity, type MatchResult, type Room } from "@/rooms/room";
-import type { Notice, OnlineEntry, Plaza, PlazaMessage, Where } from "@/accounts/plaza";
-import { CHAT_MAX, INBOX_MAX, getKv, keys, type Kv } from "./kv";
-
-export { parseWhere, type Notice, type OnlineEntry, type Plaza, type PlazaMessage, type Where } from "@/accounts/plaza";
+import { getKv, keys, type Kv } from "./kv";
 import { getRoomStore, type RoomStore } from "./store";
 
 export const SESSION_COOKIE = "mesa_sessao";
 export const SESSION_TTL_SECONDS = 60 * 60 * 24 * 30;
-/** Fica online por até 60 s depois do último sinal. */
-const ONLINE_WINDOW_MS = 60_000;
 const MAX_WRITE_ATTEMPTS = 8;
-const MAX_TEXT = 200;
 const LIMITS = {
   signup: { limit: 10, window: 3600 },
   loginIp: { limit: 10, window: 600 },
   loginEmail: { limit: 10, window: 600 },
-  chat: { limit: 10, window: 60 },
-  social: { limit: 20, window: 600 },
 } as const;
 
 export interface Deps {
@@ -48,7 +39,7 @@ export interface Deps {
   store: RoomStore;
 }
 
-const defaults = (): Deps => ({ kv: getKv(), store: getRoomStore() });
+export const defaults = (): Deps => ({ kv: getKv(), store: getRoomStore() });
 
 // ---------------------------------------------------------------------------
 // Senhas e sessões
@@ -86,20 +77,20 @@ async function openSession(kv: Kv, userId: string): Promise<string> {
   return token;
 }
 
-async function limit(kv: Kv, key: string, rule: { limit: number; window: number }, message = "Muitas tentativas. Aguarde alguns minutos.") {
+export async function limit(kv: Kv, key: string, rule: { limit: number; window: number }, message = "Muitas tentativas. Aguarde alguns minutos.") {
   if (!(await kv.hit(key, rule.limit, rule.window))) throw new RoomError(message, 429);
 }
 
 // ---------------------------------------------------------------------------
 // Documento da conta
 
-async function readAccount(kv: Kv, id: string): Promise<Account | null> {
+export async function readAccount(kv: Kv, id: string): Promise<Account | null> {
   const json = await kv.get(keys.account(id));
   return json ? (JSON.parse(json) as Account) : null;
 }
 
 /** Lê, altera e grava com controle de versão; atualiza o cartão público. */
-async function updateAccount(kv: Kv, id: string, change: (account: Account) => Account): Promise<{ before: Account; after: Account }> {
+export async function updateAccount(kv: Kv, id: string, change: (account: Account) => Account): Promise<{ before: Account; after: Account }> {
   for (let attempt = 0; attempt < MAX_WRITE_ATTEMPTS; attempt += 1) {
     const before = await readAccount(kv, id);
     if (!before) throw new RoomError("Conta não encontrada.", 404);
@@ -120,7 +111,7 @@ export async function accountForToken(token: string | null, deps: Deps = default
   return userId ? readAccount(deps.kv, userId) : null;
 }
 
-async function requireAccount(token: string | null, deps: Deps): Promise<Account> {
+export async function requireAccount(token: string | null, deps: Deps): Promise<Account> {
   const account = await accountForToken(token, deps);
   if (!account) throw new RoomError("Entre na sua conta para continuar.", 401);
   return account;
@@ -278,83 +269,4 @@ async function settleHolds(account: Account, deps: Deps, now: number): Promise<A
     return next;
   });
   return after;
-}
-
-// ---------------------------------------------------------------------------
-// Presença e praça
-
-function parseJson<T>(value: string | null): T | null {
-  if (!value) return null;
-  try {
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-/** Uma atualização do menu: marca presença e devolve online, praça e avisos. */
-export async function plazaTick(
-  token: string | null,
-  where: Where | null,
-  takeInbox: boolean,
-  deps: Deps = defaults(),
-  now = Date.now(),
-): Promise<Plaza> {
-  const snapshot = await deps.kv.plaza({
-    sessionKey: token ? sessionKey(token) : null,
-    where: where ? JSON.stringify(where) : null,
-    now,
-    windowMs: ONLINE_WINDOW_MS,
-    takeInbox,
-  });
-  const online: OnlineEntry[] = [];
-  for (const [card, place] of snapshot.online) {
-    const parsed = parseJson<PlayerCard>(card);
-    if (parsed) online.push({ ...parsed, where: parseJson<Where>(place) });
-  }
-  return {
-    meId: snapshot.userId,
-    online,
-    chat: snapshot.chat.map((item) => parseJson<PlazaMessage>(item)).filter((item): item is PlazaMessage => item !== null),
-    inbox: snapshot.inbox.map((item) => parseJson<Notice>(item)).filter((item): item is Notice => item !== null),
-  };
-}
-
-function cleanText(input: unknown): string {
-  if (typeof input !== "string") throw new RoomError("Mensagem inválida.");
-  const text = input.replace(/[\p{C}]/gu, " ").replace(/\s+/g, " ").trim();
-  if (!text) throw new RoomError("Mensagem vazia.");
-  if ([...text].length > MAX_TEXT) throw new RoomError(`Use até ${MAX_TEXT} caracteres.`);
-  return text;
-}
-
-/** Conversa na praça, aceno ou convite para a própria sala. */
-export async function plazaPost(token: string | null, body: Record<string, unknown>, deps: Deps = defaults(), now = Date.now()): Promise<void> {
-  const account = await requireAccount(token, deps);
-  const id = randomBytes(6).toString("hex");
-  if (body.kind === "chat") {
-    const text = cleanText(body.text);
-    await limit(deps.kv, `praca:${account.id}`, LIMITS.chat, "Muitas mensagens seguidas. Aguarde um pouco.");
-    const message: PlazaMessage = { id, userId: account.id, nickname: account.nickname, avatar: account.avatar, text, at: now };
-    await deps.kv.push(keys.plaza, JSON.stringify(message), CHAT_MAX);
-    return;
-  }
-  if (body.kind !== "wave" && body.kind !== "invite") throw new RoomError("Ação inválida.");
-  if (typeof body.to !== "string" || body.to === account.id) throw new RoomError("Escolha outra pessoa.");
-  const target = await readAccount(deps.kv, body.to);
-  if (!target) throw new RoomError("Jogador não encontrado.", 404);
-  await limit(deps.kv, `social:${account.id}`, LIMITS.social, "Muitos convites e acenos seguidos. Aguarde um pouco.");
-
-  let notice: Notice;
-  if (body.kind === "wave") {
-    notice = { id, kind: "wave", from: cardOf(account), at: now };
-  } else {
-    const code = typeof body.code === "string" ? body.code.toUpperCase() : "";
-    const stored = code ? await deps.store.read(code) : null;
-    if (!stored) throw new RoomError("Sala não encontrada.", 404);
-    if (!stored.room.players.some((player) => player.userId === account.id)) throw new RoomError("Você só pode convidar para uma sala em que está.", 403);
-    if (stored.room.status !== "lobby") throw new RoomError("A partida dessa sala já começou.", 409);
-    notice = { id, kind: "invite", from: cardOf(account), code, gameId: stored.room.gameId, at: now };
-  }
-  await deps.kv.push(keys.inbox(target.id), JSON.stringify(notice), INBOX_MAX, 60 * 60 * 24);
 }

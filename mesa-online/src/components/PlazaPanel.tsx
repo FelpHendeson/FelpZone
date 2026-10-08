@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import type { Me } from "@/accounts/account";
+import type { GroupView } from "@/accounts/groups";
 import type { Notice, OnlineEntry, Plaza } from "@/accounts/plaza";
 import { postPlaza } from "@/client/api";
 import { GAMES } from "@/games/registry";
@@ -52,13 +53,31 @@ export function NoticeList({ notices, onDismiss, onJoin }: { notices: Notice[]; 
   );
 }
 
-/** Quem está online e a conversa da praça, já no menu. */
-export function PlazaPanel({ plaza, me, inviteCode, onRefresh }: { plaza: Plaza | null; me: Me | null; inviteCode: string | null; onRefresh: () => void }) {
+/** Quem está online nos seus grupos e a conversa de cada grupo, já no menu. */
+export function PlazaPanel({
+  plaza,
+  me,
+  groups,
+  chatGroupId,
+  onChatGroup,
+  inviteCode,
+  onRefresh,
+}: {
+  plaza: Plaza | null;
+  me: Me | null;
+  groups: GroupView[];
+  chatGroupId: string | null;
+  onChatGroup: (groupId: string) => void;
+  inviteCode: string | null;
+  onRefresh: () => void;
+}) {
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [profile, setProfile] = useState<string | null>(null);
   const others = (plaza?.online ?? []).filter((entry) => entry.id !== me?.id);
+  const activeGroup = groups.find((group) => group.id === (plaza?.chatGroupId ?? chatGroupId)) ?? groups[0] ?? null;
+  const groupName = (id: string) => groups.find((group) => group.id === id)?.name;
 
   async function act(task: () => Promise<unknown>, done: string) {
     setBusy(true);
@@ -78,16 +97,18 @@ export function PlazaPanel({ plaza, me, inviteCode, onRefresh }: { plaza: Plaza 
     event.preventDefault();
     const message = text.trim();
     if (!message) return;
-    void act(() => postPlaza({ kind: "chat", text: message }), "").then(() => setText(""));
+    if (!activeGroup) return;
+    void act(() => postPlaza({ kind: "chat", groupId: activeGroup.id, text: message }), "").then(() => setText(""));
   }
 
   return (
     <section className="card plaza-card" aria-label="Praça">
       <h2>
-        🟢 Online agora <span className="muted">({plaza?.online.length ?? 0})</span>
+        🟢 Online nos seus grupos <span className="muted">({plaza?.online.length ?? 0})</span>
       </h2>
-      {!me && <p className="muted small">Entre na sua conta para aparecer aqui, acenar, convidar e conversar.</p>}
-      {plaza && others.length === 0 && <p className="muted small">Ninguém mais online agora. Chame a família!</p>}
+      {!me && <p className="muted small">Entre na sua conta e num grupo da família para ver quem está online, acenar, convidar e conversar.</p>}
+      {me && groups.length === 0 && <p className="muted small">Crie ou entre num grupo para ver a família online.</p>}
+      {plaza && me && groups.length > 0 && others.length === 0 && <p className="muted small">Ninguém dos seus grupos online agora.</p>}
       <ul className="online-list">
         {others.map((entry) => (
           <li key={entry.id}>
@@ -99,7 +120,10 @@ export function PlazaPanel({ plaza, me, inviteCode, onRefresh }: { plaza: Plaza 
                 {entry.nickname}
               </button>{" "}
               <Honors wins={entry.wins} badges={entry.badges} />
-              <span className="muted small block">{whereLabel(entry)}</span>
+              <span className="muted small block">
+                {whereLabel(entry)}
+                {groups.length > 1 ? ` · ${entry.groups.map(groupName).filter(Boolean).join(", ")}` : ""}
+              </span>
             </span>
             {me && (
               <span className="online-actions">
@@ -134,7 +158,24 @@ export function PlazaPanel({ plaza, me, inviteCode, onRefresh }: { plaza: Plaza 
         </p>
       )}
 
-      <h3>💬 Praça</h3>
+      {activeGroup && (
+        <>
+          <h3>💬 Conversa do grupo</h3>
+          {groups.length > 1 && (
+            <div className="chip-row" role="tablist" aria-label="Conversa de qual grupo">
+              {groups.map((group) => (
+                <button
+                  key={group.id}
+                  role="tab"
+                  aria-selected={group.id === activeGroup.id}
+                  className={group.id === activeGroup.id ? "partner-chip active" : "partner-chip"}
+                  onClick={() => onChatGroup(group.id)}
+                >
+                  {group.name}
+                </button>
+              ))}
+            </div>
+          )}
       <ol className="plaza-chat" aria-live="polite">
         {(plaza?.chat ?? [])
           .slice(0, 20)
@@ -150,11 +191,19 @@ export function PlazaPanel({ plaza, me, inviteCode, onRefresh }: { plaza: Plaza 
       </ol>
       {me && (
         <form className="join-row" onSubmit={onSend}>
-          <input value={text} onChange={(event) => setText(event.target.value)} maxLength={200} placeholder="Falar na praça" aria-label="Mensagem para a praça" />
+          <input
+            value={text}
+            onChange={(event) => setText(event.target.value)}
+            maxLength={200}
+            placeholder={`Falar com ${activeGroup.name}`}
+            aria-label="Mensagem para o grupo"
+          />
           <button className="button" disabled={busy || !text.trim()}>
             Enviar
           </button>
         </form>
+      )}
+        </>
       )}
       {profile && <ProfileSheet nickname={profile} onClose={() => setProfile(null)} />}
     </section>

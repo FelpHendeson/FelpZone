@@ -2,15 +2,32 @@
 
 import { useEffect, useState } from "react";
 import type { PublicProfile } from "@/accounts/account";
-import { fetchProfile } from "@/client/api";
+import { fetchProfile, setBlockedUser } from "@/client/api";
+import { refreshMe, useAccount } from "@/client/useAccount";
 import { GAMES, GAME_IDS } from "@/games/registry";
 import { BadgeShelf } from "./Badges";
 import { Sheet } from "./Sheet";
 
-/** Perfil público de outro jogador: vitórias por jogo e selos (sem e-mail nem fichas). */
+/** Perfil público de outro jogador: vitórias por jogo e selos (sem e-mail nem Funcoins). */
 export function ProfileSheet({ nickname, onClose }: { nickname: string; onClose: () => void }) {
   const [profile, setProfile] = useState<PublicProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  const { me } = useAccount();
+  const blocked = profile ? (me?.blocked ?? []).includes(profile.id) : false;
+
+  async function toggleBlock() {
+    if (!profile) return;
+    setBusy(true);
+    try {
+      await setBlockedUser(profile.id, !blocked);
+      await refreshMe();
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Algo deu errado.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -49,6 +66,18 @@ export function ProfileSheet({ nickname, onClose }: { nickname: string; onClose:
             <li>Melhor sequência de vitórias: {profile.stats.bestStreak}</li>
           </ul>
           <BadgeShelf earned={profile.badges} />
+          {me && me.id !== profile.id && (
+            <>
+              <button className={blocked ? "button block" : "button danger block"} disabled={busy} onClick={toggleBlock}>
+                {blocked ? "Desbloquear" : `Bloquear ${profile.nickname}`}
+              </button>
+              <p className="muted small">
+                {blocked
+                  ? "Bloqueado: não acena, não convida e some da sua lista e da conversa."
+                  : "Quem é bloqueado não consegue acenar nem convidar você, e some da sua lista e da conversa."}
+              </p>
+            </>
+          )}
         </>
       )}
     </Sheet>

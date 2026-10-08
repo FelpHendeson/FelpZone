@@ -4,16 +4,17 @@ import { useState, type FormEvent } from "react";
 import { joinRoom } from "@/client/api";
 import { saveProfile, type Profile } from "@/client/profile";
 import { saveSeat } from "@/client/seats";
+import { funcoins, priceLabel } from "@/accounts/funcoins";
 import { useAccount } from "@/client/useAccount";
 import { DOMINO_MODES, DOMINO_TARGETS, type DominoMode } from "@/games/domino/engine";
 import { THEMES, THEME_IDS, tileNameIn } from "@/games/magnata/themes";
+import { TRUCO_MODES, type TrucoMode } from "@/games/truco/engine";
 import { GAME_MODULES } from "@/games/modules";
 import { GAMES } from "@/games/registry";
 import type { PublicRoom } from "@/rooms/public";
 import {
   BOT_PACES,
   ROUND_LIMITS,
-  STAKES,
   TURN_TIMEOUTS,
   maxPlayers,
   minPlayers,
@@ -40,7 +41,6 @@ const paceLabel = (pace: BotPace) =>
 const DOMINO_MODE_IDS = Object.keys(DOMINO_MODES) as DominoMode[];
 const targetLabel = (mode: DominoMode, target: number | null) =>
   target === null ? "Mão única" : `${target} ${mode === "duplas" ? "pontos (batidas)" : "pontos"}`;
-const stakeLabel = (stake: number) => (stake ? `${stake.toLocaleString("pt-BR")} fichas por pessoa` : "Sem aposta");
 
 export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
   const game = GAMES[room.gameId];
@@ -53,6 +53,7 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
   const [strategy, setStrategy] = useState<string>(botKinds[0]);
   const { options } = room;
   const isDomino = room.gameId === "domino";
+  const isMagnata = room.gameId === "magnata";
   const dominoMode = options.dominoMode ?? "bloqueio";
   const theme = THEMES[options.themeId] ?? THEMES.classico;
   const otherHumans = room.players.filter((player) => !player.bot && player.id !== me?.id).length;
@@ -90,6 +91,11 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
           {isDomino ? ` · ${DOMINO_MODES[dominoMode].name}` : ""} · código da sala
         </p>
         <p className="room-code">{room.code}</p>
+        <p className={stake ? "price-tag paid" : "price-tag"}>
+          🪙 {priceLabel(stake)}
+          {stake ? ` · pote de ${funcoins(stake * room.players.length)}` : ""}
+        </p>
+        {stake > 0 && <p className="muted small">Quem vence leva o pote. Robôs entram com Funcoins da casa.</p>}
         <button className="button" onClick={onShare}>
           {share === "copied" ? "Link copiado!" : "Compartilhar convite"}
         </button>
@@ -118,7 +124,9 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
               </span>
               <span>{player.name}</span>
               <Honors wins={player.wins} badges={player.badges} />
-              {isDomino && dominoMode === "duplas" && <span className="badge subtle">dupla {index % 2 === 0 ? "A" : "B"}</span>}
+              {((isDomino && dominoMode === "duplas") || (room.gameId === "truco" && room.players.length === 4)) && (
+                <span className="badge subtle">dupla {index % 2 === 0 ? "A" : "B"}</span>
+              )}
               {player.id === room.hostId && <span className="badge">anfitrião</span>}
               {player.id === me?.id && <span className="badge subtle">você</span>}
               {player.bot && <span className="badge subtle">robô</span>}
@@ -131,8 +139,10 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
           ))}
         </ul>
 
-        {isDomino && dominoMode === "duplas" && (
-          <p className="muted small">Duplas pela ordem da lista: 1º e 3º contra 2º e 4º.</p>
+        {((isDomino && dominoMode === "duplas") || room.gameId === "truco") && (
+          <p className="muted small">
+            {room.gameId === "truco" ? "Truco é com 2 (1 contra 1) ou 4 pessoas. " : ""}Duplas pela ordem da lista: 1º e 3º contra 2º e 4º.
+          </p>
         )}
         {!me && !full && <JoinForm code={room.code} profile={profile} onJoined={onJoined} stake={stake} />}
         {!me && full && <p className="muted">A sala está cheia.</p>}
@@ -158,6 +168,19 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
         <h2>Mesa</h2>
         {isHost ? (
           <div className="options">
+            {room.gameId === "truco" && (
+              <label className="field">
+                <span>Modalidade</span>
+                <select value={options.trucoMode ?? "paulista"} disabled={pending} onChange={(event) => setOption({ trucoMode: event.target.value })}>
+                  {(Object.keys(TRUCO_MODES) as TrucoMode[]).map((id) => (
+                    <option key={id} value={id}>
+                      Truco {TRUCO_MODES[id].name}
+                    </option>
+                  ))}
+                </select>
+                <span className="muted hint">{TRUCO_MODES[options.trucoMode ?? "paulista"].description}</span>
+              </label>
+            )}
             {isDomino && (
               <>
                 <label className="field">
@@ -187,8 +210,7 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
                 </label>
               </>
             )}
-            <StakeField stake={stake} disabled={pending} onChange={(value) => setOption({ stake: value })} />
-            {!isDomino && (
+            {isMagnata && (
             <>
             <label className="field">
               <span>Tema do tabuleiro</span>
@@ -258,7 +280,7 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
               <span className="muted hint">Vale para os robôs e para o piloto automático de quem estiver ausente.</span>
             </label>
 
-            {!isDomino && (
+            {isMagnata && (
             <>
             <label className="check">
               <input
@@ -285,7 +307,9 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
           </div>
         ) : (
           <ul className="summary">
-            {isDomino ? (
+            {room.gameId === "truco" ? (
+              <li>Modalidade: Truco {TRUCO_MODES[options.trucoMode ?? "paulista"].name}</li>
+            ) : isDomino ? (
               <>
                 <li>Modalidade: {DOMINO_MODES[dominoMode].name}</li>
                 <li>Meta: {targetLabel(dominoMode, options.dominoTarget ?? null)}</li>
@@ -300,7 +324,6 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
                 <li>Empréstimos do banco: {options.credit ? "ligados (variante)" : "desligados"}</li>
               </>
             )}
-            <li>Aposta: {stakeLabel(stake)}</li>
             <li>Prazo por jogada: {timeoutLabel(options.turnTimeout)}</li>
             <li>Ritmo dos robôs: {paceLabel(options.botPace ?? "normal")}</li>
           </ul>
@@ -335,26 +358,6 @@ export function Lobby({ room, me, send, pending, onJoined, profile }: Props) {
         <Chat room={room} me={me} send={send} />
       </section>
     </>
-  );
-}
-
-function StakeField({ stake, disabled, onChange }: { stake: number; disabled: boolean; onChange: (value: number) => void }) {
-  return (
-    <label className="field">
-      <span>Aposta (fichas virtuais)</span>
-      <select value={stake} disabled={disabled} onChange={(event) => onChange(Number(event.target.value))}>
-        {STAKES.map((value) => (
-          <option key={value} value={value}>
-            {stakeLabel(value)}
-          </option>
-        ))}
-      </select>
-      <span className="muted hint">
-        {stake
-          ? "Todos precisam entrar com a conta. Quem vence leva o pote; robôs apostam com fichas da casa."
-          : "Sem aposta, convidados sem conta também jogam."}
-      </span>
-    </label>
   );
 }
 
@@ -398,7 +401,7 @@ function JoinForm({ code, profile, onJoined, stake }: { code: string; profile: P
   }
 
   if (!account && stake > 0) {
-    return <p className="muted">Esta mesa tem aposta de {stake.toLocaleString("pt-BR")} fichas: entre na sua conta pelo início para jogar.</p>;
+    return <p className="muted">Esta mesa vale {funcoins(stake)} por pessoa: entre na sua conta pelo início para jogar.</p>;
   }
 
   return (

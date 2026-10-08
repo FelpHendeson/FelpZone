@@ -4,6 +4,7 @@
 import { DOMINO_MODES, DOMINO_TARGETS, isDominoMode, isDominoTarget, type DominoMode } from "@/games/domino/engine";
 import { isThemeId, type ThemeId } from "@/games/magnata/themes";
 import type { MagnataView } from "@/games/magnata/engine";
+import { isTrucoMode, type TrucoMode } from "@/games/truco/engine";
 import { GAME_MODULES, magnataActorsNeeded, type AnyBotKind, type GameState } from "@/games/modules";
 import { GAMES, type GameId } from "@/games/registry";
 import { GameRuleError, type Rng } from "@/games/rules";
@@ -25,8 +26,8 @@ export const DEFAULT_TURN_TIMEOUT = 120;
 export const BOT_PACES = { fast: 1000, normal: 2500, slow: 4000 } as const;
 export type BotPace = keyof typeof BOT_PACES;
 export const DEFAULT_BOT_PACE: BotPace = "normal";
-/** Aposta por pessoa, em fichas (0 = sem aposta). */
-export const STAKES = [0, 50, 100, 250, 500, 1000] as const;
+/** Preço da jogada por pessoa, em Funcoins (0 = grátis). */
+export const STAKES = [0, 10, 25, 50, 100, 250] as const;
 /** Quantos resultados de partidas a sala guarda (para liquidar apostas depois). */
 const MAX_RESULTS = 5;
 
@@ -70,8 +71,10 @@ export interface RoomOptions {
   /** Dominó: modalidade e meta de pontos (`null` = mão única). */
   dominoMode: DominoMode;
   dominoTarget: number | null;
-  /** Aposta por pessoa, em fichas. */
+  /** Preço da jogada por pessoa, em Funcoins (escolhido ao criar a sala). */
   stake: number;
+  /** Truco: paulista (com vira) ou mineiro (manilhas fixas). */
+  trucoMode: TrucoMode;
 }
 
 /** A partida em andamento, para apostas e estatísticas. */
@@ -89,7 +92,7 @@ export interface MatchResult {
   pot: number;
   winners: string[];
   seats: { playerId: string; name: string; userId: string | null; bot: boolean }[];
-  /** Fichas que cada assento recebe do pote. */
+  /** Funcoins que cada assento recebe do pote. */
   payouts: Record<string, number>;
   feats: Record<string, string[]>;
   finishedAt: number;
@@ -173,6 +176,7 @@ export function createRoom(params: {
     dominoMode: "bloqueio",
     dominoTarget: DOMINO_TARGETS.bloqueio[0],
     stake: 0,
+    trucoMode: "paulista",
   };
   const options = patchOptions(defaults, params.options ?? {}, [host]);
   return {
@@ -205,7 +209,7 @@ export function joinRoom(room: Room, playerId: string, rawName: unknown, rawAvat
   if (room.players.some((seat) => seat.name.toLowerCase() === player.name.toLowerCase())) {
     throw new RoomError("Já existe alguém com esse nome na sala.", 409);
   }
-  if (stakeOf(room) > 0 && !identity) throw new RoomError("Esta mesa tem aposta: entre com a sua conta para jogar.", 403);
+  if (stakeOf(room) > 0 && !identity) throw new RoomError("Esta mesa vale Funcoins: entre com a sua conta para jogar.", 403);
   return touch({ ...room, players: [...room.players, { ...player, color: freeColor(room) }] }, now);
 }
 
@@ -246,6 +250,11 @@ export function actorsNeeded(game: MagnataView): string[] {
 }
 
 const moduleOf = (room: Pick<Room, "gameId">) => GAME_MODULES[room.gameId];
+
+/** Quem precisa agir agora na sala (pessoas e robôs). */
+export function playersToAct(room: Room): RoomPlayer[] {
+  return neededPlayers(room);
+}
 
 function neededPlayers(room: Room): RoomPlayer[] {
   if (room.status !== "playing" || !room.game) return [];
@@ -314,7 +323,7 @@ function settle(room: Room, now: number): Room {
   return touch({ ...room, status: "finished", results }, now);
 }
 
-/** Vencedores, pote e pagamento de cada assento. Robôs apostam com fichas da casa. */
+/** Vencedores, pote e pagamento de cada assento. Robôs entram com Funcoins da casa. */
 export function matchResult(room: Room, now: number): MatchResult {
   const outcome = moduleOf(room).outcome(room.game!);
   const stake = room.match?.stake ?? 0;
@@ -353,7 +362,7 @@ export function runCommand(room: Room, playerId: string, command: RoomCommand, r
       }
       if (room.players.length > max) throw new RoomError(`Esta modalidade é para até ${max} jogadores.`, 409);
       if (stakeOf(room) > 0 && room.players.some((player) => !player.bot && !player.userId)) {
-        throw new RoomError("Com aposta, todas as pessoas precisam estar com a conta.", 409);
+        throw new RoomError("Mesa que vale Funcoins: todas as pessoas precisam estar com a conta.", 409);
       }
       const seats = room.players.map(({ id, name, color }) => ({ id, name, color }));
       const game = withRuleErrors(() => moduleOf(room).start(seats, room.options, rng));
@@ -481,10 +490,14 @@ function patchOptions(current: RoomOptions, patch: Record<string, unknown>, play
     if (!isDominoTarget(next.dominoMode, value)) throw new RoomError("Meta de pontos inválida.");
     next.dominoTarget = value;
   }
+  if ("trucoMode" in patch) {
+    if (!isTrucoMode(patch.trucoMode)) throw new RoomError("Modalidade de truco desconhecida.");
+    next.trucoMode = patch.trucoMode;
+  }
   if ("stake" in patch) {
-    if (!(STAKES as readonly unknown[]).includes(patch.stake)) throw new RoomError("Aposta inválida.");
+    if (!(STAKES as readonly unknown[]).includes(patch.stake)) throw new RoomError("Preço da jogada inválido.");
     if ((patch.stake as number) > 0 && players.some((player) => !player.bot && !player.userId)) {
-      throw new RoomError("Há convidados sem conta na mesa: a aposta precisa que todos entrem com a conta.", 409);
+      throw new RoomError("Há convidados sem conta na mesa: para valer Funcoins, todos precisam entrar com a conta.", 409);
     }
     next.stake = patch.stake as number;
   }

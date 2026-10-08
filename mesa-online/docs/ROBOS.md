@@ -15,6 +15,7 @@ Quatro robôs jogam uma partida de Magnata entre si até que um deles vença. A 
 | Empréstimos do banco nas estratégias | ✅ feito na Evolução 1 | `borrowToComplete` em `src/bots/profile.ts` |
 | Lances de leilão, avaliação e propostas de troca (13.2) | ✅ feito na Evolução 3 | `src/bots/trades.ts`, `src/bots/profile.ts` |
 | Robôs do dominó: Fácil, Médio e Difícil (13.3) | ✅ feito na Evolução 4 | `src/games/domino/bots.ts` |
+| Robôs do Truco: Fácil, Médio e Difícil (13.4) | ✅ feito na Evolução 5 | `src/games/truco/bots.ts` |
 | Robô Aleatório (6.4) | ⏳ a fazer | — |
 | `runMatch` e torneio (seções 7 e 8) | ⏳ a fazer | — |
 | Executor via HTTP (seção 9) | ⏳ a fazer | — |
@@ -379,4 +380,14 @@ Ritmo medido no navegador: com 1 pessoa e 3 robôs, uma rodada completa leva cer
 - **Difícil:** soma os pontos da jogada no 5 em 5 (×4), o peso da pedra, um bônus para carroças e quantas pedras dele continuam servindo nas pontas novas (×3).
 - **Medição:** mais de 170 partidas só de robôs nas quatro modalidades e em todas as metas terminam sem jogada recusada e sem perder pedras. No 5 em 5, o Difícil vence o Fácil na maioria das 60 partidas do teste.
 - **Na mesa com pessoas:** o adaptador `src/games/modules.ts` faz o robô jogar pelas mesmas consultas periódicas do Magnata. Depois de cada mão, a mesa espera 6 s antes de começar a próxima sozinha.
+
+### 13.4 Robôs do Truco (Evolução 5)
+
+- **Onde:** `src/games/truco/bots.ts`. Só olham a própria mão, a vira e as cartas na mesa (e a mão do parceiro na mão de onze, como qualquer pessoa da dupla).
+- **Força da mão:** média das duas melhores cartas (manilhas valem perto de 1), mais 0,2 por rodada já ganha e menos 0,2 por rodada perdida.
+- **Fácil:** abre com a carta mais alta, cobre a rodada com a menor carta que ganha, nunca pede truco e só aceita com manilha.
+- **Médio:** pede truco com força de 0,72 ou mais e blefa em 8% das vezes. Aceita se a força passar de 0,5 (mais 0,05 a cada degrau do pedido) e aumenta com 0,9. Joga baixo quando o parceiro já está ganhando a rodada e cobre carta perdida.
+- **Difícil:** como o Médio, mas pede com 0,68, aumenta com 0,82 e, depois de ganhar a primeira rodada, guarda a carta forte para a última.
+- **Mão de onze:** joga se a média das duas melhores cartas da dupla for 0,5 ou mais (0,55 no Fácil).
+- **Medição:** 100 partidas só de robôs (paulista e mineiro, 1x1 e duplas) terminam em 12, sem jogada recusada e sem sumir carta. Em 60 partidas, o Difícil vence o Fácil em mais da metade.
 

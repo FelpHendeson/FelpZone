@@ -1,4 +1,5 @@
 import type { Me, PublicProfile } from "@/accounts/account";
+import type { GroupView } from "@/accounts/groups";
 import type { GameId } from "@/games/registry";
 import type { PublicRoom } from "@/rooms/public";
 import type { Plaza, Where } from "@/accounts/plaza";
@@ -75,17 +76,41 @@ export const claimBonus = () => post<{ me: Me }>("/api/conta/bonus", {});
 
 export const changeAccountAvatar = (avatar: string) => post<{ me: Me }>("/api/conta/retrato", { avatar });
 
-export function fetchPlaza(where: Where | null, takeInbox: boolean) {
+export function fetchPlaza(where: Where | null, takeInbox: boolean, groupId: string | null = null) {
   const params = new URLSearchParams();
   if (where) {
     params.set("onde", where.status);
-    if (where.status !== "menu") params.set("jogo", where.gameId);
+    if (where.status !== "menu") {
+      params.set("jogo", where.gameId);
+      if (where.code) params.set("sala", where.code);
+    }
   }
   if (!takeInbox) params.set("avisos", "0");
+  if (groupId) params.set("grupo", groupId);
   return request<Plaza>(`/api/praca?${params}`);
 }
 
-export const postPlaza = (body: { kind: "chat"; text: string } | { kind: "wave"; to: string } | { kind: "invite"; to: string; code: string }) =>
-  post<{ ok: true }>("/api/praca", body);
+export const postPlaza = (
+  body: { kind: "chat"; groupId: string; text: string } | { kind: "wave"; to: string } | { kind: "invite"; to: string; code: string },
+) => post<{ ok: true }>("/api/praca", body);
+
+export const fetchGroups = () => request<{ groups: GroupView[] }>("/api/grupos");
+
+export const groupAction = (
+  body: { kind: "create"; name: string } | { kind: "join"; code: string } | { kind: "leave"; groupId: string } | { kind: "remove"; groupId: string; memberId: string },
+) => post<{ groups: GroupView[] }>("/api/grupos", body);
+
+export const setBlockedUser = (userId: string, blocked: boolean) => post<{ blocked: string[] }>("/api/conta/bloqueio", { userId, blocked });
+
+export const fetchPushKey = () => request<{ publicKey: string | null }>("/api/conta/avisos");
+
+export const savePushSubscription = (subscription: unknown) => post<{ devices: number }>("/api/conta/avisos", { subscription });
+
+export const deletePushSubscription = (endpoint: string) =>
+  request<{ ok: true }>("/api/conta/avisos", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ endpoint }),
+  });
 
 export const fetchProfile = (nickname: string) => request<{ profile: PublicProfile }>(`/api/jogadores/${encodeURIComponent(nickname)}`);

@@ -7,8 +7,6 @@ import {
   claimDailyBonus,
   currentMe,
   logIn,
-  plazaPost,
-  plazaTick,
   publicProfile,
   signUp,
   type Deps,
@@ -56,7 +54,7 @@ describe("contas: cadastro e login", () => {
     await expect(signUp({ email: "ana@ex.com", nickname: "1ana", password: "12345678" }, d)).rejects.toThrow("começando por uma letra");
     await expect(signUp({ email: "ana@ex.com", nickname: "Robozinho", password: "12345678" }, d)).rejects.toThrow("reservado");
     const { me } = await signUp({ email: "  Ana.Silva@Exemplo.com ", nickname: "Júlia_2", password: "12345678" }, d);
-    expect(me).toMatchObject({ email: "ana.silva@exemplo.com", nickname: "Júlia_2", chips: 1000 });
+    expect(me).toMatchObject({ email: "ana.silva@exemplo.com", nickname: "Júlia_2", chips: 100 });
     expect(me).not.toHaveProperty("passwordHash");
   });
 
@@ -84,9 +82,14 @@ describe("contas: cadastro e login", () => {
     const d = deps();
     const { token } = await person(d, "Caio");
     const day = Date.UTC(2026, 9, 7, 15);
-    expect((await claimDailyBonus(token, d, day)).chips).toBe(1100);
-    await expect(claimDailyBonus(token, d, day + 60_000)).rejects.toThrow("já pegou");
-    expect((await claimDailyBonus(token, d, day + 24 * 3600_000)).chips).toBe(1200);
+    expect((await claimDailyBonus(token, d, day)).chips).toBe(200);
+    await expect(claimDailyBonus(token, d, day + 60_000)).rejects.toThrow("já coletou hoje");
+    // Pular dias não faz perder coletas; depois da 7ª, acabou.
+    let me = await claimDailyBonus(token, d, day + 3 * 24 * 3600_000);
+    expect(me).toMatchObject({ chips: 300, bonusLeft: 5 });
+    for (let extra = 4; extra <= 8; extra += 1) me = await claimDailyBonus(token, d, day + extra * 24 * 3600_000);
+    expect(me).toMatchObject({ chips: 800, bonusLeft: 0, bonusAvailable: false });
+    await expect(claimDailyBonus(token, d, day + 20 * 24 * 3600_000)).rejects.toThrow("7 coletas");
     expect((await changeAvatar(token, "🐼", d)).avatar).toBe("🐼");
     await expect(changeAvatar(token, "💩", d)).rejects.toThrow("Retrato inválido");
   });
@@ -107,27 +110,27 @@ describe("apostas e resultados", () => {
 
   it("cobra a entrada, paga o pote a quem vence uma vez só e conta vitórias e selos", async () => {
     const d = deps();
-    const { ana, bia, host, guest, code } = await stakeRoom(d, 100);
+    const { ana, bia, host, guest, code } = await stakeRoom(d, 50);
     expect(host.room.players[0]).toMatchObject({ name: "Ana", userId: ana.me.id });
     const started = await runRoomCommand(code, host.token, { kind: "start" }, d.store, d.kv);
-    expect(started.match?.stake).toBe(100);
-    expect((await currentMe(ana.token, d))).toMatchObject({ chips: 900, inPlay: 100 });
+    expect(started.match?.stake).toBe(50);
+    expect((await currentMe(ana.token, d))).toMatchObject({ chips: 50, inPlay: 50 });
 
     const room = await playOut(d, code, { [host.playerId]: host.token, [guest.playerId]: guest.token });
     const result = room.results.at(-1)!;
-    expect(result.pot).toBe(200);
+    expect(result.pot).toBe(100);
     const meAna = (await currentMe(ana.token, d))!;
     const meBia = (await currentMe(bia.token, d))!;
     expect(meAna.inPlay + meBia.inPlay).toBe(0);
     if (result.winners.length === 1) {
       const [winner, loser] = result.winners[0] === host.playerId ? [meAna, meBia] : [meBia, meAna];
-      expect(winner.chips).toBe(1100);
-      expect(loser.chips).toBe(900);
-      expect(winner.stats).toMatchObject({ played: 1, wins: 1, streak: 1, chipsWon: 100 });
-      expect(loser.stats).toMatchObject({ played: 1, wins: 0, chipsWon: -100 });
+      expect(winner.chips).toBe(150);
+      expect(loser.chips).toBe(50);
+      expect(winner.stats).toMatchObject({ played: 1, wins: 1, streak: 1, chipsWon: 50 });
+      expect(loser.stats).toMatchObject({ played: 1, wins: 0, chipsWon: -50 });
       expect(winner.badges.map((badge) => badge.id)).toEqual(expect.arrayContaining(["primeira-vitoria", "bom-de-pedra", "apostador"]));
     } else {
-      expect(meAna.chips + meBia.chips).toBe(2000);
+      expect(meAna.chips + meBia.chips).toBe(200);
     }
     // Ler de novo não paga de novo.
     expect((await currentMe(ana.token, d))!.chips).toBe(meAna.chips);
@@ -136,24 +139,24 @@ describe("apostas e resultados", () => {
 
   it("devolve a entrada quando a sala some", async () => {
     const d = deps();
-    const { ana, host, code } = await stakeRoom(d, 250);
+    const { ana, host, code } = await stakeRoom(d, 25);
     await runRoomCommand(code, host.token, { kind: "start" }, d.store, d.kv);
-    expect((await currentMe(ana.token, d))!.chips).toBe(750);
+    expect((await currentMe(ana.token, d))!.chips).toBe(75);
     // Outra "instância" do armazenamento de salas, sem a sala: como se tivesse expirado.
     const me = await currentMe(ana.token, { kv: d.kv, store: createMemoryStore() });
-    expect(me).toMatchObject({ chips: 1000, inPlay: 0 });
+    expect(me).toMatchObject({ chips: 100, inPlay: 0 });
   });
 
   it("ninguém é cobrado se faltar ficha para alguém", async () => {
     const d = deps();
-    const first = await stakeRoom(d, 1000);
+    const first = await stakeRoom(d, 100);
     await runRoomCommand(first.code, first.host.token, { kind: "start" }, d.store, d.kv);
-    // Ana está com as 1.000 fichas em jogo; uma nova mesa com aposta não começa.
+    // Ana está com as 100 Funcoins em jogo; uma nova mesa valendo Funcoins não começa.
     const host = await createRoomFor({ name: "x", gameId: "domino", session: first.ana.token, options: { stake: 50 } }, d.store, d.kv);
     const carla = await person(d, "Carla");
     await joinRoomAs(host.room.code, { name: "z", session: carla.token }, d.store, d.kv);
-    await expect(runRoomCommand(host.room.code, host.token, { kind: "start" }, d.store, d.kv)).rejects.toThrow("não tem fichas suficientes");
-    expect((await currentMe(carla.token, d))!.chips).toBe(1000);
+    await expect(runRoomCommand(host.room.code, host.token, { kind: "start" }, d.store, d.kv)).rejects.toThrow("não tem Funcoins suficientes");
+    expect((await currentMe(carla.token, d))!.chips).toBe(100);
   });
 
   it("com aposta, convidado sem conta não entra e não dá para ligar a aposta com convidado", async () => {
@@ -173,19 +176,19 @@ describe("apostas e resultados", () => {
     const d = deps();
     const ana = await person(d, "Eva");
     const host = await createRoomFor(
-      { name: "x", gameId: "domino", session: ana.token, options: { dominoMode: "pontos", stake: 100 } },
+      { name: "x", gameId: "domino", session: ana.token, options: { dominoMode: "pontos", stake: 50 } },
       d.store,
       d.kv,
     );
     await runRoomCommand(host.room.code, host.token, { kind: "add-bot", strategy: "dificil" }, d.store, d.kv);
     await runRoomCommand(host.room.code, host.token, { kind: "start" }, d.store, d.kv);
-    expect((await currentMe(ana.token, d))!.chips).toBe(900);
+    expect((await currentMe(ana.token, d))!.chips).toBe(50);
     const room = await playOut(d, host.room.code, { [host.playerId]: host.token });
     const meEva = (await currentMe(ana.token, d))!;
-    expect(room.results.at(-1)!.pot).toBe(200);
+    expect(room.results.at(-1)!.pot).toBe(100);
     const winners = room.results.at(-1)!.winners;
-    // Venceu sozinha: leva o pote (200); perdeu: a parte do robô fica com a casa; empate: metade.
-    const expected = winners.includes(host.playerId) ? (winners.length === 1 ? 1100 : 1000) : 900;
+    // Venceu sozinha: leva o pote (100); perdeu: a parte do robô fica com a casa; empate: metade.
+    const expected = winners.includes(host.playerId) ? (winners.length === 1 ? 150 : 100) : 50;
     expect(meEva.chips).toBe(expected);
   });
 });
@@ -218,38 +221,5 @@ describe("dominó na sala", () => {
     await expect(runRoomCommand(host.room.code, host.token, { kind: "add-bot", strategy: "investidor" }, d.store, d.kv)).rejects.toThrow("desconhecido");
     const started = await runRoomCommand(host.room.code, host.token, { kind: "start" }, d.store, d.kv);
     expect((started.game as DominoView).teamScores).toEqual([0, 0]);
-  });
-});
-
-describe("praça", () => {
-  it("mostra quem está online, a conversa e entrega aceno e convite uma vez", async () => {
-    const d = deps();
-    const ana = await person(d, "Fabi");
-    const bia = await person(d, "Gabi");
-    const now = Date.now();
-    await plazaTick(ana.token, { status: "menu" }, true, d, now);
-    const seen = await plazaTick(bia.token, { status: "playing", gameId: "domino" }, true, d, now);
-    expect(seen.meId).toBe(bia.me.id);
-    expect(seen.online.map((entry) => entry.nickname).sort()).toEqual(["Fabi", "Gabi"]);
-    expect(seen.online.find((entry) => entry.nickname === "Gabi")!.where).toEqual({ status: "playing", gameId: "domino" });
-
-    await plazaPost(ana.token, { kind: "chat", text: "  Bora jogar?  " }, d);
-    await plazaPost(ana.token, { kind: "wave", to: bia.me.id }, d);
-    await expect(plazaPost(ana.token, { kind: "wave", to: ana.me.id }, d)).rejects.toThrow("outra pessoa");
-    await expect(plazaPost(null, { kind: "chat", text: "oi" }, d)).rejects.toThrow("Entre na sua conta");
-
-    const host = await createRoomFor({ name: "x", gameId: "domino", session: ana.token }, d.store, d.kv);
-    await plazaPost(ana.token, { kind: "invite", to: bia.me.id, code: host.room.code }, d);
-    await expect(plazaPost(bia.token, { kind: "invite", to: ana.me.id, code: host.room.code }, d)).rejects.toThrow("em que está");
-
-    const tick = await plazaTick(bia.token, null, true, d, now + 1000);
-    expect(tick.chat[0]).toMatchObject({ nickname: "Fabi", text: "Bora jogar?" });
-    expect(tick.inbox.map((notice) => notice.kind).sort()).toEqual(["invite", "wave"]);
-    expect(tick.inbox.find((notice) => notice.kind === "invite")).toMatchObject({ code: host.room.code, gameId: "domino" });
-    expect((await plazaTick(bia.token, null, true, d, now + 2000)).inbox).toEqual([]);
-
-    // Sem sinal por mais de um minuto, sai da lista.
-    const later = await plazaTick(null, null, false, d, now + 61_500);
-    expect(later.online.map((entry) => entry.nickname)).toEqual(["Gabi"]);
   });
 });

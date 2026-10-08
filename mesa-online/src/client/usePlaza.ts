@@ -8,7 +8,7 @@ import { fetchPlaza } from "./api";
  * Sinal de presença e, no menu, quem está online, a praça e os avisos. No
  * menu atualiza a cada 10 s; na sala, só manda o sinal a cada 30 s.
  */
-export function usePlaza(where: Where | null, options: { full: boolean; enabled: boolean }) {
+export function usePlaza(where: Where | null, options: { full: boolean; enabled: boolean; groupId?: string | null }) {
   const [plaza, setPlaza] = useState<Plaza | null>(null);
   const [notices, setNotices] = useState<Notice[]>([]);
   const wake = useRef<() => void>(() => {});
@@ -20,12 +20,13 @@ export function usePlaza(where: Where | null, options: { full: boolean; enabled:
     let timer: ReturnType<typeof setTimeout> | undefined;
     const place = whereKey ? (JSON.parse(whereKey) as Where) : null;
     const interval = options.full ? 10_000 : 30_000;
+    const groupId = options.groupId ?? null;
 
     async function tick() {
       clearTimeout(timer);
       if (!document.hidden) {
         try {
-          const next = await fetchPlaza(place, options.full);
+          const next = await fetchPlaza(place, options.full, groupId);
           if (stopped) return;
           setPlaza(next);
           if (next.inbox.length) setNotices((current) => [...next.inbox, ...current].slice(0, 6));
@@ -46,7 +47,7 @@ export function usePlaza(where: Where | null, options: { full: boolean; enabled:
       clearTimeout(timer);
       document.removeEventListener("visibilitychange", onVisible);
     };
-  }, [whereKey, options.full, options.enabled]);
+  }, [whereKey, options.full, options.enabled, options.groupId]);
 
   return {
     plaza,

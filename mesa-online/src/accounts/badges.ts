@@ -15,7 +15,9 @@ export type BadgeId =
   | "la-e-lo"
   | "cruzada"
   | "apostador"
-  | "pote-gordo";
+  | "pote-gordo"
+  | "truqueiro"
+  | "doze";
 
 export interface BadgeInfo {
   emoji: string;
@@ -38,7 +40,9 @@ export const BADGES: Record<BadgeId, BadgeInfo> = {
   "la-e-lo": { emoji: "↔️", name: "Lá-e-lô", description: "Bater de lá-e-lô no dominó.", rarity: 5 },
   cruzada: { emoji: "✖️", name: "Cruzada", description: "Bater de cruzada no dominó.", rarity: 7 },
   apostador: { emoji: "🎲", name: "Apostador", description: "Ganhar uma partida com aposta.", rarity: 3 },
-  "pote-gordo": { emoji: "💰", name: "Pote gordo", description: "Ganhar 1.000 fichas ou mais numa partida.", rarity: 6 },
+  "pote-gordo": { emoji: "💰", name: "Pote gordo", description: "Ganhar 200 Funcoins ou mais numa partida.", rarity: 6 },
+  truqueiro: { emoji: "🃏", name: "Truqueiro", description: "Vencer uma partida de truco.", rarity: 2 },
+  doze: { emoji: "🔔", name: "Doze!", description: "Ganhar uma mão de truco valendo 12.", rarity: 7 },
 };
 
 export const BADGE_IDS = Object.keys(BADGES) as BadgeId[];
@@ -56,7 +60,7 @@ export interface BadgeContext {
   gameId: GameId;
   feats: string[];
   stake: number;
-  /** Fichas ganhas além da própria entrada. */
+  /** Funcoins ganhas além da própria entrada. */
   profit: number;
 }
 
@@ -73,7 +77,9 @@ const RULES: Record<BadgeId, (ctx: BadgeContext) => boolean> = {
   "la-e-lo": (ctx) => ctx.feats.includes("batida-la-e-lo"),
   cruzada: (ctx) => ctx.feats.includes("batida-cruzada"),
   apostador: (ctx) => ctx.won && ctx.stake > 0,
-  "pote-gordo": (ctx) => ctx.profit >= 1000,
+  "pote-gordo": (ctx) => ctx.profit >= 200,
+  truqueiro: (ctx) => ctx.won && ctx.gameId === "truco",
+  doze: (ctx) => ctx.feats.includes("mao-de-doze"),
 };
 
 /** Selos que o contexto concede (inclusive os que a pessoa já tem). */

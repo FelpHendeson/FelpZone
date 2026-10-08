@@ -1,4 +1,4 @@
-// Regras puras das contas: validação de cadastro, carteira de fichas,
+// Regras puras das contas: validação de cadastro, carteira de Funcoins,
 // liquidação de partidas e selos. Não conhece HTTP nem armazenamento.
 // Decisões em docs/ESPECIFICACAO-EVOLUCAO-4.md, seções 2 e 4.
 
@@ -6,9 +6,11 @@ import type { GameId } from "@/games/registry";
 import { RoomError, type MatchResult } from "@/rooms/room";
 import { BADGES, badgesEarned, rarestFirst, type BadgeId } from "./badges";
 
-/** Fichas virtuais: sem valor real, não se compram nem se sacam. */
-export const STARTING_CHIPS = 1000;
+/** Funcoins: moeda virtual de jogo, sem valor real; não se compram nem se sacam. */
+export const STARTING_CHIPS = 100;
 export const DAILY_BONUS = 100;
+/** Quantas coletas diárias cada conta tem (uma por dia, não precisam ser seguidas). */
+export const BONUS_CLAIMS = 7;
 const MAX_EMAIL = 254;
 const NICK_MIN = 3;
 const NICK_MAX = 16;
@@ -37,7 +39,7 @@ export interface Stats {
   wins: number;
   streak: number;
   bestStreak: number;
-  /** Saldo das apostas: fichas ganhas menos as perdidas. */
+  /** Saldo das partidas valendo Funcoins: ganhas menos perdidas. */
   chipsWon: number;
   games: Partial<Record<GameId, GameStats>>;
 }
@@ -59,15 +61,26 @@ export interface Account {
   /** Saldo disponível (as entradas em jogo já saíram dele). */
   chips: number;
   holds: Hold[];
-  /** Dia (fuso de Brasília) do último bônus diário. */
+  /** Dia (fuso de Brasília) da última coleta diária. */
   bonusDay: string | null;
+  /** Coletas diárias já feitas (de `BONUS_CLAIMS`). Contas antigas não têm o campo. */
+  bonusClaims?: number;
   stats: Stats;
   badges: EarnedBadge[];
+  /** Grupos privados de que participa (ids). */
+  groups?: string[];
+  /** Contas bloqueadas: não acenam, não convidam e somem da lista e da conversa. */
+  blocked?: string[];
   version: number;
 }
 
 /** O que a própria pessoa vê da conta. */
-export type Me = Omit<Account, "passwordHash" | "nicknameKey" | "version"> & { inPlay: number; bonusAvailable: boolean };
+export type Me = Omit<Account, "passwordHash" | "nicknameKey" | "version"> & {
+  inPlay: number;
+  bonusAvailable: boolean;
+  /** Coletas diárias que ainda restam. */
+  bonusLeft: number;
+};
 
 /** O que qualquer pessoa vê de outra: sem e-mail e sem carteira. */
 export interface PublicProfile {
@@ -154,6 +167,7 @@ export function newAccount(params: {
     chips: STARTING_CHIPS,
     holds: [],
     bonusDay: null,
+    bonusClaims: 0,
     stats: { played: 0, wins: 0, streak: 0, bestStreak: 0, chipsWon: 0, games: {} },
     badges: [],
     version: 0,
@@ -165,10 +179,13 @@ export function dayKey(now: number): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "America/Sao_Paulo" }).format(new Date(now));
 }
 
+export const bonusLeft = (account: Pick<Account, "bonusClaims">) => Math.max(0, BONUS_CLAIMS - (account.bonusClaims ?? 0));
+
 export function claimBonus(account: Account, now: number): Account {
   const today = dayKey(now);
-  if (account.bonusDay === today) throw new RoomError("Você já pegou o bônus de hoje. Volte amanhã!", 409);
-  return { ...account, chips: account.chips + DAILY_BONUS, bonusDay: today };
+  if (bonusLeft(account) === 0) throw new RoomError("Você já fez as 7 coletas de Funcoins.", 409);
+  if (account.bonusDay === today) throw new RoomError("Você já coletou hoje. Volte amanhã!", 409);
+  return { ...account, chips: account.chips + DAILY_BONUS, bonusDay: today, bonusClaims: (account.bonusClaims ?? 0) + 1 };
 }
 
 /**
@@ -179,7 +196,7 @@ export function claimBonus(account: Account, now: number): Account {
 export function placeHold(account: Account, hold: Hold): Account {
   if (account.holds.some((item) => item.matchId === hold.matchId)) return account;
   if (account.chips < hold.amount) {
-    throw new RoomError(`${account.nickname} não tem fichas suficientes (a aposta é de ${hold.amount}).`, 409);
+    throw new RoomError(`${account.nickname} não tem Funcoins suficientes (o preço é ${hold.amount}).`, 409);
   }
   return { ...account, chips: account.chips - hold.amount, holds: [...account.holds, hold] };
 }
@@ -251,7 +268,8 @@ export function meOf(account: Account, now: number): Me {
   return {
     ...rest,
     inPlay: account.holds.reduce((sum, hold) => sum + hold.amount, 0),
-    bonusAvailable: account.bonusDay !== dayKey(now),
+    bonusAvailable: bonusLeft(account) > 0 && account.bonusDay !== dayKey(now),
+    bonusLeft: bonusLeft(account),
   };
 }
 

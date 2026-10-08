@@ -1876,7 +1876,7 @@ select {
 
 .game-picker {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
   margin-bottom: 10px;
 }
@@ -1886,8 +1886,9 @@ select {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  min-height: 96px;
-  padding: 10px 6px;
+  min-height: 92px;
+  padding: 8px 4px;
+  font-size: 0.9rem;
   border: 2px solid var(--line);
   border-radius: 14px;
   background: var(--card);
@@ -2264,4 +2265,228 @@ select {
   padding: 10px 16px 14px;
   background: var(--card);
   box-shadow: 0 -6px 10px -8px rgba(0, 0, 0, 0.3);
+}
+
+.price-tag {
+  display: inline-block;
+  margin: 4px 0 10px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--paper);
+  font-weight: 700;
+}
+
+.price-tag.paid {
+  background: #fff3cf;
+  color: var(--accent-ink);
+}
+
+/* Grupos */
+.group-list {
+  display: grid;
+  gap: 12px;
+  margin: 10px 0;
+  padding: 0;
+  list-style: none;
+}
+
+.group-list > li {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+
+.group-head {
+  display: flex;
+  flex-direction: column;
+}
+
+.group-members {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  margin: 8px 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.92rem;
+}
+
+.chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+/* Truco */
+.playing-card {
+  --w: 54px;
+  position: relative;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: var(--w);
+  height: calc(var(--w) * 1.42);
+  border: 1px solid #c9c2ae;
+  border-radius: calc(var(--w) * 0.12);
+  background: linear-gradient(180deg, #ffffff, #f4efe2);
+  color: #1d1d1b;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.35);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.playing-card.size-s {
+  --w: 34px;
+  font-size: 0.8rem;
+}
+
+.playing-card.size-m {
+  --w: 50px;
+  font-size: 1.05rem;
+}
+
+.playing-card.size-l {
+  --w: 70px;
+  font-size: 1.45rem;
+}
+
+.playing-card.red {
+  color: #c0392b;
+}
+
+.playing-card .card-suit {
+  font-size: 1.3em;
+}
+
+.playing-card.back {
+  background: repeating-linear-gradient(45deg, #2e86ab 0 6px, #1f5f7a 6px 12px);
+  border-color: #fff;
+}
+
+.truco-felt {
+  margin: 12px 0;
+  padding: 10px 10px 14px;
+  border-radius: var(--radius);
+  background: radial-gradient(circle at 50% 40%, var(--felt), var(--felt-dark));
+  box-shadow: inset 0 0 0 3px rgba(0, 0, 0, 0.15);
+}
+
+.truco-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.vira {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.round-dots {
+  display: flex;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.round-dots li {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  font-weight: 800;
+}
+
+.round-dots li.won {
+  background: #4caf50;
+}
+
+.round-dots li.lost {
+  background: var(--danger);
+}
+
+.round-dots li.tie {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.truco-table {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: flex-end;
+  justify-content: center;
+  min-height: 96px;
+}
+
+.truco-played {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  animation: dialog-in 0.25s ease-out;
+}
+
+.truco-hand {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.truco-hand.small-hand {
+  gap: 6px;
+  margin: 6px 0 10px;
+}
+
+.hand-card {
+  padding: 3px;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.hand-card:disabled {
+  cursor: default;
+}
+
+.hand-card.playable {
+  border-color: var(--accent);
+  background: #fff7dc;
+  transform: translateY(-4px);
+}
+
+.truco-call {
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+}
+
+.cover-toggle {
+  margin-top: 0;
+  align-items: center;
+}
+
+.truco-dialog h2 {
+  margin-top: 0;
+}
+
+.steps {
+  margin: 6px 0 0;
+  padding-left: 20px;
+}
+
+.steps li {
+  margin: 4px 0;
 }

@@ -11,12 +11,16 @@ import { refreshMe, useAccount } from "@/client/useAccount";
 import { usePlaza } from "@/client/usePlaza";
 import { useRoom } from "@/client/useRoom";
 import { themeOf } from "@/games/magnata/themes";
+import { funcoins } from "@/accounts/funcoins";
 import { isMagnata } from "@/games/modules";
+import { GAMES } from "@/games/registry";
 import type { PublicRoom } from "@/rooms/public";
 import type { RoomCommand } from "@/rooms/room";
 import { DominoRules } from "./domino/DominoRules";
 import { DominoTable } from "./domino/DominoTable";
 import { HowToPlay } from "./HowToPlay";
+import { TrucoRules } from "./truco/TrucoRules";
+import { TrucoTable } from "./truco/TrucoTable";
 import { Lobby } from "./Lobby";
 import { MagnataTable } from "./magnata/MagnataTable";
 import { PrefsForm } from "./PrefsForm";
@@ -41,12 +45,13 @@ export function RoomScreen() {
   const me = (seat && room?.players.find((player) => player.id === seat.playerId)) || null;
 
   // Sinal de presença para a lista de online (só para quem tem conta).
-  usePlaza(room ? { status: room.status === "lobby" ? "lobby" : "playing", gameId: room.gameId } : null, {
+  // Com o código da sala, o servidor sabe que a pessoa está olhando e não manda aviso de "sua vez".
+  usePlaza(room ? { status: room.status === "lobby" ? "lobby" : "playing", gameId: room.gameId, code: room.code } : null, {
     full: false,
     enabled: Boolean(account),
   });
 
-  // Partida terminada: fichas, vitórias e selos mudaram.
+  // Partida terminada: Funcoins, vitórias e selos mudaram.
   const finished = room?.status === "finished";
   useEffect(() => {
     if (finished && account) void refreshMe();
@@ -160,6 +165,8 @@ export function RoomScreen() {
         <Lobby room={room} me={me} send={send} pending={pending} onJoined={applyRoom} profile={profile} />
       ) : room.gameId === "domino" ? (
         <DominoTable room={room} me={me} send={send} pending={pending} />
+      ) : room.gameId === "truco" ? (
+        <TrucoTable room={room} me={me} send={send} pending={pending} />
       ) : (
         <>
           <MatchResultBanner room={room} />
@@ -201,8 +208,8 @@ export function RoomScreen() {
         </Sheet>
       )}
       {menu === "help" && (
-        <Sheet title={room.gameId === "domino" ? "Como jogar dominó" : "Como jogar o Magnata"} onClose={() => setMenu(null)}>
-          {room.gameId === "domino" ? <DominoRules /> : <HowToPlay />}
+        <Sheet title={`Como jogar ${GAMES[room.gameId].name}`} onClose={() => setMenu(null)}>
+          {room.gameId === "domino" ? <DominoRules /> : room.gameId === "truco" ? <TrucoRules /> : <HowToPlay />}
         </Sheet>
       )}
       {menu === "prefs" && (
@@ -221,8 +228,7 @@ function MatchResultBanner({ room }: { room: PublicRoom }) {
   const names = new Map(result.seats.map((seat) => [seat.playerId, seat.name]));
   return (
     <p className="banner pot-banner" role="status">
-      🪙 Pote de {result.pot.toLocaleString("pt-BR")} fichas:{" "}
-      {result.winners.map((id) => `${names.get(id)} +${result.payouts[id].toLocaleString("pt-BR")}`).join(", ")}
+      🪙 Pote de {funcoins(result.pot)}: {result.winners.map((id) => `${names.get(id)} +${result.payouts[id].toLocaleString("pt-BR")}`).join(", ")}
     </p>
   );
 }

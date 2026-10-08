@@ -1,7 +1,8 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { DAILY_BONUS, type Me } from "@/accounts/account";
+import { BONUS_CLAIMS, DAILY_BONUS, STARTING_CHIPS, type Me } from "@/accounts/account";
+import { FUNCOIN, funcoins } from "@/accounts/funcoins";
 import { changeAccountAvatar, claimBonus, logInAccount, logOutAccount, signUpAccount } from "@/client/api";
 import { saveProfile, type Profile } from "@/client/profile";
 import { setMe } from "@/client/useAccount";
@@ -12,7 +13,7 @@ import { Sheet } from "./Sheet";
 
 const chips = (value: number) => value.toLocaleString("pt-BR");
 
-/** Conta no menu: entrar ou criar conta; logado, fichas, vitórias e selos. */
+/** Conta no menu: entrar ou criar conta; logado, Funcoins, vitórias e selos. */
 export function AccountPanel({ me, loaded, profile }: { me: Me | null; loaded: boolean; profile: Profile }) {
   if (!loaded) return <section className="card account-card muted">Carregando sua conta…</section>;
   return me ? <AccountSummary me={me} /> : <AccountForms profile={profile} />;
@@ -54,8 +55,8 @@ function AccountSummary({ me }: { me: Me }) {
             <strong>{me.nickname}</strong> <Honors wins={me.stats.wins} badges={me.badges.map((badge) => badge.id)} />
           </p>
           <p className="chips-line">
-            <span className="chips" aria-label={`${me.chips} fichas`}>
-              🪙 {chips(me.chips)} fichas
+            <span className="chips" aria-label={funcoins(me.chips)}>
+              {FUNCOIN} {funcoins(me.chips)}
             </span>
             {me.inPlay > 0 && <span className="muted small"> · {chips(me.inPlay)} em jogo</span>}
           </p>
@@ -83,7 +84,11 @@ function AccountSummary({ me }: { me: Me }) {
 
       <div className="action-row">
         <button className="button primary" disabled={busy || !me.bonusAvailable} onClick={() => run(claimBonus)}>
-          {me.bonusAvailable ? `🎁 Pegar ${DAILY_BONUS} fichas do dia` : "Bônus de hoje já pego"}
+          {me.bonusAvailable
+            ? `🎁 Coletar ${funcoins(DAILY_BONUS)} (${BONUS_CLAIMS - me.bonusLeft + 1} de ${BONUS_CLAIMS})`
+            : me.bonusLeft > 0
+              ? `Coleta de hoje feita · faltam ${me.bonusLeft}`
+              : "As 7 coletas já foram feitas"}
         </button>
         <button className="button" onClick={() => setSheet("selos")}>
           🏅 Selos e números
@@ -95,7 +100,7 @@ function AccountSummary({ me }: { me: Me }) {
         </p>
       )}
       <p className="muted small">
-        Fichas são virtuais: não valem dinheiro, não se compram e não se sacam.{" "}
+        Funcoins são moeda de jogo: não valem dinheiro, não se compram e não se sacam.{" "}
         <button className="link-button" disabled={busy} onClick={onLogOut}>
           Sair da conta
         </button>
@@ -115,7 +120,7 @@ function AccountSummary({ me }: { me: Me }) {
             <li>Melhor sequência: {me.stats.bestStreak}</li>
             <li>
               Saldo das apostas: {me.stats.chipsWon >= 0 ? "+" : "−"}
-              {chips(Math.abs(me.stats.chipsWon))} fichas
+              {funcoins(Math.abs(me.stats.chipsWon))}
             </li>
           </ul>
           <BadgeShelf earned={me.badges} />
@@ -214,7 +219,7 @@ function AccountForms({ profile }: { profile: Profile }) {
           {mode === "criar" && <span className="muted hint">Pelo menos 8 caracteres. Guarde bem: não há como recuperar a senha.</span>}
         </label>
         <button className="button primary block" disabled={busy}>
-          {mode === "entrar" ? "Entrar" : "Criar conta e ganhar 1.000 fichas"}
+          {mode === "entrar" ? "Entrar" : `Criar conta e ganhar ${funcoins(STARTING_CHIPS)}`}
         </button>
         {error && (
           <p className="error" role="alert">
@@ -223,8 +228,8 @@ function AccountForms({ profile }: { profile: Profile }) {
         )}
       </form>
       <p className="muted small">
-        Com conta você aposta fichas virtuais, acumula vitórias e selos e aparece para quem está online. Sem conta, dá para
-        jogar como convidado.
+        Com conta você joga valendo Funcoins (moeda de jogo, sem dinheiro de verdade), acumula vitórias e selos e entra em
+        grupos com a família. Sem conta, dá para jogar como convidado nas mesas grátis.
       </p>
     </section>
   );

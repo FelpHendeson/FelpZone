@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { funcoins } from "@/accounts/funcoins";
 import { BATIDA_NAMES, describeDominoEvent } from "@/games/domino/describe";
 import {
   DOMINO_MODES,
@@ -104,7 +105,7 @@ export function DominoTable({ room, me, send, pending }: Props) {
       <section className="card domino-head">
         <p className="muted small">
           🁫 {DOMINO_MODES[game.mode].name} · mão {game.hand} · meta: {target}
-          {room.match && room.match.stake > 0 ? ` · pote ${(room.match.stake * room.players.length).toLocaleString("pt-BR")} fichas` : ""}
+          {room.match && room.match.stake > 0 ? ` · pote ${funcoins(room.match.stake * room.players.length)}` : ""}
         </p>
         {game.teamScores && (
           <p className="team-score" aria-label={`Placar: ${teamLabel(0)} ${game.teamScores[0]}, ${teamLabel(1)} ${game.teamScores[1]}`}>
@@ -313,7 +314,7 @@ export function DominoTable({ room, me, send, pending }: Props) {
             )}
             {game.phase === "finished" && result && result.stake > 0 && (
               <p className="pot-result">
-                Pote de {result.pot.toLocaleString("pt-BR")} fichas:{" "}
+                Pote de {funcoins(result.pot)}:{" "}
                 {result.winners.map((id) => `${nameOf(id)} +${result.payouts[id].toLocaleString("pt-BR")}`).join(", ")}
               </p>
             )}

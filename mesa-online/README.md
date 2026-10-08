@@ -1,6 +1,6 @@
 # Mesa Online
 
-Hub de jogos de tabuleiro para jogar com família e amigos pelo navegador do celular, sem instalar nada. Dá para jogar como convidado ou com uma conta (fichas virtuais, apostas, vitórias, selos e lista de quem está online). Quem cria a sala recebe um código de 5 letras; os outros entram com esse código, pelo link compartilhado ou por um convite no menu.
+Hub de jogos de tabuleiro para jogar com família e amigos pelo navegador do celular, sem instalar nada. Dá para jogar como convidado ou com uma conta (Funcoins, partidas valendo moeda de jogo, vitórias, selos, grupos privados da família e avisos no celular). Quem cria a sala recebe um código de 5 letras; os outros entram com esse código, pelo link compartilhado ou por um convite no menu.
 
 **Versão publicada:** [felp-zone.vercel.app](https://felp-zone.vercel.app/)
 
@@ -8,6 +8,7 @@ Jogos:
 
 - **Magnata:** compra e venda de imóveis no estilo dos clássicos de banco imobiliário, com tabuleiro, nomes e cartas próprios.
 - **Dominó:** duplo-seis em quatro modalidades: Bloqueio, Compra, Pontos (5 em 5) e Duplas (2 contra 2, com batida de carroça, lá-e-lô e cruzada).
+- **Truco:** paulista (com vira) ou mineiro (manilhas fixas), 1 contra 1 ou em duplas, com truco, seis, nove e doze, mão de onze e carta coberta.
 
 ## Problema e hipótese
 
@@ -20,10 +21,11 @@ Nem todo mundo tem notebook e nem sempre dá para reunir as pessoas em volta de 
 - **Perfil de visitante:** nome, retrato (24 opções) e preferências salvos no navegador. "Continuar partida" leva de volta à última sala.
 - **Contas (opcionais):**
   - e-mail em formato válido e único, apelido único (sem diferenciar maiúsculas nem acentos) e senha;
-  - **fichas virtuais**, sem valor real: 1.000 ao criar a conta e bônus diário de 100;
-  - **aposta por partida** em qualquer jogo (50 a 1.000 fichas por pessoa): quem vence leva o pote, e robôs apostam com fichas da casa;
+  - **Funcoins**, moeda virtual de jogo (não se compra, não se saca, não vale dinheiro): 100 ao criar a conta e mais 100 por dia em 7 coletas;
+  - **preço da jogada** escolhido ao criar a sala, em qualquer jogo (grátis, 10, 25, 50, 100 ou 250 Funcoins por pessoa): quem vence leva o pote, e robôs entram com Funcoins da casa;
   - **vitórias** (no total, por jogo e em sequência) e **13 selos de conquista**, que aparecem no menu, no lobby e na mesa.
-- **Online e praça no menu:** quem está online e onde (no menu, esperando no lobby ou jogando), conversa geral, aceno 👋, convite para a sua sala e perfil público de cada jogador.
+- **Grupos privados no menu:** a família cria um grupo e compartilha o código (ou o link `/?grupo=CODIGO`). Só quem divide um grupo se vê online (e onde está), conversa na conversa do grupo, acena 👋 e convida para a sala. Dá para bloquear alguém pelo perfil.
+- **App no celular:** instalável na tela de início (manifesto e ícones) e com **avisos** de "sua vez" (quando a sala está fechada), convite e aceno, via Web Push. No iPhone, exige o site instalado e iOS 16.4+.
 - **Hub:**
   - escolha do jogo (e, no dominó, da modalidade);
   - "Jogar com amigos" cria a sala;
@@ -80,7 +82,7 @@ Ainda não existe: limite de casas do banco.
 ## Tecnologias e arquitetura
 
 - **Next.js 16 + React 19 + TypeScript:** front e API no mesmo projeto e no mesmo deploy da Vercel.
-- **Upstash Redis (plano gratuito):** guarda as salas, contas, sessões, presença e praça em produção. Sem configuração, o app usa memória, o que basta para desenvolvimento local; em produção, sem Redis, a API responde com erro claro.
+- **Upstash Redis (plano gratuito):** guarda as salas, contas, sessões, grupos, presença e conversas em produção. Sem configuração, o app usa memória, o que basta para desenvolvimento local; em produção, sem Redis, a API responde com erro claro.
 - **Vitest:** testes do motor, temas, textos, robôs e salas.
 - **Playwright:** testes de navegador (iPhone simulado no Chromium) contra a versão de produção, no CI a cada push.
 
@@ -90,21 +92,22 @@ src/
 │   ├── registry.ts          # catálogo de jogos do hub
 │   ├── modules.ts           # adaptador: liga cada motor à sala (começar, jogar, visão de cada um, vencedores)
 │   ├── domino/              # motor puro do dominó, robôs e textos da narração
+│   ├── truco/               # motor puro do truco (paulista e mineiro), robôs e narração
 │   └── magnata/             # motor puro (sem React, sem HTTP)
 │       ├── engine.ts        #   regras, rodadas, empréstimos e acontecimentos estruturados
 │       ├── describe.ts      #   acontecimento → texto, no tema da partida
 │       ├── beats.ts         #   acontecimentos → lances narrados (com mudança de saldo)
 │       └── themes.ts        #   temas visuais (nomes e cores por casa)
-├── accounts/                # regras puras das contas: validação, carteira, liquidação e selos
+├── accounts/                # regras puras: contas, Funcoins, liquidação, selos e grupos
 ├── bots/                    # estratégias dos robôs do Magnata, lances de leilão e propostas de troca
 ├── rooms/
 │   ├── room.ts              # modelo puro da sala: lobby, opções, chat, ausência, revanche
 │   └── public.ts            # o que o navegador pode ver (sem segredos)
-├── server/                  # casos de uso (salas, contas, apostas, praça), limites e armazenamento (memória/Redis)
+├── server/                  # casos de uso (salas, contas, grupos e conversa, avisos), limites e armazenamento
 ├── app/api/...              # rotas HTTP finas: rooms, conta, praca, jogadores
 ├── client/                  # API, sincronização, avisos, perfil e identidade no aparelho
-└── components/              # telas: início (conta, escolha de jogo, praça), lobby, chat,
-                             #   magnata/ (tabuleiro, câmera, janelas, leilão e trocas…) e domino/ (mesa e pedras)
+└── components/              # telas: início (conta, jogo e preço, grupos, avisos), lobby, chat,
+                             #   magnata/, domino/ e truco/ (a mesa de cada jogo)
 e2e/                         # testes de navegador (Playwright)
 ```
 
@@ -119,10 +122,10 @@ Decisões importantes:
   - Ao entrar numa sala, o aparelho recebe um token secreto. O servidor guarda somente o hash desse token.
   - Se o navegador não guardar dados, o token fica em memória e a sala avisa.
   - O link de retomada (`#retomar=…`) leva o lugar para outro aparelho, e o fragmento `#` nunca vai ao servidor.
-- **Contas e fichas.**
+- **Contas e Funcoins.**
   - Senha só como hash `scrypt` com sal; sessão num cookie `httpOnly`, com só o hash do token no servidor.
   - A entrada de cada partida vira uma retenção ligada a ela: o pote é pago uma vez só, logo ao fim e de novo sempre que a conta é lida (idempotente), e a entrada volta se a sala expirar.
-  - Fichas são virtuais de propósito: apostar dinheiro de verdade exigiria licença, meios de pagamento e verificação de identidade.
+  - Funcoins são moeda virtual de jogo de propósito: não se compram nem se sacam. Se um dia passassem a valer dinheiro, o site viraria casa de apostas, com licença, meios de pagamento e verificação de identidade (Lei 14.790/2023).
 - **Concorrência otimista e comandos idempotentes.** Cada sala tem uma versão, e a escrita só acontece se ela não mudou desde a leitura (script Lua no Redis). Cada comando leva um `commandId`; um reenvio não repete o efeito.
 - **Consulta periódica em vez de WebSocket.**
   - As funções da Vercel não mantêm conexões abertas. Num jogo por turnos, consultar a cada 1–4 s é suficiente, gratuito e simples.
@@ -134,11 +137,11 @@ Decisões importantes:
   - comandos: 90 por minuto por jogador;
   - chat: 15 por minuto;
   - cadastro: 10 por hora por IP; login: 10 tentativas a cada 10 min por IP e por e-mail;
-  - praça: 10 mensagens por minuto; acenos e convites: 20 a cada 10 min.
+  - conversa do grupo: 10 mensagens por minuto; acenos e convites: 20 a cada 10 min; criar ou entrar em grupos: 10 por hora.
   - As consultas não são limitadas, porque a família costuma compartilhar a mesma rede.
 - **Salas temporárias.** Uma sala expira depois de 48 h sem alterações.
 
-As decisões, com a análise que as motivou, estão em [`docs/ESPECIFICACAO-EVOLUCAO-1.md`](docs/ESPECIFICACAO-EVOLUCAO-1.md) para as janelas de acontecimento e a câmera, em [`docs/ESPECIFICACAO-EVOLUCAO-2.md`](docs/ESPECIFICACAO-EVOLUCAO-2.md), para leilão, trocas e testes de navegador, em [`docs/ESPECIFICACAO-EVOLUCAO-3.md`](docs/ESPECIFICACAO-EVOLUCAO-3.md), e para dominó, contas, fichas, apostas, selos e praça, em [`docs/ESPECIFICACAO-EVOLUCAO-4.md`](docs/ESPECIFICACAO-EVOLUCAO-4.md).
+As decisões, com a análise que as motivou, estão em [`docs/ESPECIFICACAO-EVOLUCAO-1.md`](docs/ESPECIFICACAO-EVOLUCAO-1.md) para as janelas de acontecimento e a câmera, em [`docs/ESPECIFICACAO-EVOLUCAO-2.md`](docs/ESPECIFICACAO-EVOLUCAO-2.md), para leilão, trocas e testes de navegador, em [`docs/ESPECIFICACAO-EVOLUCAO-3.md`](docs/ESPECIFICACAO-EVOLUCAO-3.md), para dominó, contas, apostas e selos, em [`docs/ESPECIFICACAO-EVOLUCAO-4.md`](docs/ESPECIFICACAO-EVOLUCAO-4.md), e para Funcoins, grupos privados, Truco e avisos no celular, em [`docs/ESPECIFICACAO-EVOLUCAO-5.md`](docs/ESPECIFICACAO-EVOLUCAO-5.md).
 
 ## Como executar
 
@@ -172,6 +175,17 @@ Na primeira vez, instale o navegador dos testes com `npx playwright install chro
 
 Sem o Redis, a API de produção responde 503 com "O servidor está sem banco de dados configurado". As variáveis aceitas estão em [`.env.example`](.env.example).
 
+**Avisos no celular (opcional, grátis):**
+
+1. No computador, na pasta `mesa-online`, gere um par de chaves: `npx web-push generate-vapid-keys`.
+2. Na Vercel, em **Settings → Environment Variables** do projeto, crie (para Production):
+   - `VAPID_PUBLIC_KEY` = a chave pública;
+   - `VAPID_PRIVATE_KEY` = a chave privada (marque como *Sensitive*);
+   - `VAPID_SUBJECT` = `mailto:` seguido do seu e-mail.
+3. Faça um novo deploy.
+
+Sem essas variáveis, o cartão "Avisos no celular" avisa que eles estão desligados e o resto funciona normalmente. A chave privada nunca vai para o repositório.
+
 **Consumo (estimativa, não medição):**
 
 - cada consulta periódica custa 1 comando Redis quando nada mudou, e 2 a 3 quando há novidade;
@@ -182,7 +196,7 @@ O plano gratuito do Upstash tem limite mensal de comandos. Confira o valor atual
 
 ## Estado atual
 
-Publicado na Vercel (projeto `felp-zone`, com Upstash Redis conectado). Inclui as Evoluções 1 a 4, cobertas por testes automatizados (motores, robôs, salas, contas, apostas e praça) e por testes de navegador no CI. Também foi validado no navegador, com aparelhos iPhone simulados:
+Publicado na Vercel (projeto `felp-zone`, com Upstash Redis conectado). Inclui as Evoluções 1 a 5, cobertas por testes automatizados (motores, robôs, salas, contas, apostas, grupos e conversa) e por testes de navegador no CI. Também foi validado no navegador, com aparelhos iPhone simulados:
 
 - dois aparelhos receberam os mesmos avisos, sem repetição;
 - armazenamento bloqueado;
@@ -197,7 +211,7 @@ Os robôs jogam na mesa com pessoas (estratégias em `src/bots/`) e também serv
 
 ## Próximos passos
 
-1. Jogar dominó em duplas com a família e ajustar o ritmo dos robôs e o tempo da tela de fim de mão.
-2. Confirmação de e-mail e recuperação de senha, se valer o custo de um provedor de e-mail.
-3. Ranking entre amigos e histórico das últimas partidas no perfil.
-4. PWA (ícone na tela inicial) e um terceiro jogo do hub (Damas ou Lig-4).
+1. Cadastrar as chaves VAPID na Vercel e testar os avisos num iPhone com o site instalado.
+2. Jogar Truco e dominó em duplas com a família e ajustar o ritmo dos robôs e o tempo da tela de fim de mão.
+3. Narração do dominó e do truco em janelas, como no Magnata, e reações rápidas na mesa.
+4. Loja de visual paga com Funcoins, ranking da família e recuperação de senha por e-mail.

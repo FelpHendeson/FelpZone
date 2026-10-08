@@ -2,16 +2,23 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState, type FormEvent } from "react";
-import { createRoom, fetchRoom, joinRoom, sendCommand } from "@/client/api";
+import type { GroupView } from "@/accounts/groups";
+import { createRoom, fetchGroups, fetchRoom, joinRoom, sendCommand } from "@/client/api";
 import { useProfile } from "@/client/profile";
 import { forgetRoom, saveSeat, useRecentRooms } from "@/client/seats";
 import { useAccount } from "@/client/useAccount";
 import { usePlaza } from "@/client/usePlaza";
 import { DOMINO_MODES, type DominoMode } from "@/games/domino/engine";
+import { TRUCO_MODES, type TrucoMode } from "@/games/truco/engine";
 import { GAMES, GAME_IDS, type GameId } from "@/games/registry";
+import { funcoins, priceLabel } from "@/accounts/funcoins";
+import { STAKES } from "@/rooms/room";
 import { AccountPanel } from "./AccountPanel";
+import { GroupsPanel } from "./GroupsPanel";
+import { PushCard } from "./PushCard";
 import { DominoRules } from "./domino/DominoRules";
 import { HowToPlay } from "./HowToPlay";
+import { TrucoRules } from "./truco/TrucoRules";
 import { NoticeList, PlazaPanel } from "./PlazaPanel";
 import { PrefsForm } from "./PrefsForm";
 import { ProfileCard } from "./ProfileCard";
@@ -33,12 +40,36 @@ export function Home() {
   const [resume, setResume] = useState<{ code: string; label: string; lobby: boolean } | null>(null);
   const [gameId, setGameId] = useState<GameId>("magnata");
   const [mode, setMode] = useState<DominoMode>("bloqueio");
+  const [stake, setStake] = useState(0);
+  const [trucoMode, setTrucoMode] = useState<TrucoMode>("paulista");
+  const [trucoDuplas, setTrucoDuplas] = useState(false);
   const { me, loaded } = useAccount();
-  const { plaza, notices, dismiss, refresh } = usePlaza(MENU, { full: true, enabled: true });
+  const [groups, setGroups] = useState<GroupView[]>([]);
+  const [chatGroupId, setChatGroupId] = useState<string | null>(null);
+  const { plaza, notices, dismiss, refresh } = usePlaza(MENU, { full: true, enabled: true, groupId: chatGroupId });
+
+  // Grupos da conta: recarregados ao entrar ou sair.
+  const meId = me?.id ?? null;
+  useEffect(() => {
+    if (!meId) return;
+    let cancelled = false;
+    fetchGroups()
+      .then(({ groups: found }) => !cancelled && setGroups(found))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [meId]);
   const game = GAMES[gameId];
   const name = me ? me.nickname : profile.name.trim();
   const avatar = me ? me.avatar : profile.avatar;
-  const options = gameId === "domino" ? { dominoMode: mode } : {};
+  // O preço da jogada é escolhido aqui e não muda depois (quem entra sabe quanto vale).
+  const price = me ? stake : 0;
+  const options = {
+    ...(gameId === "domino" ? { dominoMode: mode } : {}),
+    ...(gameId === "truco" ? { trucoMode } : {}),
+    stake: price,
+  };
 
   // "Continuar partida": a sala mais recente com assento salvo que ainda existe.
   const latest = recent[0]?.code ?? null;
@@ -78,7 +109,15 @@ export function Home() {
       const created = await createRoom(name, avatar, gameId, options);
       const { code: roomCode } = created.room;
       const bots =
-        gameId === "magnata" ? ["investidor", "conservador", "colecionador"] : mode === "duplas" ? ["medio", "dificil", "medio"] : ["medio", "dificil"];
+        gameId === "magnata"
+          ? ["investidor", "conservador", "colecionador"]
+          : gameId === "truco"
+            ? trucoDuplas
+              ? ["medio", "dificil", "medio"]
+              : ["dificil"]
+            : mode === "duplas"
+              ? ["medio", "dificil", "medio"]
+              : ["medio", "dificil"];
       for (const strategy of bots) {
         await sendCommand(roomCode, created.token, { kind: "add-bot", strategy });
       }
@@ -155,6 +194,45 @@ export function Home() {
             <span className="muted hint">{DOMINO_MODES[mode].description}</span>
           </label>
         )}
+        {gameId === "truco" && (
+          <>
+            <label className="field">
+              <span>Modalidade</span>
+              <select value={trucoMode} onChange={(event) => setTrucoMode(event.target.value as TrucoMode)}>
+                {(Object.keys(TRUCO_MODES) as TrucoMode[]).map((id) => (
+                  <option key={id} value={id}>
+                    Truco {TRUCO_MODES[id].name}
+                  </option>
+                ))}
+              </select>
+              <span className="muted hint">{TRUCO_MODES[trucoMode].description}</span>
+            </label>
+            <label className="check">
+              <input type="checkbox" checked={trucoDuplas} onChange={(event) => setTrucoDuplas(event.target.checked)} />
+              <span>
+                Em duplas contra robôs
+                <span className="muted hint">Sem marcar, é 1 contra 1. Com amigos, a sala vira duplas quando tiver 4 pessoas.</span>
+              </span>
+            </label>
+          </>
+        )}
+        <label className="field">
+          <span>Preço da jogada</span>
+          <select value={price} disabled={!me} onChange={(event) => setStake(Number(event.target.value))}>
+            {STAKES.map((value) => (
+              <option key={value} value={value}>
+                🪙 {priceLabel(value)}
+              </option>
+            ))}
+          </select>
+          <span className="muted hint">
+            {me
+              ? price
+                ? `Cada pessoa entra com ${funcoins(price)}; quem vence leva o pote.`
+                : "Grátis: convidados sem conta também podem jogar."
+              : "Entre na sua conta para jogar valendo Funcoins."}
+          </span>
+        </label>
         <p className="muted small">{game.description}</p>
         <div className="main-actions">
           <button className="button primary" disabled={busy || !name} onClick={() => run(() => createRoom(name, avatar, gameId, options))}>
@@ -193,7 +271,26 @@ export function Home() {
         )}
       </section>
 
-      <PlazaPanel plaza={plaza} me={me} inviteCode={resume?.lobby ? resume.code : null} onRefresh={refresh} />
+      {me && <PushCard />}
+      {me && (
+        <GroupsPanel
+          me={me}
+          groups={groups}
+          onChange={(next) => {
+            setGroups(next);
+            refresh();
+          }}
+        />
+      )}
+      <PlazaPanel
+        plaza={plaza}
+        me={me}
+        groups={me ? groups : []}
+        chatGroupId={chatGroupId}
+        onChatGroup={setChatGroupId}
+        inviteCode={resume?.lobby ? resume.code : null}
+        onRefresh={refresh}
+      />
 
       <nav className="link-row" aria-label="Ajuda">
         <button className="link-button light" onClick={() => setSheet("help")}>
@@ -208,7 +305,7 @@ export function Home() {
 
       {sheet === "help" && (
         <Sheet title={`Como jogar ${game.name}`} onClose={() => setSheet(null)}>
-          {gameId === "domino" ? <DominoRules /> : <HowToPlay />}
+          {gameId === "domino" ? <DominoRules /> : gameId === "truco" ? <TrucoRules /> : <HowToPlay />}
         </Sheet>
       )}
       {sheet === "prefs" && (

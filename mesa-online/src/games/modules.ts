@@ -25,11 +25,22 @@ import {
 } from "./magnata/engine";
 import { createDominoGame } from "./domino/engine";
 import type { GameId } from "./registry";
+import { TRUCO_BOTS, isTrucoBotKind, trucoBotAction, type TrucoBotKind } from "./truco/bots";
+import {
+  applyTrucoAction,
+  createTrucoGame,
+  noteTrucoEvent,
+  parseTrucoAction,
+  trucoActorsNeeded,
+  trucoView,
+  type TrucoState,
+  type TrucoView,
+} from "./truco/engine";
 import type { Rng } from "./rules";
 
-export type GameState = MagnataState | DominoState;
-export type GameView = MagnataView | DominoView;
-export type AnyBotKind = BotKind | DominoBotKind;
+export type GameState = MagnataState | DominoState | TrucoState;
+export type GameView = MagnataView | DominoView | TrucoView;
+export type AnyBotKind = BotKind | DominoBotKind | TrucoBotKind;
 
 export interface Seat {
   id: string;
@@ -139,10 +150,32 @@ const domino: GameModule = {
   view: (state, viewerId) => dominoView(state as DominoState, viewerId),
 };
 
-export const GAME_MODULES: Record<GameId, GameModule> = { magnata, domino };
+const truco: GameModule = {
+  start: (seats, options, rng) => createTrucoGame(seats, rng, { mode: options.trucoMode ?? "paulista" }),
+  parse: parseTrucoAction,
+  apply: (state, playerId, action, rng) => applyTrucoAction(state as TrucoState, playerId, action as never, rng),
+  actorsNeeded: (state) => trucoActorsNeeded(state as TrucoState),
+  finished: (state) => (state as TrucoState).phase === "finished",
+  bots: TRUCO_BOTS,
+  isBot: isTrucoBotKind,
+  autopilot: "medio",
+  autoplay: (state, me, kind, rng) =>
+    applyTrucoAction(state as TrucoState, me, trucoBotAction(kind as TrucoBotKind, state as TrucoState, me, rng), rng),
+  autoplayDelay: (state, base) => ((state as TrucoState).phase === "hand-over" ? Math.max(base, HAND_PAUSE_MS) : base),
+  note: (state, type, playerId) => noteTrucoEvent(state as TrucoState, { type, playerId }),
+  resignAction: { type: "resign" },
+  outcome: (state) => ({ winners: (state as TrucoState).winnerIds, feats: (state as TrucoState).feats }),
+  view: (state, viewerId) => trucoView(state as TrucoState, viewerId),
+};
+
+export const GAME_MODULES: Record<GameId, GameModule> = { magnata, domino, truco };
 
 export function isMagnata(view: GameView | null): view is MagnataView {
-  return view !== null && !("kind" in view && view.kind === "domino");
+  return view !== null && !("kind" in view);
+}
+
+export function isTruco(view: GameView | null): view is TrucoView {
+  return view !== null && "kind" in view && view.kind === "truco";
 }
 
 export function isDomino(view: GameView | null): view is DominoView {
