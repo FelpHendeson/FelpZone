@@ -17,6 +17,14 @@ npm run dev
 
 Abra a URL exibida pelo Vite. Para verificar as regras, execute `npm test`. Para verificar os tipos e gerar a versão de produção, execute `npm run build`.
 
+## Interface
+
+- O mundo ocupa a janela inteira. A barra superior mostra semente, estação, dia, ano, população e bandos vivos, além de iniciar ou pausar, avançar um dia, velocidade e progresso do dia. Os botões nas pontas recolhem os painéis laterais.
+- O mapa fica no centro, quadrado e no maior tamanho que cabe. Camadas, territórios, opções (chuva e neve, animação, grade e ajuda), legenda recolhível e zoom flutuam sobre ele. A roda do mouse aproxima e afasta mantendo o ponto sob o cursor.
+- O painel esquerdo tem abas: **Habitantes** (bandos e o Folhim acompanhado), **Região** (a célula fixada e o bando que a influencia) e **Mundo** (ambiente, composição, criar outro mundo e exportar). Clicar no terreno abre Região; clicar num Folhim abre Habitantes.
+- A **Voz do Mundo**, à direita, narra os acontecimentos do mais recente ao mais antigo, com filtros por Vida, Bandos e Mundo e um atalho para acompanhar o Folhim citado. Chegadas, mudanças de liderança e de cultura, trocas de estação e bandos extintos também aparecem como anúncio sobre o mapa. Estações e extinções são deduzidas na interface a partir de estados consecutivos e não entram no JSON exportado.
+- Abaixo de 1000 px de largura, as áreas se empilham com o mapa primeiro e a página volta a rolar.
+
 ## O que já existe
 
 - População inicial de 20 Folhins em uma área conectada com alimento. Em mapas sem habitat adequado, nenhum indivíduo é introduzido.

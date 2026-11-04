@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "matrix-sim",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "matrix-sim", "run", "dev", "--", "--port", "5174"],
+      "port": 5174
+    }
+  ]
+}
