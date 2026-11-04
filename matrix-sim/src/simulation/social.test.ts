@@ -9,7 +9,7 @@ function encounter(sameBand = true, variant: Variant = 'bosque'): World {
     ...world, day: 30,
     cells: world.cells.map(cell => ({ ...cell, terrain: 'grass', food: 0, vegetation: { grass: 0, shrubs: 0, trees: 0, fruit: 0, litter: 0 } })),
     life: { ...world.life,
-      bands: [{ id: 1, name: 'Bosque 1', variant: 'bosque', leaderId: 1, origin: 85 }, ...(sameBand ? [] : [{ id: 2, name: 'Outro bando', variant, leaderId: 2, origin: 86 }])],
+      bands: [{ ...world.life.bands[0], id: 1, name: 'Bosque 1', variant: 'bosque', leaderId: 1, origin: 85, home: 85 }, ...(sameBand ? [] : [{ ...world.life.bands[0], id: 2, name: 'Outro bando', variant, leaderId: 2, origin: 86, home: 86 }])],
       creatures: world.life.creatures.map((c, i) => ({ ...c, x: 5, y: 5, age: 40, energy: 50, temperament: i ? 0 : 1, variant: i ? variant : 'bosque', bandId: sameBand || !i ? 1 : 2, lastConflictDay: -100 })),
     },
   };
@@ -24,6 +24,21 @@ function firstConflict(world: World) {
 }
 
 describe('variações e vida social', () => {
+  it('atributos coletivos alteram os vencedores dos mesmos encontros', () => {
+    const base = encounter(false, 'campina');
+    const wins = (attack: number, defense: number) => {
+      let total = 0;
+      for (let day = 30; day < 230; day++) {
+        const world = { ...base, day, life: { ...base.life, bands: base.life.bands.map(b => ({ ...b, updatedDay: day, attack: b.id === 1 ? attack : b.attack, defense: b.id === 2 ? defense : b.defense })) } };
+        const result = advanceSocialLife(world);
+        if (result.life.creatures.find(c => c.id === 1)?.action === 'disputing') total++;
+      }
+      return total;
+    };
+    expect(wins(0.95, 0.5)).toBeGreaterThan(wins(0.1, 0.5));
+    expect(wins(0.5, 0.1)).toBeGreaterThan(wins(0.5, 0.95));
+  });
+
   it('distribui quatro bandos entre origens de floresta e campina e preserva a origem ao andar', () => {
     const world = populateWorld(createWorld('origem-001'));
     expect(world.life.bands).toHaveLength(4);

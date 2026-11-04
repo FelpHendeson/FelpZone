@@ -2,10 +2,11 @@ import type { Cell, World } from './world';
 import { edibleFood, foodFrom } from './food';
 import { advanceSocialLife } from './social';
 import { TICKS_PER_DAY } from './dayClock';
+import { createBand, type Band } from './bands';
+export type { Band } from './bands';
 
 export type Variant = 'bosque' | 'campina';
 export const variantNames: Record<Variant, string> = { bosque: 'Bosque', campina: 'Campina' };
-export type Band = { id: number; name: string; variant: Variant; leaderId: number | null; origin: number };
 export type Relation = { id: number; fear: number; anger: number; lastDay: number };
 export type Action = 'grazing' | 'seeking' | 'exploring' | 'resting' | 'disputing' | 'fleeing' | 'dead';
 export const actionNames: Record<Action, string> = { grazing: 'Comendo', seeking: 'Procurando alimento', exploring: 'Explorando', resting: 'Descansando', disputing: 'Disputando', fleeing: 'Recuando', dead: 'Morto' };
@@ -16,8 +17,9 @@ export type Creature = {
   foodMemory: { cell: number; day: number } | null;
   history: { day: number; text: string }[];
   variant: Variant; bandId: number; temperament: number; lastConflictDay: number; relations: Relation[];
+  moving: boolean; facing: 'left' | 'right';
 };
-export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership'; creatureId: number; text: string };
+export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture'; creatureId: number; text: string };
 export type Life = { creatures: Creature[]; departed: Creature[]; bands: Band[]; nextId: number; births: number; deaths: number; events: LifeEvent[] };
 export const POPULATION_LIMIT = 200;
 export const emptyLife = (): Life => ({ creatures: [], departed: [], bands: [], nextId: 1, births: 0, deaths: 0, events: [] });
@@ -47,6 +49,7 @@ function makeCreature(world: World, id: number, cell: Cell, generation = 1, pare
     lifespan: 180 + Math.floor(random(world.seed, id, world.day, 4) * 100), generation, parents,
     lastBirthDay: world.day, action: 'exploring', recentCells: [], foodMemory: null,
     variant: cell.terrain === 'forest' ? 'bosque' : 'campina', bandId: 1,
+    moving: false, facing: 'right',
     temperament: random(world.seed, id, world.day, 12), lastConflictDay: world.day - 12, relations: [],
     history: [{ day: world.day, text: parents.length ? `Nasceu de #${parents[0]} e #${parents[1]}.` : 'Chegou ao mundo.' }],
   };
@@ -70,7 +73,7 @@ export function populateWorld(world: World, count = 20): World {
       return score(i) < score(best) ? i : best;
     });
     const variant: Variant = world.cells[root].terrain === 'forest' ? 'bosque' : 'campina';
-    const band: Band = { id: b + 1, name: `${variantNames[variant]} ${bands.filter(g => g.variant === variant).length + 1}`, variant, leaderId: null, origin: root };
+    const band = createBand(world, b + 1, `${variantNames[variant]} ${bands.filter(g => g.variant === variant).length + 1}`, variant, root);
     const queue = [root], visited = new Set(queue);
     for (let head = 0, members = 0; head < queue.length && members < 5 && creatures.length < count; head++) {
       const index = queue[head];
@@ -106,7 +109,8 @@ function chooseMove(world: World, creature: Creature, occupancy: Map<number, num
   const queue = [{ index: origin, distance: 0, first: origin }], visited = new Set([origin]);
   let best = origin, bestScore = -Infinity;
   const hungry = creature.energy < 65;
-  const leaderId = world.life.bands.find(b => b.id === creature.bandId)?.leaderId;
+  const band = world.life.bands.find(b => b.id === creature.bandId);
+  const leaderId = band?.leaderId;
   const leader = world.life.creatures.find(c => c.id === leaderId);
   const threats = creature.relations.filter(r => r.fear > 0.15).flatMap(r => {
     const other = world.life.creatures.find(c => c.id === r.id);
@@ -124,7 +128,7 @@ function chooseMove(world: World, creature: Creature, occupancy: Map<number, num
       for (const { other, fear } of threats) if (fear > 0.3 && Math.abs(other.x - creature.x) + Math.abs(other.y - creature.y) <= 2) {
         score -= 100 * fear / (1 + Math.abs(node.first % world.size - other.x) + Math.abs(Math.floor(node.first / world.size) - other.y));
       }
-      if (!hungry && leader && leader.id !== creature.id && Math.abs(leader.x - creature.x) + Math.abs(leader.y - creature.y) <= creature.vision * 2) score += 2 / (1 + Math.abs(nx - leader.x) + Math.abs(ny - leader.y));
+      if (!hungry && leader && leader.id !== creature.id && Math.abs(leader.x - creature.x) + Math.abs(leader.y - creature.y) <= creature.vision * 2) score += (1 + (band?.cohesion ?? 0.5) * 3) / (1 + Math.abs(nx - leader.x) + Math.abs(ny - leader.y));
       if (hungry && creature.foodMemory && world.day - creature.foodMemory.day <= 14) {
         const mx = creature.foodMemory.cell % world.size, my = Math.floor(creature.foodMemory.cell / world.size);
         score += 1 / (1 + Math.abs(mx - node.index % world.size) + Math.abs(my - Math.floor(node.index / world.size)));
@@ -152,6 +156,7 @@ export function advanceLife(world: World, elapsedDays = 1): World {
   for (const original of ordered) {
     const c: Creature = { ...original, age: original.age + (elapsedDays === 1 || world.tick === 0 ? 1 : 0), energy: Math.max(0, original.energy - 2.8 * original.appetite * elapsedDays), recentCells: [...original.recentCells], history: [...original.history], relations: original.relations.map(r => ({ ...r, fear: Math.max(0, r.fear - 0.025 * elapsedDays), anger: Math.max(0, r.anger - 0.005 * elapsedDays) })).filter(r => r.fear > 0 || r.anger > 0) };
     const index = c.y * world.size + c.x;
+    c.moving = false;
     const afraid = c.relations.some(r => r.fear > 0.3 && world.life.creatures.some(other => other.id === r.id && Math.abs(c.x - other.x) + Math.abs(c.y - other.y) <= 2));
     if (!afraid && c.energy < 85 && edibleFood(cells[index].vegetation) > 0.05) {
       const meal = graze(cells[index], Math.min(c.appetite * 1.4 * elapsedDays, (100 - c.energy) / 9));
@@ -163,6 +168,8 @@ export function advanceLife(world: World, elapsedDays = 1): World {
       const next = chooseMove({ ...world, cells }, c, occupancy);
       c.action = afraid ? 'fleeing' : c.energy < 65 ? 'seeking' : 'exploring';
       if (next !== index) {
+        if (next % world.size !== c.x) c.facing = next % world.size < c.x ? 'left' : 'right';
+        c.moving = true;
         c.x = next % world.size; c.y = Math.floor(next / world.size); c.energy = Math.max(0, c.energy - 0.4 * elapsedDays);
         c.recentCells = [...c.recentCells, index].slice(-8);
         occupancy.set(index, Math.max(0, (occupancy.get(index) ?? 0) - 1)); occupancy.set(next, (occupancy.get(next) ?? 0) + 1);
@@ -170,7 +177,7 @@ export function advanceLife(world: World, elapsedDays = 1): World {
       if (c.energy < 25) remember(c, world.day, 'Está com muita fome e procura alimento.');
     }
     if (c.age >= c.lifespan || c.energy <= 0) {
-      const cause = c.energy <= 0 ? 'falta de alimento' : 'velhice'; c.action = 'dead';
+      const cause = c.energy <= 0 ? 'falta de alimento' : 'velhice'; c.action = 'dead'; c.moving = false;
       remember(c, world.day, `Morreu por ${cause}.`); departed.push(c); deaths++;
       events.push({ day: world.day, kind: 'death', creatureId: c.id, text: `Folhim #${c.id} morreu por ${cause}.` });
       const finalIndex = c.y * world.size + c.x;
