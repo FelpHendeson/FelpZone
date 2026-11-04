@@ -24,8 +24,10 @@ export type Creature = {
   essence: number; affinity: number; awakenedDay: number | null;
   /** Lived experience, earned skill ids and the evolved form (see skills.ts). */
   deeds: Deeds; skills: string[]; form: Form; evolvedDay: number | null;
+  /** A name given by a primordial being, and which being gave it (see beings.ts). */
+  trueName: string | null; patron: string | null;
 };
-export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture' | 'essence' | 'skill' | 'evolution'; creatureId: number; text: string };
+export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture' | 'essence' | 'skill' | 'evolution' | 'divine'; creatureId: number; text: string };
 export type Life = { creatures: Creature[]; departed: Creature[]; bands: Band[]; nextId: number; births: number; deaths: number; events: LifeEvent[] };
 export const POPULATION_LIMIT = 200;
 export const emptyLife = (): Life => ({ creatures: [], departed: [], bands: [], nextId: 1, births: 0, deaths: 0, events: [] });
@@ -57,7 +59,7 @@ function makeCreature(world: World, id: number, cell: Cell, generation = 1, pare
     variant: cell.terrain === 'forest' ? 'bosque' : 'campina', bandId: 1,
     moving: false, facing: 'right',
     essence: 0, affinity: 0.3 + random(world.seed, id, world.day, 30) * 0.7, awakenedDay: null,
-    deeds: emptyDeeds(), skills: [], form: 'folhim', evolvedDay: null,
+    deeds: emptyDeeds(), skills: [], form: 'folhim', evolvedDay: null, trueName: null, patron: null,
     temperament: random(world.seed, id, world.day, 12), lastConflictDay: world.day - 12, relations: [],
     history: [{ day: world.day, text: parents.length ? `Nasceu de #${parents[0]} e #${parents[1]}.` : 'Chegou ao mundo.' }],
   };

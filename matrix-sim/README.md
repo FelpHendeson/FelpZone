@@ -21,7 +21,7 @@ Abra a URL exibida pelo Vite. Para verificar as regras, execute `npm test`. Para
 
 - O mundo ocupa a janela inteira. A barra superior mostra semente, estação, dia, ano, população e bandos vivos, além de iniciar ou pausar, avançar um dia, velocidade e progresso do dia. Os botões nas pontas recolhem os painéis laterais.
 - O mapa fica no centro, quadrado e no maior tamanho que cabe. Camadas, territórios, opções (chuva e neve, animação, grade e ajuda), legenda recolhível e zoom flutuam sobre ele. A roda do mouse aproxima e afasta mantendo o ponto sob o cursor.
-- O painel esquerdo tem abas: **Habitantes** (bandos e o Folhim acompanhado), **Região** (a célula fixada e o bando que a influencia), **Mundo** (ambiente, composição, criar outro mundo e exportar) e **Códice** (habilidades e formas de evolução). Clicar no terreno abre Região; clicar num Folhim abre Habitantes.
+- O painel esquerdo tem abas: **Habitantes** (bandos e o Folhim acompanhado), **Região** (a célula fixada e o bando que a influencia), **Mundo** (ambiente, composição, criar outro mundo e exportar), **Códice** (habilidades e formas de evolução) e **Seres** (seres primordiais, poder e atos). Clicar no terreno abre Região; clicar num Folhim abre Habitantes.
 - A **Voz do Mundo**, à direita, narra os acontecimentos do mais recente ao mais antigo, com filtros por Vida, Bandos e Mundo e um atalho para acompanhar o Folhim citado. Chegadas, mudanças de liderança e de cultura, trocas de estação e bandos extintos também aparecem como anúncio sobre o mapa. Estações e extinções são deduzidas na interface a partir de estados consecutivos e não entram no JSON exportado.
 - Abaixo de 1000 px de largura, as áreas se empilham com o mapa primeiro e a página volta a rolar.
 
@@ -108,6 +108,20 @@ Cada Folhim acumula **feitos**: regiões percorridas, unidades de alimento comid
 **Evolução:** um Folhim desperto, com 3 habilidades e 70 de essência, evolui uma única vez. Cada habilidade vale um voto para o seu caminho; em empate vale a ordem Guardião, Errante, Vidente. A forma ganha 140 dias de vida e bônus próprios: o **Guardião** tem mais força nas disputas; o **Vidente**, mais afinidade e visão; o **Errante**, mais visão e passo ainda mais leve. No mapa, os evoluídos aparecem maiores e com marca própria (chifres e crista, olho violeta ou capa de folha).
 
 Na semente `origem-001`, as primeiras evoluções chegam por volta do dia 150. No dia 300 são 10 evoluídos (7 Errantes e 3 Guardiões); na `essencia-a`, 3 Errantes. A ficha do Folhim mostra as habilidades, as três mais próximas com progresso, os requisitos da evolução e os feitos. A aba **Códice** lista todas as habilidades e formas, com quantos vivos carregam cada uma.
+
+## Seres primordiais
+
+Os seres são **declarados** em [`src/simulation/beings.ts`](src/simulation/beings.ts), no mesmo espírito das habilidades. Cada bloco define nome, epíteto, domínio, morada (`strongest-source` ou `highest-peak`), alcance de devoção e uma lista de atos. Os atos usam um vocabulário pequeno do motor: **abençoar** (essência ao redor da morada), **fazer chover** (sobre seca real) e **nomear** (dá nome próprio a um Folhim desperto). Criar outro ser é acrescentar um bloco; o motor não precisa mudar.
+
+O primeiro ser é **Aurenth**, Guardião das Nascentes. Ele nasce com o mundo na nascente mais forte, com poder base 30 (teto 100). O poder sobe com a essência da morada e com Folhins por perto; nomeados contam mais. Cada ato gasta poder; sem poder, o ser adormece. Age no máximo uma vez por dia, no fim do dia.
+
+| Ato | Intervalo | Custo | Efeito |
+|---|---|---|---|
+| Abençoar | 7 dias | 8 | Essência sobe num raio de 6, mais forte no centro |
+| Fazer chover | 10 dias | 15 | Chuva local se houver seca ≥ 18 dias no raio de 14 |
+| Nomear | 30 dias | 35 | Escolhe o desperto mais forte do raio de 10, uma vez só; +20 essência, +60 vida, +afinidade |
+
+O nomeado recebe `trueName` e `patron`, aparece com ✺ no token e reforça o poder do ser. No mapa (camadas Terreno e Essência), Aurenth tem halo de influência e marcador clicável. A aba **Seres** mostra poder, devotos, atos, próximo ato, nomeados e um guia de como declarar outro ser. A Voz do Mundo narra os atos no filtro Poder. O JSON exportado passou para a versão 11 e o estado dos seres viaja no frame do worker.
 
 ## Primeira espécie: Folhins
 

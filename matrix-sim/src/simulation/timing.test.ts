@@ -49,7 +49,7 @@ describe('ritmos independentes', () => {
     const next = advanceTicks(saved, 4);
     const before = JSON.stringify(saved);
     const changes: [number, Cell][] = next.cells.flatMap((cell, index) => cell === saved.cells[index] ? [] : [[index, cell] as [number, Cell]]);
-    const frame = structuredClone({ day: next.day, tick: next.tick, life: next.life, summary: next.summary, changes });
+    const frame = structuredClone({ day: next.day, tick: next.tick, life: next.life, summary: next.summary, beings: next.beings, changes });
     expect(applyFrame(saved, frame)).toEqual(next);
     expect(JSON.stringify(saved)).toBe(before);
     expect(changes.length).toBeLessThan(saved.cells.length);

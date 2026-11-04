@@ -213,3 +213,51 @@
 .creature-token:not([data-form=folhim]) svg { transform: scale(1.3); filter: drop-shadow(0 0 2px #fff6c8) drop-shadow(0 0 3px #f0cf8a88); }
 .creature-token[data-form=vidente] svg { filter: drop-shadow(0 0 2px #e6dcff) drop-shadow(0 0 4px #a98bffaa); }
 [data-kind=skill] { --tone: #9fc7a8; } [data-kind=evolution] { --tone: #f0cf8a; }
+
+/* Primordial beings: reach halo, home marker, Seres panel. */
+.beings-overlay { position: absolute; inset: 0; pointer-events: none; z-index: 2; }
+.being-halo { --being: #f0d58a; position: absolute; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+  background: radial-gradient(circle, color-mix(in srgb, var(--being) 28%, transparent) 0%, color-mix(in srgb, var(--being) 10%, transparent) 55%, transparent 72%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--being) 35%, transparent); }
+.being-home { --being: #f0d58a; position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none; pointer-events: auto; line-height: 1.15; }
+.being-home:active { transform: translate(-50%, -50%); }
+.being-glyph { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; font-size: 13px; color: #1a1408; background: radial-gradient(circle at 35% 30%, #fff8e0, var(--being) 55%, color-mix(in srgb, var(--being) 55%, #3a2a10));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--being) 70%, transparent), 0 1px 2px #0008; }
+.being-home span:last-child { font-size: 9px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; color: #fff4d2; text-shadow: 0 1px 2px #000, 0 0 6px color-mix(in srgb, var(--being) 60%, #000); padding: 1px 5px; border-radius: 3px; background: #24180caa; }
+.being-home[aria-pressed=true] span:last-child { outline: 1px solid var(--being); }
+.being-home:hover .being-glyph { filter: brightness(1.15); }
+.folhim-named { fill: #f0d58a; font-size: 8px; paint-order: stroke; stroke: #1a1408; stroke-width: 2px; }
+.creature-named { color: #f0d58a !important; }
+[data-kind=divine] { --tone: #f0d58a; }
+.beings-panel h2 { font: 400 22px Georgia, serif; color: var(--gold); margin: 0 0 8px; }
+.beings-panel > p, .beings-empty { font-size: 12px; line-height: 1.6; color: #b4c7c8; }
+.beings-panel code { font-size: 11px; color: #e2d8ba; }
+.being-card { --being: #f0d58a; margin: 16px 0; padding: 12px; border-radius: 6px; border: 1px solid color-mix(in srgb, var(--being) 40%, #2a3a40); background: linear-gradient(145deg, color-mix(in srgb, var(--being) 12%, #13252c), #101c22); }
+.being-card header { display: flex; flex-wrap: wrap; gap: 6px 10px; align-items: baseline; }
+.being-jump { display: inline-flex; align-items: center; gap: 8px; padding: 0; border: 0; background: none; color: inherit; cursor: pointer; }
+.being-jump span { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; background: color-mix(in srgb, var(--being) 70%, #fff); color: #1a1408; font-size: 15px; }
+.being-jump strong { font: 400 18px Georgia, serif; color: #f6edd2; }
+.being-card header small { font-size: 11px; color: #cbb98a; }
+.being-domain, .being-lore, .being-next { font-size: 12px !important; line-height: 1.55; color: #c6d6cf !important; }
+.being-lore { font-style: italic; color: #a9b8b4 !important; }
+.being-power { margin: 12px 0 8px; }
+.being-power > div:first-child { display: flex; align-items: baseline; gap: 6px; font-size: 11px; color: #a9bfc1; }
+.being-power strong { font-size: 18px; color: var(--being); font-variant-numeric: tabular-nums; }
+.being-power .progress-track span { background: linear-gradient(90deg, color-mix(in srgb, var(--being) 55%, #3a2a10), var(--being)); }
+.being-stats { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 12px !important; margin: 10px 0 !important; }
+.being-stats div { display: flex !important; justify-content: space-between; gap: 8px; }
+.being-stats dt { margin: 0 !important; font-size: 11px !important; color: #93aaaf; }
+.being-stats dd { font-size: 12px !important; color: #eef0e2; }
+.being-card h3 { font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: #a9bfc1; margin: 14px 0 8px; }
+.being-acts, .being-named { list-style: none; margin: 0; padding: 0 !important; }
+.being-acts li { margin-bottom: 6px; padding: 7px 10px; border-radius: 4px; border-left: 3px solid #6a5a35; background: #12232a; }
+.being-acts li[data-ready=true] { border-left-color: var(--being); }
+.being-acts li > div { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; color: #eef0e2; }
+.being-acts small { color: #93aaaf; }
+.being-acts p { margin: 3px 0 0 !important; font-size: 11px !important; color: #b6c8c6; }
+.being-named li { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; margin-bottom: 4px; font-size: 12px; }
+.being-named button { padding: 0; border: 0; background: none; color: var(--being); cursor: pointer; font-weight: 600; }
+.being-named small { color: #93aaaf; }
+.beings-guide { margin-top: 18px; font-size: 12px; color: #b4c7c8; }
+.beings-guide ol { margin: 8px 0 0; padding-left: 18px; line-height: 1.55; }
+@media (prefers-reduced-motion: reduce) { .being-glyph { box-shadow: 0 0 6px color-mix(in srgb, var(--being) 50%, transparent); } }

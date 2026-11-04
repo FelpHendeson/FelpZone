@@ -13,7 +13,7 @@ workerScope.onmessage = ({ data: { id, command } }) => {
       if (!world) throw new Error('O mundo ainda está sendo preparado.');
       const previous = world;
       world = advanceTicks(world, command.ticks);
-      frame = { day: world.day, tick: world.tick, summary: world.summary, life: world.life,
+      frame = { day: world.day, tick: world.tick, summary: world.summary, life: world.life, beings: world.beings,
         changes: world.cells.flatMap((cell, index) => cell === previous.cells[index] ? [] : [[index, cell] as [number, Cell]]) };
     }
     workerScope.postMessage({ id, result: { frame, elapsed: performance.now() - started } });

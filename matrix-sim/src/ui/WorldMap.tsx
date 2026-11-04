@@ -9,6 +9,7 @@ import type { Territories } from '../simulation/territories';
 import { TerritoryOverlay } from './TerritoryOverlay';
 import { CreatureToken } from './CreatureToken';
 import { EssenceSources } from './EssenceSources';
+import { BeingsOverlay } from './BeingsOverlay';
 
 type Props = { world: World; territories: Territories; running: boolean; speed: number; selected: number; onSelect: (index: number) => void; selectedCreature: number | null; onSelectCreature: (id: number) => void };
 export function WorldMap({ world, territories, running, speed, selected, onSelect, selectedCreature, onSelectCreature }: Props) {
@@ -155,6 +156,7 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
           {territoriesVisible && <TerritoryOverlay territories={territories} size={world.size} focused={selectedBand?.id ?? null} />}
           {territoriesVisible && <div className="territory-labels" aria-label="Nomes dos territórios">{world.life.bands.filter(b => territories.areas.has(b.id)).map(b => <button key={b.id} className="territory-name" style={{ left: `${(b.home % world.size + 0.5) / world.size * 100}%`, top: `${(Math.floor(b.home / world.size) + 0.5) / world.size * 100}%`, borderColor: bandColor(b.id), color: bandColor(b.id) }} aria-label={`Território de ${b.name}, acompanhar bando`} onPointerDown={event => event.stopPropagation()} onClick={() => b.leaderId !== null && onSelectCreature(b.leaderId)}>{b.name}</button>)}</div>}
           {(layer === 'terrain' || layer === 'essence') && <EssenceSources world={world} selected={selected} onSelect={index => { onSelect(index); setHover(null); }} />}
+          {(layer === 'terrain' || layer === 'essence') && <BeingsOverlay world={world} selected={selected} onSelect={index => { onSelect(index); setHover(null); }} />}
           <div className="creatures-layer" aria-label="Habitantes do mundo">{world.life.creatures.map(c => <CreatureToken key={c.id} creature={c} size={world.size} selected={selectedCreature === c.id} leader={world.life.bands.some(b => b.leaderId === c.id)} running={running} speed={speed} motion={motion} onSelect={onSelectCreature} />)}</div>
         </div>
       </div>

@@ -7,16 +7,18 @@ import { STEP_MS } from '../simulation/dayClock';
 type Props = { creature: Creature; size: number; selected: boolean; leader: boolean; running: boolean; speed: number; motion: boolean; onSelect: (id: number) => void };
 export function CreatureToken({ creature: c, size, selected, leader, running, speed, motion, onSelect }: Props) {
   const moving = c.moving && running && motion;
+  const label = c.trueName ? `${c.trueName} (#${c.id})` : `${forms[c.form].name} ${c.id}`;
   return <button type="button" className={`creature-token${selected ? ' creature-selected' : ''}`}
-    data-moving={moving} data-awakened={c.awakenedDay !== null} data-form={c.form} data-action={c.action} data-animated={running && motion} data-facing={c.facing}
-    aria-label={`${forms[c.form].name} ${c.id}, ${variantNames[c.variant]}, bando ${c.bandId}, ${actionNames[c.action].toLocaleLowerCase('pt-BR')}`}
-    aria-pressed={selected} title={`${forms[c.form].name} #${c.id} · ${variantNames[c.variant]} · ${c.skills.length} habilidades · Bando ${c.bandId} · ${actionNames[c.action]} · Energia ${Math.round(c.energy)}`}
+    data-moving={moving} data-awakened={c.awakenedDay !== null} data-named={!!c.trueName} data-form={c.form} data-action={c.action} data-animated={running && motion} data-facing={c.facing}
+    aria-label={`${label}, ${variantNames[c.variant]}, bando ${c.bandId}, ${actionNames[c.action].toLocaleLowerCase('pt-BR')}`}
+    aria-pressed={selected} title={`${c.trueName ? `${c.trueName} · ` : ''}${forms[c.form].name} #${c.id} · ${variantNames[c.variant]} · ${c.skills.length} habilidades · Bando ${c.bandId} · ${actionNames[c.action]} · Energia ${Math.round(c.energy)}`}
     style={{ left: `${(c.x + 0.5) / size * 100}%`, top: `${(c.y + 0.5) / size * 100}%`, width: `${100 / size}%`,
       transitionDuration: running && motion ? `${Math.max(0.1, STEP_MS / 1000 / speed)}s` : '0s', '--gait': `${Math.max(0.12, 0.32 / speed)}s` } as CSSProperties}
     onPointerDown={event => event.stopPropagation()} onClick={() => onSelect(c.id)}>
     <svg viewBox="0 -5 36 39" aria-hidden="true">
       <ellipse cx="17" cy="26" rx="12" ry="3.5" fill="#152b3255" />
       {c.awakenedDay !== null && <circle className="folhim-aura" cx="18" cy="16" r="15" fill="none" stroke="#c9b6ff" strokeWidth="1.5" />}
+      {c.trueName && <text className="folhim-named" x="18" y="-1" textAnchor="middle">✺</text>}
       <g className="folhim-facing"><g className="folhim-body">
         <path className="folhim-tail" d="M8 21Q0 22 3 15" fill="none" stroke="#6c5039" strokeWidth="2" />
         <path className="folhim-leg folhim-leg-back" d="M11 21l-2 5h5" fill="none" stroke="#685e43" strokeWidth="2.5" strokeLinecap="round" />

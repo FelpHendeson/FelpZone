@@ -5,7 +5,7 @@ const filters: { id: string; name: string; kinds: VoiceKind[] | null }[] = [
   { id: 'all', name: 'Tudo', kinds: null },
   { id: 'life', name: 'Vida', kinds: ['arrival', 'birth', 'death', 'extinction'] },
   { id: 'society', name: 'Bandos', kinds: ['conflict', 'leadership', 'culture'] },
-  { id: 'power', name: 'Poder', kinds: ['essence', 'genesis', 'skill', 'evolution'] },
+  { id: 'power', name: 'Poder', kinds: ['essence', 'genesis', 'skill', 'evolution', 'divine'] },
   { id: 'world', name: 'Mundo', kinds: ['season'] },
 ];
 
