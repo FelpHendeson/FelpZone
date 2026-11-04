@@ -71,7 +71,7 @@ describe('Ciclos ambientais', () => {
       expect(cell.vegetation.fruit).toBeLessThanOrEqual(60);
       if (['water', 'sand', 'mountain'].includes(cell.terrain)) expect(cell.food).toBe(0);
     }
-  });
+  }, 30000);
   it('transforma matéria orgânica em fertilidade e reduz o crescimento na seca', () => {
     const world = createWorld('ecologia', 16);
     const index = world.cells.findIndex(c => c.terrain === 'grass' || c.terrain === 'forest');

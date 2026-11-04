@@ -8,9 +8,10 @@ export const voiceStyle: Record<VoiceKind, { label: string; icon: string }> = {
   conflict: { label: 'Disputa', icon: '⚔' }, leadership: { label: 'Liderança', icon: '◆' }, culture: { label: 'Cultura', icon: '❖' },
   season: { label: 'Estação', icon: '☀' }, extinction: { label: 'Extinção', icon: '✕' },
   essence: { label: 'Despertar', icon: '✧' }, genesis: { label: 'Gênese', icon: '◎' },
+  skill: { label: 'Habilidade', icon: '✶' }, evolution: { label: 'Evolução', icon: '❂' },
 };
 /** Kinds the world "announces" over the map; births, deaths and disputes stay in the feed only. */
-const announced = new Set<VoiceKind>(['arrival', 'leadership', 'culture', 'season', 'extinction', 'essence', 'genesis']);
+const announced = new Set<VoiceKind>(['arrival', 'leadership', 'culture', 'season', 'extinction', 'essence', 'genesis', 'evolution']);
 
 /** The first words of a new world: where its essence surfaces. */
 export function worldGenesis(world: World): VoiceEntry[] {

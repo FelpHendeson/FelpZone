@@ -21,7 +21,7 @@ Abra a URL exibida pelo Vite. Para verificar as regras, execute `npm test`. Para
 
 - O mundo ocupa a janela inteira. A barra superior mostra semente, estação, dia, ano, população e bandos vivos, além de iniciar ou pausar, avançar um dia, velocidade e progresso do dia. Os botões nas pontas recolhem os painéis laterais.
 - O mapa fica no centro, quadrado e no maior tamanho que cabe. Camadas, territórios, opções (chuva e neve, animação, grade e ajuda), legenda recolhível e zoom flutuam sobre ele. A roda do mouse aproxima e afasta mantendo o ponto sob o cursor.
-- O painel esquerdo tem abas: **Habitantes** (bandos e o Folhim acompanhado), **Região** (a célula fixada e o bando que a influencia) e **Mundo** (ambiente, composição, criar outro mundo e exportar). Clicar no terreno abre Região; clicar num Folhim abre Habitantes.
+- O painel esquerdo tem abas: **Habitantes** (bandos e o Folhim acompanhado), **Região** (a célula fixada e o bando que a influencia), **Mundo** (ambiente, composição, criar outro mundo e exportar) e **Códice** (habilidades e formas de evolução). Clicar no terreno abre Região; clicar num Folhim abre Habitantes.
 - A **Voz do Mundo**, à direita, narra os acontecimentos do mais recente ao mais antigo, com filtros por Vida, Bandos e Mundo e um atalho para acompanhar o Folhim citado. Chegadas, mudanças de liderança e de cultura, trocas de estação e bandos extintos também aparecem como anúncio sobre o mapa. Estações e extinções são deduzidas na interface a partir de estados consecutivos e não entram no JSON exportado.
 - Abaixo de 1000 px de largura, as áreas se empilham com o mapa primeiro e a página volta a rolar.
 
@@ -88,6 +88,27 @@ Cada mundo nasce com 3 a 5 **nascentes de essência**, com nomes gerados pela se
 
 A camada **Essência** do mapa vai do violeta escuro (ausente) ao ciano claro (intensa). As nascentes aparecem como pontos brilhantes com nome, nas camadas Terreno e Essência; clicar numa delas fixa a região. A aba Região mostra a essência atual, o nível natural e a nascente mais próxima. A Voz do Mundo abre cada mundo narrando suas nascentes e ganhou o filtro Essência. Nesta etapa, despertar ainda não altera o comportamento: é a base para habilidades e evolução.
 
+## Habilidades e evolução
+
+As habilidades são **declaradas** em [`src/simulation/skills.ts`](src/simulation/skills.ts), não escritas dentro do motor. Cada uma diz o que precisa ser vivido para conquistá-la (`needs`), se exige um Folhim desperto, a raridade, o caminho para onde aponta e o efeito. Os efeitos ficam reunidos em `modifiers`, que o motor consulta para visão, custo de andar, gasto diário, disputas e afinidade. Para criar uma habilidade, basta acrescentar um bloco em `skills` e, se ela tiver um efeito novo, uma linha em `modifiers`.
+
+Cada Folhim acumula **feitos**: regiões percorridas, unidades de alimento comidas, dias em seca (região com 14 ou mais dias sem chuva), dias de inverno, dias em essência forte (60% ou mais), disputas vencidas e perdidas. Uma vez por dia, ele conquista toda habilidade cujos requisitos foram atingidos, e a Voz do Mundo registra.
+
+| Habilidade | Raridade | Caminho | Como conquistar | Efeito |
+|---|---|---|---|---|
+| Faro de Água | Comum | Errante | 45 dias em seca | Com fome, enxerga 1 região a mais |
+| Passo Leve | Comum | Errante | 1.200 regiões percorridas | Andar custa metade da energia |
+| Estômago Firme | Comum | Guardião | 60 unidades de alimento | Gasta 12% menos energia por dia |
+| Pelagem de Inverno | Comum | Guardião | 40 dias de inverno | No inverno, gasta 20% menos energia |
+| Couro Grosso | Comum | Guardião | 2 disputas perdidas | Disputas custam metade da energia |
+| Garra de Bando | Rara | Guardião | 3 disputas vencidas | Mais força em qualquer disputa |
+| Elo da Nascente | Rara | Vidente | Desperto, 40 dias em essência forte | Afinidade +25 pontos |
+| Sentido Desperto | Única | Vidente | Desperto, 150 dias em essência forte e 1.500 regiões | Enxerga 2 regiões a mais |
+
+**Evolução:** um Folhim desperto, com 3 habilidades e 70 de essência, evolui uma única vez. Cada habilidade vale um voto para o seu caminho; em empate vale a ordem Guardião, Errante, Vidente. A forma ganha 140 dias de vida e bônus próprios: o **Guardião** tem mais força nas disputas; o **Vidente**, mais afinidade e visão; o **Errante**, mais visão e passo ainda mais leve. No mapa, os evoluídos aparecem maiores e com marca própria (chifres e crista, olho violeta ou capa de folha).
+
+Na semente `origem-001`, as primeiras evoluções chegam por volta do dia 150. No dia 300 são 10 evoluídos (7 Errantes e 3 Guardiões); na `essencia-a`, 3 Errantes. A ficha do Folhim mostra as habilidades, as três mais próximas com progresso, os requisitos da evolução e os feitos. A aba **Códice** lista todas as habilidades e formas, com quantos vivos carregam cada uma.
+
 ## Primeira espécie: Folhins
 
 ### Variações regionais e bandos
@@ -120,7 +141,7 @@ Cada região tem uma fase fixa de atualização ambiental dentro do dia. Chuva, 
 
 O worker envia apenas os habitantes e as células alteradas em cada mensagem. O cenário é redesenhado no máximo uma vez por segundo durante a reprodução; mudanças de camada ou zoom são imediatas. Os habitantes se movem numa camada própria. O relógio agrupa passos em velocidades altas e descarta atrasos grandes, sem criar fila de recuperação. Em carga alta, o tempo real pode levar mais que o prazo nominal para preservar a sequência de estados. O avanço manual completa os passos restantes até a próxima virada de dia.
 
-No JSON de versão 9, `day` e `tick` preservam inclusive um momento no meio do dia, junto ao ambiente e à população: identidades, características, energia, memórias, históricos, pais, variações, bandos, líderes, tendências coletivas, centro territorial, direção de movimento, relações sociais, essência, afinidade, despertar, nascentes de essência e próximo identificador. As decisões são derivadas da semente e do passo, e o resultado independe de agrupar os mesmos passos ou trocar de velocidade. Exportações anteriores não contêm todos os dados atuais. A neve é uma forma simplificada de precipitação, sem acumulação ou degelo próprios.
+No JSON de versão 10, `day` e `tick` preservam inclusive um momento no meio do dia, junto ao ambiente e à população: identidades, características, energia, memórias, históricos, pais, variações, bandos, líderes, tendências coletivas, centro territorial, direção de movimento, relações sociais, essência, afinidade, despertar, feitos, habilidades, forma evoluída, nascentes de essência e próximo identificador. As decisões são derivadas da semente e do passo, e o resultado independe de agrupar os mesmos passos ou trocar de velocidade. Exportações anteriores não contêm todos os dados atuais. A neve é uma forma simplificada de precipitação, sem acumulação ou degelo próprios.
 
 Gerar outro mundo substitui o atual; exporte antes se quiser guardá-lo. A aplicação não salva automaticamente ao fechar ou recarregar.
 

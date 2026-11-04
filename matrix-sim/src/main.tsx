@@ -10,14 +10,15 @@ import { LifePanel } from './ui/LifePanel';
 import { Hud } from './ui/Hud';
 import { RegionPanel } from './ui/RegionPanel';
 import { WorldPanel } from './ui/WorldPanel';
+import { CodexPanel } from './ui/SkillsView';
 import { VoiceBanner, WorldVoice } from './ui/WorldVoice';
 import { chronicleChanges, newAnnouncements, voiceFeed, worldGenesis, type VoiceEntry } from './ui/voiceEntries';
 import { populateWorld } from './simulation/creatures';
 import './style.css';
 import './ui/game.css';
 
-type Tab = 'life' | 'region' | 'world';
-const tabs: { id: Tab; name: string }[] = [{ id: 'life', name: 'Habitantes' }, { id: 'region', name: 'Região' }, { id: 'world', name: 'Mundo' }];
+type Tab = 'life' | 'region' | 'world' | 'codex';
+const tabs: { id: Tab; name: string }[] = [{ id: 'life', name: 'Habitantes' }, { id: 'region', name: 'Região' }, { id: 'world', name: 'Mundo' }, { id: 'codex', name: 'Códice' }];
 
 function App() {
   const { world, replaceWorld, advance, busy, error } = useSimulation();
@@ -90,6 +91,7 @@ function App() {
         <div className="side-content" role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === 'life' && <LifePanel world={world} selected={selectedCreature} onSelect={selectCreature} />}
           {tab === 'region' && <RegionPanel cell={world.cells[selected]} sources={world.essenceSources} size={world.size} band={world.life.bands.find(b => b.id === territories.owners[selected])} contested={!!territories.contested[selected]} />}
+          {tab === 'codex' && <CodexPanel creatures={world.life.creatures} />}
           {tab === 'world' && <WorldPanel key={world.seed} world={world} onGenerate={generate} onExport={exportWorld} />}
         </div>
       </aside>}

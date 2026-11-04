@@ -11,7 +11,7 @@ export const ENVIRONMENT_RHYTHM = { growth: 7, decomposition: 14, stressToleranc
 export type DaySummary = { soilChanged: number; grown: number; declined: number; recycled: number; fruitChanged: number };
 function emptySummary(): DaySummary { return { soilChanged: 0, grown: 0, declined: 0, recycled: 0, fruitChanged: 0 }; }
 export type Cell = { x: number; y: number; elevation: number; moisture: number; terrain: Terrain; food: number; fertility: number; temperature: number; waterAccess: number; dryDays: number; stressDays: number; vegetation: Vegetation; climateZone: ClimateZone; rainfall: number; precipitation: Precipitation; essence: number; essenceBase: number };
-export type World = { version: 9; seed: string; size: number; waterLevel: number; essenceSources: EssenceSource[]; day: number; tick: number; summary: DaySummary; cells: Cell[]; life: Life };
+export type World = { version: 10; seed: string; size: number; waterLevel: number; essenceSources: EssenceSource[]; day: number; tick: number; summary: DaySummary; cells: Cell[]; life: Life };
 export const seasons = ['Primavera', 'Verão', 'Outono', 'Inverno'] as const;
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 export function climateAt(seed: string, day: number) {
@@ -124,7 +124,7 @@ export function createWorld(seed: string, size = 96, waterLevel = 0.4): World {
     cell.food = foodFrom(cell.vegetation);
   }
   const essenceSources = seedEssence(seed, size, cells);
-  return { version: 9, seed, size, waterLevel, essenceSources, day: 0, tick: 0, summary: emptySummary(), cells, life: emptyLife() };
+  return { version: 10, seed, size, waterLevel, essenceSources, day: 0, tick: 0, summary: emptySummary(), cells, life: emptyLife() };
 }
 
 /** Advance a duration in whole days using the same fine steps as real-time playback. */

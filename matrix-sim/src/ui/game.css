@@ -115,7 +115,7 @@
 [data-kind=arrival] { --tone: #9fd3a8; } [data-kind=birth] { --tone: #f2b8cf; } [data-kind=death] { --tone: #a3b1b6; }
 [data-kind=conflict] { --tone: #ff9b70; } [data-kind=leadership] { --tone: #f4d27a; } [data-kind=culture] { --tone: #b9a4ec; }
 [data-kind=season] { --tone: #8fd0e8; } [data-kind=extinction] { --tone: #e88080; }
-.voice-banner { --tone: var(--gold); position: absolute; z-index: 6; top: 26px; left: 50%; transform: translateX(-50%); width: min(460px, calc(100% - 40px)); display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; background: linear-gradient(135deg, #142a2ff5, #0c1a20f5); border: 1px solid color-mix(in srgb, var(--tone) 60%, transparent); border-radius: 10px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 10%, transparent), 0 16px 40px #000a; animation: banner-in .6s cubic-bezier(.2, .9, .3, 1.2); }
+.voice-banner { --tone: var(--gold); position: absolute; z-index: 6; top: 72px; left: 50%; transform: translateX(-50%); width: min(460px, calc(100% - 40px)); display: grid; grid-template-columns: 34px 1fr auto; gap: 12px; align-items: center; padding: 12px 14px; background: linear-gradient(135deg, #142a2ff5, #0c1a20f5); border: 1px solid color-mix(in srgb, var(--tone) 60%, transparent); border-radius: 10px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--tone) 10%, transparent), 0 16px 40px #000a; animation: banner-in .6s cubic-bezier(.2, .9, .3, 1.2); }
 .voice-banner .voice-icon { width: 34px; height: 34px; font-size: 17px; }
 .voice-banner small { display: block; font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--tone); }
 .voice-banner p { margin: 2px 0 0; font: 400 15px/1.4 Georgia, serif; color: #f3efe0; }
@@ -172,3 +172,44 @@
 .creature-token[data-animated=true] .folhim-aura { animation: essence-pulse 2.6s ease-in-out infinite; transform-origin: 18px 16px; }
 [data-kind=essence] { --tone: #c9b6ff; } [data-kind=genesis] { --tone: #9fe3d8; }
 @media (prefers-reduced-motion: reduce) { .essence-source i, .folhim-aura { animation: none !important; } }
+
+/* Skills, evolution and the Codex */
+.creature-skills { margin-top: 14px; }
+.creature-skills h4 { margin: 14px 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .6px; text-transform: uppercase; color: #a9bfc1; }
+.skill-list, .skill-progress, .codex ul { list-style: none; margin: 0; padding: 0 !important; }
+.skill-list { display: flex; flex-direction: column; gap: 6px; }
+.skill-chip { --tone: #9fb4b9; padding: 7px 10px; border-left: 3px solid var(--tone); border-radius: 4px; background: color-mix(in srgb, var(--tone) 10%, #12232a); line-height: 1.4 !important; }
+.skill-chip strong { display: block; font-size: 12px; color: #eef0e2; }
+.skill-chip span { font-size: 11px; color: #b6c8c6; }
+[data-rarity=comum] { --tone: #9fc7a8; } [data-rarity=rara] { --tone: #7fb8f0; } [data-rarity=única] { --tone: #f0c46a; }
+.skill-progress li { margin-bottom: 8px; line-height: 1.3 !important; }
+.skill-progress li>div:first-child { display: flex; justify-content: space-between; font-size: 11px; color: #d0dcd6; }
+.skill-progress small { color: #93aaaf; }
+.progress-track { height: 4px; margin-top: 4px; border-radius: 3px; background: #263b42; }
+.progress-track span { display: block; height: 100%; border-radius: 3px; background: #9fc7a8; }
+.progress-track span[data-locked=true] { background: #5a5a7a; }
+.skills-empty, .evolution-hint { font-size: 11px !important; color: #93aaaf !important; }
+.evolution-hint { margin-top: 10px !important; }
+.creature-form { padding: 8px 10px; border-radius: 5px; font-size: 12px !important; color: #f6e7bf !important; background: linear-gradient(135deg, #3a3220, #1d2a2a); border: 1px solid #8a7440; }
+.creature-form[data-form=vidente] { color: #e6dcff !important; background: linear-gradient(135deg, #2c2450, #1a2230); border-color: #7a64c0; }
+.creature-form[data-form=errante] { color: #dff3cf !important; background: linear-gradient(135deg, #24402a, #1a2a26); border-color: #6c9a58; }
+.deeds { display: grid !important; grid-template-columns: 1fr 1fr; gap: 6px 14px !important; margin-top: 10px !important; }
+.deeds div { display: flex !important; justify-content: space-between; }
+.deeds dt { margin: 0 !important; font-size: 11px !important; }
+.deeds dd { font-size: 12px !important; }
+.codex h2 { font: 400 22px Georgia, serif; color: var(--gold); margin: 0 0 8px; }
+.codex>p { font-size: 12px; line-height: 1.6; color: #b4c7c8; }
+.codex code { font-size: 11px; color: #e2d8ba; }
+.codex h3 { font-size: 13px; font-weight: 600; margin: 20px 0 8px; color: #eef0dc; }
+.codex-path[data-path=guardiao] h3 { color: #f0cf8a; } .codex-path[data-path=vidente] h3 { color: #cbb8ff; } .codex-path[data-path=errante] h3 { color: #a9dc8e; }
+.codex li { --tone: #9fb4b9; margin-bottom: 8px; padding: 9px 11px; border-radius: 5px; border-left: 3px solid var(--tone); background: #13252c; }
+.codex li>div { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.codex li strong { font-size: 12px; color: #eef0e2; }
+.codex li small { font-size: 10px; color: #93aaaf; white-space: nowrap; }
+.codex li p { margin: 4px 0 0 !important; font-size: 11px !important; line-height: 1.5; color: #c6d6cf; }
+.codex .codex-lore { font-style: italic; color: #93aaaf !important; }
+.codex .codex-needs { color: #e2d8ba !important; }
+.codex-forms li[data-form=guardiao] { --tone: #f0cf8a; } .codex-forms li[data-form=vidente] { --tone: #cbb8ff; } .codex-forms li[data-form=errante] { --tone: #a9dc8e; }
+.creature-token:not([data-form=folhim]) svg { transform: scale(1.3); filter: drop-shadow(0 0 2px #fff6c8) drop-shadow(0 0 3px #f0cf8a88); }
+.creature-token[data-form=vidente] svg { filter: drop-shadow(0 0 2px #e6dcff) drop-shadow(0 0 4px #a98bffaa); }
+[data-kind=skill] { --tone: #9fc7a8; } [data-kind=evolution] { --tone: #f0cf8a; }

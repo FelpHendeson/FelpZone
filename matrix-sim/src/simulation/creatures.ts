@@ -4,6 +4,7 @@ import { advanceSocialLife } from './social';
 import { TICKS_PER_DAY } from './dayClock';
 import { createBand, type Band } from './bands';
 import { absorbEssence, deathResidue, ESSENCE } from './essence';
+import { emptyDeeds, EVOLUTION, evolutionFor, forms, learnSkills, modifiers, type Deeds, type Form } from './skills';
 export type { Band } from './bands';
 
 export type Variant = 'bosque' | 'campina';
@@ -21,8 +22,10 @@ export type Creature = {
   moving: boolean; facing: 'left' | 'right';
   /** Essence points (0–100), how readily the ground's essence is drawn, and the day it crossed the awakening threshold. */
   essence: number; affinity: number; awakenedDay: number | null;
+  /** Lived experience, earned skill ids and the evolved form (see skills.ts). */
+  deeds: Deeds; skills: string[]; form: Form; evolvedDay: number | null;
 };
-export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture' | 'essence'; creatureId: number; text: string };
+export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture' | 'essence' | 'skill' | 'evolution'; creatureId: number; text: string };
 export type Life = { creatures: Creature[]; departed: Creature[]; bands: Band[]; nextId: number; births: number; deaths: number; events: LifeEvent[] };
 export const POPULATION_LIMIT = 200;
 export const emptyLife = (): Life => ({ creatures: [], departed: [], bands: [], nextId: 1, births: 0, deaths: 0, events: [] });
@@ -54,6 +57,7 @@ function makeCreature(world: World, id: number, cell: Cell, generation = 1, pare
     variant: cell.terrain === 'forest' ? 'bosque' : 'campina', bandId: 1,
     moving: false, facing: 'right',
     essence: 0, affinity: 0.3 + random(world.seed, id, world.day, 30) * 0.7, awakenedDay: null,
+    deeds: emptyDeeds(), skills: [], form: 'folhim', evolvedDay: null,
     temperament: random(world.seed, id, world.day, 12), lastConflictDay: world.day - 12, relations: [],
     history: [{ day: world.day, text: parents.length ? `Nasceu de #${parents[0]} e #${parents[1]}.` : 'Chegou ao mundo.' }],
   };
@@ -112,13 +116,13 @@ function chooseMove(world: World, creature: Creature, occupancy: Map<number, num
   const origin = creature.y * world.size + creature.x;
   const queue = [{ index: origin, distance: 0, first: origin }], visited = new Set([origin]);
   let best = origin, bestScore = -Infinity;
-  const hungry = creature.energy < 65;
+  const hungry = creature.energy < 65, vision = modifiers.vision(creature, hungry);
   const band = world.life.bands.find(b => b.id === creature.bandId);
   const leaderId = band?.leaderId;
   const leader = world.life.creatures.find(c => c.id === leaderId);
   const threats = creature.relations.filter(r => r.fear > 0.15).flatMap(r => {
     const other = world.life.creatures.find(c => c.id === r.id);
-    return other && Math.abs(other.x - creature.x) + Math.abs(other.y - creature.y) <= creature.vision ? [{ other, fear: r.fear }] : [];
+    return other && Math.abs(other.x - creature.x) + Math.abs(other.y - creature.y) <= vision ? [{ other, fear: r.fear }] : [];
   });
   for (let head = 0; head < queue.length; head++) {
     const node = queue[head];
@@ -132,16 +136,16 @@ function chooseMove(world: World, creature: Creature, occupancy: Map<number, num
       for (const { other, fear } of threats) if (fear > 0.3 && Math.abs(other.x - creature.x) + Math.abs(other.y - creature.y) <= 2) {
         score -= 100 * fear / (1 + Math.abs(node.first % world.size - other.x) + Math.abs(Math.floor(node.first / world.size) - other.y));
       }
-      if (!hungry && leader && leader.id !== creature.id && Math.abs(leader.x - creature.x) + Math.abs(leader.y - creature.y) <= creature.vision * 2) score += (1 + (band?.cohesion ?? 0.5) * 3) / (1 + Math.abs(nx - leader.x) + Math.abs(ny - leader.y));
+      if (!hungry && leader && leader.id !== creature.id && Math.abs(leader.x - creature.x) + Math.abs(leader.y - creature.y) <= vision * 2) score += (1 + (band?.cohesion ?? 0.5) * 3) / (1 + Math.abs(nx - leader.x) + Math.abs(ny - leader.y));
       if (hungry && creature.foodMemory && world.day - creature.foodMemory.day <= 14) {
         const mx = creature.foodMemory.cell % world.size, my = Math.floor(creature.foodMemory.cell / world.size);
         score += 1 / (1 + Math.abs(mx - node.index % world.size) + Math.abs(my - Math.floor(node.index / world.size)));
       }
       // Fed Folhins drift toward places where essence is strong, more so the greater their affinity.
-      if (!hungry) score += world.cells[node.index].essence * creature.affinity * 0.8;
+      if (!hungry) score += world.cells[node.index].essence * modifiers.affinity(creature) * 0.8;
       if (score > bestScore) { bestScore = score; best = node.first; }
     }
-    if (node.distance >= creature.vision) continue;
+    if (node.distance >= vision) continue;
     for (const next of neighbors(node.index, world.size)) if (!visited.has(next) && walkable(world.cells[next])) {
       visited.add(next); queue.push({ index: next, distance: node.distance + 1, first: node.distance === 0 ? next : node.first });
     }
@@ -159,14 +163,15 @@ export function advanceLife(world: World, elapsedDays = 1): World {
   const moment = world.day * TICKS_PER_DAY + world.tick;
   const offset = moment % world.life.creatures.length;
   const ordered = [...world.life.creatures.slice(offset), ...world.life.creatures.slice(0, offset)];
+  const newDay = elapsedDays === 1 || world.tick === 0, winter = Math.floor(world.day / 90) % 4 === 3;
   for (const original of ordered) {
-    const c: Creature = { ...original, age: original.age + (elapsedDays === 1 || world.tick === 0 ? 1 : 0), energy: Math.max(0, original.energy - 2.8 * original.appetite * elapsedDays), recentCells: [...original.recentCells], history: [...original.history], relations: original.relations.map(r => ({ ...r, fear: Math.max(0, r.fear - 0.025 * elapsedDays), anger: Math.max(0, r.anger - 0.005 * elapsedDays) })).filter(r => r.fear > 0 || r.anger > 0) };
+    const c: Creature = { ...original, deeds: { ...original.deeds }, age: original.age + (newDay ? 1 : 0), energy: Math.max(0, original.energy - 2.8 * original.appetite * modifiers.upkeep(original, winter) * elapsedDays), recentCells: [...original.recentCells], history: [...original.history], relations: original.relations.map(r => ({ ...r, fear: Math.max(0, r.fear - 0.025 * elapsedDays), anger: Math.max(0, r.anger - 0.005 * elapsedDays) })).filter(r => r.fear > 0 || r.anger > 0) };
     const index = c.y * world.size + c.x;
     c.moving = false;
     const afraid = c.relations.some(r => r.fear > 0.3 && world.life.creatures.some(other => other.id === r.id && Math.abs(c.x - other.x) + Math.abs(c.y - other.y) <= 2));
     if (!afraid && c.energy < 85 && edibleFood(cells[index].vegetation) > 0.05) {
       const meal = graze(cells[index], Math.min(c.appetite * 1.4 * elapsedDays, (100 - c.energy) / 9));
-      cells[index] = meal.cell; c.energy = Math.min(100, c.energy + meal.consumed * 9); c.action = 'grazing';
+      cells[index] = meal.cell; c.energy = Math.min(100, c.energy + meal.consumed * 9); c.action = 'grazing'; c.deeds.grazed += meal.consumed;
       c.foodMemory = { cell: index, day: world.day }; remember(c, world.day, `Encontrou alimento em (${c.x}, ${c.y}).`);
     } else if (!afraid && c.energy >= 65 && random(world.seed, c.id, moment, 7) > c.curiosity) {
       c.action = 'resting';
@@ -176,20 +181,37 @@ export function advanceLife(world: World, elapsedDays = 1): World {
       if (next !== index) {
         if (next % world.size !== c.x) c.facing = next % world.size < c.x ? 'left' : 'right';
         c.moving = true;
-        c.x = next % world.size; c.y = Math.floor(next / world.size); c.energy = Math.max(0, c.energy - 0.4 * elapsedDays);
-        c.recentCells = [...c.recentCells, index].slice(-8);
+        c.x = next % world.size; c.y = Math.floor(next / world.size); c.energy = Math.max(0, c.energy - modifiers.moveCost(c) * elapsedDays);
+        c.deeds.walked++; c.recentCells = [...c.recentCells, index].slice(-8);
         occupancy.set(index, Math.max(0, (occupancy.get(index) ?? 0) - 1)); occupancy.set(next, (occupancy.get(next) ?? 0) + 1);
       }
       if (c.energy < 25) remember(c, world.day, 'Está com muita fome e procura alimento.');
     }
     const here = c.y * world.size + c.x;
-    const drawn = absorbEssence(cells[here], c.affinity, elapsedDays);
+    const drawn = absorbEssence(cells[here], modifiers.affinity(c), elapsedDays);
     cells[here] = drawn.cell;
     c.essence = Math.min(100, Math.max(0, c.essence + drawn.points - c.essence * ESSENCE.leak * elapsedDays));
     if (c.awakenedDay === null && c.essence >= ESSENCE.awakening) {
       c.awakenedDay = world.day;
       const text = `Folhim #${c.id} despertou para a essência em (${c.x}, ${c.y}).`;
       remember(c, world.day, 'Despertou para a essência.'); events.push({ day: world.day, kind: 'essence', creatureId: c.id, text });
+    }
+    // Once per day: count lived conditions, earn skills, and evolve when the path is complete.
+    if (newDay) {
+      const ground = cells[here];
+      if (ground.dryDays >= 14) c.deeds.droughtDays++;
+      if (winter) c.deeds.winterDays++;
+      if (ground.essence >= 0.6) c.deeds.nearSourceDays++;
+      for (const skill of learnSkills(c)) {
+        remember(c, world.day, `Aprendeu ${skill.name}.`);
+        events.push({ day: world.day, kind: 'skill', creatureId: c.id, text: `Folhim #${c.id} adquiriu a habilidade ${skill.name}${skill.rarity === 'comum' ? '' : ` (${skill.rarity})`}.` });
+      }
+      const path = evolutionFor(c);
+      if (path) {
+        c.form = path; c.evolvedDay = world.day; c.lifespan += EVOLUTION.extraLife;
+        remember(c, world.day, `Evoluiu para ${forms[path].name}.`);
+        events.push({ day: world.day, kind: 'evolution', creatureId: c.id, text: `Folhim #${c.id} evoluiu e tornou-se ${forms[path].name}.` });
+      }
     }
     if (c.age >= c.lifespan || c.energy <= 0) {
       const cause = c.energy <= 0 ? 'falta de alimento' : 'velhice'; c.action = 'dead'; c.moving = false;

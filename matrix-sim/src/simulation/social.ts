@@ -3,6 +3,7 @@ import { edibleFood } from './food';
 import type { World } from './world';
 import { TICKS_PER_DAY } from './dayClock';
 import { adaptBand, bandProfile, bandStrength, learnFromConflict } from './bands';
+import { modifiers } from './skills';
 
 const distance = (a: Creature, b: Creature) => Math.abs(a.x - b.x) + Math.abs(a.y - b.y);
 function sentiment(c: Creature, other: Creature, day: number, fear: number, anger: number) {
@@ -15,7 +16,7 @@ function sentiment(c: Creature, other: Creature, day: number, fear: number, ange
 
 /** Local, nonlethal disputes. Different origins alone never trigger aggression. */
 export function advanceSocialLife(world: World, elapsedDays = 1): World {
-  const creatures = world.life.creatures.map(c => ({ ...c, history: [...c.history], relations: c.relations.map(r => ({ ...r })) }));
+  const creatures = world.life.creatures.map(c => ({ ...c, deeds: { ...c.deeds }, history: [...c.history], relations: c.relations.map(r => ({ ...r })) }));
   const bands = world.life.bands.map(b => ({ ...b, history: [...b.history] })), events = [...world.life.events];
   const profiles = new Map(bands.map(b => [b.id, bandProfile(b)]));
   const log = (kind: LifeEvent['kind'], c: Creature, text: string) => {
@@ -58,10 +59,11 @@ export function advanceSocialLife(world: World, elapsedDays = 1): World {
       const chance = leadership ? 0.12 : (0.05 + c.temperament * 0.2 + (relation?.anger ?? 0) * 0.15) * (0.6 + (band?.aggression ?? 0.5) * 0.8);
       if (random(world.seed, c.id * 211 + other.id, moment, 15) >= 1 - (1 - chance) ** elapsedDays) continue;
       const allies = nearby.filter(a => a.id !== other.id && a.bandId === other.bandId && a.energy >= 18).length;
-      const strength = (a: Creature) => a.energy / 100 + a.temperament * 0.35 + random(world.seed, a.id, moment, 16) * 0.5 + bandStrength(a.id === c.id ? band : otherBand, a.id !== c.id, a.id !== c.id ? allies : 0);
+      const strength = (a: Creature) => a.energy / 100 + a.temperament * 0.35 + random(world.seed, a.id, moment, 16) * 0.5 + modifiers.disputeStrength(a) + bandStrength(a.id === c.id ? band : otherBand, a.id !== c.id, a.id !== c.id ? allies : 0);
       const winner = strength(c) >= strength(other) ? c : other, loser = winner === c ? other : c;
       // Energy loss is capped: a dispute cannot kill or provide food.
-      for (const participant of [c, other]) { participant.energy = Math.max(1, participant.energy - 6); participant.lastConflictDay = world.day; }
+      for (const participant of [c, other]) { participant.energy = Math.max(1, participant.energy - modifiers.disputeCost(participant)); participant.lastConflictDay = world.day; }
+      winner.deeds.disputesWon++; loser.deeds.disputesLost++;
       winner.action = 'disputing'; loser.action = 'fleeing';
       winner.moving = loser.moving = false;
       if (c.bandId !== other.bandId) {

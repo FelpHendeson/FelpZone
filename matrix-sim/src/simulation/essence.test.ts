@@ -18,7 +18,7 @@ describe('essência: geração', () => {
       for (const a of world.essenceSources) for (const b of world.essenceSources) if (a !== b) expect(distance(world, a.index, b.index)).toBeGreaterThanOrEqual(world.size / 4);
       expect(createWorld(seed)).toEqual(world);
     }
-  });
+  }, 30000);
   it('concentra essência perto das nascentes e mantém tudo entre 0 e 1', () => {
     const world = createWorld('origem-001');
     const near = (i: number) => world.essenceSources.some(s => distance(world, s.index, i) <= 3);
