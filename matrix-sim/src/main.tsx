@@ -11,7 +11,7 @@ import { Hud } from './ui/Hud';
 import { RegionPanel } from './ui/RegionPanel';
 import { WorldPanel } from './ui/WorldPanel';
 import { VoiceBanner, WorldVoice } from './ui/WorldVoice';
-import { chronicleChanges, newAnnouncements, voiceFeed, type VoiceEntry } from './ui/voiceEntries';
+import { chronicleChanges, newAnnouncements, voiceFeed, worldGenesis, type VoiceEntry } from './ui/voiceEntries';
 import { populateWorld } from './simulation/creatures';
 import './style.css';
 import './ui/game.css';
@@ -41,7 +41,7 @@ function App() {
   useEffect(() => {
     const before = previous.current;
     previous.current = world;
-    const changes = before && before.seed === world.seed ? chronicleChanges(before, world) : [];
+    const changes = before && before.seed === world.seed ? chronicleChanges(before, world) : worldGenesis(world);
     if (changes.length) setChronicle(current => [...current, ...changes].slice(-40));
     const announced = newAnnouncements(before, world, changes);
     if (announced.length) setBanner(announced.at(-1)!);
@@ -89,7 +89,7 @@ function App() {
         <div className="side-tabs" role="tablist">{tabs.map(t => <button key={t.id} type="button" role="tab" id={`tab-${t.id}`} aria-selected={tab === t.id} aria-controls={`panel-${t.id}`} onClick={() => setTab(t.id)}>{t.name}</button>)}</div>
         <div className="side-content" role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === 'life' && <LifePanel world={world} selected={selectedCreature} onSelect={selectCreature} />}
-          {tab === 'region' && <RegionPanel cell={world.cells[selected]} band={world.life.bands.find(b => b.id === territories.owners[selected])} contested={!!territories.contested[selected]} />}
+          {tab === 'region' && <RegionPanel cell={world.cells[selected]} sources={world.essenceSources} size={world.size} band={world.life.bands.find(b => b.id === territories.owners[selected])} contested={!!territories.contested[selected]} />}
           {tab === 'world' && <WorldPanel key={world.seed} world={world} onGenerate={generate} onExport={exportWorld} />}
         </div>
       </aside>}

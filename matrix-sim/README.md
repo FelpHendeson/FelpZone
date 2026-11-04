@@ -76,6 +76,18 @@ Para diagnóstico, abra a aplicação com `?perfil=1`. O console registra separa
 
 O alimento deriva de 20% da cobertura rasteira, 30% dos arbustos e dos frutos disponíveis, com arredondamento por região na interface. Os Folhins consomem o estoque real, priorizando frutos, depois cobertura rasteira e arbustos. A quantidade efetivamente consumida determina a energia recuperada. Água, areia e montanha não sustentam vegetação nesta versão. A vegetação é tratada por grupos, sem espécies individuais. Os biomas e corpos d'água são fixos: ainda não há rios, fluxo de água, inundação, salinidade, erosão ou mudança de bioma.
 
+## Essência
+
+Cada mundo nasce com 3 a 5 **nascentes de essência**, com nomes gerados pela semente e sempre em terra firme, afastadas entre si. A essência natural de cada região combina a proximidade das nascentes, o bioma (mais em florestas e montanhas, menos na água) e um ruído suave. Ela usa uma sequência aleatória própria: o terreno, a umidade e o alimento das sementes antigas continuam idênticos.
+
+- **Recomposição e difusão:** a cada dia, a essência recupera 3% da diferença até o nível natural. Nos dias múltiplos de 7, também se aproxima 15% da média das regiões vizinhas.
+- **Morte:** onde um Folhim morre, a região recebe um pulso de essência, maior quanto mais essência ele carregava. O nível natural sobe 0,4 ponto percentual e não volta: lugares de muitas mortes ficam mais intensos com o tempo.
+- **Absorção:** cada Folhim tem uma afinidade de 30% a 100%. Ele absorve essência do chão onde está (o que entra na criatura sai exatamente da região) e perde 1% dos seus pontos por dia. O equilíbrio fica em cerca de 120 × essência do chão × afinidade, com teto de 100 pontos.
+- **Atração:** Folhins sem fome preferem caminhar para regiões de essência forte, tanto mais quanto maior a afinidade.
+- **Despertar:** ao passar de 50 pontos, o Folhim desperta para a essência uma única vez. A Voz do Mundo anuncia, a ficha registra o dia e o token ganha uma aura. Na semente `origem-001`, os primeiros despertares chegam por volta do dia 90; no dia 120, cerca de 10 de 66 estão despertos.
+
+A camada **Essência** do mapa vai do violeta escuro (ausente) ao ciano claro (intensa). As nascentes aparecem como pontos brilhantes com nome, nas camadas Terreno e Essência; clicar numa delas fixa a região. A aba Região mostra a essência atual, o nível natural e a nascente mais próxima. A Voz do Mundo abre cada mundo narrando suas nascentes e ganhou o filtro Essência. Nesta etapa, despertar ainda não altera o comportamento: é a base para habilidades e evolução.
+
 ## Primeira espécie: Folhins
 
 ### Variações regionais e bandos
@@ -108,7 +120,7 @@ Cada região tem uma fase fixa de atualização ambiental dentro do dia. Chuva, 
 
 O worker envia apenas os habitantes e as células alteradas em cada mensagem. O cenário é redesenhado no máximo uma vez por segundo durante a reprodução; mudanças de camada ou zoom são imediatas. Os habitantes se movem numa camada própria. O relógio agrupa passos em velocidades altas e descarta atrasos grandes, sem criar fila de recuperação. Em carga alta, o tempo real pode levar mais que o prazo nominal para preservar a sequência de estados. O avanço manual completa os passos restantes até a próxima virada de dia.
 
-No JSON de versão 8, `day` e `tick` preservam inclusive um momento no meio do dia, junto ao ambiente e à população: identidades, características, energia, memórias, históricos, pais, variações, bandos, líderes, tendências coletivas, centro territorial, direção de movimento, relações sociais e próximo identificador. As decisões são derivadas da semente e do passo, e o resultado independe de agrupar os mesmos passos ou trocar de velocidade. Exportações anteriores não contêm todos os dados atuais. A neve é uma forma simplificada de precipitação, sem acumulação ou degelo próprios.
+No JSON de versão 9, `day` e `tick` preservam inclusive um momento no meio do dia, junto ao ambiente e à população: identidades, características, energia, memórias, históricos, pais, variações, bandos, líderes, tendências coletivas, centro territorial, direção de movimento, relações sociais, essência, afinidade, despertar, nascentes de essência e próximo identificador. As decisões são derivadas da semente e do passo, e o resultado independe de agrupar os mesmos passos ou trocar de velocidade. Exportações anteriores não contêm todos os dados atuais. A neve é uma forma simplificada de precipitação, sem acumulação ou degelo próprios.
 
 Gerar outro mundo substitui o atual; exporte antes se quiser guardá-lo. A aplicação não salva automaticamente ao fechar ou recarregar.
 

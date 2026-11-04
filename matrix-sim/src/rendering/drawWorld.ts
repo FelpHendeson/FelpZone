@@ -2,7 +2,7 @@ import { terrainInfo, type Cell, type World } from '../simulation/world';
 import { drawLandscape, LANDSCAPE_CELL } from './landscape';
 import type { DrawingContext, Surface } from './surface';
 import { precipitationNames } from '../simulation/regionalWeather';
-export type Layer = 'terrain' | 'elevation' | 'food' | 'moisture' | 'fertility' | 'vegetation' | 'weather';
+export type Layer = 'terrain' | 'elevation' | 'food' | 'moisture' | 'fertility' | 'vegetation' | 'weather' | 'essence';
 export const weatherLegend = [
   { name: 'Chuva', color: '#609db6' }, { name: 'Neve', color: '#dce8e5' },
   { name: 'Sem precipitação · 0–6 dias', color: '#a9ad83' }, { name: '7–13 dias secos', color: '#c2a56d' },
@@ -19,6 +19,7 @@ export const layerInfo: Record<Layer, { name: string; description: string; min: 
   fertility: { name: 'Fertilidade', description: 'Condição do solo para sustentar o crescimento da vegetação.', min: '0% · Pobre', max: '100% · Fértil' },
   vegetation: { name: 'Vegetação', description: 'Soma da biomassa de cobertura rasteira, arbustos e árvores. Não é uma contagem de plantas.', min: '0 · Sem cobertura', max: '215 · Densa' },
   food: { name: 'Alimento', description: 'Folhas, sementes e frutos disponíveis em cada região, em unidades de alimento.', min: '0 un. · Ausente', max: '100 un. · Abundante' },
+  essence: { name: 'Essência', description: 'Energia sutil do mundo. Aflora nas nascentes, é mais forte em florestas e montanhas e se recompõe devagar. Os Folhins a absorvem; onde alguém morre, o lugar guarda um pouco dela.', min: '0% · Ausente', max: '100% · Intensa' },
   weather: { name: 'Clima', description: 'Onde há chuva ou neve hoje e há quanto tempo cada região está sem precipitação. Um período seco não significa necessariamente solo seco: água próxima também sustenta a umidade.', min: '', max: '' },
 };
 export function scaleColor(layer: Layer, ratio: number) {
@@ -27,14 +28,16 @@ export function scaleColor(layer: Layer, ratio: number) {
   if (layer === 'moisture') return `hsl(200 ${20 + value * 45}% ${18 + value * 52}%)`;
   if (layer === 'fertility') return `hsl(${25 + value * 60} 35% ${18 + value * 45}%)`;
   if (layer === 'vegetation') return `hsl(${45 + value * 90} 35% ${20 + value * 35}%)`;
+  if (layer === 'essence') return `hsl(${255 - value * 70} ${25 + value * 60}% ${12 + value * 58}%)`;
   return `hsl(${40 + value * 100} 38% ${22 + value * 35}%)`;
 }
 export function vegetationTotal(cell: Cell) { return cell.vegetation.grass + cell.vegetation.shrubs + cell.vegetation.trees; }
 export function layerValue(cell: Cell, layer: Layer): string {
   if (layer === 'terrain') return terrainInfo[cell.terrain].name;
   if (layer === 'weather') return `${precipitationNames[cell.precipitation]} · ${cell.dryDays} dias sem precipitação`;
-  if (layer !== 'elevation' && cell.terrain === 'water') return 'Água · sem solo ou vegetação';
+  if (layer !== 'elevation' && layer !== 'essence' && cell.terrain === 'water') return 'Água · sem solo ou vegetação';
   if (layer === 'food') return `${cell.food} un. de alimento`;
+  if (layer === 'essence') return `${Math.round(cell.essence * 100)}% de essência`;
   if (layer === 'vegetation') return `${vegetationTotal(cell).toFixed(1)} un. de biomassa`;
   const value = layer === 'elevation' ? cell.elevation : layer === 'moisture' ? cell.moisture : cell.fertility;
   return `${Math.round(value * 100)}% de ${layerInfo[layer].name.toLocaleLowerCase('pt-BR')}`;
@@ -51,6 +54,7 @@ export function drawWorld(canvas: Surface, world: World, layer: Layer, resolutio
   else for (const cell of world.cells) {
     if (layer === 'weather') ctx.fillStyle = weatherColor(cell);
     else if (layer === 'elevation') ctx.fillStyle = scaleColor(layer, cell.elevation);
+    else if (layer === 'essence') ctx.fillStyle = cell.terrain === 'water' ? `hsl(215 30% ${10 + cell.essence * 22}%)` : scaleColor(layer, cell.essence);
     else if (cell.terrain === 'water') ctx.fillStyle = '#243f50';
     else if (layer === 'moisture') ctx.fillStyle = scaleColor(layer, cell.moisture);
     else if (layer === 'fertility') ctx.fillStyle = scaleColor(layer, cell.fertility);

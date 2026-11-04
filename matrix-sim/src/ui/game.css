@@ -149,3 +149,26 @@
   .map-hud-legend { max-width: calc(100% - 150px); }
 }
 @media (prefers-reduced-motion: reduce) { .voice-entry, .voice-banner { animation: none; } }
+
+/* Essence: sources glow over the map, awakened Folhins carry an aura. */
+.essence-sources { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
+.essence-source { --strength: .8; position: absolute; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0; border: 0; background: none; pointer-events: auto; line-height: 1.2; }
+.essence-source:active { transform: translate(-50%, -50%); }
+.essence-source i { width: 14px; height: 14px; border-radius: 50%; background: radial-gradient(circle, #fff 0 18%, #d9c8ff 30%, #9b7bff 55%, #6a4fd000 72%); box-shadow: 0 0 calc(8px + var(--strength) * 14px) calc(2px + var(--strength) * 5px) #a98bffaa; animation: essence-pulse 3.2s ease-in-out infinite; }
+.essence-source span { font-size: 9px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; color: #e6dcff; text-shadow: 0 1px 2px #000, 0 0 6px #4b2f9a; padding: 1px 5px; border-radius: 3px; background: #1a1233aa; }
+.essence-source[aria-pressed=true] span { outline: 1px solid #d9c8ff; }
+.essence-source:hover i { filter: brightness(1.25); }
+@keyframes essence-pulse { 50% { transform: scale(1.25); opacity: .85; } }
+.essence-inspection { margin: 14px 0 6px; padding: 12px; border: 1px solid #4b3f78; border-radius: 6px; background: linear-gradient(135deg, #1d1a36, #142530); }
+.essence-inspection>div:first-child { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; }
+.essence-inspection strong { font-weight: 600; color: #e0d4ff; }
+.essence-inspection span { font-size: 11px; color: #a99fcf; }
+.essence-meter { position: relative; height: 6px; margin: 9px 0 8px; border-radius: 4px; background: #2a2648; overflow: visible; }
+.essence-meter span { position: absolute; inset: 0 auto 0 0; border-radius: 4px; background: linear-gradient(90deg, #5d48b8, #b9a4ff); }
+.essence-meter i { position: absolute; top: -3px; width: 2px; height: 12px; background: #f0e9ff; border-radius: 1px; }
+.side-content .essence-inspection p { margin: 0; font-size: 11px; color: #c4badf; }
+.creature-awakened { color: #d9c8ff !important; }
+.folhim-aura { opacity: .85; filter: drop-shadow(0 0 2px #a98bff); }
+.creature-token[data-animated=true] .folhim-aura { animation: essence-pulse 2.6s ease-in-out infinite; transform-origin: 18px 16px; }
+[data-kind=essence] { --tone: #c9b6ff; } [data-kind=genesis] { --tone: #9fe3d8; }
+@media (prefers-reduced-motion: reduce) { .essence-source i, .folhim-aura { animation: none !important; } }

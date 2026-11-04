@@ -8,6 +8,7 @@ import { bandColor, bandProfile } from '../simulation/bands';
 import type { Territories } from '../simulation/territories';
 import { TerritoryOverlay } from './TerritoryOverlay';
 import { CreatureToken } from './CreatureToken';
+import { EssenceSources } from './EssenceSources';
 
 type Props = { world: World; territories: Territories; running: boolean; speed: number; selected: number; onSelect: (index: number) => void; selectedCreature: number | null; onSelectCreature: (id: number) => void };
 export function WorldMap({ world, territories, running, speed, selected, onSelect, selectedCreature, onSelectCreature }: Props) {
@@ -134,7 +135,7 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
   }
   const legendBody = layer === 'weather' ? <div className="terrain-legend weather-legend">{weatherLegend.map(item => <span key={item.name}><i style={{ background: item.color }} />{item.name}</span>)}</div>
     : layer === 'terrain' ? <><div className="terrain-legend">{(Object.keys(terrainInfo) as Terrain[]).map(terrain => <span key={terrain}><i style={{ background: terrainInfo[terrain].color }} />{terrainInfo[terrain].name}</span>)}</div><div className="symbol-legend"><span><i className="tree-symbol" />Árvores</span><span><i className="shrub-symbol" />Arbustos</span><span><i className="fruit-symbol" />Frutos</span><span><i className="selection-symbol" />Região fixada</span></div></>
-    : <><div className="legend-ramp" style={{ background: `linear-gradient(to right, ${Array.from({ length: 9 }, (_, i) => scaleColor(layer, i / 8)).join(', ')})` }} /><div className="legend-endpoints"><span>{layerInfo[layer].min}</span><span>{layerInfo[layer].max}</span></div>{layer !== 'elevation' && <span className="water-exclusion"><i />Água: fora da escala de solo e recursos</span>}</>;
+    : <><div className="legend-ramp" style={{ background: `linear-gradient(to right, ${Array.from({ length: 9 }, (_, i) => scaleColor(layer, i / 8)).join(', ')})` }} /><div className="legend-endpoints"><span>{layerInfo[layer].min}</span><span>{layerInfo[layer].max}</span></div>{layer !== 'elevation' && layer !== 'essence' && <span className="water-exclusion"><i />Água: fora da escala de solo e recursos</span>}</>;
   return <section className="map-section" aria-label="Exploração do mundo">
     <div className="map-frame" ref={frame}>
       <div className={`map-viewport${dragging ? ' is-dragging' : ''}`} ref={viewport} onScroll={() => setHover(null)}>
@@ -153,6 +154,7 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
         }} /><canvas ref={atmosphere} className="atmosphere-canvas" aria-hidden="true" />{grid && <div className="map-grid" aria-hidden="true" style={{ backgroundSize: `${100 / world.size}% ${100 / world.size}%` }} />}<div className="map-selection" aria-hidden="true" style={{ left: `${cell.x / world.size * 100}%`, top: `${cell.y / world.size * 100}%`, width: `${100 / world.size}%`, height: `${100 / world.size}%` }} />
           {territoriesVisible && <TerritoryOverlay territories={territories} size={world.size} focused={selectedBand?.id ?? null} />}
           {territoriesVisible && <div className="territory-labels" aria-label="Nomes dos territórios">{world.life.bands.filter(b => territories.areas.has(b.id)).map(b => <button key={b.id} className="territory-name" style={{ left: `${(b.home % world.size + 0.5) / world.size * 100}%`, top: `${(Math.floor(b.home / world.size) + 0.5) / world.size * 100}%`, borderColor: bandColor(b.id), color: bandColor(b.id) }} aria-label={`Território de ${b.name}, acompanhar bando`} onPointerDown={event => event.stopPropagation()} onClick={() => b.leaderId !== null && onSelectCreature(b.leaderId)}>{b.name}</button>)}</div>}
+          {(layer === 'terrain' || layer === 'essence') && <EssenceSources world={world} selected={selected} onSelect={index => { onSelect(index); setHover(null); }} />}
           <div className="creatures-layer" aria-label="Habitantes do mundo">{world.life.creatures.map(c => <CreatureToken key={c.id} creature={c} size={world.size} selected={selectedCreature === c.id} leader={world.life.bands.some(b => b.leaderId === c.id)} running={running} speed={speed} motion={motion} onSelect={onSelectCreature} />)}</div>
         </div>
       </div>

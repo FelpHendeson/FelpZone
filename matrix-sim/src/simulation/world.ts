@@ -2,6 +2,7 @@ import { createRegionalWeather, type ClimateZone, type Precipitation } from './r
 import { advanceLife, emptyLife, type Life } from './creatures';
 import { foodFrom } from './food';
 import { TICKS_PER_DAY } from './dayClock';
+import { flowEssence, seedEssence, type EssenceSource } from './essence';
 export { foodFrom } from './food';
 
 export type Terrain = 'water' | 'sand' | 'grass' | 'forest' | 'mountain';
@@ -9,8 +10,8 @@ export type Vegetation = { grass: number; shrubs: number; trees: number; fruit: 
 export const ENVIRONMENT_RHYTHM = { growth: 7, decomposition: 14, stressTolerance: 14 } as const;
 export type DaySummary = { soilChanged: number; grown: number; declined: number; recycled: number; fruitChanged: number };
 function emptySummary(): DaySummary { return { soilChanged: 0, grown: 0, declined: 0, recycled: 0, fruitChanged: 0 }; }
-export type Cell = { x: number; y: number; elevation: number; moisture: number; terrain: Terrain; food: number; fertility: number; temperature: number; waterAccess: number; dryDays: number; stressDays: number; vegetation: Vegetation; climateZone: ClimateZone; rainfall: number; precipitation: Precipitation };
-export type World = { version: 8; seed: string; size: number; waterLevel: number; day: number; tick: number; summary: DaySummary; cells: Cell[]; life: Life };
+export type Cell = { x: number; y: number; elevation: number; moisture: number; terrain: Terrain; food: number; fertility: number; temperature: number; waterAccess: number; dryDays: number; stressDays: number; vegetation: Vegetation; climateZone: ClimateZone; rainfall: number; precipitation: Precipitation; essence: number; essenceBase: number };
+export type World = { version: 9; seed: string; size: number; waterLevel: number; essenceSources: EssenceSource[]; day: number; tick: number; summary: DaySummary; cells: Cell[]; life: Life };
 export const seasons = ['Primavera', 'Verão', 'Outono', 'Inverno'] as const;
 const clamp = (value: number, min = 0, max = 1) => Math.max(min, Math.min(max, value));
 export function climateAt(seed: string, day: number) {
@@ -89,7 +90,7 @@ export function createWorld(seed: string, size = 96, waterLevel = 0.4): World {
     const elevation = Math.max(0, Math.min(1, height(x, y) * 1.35 - Math.max(0, distance - 0.45) * 0.5));
     const moisture = moistureField(x, y);
     const terrain: Terrain = elevation < waterLevel ? 'water' : elevation < waterLevel + 0.035 ? 'sand' : elevation > 0.76 ? 'mountain' : moisture > 0.51 ? 'forest' : 'grass';
-    return { x, y, elevation, moisture, terrain, food: 0, fertility: 0, temperature: 0, waterAccess: 0, dryDays: 0, stressDays: 0, climateZone: 'temperate', rainfall: 0, precipitation: 'none', vegetation: { grass: 0, shrubs: 0, trees: 0, fruit: 0, litter: 0 } };
+    return { x, y, elevation, moisture, terrain, food: 0, fertility: 0, temperature: 0, waterAccess: 0, dryDays: 0, stressDays: 0, climateZone: 'temperate', rainfall: 0, precipitation: 'none', essence: 0, essenceBase: 0, vegetation: { grass: 0, shrubs: 0, trees: 0, fruit: 0, litter: 0 } };
   });
   // Multi-source breadth-first search: distance to the nearest surface water.
   const distances = new Int32Array(cells.length).fill(-1);
@@ -122,7 +123,8 @@ export function createWorld(seed: string, size = 96, waterLevel = 0.4): World {
     }
     cell.food = foodFrom(cell.vegetation);
   }
-  return { version: 8, seed, size, waterLevel, day: 0, tick: 0, summary: emptySummary(), cells, life: emptyLife() };
+  const essenceSources = seedEssence(seed, size, cells);
+  return { version: 9, seed, size, waterLevel, essenceSources, day: 0, tick: 0, summary: emptySummary(), cells, life: emptyLife() };
 }
 
 /** Advance a duration in whole days using the same fine steps as real-time playback. */
@@ -145,7 +147,8 @@ export function advanceTicks(world: World, ticks = 1): World {
       const temperature = climate.temperature - cell.elevation * 12;
       const weather = regionalWeather(cell.x, cell.y, temperature);
       const dryDays = weather.precipitation !== 'none' ? 0 : cell.dryDays + 1;
-      if (cell.terrain === 'water') return { ...cell, temperature, dryDays, ...weather };
+      const essence = flowEssence(current.cells, index, current.size, day);
+      if (cell.terrain === 'water') return { ...cell, temperature, dryDays, essence, ...weather };
       const waterGain = weather.precipitation === 'none' ? 0 : weather.precipitation === 'snow' ? 0.015 + weather.rainfall * 0.015 : 0.04 + weather.rainfall * 0.04;
       const slowDrying = dryDays > 0 && dryDays % 7 === 0 ? 0.025 : 0;
       const moisture = clamp(cell.moisture + waterGain + (day % 7 === 0 ? cell.waterAccess * 0.03 : 0) - slowDrying);
@@ -155,7 +158,7 @@ export function advanceTicks(world: World, ticks = 1): World {
       const growthDay = day % ENVIRONMENT_RHYTHM.growth === 0;
       const recyclingDay = day % ENVIRONMENT_RHYTHM.decomposition === 0;
       // Most days only weather and counters change; vegetation is reused as-is.
-      if (!suitable || (!growthDay && !recyclingDay)) return { ...cell, temperature, moisture, dryDays, stressDays, ...weather };
+      if (!suitable || (!growthDay && !recyclingDay)) return { ...cell, temperature, moisture, dryDays, stressDays, essence, ...weather };
       const v = { ...cell.vegetation };
       let fertility = cell.fertility;
       if (recyclingDay && v.litter > 0) {
@@ -184,7 +187,7 @@ export function advanceTicks(world: World, ticks = 1): World {
         v.litter += rot;
         if (Math.abs(v.fruit - cell.vegetation.fruit) > 0.00001) summary.fruitChanged++;
       }
-      return { ...cell, temperature, moisture, fertility, dryDays, stressDays, vegetation: v, food: foodFrom(v), ...weather };
+      return { ...cell, temperature, moisture, fertility, dryDays, stressDays, essence, vegetation: v, food: foodFrom(v), ...weather };
     });
     const tick = (current.tick + 1) % TICKS_PER_DAY;
     current = advanceLife({ ...current, day: tick === 0 ? day : current.day, tick, summary, cells }, 1 / TICKS_PER_DAY);

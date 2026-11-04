@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { populateWorld, type LifeEvent } from '../simulation/creatures';
 import { createWorld, type World } from '../simulation/world';
-import { chronicleChanges, newAnnouncements, voiceFeed } from './voiceEntries';
+import { chronicleChanges, newAnnouncements, voiceFeed, worldGenesis } from './voiceEntries';
 
 const base = () => populateWorld(createWorld('voz-001', 16), 10);
 const event = (day: number, kind: LifeEvent['kind'], text: string, creatureId = 1): LifeEvent => ({ day, kind, creatureId, text });
@@ -23,6 +23,15 @@ describe('voz do mundo', () => {
     expect(feed.map(e => e.text)).toEqual(['b', 'c', 'a']);
     expect(voiceFeed([event(1, 'birth', 'x'), event(1, 'birth', 'y')], []).map(e => e.text)).toEqual(['y', 'x']);
     expect(voiceFeed(Array.from({ length: 50 }, (_, i) => event(i, 'birth', `${i}`)), [], 5)).toHaveLength(5);
+  });
+  it('narra a gênese com todas as nascentes do mundo', () => {
+    const world = base();
+    const [genesis] = worldGenesis(world);
+    expect(genesis.kind).toBe('genesis');
+    expect(genesis.text).toContain(`${world.essenceSources.length} nascentes`);
+    for (const s of world.essenceSources) expect(genesis.text).toContain(s.name);
+    expect(worldGenesis({ ...world, essenceSources: [] })).toEqual([]);
+    expect(newAnnouncements(null, world, [genesis]).map(e => e.kind)).toEqual(['arrival', 'genesis']);
   });
   it('destaca apenas acontecimentos marcantes que ainda não existiam', () => {
     const world = base();

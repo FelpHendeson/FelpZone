@@ -3,6 +3,7 @@ import { edibleFood, foodFrom } from './food';
 import { advanceSocialLife } from './social';
 import { TICKS_PER_DAY } from './dayClock';
 import { createBand, type Band } from './bands';
+import { absorbEssence, deathResidue, ESSENCE } from './essence';
 export type { Band } from './bands';
 
 export type Variant = 'bosque' | 'campina';
@@ -18,8 +19,10 @@ export type Creature = {
   history: { day: number; text: string }[];
   variant: Variant; bandId: number; temperament: number; lastConflictDay: number; relations: Relation[];
   moving: boolean; facing: 'left' | 'right';
+  /** Essence points (0–100), how readily the ground's essence is drawn, and the day it crossed the awakening threshold. */
+  essence: number; affinity: number; awakenedDay: number | null;
 };
-export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture'; creatureId: number; text: string };
+export type LifeEvent = { day: number; kind: 'arrival' | 'birth' | 'death' | 'conflict' | 'leadership' | 'culture' | 'essence'; creatureId: number; text: string };
 export type Life = { creatures: Creature[]; departed: Creature[]; bands: Band[]; nextId: number; births: number; deaths: number; events: LifeEvent[] };
 export const POPULATION_LIMIT = 200;
 export const emptyLife = (): Life => ({ creatures: [], departed: [], bands: [], nextId: 1, births: 0, deaths: 0, events: [] });
@@ -50,6 +53,7 @@ function makeCreature(world: World, id: number, cell: Cell, generation = 1, pare
     lastBirthDay: world.day, action: 'exploring', recentCells: [], foodMemory: null,
     variant: cell.terrain === 'forest' ? 'bosque' : 'campina', bandId: 1,
     moving: false, facing: 'right',
+    essence: 0, affinity: 0.3 + random(world.seed, id, world.day, 30) * 0.7, awakenedDay: null,
     temperament: random(world.seed, id, world.day, 12), lastConflictDay: world.day - 12, relations: [],
     history: [{ day: world.day, text: parents.length ? `Nasceu de #${parents[0]} e #${parents[1]}.` : 'Chegou ao mundo.' }],
   };
@@ -133,6 +137,8 @@ function chooseMove(world: World, creature: Creature, occupancy: Map<number, num
         const mx = creature.foodMemory.cell % world.size, my = Math.floor(creature.foodMemory.cell / world.size);
         score += 1 / (1 + Math.abs(mx - node.index % world.size) + Math.abs(my - Math.floor(node.index / world.size)));
       }
+      // Fed Folhins drift toward places where essence is strong, more so the greater their affinity.
+      if (!hungry) score += world.cells[node.index].essence * creature.affinity * 0.8;
       if (score > bestScore) { bestScore = score; best = node.first; }
     }
     if (node.distance >= creature.vision) continue;
@@ -176,11 +182,21 @@ export function advanceLife(world: World, elapsedDays = 1): World {
       }
       if (c.energy < 25) remember(c, world.day, 'Está com muita fome e procura alimento.');
     }
+    const here = c.y * world.size + c.x;
+    const drawn = absorbEssence(cells[here], c.affinity, elapsedDays);
+    cells[here] = drawn.cell;
+    c.essence = Math.min(100, Math.max(0, c.essence + drawn.points - c.essence * ESSENCE.leak * elapsedDays));
+    if (c.awakenedDay === null && c.essence >= ESSENCE.awakening) {
+      c.awakenedDay = world.day;
+      const text = `Folhim #${c.id} despertou para a essência em (${c.x}, ${c.y}).`;
+      remember(c, world.day, 'Despertou para a essência.'); events.push({ day: world.day, kind: 'essence', creatureId: c.id, text });
+    }
     if (c.age >= c.lifespan || c.energy <= 0) {
       const cause = c.energy <= 0 ? 'falta de alimento' : 'velhice'; c.action = 'dead'; c.moving = false;
       remember(c, world.day, `Morreu por ${cause}.`); departed.push(c); deaths++;
       events.push({ day: world.day, kind: 'death', creatureId: c.id, text: `Folhim #${c.id} morreu por ${cause}.` });
       const finalIndex = c.y * world.size + c.x;
+      cells[finalIndex] = deathResidue(cells[finalIndex], c.essence);
       occupancy.set(finalIndex, Math.max(0, (occupancy.get(finalIndex) ?? 0) - 1));
       continue;
     }
