@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "matrix-sim", "run", "dev", "--", "--port", "5174"],
       "port": 5174
+    },
+    {
+      "name": "labs",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "labs", "run", "dev", "--", "--port", "5175"],
+      "port": 5175
     }
   ]
 }
