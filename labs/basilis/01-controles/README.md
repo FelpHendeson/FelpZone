@@ -48,4 +48,4 @@ Abra no celular o endereço "Network" que o Vite mostrar e escolha o lab. Ou use
 
 ## Conclusão
 
-Pendente: preencher depois do teste no celular.
+**Concluído.** Testado no celular sem reclamações. O jogo adota este esquema de controle: joystick na metade esquerda da tela, botões de ataque e esquiva à direita, teclado e controle físico em paralelo, ataque segurado que repete, esquiva com recarga e mira automática. Os valores padrão dos ajustes viram o ponto de partida do jogo; os ajustes continuam disponíveis para o jogador. O motor de movimento passou a ser usado pelos Labs 02 e 03.

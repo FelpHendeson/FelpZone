@@ -37,4 +37,4 @@ Dano, recarga e alcance do ataque; força do empurrão; pausa no impacto; invuln
 
 ## Conclusão
 
-Pendente: preencher depois do teste no celular.
+**Concluído.** Aprovado pelo autor. O jogo adota esta base de combate: acerto em cone que conta a borda do alvo e acerta uma vez por golpe, empurrão como velocidade com atrito, pausa no impacto, invulnerabilidade depois do dano, esquiva que atravessa ataques, corpos sólidos, recargas visíveis nos botões e inimigos com aviso antes do ataque. Os valores padrão dos ajustes são o ponto de partida. Os estilos de golpe ficam como base para animações por arma. Projéteis, armas diferentes e chefes podem virar labs próprios.

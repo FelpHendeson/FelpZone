@@ -27,7 +27,7 @@ export const SECTIONS: Section[] = [
         path: 'basilis/01-controles/',
         title: '01 — Controles',
         question: 'Andar, atacar e esquivar ficam bons no celular e no navegador?',
-        status: 'Em teste',
+        status: 'Concluído',
       },
       {
         path: 'basilis/02-cenario/',
@@ -39,7 +39,7 @@ export const SECTIONS: Section[] = [
         path: 'basilis/03-combate/',
         title: '03 — Combate',
         question: 'Colisão, dano, empurrão, recargas e inimigos que avisam antes de atacar ficam justos e legíveis no celular?',
-        status: 'Em teste',
+        status: 'Concluído',
       },
     ],
   },
