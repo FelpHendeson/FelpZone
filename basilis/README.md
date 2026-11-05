@@ -4,7 +4,7 @@ RPG de ação top-down para celular e navegador, ambientado em Basilis: o mundo 
 
 ## Estado atual
 
-Labs. A história, as decisões e a ordem de trabalho estão em [docs/HISTORIA-E-PLANO.md](docs/HISTORIA-E-PLANO.md). A escola visual (pixel art de RPG top-down da era portátil) e as regras técnicas de arte estão em [docs/DIRECAO-DE-ARTE.md](docs/DIRECAO-DE-ARTE.md). O personagem em camadas (corpo, personalização, roupas e equipamentos) está em [docs/PERSONAGEM.md](docs/PERSONAGEM.md); armas, dash, mira e combos em [docs/ARMAS-E-COMANDOS.md](docs/ARMAS-E-COMANDOS.md); os prompts para gerar folhas com IA em [docs/PROMPTS-DE-FOLHAS.md](docs/PROMPTS-DE-FOLHAS.md).
+Labs. A história, as decisões e a ordem de trabalho estão em [docs/HISTORIA-E-PLANO.md](docs/HISTORIA-E-PLANO.md). A escola visual (pixel art de RPG top-down da era portátil) e as regras técnicas de arte estão em [docs/DIRECAO-DE-ARTE.md](docs/DIRECAO-DE-ARTE.md). O personagem em camadas (corpo, personalização, roupas e equipamentos) está em [docs/PERSONAGEM.md](docs/PERSONAGEM.md); armas, dash, mira e combos em [docs/ARMAS-E-COMANDOS.md](docs/ARMAS-E-COMANDOS.md); os prompts para gerar folhas com IA em [docs/PROMPTS-DE-FOLHAS.md](docs/PROMPTS-DE-FOLHAS.md); os textos para abrir a sessão de cada lab em [docs/SESSOES.md](docs/SESSOES.md).
 
 Os labs ficam no hub [Felp Labs](../labs/README.md), na seção `basilis/`, publicado em [felp-labs.vercel.app](https://felp-labs.vercel.app/). Cada lab responde uma pergunta e registra a conclusão no próprio README.
 
