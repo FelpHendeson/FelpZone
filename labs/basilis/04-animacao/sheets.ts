@@ -169,8 +169,15 @@ const HAND: Record<Facing, { x: number; y: number; angle: number }> = {
   up: { x: 10, y: 20, angle: -Math.PI / 2 },
   side: { x: 18, y: 20, angle: 0 },
 };
-/** Ângulo da espada em cada quadro do ataque, relativo a para onde o herói olha: prepara, corta, acerta, volta. */
-const SWING = [-110, -40, 30, 70].map((degrees) => (degrees * Math.PI) / 180);
+/**
+ * Ângulo da espada em cada quadro do ataque, relativo a para onde o herói olha: prepara, corta, acerta, volta.
+ * De lado, a preparação puxa a espada para trás das costas, para ela continuar visível.
+ */
+const SWING: Record<Facing, number[]> = {
+  down: [-110, -40, 30, 70].map((degrees) => (degrees * Math.PI) / 180),
+  up: [-110, -40, 30, 70].map((degrees) => (degrees * Math.PI) / 180),
+  side: [-150, -40, 30, 70].map((degrees) => (degrees * Math.PI) / 180),
+};
 
 function drawSword(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number): void {
   const cos = Math.cos(angle);
@@ -191,17 +198,36 @@ function drawSword(ctx: CanvasRenderingContext2D, x: number, y: number, angle: n
   }
 }
 
+/** Ângulo da espada em repouso, por direção: apontada para baixo, ao lado do corpo (graus). */
+const REST: Record<Facing, number> = { down: 100, up: 80, side: 65 };
+const radians = (degrees: number) => (degrees * Math.PI) / 180;
+
+/**
+ * Corpo com a arma sempre na mão. A mão acompanha o tronco (inclinação, passo e agachamento).
+ * De costas atacando, ou erguida acima da mão, a arma fica atrás do corpo.
+ */
+function drawArmed(ctx: CanvasRenderingContext2D, pose: Pose, angle: number, attacking = false): void {
+  const hand = HAND[pose.facing];
+  const x = hand.x + (pose.lean ?? 0);
+  const y = hand.y + (pose.bob ?? 0) + (pose.crouch ?? 0);
+  const behind = (attacking && pose.facing === 'up') || Math.sin(angle) < -0.3;
+  if (behind) drawSword(ctx, x, y, angle);
+  drawBody(ctx, pose);
+  if (!behind) drawSword(ctx, x, y, angle);
+}
+
+/** Repouso mais um desvio (balanço do passo, braço caído no dano). */
+const held = (facing: Facing, offset = 0) => radians(REST[facing] + offset);
+
 function drawAttack(ctx: CanvasRenderingContext2D, facing: Facing, frame: number): void {
-  const hand = HAND[facing];
   const lean = [-1, 0, 1, 1][frame];
-  const crouch = frame === 0 ? 1 : 0;
-  const angle = hand.angle + SWING[frame];
-  const sword = () => drawSword(ctx, hand.x + (facing === 'side' ? lean : 0), hand.y + crouch, angle);
-  // De costas, ou erguida acima da mão (preparando o golpe), a espada fica atrás do corpo.
-  const behind = facing === 'up' || Math.sin(angle) < -0.3;
-  if (behind) sword();
-  drawBody(ctx, { facing, lean: facing === 'side' ? lean : 0, crouch, bob: facing === 'side' ? 0 : frame === 2 ? -1 : 0 });
-  if (!behind) sword();
+  const pose: Pose = {
+    facing,
+    lean: facing === 'side' ? lean : 0,
+    crouch: frame === 0 ? 1 : 0,
+    bob: facing === 'side' ? 0 : frame === 2 ? -1 : 0,
+  };
+  drawArmed(ctx, pose, HAND[facing].angle + SWING[facing][frame], true);
 }
 
 function drawLying(ctx: CanvasRenderingContext2D): void {
@@ -221,6 +247,8 @@ function drawLying(ctx: CanvasRenderingContext2D): void {
   rect(14, 22, 7, 1, HERO.tunicLight);
   rect(21, 22, 7, 5, HERO.outline);
   rect(22, 23, 5, 3, HERO.pants);
+  // A espada cai ao lado do corpo.
+  drawSword(ctx, 9, 30, 0);
 }
 
 const WALK_STEPS: Pose[] = [
@@ -229,6 +257,8 @@ const WALK_STEPS: Pose[] = [
   { facing: 'down', rightLift: 1, bob: -1 },
   { facing: 'down' },
 ];
+/** Desvio da espada em cada quadro do andar, em graus. */
+const WALK_SWING = [12, 0, -12, 0];
 
 export function generateHeroSheet(): HTMLCanvasElement {
   const { width, height } = sheetSize(HERO_FORMAT);
@@ -242,16 +272,21 @@ export function generateHeroSheet(): HTMLCanvasElement {
   };
 
   for (const facing of ['down', 'up', 'side'] as Facing[]) {
-    cell(`idle-${facing}`, 0, (c) => drawBody(c, { facing }));
-    cell(`idle-${facing}`, 1, (c) => drawBody(c, { facing, crouch: 1 }));
-    WALK_STEPS.forEach((step, index) => cell(`walk-${facing}`, index, (c) => drawBody(c, { ...step, facing })));
+    cell(`idle-${facing}`, 0, (c) => drawArmed(c, { facing }, held(facing)));
+    cell(`idle-${facing}`, 1, (c) => drawArmed(c, { facing, crouch: 1 }, held(facing)));
+    // A espada balança com o passo.
+    WALK_STEPS.forEach((step, index) =>
+      cell(`walk-${facing}`, index, (c) => drawArmed(c, { ...step, facing }, held(facing, WALK_SWING[index]))),
+    );
     for (let index = 0; index < 4; index++) cell(`attack-${facing}`, index, (c) => drawAttack(c, facing, index));
-    cell(`hurt-${facing}`, 0, (c) => drawBody(c, { facing, eyes: 'x', crouch: 1, lean: facing === 'side' ? -1 : 0 }));
-    cell(`hurt-${facing}`, 1, (c) => drawBody(c, { facing, eyes: 'closed' }));
-    [2, 4, 2].forEach((crouch, index) => cell(`dodge-${facing}`, index, (c) => drawBody(c, { facing, crouch, eyes: 'closed' })));
+    cell(`hurt-${facing}`, 0, (c) => drawArmed(c, { facing, eyes: 'x', crouch: 1, lean: facing === 'side' ? -1 : 0 }, held(facing, 25)));
+    cell(`hurt-${facing}`, 1, (c) => drawArmed(c, { facing, eyes: 'closed' }, held(facing, 10)));
+    [2, 4, 2].forEach((crouch, index) =>
+      cell(`dodge-${facing}`, index, (c) => drawArmed(c, { facing, crouch, eyes: 'closed' }, held(facing, crouch * 6))),
+    );
   }
-  cell('death', 0, (c) => drawBody(c, { facing: 'down', eyes: 'x', crouch: 2 }));
-  cell('death', 1, (c) => drawBody(c, { facing: 'down', eyes: 'x', crouch: 4 }));
+  cell('death', 0, (c) => drawArmed(c, { facing: 'down', eyes: 'x', crouch: 2 }, held('down', 30)));
+  cell('death', 1, (c) => drawArmed(c, { facing: 'down', eyes: 'x', crouch: 4 }, held('down', 50)));
   cell('death', 2, drawLying);
   cell('death', 3, drawLying);
   return canvas;

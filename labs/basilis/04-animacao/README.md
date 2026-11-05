@@ -16,7 +16,7 @@
 | Esquivar (agacha e rola) | 3 | 16 q/s | não |
 | Morrer (uma só, sem direção) | 4 | 6 q/s | não |
 
-- **Espada desenhada no ataque:** sai de trás do corpo quando está erguida ou de costas, e passa à frente no corte.
+- **Arma sempre na mão:** a espada aparece em todos os quadros e só muda de posição: pendurada ao lado do corpo parado, balançando com o passo, puxada para trás das costas na preparação, varrendo no corte, caída no dano e no chão ao lado do herói na morte. Fica atrás do corpo quando está erguida ou quando o herói ataca de costas.
 - **Folhim em 16 × 16:** parado, andar (pulinhos), aviso (encolhe e franze), bote (estica), dano e morte (se desfaz em folhas). Vira para o lado em que anda.
 - **Prioridade dos estados:** morrer > levar dano > esquivar > atacar > andar > parado. Um golpe novo sempre recomeça a animação de ataque.
 - **Golpe sincronizado com a animação:** o acerto só vale nos **quadros ativos** (corta e acerta, 2º e 3º quadros). Nos ajustes dá para voltar ao acerto por tempo do Lab 03 e comparar.
@@ -50,6 +50,10 @@ Velocidade das animações, quando o golpe acerta (quadros ativos ou tempo), ras
 - Testes automáticos (`npm test`): quadros por tempo, repetição e fim das animações sem repetição, duração, quadros ativos, troca e recomeço de animação, velocidade, prioridade dos estados, nomes das animações, espelhamento da esquerda, linhas sem sobreposição, todas as ações do herói em todas as direções, ataques com a mesma duração e os mesmos quadros ativos, tamanho da folha, posição dos quadros e âncora dentro do quadro.
 - No navegador do computador, em tamanho de celular: a folha do herói foi gerada com todos os quadros (conferidos um a um, inclusive a espada atrás do corpo ao preparar o golpe), o visualizador tocou e mostrou a folha, e na arena o herói andou e atacou com a animação de ataque e os Folhins andaram animados.
 - **Ainda não testado num celular de verdade**, nem com uma folha desenhada fora do código.
+
+## Achados
+
+- **Arma sempre na mão:** na primeira versão a espada só aparecia durante o ataque. Pedido do autor: a arma equipada fica sempre na mão e só se move. Isso vale para todas as armas do Lab 05.
 
 ## Conclusão
 
