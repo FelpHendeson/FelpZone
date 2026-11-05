@@ -57,4 +57,4 @@ Velocidade das animações, quando o golpe acerta (quadros ativos ou tempo), ras
 
 ## Conclusão
 
-Pendente: preencher depois do teste no celular.
+**Concluído.** Aprovado pelo autor. O jogo adota animação por estados com prioridade (morrer > dano > esquiva > ataque > andar > parado), golpe que só acerta nos quadros ativos, piscar branco gerado sobre qualquer quadro, folhas com uma animação por linha, quadros de tamanho fixo e âncora nos pés, e a arma equipada sempre na mão. A arte gerada aqui era só funcional. Os próximos labs refazem o personagem em camadas (corpo, personalização, roupas e equipamentos), com armas por tipo e a esquiva trocada por um dash ([PERSONAGEM.md](../../../basilis/docs/PERSONAGEM.md) e [ARMAS-E-COMANDOS.md](../../../basilis/docs/ARMAS-E-COMANDOS.md)).

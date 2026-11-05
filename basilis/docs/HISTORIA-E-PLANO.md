@@ -189,7 +189,7 @@ O degrau define a escala de poder de **todos**, não só do protagonista: capaci
 
 ## 6. Poder
 
-Vem do Reset sem mudanças de regra: **Etéris**, **Númen**, **Árvore de habilidades**, **Jardim de habilidades** e os sistemas ligados a eles. No top-down, Númen vira ação em tempo real (ataques, esquiva, técnicas com recarga e custo de Etéris). As linhagens da seção 4 entram como caminhos da Árvore e combinações do Jardim, e os degraus da seção 5 dão a escala.
+Vem do Reset sem mudanças de regra: **Etéris**, **Númen**, **Árvore de habilidades**, **Jardim de habilidades** e os sistemas ligados a eles. No top-down, Númen vira ação em tempo real (ataques, dash, técnicas com recarga e custo de Etéris). As linhagens da seção 4 entram como caminhos da Árvore e combinações do Jardim, e os degraus da seção 5 dão a escala.
 
 ## 7. Primeiro arco: três caminhos
 
@@ -227,11 +227,14 @@ Em pedaços, cada um terminado antes do próximo.
    2. Cenário e escala: o movimento do Lab 01 num cenário gerado a partir de uma spritesheet (de código ou de IA), com o centro imutável da tela e câmera presa a pixels
    3. Combate: colisão entre corpos, dano, empurrão, recargas, invulnerabilidade e inimigos com aviso antes do ataque (pode se desdobrar em mais labs: projéteis, armas, chefes)
    4. Animação: estados do herói e dos inimigos (parado, andar, atacar, levar dano, esquivar, morrer) em 4 direções, golpe sincronizado com o quadro do ataque e o formato das spritesheets de personagem
-   5. Armas e projéteis: armas com alcance, recarga e golpe próprios, ataque à distância e inimigos que atiram
-   6. Efeitos: partículas, tremor de tela, rastros e brilho de Etéris
-   7. Construção de cenários (como desenhar mapas: editor próprio, Tiled ou geração procedural do Matrix Sim)
-   8. PWA: instalar, rodar offline e salvar no aparelho
+   5. Personagem em camadas: o molde do corpo com pontos por quadro (o esqueleto), camadas de personalização com troca de paleta, a roupa da Terra, a tela de criação, o boneco do menu e NPCs feitos de receitas ([PERSONAGEM.md](PERSONAGEM.md))
+   6. Equipamentos: slots, o que cada peça esconde, aparência (skins), melhorias com brilho e a tela de equipamento
+   7. Armas por tipo: lâminas longas, pesadas e curtas, lanças, contusão, arcos, arremessáveis e focos de magia, sempre na mão, com golpes, projéteis e rastros próprios ([ARMAS-E-COMANDOS.md](ARMAS-E-COMANDOS.md))
+   8. Comandos de combate: dash no lugar da esquiva, mira automática, técnicas com prévia e mira no estilo dos MOBAs de celular, botões por arma e combos
+   9. Magias e partículas: formas de magia, partículas em pixel art, tremor de tela e brilho de Etéris
+   10. Construção de cenários (como desenhar mapas: editor próprio, Tiled ou geração procedural do Matrix Sim)
+   11. PWA: instalar, rodar offline e salvar no aparelho
 3. **Fatia vertical:** o despertar num mapa pequeno perto de uma nascente, um NPC, um encontro com Folhins e uma luta.
 4. **Primeiro arco** com os três caminhos.
 
-Stack prevista para os labs: Vite + TypeScript + Canvas 2D, a mesma do Matrix Sim. A escola visual e as regras de pixel art estão em [DIRECAO-DE-ARTE.md](DIRECAO-DE-ARTE.md); as spritesheets de `matrix-sim/src/sprites` só entram se forem redesenhadas nessas regras.
+Stack prevista para os labs: Vite + TypeScript + Canvas 2D, a mesma do Matrix Sim. A escola visual e as regras de pixel art estão em [DIRECAO-DE-ARTE.md](DIRECAO-DE-ARTE.md); as spritesheets de `matrix-sim/src/sprites` só entram se forem redesenhadas nessas regras. Os prompts para gerar folhas com IA estão em [PROMPTS-DE-FOLHAS.md](PROMPTS-DE-FOLHAS.md).

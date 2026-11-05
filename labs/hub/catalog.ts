@@ -45,7 +45,7 @@ export const SECTIONS: Section[] = [
         path: 'basilis/04-animacao/',
         title: '04 — Animação',
         question: 'Estados animados (parado, andar, atacar, dano, esquiva, morte) deixam herói e inimigos legíveis, com o golpe no quadro certo?',
-        status: 'Em teste',
+        status: 'Concluído',
       },
     ],
   },

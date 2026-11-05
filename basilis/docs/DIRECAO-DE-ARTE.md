@@ -54,7 +54,7 @@ A escola é compartilhada; o que torna Basilis reconhecível:
 | --- | --- |
 | **Arte própria** (desenhada à mão em um editor como Aseprite ou Pixelorama) | A arte final do jogo. |
 | **Arte gerada por código** | Os labs: eles testam funções, não arte, então a arte é só funcional. |
-| **Spritesheets geradas por IA** | Testar se uma folha de IA, fatiada em tiles, serve de base para cenários (Lab 02). |
+| **Spritesheets geradas por IA** | Testar se uma folha de IA serve de base: cenários (Lab 02) e camadas de personagem pintadas sobre o molde (Lab 05 em diante). Os prompts estão em [PROMPTS-DE-FOLHAS.md](PROMPTS-DE-FOLHAS.md). |
 
 ## 6. Impacto nos labs
 
@@ -62,6 +62,9 @@ A escola é compartilhada; o que torna Basilis reconhecível:
 - **Lab 02 (cenário e escala):** o motor de movimento do Lab 01 num cenário gerado, montado a partir de uma spritesheet (de código ou de IA), com o centro imutável e a câmera presa a pixels.
 - **Lab 03 (combate):** colisão, dano, empurrão, recargas e inimigos; golpes com estilos diferentes (cone, crescente, pixels) para cada arma ter a sua animação.
 - **Lab 04 (animação):** herói em quadros de 32 × 32 (corpo de 16 × 24 com espaço para a arma) em 4 direções, com parado, andar, atacar, levar dano, esquivar e morrer; Folhim em 16 × 16; o formato das folhas de personagem.
-- **Lab 05 (armas e projéteis):** animações de golpe e de projétil por arma.
-- **Lab 06 (efeitos):** partículas, tremor, rastros e brilho de Etéris, em pixel art.
+- **Lab 05 (personagem em camadas):** o molde de 32 × 32 com pontos por quadro, camadas desenhadas em tons-índice e pintadas por rampas da paleta-mestra, parado com 4 quadros e andar com 6 ([PERSONAGEM.md](PERSONAGEM.md)).
+- **Lab 06 (equipamentos):** peças por cima do corpo, regras do que cada uma esconde, brilho de melhoria; peças sagradas e profanas seguem a seção 4.
+- **Lab 07 (armas por tipo):** armas como folhas de 8 ou 16 orientações já desenhadas, colocadas pelo ponto da mão, sem rotação em tempo real ([ARMAS-E-COMANDOS.md](ARMAS-E-COMANDOS.md)).
+- **Lab 08 (comandos):** prévias de técnica no chão com o mesmo desenho dos avisos dos inimigos; imagens residuais do dash.
+- **Lab 09 (magias e partículas):** partículas, tremor, rastros e brilho de Etéris, em pixel art.
 - Os demais labs seguem as regras da seção 2.
