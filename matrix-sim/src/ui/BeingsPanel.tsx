@@ -1,26 +1,29 @@
 import type { CSSProperties } from 'react';
-import { BEING, beingDefinitions, devotion, verbNames, type Act, type BeingDefinition, type BeingState } from '../simulation/beings';
+import { BEING, devotion, elementNames, genesisOrder, verbNames, type Act, type BeingDefinition, type BeingState } from '../simulation/beings';
 import type { World } from '../simulation/world';
 
-type Props = { world: World; onSelectHome: (index: number) => void; onFollow: (id: number) => void };
+type Props = { world: World; onSelectHome: (index: number) => void; onFollow: (id: number) => void; onReplayGenesis: () => void };
 
-/** Declared primordial beings: power, devotees, named Folhins, acts and a short authoring guide. */
-export function BeingsPanel({ world, onSelectHome, onFollow }: Props) {
+/** The supreme beings of each element, in the order they were released into this world, and how to declare a new one. */
+export function BeingsPanel({ world, onSelectHome, onFollow, onReplayGenesis }: Props) {
+  const order = genesisOrder(world);
   return <section className="beings-panel" aria-label="Seres primordiais">
     <h2>Seres</h2>
-    <p>Entidades declaradas em <code>src/simulation/beings.ts</code>. Cada bloco diz onde mora, como ganha poder e quais atos realiza. Criar outro ser é acrescentar um bloco ali; o motor já entende os verbos abençoar, fazer chover e nomear.</p>
+    <p className="beings-rules">As Regras da Existência criaram uma entidade suprema para cada elemento deste mundo. Cada uma traz no núcleo uma habilidade principal e a mesma missão: dar forma ao mundo, criar a vida e a morte, manter o equilíbrio e fazê-lo evoluir. Foram soltas numa ordem que as regras não fixam; neste mundo, foi esta:</p>
+    <ol className="genesis-order">{order.map(def => <li key={def.id} style={{ '--being': def.color } as CSSProperties}><span aria-hidden="true">{def.glyph}</span>{def.name}<small>{elementNames[def.element]}</small></li>)}</ol>
+    <button type="button" className="secondary replay-genesis" onClick={onReplayGenesis}>Rever a Gênese</button>
     {world.beings.length === 0 && <p className="beings-empty">Nenhum ser despertou neste mundo.</p>}
-    {world.beings.map(state => {
-      const def = beingDefinitions.find(d => d.id === state.id);
-      return def ? <BeingCard key={state.id} world={world} state={state} def={def} onSelectHome={onSelectHome} onFollow={onFollow} /> : null;
+    {order.map(def => {
+      const state = world.beings.find(b => b.id === def.id);
+      return state ? <BeingCard key={state.id} world={world} state={state} def={def} onSelectHome={onSelectHome} onFollow={onFollow} /> : null;
     })}
     <details className="beings-guide"><summary>Como criar um ser</summary>
       <ol>
-        <li>Abra <code>src/simulation/beings.ts</code> e copie o bloco de Aurenth.</li>
-        <li>Troque <code>id</code>, nome, epíteto, domínio, cor e glifo.</li>
-        <li>Escolha a morada: <code>strongest-source</code> (nascente mais forte) ou <code>highest-peak</code>.</li>
-        <li>Monte a lista de <code>acts</code> com verbo, intervalo em dias, custo de poder, raio e intensidade.</li>
-        <li>Reinicie o mundo: o ser nasce junto com ele.</li>
+        <li>Abra <code>src/simulation/beings.ts</code> e copie um dos blocos de <code>beingDefinitions</code>.</li>
+        <li>Troque <code>id</code>, nome, epíteto, elemento, personalidade, cor e glifo, e escreva a frase da Gênese.</li>
+        <li>Dê a ele uma habilidade principal em <code>core</code> e escolha a morada: <code>busiest-shore</code>, <code>most-fertile</code>, <code>highest-peak</code>, <code>densest-forest</code> ou <code>strongest-source</code>.</li>
+        <li>Monte a lista de <code>acts</code> com os verbos que o motor entende (abençoar, fazer chover, fertilizar, florescer e nomear), o intervalo em dias, o custo de poder, o raio e a intensidade.</li>
+        <li>Para que ele crie uma espécie, use <code>creates</code>. Gere outro mundo: o ser entra na Gênese junto com os outros.</li>
       </ol>
     </details>
   </section>;
@@ -39,7 +42,9 @@ function BeingCard({ world, state, def, onSelectHome, onFollow }: { world: World
       </button>
       <small>{def.epithet}</small>
     </header>
-    <p className="being-domain">{def.domain} · mora em ({home.x}, {home.y})</p>
+    <p className="being-domain">Entidade suprema da {elementNames[def.element]} · mora em ({home.x}, {home.y}){def.creates ? ` · criou os ${def.creates}` : ''}</p>
+    <p className="being-core"><strong>Núcleo: {def.core.name}</strong> · {def.core.description}</p>
+    <p className="being-personality">{def.personality}</p>
     <p className="being-lore">{def.lore}</p>
     <div className="being-power" aria-label={`Poder ${Math.round(state.power)} de ${BEING.maxPower}`}>
       <div><span>Poder</span><strong>{Math.round(state.power)}</strong><small>/ {BEING.maxPower}</small></div>

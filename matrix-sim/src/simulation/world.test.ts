@@ -85,7 +85,8 @@ describe('Ciclos ambientais', () => {
     expect(compost.vegetation.litter).toBeLessThan(20);
   });
   it('mantém vegetação e frutos estáveis entre os ciclos semanais', () => {
-    const world = createWorld('origem-001', 16);
+    // The environment's own rhythm; the gods act on their own schedule and are tested in beings.test.ts.
+    const world = { ...createWorld('origem-001', 16), beings: [] };
     expect(advanceWorld(world, 6).cells.map(c => c.vegetation)).toEqual(world.cells.map(c => c.vegetation));
     const weekly = advanceWorld(world, 7);
     expect(weekly.summary.grown).toBeGreaterThan(0);

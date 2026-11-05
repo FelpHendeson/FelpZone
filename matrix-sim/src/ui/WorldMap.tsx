@@ -10,9 +10,12 @@ import { TerritoryOverlay } from './TerritoryOverlay';
 import { CreatureToken } from './CreatureToken';
 import { EssenceSources } from './EssenceSources';
 import { BeingsOverlay } from './BeingsOverlay';
+import { GenesisOverlay } from './GenesisOverlay';
+import type { GenesisStep, Reveal } from './genesis';
 
-type Props = { world: World; territories: Territories; running: boolean; speed: number; selected: number; onSelect: (index: number) => void; selectedCreature: number | null; onSelectCreature: (id: number) => void };
-export function WorldMap({ world, territories, running, speed, selected, onSelect, selectedCreature, onSelectCreature }: Props) {
+type GenesisView = { steps: GenesisStep[]; startedAt: number; onStep: (index: number) => void; reveal: Reveal };
+type Props = { world: World; territories: Territories; running: boolean; speed: number; selected: number; onSelect: (index: number) => void; selectedCreature: number | null; onSelectCreature: (id: number) => void; genesis?: GenesisView | null };
+export function WorldMap({ world, territories, running, speed, selected, onSelect, selectedCreature, onSelectCreature, genesis = null }: Props) {
   const [layer, setLayer] = useState<Layer>('terrain');
   const [grid, setGrid] = useState(false);
   const [zoom, setZoom] = useState(1);
@@ -32,7 +35,9 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
   const drag = useRef<{ x: number; y: number; left: number; top: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const cell = world.cells[selected];
-  const territoriesVisible = territoriesOn && layer === 'terrain';
+  const territoriesVisible = territoriesOn && layer === 'terrain' && !genesis;
+  // The genesis is watched whole: natural view, no zoom, nothing pinned.
+  useEffect(() => { if (genesis) { setLayer('terrain'); setZoom(1); setHover(null); } }, [genesis?.startedAt]);
   const selectedBand = world.life.bands.find(b => b.id === (world.life.creatures.find(c => c.id === selectedCreature)?.bandId ?? territories.owners[selected]));
   const [legendOpen, setLegendOpen] = useState(false);
   const [optionsOpen, setOptionsOpen] = useState(false);
@@ -140,7 +145,7 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
   return <section className="map-section" aria-label="Exploração do mundo">
     <div className="map-frame" ref={frame}>
       <div className={`map-viewport${dragging ? ' is-dragging' : ''}`} ref={viewport} onScroll={() => setHover(null)}>
-        <div className={`map-surface${layer === 'terrain' ? ' natural-landscape' : ''}`} style={{ width: `${zoom * 100}%` }}><canvas ref={canvas} tabIndex={0} role="img" aria-label="Mapa interativo do mundo" aria-describedby="map-instructions" onPointerDown={event => {
+        <div className={`map-surface${layer === 'terrain' ? ' natural-landscape' : ''}${genesis ? ' in-genesis' : ''}`} style={{ width: `${zoom * 100}%` }}><canvas ref={canvas} tabIndex={0} role="img" aria-label="Mapa interativo do mundo" aria-describedby="map-instructions" onPointerDown={event => {
           suppressClick.current = false;
           if (event.pointerType !== 'mouse' || event.button !== 0) return;
           const view = viewport.current!;
@@ -153,14 +158,16 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
           if (['+', '=', '-', '0'].includes(event.key)) { event.preventDefault(); changeZoom(event.key === '0' ? 1 : zoom + (event.key === '-' ? -1 : 1)); }
           if (event.key === 'Escape') setHover(null);
         }} /><canvas ref={atmosphere} className="atmosphere-canvas" aria-hidden="true" />{grid && <div className="map-grid" aria-hidden="true" style={{ backgroundSize: `${100 / world.size}% ${100 / world.size}%` }} />}<div className="map-selection" aria-hidden="true" style={{ left: `${cell.x / world.size * 100}%`, top: `${cell.y / world.size * 100}%`, width: `${100 / world.size}%`, height: `${100 / world.size}%` }} />
+          {genesis && <GenesisOverlay world={world} steps={genesis.steps} startedAt={genesis.startedAt} onStep={genesis.onStep} />}
           {territoriesVisible && <TerritoryOverlay territories={territories} size={world.size} focused={selectedBand?.id ?? null} />}
           {territoriesVisible && <div className="territory-labels" aria-label="Nomes dos territórios">{world.life.bands.filter(b => territories.areas.has(b.id)).map(b => <button key={b.id} className="territory-name" style={{ left: `${(b.home % world.size + 0.5) / world.size * 100}%`, top: `${(Math.floor(b.home / world.size) + 0.5) / world.size * 100}%`, borderColor: bandColor(b.id), color: bandColor(b.id) }} aria-label={`Território de ${b.name}, acompanhar bando`} onPointerDown={event => event.stopPropagation()} onClick={() => b.leaderId !== null && onSelectCreature(b.leaderId)}>{b.name}</button>)}</div>}
-          {(layer === 'terrain' || layer === 'essence') && <EssenceSources world={world} selected={selected} onSelect={index => { onSelect(index); setHover(null); }} />}
-          {(layer === 'terrain' || layer === 'essence') && <BeingsOverlay world={world} selected={selected} onSelect={index => { onSelect(index); setHover(null); }} />}
-          <div className="creatures-layer" aria-label="Habitantes do mundo">{world.life.creatures.map(c => <CreatureToken key={c.id} creature={c} size={world.size} selected={selectedCreature === c.id} leader={world.life.bands.some(b => b.leaderId === c.id)} running={running} speed={speed} motion={motion} onSelect={onSelectCreature} />)}</div>
+          {(layer === 'terrain' || layer === 'essence') && (!genesis || genesis.reveal.sources) && <EssenceSources world={world} selected={selected} onSelect={index => { onSelect(index); setHover(null); }} />}
+          {(layer === 'terrain' || layer === 'essence') && <BeingsOverlay world={world} selected={selected} only={genesis?.reveal.gods} onSelect={index => { onSelect(index); setHover(null); }} />}
+          {(!genesis || genesis.reveal.life) && <div className="creatures-layer" aria-label="Habitantes do mundo">{world.life.creatures.map(c => <CreatureToken key={c.id} creature={c} size={world.size} selected={selectedCreature === c.id} leader={world.life.bands.some(b => b.leaderId === c.id)} running={running} speed={speed} motion={motion} onSelect={onSelectCreature} />)}</div>}
         </div>
       </div>
-      {/* Controls float over the world so the map keeps the whole stage. */}
+      {/* Controls float over the world so the map keeps the whole stage; during the genesis there is nothing to control yet. */}
+      {!genesis && <>
       <div className="map-hud map-hud-top">
         <div className="layers" role="group" aria-label="Camadas do mapa">{(Object.keys(layerInfo) as Layer[]).map(value => <button key={value} type="button" aria-pressed={layer === value} className={layer === value ? 'active' : ''} onClick={() => { setLayer(value); setHover(null); }}>{layerInfo[value].name}</button>)}</div>
         <button type="button" className={territoriesVisible ? 'map-chip active' : 'map-chip'} aria-pressed={territoriesVisible} onClick={() => { if (layer !== 'terrain') { setLayer('terrain'); setTerritoriesOn(true); } else setTerritoriesOn(value => !value); }}>⚑ Territórios</button>
@@ -188,7 +195,7 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
         <button type="button" aria-label="Diminuir zoom" disabled={zoom === 1} onClick={() => changeZoom(zoom - 1)}>−</button><output aria-label="Zoom atual">{zoom}×</output><button type="button" aria-label="Aumentar zoom" disabled={zoom === 4} onClick={() => changeZoom(zoom + 1)}>+</button>
         <button type="button" onClick={centerSelection} title="Centralizar seleção" aria-label="Centralizar seleção">⌖</button>
         <button type="button" title="Ver mundo inteiro" aria-label="Ver mundo inteiro" onClick={() => { changeZoom(1); if (viewport.current) { viewport.current.scrollLeft = 0; viewport.current.scrollTop = 0; } }}>⤢</button>
-      </div>
+      </div></>}
       {renderError && <p className="map-alert" role="alert">{renderError}</p>}
       {hover && <div className="map-tooltip" role="tooltip" style={{ left: hover.x, top: hover.y }}><strong>{terrainInfo[world.cells[hover.index].terrain].name}<span>({world.cells[hover.index].x}, {world.cells[hover.index].y})</span></strong><span>{layerValue(world.cells[hover.index], layer)}</span><small>Clique para fixar esta região</small></div>}
     </div>

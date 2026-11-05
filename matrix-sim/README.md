@@ -109,19 +109,23 @@ Cada Folhim acumula **feitos**: regiões percorridas, unidades de alimento comid
 
 Na semente `origem-001`, as primeiras evoluções chegam por volta do dia 150. No dia 300 são 10 evoluídos (7 Errantes e 3 Guardiões); na `essencia-a`, 3 Errantes. A ficha do Folhim mostra as habilidades, as três mais próximas com progresso, os requisitos da evolução e os feitos. A aba **Códice** lista todas as habilidades e formas, com quantos vivos carregam cada uma.
 
-## Seres primordiais
+## Seres primordiais e a Gênese
 
-Os seres são **declarados** em [`src/simulation/beings.ts`](src/simulation/beings.ts), no mesmo espírito das habilidades. Cada bloco define nome, epíteto, domínio, morada (`strongest-source` ou `highest-peak`), alcance de devoção e uma lista de atos. Os atos usam um vocabulário pequeno do motor: **abençoar** (essência ao redor da morada), **fazer chover** (sobre seca real) e **nomear** (dá nome próprio a um Folhim desperto). Criar outro ser é acrescentar um bloco; o motor não precisa mudar.
+As Regras da Existência criam uma **entidade suprema para cada elemento** do mundo. Cada uma traz no núcleo uma habilidade principal e a mesma missão: dar forma ao mundo, criar a vida e a morte, manter o equilíbrio e fazê-lo evoluir. Elas são soltas numa ordem que as regras não fixam: cada semente sorteia a sua. Os deuses são forças com personalidade; quem nasce, come, luta e morre são as espécies que eles criam.
 
-O primeiro ser é **Aurenth**, Guardião das Nascentes. Ele nasce com o mundo na nascente mais forte, com poder base 30 (teto 100). O poder sobe com a essência da morada e com Folhins por perto; nomeados contam mais. Cada ato gasta poder; sem poder, o ser adormece. Age no máximo uma vez por dia, no fim do dia.
+Os seres são **declarados** em [`src/simulation/beings.ts`](src/simulation/beings.ts), no mesmo espírito das habilidades. Cada bloco define nome, epíteto, elemento, personalidade, habilidade principal (`core`), morada, alcance de devoção, a frase da Gênese, a espécie que cria (`creates`) e os atos. Os atos usam o vocabulário do motor: abençoar, fazer chover, fertilizar, florescer e nomear. Criar outro deus é acrescentar um bloco; não é preciso mexer no motor.
 
-| Ato | Intervalo | Custo | Efeito |
-|---|---|---|---|
-| Abençoar | 7 dias | 8 | Essência sobe num raio de 6, mais forte no centro |
-| Fazer chover | 10 dias | 15 | Chuva local se houver seca ≥ 18 dias no raio de 14 |
-| Nomear | 30 dias | 35 | Escolhe o desperto mais forte do raio de 10, uma vez só; +20 essência, +60 vida, +afinidade |
+| Deus | Elemento | Núcleo | Morada | Ato |
+|---|---|---|---|---|
+| Maelis, a Que Corre | Água | Maré | A costa com mais terra por perto | Faz chover sobre seca de 18+ dias num raio de 16, a cada 10 dias (custo 15) |
+| Dhoran, o Que Sustenta | Terra | Seiva da Terra | A terra mais fértil | Devolve fertilidade num raio de 8, a cada 14 dias (custo 12) |
+| Kaltor, o Imóvel | Montanha | Eco das Rochas | O pico mais alto | Espalha essência num raio de 7, a cada 7 dias (custo 8) |
+| Verdanthe, a Que Brota | Floresta | Florescer | A floresta mais densa | Faz a vegetação e os frutos crescerem num raio de 7, a cada 10 dias (custo 12), sem passar da capacidade natural. Criou os Folhins |
+| Aurenth, o Guardião das Nascentes | Essência | Nomear | A nascente mais forte | Dá nome ao desperto mais forte num raio de 10, a cada 30 dias (custo 35) |
 
-O nomeado recebe `trueName` e `patron`, aparece com ✺ no token e reforça o poder do ser. No mapa (camadas Terreno e Essência), Aurenth tem halo de influência e marcador clicável. A aba **Seres** mostra poder, devotos, atos, próximo ato, nomeados e um guia de como declarar outro ser. A Voz do Mundo narra os atos no filtro Poder. O JSON exportado passou para a versão 11 e o estado dos seres viaja no frame do worker.
+Cada deus começa com poder 30 (teto 100). O poder sobe todo dia com a essência da morada e com os Folhins por perto; os nomeados contam mais. Cada ato gasta poder, e sem poder o deus espera. Um deus age no máximo uma vez por dia. Os atos divinos acontecem no ritmo de cada deus, fora do ciclo semanal do ambiente. O nomeado recebe `trueName` e `patron`, +20 de essência, +60 dias de vida e mais afinidade, e aparece com ✺ no token.
+
+**A Gênese na tela:** cada mundo novo começa no vazio. As Regras falam, e cada deus entra na ordem sorteada, com nome, epíteto, núcleo e personalidade, revelando o seu elemento numa onda que parte da sua morada: a água, as planícies e areias, os picos, as florestas ou as nascentes. Por fim, o criador molda a primeira espécie e os Folhins aparecem. Leva cerca de 40 segundos. O tempo só começa depois, e o botão **Pular Gênese** encerra na hora. A Voz do Mundo narra cada passo e guarda a narração; a aba **Seres** mostra a ordem deste mundo e permite **Rever a Gênese**. Com a preferência de movimento reduzido do sistema, a Gênese é só narrada, sem animação.
 
 ## Primeira espécie: Folhins
 
@@ -155,7 +159,7 @@ Cada região tem uma fase fixa de atualização ambiental dentro do dia. Chuva, 
 
 O worker envia apenas os habitantes e as células alteradas em cada mensagem. O cenário é redesenhado no máximo uma vez por segundo durante a reprodução; mudanças de camada ou zoom são imediatas. Os habitantes se movem numa camada própria. O relógio agrupa passos em velocidades altas e descarta atrasos grandes, sem criar fila de recuperação. Em carga alta, o tempo real pode levar mais que o prazo nominal para preservar a sequência de estados. O avanço manual completa os passos restantes até a próxima virada de dia.
 
-No JSON de versão 10, `day` e `tick` preservam inclusive um momento no meio do dia, junto ao ambiente e à população: identidades, características, energia, memórias, históricos, pais, variações, bandos, líderes, tendências coletivas, centro territorial, direção de movimento, relações sociais, essência, afinidade, despertar, feitos, habilidades, forma evoluída, nascentes de essência e próximo identificador. As decisões são derivadas da semente e do passo, e o resultado independe de agrupar os mesmos passos ou trocar de velocidade. Exportações anteriores não contêm todos os dados atuais. A neve é uma forma simplificada de precipitação, sem acumulação ou degelo próprios.
+No JSON de versão 11, `day` e `tick` preservam inclusive um momento no meio do dia, junto ao ambiente e à população: identidades, características, energia, memórias, históricos, pais, variações, bandos, líderes, tendências coletivas, centro territorial, direção de movimento, relações sociais, essência, afinidade, despertar, feitos, habilidades, forma evoluída, nome verdadeiro, nascentes de essência, estado dos deuses e próximo identificador. As decisões são derivadas da semente e do passo, e o resultado independe de agrupar os mesmos passos ou trocar de velocidade. Exportações anteriores não contêm todos os dados atuais. A neve é uma forma simplificada de precipitação, sem acumulação ou degelo próprios.
 
 Gerar outro mundo substitui o atual; exporte antes se quiser guardá-lo. A aplicação não salva automaticamente ao fechar ou recarregar.
 

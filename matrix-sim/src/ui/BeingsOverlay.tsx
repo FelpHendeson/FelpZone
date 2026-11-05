@@ -2,13 +2,13 @@ import type { CSSProperties } from 'react';
 import { beingDefinitions, devotion, type BeingDefinition, type BeingState } from '../simulation/beings';
 import type { World } from '../simulation/world';
 
-type Props = { world: World; selected: number; onSelect: (index: number) => void };
+type Props = { world: World; selected: number; onSelect: (index: number) => void; only?: Set<string> };
 
 /** Primordial beings on the map: a soft reach halo and a clickable home marker. */
-export function BeingsOverlay({ world, selected, onSelect }: Props) {
+export function BeingsOverlay({ world, selected, onSelect, only }: Props) {
   return <div className="beings-overlay" aria-label="Seres primordiais">{world.beings.map(state => {
     const def = beingDefinitions.find(d => d.id === state.id);
-    if (!def) return null;
+    if (!def || (only && !only.has(state.id))) return null;
     return <BeingMarker key={state.id} world={world} state={state} def={def} selected={selected === state.home} onSelect={onSelect} />;
   })}</div>;
 }

@@ -27,7 +27,7 @@ export function weatherDescription(world: World) {
   return `${rain && snow ? 'Chuva e neve' : snow ? 'Neve' : 'Chuva'} em ${coverage}% do mapa`;
 }
 export function describeDay(world: World) {
-  if (world.day === 0 && world.tick === 0) return world.life.creatures.length ? `${world.life.creatures.length} Folhins chegaram ao mundo. Inicie o tempo para observar a primeira espécie.` : 'Mundo pronto. O ambiente muda em ciclos, sem pressa.';
+  if (world.day === 0 && world.tick === 0) return world.life.creatures.length ? `${world.life.creatures.length} Folhins acabam de ser criados. Inicie o tempo para observar a primeira espécie.` : 'Mundo pronto. O ambiente muda em ciclos, sem pressa.';
   const summary = world.summary, events: string[] = [];
   if (summary.soilChanged) events.push(`a umidade mudou em ${summary.soilChanged.toLocaleString('pt-BR')} regiões`);
   if (summary.grown) events.push(`a vegetação cresceu em ${summary.grown.toLocaleString('pt-BR')} regiões`);

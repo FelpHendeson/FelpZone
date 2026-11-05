@@ -5,6 +5,7 @@ import { TICKS_PER_DAY } from './dayClock';
 import { createBand, type Band } from './bands';
 import { absorbEssence, deathResidue, ESSENCE } from './essence';
 import { emptyDeeds, EVOLUTION, evolutionFor, forms, learnSkills, modifiers, type Deeds, type Form } from './skills';
+import { creatorOf } from './beings';
 export type { Band } from './bands';
 
 export type Variant = 'bosque' | 'campina';
@@ -98,7 +99,9 @@ export function populateWorld(world: World, count = 20): World {
     }
     bands.push(band);
   }
-  const arrival: LifeEvent = { day: world.day, kind: 'arrival', creatureId: creatures[0].id, text: `${creatures.length} Folhins chegaram em ${bands.length} bandos de origem regional.` };
+  // The Folhins are a creation: the being that declares them gives them life, when it exists in this world.
+  const creator = world.beings.some(b => b.id === creatorOf('Folhins')?.id) ? creatorOf('Folhins') : undefined;
+  const arrival: LifeEvent = { day: world.day, kind: 'arrival', creatureId: creatures[0].id, text: creator ? `${creator.name} criou ${creatures.length} Folhins em ${bands.length} bandos de origem regional.` : `${creatures.length} Folhins chegaram em ${bands.length} bandos de origem regional.` };
   return { ...world, life: { ...world.life, creatures, bands, nextId: world.life.nextId + creatures.length, events: [...world.life.events, arrival].slice(-40) } };
 }
 
