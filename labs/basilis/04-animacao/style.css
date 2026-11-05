@@ -1,0 +1,19 @@
+.previa-animacao {
+  display: block;
+  width: 192px;
+  max-width: 100%;
+  height: auto;
+  margin: 4px auto 8px;
+  border-radius: 8px;
+  background: repeating-conic-gradient(#25332b 0% 25%, #1b2b22 0% 50%) 50% / 24px 24px;
+  image-rendering: pixelated;
+}
+
+#animacoes .campo select,
+#animacoes .campo input[type='range'] {
+  width: 100%;
+}
+
+#animacoes .campo output {
+  color: var(--destaque);
+}

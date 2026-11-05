@@ -61,5 +61,7 @@ A escola é compartilhada; o que torna Basilis reconhecível:
 - **Lab 01 (controles):** o rosto do personagem passa a ser preso a 4 direções na arte; o movimento continua configurável.
 - **Lab 02 (cenário e escala):** o motor de movimento do Lab 01 num cenário gerado, montado a partir de uma spritesheet (de código ou de IA), com o centro imutável e a câmera presa a pixels.
 - **Lab 03 (combate):** colisão, dano, empurrão, recargas e inimigos; golpes com estilos diferentes (cone, crescente, pixels) para cada arma ter a sua animação.
-- **Lab 04 (animação):** personagem 16 × 24 em 4 direções, andar e atacar, e tiles animados.
+- **Lab 04 (animação):** herói em quadros de 32 × 32 (corpo de 16 × 24 com espaço para a arma) em 4 direções, com parado, andar, atacar, levar dano, esquivar e morrer; Folhim em 16 × 16; o formato das folhas de personagem.
+- **Lab 05 (armas e projéteis):** animações de golpe e de projétil por arma.
+- **Lab 06 (efeitos):** partículas, tremor, rastros e brilho de Etéris, em pixel art.
 - Os demais labs seguem as regras da seção 2.

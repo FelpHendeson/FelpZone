@@ -13,3 +13,4 @@ Os labs ficam no hub [Felp Labs](../labs/README.md), na seção `basilis/`, publ
 | [01 — Controles](../labs/basilis/01-controles/README.md) | Andar, atacar e esquivar ficam bons no celular e no navegador? | Concluído |
 | [02 — Cenário e escala](../labs/basilis/02-cenario/README.md) | O movimento num cenário de pixel art montado de uma spritesheet (gerada ou de IA) fica nítido em qualquer tela? | Concluído |
 | [03 — Combate](../labs/basilis/03-combate/README.md) | Colisão, dano, empurrão, recargas e inimigos que avisam antes de atacar ficam justos e legíveis no celular? | Concluído |
+| [04 — Animação](../labs/basilis/04-animacao/README.md) | Estados animados (parado, andar, atacar, dano, esquiva, morte) deixam herói e inimigos legíveis, com o golpe no quadro certo? | Em teste |

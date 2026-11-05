@@ -41,6 +41,12 @@ export const SECTIONS: Section[] = [
         question: 'Colisão, dano, empurrão, recargas e inimigos que avisam antes de atacar ficam justos e legíveis no celular?',
         status: 'Concluído',
       },
+      {
+        path: 'basilis/04-animacao/',
+        title: '04 — Animação',
+        question: 'Estados animados (parado, andar, atacar, dano, esquiva, morte) deixam herói e inimigos legíveis, com o golpe no quadro certo?',
+        status: 'Em teste',
+      },
     ],
   },
   {

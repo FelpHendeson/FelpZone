@@ -226,10 +226,11 @@ Em pedaços, cada um terminado antes do próximo.
    1. Movimento e joystick virtual em retrato
    2. Cenário e escala: o movimento do Lab 01 num cenário gerado a partir de uma spritesheet (de código ou de IA), com o centro imutável da tela e câmera presa a pixels
    3. Combate: colisão entre corpos, dano, empurrão, recargas, invulnerabilidade e inimigos com aviso antes do ataque (pode se desdobrar em mais labs: projéteis, armas, chefes)
-   4. Animação de sprites em pixel art (andar e atacar em 4 direções, sofrer dano, tiles animados) e animações de golpe por arma
-   5. Efeitos (partículas, tremor de tela, números de dano)
-   6. Construção de cenários (como desenhar mapas: editor próprio, Tiled ou geração procedural do Matrix Sim)
-   7. PWA: instalar, rodar offline e salvar no aparelho
+   4. Animação: estados do herói e dos inimigos (parado, andar, atacar, levar dano, esquivar, morrer) em 4 direções, golpe sincronizado com o quadro do ataque e o formato das spritesheets de personagem
+   5. Armas e projéteis: armas com alcance, recarga e golpe próprios, ataque à distância e inimigos que atiram
+   6. Efeitos: partículas, tremor de tela, rastros e brilho de Etéris
+   7. Construção de cenários (como desenhar mapas: editor próprio, Tiled ou geração procedural do Matrix Sim)
+   8. PWA: instalar, rodar offline e salvar no aparelho
 3. **Fatia vertical:** o despertar num mapa pequeno perto de uma nascente, um NPC, um encontro com Folhins e uma luta.
 4. **Primeiro arco** com os três caminhos.
 

@@ -107,10 +107,23 @@ export class PixelRenderer {
     );
   }
 
-  /** Desenha uma imagem de pixel art com o canto superior esquerdo em (worldX, worldY), pixels do jogo. */
-  drawSprite(frame: Frame, image: CanvasImageSource & { width: number; height: number }, worldX: number, worldY: number): void {
+  /**
+   * Desenha uma imagem de pixel art com o canto superior esquerdo em (worldX, worldY), pixels do jogo.
+   * `flip` espelha na horizontal (a esquerda é a direita espelhada).
+   */
+  drawSprite(frame: Frame, image: CanvasImageSource & { width: number; height: number }, worldX: number, worldY: number, flip = false): void {
     const p = frame.toScreen(worldX, worldY);
-    this.ctx.drawImage(image, p.x, p.y, Math.round(image.width * frame.view.scale), Math.round(image.height * frame.view.scale));
+    const width = Math.round(image.width * frame.view.scale);
+    const height = Math.round(image.height * frame.view.scale);
+    if (!flip) {
+      this.ctx.drawImage(image, p.x, p.y, width, height);
+      return;
+    }
+    this.ctx.save();
+    this.ctx.translate(p.x + width, p.y);
+    this.ctx.scale(-1, 1);
+    this.ctx.drawImage(image, 0, 0, width, height);
+    this.ctx.restore();
   }
 
   /** Contorno tracejado da área central. Perto da borda do mundo, o personagem sai do meio dela. */
