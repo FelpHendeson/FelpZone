@@ -2,7 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState, type PointerEvent as Reac
 import { climateAt, terrainInfo, type Terrain, type World } from '../simulation/world';
 import { layerInfo, layerValue, scaleColor, weatherLegend, type Layer } from '../rendering/drawWorld';
 import { useWorldRenderer } from '../rendering/useWorldRenderer';
-import { drawAtmosphere, LANDSCAPE_CELL } from '../rendering/landscape';
+import { drawAtmosphere, PIXEL } from '../rendering/landscape';
 import './world-map.css';
 import { bandColor, bandProfile } from '../simulation/bands';
 import type { Territories } from '../simulation/territories';
@@ -43,7 +43,7 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
   const [optionsOpen, setOptionsOpen] = useState(false);
   const zoomAnchor = useRef<{ fx: number; fy: number; px: number; py: number } | null>(null);
   const wheelDelta = useRef(0);
-  const renderError = useWorldRenderer(canvas, world, layer, zoom);
+  const renderError = useWorldRenderer(canvas, world, layer);
   useEffect(() => {
     const preference = window.matchMedia('(prefers-reduced-motion: reduce)');
     const update = () => { if (preference.matches) { setAnimate(false); setMotion(false); } };
@@ -53,12 +53,10 @@ export function WorldMap({ world, territories, running, speed, selected, onSelec
   useEffect(() => {
     const overlay = atmosphere.current;
     if (!overlay) return;
-    // Weather does not need the resolution of the detailed, cached landscape.
-    // A smaller overlay avoids repainting millions of pixels for precipitation.
-    overlay.width = overlay.height = world.size * LANDSCAPE_CELL / 3;
+    // Rain and snow fall in whole art pixels, like the landscape under them.
+    overlay.width = overlay.height = world.size * PIXEL;
     const ctx = overlay.getContext('2d');
     if (!ctx || layer !== 'terrain' || !running || !animate) return;
-    ctx.scale(1 / 3, 1 / 3);
     let frameId = 0, last = 0, visible = true;
     const observer = new IntersectionObserver(entries => { visible = entries[0].isIntersecting; });
     observer.observe(overlay);

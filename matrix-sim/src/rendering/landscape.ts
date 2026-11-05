@@ -1,7 +1,8 @@
 import { type Cell, type World } from '../simulation/world';
-import { createSurface, type DrawingContext, type Surface } from './surface';
+import type { DrawingContext } from './surface';
 
-export const LANDSCAPE_CELL = 24;
+/** Art pixels per world cell. The map is pixel art: drawn at this size and scaled up without smoothing. */
+export const PIXEL = 8;
 const clamp = (n: number, min = 0, max = 1) => Math.max(min, Math.min(max, n));
 // Coordinate-based visual variation never consumes the simulation's randomness.
 function variation(x: number, y: number, salt = 0) {
@@ -9,215 +10,248 @@ function variation(x: number, y: number, salt = 0) {
   h = Math.imul(h ^ h >>> 13, 1274126177);
   return ((h ^ h >>> 16) >>> 0) / 4294967296;
 }
-type RGB = [number, number, number];
-const palettes: RGB[][] = [
-  [[122, 155, 83], [65, 105, 65], [165, 177, 100]],
-  [[143, 155, 79], [55, 95, 63], [172, 170, 100]],
-  [[155, 144, 78], [103, 111, 63], [181, 151, 88]],
-  [[143, 158, 139], [81, 110, 101], [170, 180, 159]],
-];
-const treeSprites = new Map<string, Surface>();
-const rockSprites = new Map<string, Surface>();
-const CHUNK_SIZE = 16;
-let landscapeIdentity = '';
-let groundCache: { key: string; canvas: Surface } | null = null;
-const chunks = new Map<string, { signature: string; canvas: Surface }>();
+// Ordered dithering turns gradients into the stepped bands of pixel art.
+const BAYER = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5].map(v => (v + 0.5) / 16);
+const bayer = (x: number, y: number) => BAYER[(y & 3) * 4 + (x & 3)];
 
-function objectSignature(cell: Cell) {
-  const v = cell.vegetation;
-  const count = v.trees < 8 ? 0 : Math.min(3, Math.ceil(v.trees / 35));
-  let radii = '';
-  for (let i = 0; i < count; i++) radii += Math.round(3.2 + Math.min(1, v.trees / 65) * 3 + variation(cell.x, cell.y, i) * 1.5);
-  return `${cell.terrain}:${+ (v.grass > 4)}${+ (v.shrubs > 5)}${+ (v.fruit > 1)}:${count}:${radii}:${+ (cell.temperature < 0)};`;
-}
+type RGB = readonly [number, number, number];
+// ImageData is little-endian RGBA, so a 32-bit pixel reads ABGR.
+const pack = ([r, g, b]: RGB) => (255 << 24 | b << 16 | g << 8 | r) >>> 0;
+const mix = (a: RGB, b: RGB, t: number): RGB => [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t].map(Math.round) as unknown as RGB;
+
+const WATER: RGB[] = [[86, 162, 188], [56, 124, 168], [42, 92, 142], [34, 70, 118], [28, 54, 96]];
+const FOAM: RGB = [202, 230, 226];
+const SAND: RGB[] = [[198, 172, 114], [224, 204, 146], [236, 222, 172]];
+// Per season (spring, summer, autumn, winter): dark, mid and light tones.
+const GRASS: RGB[][] = [
+  [[78, 140, 60], [106, 170, 68], [142, 196, 86]],
+  [[72, 128, 52], [98, 154, 58], [132, 178, 72]],
+  [[128, 118, 54], [160, 144, 64], [190, 168, 86]],
+  [[98, 120, 94], [124, 142, 112], [160, 174, 146]],
+];
+const FOREST: RGB[][] = [
+  [[30, 70, 42], [38, 82, 48], [50, 96, 54]],
+  [[28, 64, 38], [36, 76, 44], [46, 90, 50]],
+  [[78, 66, 36], [94, 78, 40], [112, 90, 44]],
+  [[58, 78, 68], [72, 92, 80], [92, 110, 96]],
+];
+const DRY: RGB = [182, 164, 96];
+const ROCK: RGB[] = [[70, 66, 78], [102, 98, 108], [136, 132, 134], [166, 162, 158]];
+const SNOW: RGB[] = [[184, 202, 216], [232, 238, 242]];
+const FLOWERS: RGB[] = [[232, 134, 164], [244, 214, 96], [236, 236, 244]];
+
+const Ground = { Water: 0, Sand: 1, Land: 2, Rock: 3 } as const;
+let groundCache: { key: string; pixels: Uint32Array; kinds: Uint8Array } | null = null;
 
 export function drawLandscape(ctx: DrawingContext, world: World) {
-  const identity = JSON.stringify([world.seed, world.size, world.waterLevel]);
-  if (identity !== landscapeIdentity) { landscapeIdentity = identity; groundCache = null; chunks.clear(); }
   const season = Math.floor(world.day / 90) % 4;
-  // Ground tint changes weekly; topology and analytical layers stay exact.
-  const groundKey = `${season}:${Math.floor(world.day / 7)}`;
-  if (!groundCache || groundCache.key !== groundKey) {
-    const canvas = groundCache?.canvas ?? createSurface(world.size * 3, world.size * 3);
-    const context = canvas.getContext('2d') as DrawingContext;
-    context.setTransform(3 / LANDSCAPE_CELL, 0, 0, 3 / LANDSCAPE_CELL, 0, 0);
-    drawGround(context, world);
-    groundCache = { key: groundKey, canvas };
-  }
-  const extent = world.size * LANDSCAPE_CELL;
-  ctx.drawImage(groundCache.canvas, 0, 0, extent, extent);
-  const pad = LANDSCAPE_CELL;
-  for (let y = 0; y < world.size; y += CHUNK_SIZE) for (let x = 0; x < world.size; x += CHUNK_SIZE) {
-    const right = Math.min(world.size, x + CHUNK_SIZE), bottom = Math.min(world.size, y + CHUNK_SIZE);
-    const leftHalo = Math.max(0, x - 1), topHalo = Math.max(0, y - 1);
-    const rightHalo = Math.min(world.size, right + 1), bottomHalo = Math.min(world.size, bottom + 1);
-    let signature = `${season}:`;
-    for (let row = topHalo; row < bottomHalo; row++) for (let column = leftHalo; column < rightHalo; column++) signature += objectSignature(world.cells[row * world.size + column]);
-    const key = `${x}:${y}`, cached = chunks.get(key);
-    const width = (right - x) * LANDSCAPE_CELL, height = (bottom - y) * LANDSCAPE_CELL;
-    let tile = cached?.canvas;
-    if (!cached || cached.signature !== signature) {
-      tile ??= createSurface(width + pad * 2, height + pad * 2);
-      const context = tile.getContext('2d') as DrawingContext;
-      context.setTransform(1, 0, 0, 1, 0, 0);
-      context.clearRect(0, 0, tile.width, tile.height);
-      context.translate(pad - x * LANDSCAPE_CELL, pad - y * LANDSCAPE_CELL);
-      drawObjects(context, world, leftHalo, topHalo, rightHalo, bottomHalo);
-      chunks.set(key, { signature, canvas: tile });
-    }
-    ctx.drawImage(tile!, pad, pad, width, height, x * LANDSCAPE_CELL, y * LANDSCAPE_CELL, width, height);
-  }
+  // The ground follows moisture and snow weekly; topology and analytical layers stay exact.
+  const key = JSON.stringify([world.seed, world.size, world.waterLevel, season, Math.floor(world.day / 7)]);
+  if (!groundCache || groundCache.key !== key) groundCache = { key, ...paintGround(world, season) };
+  const side = world.size * PIXEL;
+  const image = ctx.createImageData(side, side);
+  const pixels = new Uint32Array(image.data.buffer);
+  pixels.set(groundCache.pixels);
+  paintObjects(pixels, side, world, season);
+  ctx.putImageData(image, 0, 0);
 }
 
-function drawGround(ctx: DrawingContext, world: World) {
+function paintGround(world: World, season: number) {
   const { size, cells, waterLevel } = world;
-  const season = Math.floor(world.day / 90) % 4;
-  const palette = palettes[season];
-  const raster = createSurface(1, 1);
-  const samples = 3;
-  const resolution = size * samples;
-  raster.width = raster.height = resolution;
-  const rasterCtx = raster.getContext('2d') as DrawingContext;
-  const image = rasterCtx.createImageData(resolution, resolution);
+  const side = size * PIXEL;
+  const pixels = new Uint32Array(side * side), kinds = new Uint8Array(side * side), bands = new Uint8Array(side * side);
   const at = (x: number, y: number) => cells[clamp(y, 0, size - 1) * size + clamp(x, 0, size - 1)];
-  for (let py = 0; py < resolution; py++) for (let px = 0; px < resolution; px++) {
-    const gx = px / samples - 0.5, gy = py / samples - 0.5;
+  const grass = GRASS[season], forest = FOREST[season];
+  const snowLine = season === 3 ? 0.85 : 0.94;
+  for (let py = 0; py < side; py++) for (let px = 0; px < side; px++) {
+    const gx = (px + 0.5) / PIXEL - 0.5, gy = (py + 0.5) / PIXEL - 0.5;
     const ix = Math.floor(gx), iy = Math.floor(gy), fx = gx - ix, fy = gy - iy;
     const a = at(ix, iy), b = at(ix + 1, iy), c = at(ix, iy + 1), d = at(ix + 1, iy + 1);
-    const height = (a.elevation * (1 - fx) + b.elevation * fx) * (1 - fy) + (c.elevation * (1 - fx) + d.elevation * fx) * fy;
-    const moisture = (a.moisture * (1 - fx) + b.moisture * fx) * (1 - fy) + (c.moisture * (1 - fx) + d.moisture * fx) * fy;
-    const grain = (variation(px, py) - 0.5) * 9;
-    const slopeX = (b.elevation - a.elevation) * (1 - fy) + (d.elevation - c.elevation) * fy;
-    const slopeY = (c.elevation - a.elevation) * (1 - fx) + (d.elevation - b.elevation) * fx;
-    const slope = (slopeX + slopeY) * 3;
-    const shade = clamp(1 - slope, 0.73, 1.17);
-    let red: number, green: number, blue: number;
+    const lerp = (va: number, vb: number, vc: number, vd: number) => (va * (1 - fx) + vb * fx) * (1 - fy) + (vc * (1 - fx) + vd * fx) * fy;
+    const noise = variation(px, py), blot = variation(px >> 1, py >> 1, 2);
+    const height = lerp(a.elevation, b.elevation, c.elevation, d.elevation) + (noise - 0.5) * 0.006;
+    const i = py * side + px, dither = bayer(px, py);
+    let color: RGB;
     if (height < waterLevel) {
-      const depth = clamp((waterLevel - height) / 0.28);
-      red = 58 - depth * 36; green = 139 - depth * 66; blue = 147 - depth * 48;
-      if (waterLevel - height < 0.012) { red = 110; green = 169; blue = 161; }
-    } else if (height < waterLevel + 0.036) {
-      const wet = clamp((height - waterLevel) / 0.036);
-      red = 178 + wet * 42; green = 172 + wet * 31; blue = 126 + wet * 27;
-    } else if (height > 0.76) {
-      const snow = season === 3 && height > 0.86;
-      red = snow ? 211 : 148 + height * 19; green = snow ? 223 : 149 + height * 16; blue = snow ? 215 : 127 + height * 20;
+      const band = Math.min(4, Math.floor(clamp((waterLevel - height) / 0.16) * 5 + dither - 0.25));
+      kinds[i] = Ground.Water; bands[i] = Math.max(0, band);
+      color = noise > 0.985 && band > 0 ? WATER[band - 1] : WATER[Math.max(0, band)];
+    } else if (height < waterLevel + 0.035) {
+      kinds[i] = Ground.Sand;
+      color = SAND[blot > 0.85 ? 2 : 1];
+    } else if (height > 0.76 || (height > 0.72 && dither < (height - 0.72) / 0.04)) {
+      kinds[i] = Ground.Rock;
+      // Light comes from the upper left: faces sloping toward it are lit.
+      const slope = (b.elevation - a.elevation) * (1 - fy) + (d.elevation - c.elevation) * fy + (c.elevation - a.elevation) * (1 - fx) + (d.elevation - b.elevation) * fx;
+      const light = -slope * 14 + (blot - 0.5) * 0.35;
+      if (height > snowLine + (dither - 0.5) * 0.03) color = SNOW[light < -0.3 || blot < 0.22 ? 0 : 1];
+      else color = ROCK[light > 0.5 ? 3 : light > -0.1 ? 2 : light > -0.6 ? 1 : 0];
     } else {
-      const forest = clamp((moisture - 0.4) / 0.25);
-      const dryness = clamp((0.3 - moisture) / 0.3);
-      red = (palette[0][0] * (1 - forest) + palette[1][0] * forest) * (1 - dryness) + palette[2][0] * dryness;
-      green = (palette[0][1] * (1 - forest) + palette[1][1] * forest) * (1 - dryness) + palette[2][1] * dryness;
-      blue = (palette[0][2] * (1 - forest) + palette[1][2] * forest) * (1 - dryness) + palette[2][2] * dryness;
+      kinds[i] = Ground.Land;
+      const woods = lerp(+(a.terrain === 'forest'), +(b.terrain === 'forest'), +(c.terrain === 'forest'), +(d.terrain === 'forest'));
+      const palette = woods + (variation(px >> 1, py >> 1, 9) - 0.5) * 0.35 > 0.5 ? forest : grass;
+      color = palette[blot < 0.12 ? 0 : blot > 0.9 ? 2 : 1];
+      const moisture = lerp(a.moisture, b.moisture, c.moisture, d.moisture);
+      const dryness = clamp((0.32 - moisture) / 0.25);
+      if (dryness > dither) color = mix(color, DRY, 0.55);
+      const cell = cells[clamp(Math.round(gy), 0, size - 1) * size + clamp(Math.round(gx), 0, size - 1)];
+      if (season === 3 && cell.temperature < 0 && dither < clamp(-cell.temperature / 4, 0.25, 0.85)) color = SNOW[noise > 0.5 ? 1 : 0];
     }
-    const offset = (py * resolution + px) * 4;
-    const lighting = height < waterLevel ? 1 : shade;
-    image.data[offset] = red * lighting + grain;
-    image.data[offset + 1] = green * lighting + grain;
-    image.data[offset + 2] = blue * lighting + grain;
-    image.data[offset + 3] = 255;
+    pixels[i] = pack(color);
   }
-  rasterCtx.putImageData(image, 0, 0);
-  ctx.imageSmoothingEnabled = true;
-  ctx.drawImage(raster, 0, 0, size * LANDSCAPE_CELL, size * LANDSCAPE_CELL);
-
+  // Second pass: foam where water meets land, and wet sand on the shoreline.
+  for (let py = 0; py < side; py++) for (let px = 0; px < side; px++) {
+    const i = py * side + px;
+    const land = (x: number, y: number) => x >= 0 && y >= 0 && x < side && y < side && kinds[y * side + x] !== Ground.Water;
+    if (kinds[i] === Ground.Water && bands[i] <= 2 && (land(px + 1, py) || land(px - 1, py) || land(px, py + 1) || land(px, py - 1))) pixels[i] = pack(FOAM);
+    else if (kinds[i] === Ground.Sand && !land(px, py + 1)) pixels[i] = pack(SAND[0]);
+  }
+  return { pixels, kinds };
 }
 
-function drawObjects(ctx: DrawingContext, world: World, left: number, top: number, right: number, bottom: number) {
-  const season = Math.floor(world.day / 90) % 4;
-  // Tile halos preserve objects and shadows crossing a chunk boundary.
-  for (let row = top; row < bottom; row++) for (let column = left; column < right; column++) {
-    const cell = world.cells[row * world.size + column];
-    const { x, y, vegetation: v } = cell;
-    const rand = variation(x, y, 3);
-    const cx = (x + 0.2 + rand * 0.6) * LANDSCAPE_CELL;
-    const cy = (y + 0.25 + variation(x, y, 7) * 0.5) * LANDSCAPE_CELL;
-    if (cell.terrain === 'water') continue;
+// Sprites are drawn as text: each letter is a colour slot, '.' is empty and 's' darkens what lies below (a shadow).
+type Sprite = { width: number; height: number; rows: string[] };
+const sprite = (...rows: string[]): Sprite => ({ width: rows[0].length, height: rows.length, rows });
+const BROADLEAF = sprite(
+  '..ddd..',
+  '.dmmld.',
+  'dmmmlld',
+  'dmmmmld',
+  'dmmmmmd',
+  '.ddmdd.',
+  '...t...',
+  '..stss.');
+const SAPLING = sprite(
+  '.ddd.',
+  'dmmld',
+  'dmmmd',
+  '.dtd.',
+  '.sts.');
+const PINE = sprite(
+  '..d..',
+  '..m..',
+  '.dml.',
+  '.dml.',
+  'dmmll',
+  'ddmmd',
+  '..t..',
+  '.sts.');
+const BUSH = sprite(
+  '.dmd.',
+  'dmlmd',
+  'sddds');
+const FRUIT_BUSH = sprite(
+  '.dmd.',
+  'dmlfd',
+  'sddds');
+const PEAK = sprite(
+  '...w...',
+  '..wlm..',
+  '.llmmd.',
+  'llmmmdd');
+const LEAVES: Record<string, RGB[][]> = {
+  // dark, mid, light per season
+  broadleaf: [
+    [[34, 92, 46], [84, 160, 68], [148, 210, 96]],
+    [[30, 80, 40], [70, 142, 58], [126, 188, 80]],
+    [[146, 72, 38], [204, 118, 44], [236, 178, 72]],
+    [[78, 94, 84], [110, 124, 112], [226, 234, 238]],
+  ],
+  autumnRed: [[], [], [[118, 46, 40], [178, 66, 52], [222, 118, 70]], []],
+  pine: [
+    [[28, 72, 52], [42, 98, 64], [70, 130, 80]],
+    [[26, 66, 48], [38, 90, 60], [62, 118, 74]],
+    [[30, 70, 50], [44, 92, 60], [66, 116, 70]],
+    [[30, 64, 56], [46, 86, 70], [226, 234, 238]],
+  ],
+  bush: [
+    [[58, 112, 52], [92, 152, 62], [142, 190, 84]],
+    [[52, 100, 46], [82, 136, 54], [124, 170, 70]],
+    [[120, 100, 46], [160, 132, 56], [196, 166, 80]],
+    [[84, 102, 88], [116, 132, 116], [220, 230, 234]],
+  ],
+};
+const TRUNK: RGB = [98, 70, 46];
+const FRUIT: RGB = [236, 92, 72];
+
+function stamp(pixels: Uint32Array, side: number, art: Sprite, left: number, top: number, colors: Record<string, number>) {
+  for (let y = 0; y < art.height; y++) {
+    const py = top + y;
+    if (py < 0 || py >= side) continue;
+    const row = art.rows[y];
+    for (let x = 0; x < art.width; x++) {
+      const px = left + x, slot = row[x];
+      if (slot === '.' || px < 0 || px >= side) continue;
+      const i = py * side + px;
+      if (slot === 's') {
+        const v = pixels[i];
+        pixels[i] = (255 << 24 | ((v >>> 16 & 255) * 0.62) << 16 | ((v >>> 8 & 255) * 0.62) << 8 | (v & 255) * 0.62) >>> 0;
+      } else pixels[i] = colors[slot];
+    }
+  }
+}
+const slots = (palette: RGB[], extra: Record<string, RGB> = {}) => {
+  const out: Record<string, number> = { t: pack(TRUNK), f: pack(FRUIT) };
+  if (palette.length) Object.assign(out, { d: pack(palette[0]), m: pack(palette[1]), l: pack(palette[2]) });
+  for (const [key, value] of Object.entries(extra)) out[key] = pack(value);
+  return out;
+};
+
+function paintObjects(pixels: Uint32Array, side: number, world: World, season: number) {
+  const broadleaf = slots(LEAVES.broadleaf[season]), red = season === 2 ? slots(LEAVES.autumnRed[2]) : broadleaf;
+  const pine = slots(LEAVES.pine[season]), bush = slots(LEAVES.bush[season]);
+  const peak = slots([], { l: ROCK[2], m: ROCK[1], d: ROCK[0], w: ROCK[3] }), snowyPeak = slots([], { l: ROCK[2], m: ROCK[1], d: ROCK[0], w: SNOW[1] });
+  // Row by row, so whatever stands lower on the map overlaps what stands behind it.
+  for (const cell of world.cells) {
+    const { x, y, vegetation: v } = cell, left = x * PIXEL, top = y * PIXEL, rand = variation(x, y, 3);
+    if (cell.terrain === 'water' || cell.terrain === 'sand') continue;
     if (cell.terrain === 'mountain') {
-      if (rand > 0.64) rock(ctx, cx, cy, 6 + (cell.elevation - 0.76) * 36, season === 3 && cell.temperature < 0);
+      if (rand > 0.55) stamp(pixels, side, PEAK, left + Math.floor(variation(x, y, 4) * 2), top + 3, cell.elevation > 0.94 || (season === 3 && cell.temperature < 0) ? snowyPeak : peak);
       continue;
     }
-    if (cell.terrain === 'sand') {
-      if (rand > 0.7) { ctx.strokeStyle = '#9e94744d'; ctx.lineWidth = 0.8; ctx.beginPath(); ctx.moveTo(cx - 3, cy); ctx.quadraticCurveTo(cx, cy - 2, cx + 5, cy); ctx.stroke(); }
-      continue;
-    }
-    if (v.grass > 4 && rand > 0.35) {
-      ctx.strokeStyle = season === 2 ? '#b5ab6d99' : '#c4d08d88'; ctx.lineWidth = 0.8; ctx.beginPath();
-      ctx.moveTo(cx - 5, cy + 5); ctx.lineTo(cx - 6, cy + 1); ctx.moveTo(cx - 4, cy + 5); ctx.lineTo(cx - 2, cy + 2); ctx.stroke();
-    }
-    const count = v.trees < 8 ? 0 : Math.min(3, Math.ceil(v.trees / 35));
-    for (let i = 0; i < count; i++) {
-      const tx = count === 1 ? cx : (x + 0.12 + variation(x + i * 71, y, 12) * 0.76) * LANDSCAPE_CELL;
-      const ty = count === 1 ? cy : (y + 0.2 + variation(x, y + i * 59, 5) * 0.65) * LANDSCAPE_CELL;
-      tree(ctx, tx, ty, 3.2 + Math.min(1, v.trees / 65) * 3 + variation(x, y, i) * 1.5, season, rand);
-    }
-    if (v.shrubs > 5 && rand > 0.3) {
-      const sx = cx + 5, sy = cy + 7;
-      ctx.fillStyle = '#203c3240'; ctx.beginPath(); ctx.ellipse(sx + 2, sy + 2, 4, 2, 0, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = season === 2 ? '#b09952' : season === 3 ? '#8da58b' : '#a2b85e';
-      ctx.beginPath(); ctx.ellipse(sx, sy, 3.2, 2.2, -0.25, 0, Math.PI * 2); ctx.fill();
-      if (v.fruit > 1) { ctx.fillStyle = '#e6a55f'; ctx.beginPath(); ctx.arc(sx - 1, sy - 1, 0.9, 0, Math.PI * 2); ctx.arc(sx + 1.7, sy, 0.8, 0, Math.PI * 2); ctx.fill(); }
+    const open = cell.terrain === 'grass';
+    if (open && v.grass > 4) flowersAndTufts(pixels, side, cell, season);
+    if (open && v.shrubs > 5 && rand > 0.68) stamp(pixels, side, v.fruit > 3 ? FRUIT_BUSH : BUSH, left + Math.floor(variation(x, y, 5) * 4), top + 2 + Math.floor(variation(x, y, 6) * 5), bush);
+    const count = v.trees < 8 ? 0 : Math.min(2, Math.ceil(v.trees / 40));
+    const trees: [number, number, number][] = [];
+    // One tree near the middle of the cell, or two staggered ones, with a little jitter so woods do not look planted.
+    for (let i = 0; i < count; i++) trees.push([left + (count === 1 ? 4 : 2 + i * 4) + Math.floor(variation(x + i * 71, y, 12) * 2), top + (count === 1 ? 6 : 4 + i * 3) + Math.floor(variation(x, y + i * 59, 5) * 2), i]);
+    trees.sort((p, q) => p[1] - q[1]);
+    for (const [tx, ty, i] of trees) {
+      const conifer = cell.elevation > 0.64 || variation(x, y, 20 + i) > 0.78;
+      const art = conifer ? PINE : v.trees > 45 && variation(x, y, 30 + i) > 0.25 ? BROADLEAF : SAPLING;
+      stamp(pixels, side, art, tx - (art.width >> 1), ty - art.height + 1, conifer ? pine : variation(x, y, 40 + i) > 0.5 ? red : broadleaf);
     }
   }
 }
 
-function tree(ctx: DrawingContext, x: number, y: number, r: number, season: number, rand: number) {
-  const radius = Math.round(r), key = `${radius}:${season}:${rand > 0.55}`;
-  let sprite = treeSprites.get(key);
-  if (!sprite) {
-    sprite = createSurface(48, 48);
-    paintTree(sprite.getContext('2d') as DrawingContext, 24, 30, radius, season, rand);
-    treeSprites.set(key, sprite);
+function flowersAndTufts(pixels: Uint32Array, side: number, cell: Cell, season: number) {
+  const { x, y } = cell;
+  const r = variation(x, y, 8);
+  if (r < 0.45) return;
+  const px = x * PIXEL + Math.floor(variation(x, y, 9) * 7), py = y * PIXEL + Math.floor(variation(x, y, 10) * 7);
+  if (px + 2 >= side || py + 1 >= side) return;
+  if ((season === 0 || season === 1) && r > 0.9) pixels[py * side + px] = pack(FLOWERS[Math.floor(variation(x, y, 11) * 3)]);
+  else {
+    const tuft = pack(GRASS[season][2]);
+    pixels[py * side + px] = tuft; pixels[py * side + px + 2] = tuft; pixels[(py + 1) * side + px + 1] = tuft;
   }
-  ctx.drawImage(sprite, x - 24, y - 30);
 }
 
-function paintTree(ctx: DrawingContext, x: number, y: number, r: number, season: number, rand: number) {
-  ctx.fillStyle = '#152e2e42'; ctx.beginPath(); ctx.ellipse(x + r * 0.65, y + r * 0.5, r * 1.1, r * 0.6, 0.5, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = '#655238'; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(x, y + 3); ctx.lineTo(x, y - r * 0.3); ctx.stroke();
-  const colors = season === 2 ? ['#746e37', '#a48b43', '#c0a458'] : season === 3 ? ['#496b60', '#719080', '#a1b6a1'] : ['#294e3d', '#467348', '#719557'];
-  ctx.fillStyle = colors[0]; ctx.beginPath(); ctx.ellipse(x, y - r * 0.55, r, r * 0.83, -0.2, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = colors[1]; ctx.beginPath(); ctx.arc(x - r * 0.2, y - r * 0.9, r * 0.74, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = colors[2]; ctx.beginPath(); ctx.ellipse(x - r * 0.4, y - r * 1.05, r * 0.43, r * 0.25, -0.6, 0, Math.PI * 2); ctx.fill();
-  if (season === 3 && rand > 0.55) { ctx.fillStyle = '#d6dfcc'; ctx.beginPath(); ctx.ellipse(x - r * 0.2, y - r * 1.1, r * 0.62, r * 0.24, 0, 0, Math.PI * 2); ctx.fill(); }
-}
-
-function rock(ctx: DrawingContext, x: number, y: number, r: number, snow: boolean) {
-  const radius = Math.round(r), key = `${radius}:${snow}`;
-  let sprite = rockSprites.get(key);
-  if (!sprite) {
-    sprite = createSurface(64, 64);
-    paintRock(sprite.getContext('2d') as DrawingContext, 32, 42, radius, snow);
-    rockSprites.set(key, sprite);
-  }
-  ctx.drawImage(sprite, x - 32, y - 42);
-}
-
-function paintRock(ctx: DrawingContext, x: number, y: number, r: number, snow: boolean) {
-  ctx.fillStyle = '#46565038'; ctx.beginPath(); ctx.ellipse(x + r * 0.3, y + r * 0.2, r, r * 0.42, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#a9ad98'; ctx.beginPath(); ctx.moveTo(x - r, y); ctx.lineTo(x - r * 0.15, y - r * 1.2); ctx.lineTo(x + r * 0.7, y - r * 0.2); ctx.lineTo(x + r, y + r * 0.25); ctx.closePath(); ctx.fill();
-  ctx.fillStyle = '#747f71'; ctx.beginPath(); ctx.moveTo(x - r * 0.15, y - r * 1.2); ctx.lineTo(x + r, y + r * 0.25); ctx.lineTo(x + r * 0.05, y + r * 0.1); ctx.closePath(); ctx.fill();
-  if (snow) { ctx.fillStyle = '#e1e8dd'; ctx.beginPath(); ctx.moveTo(x - r * 0.15, y - r * 1.2); ctx.lineTo(x - r * 0.6, y - r * 0.55); ctx.lineTo(x - r * 0.1, y - r * 0.68); ctx.lineTo(x + r * 0.35, y - r * 0.55); ctx.closePath(); ctx.fill(); }
-}
-
-/** Only precipitation moves. Water, trees and terrain stay still between state changes. */
+/** Only precipitation moves, in whole art pixels. Water, trees and terrain stay still between state changes. */
 export function drawAtmosphere(ctx: DrawingContext, world: World, time: number) {
-  const width = world.size * LANDSCAPE_CELL;
+  const width = world.size * PIXEL;
   ctx.clearRect(0, 0, width, width);
   if (!world.cells.some(cell => cell.precipitation !== 'none')) return;
-  ctx.strokeStyle = '#d5e5e650'; ctx.lineWidth = 1.5; ctx.beginPath();
-  const flakes: [number, number][] = [];
-  for (let i = 0; i < 130; i++) {
-    const x = (variation(i, 13) * width + time * 20) % width;
-    const y = (variation(i, 37) * width + time * 190) % width;
-    const cell = world.cells[Math.floor(y / LANDSCAPE_CELL) * world.size + Math.floor(x / LANDSCAPE_CELL)];
-    if (cell.precipitation === 'rain') { ctx.moveTo(x, y); ctx.lineTo(x - 3, y + 11); }
-    const sx = (variation(i, 17) * width + Math.sin(time + i) * 5 + width) % width;
-    const sy = (variation(i, 43) * width + time * 35) % width;
-    const snowCell = world.cells[Math.floor(sy / LANDSCAPE_CELL) * world.size + Math.floor(sx / LANDSCAPE_CELL)];
-    if (snowCell.precipitation === 'snow') flakes.push([sx, sy]);
+  const cellAt = (x: number, y: number) => world.cells[Math.floor(y / PIXEL) * world.size + Math.floor(x / PIXEL)];
+  ctx.fillStyle = '#c8dceab0';
+  for (let i = 0; i < 160; i++) {
+    const x = Math.floor((variation(i, 13) * width + time * 7) % width), y = Math.floor((variation(i, 37) * width + time * 64) % width);
+    if (cellAt(x, y).precipitation === 'rain') ctx.fillRect(x, y, 1, 3);
   }
-  ctx.stroke();
-  ctx.fillStyle = '#f1f4e6d9'; ctx.beginPath();
-  for (const [x, y] of flakes) { ctx.moveTo(x + 2, y); ctx.arc(x, y, 2, 0, Math.PI * 2); }
-  ctx.fill();
+  ctx.fillStyle = '#f4f6ec';
+  for (let i = 0; i < 160; i++) {
+    const x = Math.floor((variation(i, 17) * width + Math.sin(time + i) * 2 + width) % width), y = Math.floor((variation(i, 43) * width + time * 12) % width);
+    if (cellAt(x, y).precipitation === 'snow') ctx.fillRect(x, y, 1, 1);
+  }
 }

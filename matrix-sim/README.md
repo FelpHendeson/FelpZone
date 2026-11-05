@@ -58,7 +58,7 @@ Abra a URL exibida pelo Vite. Para verificar as regras, execute `npm test`. Para
 
 Altitude, umidade e fertilidade usam escalas relativas. Vegetação, frutos e matéria em decomposição usam unidades abstratas de biomassa. Temperatura em °C é um parâmetro de jogo simplificado. Este é um modelo experimental, sem pretensão de reproduzir ecologia ou clima reais.
 
-Os efeitos gráficos não avançam o relógio, não consomem recursos e não usam a aleatoriedade da simulação. O solo usa interpolação visual entre centros de regiões para suavizar as margens; a grade e a inspeção continuam mostrando as células originais. As camadas de dados mantêm cores exatas e não recebem chuva, vegetação decorativa ou sombras da paisagem.
+Os efeitos gráficos não avançam o relógio, não consomem recursos e não usam a aleatoriedade da simulação. O mapa é pixel art: cada região vira um bloco de 8×8 pixels, ampliado sem suavização. O chão interpola a altitude entre os centros das regiões para que costas e encostas tenham contornos naturais, com faixas de profundidade pontilhadas na água, espuma na costa, luz e sombra nas montanhas e neve no inverno. Árvores, pinheiros, arbustos, frutos, flores e picos são sprites desenhados em texto no código e mudam de cor com a estação. Os Folhins usam a mesma escala de pixel. A grade e a inspeção continuam mostrando as células originais. As camadas de dados mantêm cores exatas e não recebem chuva, vegetação decorativa ou sombras da paisagem.
 
 ## Desempenho
 
@@ -68,7 +68,7 @@ Os efeitos gráficos não avançam o relógio, não consomem recursos e não usa
 - O relógio preserva a fração do dia ao pausar ou trocar de velocidade. A barra de progresso é atualizada diretamente, sem redesenhar a paisagem ou renderizar novamente todos os painéis. Há no máximo um passo em processamento, sem fila de dias atrasados. Pausar impede novos passos; um passo já enviado termina normalmente. Gerar outro mundo invalida resultados anteriores.
 - A vegetação é armazenada em blocos de 16 × 16 regiões. Cada bloco é redesenhado apenas quando sua representação visível muda, com uma margem que preserva copas e sombras entre blocos.
 - O fundo do terreno é reutilizado por semana simulada e atualizado na troca de estação. Essa frequência afeta apenas o tom visual do chão; umidade, recursos e demais dados continuam atualizados nas fases de cada região ao longo do dia.
-- A resolução da paisagem é de 12 pixels por região na visão inteira e 24 no zoom. Seleção e grade são sobreposições independentes e não exigem redesenhar o terreno.
+- O mundo é desenhado uma única vez em resolução de arte (8 pixels por região) e ampliado pelo navegador com `image-rendering: pixelated`, em qualquer zoom. Seleção e grade são sobreposições independentes e não exigem redesenhar o terreno.
 
 O navegador precisa oferecer Web Workers e OffscreenCanvas. Falhas aparecem na interface, sem voltar silenciosamente ao cálculo pesado na thread dos controles. Ainda não há renderização restrita à área visível ou motor em WebGL; essas opções podem ser avaliadas se o mapa crescer.
 

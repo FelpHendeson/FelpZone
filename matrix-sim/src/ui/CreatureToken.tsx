@@ -4,40 +4,50 @@ import { forms } from '../simulation/skills';
 import { bandColor } from '../simulation/bands';
 import { STEP_MS } from '../simulation/dayClock';
 
+/** A Folhim is pixel art at the map's own scale: one unit of the drawing is one pixel of the world. */
+const ART = 14, PIXELS_PER_CELL = 8;
+type Rect = [number, number, number, number];
+const Px = ({ r, fill }: { r: Rect[]; fill: string }) => <>{r.map(([x, y, w, h]) => <rect key={`${x}:${y}`} x={x} y={y} width={w} height={h} fill={fill} />)}</>;
+const INK = '#3b2a1c', BROWN = '#7a5236';
+
 type Props = { creature: Creature; size: number; selected: boolean; leader: boolean; running: boolean; speed: number; motion: boolean; onSelect: (id: number) => void };
 export function CreatureToken({ creature: c, size, selected, leader, running, speed, motion, onSelect }: Props) {
   const moving = c.moving && running && motion;
   const label = c.trueName ? `${c.trueName} (#${c.id})` : `${forms[c.form].name} ${c.id}`;
+  const fur = c.variant === 'bosque' ? '#9bc277' : '#e8cc96', light = c.variant === 'bosque' ? '#c8e0a0' : '#f7e4bc';
   return <button type="button" className={`creature-token${selected ? ' creature-selected' : ''}`}
     data-moving={moving} data-awakened={c.awakenedDay !== null} data-named={!!c.trueName} data-form={c.form} data-action={c.action} data-animated={running && motion} data-facing={c.facing}
     aria-label={`${label}, ${variantNames[c.variant]}, bando ${c.bandId}, ${actionNames[c.action].toLocaleLowerCase('pt-BR')}`}
     aria-pressed={selected} title={`${c.trueName ? `${c.trueName} · ` : ''}${forms[c.form].name} #${c.id} · ${variantNames[c.variant]} · ${c.skills.length} habilidades · Bando ${c.bandId} · ${actionNames[c.action]} · Energia ${Math.round(c.energy)}`}
-    style={{ left: `${(c.x + 0.5) / size * 100}%`, top: `${(c.y + 0.5) / size * 100}%`, width: `${100 / size}%`,
+    style={{ left: `${(c.x + 0.5) / size * 100}%`, top: `${(c.y + 0.5) / size * 100}%`, width: `${ART / PIXELS_PER_CELL * 100 / size}%`,
       transitionDuration: running && motion ? `${Math.max(0.1, STEP_MS / 1000 / speed)}s` : '0s', '--gait': `${Math.max(0.12, 0.32 / speed)}s` } as CSSProperties}
     onPointerDown={event => event.stopPropagation()} onClick={() => onSelect(c.id)}>
-    <svg viewBox="0 -5 36 39" aria-hidden="true">
-      <ellipse cx="17" cy="26" rx="12" ry="3.5" fill="#152b3255" />
-      {c.awakenedDay !== null && <circle className="folhim-aura" cx="18" cy="16" r="15" fill="none" stroke="#c9b6ff" strokeWidth="1.5" />}
-      {c.trueName && <text className="folhim-named" x="18" y="-1" textAnchor="middle">✺</text>}
+    <svg viewBox="-1 -4 14 15" shapeRendering="crispEdges" aria-hidden="true">
+      <Px fill="#0000004d" r={[[1, 10, 9, 1]]} />
+      {c.awakenedDay !== null && <circle className="folhim-aura" cx="6" cy="4" r="7.2" fill="none" stroke="#c9b6ff" strokeWidth="0.6" shapeRendering="auto" />}
+      {c.trueName && <g className="folhim-named"><Px fill="#f0d58a" r={[[5, -4, 1, 3], [4, -3, 3, 1]]} /></g>}
       <g className="folhim-facing"><g className="folhim-body">
-        <path className="folhim-tail" d="M8 21Q0 22 3 15" fill="none" stroke="#6c5039" strokeWidth="2" />
-        <path className="folhim-leg folhim-leg-back" d="M11 21l-2 5h5" fill="none" stroke="#685e43" strokeWidth="2.5" strokeLinecap="round" />
-        <path className="folhim-leg folhim-leg-front" d="M23 21l-1 5h5" fill="none" stroke="#685e43" strokeWidth="2.5" strokeLinecap="round" />
-        <ellipse cx="17" cy="18" rx="11" ry="7" fill={c.variant === 'bosque' ? '#9bac79' : '#ead3a5'} stroke="#6c5039" strokeWidth="1.2" />
-        <path d="M12 14q4-3 7 0" fill="none" stroke={bandColor(c.bandId)} strokeWidth="3.5" strokeLinecap="round" />
-        {c.form === "errante" && <path className="folhim-cape" d="M7 17q3-8 12-7q-4 3-5 9Z" fill="#8fc46a" stroke="#4a713c" strokeWidth="0.8" />}
-        {c.form === "guardiao" && <path className="folhim-ridge" d="M8 15l2-3 2 2 2-4 2 3 2-4 2 3 2-3" fill="none" stroke="#5b4330" strokeWidth="1.6" strokeLinejoin="round" />}
+        <g className="folhim-tail"><Px fill={BROWN} r={[[0, 4, 2, 1], [0, 5, 1, 1]]} /></g>
+        <g className="folhim-leg folhim-leg-back"><Px fill={INK} r={[[3, 8, 1, 2]]} /></g>
+        <g className="folhim-leg folhim-leg-front"><Px fill={INK} r={[[7, 8, 1, 2]]} /></g>
+        <Px fill={INK} r={[[1, 4, 9, 5], [2, 3, 7, 3]]} />
+        <Px fill={fur} r={[[2, 5, 7, 3], [3, 4, 5, 1]]} />
+        <Px fill={light} r={[[3, 7, 5, 1]]} />
+        <Px fill={bandColor(c.bandId)} r={[[4, 4, 3, 1]]} />
+        {c.form === 'errante' && <g className="folhim-cape"><Px fill="#7fbf5a" r={[[2, 4, 3, 2], [2, 6, 1, 1]]} /></g>}
+        {c.form === 'guardiao' && <g className="folhim-ridge"><Px fill="#5b4330" r={[[3, 2, 1, 1], [5, 2, 1, 1], [7, 2, 1, 1]]} /></g>}
         <g className="folhim-head">
-          <ellipse cx="25" cy="7" rx="3" ry="6" fill="#c4aa7a" transform="rotate(20 25 7)" />
-          <ellipse cx="20" cy="7" rx="2.5" ry="5" fill={c.variant === 'bosque' ? '#c4d3a0' : '#f0dbb6'} transform="rotate(-15 20 7)" />
-          <circle cx="26" cy="14" r="6" fill={c.variant === 'bosque' ? '#c4d3a0' : '#f0dbb6'} />
-          {c.form === "guardiao" && <path className="folhim-horns" d="M23 3l-1-4M29 5l3-3" fill="none" stroke="#5b4330" strokeWidth="2" strokeLinecap="round" />}
-          <circle cx="27" cy="13" r={c.form === "vidente" ? 2 : 1.3} fill={c.form === "vidente" ? "#c9b6ff" : "#263b35"} /><circle cx="32" cy="16" r="1.2" fill="#6c5039" />
-          {c.action === 'grazing' && <path className="folhim-leaf" d="M29 21l6-4-2 7Z" fill="#a8d36b" stroke="#4a713c" strokeWidth="0.7" />}
+          <Px fill={INK} r={[[6, 1, 6, 5], [7, 0, 4, 3], [7, -3, 3, 5], [9, -2, 3, 5]]} />
+          <Px fill={c.variant === 'bosque' ? '#86a964' : '#d4b27c'} r={[[8, -2, 1, 3], [10, -1, 1, 3]]} />
+          <Px fill={light} r={[[7, 2, 4, 3], [8, 1, 2, 1]]} />
+          {c.form === 'guardiao' && <g className="folhim-horns"><Px fill="#efe2bf" r={[[7, -1, 1, 2], [11, 0, 1, 2]]} /></g>}
+          <Px fill={c.form === 'vidente' ? '#b49cff' : INK} r={[c.form === 'vidente' ? [9, 2, 1, 2] : [9, 2, 1, 1]]} />
+          <Px fill={BROWN} r={[[10, 3, 1, 1]]} />
+          {c.action === 'grazing' && <g className="folhim-leaf"><Px fill="#8fd05a" r={[[11, 4, 1, 2]]} /></g>}
         </g>
       </g></g>
-      {leader && <path d="M9-4l4 4-4 4-4-4Z" fill="#fff2b3" stroke="#43513b" strokeWidth="1" />}
-      {(c.action === 'disputing' || c.action === 'fleeing') && <path d="M3 2v5m0 3v1" stroke={c.action === 'disputing' ? '#ff9b70' : '#a9e1fb'} strokeWidth="2" strokeLinecap="round" />}
+      {leader && <Px fill="#fff2b3" r={[[1, -3, 1, 1], [0, -2, 3, 1], [1, -1, 1, 1]]} />}
+      {(c.action === 'disputing' || c.action === 'fleeing') && <Px fill={c.action === 'disputing' ? '#ff9b70' : '#a9e1fb'} r={[[-1, 0, 1, 2], [-1, 3, 1, 1]]} />}
     </svg>
   </button>;
 }

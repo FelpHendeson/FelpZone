@@ -6,11 +6,10 @@ import type { World } from '../simulation/world';
 import type { Layer } from './drawWorld';
 import type { RenderCommand, RenderResult } from './render.worker';
 
-export function useWorldRenderer(canvas: RefObject<HTMLCanvasElement | null>, world: World, layer: Layer, zoom: number) {
+export function useWorldRenderer(canvas: RefObject<HTMLCanvasElement | null>, world: World, layer: Layer) {
   const queue = useRef<LatestJob<RenderCommand, RenderResult> | null>(null);
   const [error, setError] = useState('');
-  const resolution = zoom === 1 ? 12 : 24;
-  const latest = useRef<RenderCommand>({ world, layer, resolution });
+  const latest = useRef<RenderCommand>({ world, layer });
   const scheduled = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastDraw = useRef(-Infinity);
   useEffect(() => {
@@ -36,20 +35,20 @@ export function useWorldRenderer(canvas: RefObject<HTMLCanvasElement | null>, wo
       },
       result => result.bitmap.close(),
       error => setError(error instanceof Error ? error.message : String(error)),
-      (older, newer) => older.layer === newer.layer && older.resolution === newer.resolution && older.world.seed === newer.world.seed && older.world.size === newer.world.size && older.world.waterLevel === newer.world.waterLevel && older.world.day <= newer.world.day,
+      (older, newer) => older.layer === newer.layer && older.world.seed === newer.world.seed && older.world.size === newer.world.size && older.world.waterLevel === newer.world.waterLevel && older.world.day <= newer.world.day,
     );
     queue.current = jobs;
     return () => { if (scheduled.current !== null) clearTimeout(scheduled.current); scheduled.current = null; queue.current = null; jobs.dispose(); client.dispose(); };
   }, [canvas]);
   useEffect(() => {
     const previous = latest.current;
-    latest.current = { world, layer, resolution };
-    const viewChanged = previous.layer !== layer || previous.resolution !== resolution || previous.world.seed !== world.seed || previous.world.waterLevel !== world.waterLevel || previous.world.size !== world.size || world.day < previous.world.day;
+    latest.current = { world, layer };
+    const viewChanged = previous.layer !== layer || previous.world.seed !== world.seed || previous.world.waterLevel !== world.waterLevel || previous.world.size !== world.size || world.day < previous.world.day;
     const submit = () => { scheduled.current = null; lastDraw.current = performance.now(); queue.current?.submit(latest.current); };
     if (viewChanged || performance.now() - lastDraw.current >= 1000) {
       if (scheduled.current !== null) clearTimeout(scheduled.current);
       submit();
     } else if (scheduled.current === null) scheduled.current = setTimeout(submit, 1000 - (performance.now() - lastDraw.current));
-  }, [world, layer, resolution]);
+  }, [world, layer]);
   return error;
 }

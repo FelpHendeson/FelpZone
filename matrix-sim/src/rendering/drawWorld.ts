@@ -1,5 +1,5 @@
 import { terrainInfo, type Cell, type World } from '../simulation/world';
-import { drawLandscape, LANDSCAPE_CELL } from './landscape';
+import { drawLandscape, PIXEL } from './landscape';
 import type { DrawingContext, Surface } from './surface';
 import { precipitationNames } from '../simulation/regionalWeather';
 export type Layer = 'terrain' | 'elevation' | 'food' | 'moisture' | 'fertility' | 'vegetation' | 'weather' | 'essence';
@@ -13,7 +13,7 @@ export function weatherColor(cell: Cell) {
   return weatherLegend[index].color;
 }
 export const layerInfo: Record<Layer, { name: string; description: string; min: string; max: string }> = {
-  terrain: { name: 'Terreno', description: 'Paisagem com relevo, margens e vegetação. As copas mostram árvores, os pequenos grupos mostram arbustos e os pontos dourados indicam frutos. Amplie para ver os detalhes.', min: '', max: '' },
+  terrain: { name: 'Terreno', description: 'Paisagem com relevo, margens e vegetação. As copas mostram árvores, os pequenos tufos mostram arbustos e os pontos vermelhos indicam frutos. Amplie para ver os detalhes.', min: '', max: '' },
   elevation: { name: 'Altitude', description: 'Altura relativa do terreno, incluindo o fundo dos corpos d’água. Não representa metros.', min: '0% · Baixo', max: '100% · Alto' },
   moisture: { name: 'Umidade', description: 'Água disponível no solo: a chuva e a proximidade da água aumentam este valor.', min: '0% · Seco', max: '100% · Úmido' },
   fertility: { name: 'Fertilidade', description: 'Condição do solo para sustentar o crescimento da vegetação.', min: '0% · Pobre', max: '100% · Fértil' },
@@ -42,13 +42,14 @@ export function layerValue(cell: Cell, layer: Layer): string {
   const value = layer === 'elevation' ? cell.elevation : layer === 'moisture' ? cell.moisture : cell.fertility;
   return `${Math.round(value * 100)}% de ${layerInfo[layer].name.toLocaleLowerCase('pt-BR')}`;
 }
-export const CELL_SIZE = LANDSCAPE_CELL;
-export function drawWorld(canvas: Surface, world: World, layer: Layer, resolution = CELL_SIZE) {
-  if (canvas.width !== world.size * resolution) canvas.width = world.size * resolution;
-  if (canvas.height !== world.size * resolution) canvas.height = world.size * resolution;
+export const CELL_SIZE = PIXEL;
+/** Drawn at art resolution; the page scales it up without smoothing. */
+export function drawWorld(canvas: Surface, world: World, layer: Layer) {
+  const side = world.size * CELL_SIZE;
+  if (canvas.width !== side) canvas.width = side;
+  if (canvas.height !== side) canvas.height = side;
   const ctx = canvas.getContext('2d') as DrawingContext | null;
   if (!ctx) throw new Error('Não foi possível desenhar o mundo.');
-  ctx.setTransform(resolution / CELL_SIZE, 0, 0, resolution / CELL_SIZE, 0, 0);
   ctx.clearRect(0, 0, world.size * CELL_SIZE, world.size * CELL_SIZE);
   if (layer === 'terrain') drawLandscape(ctx, world);
   else for (const cell of world.cells) {
