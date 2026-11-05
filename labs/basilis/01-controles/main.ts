@@ -3,7 +3,7 @@ import { length, snapDirection, type Vec } from './input.ts';
 import { createPlayer, stepPlayer } from './movement.ts';
 import { mountPanel } from './panel.ts';
 import { drawJoystick, drawScene, type Dummy } from './render.ts';
-import { loadSettings, movementSettings } from './settings.ts';
+import { DEFAULTS, FIELDS, loadSettings, movementSettings, saveSettings } from './settings.ts';
 import { GamepadSource, KeyboardSource, TouchSource, type SourceName, type SourceReading } from './sources.ts';
 import { createWorld, moveWithCollision } from './world.ts';
 
@@ -22,7 +22,7 @@ const hint = element<HTMLElement>('dica');
 const panel = element<HTMLElement>('ajustes');
 
 const settings = loadSettings();
-mountPanel(element('ajustes-campos'), settings);
+mountPanel(element('ajustes-campos'), settings, FIELDS, DEFAULTS, saveSettings);
 
 const world = createWorld(64, 64, 7);
 const player = createPlayer(32, 32);

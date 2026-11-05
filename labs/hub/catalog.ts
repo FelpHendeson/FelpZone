@@ -29,6 +29,12 @@ export const SECTIONS: Section[] = [
         question: 'Andar, atacar e esquivar ficam bons no celular e no navegador?',
         status: 'Em teste',
       },
+      {
+        path: 'basilis/02-cenario/',
+        title: '02 — Cenário e escala',
+        question: 'O movimento num cenário de pixel art montado de uma spritesheet (gerada ou de IA) fica nítido em qualquer tela?',
+        status: 'Em teste',
+      },
     ],
   },
   {

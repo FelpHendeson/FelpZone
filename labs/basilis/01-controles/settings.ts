@@ -42,8 +42,8 @@ export const DEFAULTS: Settings = {
   debug: true,
 };
 
-interface RangeField {
-  key: keyof Settings;
+interface RangeField<T> {
+  key: keyof T;
   label: string;
   kind: 'range';
   min: number;
@@ -52,22 +52,22 @@ interface RangeField {
   unit: string;
 }
 
-interface ChoiceField {
-  key: keyof Settings;
+interface ChoiceField<T> {
+  key: keyof T;
   label: string;
   kind: 'choice';
   options: [string, string][];
 }
 
-interface ToggleField {
-  key: keyof Settings;
+interface ToggleField<T> {
+  key: keyof T;
   label: string;
   kind: 'toggle';
 }
 
-export type Field = RangeField | ChoiceField | ToggleField;
+export type Field<T> = RangeField<T> | ChoiceField<T> | ToggleField<T>;
 
-export const FIELDS: Field[] = [
+export const FIELDS: Field<Settings>[] = [
   { key: 'speed', label: 'Velocidade', kind: 'range', min: 2, max: 10, step: 0.5, unit: 'tiles/s' },
   { key: 'acceleration', label: 'Aceleração', kind: 'range', min: 5, max: 120, step: 5, unit: 'tiles/s²' },
   { key: 'friction', label: 'Frenagem', kind: 'range', min: 5, max: 120, step: 5, unit: 'tiles/s²' },
@@ -122,28 +122,41 @@ export const FIELDS: Field[] = [
 const STORAGE_KEY = 'basilis.lab01.settings';
 
 export function loadSettings(): Settings {
-  try {
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? '{}') as Partial<Settings>;
-    return sanitize({ ...DEFAULTS, ...stored });
-  } catch {
-    return { ...DEFAULTS };
-  }
+  return loadStored(STORAGE_KEY, FIELDS, DEFAULTS);
 }
 
 export function saveSettings(settings: Settings): void {
+  saveStored(STORAGE_KEY, settings);
+}
+
+export function sanitize(settings: Settings): Settings {
+  return sanitizeWith(settings, FIELDS, DEFAULTS);
+}
+
+/** Lê ajustes salvos no aparelho; sem armazenamento, volta aos padrões. */
+export function loadStored<T extends object>(key: string, fields: Field<T>[], defaults: T): T {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+    const stored = JSON.parse(localStorage.getItem(key) ?? '{}') as Partial<T>;
+    return sanitizeWith({ ...defaults, ...stored }, fields, defaults);
+  } catch {
+    return { ...defaults };
+  }
+}
+
+export function saveStored<T extends object>(key: string, settings: T): void {
+  try {
+    localStorage.setItem(key, JSON.stringify(settings));
   } catch {
     // Sem armazenamento (aba privada, por exemplo): os ajustes valem só nesta sessão.
   }
 }
 
 /** Descarta valores salvos de versões antigas que não cabem mais nos campos. */
-export function sanitize(settings: Settings): Settings {
-  const result = { ...settings } as Record<keyof Settings, unknown>;
-  for (const field of FIELDS) {
+export function sanitizeWith<T extends object>(settings: T, fields: Field<T>[], defaults: T): T {
+  const result = { ...settings } as Record<keyof T, unknown>;
+  for (const field of fields) {
     const value = result[field.key];
-    const fallback = DEFAULTS[field.key];
+    const fallback = defaults[field.key];
     if (field.kind === 'range') {
       result[field.key] = typeof value === 'number' && value >= field.min && value <= field.max ? value : fallback;
     } else if (field.kind === 'choice') {
@@ -152,7 +165,7 @@ export function sanitize(settings: Settings): Settings {
       result[field.key] = typeof value === 'boolean' ? value : fallback;
     }
   }
-  return result as unknown as Settings;
+  return result as T;
 }
 
 export function movementSettings(settings: Settings): MovementSettings {

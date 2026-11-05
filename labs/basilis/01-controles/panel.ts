@@ -1,14 +1,20 @@
-// Painel de ajustes montado a partir de FIELDS. Cada mudança vale na hora e fica salva no aparelho.
+// Painel de ajustes montado a partir de uma lista de campos. Cada mudança vale na hora e é salva.
 
-import { DEFAULTS, FIELDS, saveSettings, type Field, type Settings } from './settings.ts';
+import type { Field } from './settings.ts';
 
-export function mountPanel(container: HTMLElement, settings: Settings): void {
+export function mountPanel<T extends object>(
+  container: HTMLElement,
+  settings: T,
+  fields: Field<T>[],
+  defaults: T,
+  save: (settings: T) => void,
+): void {
   const form = document.createElement('form');
   form.addEventListener('submit', (event) => event.preventDefault());
 
   const refreshers: (() => void)[] = [];
-  for (const field of FIELDS) {
-    const { row, refresh } = buildField(field, settings);
+  for (const field of fields) {
+    const { row, refresh } = buildField(field, settings, save);
     form.append(row);
     refreshers.push(refresh);
   }
@@ -18,15 +24,15 @@ export function mountPanel(container: HTMLElement, settings: Settings): void {
   reset.className = 'restaurar';
   reset.textContent = 'Restaurar padrão';
   reset.addEventListener('click', () => {
-    Object.assign(settings, DEFAULTS);
-    saveSettings(settings);
+    Object.assign(settings, defaults);
+    save(settings);
     refreshers.forEach((refresh) => refresh());
   });
   form.append(reset);
   container.append(form);
 }
 
-function buildField(field: Field, settings: Settings): { row: HTMLElement; refresh: () => void } {
+function buildField<T extends object>(field: Field<T>, settings: T, save: (settings: T) => void): { row: HTMLElement; refresh: () => void } {
   const row = document.createElement('label');
   row.className = `campo campo-${field.kind}`;
   const title = document.createElement('span');
@@ -34,18 +40,19 @@ function buildField(field: Field, settings: Settings): { row: HTMLElement; refre
   title.textContent = field.label;
   row.append(title);
   const values = settings as unknown as Record<string, unknown>;
+  const key = field.key as string;
 
   if (field.kind === 'range') {
     const output = document.createElement('output');
     const input = document.createElement('input');
     Object.assign(input, { type: 'range', min: String(field.min), max: String(field.max), step: String(field.step) });
     const refresh = () => {
-      input.value = String(values[field.key]);
-      output.textContent = `${values[field.key]}${field.unit ? ` ${field.unit}` : ''}`;
+      input.value = String(values[key]);
+      output.textContent = `${values[key]}${field.unit ? ` ${field.unit}` : ''}`;
     };
     input.addEventListener('input', () => {
-      values[field.key] = Number(input.value);
-      saveSettings(settings);
+      values[key] = Number(input.value);
+      save(settings);
       refresh();
     });
     title.append(output);
@@ -58,11 +65,11 @@ function buildField(field: Field, settings: Settings): { row: HTMLElement; refre
     const select = document.createElement('select');
     for (const [value, label] of field.options) select.add(new Option(label, value));
     const refresh = () => {
-      select.value = String(values[field.key]);
+      select.value = String(values[key]);
     };
     select.addEventListener('change', () => {
-      values[field.key] = select.value;
-      saveSettings(settings);
+      values[key] = select.value;
+      save(settings);
     });
     row.append(select);
     refresh();
@@ -72,11 +79,11 @@ function buildField(field: Field, settings: Settings): { row: HTMLElement; refre
   const checkbox = document.createElement('input');
   checkbox.type = 'checkbox';
   const refresh = () => {
-    checkbox.checked = Boolean(values[field.key]);
+    checkbox.checked = Boolean(values[key]);
   };
   checkbox.addEventListener('change', () => {
-    values[field.key] = checkbox.checked;
-    saveSettings(settings);
+    values[key] = checkbox.checked;
+    save(settings);
   });
   row.prepend(checkbox);
   refresh();

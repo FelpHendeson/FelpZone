@@ -224,8 +224,8 @@ Em pedaços, cada um terminado antes do próximo.
 1. **História e plano** (este documento): fechar as decisões em aberto.
 2. **Labs:** experimentos pequenos no hub [Felp Labs](../../labs/README.md), seção `basilis/`, cada um com uma pergunta e uma conclusão no próprio README. Eles viram, juntos, a base da engine.
    1. Movimento e joystick virtual em retrato
-   2. Mapa em tiles e câmera
-   3. Animação de sprites (andar, atacar, sofrer dano)
+   2. Cenário e escala: o movimento do Lab 01 num cenário gerado a partir de uma spritesheet (de código ou de IA), com o centro imutável da tela e câmera presa a pixels
+   3. Animação de sprites em pixel art (andar e atacar em 4 direções, sofrer dano, tiles animados)
    4. Combate em tempo real no dedo (ataque, esquiva, mira automática)
    5. Efeitos (partículas, tremor de tela, números de dano)
    6. Construção de cenários (como desenhar mapas: editor próprio, Tiled ou geração procedural do Matrix Sim)
@@ -233,4 +233,4 @@ Em pedaços, cada um terminado antes do próximo.
 3. **Fatia vertical:** o despertar num mapa pequeno perto de uma nascente, um NPC, um encontro com Folhins e uma luta.
 4. **Primeiro arco** com os três caminhos.
 
-Stack prevista para os labs: Vite + TypeScript + Canvas 2D, a mesma do Matrix Sim, reaproveitando as spritesheets de `matrix-sim/src/sprites`.
+Stack prevista para os labs: Vite + TypeScript + Canvas 2D, a mesma do Matrix Sim. A escola visual e as regras de pixel art estão em [DIRECAO-DE-ARTE.md](DIRECAO-DE-ARTE.md); as spritesheets de `matrix-sim/src/sprites` só entram se forem redesenhadas nessas regras.

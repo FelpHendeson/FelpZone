@@ -14,6 +14,7 @@ Hub de experimentos pequenos de jogo. Cada lab responde uma única pergunta e re
 | Lab | Pergunta | Estado |
 | --- | --- | --- |
 | [Basilis 01 — Controles](basilis/01-controles/README.md) | Andar, atacar e esquivar ficam bons no celular e no navegador? | Em teste |
+| [Basilis 02 — Cenário e escala](basilis/02-cenario/README.md) | O movimento num cenário de pixel art montado de uma spritesheet (gerada ou de IA) fica nítido em qualquer tela? | Em teste |
 
 ## Executar localmente
 
