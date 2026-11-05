@@ -58,7 +58,7 @@ Abra a URL exibida pelo Vite. Para verificar as regras, execute `npm test`. Para
 
 Altitude, umidade e fertilidade usam escalas relativas. Vegetação, frutos e matéria em decomposição usam unidades abstratas de biomassa. Temperatura em °C é um parâmetro de jogo simplificado. Este é um modelo experimental, sem pretensão de reproduzir ecologia ou clima reais.
 
-Os efeitos gráficos não avançam o relógio, não consomem recursos e não usam a aleatoriedade da simulação. O mapa é pixel art: cada região vira um bloco de 8×8 pixels, ampliado sem suavização. O chão interpola a altitude entre os centros das regiões para que costas e encostas tenham contornos naturais, com faixas de profundidade pontilhadas na água, espuma na costa, luz e sombra nas montanhas e neve no inverno. Árvores, pinheiros, arbustos, frutos, flores e picos são sprites desenhados em texto no código e mudam de cor com a estação. Os Folhins usam a mesma escala de pixel. A grade e a inspeção continuam mostrando as células originais. As camadas de dados mantêm cores exatas e não recebem chuva, vegetação decorativa ou sombras da paisagem.
+Os efeitos gráficos não avançam o relógio, não consomem recursos e não usam a aleatoriedade da simulação. O mapa é pixel art: cada região vira um bloco de 8×8 pixels, ampliado sem suavização. O chão interpola a altitude entre os centros das regiões para que costas e encostas tenham contornos naturais, com faixas de profundidade pontilhadas na água, espuma na costa, luz e sombra nas montanhas e neve no inverno. Árvores, arbustos, picos e Folhins vêm de spritesheets em `src/sprites` (veja abaixo). Os Folhins usam a mesma escala de pixel do mapa. A grade e a inspeção continuam mostrando as células originais. As camadas de dados mantêm cores exatas e não recebem chuva, vegetação decorativa ou sombras da paisagem.
 
 ## Desempenho
 
@@ -75,6 +75,15 @@ O navegador precisa oferecer Web Workers e OffscreenCanvas. Falhas aparecem na i
 Para diagnóstico, abra a aplicação com `?perfil=1`. O console registra separadamente o tempo de cálculo no worker, o desenho no worker e a apresentação do quadro pronto na interface. Esses números não representam FPS nem incluem todo o custo de composição do navegador. As medições ficam desligadas na navegação normal.
 
 O alimento deriva de 20% da cobertura rasteira, 30% dos arbustos e dos frutos disponíveis, com arredondamento por região na interface. Os Folhins consomem o estoque real, priorizando frutos, depois cobertura rasteira e arbustos. A quantidade efetivamente consumida determina a energia recuperada. Água, areia e montanha não sustentam vegetação nesta versão. A vegetação é tratada por grupos, sem espécies individuais. Os biomas e corpos d'água são fixos: ainda não há rios, fluxo de água, inundação, salinidade, erosão ou mudança de bioma.
+
+## Sprites
+
+Os desenhos ficam em duas spritesheets PNG em `src/sprites`, que podem ser editadas em qualquer editor de pixel art (Aseprite, Piskel, LibreSprite). Cada quadro tem 16×16 pixels e uma região do mapa tem 8×8, então um sprite pode ocupar até 2×2 regiões. Pixels transparentes não aparecem; pixels semitransparentes, como as sombras, se misturam com o chão.
+
+- **`mundo.png`** (8 colunas × 4 linhas): as linhas são primavera, verão, outono e inverno. As colunas são folhosa, copa redonda, muda, pinheiro, arbusto, arbusto com frutos, pico e rocha. Cada sprite fica apoiado na última linha do quadro e centrado na coluna 8, que é o ponto onde ele toca o chão. Os picos e rochas da linha do inverno são as versões com neve, usadas também nos cumes mais altos o ano todo.
+- **`folhins.png`** (5 colunas × 3 linhas): a primeira linha é a pelagem campina, a segunda a bosque, com parado, passo A, passo B e pastando. A terceira linha guarda camadas desenhadas por cima do corpo: capa do errante, chifres e crista do guardião, olho do vidente, estrela do nome e marca de líder. A faixa com a cor do bando é pintada pelo jogo nos pixels 6 a 8 da linha 9.
+
+Depois de salvar o PNG, basta recarregar a página. Para acrescentar uma coluna nova, aumente a folha e registre o número em `SPRITE` (`src/rendering/landscape.ts`) ou em `CreatureToken.tsx`.
 
 ## Essência
 

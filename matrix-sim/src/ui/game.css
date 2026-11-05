@@ -168,8 +168,8 @@
 .essence-meter i { position: absolute; top: -3px; width: 2px; height: 12px; background: #f0e9ff; border-radius: 1px; }
 .side-content .essence-inspection p { margin: 0; font-size: 11px; color: #c4badf; }
 .creature-awakened { color: #d9c8ff !important; }
-.folhim-aura { opacity: .85; filter: drop-shadow(0 0 2px #a98bff); }
-.creature-token[data-animated=true] .folhim-aura { animation: essence-pulse 2.6s ease-in-out infinite; transform-origin: 6px 4px; }
+.folhim-aura { inset: 6% !important; border: 1px solid #c9b6ff; border-radius: 50%; opacity: .85; filter: drop-shadow(0 0 2px #a98bff); }
+.creature-token[data-animated=true] .folhim-aura { animation: essence-pulse 2.6s ease-in-out infinite; }
 [data-kind=essence] { --tone: #c9b6ff; } [data-kind=genesis] { --tone: #9fe3d8; }
 @media (prefers-reduced-motion: reduce) { .essence-source i, .folhim-aura { animation: none !important; } }
 
@@ -210,8 +210,8 @@
 .codex .codex-lore { font-style: italic; color: #93aaaf !important; }
 .codex .codex-needs { color: #e2d8ba !important; }
 .codex-forms li[data-form=guardiao] { --tone: #f0cf8a; } .codex-forms li[data-form=vidente] { --tone: #cbb8ff; } .codex-forms li[data-form=errante] { --tone: #a9dc8e; }
-.creature-token:not([data-form=folhim]) svg { transform: scale(1.3); filter: drop-shadow(0 0 2px #fff6c8) drop-shadow(0 0 3px #f0cf8a88); }
-.creature-token[data-form=vidente] svg { filter: drop-shadow(0 0 2px #e6dcff) drop-shadow(0 0 4px #a98bffaa); }
+.creature-token:not([data-form=folhim]) .folhim-facing { filter: drop-shadow(0 0 2px #fff6c8) drop-shadow(0 0 3px #f0cf8a88); }
+.creature-token[data-form=vidente] .folhim-facing { filter: drop-shadow(0 0 2px #e6dcff) drop-shadow(0 0 4px #a98bffaa); }
 [data-kind=skill] { --tone: #9fc7a8; } [data-kind=evolution] { --tone: #f0cf8a; }
 
 /* Primordial beings: reach halo, home marker, Seres panel. */
@@ -226,7 +226,7 @@
 .being-home span:last-child { font-size: 9px; font-weight: 700; letter-spacing: .3px; white-space: nowrap; color: #fff4d2; text-shadow: 0 1px 2px #000, 0 0 6px color-mix(in srgb, var(--being) 60%, #000); padding: 1px 5px; border-radius: 3px; background: #24180caa; }
 .being-home[aria-pressed=true] span:last-child { outline: 1px solid var(--being); }
 .being-home:hover .being-glyph { filter: brightness(1.15); }
-.folhim-named { filter: drop-shadow(0 0 1px #1a1408); }
+.folhim-named { filter: drop-shadow(0 0 2px #f0d58a); }
 .creature-named { color: #f0d58a !important; }
 [data-kind=divine] { --tone: #f0d58a; }
 .beings-panel h2 { font: 400 22px Georgia, serif; color: var(--gold); margin: 0 0 8px; }

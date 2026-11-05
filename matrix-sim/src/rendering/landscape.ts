@@ -109,109 +109,49 @@ function paintGround(world: World, season: number) {
   return { pixels, kinds };
 }
 
-// Sprites are drawn as text: each letter is a colour slot, '.' is empty and 's' darkens what lies below (a shadow).
-type Sprite = { width: number; height: number; rows: string[] };
-const sprite = (...rows: string[]): Sprite => ({ width: rows[0].length, height: rows.length, rows });
-const BROADLEAF = sprite(
-  '..ddd..',
-  '.dmmld.',
-  'dmmmlld',
-  'dmmmmld',
-  'dmmmmmd',
-  '.ddmdd.',
-  '...t...',
-  '..stss.');
-const SAPLING = sprite(
-  '.ddd.',
-  'dmmld',
-  'dmmmd',
-  '.dtd.',
-  '.sts.');
-const PINE = sprite(
-  '..d..',
-  '..m..',
-  '.dml.',
-  '.dml.',
-  'dmmll',
-  'ddmmd',
-  '..t..',
-  '.sts.');
-const BUSH = sprite(
-  '.dmd.',
-  'dmlmd',
-  'sddds');
-const FRUIT_BUSH = sprite(
-  '.dmd.',
-  'dmlfd',
-  'sddds');
-const PEAK = sprite(
-  '...w...',
-  '..wlm..',
-  '.llmmd.',
-  'llmmmdd');
-const LEAVES: Record<string, RGB[][]> = {
-  // dark, mid, light per season
-  broadleaf: [
-    [[34, 92, 46], [84, 160, 68], [148, 210, 96]],
-    [[30, 80, 40], [70, 142, 58], [126, 188, 80]],
-    [[146, 72, 38], [204, 118, 44], [236, 178, 72]],
-    [[78, 94, 84], [110, 124, 112], [226, 234, 238]],
-  ],
-  autumnRed: [[], [], [[118, 46, 40], [178, 66, 52], [222, 118, 70]], []],
-  pine: [
-    [[28, 72, 52], [42, 98, 64], [70, 130, 80]],
-    [[26, 66, 48], [38, 90, 60], [62, 118, 74]],
-    [[30, 70, 50], [44, 92, 60], [66, 116, 70]],
-    [[30, 64, 56], [46, 86, 70], [226, 234, 238]],
-  ],
-  bush: [
-    [[58, 112, 52], [92, 152, 62], [142, 190, 84]],
-    [[52, 100, 46], [82, 136, 54], [124, 170, 70]],
-    [[120, 100, 46], [160, 132, 56], [196, 166, 80]],
-    [[84, 102, 88], [116, 132, 116], [220, 230, 234]],
-  ],
-};
-const TRUNK: RGB = [98, 70, 46];
-const FRUIT: RGB = [236, 92, 72];
+// Objects come from a spritesheet (src/sprites/mundo.png): 16×16 frames, one row per season, each sprite standing on
+// the frame's bottom row and centred on column 8. Edit the PNG in any pixel art editor to change how the world looks.
+export const SPRITE = { frame: 16, broadleaf: 0, round: 1, sapling: 2, pine: 3, bush: 4, fruitBush: 5, peak: 6, boulder: 7 } as const;
+type SpriteSheet = { pixels: Uint32Array; width: number };
+let sheet: SpriteSheet | null = null;
+export function setSpriteSheet(image: { data: Uint8ClampedArray; width: number }) {
+  sheet = { pixels: new Uint32Array(image.data.buffer.slice(0)), width: image.width };
+}
 
-function stamp(pixels: Uint32Array, side: number, art: Sprite, left: number, top: number, colors: Record<string, number>) {
-  for (let y = 0; y < art.height; y++) {
-    const py = top + y;
+/** Draws one frame with its foot at (x, y), blending translucent pixels such as shadows over what is below. */
+function stamp(pixels: Uint32Array, side: number, column: number, row: number, x: number, y: number) {
+  if (!sheet) return;
+  const size = SPRITE.frame, left = x - size / 2, top = y - size + 1;
+  for (let fy = 0; fy < size; fy++) {
+    const py = top + fy;
     if (py < 0 || py >= side) continue;
-    const row = art.rows[y];
-    for (let x = 0; x < art.width; x++) {
-      const px = left + x, slot = row[x];
-      if (slot === '.' || px < 0 || px >= side) continue;
+    const source = (row * size + fy) * sheet.width + column * size;
+    for (let fx = 0; fx < size; fx++) {
+      const px = left + fx, color = sheet.pixels[source + fx], alpha = color >>> 24;
+      if (!alpha || px < 0 || px >= side) continue;
       const i = py * side + px;
-      if (slot === 's') {
-        const v = pixels[i];
-        pixels[i] = (255 << 24 | ((v >>> 16 & 255) * 0.62) << 16 | ((v >>> 8 & 255) * 0.62) << 8 | (v & 255) * 0.62) >>> 0;
-      } else pixels[i] = colors[slot];
+      if (alpha === 255) { pixels[i] = color; continue; }
+      const below = pixels[i], a = alpha / 255;
+      const channel = (shift: number) => Math.round((color >>> shift & 255) * a + (below >>> shift & 255) * (1 - a));
+      pixels[i] = (255 << 24 | channel(16) << 16 | channel(8) << 8 | channel(0)) >>> 0;
     }
   }
 }
-const slots = (palette: RGB[], extra: Record<string, RGB> = {}) => {
-  const out: Record<string, number> = { t: pack(TRUNK), f: pack(FRUIT) };
-  if (palette.length) Object.assign(out, { d: pack(palette[0]), m: pack(palette[1]), l: pack(palette[2]) });
-  for (const [key, value] of Object.entries(extra)) out[key] = pack(value);
-  return out;
-};
 
 function paintObjects(pixels: Uint32Array, side: number, world: World, season: number) {
-  const broadleaf = slots(LEAVES.broadleaf[season]), red = season === 2 ? slots(LEAVES.autumnRed[2]) : broadleaf;
-  const pine = slots(LEAVES.pine[season]), bush = slots(LEAVES.bush[season]);
-  const peak = slots([], { l: ROCK[2], m: ROCK[1], d: ROCK[0], w: ROCK[3] }), snowyPeak = slots([], { l: ROCK[2], m: ROCK[1], d: ROCK[0], w: SNOW[1] });
   // Row by row, so whatever stands lower on the map overlaps what stands behind it.
   for (const cell of world.cells) {
     const { x, y, vegetation: v } = cell, left = x * PIXEL, top = y * PIXEL, rand = variation(x, y, 3);
     if (cell.terrain === 'water' || cell.terrain === 'sand') continue;
     if (cell.terrain === 'mountain') {
-      if (rand > 0.55) stamp(pixels, side, PEAK, left + Math.floor(variation(x, y, 4) * 2), top + 3, cell.elevation > 0.94 || (season === 3 && cell.temperature < 0) ? snowyPeak : peak);
+      const snowy = cell.elevation > 0.94 || (season === 3 && cell.temperature < 0);
+      if (rand > 0.55) stamp(pixels, side, SPRITE.peak, snowy ? 3 : 0, left + 3 + Math.floor(variation(x, y, 4) * 3), top + 7);
+      else if (rand > 0.35) stamp(pixels, side, SPRITE.boulder, snowy ? 3 : 0, left + 2 + Math.floor(variation(x, y, 4) * 4), top + 5);
       continue;
     }
     const open = cell.terrain === 'grass';
     if (open && v.grass > 4) flowersAndTufts(pixels, side, cell, season);
-    if (open && v.shrubs > 5 && rand > 0.68) stamp(pixels, side, v.fruit > 3 ? FRUIT_BUSH : BUSH, left + Math.floor(variation(x, y, 5) * 4), top + 2 + Math.floor(variation(x, y, 6) * 5), bush);
+    if (open && v.shrubs > 5 && rand > 0.68) stamp(pixels, side, v.fruit > 3 ? SPRITE.fruitBush : SPRITE.bush, season, left + 2 + Math.floor(variation(x, y, 5) * 4), top + 3 + Math.floor(variation(x, y, 6) * 5));
     const count = v.trees < 8 ? 0 : Math.min(2, Math.ceil(v.trees / 40));
     const trees: [number, number, number][] = [];
     // One tree near the middle of the cell, or two staggered ones, with a little jitter so woods do not look planted.
@@ -219,8 +159,8 @@ function paintObjects(pixels: Uint32Array, side: number, world: World, season: n
     trees.sort((p, q) => p[1] - q[1]);
     for (const [tx, ty, i] of trees) {
       const conifer = cell.elevation > 0.64 || variation(x, y, 20 + i) > 0.78;
-      const art = conifer ? PINE : v.trees > 45 && variation(x, y, 30 + i) > 0.25 ? BROADLEAF : SAPLING;
-      stamp(pixels, side, art, tx - (art.width >> 1), ty - art.height + 1, conifer ? pine : variation(x, y, 40 + i) > 0.5 ? red : broadleaf);
+      const kind = conifer ? SPRITE.pine : v.trees < 45 || variation(x, y, 30 + i) < 0.2 ? SPRITE.sapling : variation(x, y, 40 + i) > 0.5 ? SPRITE.round : SPRITE.broadleaf;
+      stamp(pixels, side, kind, season, tx, ty);
     }
   }
 }
