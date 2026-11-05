@@ -33,6 +33,12 @@ export const SECTIONS: Section[] = [
         path: 'basilis/02-cenario/',
         title: '02 — Cenário e escala',
         question: 'O movimento num cenário de pixel art montado de uma spritesheet (gerada ou de IA) fica nítido em qualquer tela?',
+        status: 'Concluído',
+      },
+      {
+        path: 'basilis/03-combate/',
+        title: '03 — Combate',
+        question: 'Colisão, dano, empurrão, recargas e inimigos que avisam antes de atacar ficam justos e legíveis no celular?',
         status: 'Em teste',
       },
     ],

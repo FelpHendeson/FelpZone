@@ -40,13 +40,15 @@ Folhas de IA costumam sair com "pixels" de tamanhos diferentes, grade torta e ma
 
 - Testes automáticos (`npm test`): escala em pé e deitado, área central sempre visível nas duas escalas, câmera lisa com fração contínua, câmera pixel a pixel em inteiros, câmera presa às bordas do mundo, grade da folha (célula sob o toque, margens e espaçamento) e rosto preso a 4 direções.
 - No navegador do computador: em 375 × 812 a escala ficou ×2 (×4 em pixels físicos) com 11,8 × 25,4 tiles visíveis; em 812 × 375, a mesma escala com 25,4 × 11,8 tiles. Uma folha de teste de 256 × 128 px carregou no editor, a grade foi ajustada e três papéis foram definidos tocando nas células.
-- **Ainda não testado num celular de verdade** nem com uma folha gerada por IA real.
+- No celular: área central, zoom por orientação e rolagem lisa aprovados. Trocando a rolagem nos ajustes, o modo pixel a pixel trava e o liso não.
+- **Ainda não testado** com uma folha gerada por IA real.
 
 ## Achados
 
 - **Área central e zoom configurável:** aprovados no primeiro teste no celular.
 - **Tremor ao andar (corrigido):** na primeira versão, a câmera e o personagem andavam em pixels inteiros do jogo. A 5 tiles/s o personagem anda cerca de 1,3 pixel do jogo por quadro, então a tela pulava 1, 1, 2, 1, 1, 2… pixels (cada um com 4 a 6 pixels de tela), e o personagem oscilava um pixel contra o cenário. A correção é a rolagem lisa descrita acima. O modo **pixel a pixel** continua nos ajustes para comparar.
+- **Golpe:** o arco de quadradinhos em pixel art agradou menos que o cone preenchido do Lab 01. O cone voltou como padrão; os estilos de golpe viraram uma lista, para no futuro cada arma ter a sua animação.
 
 ## Conclusão
 
-Pendente: confirmar no celular que o tremor sumiu.
+**Concluído.** O jogo usa o centro imutável (área central em tiles, com valor próprio para retrato e para paisagem), escala inteira, rolagem lisa em subpixel com sprites desenhados direto na tela, e câmera suave. A rolagem pixel a pixel fica descartada. O uso de folhas de IA continua em aberto até um teste com uma folha real.

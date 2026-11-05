@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1a14" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <title>Basilis — Lab 03: Combate</title>
+  </head>
+  <body>
+    <canvas id="palco" aria-label="Arena de combate"></canvas>
+
+    <div id="vida" role="meter" aria-label="Vida">
+      <div id="vida-barra"></div>
+      <span id="vida-texto"></span>
+    </div>
+    <pre id="hud" aria-live="off"></pre>
+
+    <nav class="topo">
+      <a href="../../" class="botao-topo">Labs</a>
+      <button id="tela-cheia" class="botao-topo" type="button" aria-label="Tela cheia">Tela cheia</button>
+      <button class="botao-topo" type="button" data-painel="ajustes">Ajustes</button>
+    </nav>
+
+    <p id="aviso" hidden></p>
+
+    <div id="botoes" hidden>
+      <button id="botao-esquiva" type="button">Esquiva</button>
+      <button id="botao-ataque" type="button">Ataque</button>
+    </div>
+
+    <section id="ajustes" class="painel" hidden aria-label="Ajustes">
+      <header>
+        <h2>Ajustes</h2>
+        <button class="fechar" type="button">Fechar</button>
+      </header>
+      <p class="ajuda">Movimento e joystick vêm do Lab 01; tela e câmera, do Lab 02.</p>
+      <div id="ajustes-campos"></div>
+    </section>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

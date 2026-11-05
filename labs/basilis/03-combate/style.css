@@ -1,0 +1,58 @@
+#vida {
+  position: fixed;
+  top: calc(env(safe-area-inset-top) + 56px);
+  left: calc(env(safe-area-inset-left) + 12px);
+  width: min(180px, 45vw);
+  height: 16px;
+  border: 2px solid #1f1a12;
+  border-radius: 4px;
+  background: #3a2a22;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+#vida-barra {
+  height: 100%;
+  width: 100%;
+  background: #6cc24a;
+  transition: width 0.15s;
+}
+
+#vida-barra.baixa {
+  background: #e04848;
+}
+
+#vida-texto {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: 700 11px ui-monospace, monospace;
+  color: #fff;
+  text-shadow: 0 1px 1px #000;
+}
+
+#hud {
+  top: calc(env(safe-area-inset-top) + 82px);
+}
+
+#aviso {
+  position: fixed;
+  inset: 40% 16px auto;
+  margin: 0;
+  text-align: center;
+  font: 700 1.6rem system-ui, sans-serif;
+  color: #ff8a8a;
+  text-shadow: 0 2px 6px #000;
+  pointer-events: none;
+}
+
+/* Recarga: uma sombra que gira e some quando o botão volta a estar pronto. */
+#botoes button::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+  background: conic-gradient(rgba(0, 0, 0, 0.55) calc(var(--recarga, 0) * 360deg), transparent 0);
+  pointer-events: none;
+}

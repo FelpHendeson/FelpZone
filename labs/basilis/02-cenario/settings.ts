@@ -1,6 +1,7 @@
 // Ajustes próprios do Lab 02. Velocidade, joystick e esquiva vêm dos ajustes do Lab 01.
 
 import { loadStored, saveStored, type Field } from '../01-controles/settings.ts';
+import { SLASH_OPTIONS, type SlashStyle } from './slash.ts';
 import type { ScaleMode } from './viewport.ts';
 
 export type CameraMode = 'locked' | 'smooth';
@@ -14,6 +15,7 @@ export interface SceneSettings {
   scaleMode: ScaleMode;
   scroll: ScrollMode;
   camera: CameraMode;
+  slash: SlashStyle;
   showSafeArea: boolean;
   debug: boolean;
 }
@@ -24,6 +26,7 @@ export const SCENE_DEFAULTS: SceneSettings = {
   scaleMode: 'integer',
   scroll: 'subpixel',
   camera: 'smooth',
+  slash: 'cone',
   showSafeArea: true,
   debug: true,
 };
@@ -58,6 +61,7 @@ export const SCENE_FIELDS: Field<SceneSettings>[] = [
       ['locked', 'Presa ao personagem'],
     ],
   },
+  { key: 'slash', label: 'Golpe', kind: 'choice', options: SLASH_OPTIONS },
   { key: 'showSafeArea', label: 'Mostrar a área central', kind: 'toggle' },
   { key: 'debug', label: 'Mostrar depuração', kind: 'toggle' },
 ];

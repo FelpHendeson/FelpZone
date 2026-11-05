@@ -225,8 +225,8 @@ Em pedaços, cada um terminado antes do próximo.
 2. **Labs:** experimentos pequenos no hub [Felp Labs](../../labs/README.md), seção `basilis/`, cada um com uma pergunta e uma conclusão no próprio README. Eles viram, juntos, a base da engine.
    1. Movimento e joystick virtual em retrato
    2. Cenário e escala: o movimento do Lab 01 num cenário gerado a partir de uma spritesheet (de código ou de IA), com o centro imutável da tela e câmera presa a pixels
-   3. Animação de sprites em pixel art (andar e atacar em 4 direções, sofrer dano, tiles animados)
-   4. Combate em tempo real no dedo (ataque, esquiva, mira automática)
+   3. Combate: colisão entre corpos, dano, empurrão, recargas, invulnerabilidade e inimigos com aviso antes do ataque (pode se desdobrar em mais labs: projéteis, armas, chefes)
+   4. Animação de sprites em pixel art (andar e atacar em 4 direções, sofrer dano, tiles animados) e animações de golpe por arma
    5. Efeitos (partículas, tremor de tela, números de dano)
    6. Construção de cenários (como desenhar mapas: editor próprio, Tiled ou geração procedural do Matrix Sim)
    7. PWA: instalar, rodar offline e salvar no aparelho
