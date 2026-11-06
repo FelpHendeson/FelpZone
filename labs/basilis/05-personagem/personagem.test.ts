@@ -195,14 +195,14 @@ describe('manequim', () => {
   });
 
   it('rampas de 3 a 4 tons por material', () => {
-    for (const ramp of [MANEQUIM_RAMPS.pele, MANEQUIM_RAMPS.tecido]) {
+    for (const ramp of [MANEQUIM_RAMPS.pele!, MANEQUIM_RAMPS['tecido-secundario']!]) {
       expect(ramp.length).toBeGreaterThanOrEqual(3);
       expect(ramp.length).toBeLessThanOrEqual(4);
     }
   });
 
   it('o contorno é colorido: a borda do corpo usa os tons escuros das rampas', () => {
-    const dark = new Set([paletteIndex('pele', 0), paletteIndex('pele', 1), paletteIndex('tecido', 0), paletteIndex('tecido', 1)]);
+    const dark = new Set([paletteIndex('pele', 0), paletteIndex('pele', 1), paletteIndex('tecido-secundario', 0), paletteIndex('tecido-secundario', 1)]);
     for (let y = 0; y < idle.height; y++) {
       for (let x = 0; x < idle.width; x++) {
         const value = idle.get(x, y);
@@ -228,7 +228,7 @@ describe('manequim', () => {
 
   it('sem contorno seletivo, o topo usa só o tom mais escuro', () => {
     const plain = drawManequim(MOLDE_POSES['idle-down'][0], { ...MANEQUIM_DEFAULTS, selectiveOutline: false });
-    const darkest = new Set([paletteIndex('pele', 0), paletteIndex('tecido', 0)]);
+    const darkest = new Set([paletteIndex('pele', 0), paletteIndex('tecido-secundario', 0)]);
     const top = plain.bounds()!.y;
     for (let x = 0; x < plain.width; x++) {
       const value = plain.get(x, top);

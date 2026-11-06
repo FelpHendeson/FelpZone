@@ -2,13 +2,18 @@
 // Desenhado em tons-índice (canal + tom), com contorno colorido (o tom mais escuro da rampa de cada parte),
 // contorno seletivo mais leve do lado da luz, luz do alto à esquerda e linhas internas onde uma parte
 // passa por cima de outra. Tudo em `IndexedImage`, sem canvas.
+//
+// O mesmo motor (`PartBuilder` + `renderParts`) desenha as outras camadas (cabelo, roupa, chapéus):
+// cada peça monta um mapa de partes sobre a geometria da pose (`bodyGeometry`) e sai sombreada e
+// contornada do mesmo jeito que o corpo.
 
 import { frameRect } from '../04-animacao/animation.ts';
+import type { Vec } from '../01-controles/input.ts';
 import { MOLDE_FORMAT, MOLDE_SIZE, paletteIndex, type Channel } from './molde.ts';
-import { HEAD_BOX, LYING_HEAD_BOX, MOLDE_POSES, SKELETON, TORSO_BOX, type Pose } from './poses.ts';
+import { HEAD_BOX, LYING_HEAD_BOX, MOLDE_POSES, SKELETON, TORSO_BOX, type Layer, type Pose } from './poses.ts';
 import { IndexedImage, PartMap } from './raster.ts';
 
-interface Part {
+export interface Part {
   channel: Channel;
   /** −1 escurece um tom (o braço e a perna do lado de longe). */
   depth: number;
@@ -16,6 +21,12 @@ interface Part {
   round: boolean;
   /** Desenha uma linha de contorno sobre as partes que ficam atrás dela. */
   outlineOver: boolean;
+  /** Nome da parte da peça (para separar uma peça em camadas ou esconder só um pedaço dela). */
+  parte?: string;
+  /** Máscara: não desenha nada, só abre um buraco (um braço do corpo que passa na frente da roupa). */
+  mask?: boolean;
+  /** Troca de tom (contorno, sombra, base, luz → o tom usado), para a peça gastar menos cores. */
+  tones?: readonly [number, number, number, number];
 }
 
 export interface ManequimOptions {
@@ -27,11 +38,11 @@ export interface ManequimOptions {
 
 export const MANEQUIM_DEFAULTS: ManequimOptions = { selectiveOutline: true, innerLines: true };
 
-class Builder {
+export class PartBuilder {
   readonly map: PartMap;
   readonly parts: Part[] = [];
 
-  constructor(width: number, height: number) {
+  constructor(width = MOLDE_FORMAT.frameWidth, height = MOLDE_FORMAT.frameHeight) {
     this.map = new PartMap(width, height);
   }
 
@@ -39,78 +50,158 @@ class Builder {
     this.parts.push({ channel, depth: 0, round: false, outlineOver: false, ...options });
     return this.parts.length - 1;
   }
+
+  mask(): number {
+    return this.part('pele', { mask: true, outlineOver: true });
+  }
 }
 
-const LEG = 3;
-const ARM = 2;
+// ---- Geometria do corpo ----
 
-function drawArm(b: Builder, shoulder: { x: number; y: number }, hand: { x: number; y: number }, depth: number): void {
-  const id = b.part('pele', { depth, outlineOver: true });
-  b.map.limb(shoulder.x, shoulder.y, hand.x, hand.y, ARM, id);
+export interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
-function drawLeg(b: Builder, hipX: number, hipY: number, foot: { x: number; y: number }, depth: number, toes: number): void {
-  const id = b.part('pele', { depth, outlineOver: true });
-  b.map.limb(hipX, hipY, foot.x, foot.y, LEG, id);
-  // Pé: um pixel a mais para a frente quando visto de lado.
-  if (toes !== 0) b.map.rect(toes > 0 ? foot.x + 2 : foot.x - 2, foot.y, 1, 2, id);
+export interface ArmGeometry {
+  shoulder: Vec;
+  hand: Vec;
+  layer: Layer;
+  depth: number;
 }
 
-function standing(b: Builder, pose: Pose): void {
+export interface LegGeometry {
+  hip: Vec;
+  foot: Vec;
+  depth: number;
+  thickness: number;
+  /** Pé visto de lado: +1 aponta para a direita. */
+  toes: number;
+}
+
+/** Onde fica cada parte do corpo numa pose: tudo já com o deslocamento do corpo. */
+export interface BodyGeometry {
+  lying: boolean;
+  head: Box;
+  torso: Box;
+  /** A roupa de baixo (o short do manequim). */
+  shorts: Box;
+  /** O vão entre as pernas, de frente e de costas. */
+  crotch: Box | null;
+  /** O nariz, de lado. */
+  nose: Vec | null;
+  mainArm: ArmGeometry;
+  offArm: ArmGeometry;
+  /** Na ordem de desenho: a perna de longe primeiro. */
+  legs: LegGeometry[];
+}
+
+export const LEG = 3;
+export const ARM = 2;
+
+export function bodyGeometry(pose: Pose): BodyGeometry {
+  if (pose.lying) {
+    const dy = pose.body.y;
+    const head = { ...LYING_HEAD_BOX, y: LYING_HEAD_BOX.y + dy };
+    return {
+      lying: true,
+      head,
+      torso: { x: 13, y: 21 + dy, width: 8, height: 6 },
+      shorts: { x: 20, y: 21 + dy, width: 3, height: 6 },
+      crotch: null,
+      nose: null,
+      mainArm: { shoulder: { x: 15, y: 25 + dy }, hand: pose.mainHand, layer: 'front', depth: 0 },
+      offArm: { shoulder: { x: 19, y: 25 + dy }, hand: pose.offHand, layer: 'behind', depth: -1 },
+      legs: [
+        { hip: { x: 22, y: 23 + dy }, foot: { x: pose.mainFoot.x, y: pose.mainFoot.y + dy }, depth: 0, thickness: 2, toes: 0 },
+        { hip: { x: 22, y: 25 + dy }, foot: { x: pose.offFoot.x, y: pose.offFoot.y + dy }, depth: -1, thickness: 2, toes: 0 },
+      ],
+    };
+  }
   const { direction, body } = pose;
   const skeleton = SKELETON[direction];
-  const head = HEAD_BOX[direction];
-  const torso = TORSO_BOX[direction];
   const side = direction === 'side';
-  const shoulder = (s: { x: number; y: number }) => ({ x: s.x + body.x, y: s.y + body.y });
+  const shift = (box: Box): Box => ({ ...box, x: box.x + body.x, y: box.y + body.y });
+  const head = shift(HEAD_BOX[direction]);
+  const torso = shift(TORSO_BOX[direction]);
+  const shoulder = (s: Vec) => ({ x: s.x + body.x, y: s.y + body.y });
   const hipY = 21 + body.y;
+  const main: LegGeometry = { hip: { x: skeleton.mainFoot.x + body.x, y: hipY }, foot: pose.mainFoot, depth: 0, thickness: LEG, toes: side ? 1 : 0 };
+  const off: LegGeometry = { hip: { x: skeleton.offFoot.x + body.x, y: hipY }, foot: pose.offFoot, depth: side ? -1 : 0, thickness: LEG, toes: side ? 1 : 0 };
+  return {
+    lying: false,
+    head,
+    torso,
+    shorts: { x: torso.x, y: torso.y + torso.height - 1, width: torso.width, height: 3 },
+    crotch: side ? null : { x: 15 + body.x, y: torso.y + torso.height + 1, width: 2, height: 1 },
+    nose: side ? { x: head.x + head.width, y: head.y + 5 } : null,
+    mainArm: { shoulder: shoulder(skeleton.mainShoulder), hand: pose.mainHand, layer: pose.mainArm, depth: 0 },
+    offArm: {
+      shoulder: shoulder(skeleton.offShoulder),
+      hand: pose.offHand,
+      layer: pose.offArm,
+      depth: side && pose.offArm === 'behind' ? -1 : 0,
+    },
+    // De lado, a perna de longe fica atrás e um tom mais escura.
+    legs: side ? [off, main] : [main, off],
+  };
+}
 
-  // Braços atrás do corpo primeiro.
-  if (pose.offArm === 'behind') drawArm(b, shoulder(skeleton.offShoulder), pose.offHand, side ? -1 : 0);
-  if (pose.mainArm === 'behind') drawArm(b, shoulder(skeleton.mainShoulder), pose.mainHand, 0);
+/** Braços que passam atrás do tronco (desenhados antes) e na frente (depois), nessa ordem. */
+export function armsByLayer(geo: BodyGeometry): { behind: ArmGeometry[]; front: ArmGeometry[] } {
+  const arms = [geo.offArm, geo.mainArm];
+  return { behind: arms.filter((arm) => arm.layer === 'behind'), front: arms.filter((arm) => arm.layer === 'front') };
+}
 
-  // Pernas: de lado, a de longe fica atrás e um tom mais escura.
-  if (side) {
-    drawLeg(b, skeleton.offFoot.x + body.x, hipY, pose.offFoot, -1, 1);
-    drawLeg(b, skeleton.mainFoot.x + body.x, hipY, pose.mainFoot, 0, 1);
-  } else {
-    drawLeg(b, skeleton.mainFoot.x + body.x, hipY, pose.mainFoot, 0, 0);
-    drawLeg(b, skeleton.offFoot.x + body.x, hipY, pose.offFoot, 0, 0);
+/** Pé: o fim da perna, mais um pixel para a frente quando visto de lado. */
+export function footBox(leg: LegGeometry): Box[] {
+  const boxes = [{ x: leg.foot.x - 1, y: leg.foot.y, width: 3, height: 2 }];
+  if (leg.toes !== 0) boxes.push({ x: leg.toes > 0 ? leg.foot.x + 2 : leg.foot.x - 2, y: leg.foot.y, width: 1, height: 2 });
+  return boxes;
+}
+
+// ---- Corpo ----
+
+function drawArm(b: PartBuilder, arm: ArmGeometry, parte?: string): void {
+  const id = b.part('pele', { depth: arm.depth, outlineOver: true, parte });
+  b.map.limb(arm.shoulder.x, arm.shoulder.y, arm.hand.x, arm.hand.y, ARM, id);
+}
+
+function drawLeg(b: PartBuilder, leg: LegGeometry, parte?: string): void {
+  const id = b.part('pele', { depth: leg.depth, outlineOver: true, parte });
+  b.map.limb(leg.hip.x, leg.hip.y, leg.foot.x, leg.foot.y, leg.thickness, id);
+  if (leg.toes !== 0) b.map.rect(leg.toes > 0 ? leg.foot.x + 2 : leg.foot.x - 2, leg.foot.y, 1, 2, id);
+}
+
+export interface BodyParts {
+  /** Desenha a roupa de baixo (o short); na pilha de camadas ela vira a parte "roupa-de-baixo". */
+  shorts: boolean;
+}
+
+/** O corpo na ordem de desenho: braços de trás, pernas, tronco, roupa de baixo, cabeça, braços da frente. */
+function drawBody(b: PartBuilder, geo: BodyGeometry, parts: BodyParts): void {
+  const arms = armsByLayer(geo);
+  for (const arm of arms.behind) drawArm(b, arm, 'corpo');
+  for (const leg of geo.legs) drawLeg(b, leg, 'corpo');
+  const torsoId = b.part('pele', { round: true, parte: 'corpo' });
+  b.map.roundRect(geo.torso.x, geo.torso.y, geo.torso.width, geo.torso.height, 1, torsoId);
+  if (parts.shorts) {
+    const shortsId = b.part('tecido-secundario', { parte: 'roupa-de-baixo' });
+    b.map.rect(geo.shorts.x, geo.shorts.y, geo.shorts.width, geo.shorts.height, shortsId);
   }
-
-  const torsoId = b.part('pele', { round: true });
-  b.map.roundRect(torso.x + body.x, torso.y + body.y, torso.width, torso.height, 1, torsoId);
-  const shortsId = b.part('tecido');
-  b.map.rect(torso.x + body.x, torso.y + torso.height - 1 + body.y, torso.width, 3, shortsId);
-  if (!side) b.map.rect(15 + body.x, torso.y + torso.height + 1 + body.y, 2, 1, -1);
-
-  const headId = b.part('pele', { round: true, outlineOver: true });
-  b.map.roundRect(head.x + body.x, head.y + body.y, head.width, head.height, 2, headId);
-  if (side) b.map.set(head.x + head.width + body.x, head.y + 5 + body.y, headId);
-
-  if (pose.offArm === 'front') drawArm(b, shoulder(skeleton.offShoulder), pose.offHand, 0);
-  if (pose.mainArm === 'front') drawArm(b, shoulder(skeleton.mainShoulder), pose.mainHand, 0);
+  if (geo.crotch) b.map.rect(geo.crotch.x, geo.crotch.y, geo.crotch.width, geo.crotch.height, -1);
+  const headId = b.part('pele', { round: true, outlineOver: true, parte: 'corpo' });
+  b.map.roundRect(geo.head.x, geo.head.y, geo.head.width, geo.head.height, 2, headId);
+  if (geo.nose) b.map.set(geo.nose.x, geo.nose.y, headId);
+  for (const arm of arms.front) drawArm(b, arm, 'corpo');
 }
 
-function lying(b: Builder, pose: Pose): void {
-  const dy = pose.body.y;
-  const head = LYING_HEAD_BOX;
-  drawArm(b, { x: 19, y: 25 + dy }, pose.offHand, -1);
-  const legs = b.part('pele', { outlineOver: true });
-  b.map.limb(22, 23 + dy, pose.mainFoot.x, pose.mainFoot.y + dy, 2, legs);
-  const leg2 = b.part('pele', { outlineOver: true, depth: -1 });
-  b.map.limb(22, 25 + dy, pose.offFoot.x, pose.offFoot.y + dy, 2, leg2);
-  const torsoId = b.part('pele', { round: true });
-  b.map.roundRect(13, 21 + dy, 8, 6, 1, torsoId);
-  const shortsId = b.part('tecido');
-  b.map.rect(20, 21 + dy, 3, 6, shortsId);
-  const headId = b.part('pele', { round: true, outlineOver: true });
-  b.map.roundRect(head.x, head.y + dy, head.width, head.height, 2, headId);
-  drawArm(b, { x: 15, y: 25 + dy }, pose.mainHand, 0);
-}
+// ---- Render ----
 
 /** Tom (0 a 3) de um pixel de parte: base, luz em cima e à esquerda, sombra embaixo e à direita. */
-function shade(b: Builder, x: number, y: number, id: number, box: { minX: number; minY: number; maxX: number; maxY: number }): number {
+function shade(b: PartBuilder, x: number, y: number, id: number, box: { minX: number; minY: number; maxX: number; maxY: number }): number {
   const part = b.parts[id];
   const same = (dx: number, dy: number) => b.map.get(x + dx, y + dy) === id;
   let tone = 2;
@@ -126,9 +217,24 @@ function shade(b: Builder, x: number, y: number, id: number, box: { minX: number
   return Math.max(1, tone + part.depth);
 }
 
-function render(b: Builder, pose: Pose, options: ManequimOptions): IndexedImage {
+export interface Rendered {
+  image: IndexedImage;
+  /** A parte dona de cada pixel (o contorno é da parte mais alta ao lado); −1 = vazio. */
+  owner: Int16Array;
+}
+
+const NEIGHBORS = [
+  [1, 0],
+  [-1, 0],
+  [0, 1],
+  [0, -1],
+];
+
+/** Sombreia e contorna um mapa de partes. */
+export function renderParts(b: PartBuilder, options: ManequimOptions): Rendered {
   const { map, parts } = b;
   const image = new IndexedImage(map.width, map.height);
+  const owner = new Int16Array(map.width * map.height).fill(-1);
   const boxes = parts.map(() => ({ minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity }));
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
@@ -141,101 +247,128 @@ function render(b: Builder, pose: Pose, options: ManequimOptions): IndexedImage 
       box.maxY = Math.max(box.maxY, y);
     }
   }
+  const put = (x: number, y: number, id: number, tone: number) => {
+    const part = parts[id];
+    image.set(x, y, paletteIndex(part.channel, part.tones ? part.tones[tone] : tone));
+    owner[y * map.width + x] = id;
+  };
 
-  const neighbors = [
-    [1, 0],
-    [-1, 0],
-    [0, 1],
-    [0, -1],
-  ];
   for (let y = 0; y < map.height; y++) {
     for (let x = 0; x < map.width; x++) {
       const id = map.get(x, y);
       if (id >= 0) {
+        if (parts[id].mask) continue;
         let tone = shade(b, x, y, id, boxes[id]);
-        let channel = parts[id].channel;
-        // Linha interna: uma parte da frente que encosta nesta deixa um contorno sobre ela.
+        const channel = parts[id].channel;
+        // Linha interna: uma parte da frente (ou um buraco de máscara) que encosta nesta deixa um contorno sobre ela.
         if (options.innerLines) {
-          for (const [dx, dy] of neighbors) {
+          for (const [dx, dy] of NEIGHBORS) {
             const other = map.get(x + dx, y + dy);
-            if (other > id && parts[other].outlineOver && parts[other].channel === channel) {
+            if (other > id && (parts[other].mask || (parts[other].outlineOver && parts[other].channel === channel))) {
               tone = 0;
               break;
             }
           }
         }
-        image.set(x, y, paletteIndex(channel, tone));
+        put(x, y, id, tone);
         continue;
       }
-      // Contorno: pixel vazio encostado no corpo, na cor mais escura da parte mais alta ao lado.
+      // Contorno: pixel vazio encostado na peça, na cor mais escura da parte mais alta ao lado.
       let top = -1;
       let lightSide = true;
-      for (const [dx, dy] of neighbors) {
+      for (const [dx, dy] of NEIGHBORS) {
         const other = map.get(x + dx, y + dy);
-        if (other < 0) continue;
+        if (other < 0 || parts[other].mask) continue;
         if (other > top) top = other;
-        // O corpo à esquerda ou acima deste pixel quer dizer que ele está do lado da sombra.
+        // A peça à esquerda ou acima deste pixel quer dizer que ele está do lado da sombra.
         if (dx < 0 || dy < 0) lightSide = false;
       }
       if (top < 0) continue;
-      const tone = options.selectiveOutline && lightSide && x < 16 && y < 20 ? 1 : 0;
-      image.set(x, y, paletteIndex(parts[top].channel, tone));
+      put(x, y, top, options.selectiveOutline && lightSide && x < 16 && y < 20 ? 1 : 0);
     }
   }
-  drawEyes(image, pose);
+  return { image, owner };
+}
+
+/** Separa um desenho pelas partes da peça (`Part.parte`): uma imagem por parte. */
+export function splitByParte(b: PartBuilder, rendered: Rendered, fallback = 'principal'): Record<string, IndexedImage> {
+  const { image, owner } = rendered;
+  const result: Record<string, IndexedImage> = {};
+  for (const part of b.parts) {
+    const name = part.parte ?? fallback;
+    if (!part.mask && !result[name]) result[name] = new IndexedImage(image.width, image.height);
+  }
+  for (let i = 0; i < owner.length; i++) {
+    if (owner[i] < 0) continue;
+    result[b.parts[owner[i]].parte ?? fallback].data[i] = image.data[i];
+  }
+  return result;
+}
+
+// ---- Olhos ----
+
+/** Onde ficam os olhos numa pose (o pixel de cima do olho aberto); de costas, nenhum. */
+export function eyePositions(pose: Pose): Vec[] {
+  if (pose.lying) {
+    const head = LYING_HEAD_BOX;
+    // Deitado de lado: só um olho à vista, virado para cima.
+    return [{ x: head.x + 4, y: head.y + 3 + pose.body.y }];
+  }
+  if (pose.direction === 'up') return [];
+  const head = HEAD_BOX[pose.direction];
+  const y = head.y + 4 + pose.body.y;
+  const xs = pose.direction === 'down' ? [head.x + 3, head.x + 8] : [head.x + 7];
+  return xs.map((x) => ({ x: x + pose.body.x, y }));
+}
+
+/** Desenha os olhos: aberto (2 pixels, `top` em cima e `bottom` embaixo), fechado (traço) ou em X. */
+export function drawEyes(image: IndexedImage, pose: Pose, top: number, bottom: number = top): void {
+  for (const { x, y } of eyePositions(pose)) {
+    if (pose.eyes === 'open') {
+      image.set(x, y, top);
+      image.set(x, y + 1, bottom);
+    } else if (pose.eyes === 'closed') {
+      image.set(x, y + 1, top);
+      image.set(x + (x < 16 ? -1 : 1), y + 1, top);
+    } else {
+      image.set(x - 1, y - 1, top);
+      image.set(x + 1, y - 1, top);
+      image.set(x, y, top);
+      image.set(x - 1, y + 1, top);
+      image.set(x + 1, y + 1, top);
+    }
+  }
+}
+
+// ---- Manequim ----
+
+/** O corpo de uma pose como mapa de partes já sombreado, para separar em "corpo" e "roupa-de-baixo". */
+export function renderBody(pose: Pose, options: ManequimOptions, parts: BodyParts = { shorts: true }): { builder: PartBuilder; rendered: Rendered } {
+  const builder = new PartBuilder();
+  drawBody(builder, bodyGeometry(pose), parts);
+  return { builder, rendered: renderParts(builder, options) };
+}
+
+/** Um quadro do manequim (32 × 32) para uma pose: o corpo, a roupa de baixo e os olhos, numa imagem só. */
+export function drawManequim(pose: Pose, options: ManequimOptions = MANEQUIM_DEFAULTS): IndexedImage {
+  const { image } = renderBody(pose, options).rendered;
+  drawEyes(image, pose, paletteIndex('olhos', 0));
   return image;
 }
 
-function drawEyes(image: IndexedImage, pose: Pose): void {
-  const eye = paletteIndex('olhos', 0);
-  const dot = (x: number, y: number) => image.set(x, y, eye);
-  let cy: number;
-  let xs: number[];
-  if (pose.lying) {
-    const head = LYING_HEAD_BOX;
-    cy = head.y + 3 + pose.body.y;
-    xs = [head.x + 4];
-    // Deitado de lado: só um olho à vista, virado para cima.
-  } else if (pose.direction === 'up') {
-    return;
-  } else {
-    const head = HEAD_BOX[pose.direction];
-    cy = head.y + 4 + pose.body.y;
-    xs = pose.direction === 'down' ? [head.x + 3 + pose.body.x, head.x + 8 + pose.body.x] : [head.x + 7 + pose.body.x];
-  }
-  for (const x of xs) {
-    if (pose.eyes === 'open') {
-      dot(x, cy);
-      dot(x, cy + 1);
-    } else if (pose.eyes === 'closed') {
-      dot(x, cy + 1);
-      dot(x + (x < 16 ? -1 : 1), cy + 1);
-    } else {
-      dot(x - 1, cy - 1);
-      dot(x + 1, cy - 1);
-      dot(x, cy);
-      dot(x - 1, cy + 1);
-      dot(x + 1, cy + 1);
-    }
-  }
-}
-
-/** Um quadro do manequim (32 × 32) para uma pose. */
-export function drawManequim(pose: Pose, options: ManequimOptions = MANEQUIM_DEFAULTS): IndexedImage {
-  const b = new Builder(MOLDE_FORMAT.frameWidth, MOLDE_FORMAT.frameHeight);
-  if (pose.lying) lying(b, pose);
-  else standing(b, pose);
-  return render(b, pose, options);
-}
-
-/** A folha inteira do manequim, no formato do molde (uma animação por linha). */
-export function generateManequimSheet(options: ManequimOptions = MANEQUIM_DEFAULTS): IndexedImage {
+/** Monta uma folha no formato do molde a partir de um desenho por pose. */
+export function sheetFromPoses(draw: (pose: Pose) => IndexedImage): IndexedImage {
   const sheet = new IndexedImage(MOLDE_SIZE.width, MOLDE_SIZE.height);
   for (const [name, clip] of Object.entries(MOLDE_FORMAT.clips)) {
     MOLDE_POSES[name].forEach((pose, index) => {
       const { x, y } = frameRect(MOLDE_FORMAT, clip, index);
-      sheet.blit(drawManequim(pose, options), x, y);
+      sheet.blit(draw(pose), x, y);
     });
   }
   return sheet;
+}
+
+/** A folha inteira do manequim, no formato do molde (uma animação por linha). */
+export function generateManequimSheet(options: ManequimOptions = MANEQUIM_DEFAULTS): IndexedImage {
+  return sheetFromPoses((pose) => drawManequim(pose, options));
 }

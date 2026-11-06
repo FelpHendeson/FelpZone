@@ -1,11 +1,29 @@
 // Visualizador do molde: escolhe direção e animação, toca, pausa e avança quadro a quadro,
 // mostra os pontos por quadro (com a orientação da arma e se ela vai na frente ou atrás),
 // as quatro direções no tamanho do jogo e a folha inteira (tocar num quadro da folha abre esse quadro).
+// O painel da pilha (parte 2) liga e desliga camadas, troca peças e rampas e edita o JSON da receita.
 
 import { clipDuration, clipFrame, frameRect, isActiveFrame, type Clip } from '../04-animacao/animation.ts';
 import { button, labeled } from '../04-animacao/viewer.ts';
-import { drawCharacter, type WeaponImages } from './compor.ts';
-import { FACINGS, FACING_LABELS, MOLDE_ACTIONS, MOLDE_FORMAT, facingRow, moldeClipName, type Facing, type MoldeAction } from './molde.ts';
+import { CAMADAS, partesEscondidas, type CamadaId, type Slot } from './camadas.ts';
+import { drawCharacter, type Montagem, type WeaponImages } from './compor.ts';
+import {
+  CHANNELS,
+  CHANNEL_LABELS,
+  FACINGS,
+  FACING_LABELS,
+  MOLDE_ACTIONS,
+  MOLDE_FORMAT,
+  RAMP_BY_ID,
+  facingRow,
+  moldeClipName,
+  rampsFor,
+  type Channel,
+  type Facing,
+  type MoldeAction,
+} from './molde.ts';
+import { PECAS } from './pecas.ts';
+import { RECEITA_PADRAO, lerReceita, pecasDaReceita, rampasDaReceita, receitaJSON, type Receita } from './receita.ts';
 import { POINT_LABELS, POINT_NAMES, orientationVector, pointsAt, type PointName } from './pontos.ts';
 import type { Background, MoldeSettings } from './settings.ts';
 
@@ -59,7 +77,10 @@ export class MoldeViewer {
     this.build(container);
   }
 
-  /** Troca as imagens (quando o manequim é refeito com outros ajustes). */
+  /** Liga e desliga a camada da sombra (desenhada fora da folha). */
+  shadowLayer = true;
+
+  /** Troca as imagens (quando a receita é montada de novo). */
   setImages(images: MoldeImages): void {
     this.images = images;
   }
@@ -209,7 +230,7 @@ export class MoldeViewer {
 
   private compose(ctx: CanvasRenderingContext2D, clipName: string, index: number, flip: boolean, x: number, y: number): void {
     drawCharacter(ctx, this.images.frames, clipName, index, flip, x, y, {
-      shadow: this.settings.showShadow,
+      shadow: this.settings.showShadow && this.shadowLayer,
       weapon: this.settings.showWeapon ? this.images.weapon : null,
     });
   }
@@ -315,4 +336,227 @@ function drawMarker(
   ctx.strokeStyle = point.front ? '#1b1405' : color;
   ctx.stroke();
   ctx.restore();
+}
+
+// ---- Painel da pilha (parte 2) ----
+
+export interface PilhaState {
+  receita: Receita;
+  desligadas: Set<CamadaId>;
+}
+
+export interface PilhaElements {
+  camadas: HTMLElement;
+  pecas: HTMLElement;
+  rampas: HTMLElement;
+  receita: HTMLElement;
+  status: HTMLElement;
+}
+
+interface SlotChoice {
+  slot: Slot;
+  label: string;
+  optional: boolean;
+  get(receita: Receita): string | null;
+  set(receita: Receita, value: string | null): Receita;
+}
+
+const SLOT_CHOICES: SlotChoice[] = [
+  {
+    slot: 'cabelo',
+    label: 'Cabelo',
+    optional: false,
+    get: (r) => r.cabelo.estilo,
+    set: (r, v) => ({ ...r, cabelo: { ...r.cabelo, estilo: v ?? 'careca' } }),
+  },
+  { slot: 'sobrancelhas', label: 'Sobrancelhas', optional: true, get: (r) => r.sobrancelhas, set: (r, v) => ({ ...r, sobrancelhas: v }) },
+  { slot: 'marcas', label: 'Marcas', optional: true, get: (r) => r.marcas, set: (r, v) => ({ ...r, marcas: v }) },
+  { slot: 'barba', label: 'Barba', optional: true, get: (r) => r.barba, set: (r, v) => ({ ...r, barba: v }) },
+  { slot: 'linhagem', label: 'Linhagem', optional: true, get: (r) => r.linhagem, set: (r, v) => ({ ...r, linhagem: v }) },
+  { slot: 'roupa', label: 'Roupa', optional: true, get: (r) => r.roupa, set: (r, v) => ({ ...r, roupa: v }) },
+  {
+    slot: 'equipamento.cabeca',
+    label: 'Cabeça (equipamento)',
+    optional: true,
+    get: (r) => r.equipamento.cabeca ?? null,
+    set: (r, v) => ({ ...r, equipamento: v ? { ...r.equipamento, cabeca: v } : {} }),
+  },
+];
+
+/** Pele, olhos e cabelo têm campo próprio na receita; os outros canais vão em "rampas". */
+function setRamp(receita: Receita, channel: Channel, ramp: string): Receita {
+  if (channel === 'pele') return { ...receita, pele: ramp };
+  if (channel === 'olhos') return { ...receita, olhos: { ...receita.olhos, cor: ramp } };
+  if (channel === 'cabelo') return { ...receita, cabelo: { ...receita.cabelo, cor: ramp } };
+  return { ...receita, rampas: { ...receita.rampas, [channel]: ramp } };
+}
+
+function swatch(colors: readonly string[]): HTMLElement {
+  const element = document.createElement('span');
+  element.className = 'amostra';
+  for (const color of colors) {
+    const tone = document.createElement('span');
+    tone.style.background = color;
+    element.append(tone);
+  }
+  return element;
+}
+
+/**
+ * Liga e desliga camadas, troca as peças de exemplo e as rampas, e mostra a receita em JSON
+ * (editável). Toda mudança passa por `onChange`, que monta a receita de novo (ou reaproveita o cache).
+ */
+export class PilhaPanel {
+  private readonly layerRows = new Map<CamadaId, { input: HTMLInputElement; detail: HTMLElement }>();
+  private readonly slotSelects = new Map<Slot, HTMLSelectElement>();
+  private readonly rampSelects = new Map<Channel, { select: HTMLSelectElement; swatch: HTMLElement }>();
+  private readonly text = document.createElement('textarea');
+  private readonly errors = document.createElement('ul');
+  private readonly status = document.createElement('p');
+
+  constructor(
+    elements: PilhaElements,
+    private state: PilhaState,
+    private readonly onChange: (state: PilhaState) => void,
+  ) {
+    this.buildLayers(elements.camadas);
+    this.buildPieces(elements.pecas);
+    this.buildRamps(elements.rampas);
+    this.buildRecipe(elements.receita);
+    this.status.className = 'ajuda status';
+    elements.status.append(this.status);
+    this.refresh();
+  }
+
+  get receita(): Receita {
+    return this.state.receita;
+  }
+
+  private change(state: PilhaState): void {
+    this.state = state;
+    this.refresh();
+    this.onChange(state);
+  }
+
+  private setReceita(receita: Receita): void {
+    this.change({ ...this.state, receita });
+  }
+
+  private buildLayers(container: HTMLElement): void {
+    const list = document.createElement('ul');
+    list.className = 'lista-camadas';
+    for (const camada of CAMADAS) {
+      const item = document.createElement('li');
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.addEventListener('change', () => {
+        const desligadas = new Set(this.state.desligadas);
+        if (input.checked) desligadas.delete(camada.id);
+        else desligadas.add(camada.id);
+        this.change({ ...this.state, desligadas });
+      });
+      const name = document.createElement('span');
+      name.textContent = `${camada.ordem}. ${camada.nome}`;
+      const detail = document.createElement('span');
+      detail.className = 'detalhe';
+      label.append(input, name);
+      item.append(label, detail);
+      list.append(item);
+      this.layerRows.set(camada.id, { input, detail });
+    }
+    const all = document.createElement('div');
+    all.className = 'acoes';
+    all.append(
+      button('Ligar todas', () => this.change({ ...this.state, desligadas: new Set() })),
+      button('Só o corpo', () => this.change({ ...this.state, desligadas: new Set(CAMADAS.map((c) => c.id).filter((id) => id !== 'corpo-base' && id !== 'sombra')) })),
+    );
+    container.append(list, all);
+  }
+
+  private buildPieces(container: HTMLElement): void {
+    for (const choice of SLOT_CHOICES) {
+      const select = document.createElement('select');
+      if (choice.optional) select.add(new Option('Nenhuma', ''));
+      for (const peca of PECAS.filter((candidate) => candidate.slot === choice.slot)) select.add(new Option(peca.nome, peca.id));
+      select.addEventListener('change', () => this.setReceita(choice.set(this.state.receita, select.value || null)));
+      this.slotSelects.set(choice.slot, select);
+      container.append(labeled(choice.label, select));
+    }
+  }
+
+  private buildRamps(container: HTMLElement): void {
+    for (const channel of CHANNELS) {
+      const select = document.createElement('select');
+      for (const ramp of rampsFor(channel)) select.add(new Option(ramp.label, ramp.id));
+      const sample = document.createElement('span');
+      select.addEventListener('change', () => this.setReceita(setRamp(this.state.receita, channel, select.value)));
+      this.rampSelects.set(channel, { select, swatch: sample });
+      container.append(labeled(CHANNEL_LABELS[channel], select, sample));
+    }
+  }
+
+  private buildRecipe(container: HTMLElement): void {
+    this.text.className = 'receita';
+    this.text.spellcheck = false;
+    this.text.rows = 16;
+    this.text.addEventListener('input', () => this.text.classList.add('editado'));
+    this.errors.className = 'erros';
+    const actions = document.createElement('div');
+    actions.className = 'acoes';
+    actions.append(
+      button('Aplicar JSON', () => this.applyText()),
+      button('Desfazer edição', () => this.refresh()),
+      button('Receita padrão', () => this.setReceita(RECEITA_PADRAO)),
+    );
+    container.append(this.text, this.errors, actions);
+  }
+
+  private applyText(): void {
+    const { receita, erros } = lerReceita(this.text.value);
+    this.errors.replaceChildren(...erros.map((erro) => Object.assign(document.createElement('li'), { textContent: erro })));
+    if (receita) this.setReceita(receita);
+  }
+
+  /** Põe os controles de acordo com o estado. */
+  refresh(): void {
+    const { receita, desligadas } = this.state;
+    const pecas = pecasDaReceita(receita);
+    const hidden = partesEscondidas(pecas, desligadas);
+    for (const camada of CAMADAS) {
+      const row = this.layerRows.get(camada.id)!;
+      row.input.checked = !desligadas.has(camada.id);
+      const parts = pecas.flatMap((peca) =>
+        peca.partes
+          .filter((parte) => parte.camada === camada.id)
+          .map((parte) => {
+            const by = hidden.get(`${peca.id}/${parte.id}`);
+            return by ? `${parte.id} (escondida por ${by})` : `${peca.id}/${parte.id}`;
+          }),
+      );
+      row.detail.textContent = camada.id === 'sombra' ? 'desenhada pela montagem, fora da folha' : parts.length ? parts.join(', ') : `— ${camada.exemplos.toLowerCase()}`;
+      row.detail.classList.toggle('vazia', camada.id !== 'sombra' && parts.length === 0);
+    }
+    for (const choice of SLOT_CHOICES) this.slotSelects.get(choice.slot)!.value = choice.get(receita) ?? '';
+    const rampas = rampasDaReceita(receita);
+    for (const channel of CHANNELS) {
+      const { select, swatch: sample } = this.rampSelects.get(channel)!;
+      select.value = rampas[channel];
+      sample.replaceChildren(swatch(RAMP_BY_ID[rampas[channel]].colors));
+    }
+    this.text.value = receitaJSON(receita);
+    this.text.classList.remove('editado');
+    this.errors.replaceChildren();
+  }
+
+  /** Tempo da última montagem, se veio do cache, quantas vezes cada etapa rodou e quantas cores a folha usa. */
+  showStatus(montagem: Montagem<unknown>, contagem: { composicoes: number; pinturas: number }): void {
+    const { tempos, refeito, cores } = montagem;
+    const etapa = (feito: boolean, ms: number) => (feito ? `${ms.toFixed(1)} ms` : 'do cache');
+    const limite = cores > 15 ? ' — passa do limite de 15!' : ' (limite 15)';
+    this.status.textContent =
+      `Composição: ${etapa(refeito.composicao, tempos.composicao)} · pintura: ${etapa(refeito.pintura, tempos.pintura)} · ` +
+      `${contagem.composicoes} composições e ${contagem.pinturas} pinturas desde que a página abriu · ${cores} cores${limite}`;
+    this.status.classList.toggle('alerta', cores > 15);
+  }
 }

@@ -141,3 +141,98 @@ body.pagina-molde {
   margin-top: 14px;
   justify-content: center;
 }
+
+/* ---- Parte 2: camadas, rampas e receita ---- */
+
+.lista-camadas {
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.lista-camadas li {
+  padding: 6px 0;
+  border-bottom: 1px solid var(--borda);
+}
+
+.lista-camadas label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  font-weight: 500;
+}
+
+.lista-camadas input {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}
+
+.lista-camadas .detalhe {
+  display: block;
+  margin-left: 32px;
+  color: var(--texto-suave);
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+
+.lista-camadas .detalhe.vazia {
+  opacity: 0.6;
+}
+
+.amostra {
+  display: inline-flex;
+  margin-left: 8px;
+  border: 1px solid #0b120e;
+  border-radius: 4px;
+  overflow: hidden;
+  vertical-align: middle;
+}
+
+.amostra span {
+  width: 14px;
+  height: 18px;
+}
+
+textarea.receita {
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: #0b120e;
+  color: var(--texto);
+  font: 0.8rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  resize: vertical;
+}
+
+textarea.receita.editado {
+  border-color: var(--destaque);
+}
+
+.erros {
+  margin: 8px 0;
+  padding-left: 18px;
+  color: #ff9a8a;
+  font-size: 0.85rem;
+}
+
+.erros:empty {
+  display: none;
+}
+
+.status {
+  margin: 0 0 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.status.alerta {
+  color: #ffb36b;
+}
+
+.coluna .acoes {
+  flex-wrap: wrap;
+}

@@ -9,16 +9,50 @@
   <body class="pagina-molde">
     <nav class="barra">
       <a href="../../" class="botao-topo">Labs</a>
-      <span class="titulo">Lab 05 · Molde e pontos</span>
+      <span class="titulo">Lab 05 · Camadas e paleta</span>
     </nav>
 
     <main class="coluna">
       <p class="ajuda">
-        Parte 1 de 6: o molde do corpo (o manequim) com os pontos por quadro. Camadas, criação de personagem,
-        jogo e menu, NPCs e importação de folhas vêm nas próximas partes.
+        Parte 2 de 6: o personagem montado em camadas pela receita, pintado por rampas da paleta-mestra. O molde e os
+        pontos são da parte 1; criação de personagem, jogo e menu, NPCs e importação de folhas vêm nas próximas partes.
       </p>
 
-      <section id="visualizador" aria-label="Visualizador do molde"></section>
+      <section id="visualizador" aria-label="Visualizador do personagem"></section>
+      <div id="montagem" aria-live="polite"></div>
+
+      <section class="bloco" aria-label="Camadas">
+        <h2>Camadas</h2>
+        <p class="ajuda">
+          A ordem da seção 3, de baixo para cima olhando de frente. De costas a cauda e a capa passam para a frente e o
+          cabelo comprido cai sobre as costas. Desligue uma camada para ver o que está embaixo.
+        </p>
+        <div id="camadas"></div>
+      </section>
+
+      <section class="bloco" aria-label="Peças de exemplo">
+        <h2>Peças de exemplo</h2>
+        <p class="ajuda">
+          Uma peça por camada, só para provar a pilha (a variedade é da parte 3). O chapéu esconde só o topo do cabelo; o
+          capuz esconde todo o cabelo e as orelhas; a roupa esconde a roupa de baixo.
+        </p>
+        <div id="pecas"></div>
+      </section>
+
+      <section class="bloco" aria-label="Rampas">
+        <h2>Rampas</h2>
+        <p class="ajuda">
+          Cada camada é desenhada em tons-índice (contorno, sombra, base, luz) por canal. Trocar uma rampa só repinta a
+          folha já montada, sem redesenhar.
+        </p>
+        <div id="rampas"></div>
+      </section>
+
+      <section class="bloco" aria-label="Receita">
+        <h2>Receita (JSON)</h2>
+        <p class="ajuda">A receita que monta o personagem acima. Edite e toque em “Aplicar JSON”.</p>
+        <div id="receita"></div>
+      </section>
 
       <section class="bloco" aria-label="Legenda dos pontos">
         <h2>Pontos</h2>
@@ -38,14 +72,16 @@
       </section>
 
       <section class="bloco" aria-label="Baixar">
-        <h2>Baixar o molde</h2>
+        <h2>Baixar</h2>
         <p class="ajuda">
-          A folha do manequim (192 × 608 px, quadros de 32 × 32, âncora em 16, 28) serve de base para desenhar camadas à mão
-          ou com IA. Os pontos de todos os quadros vão num JSON.
+          A folha montada e a receita deste personagem; e o molde da parte 1: a folha do manequim (192 × 608 px, quadros
+          de 32 × 32, âncora em 16, 28), base para desenhar camadas à mão ou com IA, e os pontos de todos os quadros.
         </p>
         <div class="acoes">
-          <button id="baixar-folha" type="button">Baixar folha (PNG)</button>
-          <button id="baixar-pontos" type="button">Baixar pontos (JSON)</button>
+          <button id="baixar-montada" type="button">Folha montada (PNG)</button>
+          <button id="baixar-receita" type="button">Receita (JSON)</button>
+          <button id="baixar-folha" type="button">Molde (PNG)</button>
+          <button id="baixar-pontos" type="button">Pontos (JSON)</button>
         </div>
       </section>
     </main>

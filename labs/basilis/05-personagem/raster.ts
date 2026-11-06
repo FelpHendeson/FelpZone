@@ -33,6 +33,16 @@ export class IndexedImage {
     }
   }
 
+  /** Copia por cima os pixels não transparentes de um retângulo de `source` para o mesmo lugar desta imagem. */
+  overlayRect(source: IndexedImage, x: number, y: number, width: number, height: number): void {
+    for (let j = y; j < y + height; j++) {
+      for (let i = x; i < x + width; i++) {
+        const value = source.get(i, j);
+        if (value !== 0) this.set(i, j, value);
+      }
+    }
+  }
+
   /** Retângulo que contém todos os pixels não transparentes, ou null se a imagem estiver vazia. */
   bounds(): { x: number; y: number; width: number; height: number } | null {
     let minX = Infinity;

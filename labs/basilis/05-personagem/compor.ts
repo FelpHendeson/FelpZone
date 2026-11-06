@@ -2,8 +2,108 @@
 // A arma é colocada pelo ponto `mao-principal` do quadro, na orientação que o molde manda,
 // sem rotação. Feito para ser reaproveitado pelas próximas partes e pelos Labs 06 a 08.
 
-import { MOLDE_FORMAT } from './molde.ts';
+import { pilha, type CamadaId } from './camadas.ts';
+import { MANEQUIM_DEFAULTS, type ManequimOptions } from './manequim.ts';
+import { MOLDE_FORMAT, MOLDE_SIZE, paletteForRamps } from './molde.ts';
+import { folhasDaPeca } from './pecas.ts';
+import { MOLDE_POSES } from './poses.ts';
 import { pointsAt } from './pontos.ts';
+import { IndexedImage } from './raster.ts';
+import { chaveDaForma, chaveDaPintura, pecasDaReceita, rampasDaReceita, type Receita } from './receita.ts';
+
+// ---- Pilha de camadas: a receita montada numa folha só ----
+
+export interface MontarOpcoes {
+  manequim: ManequimOptions;
+  /** Camadas desligadas no visualizador. */
+  desligadas: ReadonlySet<CamadaId>;
+}
+
+/**
+ * Empilha as peças da receita numa folha em tons-índice, linha por linha, na ordem de camadas da
+ * direção daquela linha, sem as partes escondidas e sem as camadas desligadas.
+ */
+export function comporFolha(receita: Receita, opcoes: MontarOpcoes = { manequim: MANEQUIM_DEFAULTS, desligadas: new Set() }): IndexedImage {
+  const pecas = pecasDaReceita(receita);
+  const sheet = new IndexedImage(MOLDE_SIZE.width, MOLDE_SIZE.height);
+  const { frameWidth, frameHeight } = MOLDE_FORMAT;
+  for (const [name, clip] of Object.entries(MOLDE_FORMAT.clips)) {
+    const direction = MOLDE_POSES[name][0].direction;
+    const y = clip.row * frameHeight;
+    for (const { peca, parte } of pilha(pecas, direction, opcoes.desligadas)) {
+      sheet.overlayRect(folhasDaPeca(peca, opcoes.manequim)[parte.id], 0, y, clip.frames * frameWidth, frameHeight);
+    }
+  }
+  return sheet;
+}
+
+/** Quantas cores diferentes a folha pintada usa (sem a transparente). */
+export function coresUsadas(sheet: IndexedImage, palette: (string | null)[]): number {
+  const colors = new Set<string>();
+  for (const code of sheet.colorsUsed()) if (palette[code]) colors.add(palette[code]!.toLowerCase());
+  return colors.size;
+}
+
+export interface Montagem<T> {
+  /** A folha em tons-índice (só muda quando mudam as peças ou as camadas). */
+  folha: IndexedImage;
+  paleta: (string | null)[];
+  /** A folha pintada (no navegador, um canvas fora da tela). */
+  pintada: T;
+  cores: number;
+  /** Milissegundos gastos nesta chamada (0 quando veio do cache). */
+  tempos: { composicao: number; pintura: number };
+  refeito: { composicao: boolean; pintura: boolean };
+}
+
+/**
+ * Monta a receita uma vez e guarda. Trocar peças ou camadas refaz a composição e a pintura; trocar só
+ * rampas repinta a folha já composta, sem redesenhar; a mesma receita devolve o que já estava pronto.
+ */
+export class Montador<T> {
+  /** Quantas vezes cada etapa rodou (para conferir o cache). */
+  readonly contagem = { composicoes: 0, pinturas: 0 };
+  private forma = '';
+  private pintura = '';
+  private atual: Montagem<T> | null = null;
+
+  constructor(
+    private readonly pintar: (sheet: IndexedImage, palette: (string | null)[]) => T,
+    private readonly agora: () => number = () => performance.now(),
+  ) {}
+
+  montar(receita: Receita, opcoes: MontarOpcoes): Montagem<T> {
+    const forma = [chaveDaForma(receita), opcoes.manequim.selectiveOutline, opcoes.manequim.innerLines, [...opcoes.desligadas].sort().join(',')].join('|');
+    const pintura = chaveDaPintura(receita);
+    const atual = this.atual;
+    if (atual && forma === this.forma && pintura === this.pintura) {
+      return { ...atual, tempos: { composicao: 0, pintura: 0 }, refeito: { composicao: false, pintura: false } };
+    }
+    const recompor = !atual || forma !== this.forma;
+    let start = this.agora();
+    const folha = recompor ? comporFolha(receita, opcoes) : atual.folha;
+    const composicao = recompor ? this.agora() - start : 0;
+    if (recompor) this.contagem.composicoes++;
+    start = this.agora();
+    const paleta = paletteForRamps(rampasDaReceita(receita));
+    const pintada = this.pintar(folha, paleta);
+    const tempoPintura = this.agora() - start;
+    this.contagem.pinturas++;
+    this.forma = forma;
+    this.pintura = pintura;
+    this.atual = {
+      folha,
+      paleta,
+      pintada,
+      cores: coresUsadas(folha, paleta),
+      tempos: { composicao, pintura: tempoPintura },
+      refeito: { composicao: recompor, pintura: true },
+    };
+    return this.atual;
+  }
+}
+
+// ---- Desenhar um quadro ----
 
 export interface WeaponImages {
   /** Uma imagem por orientação (16). */
