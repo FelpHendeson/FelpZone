@@ -58,13 +58,16 @@ export interface Intent {
 export class Controls {
   readonly touch: TouchSource;
   readonly gamepad: GamepadSource;
-  private readonly keyboard = new KeyboardSource(window);
+  private readonly keyboard: KeyboardSource;
   lastSource: SourceName = 'teclado';
 
+  /** `active`: o teclado só vale enquanto o jogo está na tela (padrão: sempre). */
   constructor(
     canvas: HTMLCanvasElement,
     private readonly settings: Settings,
+    active: () => boolean = () => true,
   ) {
+    this.keyboard = new KeyboardSource(window, active);
     this.touch = new TouchSource(canvas, element('botao-ataque'), element('botao-esquiva'), () => settings);
     this.gamepad = new GamepadSource(() => settings);
   }

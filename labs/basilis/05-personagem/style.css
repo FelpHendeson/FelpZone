@@ -246,7 +246,7 @@ textarea.receita.editado {
 
 .abas-lab {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   gap: 6px;
   max-width: 520px;
   margin: 0 auto;
@@ -429,4 +429,127 @@ pre.receita {
   background: #0b120e;
   color: var(--texto);
   font: 0.78rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+/* ---- Aba Jogo (parte 4): o boneco do menu em cima, a arena embaixo; lado a lado no computador ---- */
+
+.coluna.coluna-jogo {
+  max-width: 1080px;
+}
+
+.jogo-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.menu-comparar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.menu-cartao {
+  width: min-content;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+.menu-cartao b {
+  color: var(--texto);
+}
+
+.menu-cartao canvas {
+  display: block;
+  image-rendering: pixelated;
+  border: 1px solid var(--borda);
+  border-radius: 6px;
+}
+
+.menu-escala {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10px;
+  color: var(--texto-suave);
+  font-size: 0.85rem;
+}
+
+.coluna .menu-escala button {
+  min-height: 34px;
+  min-width: 44px;
+  padding: 0 8px;
+}
+
+.menu-status {
+  margin: 8px 0 0;
+  text-align: center;
+  font-size: 0.8rem;
+  color: var(--texto-suave);
+}
+
+/* No celular em pé a arena ocupa o resto da tela, embaixo dos dois bonecos. */
+.jogo-arena {
+  position: relative;
+  height: calc(100svh - 390px);
+  min-height: 300px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+#arena {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  image-rendering: pixelated;
+}
+
+/* Os botões ficam dentro da arena, não presos na tela como nos Labs 01 a 04. */
+.jogo-arena #botoes {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  width: 150px;
+  height: 132px;
+}
+
+.jogo-arena #botao-ataque {
+  width: 80px;
+  height: 80px;
+}
+
+.jogo-arena #botao-esquiva {
+  width: 58px;
+  height: 58px;
+}
+
+@media (min-width: 860px) {
+  .jogo-layout {
+    flex-direction: row;
+    align-items: flex-start;
+  }
+
+  .jogo-menu {
+    flex: 0 0 auto;
+  }
+
+  .jogo-arena {
+    flex: 1;
+    height: min(78vh, 640px);
+  }
+}
+
+.jogo-dica {
+  margin: 8px 0 0;
 }

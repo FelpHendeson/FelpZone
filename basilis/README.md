@@ -14,7 +14,7 @@ Os labs ficam no hub [Felp Labs](../labs/README.md), na seção `basilis/`, publ
 | [02 — Cenário e escala](../labs/basilis/02-cenario/README.md) | O movimento num cenário de pixel art montado de uma spritesheet (gerada ou de IA) fica nítido em qualquer tela? | Concluído |
 | [03 — Combate](../labs/basilis/03-combate/README.md) | Colisão, dano, empurrão, recargas e inimigos que avisam antes de atacar ficam justos e legíveis no celular? | Concluído |
 | [04 — Animação](../labs/basilis/04-animacao/README.md) | Estados animados (parado, andar, atacar, dano, esquiva, morte) deixam herói e inimigos legíveis, com o golpe no quadro certo? | Concluído |
-| [05 — Personagem em camadas](../labs/basilis/05-personagem/README.md) | Um corpo base com pontos por quadro, camadas de personalização e troca de paleta dá um personagem bonito, variado e barato de desenhar, no jogo e no menu? | Em teste (partes 1 a 3 de 6) |
+| [05 — Personagem em camadas](../labs/basilis/05-personagem/README.md) | Um corpo base com pontos por quadro, camadas de personalização e troca de paleta dá um personagem bonito, variado e barato de desenhar, no jogo e no menu? | Em teste (partes 1 a 4 de 6) |
 
 Próximos labs, cada um numa sessão própria e terminado antes do seguinte:
 

@@ -15,6 +15,7 @@ import { pointsJSON } from './pontos.ts';
 import { RECEITA_PADRAO, lerReceita, receitaJSON, type Receita } from './receita.ts';
 import { MOLDE_DEFAULTS, MOLDE_FIELDS, loadMoldeSettings, saveMoldeSettings } from './settings.ts';
 import { TelaDeCriacao } from './tela-criacao.ts';
+import { TelaDeJogo } from './tela-jogo.ts';
 import { BACKGROUNDS, MoldeViewer, PilhaPanel, type MoldeImages, type PilhaState } from './viewer.ts';
 
 const settings = loadMoldeSettings();
@@ -68,12 +69,19 @@ function loadCreation(): Receita {
   }
 }
 
-// ---- Abas: criação (parte 3) e bancada (partes 1 e 2) ----
+// ---- Abas: criação (parte 3), jogo e menu (parte 4) e bancada (partes 1 e 2) ----
 
-type Aba = 'criacao' | 'bancada';
+type Aba = 'criacao' | 'jogo' | 'bancada';
+const ABAS: Aba[] = ['criacao', 'jogo', 'bancada'];
+const TITULOS: Record<Aba, string> = {
+  criacao: 'Lab 05 · Criação de personagem',
+  jogo: 'Lab 05 · Jogo e menu',
+  bancada: 'Lab 05 · Camadas e paleta',
+};
 let aba: Aba = (() => {
   try {
-    return localStorage.getItem(TAB_KEY) === 'bancada' ? 'bancada' : 'criacao';
+    const stored = localStorage.getItem(TAB_KEY) as Aba | null;
+    return stored && ABAS.includes(stored) ? stored : 'criacao';
   } catch {
     return 'criacao';
   }
@@ -82,14 +90,13 @@ let aba: Aba = (() => {
 function showTab(next: Aba): void {
   aba = next;
   store(TAB_KEY, next);
-  element('aba-criacao').hidden = next !== 'criacao';
-  element('aba-bancada').hidden = next !== 'bancada';
+  for (const id of ABAS) element(`aba-${id}`).hidden = next !== id;
   for (const button of document.querySelectorAll<HTMLButtonElement>('[data-aba]')) {
     const on = button.dataset.aba === next;
     button.classList.toggle('selecionado', on);
     button.setAttribute('aria-selected', String(on));
   }
-  element('titulo').textContent = next === 'criacao' ? 'Lab 05 · Criação de personagem' : 'Lab 05 · Camadas e paleta';
+  element('titulo').textContent = TITULOS[next];
   window.scrollTo(0, 0);
 }
 
@@ -138,6 +145,20 @@ panel = new PilhaPanel(
 );
 panel.showStatus(first, montador.contagem);
 
+// ---- Jogo e menu: o personagem da criação ----
+
+const jogo = new TelaDeJogo(
+  { menu: element('jogo-menu'), detalhes: element('jogo-detalhes'), arena: element<HTMLCanvasElement>('arena') },
+  {
+    receita: loadCreation(),
+    manequim: manequimOptions,
+    fundo: () => BACKGROUNDS[settings.background],
+    sombra: () => settings.showShadow,
+    weapon,
+    ativa: () => aba === 'jogo',
+  },
+);
+
 // ---- Criação ----
 
 const criacao = new TelaDeCriacao(element('criacao'), {
@@ -145,7 +166,11 @@ const criacao = new TelaDeCriacao(element('criacao'), {
   manequim: manequimOptions,
   fundo: () => BACKGROUNDS[settings.background],
   weapon,
-  onChange: (receita) => store(CREATION_KEY, receitaJSON(receita)),
+  onChange: (receita) => {
+    store(CREATION_KEY, receitaJSON(receita));
+    // O jogo e o menu seguem a criação sem recarregar (montam de novo quando a aba aparece).
+    jogo.definirReceita(receita);
+  },
   abrirNaBancada: (receita) => {
     panel!.definirReceita(receita);
     showTab('bancada');
@@ -161,6 +186,7 @@ mountPanel(element('ajustes-campos'), settings, MOLDE_FIELDS, MOLDE_DEFAULTS, (c
   // Os ajustes de contorno entram na chave da montagem: só refazem a folha se mudaram.
   build();
   criacao.ajustesMudaram();
+  jogo.ajustesMudaram();
 });
 
 element('baixar-montada').addEventListener('click', () => downloadCanvas(images.sheet, 'basilis-personagem-montado.png'));
@@ -185,6 +211,7 @@ function frame(now: number): void {
   last = now;
   // Só a aba aberta anima.
   if (aba === 'criacao') criacao.tick(dt);
+  else if (aba === 'jogo') jogo.tick(dt);
   else viewer!.tick(dt);
   requestAnimationFrame(frame);
 }

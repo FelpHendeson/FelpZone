@@ -297,7 +297,8 @@ export function renderParts(b: PartBuilder, options: ManequimOptions): Rendered 
         if (dx < 0 || dy < 0) lightSide = false;
       }
       if (top < 0) continue;
-      put(x, y, top, options.selectiveOutline && lightSide && x < 16 && y < 20 ? 1 : 0);
+      // O lado da luz: a metade esquerda e os 5/8 de cima do desenho (x < 16 e y < 20 no quadro de 32 × 32).
+      put(x, y, top, options.selectiveOutline && lightSide && x < map.width / 2 && y < map.height * 0.625 ? 1 : 0);
     }
   }
   return { image, owner };

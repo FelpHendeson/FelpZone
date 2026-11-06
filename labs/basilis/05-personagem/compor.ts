@@ -98,6 +98,8 @@ export class Montador<T> {
   constructor(
     private readonly pintar: (sheet: IndexedImage, palette: (string | null)[]) => T,
     private readonly agora: () => number = () => performance.now(),
+    /** O que monta a folha em tons-índice: a do jogo, ou outra da mesma receita (o boneco do menu). */
+    private readonly compor: (receita: Receita, opcoes: MontarOpcoes) => IndexedImage = comporFolha,
   ) {}
 
   montar(receita: Receita, opcoes: MontarOpcoes): Montagem<T> {
@@ -109,7 +111,7 @@ export class Montador<T> {
     }
     const recompor = !atual || forma !== this.forma;
     let start = this.agora();
-    const folha = recompor ? comporFolha(receita, opcoes) : atual.folha;
+    const folha = recompor ? this.compor(receita, opcoes) : atual.folha;
     const composicao = recompor ? this.agora() - start : 0;
     if (recompor) this.contagem.composicoes++;
     start = this.agora();

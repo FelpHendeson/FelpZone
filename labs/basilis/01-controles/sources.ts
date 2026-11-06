@@ -152,9 +152,15 @@ export class KeyboardSource {
   private held = new Set<string>();
   private dodgeQueued = false;
 
-  constructor(target: Window) {
+  /** `active` desliga o teclado quando o jogo não está na tela (numa página com outras abas). */
+  constructor(
+    target: Window,
+    private readonly active: () => boolean = () => true,
+  ) {
     target.addEventListener('keydown', (event) => {
-      if (event.target instanceof HTMLInputElement || event.target instanceof HTMLSelectElement) return;
+      if (!this.active()) return;
+      const field = event.target;
+      if (field instanceof HTMLInputElement || field instanceof HTMLSelectElement || field instanceof HTMLTextAreaElement) return;
       const handled = Object.values(KEYS).some((codes) => codes.includes(event.code));
       if (!handled) return;
       event.preventDefault();
@@ -166,6 +172,7 @@ export class KeyboardSource {
   }
 
   read(): SourceReading {
+    if (!this.active()) this.held.clear();
     const any = (codes: string[]) => codes.some((code) => this.held.has(code));
     const dodge = this.dodgeQueued;
     this.dodgeQueued = false;

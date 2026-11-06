@@ -14,8 +14,37 @@
 
     <div class="abas-lab" role="tablist">
       <button type="button" data-aba="criacao" role="tab">Criação</button>
-      <button type="button" data-aba="bancada" role="tab">Bancada (camadas)</button>
+      <button type="button" data-aba="jogo" role="tab">Jogo</button>
+      <button type="button" data-aba="bancada" role="tab">Bancada</button>
     </div>
+
+    <main class="coluna coluna-jogo" id="aba-jogo" hidden>
+      <div class="jogo-layout">
+        <section class="jogo-menu" aria-label="Boneco do menu: o próprio e o sprite ampliado">
+          <div id="jogo-menu"></div>
+        </section>
+        <section class="jogo-arena" aria-label="Arena">
+          <canvas id="arena" aria-label="Arena com o personagem da criação"></canvas>
+          <div id="botoes" hidden>
+            <button id="botao-esquiva" type="button">Esquiva</button>
+            <button id="botao-ataque" type="button">Corte</button>
+          </div>
+        </section>
+      </div>
+      <p class="ajuda jogo-dica">
+        O personagem é o da aba Criação: troque lá e volte. No celular, o joystick aparece onde o polegar tocar na
+        metade esquerda da arena. No computador: WASD ou setas, J ou espaço corta, K ou Shift esquiva.
+      </p>
+      <section class="bloco" aria-label="Comparar os bonecos do menu">
+        <h2>Menu: qual boneco?</h2>
+        <p class="ajuda">
+          A mesma receita, parada de frente e respirando. <b>A</b> é um desenho próprio de 64 × 96, montado nas mesmas
+          camadas e pintado pelas mesmas rampas: custa uma camada de menu a mais para cada item (de frente, 4 quadros).
+          <b>B</b> é o quadro parado do jogo ampliado ×3: não custa nada, mas mostra os pixels do jogo.
+        </p>
+        <div id="jogo-detalhes"></div>
+      </section>
+    </main>
 
     <main class="coluna" id="aba-criacao">
       <p class="ajuda">
@@ -28,7 +57,7 @@
     <main class="coluna" id="aba-bancada" hidden>
       <p class="ajuda">
         Partes 1 e 2: o personagem montado em camadas pela receita, pintado por rampas da paleta-mestra, com o molde e
-        os pontos. Jogo e menu, NPCs e importação de folhas vêm nas próximas partes.
+        os pontos. NPCs e importação de folhas vêm nas próximas partes.
       </p>
       <div class="acoes">
         <button id="trazer-da-bancada" type="button">Levar esta receita para a criação</button>
