@@ -47,6 +47,12 @@ export const SECTIONS: Section[] = [
         question: 'Estados animados (parado, andar, atacar, dano, esquiva, morte) deixam herói e inimigos legíveis, com o golpe no quadro certo?',
         status: 'Concluído',
       },
+      {
+        path: 'basilis/05-personagem/',
+        title: '05 — Personagem em camadas',
+        question: 'Um corpo base com pontos por quadro, camadas de personalização e troca de paleta dá um personagem bonito, variado e barato de desenhar, no jogo e no menu?',
+        status: 'Em teste',
+      },
     ],
   },
   {

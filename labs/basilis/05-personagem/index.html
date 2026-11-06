@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f1a14" />
+    <title>Basilis — Lab 05: Personagem em camadas</title>
+  </head>
+  <body class="pagina-molde">
+    <nav class="barra">
+      <a href="../../" class="botao-topo">Labs</a>
+      <span class="titulo">Lab 05 · Molde e pontos</span>
+    </nav>
+
+    <main class="coluna">
+      <p class="ajuda">
+        Parte 1 de 6: o molde do corpo (o manequim) com os pontos por quadro. Camadas, criação de personagem,
+        jogo e menu, NPCs e importação de folhas vêm nas próximas partes.
+      </p>
+
+      <section id="visualizador" aria-label="Visualizador do molde"></section>
+
+      <section class="bloco" aria-label="Legenda dos pontos">
+        <h2>Pontos</h2>
+        <ul class="legenda">
+          <li><span class="marca" style="background: #ffd23f"></span><b>Mão principal</b>: onde a arma fica; o traço mostra a orientação da arma (16 já desenhadas).</li>
+          <li><span class="marca" style="background: #3fd0ff"></span><b>Mão secundária</b>: escudo, tocha, adaga, foco, a mão de apoio.</li>
+          <li><span class="marca" style="background: #ff5fd2"></span><b>Cabeça</b>: topo da cabeça, para chapéus altos, marcas, balões.</li>
+          <li><span class="marca" style="background: #ff8a3d"></span><b>Costas</b>: aljava, mochila, asas, armas guardadas.</li>
+          <li><span class="marca" style="background: #7dff6a"></span><b>Pés</b>: a âncora, que fica sobre a posição no mundo.</li>
+        </ul>
+        <p class="ajuda">Marca cheia: o que se prende ali vai na frente do corpo. Marca vazada: vai atrás.</p>
+      </section>
+
+      <section class="bloco" aria-label="Ajustes">
+        <h2>Ajustes</h2>
+        <div id="ajustes-campos"></div>
+      </section>
+
+      <section class="bloco" aria-label="Baixar">
+        <h2>Baixar o molde</h2>
+        <p class="ajuda">
+          A folha do manequim (192 × 608 px, quadros de 32 × 32, âncora em 16, 28) serve de base para desenhar camadas à mão
+          ou com IA. Os pontos de todos os quadros vão num JSON.
+        </p>
+        <div class="acoes">
+          <button id="baixar-folha" type="button">Baixar folha (PNG)</button>
+          <button id="baixar-pontos" type="button">Baixar pontos (JSON)</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

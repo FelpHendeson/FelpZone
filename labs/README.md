@@ -17,6 +17,7 @@ Hub de experimentos pequenos de jogo. Cada lab responde uma única pergunta e re
 | [Basilis 02 — Cenário e escala](basilis/02-cenario/README.md) | O movimento num cenário de pixel art montado de uma spritesheet (gerada ou de IA) fica nítido em qualquer tela? | Concluído |
 | [Basilis 03 — Combate](basilis/03-combate/README.md) | Colisão, dano, empurrão, recargas e inimigos que avisam antes de atacar ficam justos e legíveis no celular? | Concluído |
 | [Basilis 04 — Animação](basilis/04-animacao/README.md) | Estados animados (parado, andar, atacar, dano, esquiva, morte) deixam herói e inimigos legíveis, com o golpe no quadro certo? | Concluído |
+| [Basilis 05 — Personagem em camadas](basilis/05-personagem/README.md) | Um corpo base com pontos por quadro, camadas de personalização e troca de paleta dá um personagem bonito, variado e barato de desenhar, no jogo e no menu? | Em teste (parte 1 de 6) |
 
 ## Executar localmente
 

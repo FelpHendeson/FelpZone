@@ -213,7 +213,7 @@ export class Viewer {
   }
 }
 
-function button(label: string, onClick: () => void): HTMLButtonElement {
+export function button(label: string, onClick: () => void): HTMLButtonElement {
   const element = document.createElement('button');
   element.type = 'button';
   element.textContent = label;
@@ -221,7 +221,7 @@ function button(label: string, onClick: () => void): HTMLButtonElement {
   return element;
 }
 
-function labeled(text: string, ...controls: HTMLElement[]): HTMLElement {
+export function labeled(text: string, ...controls: HTMLElement[]): HTMLElement {
   const row = document.createElement('label');
   row.className = 'campo';
   const title = document.createElement('span');

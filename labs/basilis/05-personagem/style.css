@@ -1,0 +1,143 @@
+/* Página de visualizador: rola como um documento, diferente das arenas em tela cheia. */
+html:has(.pagina-molde),
+body.pagina-molde {
+  height: auto;
+  min-height: 100%;
+  overflow: auto;
+}
+
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: calc(env(safe-area-inset-top) + 8px) 16px 8px;
+  background: var(--fundo);
+  border-bottom: 1px solid var(--borda);
+}
+
+.barra .titulo {
+  font-weight: 600;
+}
+
+.coluna {
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 12px 16px calc(env(safe-area-inset-bottom) + 32px);
+}
+
+.coluna h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+}
+
+.coluna button {
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: #1b2b22;
+  color: var(--texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+.coluna button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.coluna button.selecionado {
+  background: var(--destaque);
+  color: #1b1405;
+}
+
+.direcoes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.direcoes button {
+  padding: 0 4px;
+}
+
+.bloco {
+  margin-top: 20px;
+  padding-top: 12px;
+  border-top: 1px solid var(--borda);
+}
+
+.previa-molde {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 auto 12px;
+  border-radius: 8px;
+  background: repeating-conic-gradient(#25332b 0% 25%, #1b2b22 0% 50%) 50% / 20px 20px;
+  image-rendering: pixelated;
+}
+
+.previa-jogo {
+  display: block;
+  max-width: 100%;
+  margin: 0 auto 12px;
+  border-radius: 4px;
+  background: repeating-conic-gradient(#25332b 0% 25%, #1b2b22 0% 50%) 50% / 8px 8px;
+  image-rendering: pixelated;
+}
+
+.coluna .folha {
+  max-width: 384px;
+  margin: 0 auto 12px;
+  cursor: pointer;
+}
+
+.pontos {
+  width: 100%;
+  margin-bottom: 12px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.pontos th,
+.pontos td {
+  padding: 4px 6px;
+  border-bottom: 1px solid var(--borda);
+  text-align: left;
+}
+
+.pontos th {
+  color: var(--texto-suave);
+  font-weight: 500;
+}
+
+.marca {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 6px;
+  border-radius: 50%;
+  vertical-align: middle;
+  border: 1px solid #1b1405;
+}
+
+.legenda {
+  margin: 0 0 8px;
+  padding: 0;
+  list-style: none;
+  font-size: 0.9rem;
+}
+
+.legenda li {
+  margin-bottom: 6px;
+}
+
+#ajustes-campos .restaurar {
+  width: 100%;
+  margin-top: 14px;
+  justify-content: center;
+}
