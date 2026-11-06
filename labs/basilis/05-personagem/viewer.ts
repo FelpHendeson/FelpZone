@@ -45,7 +45,8 @@ export const POINT_COLORS: Record<PointName, string> = {
   pes: '#7dff6a',
 };
 
-const BACKGROUNDS: Record<Background, string> = {
+/** Cor de cada fundo do ajuste "Fundo" ('' = o xadrez do CSS). */
+export const BACKGROUNDS: Record<Background, string> = {
   grama: '#5f9a43',
   terra: '#a9825a',
   escuro: '#1b2b22',
@@ -362,6 +363,14 @@ interface SlotChoice {
 }
 
 const SLOT_CHOICES: SlotChoice[] = [
+  { slot: 'corpo', label: 'Corpo', optional: false, get: (r) => r.corpo, set: (r, v) => ({ ...r, corpo: v ?? 'corpo-a' }) },
+  {
+    slot: 'olhos',
+    label: 'Olhos',
+    optional: false,
+    get: (r) => r.olhos.forma,
+    set: (r, v) => ({ ...r, olhos: { ...r.olhos, forma: v ?? 'olhos-1' } }),
+  },
   {
     slot: 'cabelo',
     label: 'Cabelo',
@@ -430,6 +439,11 @@ export class PilhaPanel {
 
   get receita(): Receita {
     return this.state.receita;
+  }
+
+  /** Troca a receita por fora (a tela de criação manda o personagem para a bancada). */
+  definirReceita(receita: Receita): void {
+    this.setReceita(receita);
   }
 
   private change(state: PilhaState): void {

@@ -150,14 +150,16 @@ describe('ordem das camadas', () => {
 });
 
 describe('regras de esconder', () => {
-  it('cada parte escondida existe e fica numa camada mais funda que a peça que esconde', () => {
+  it('cada parte escondida existe e fica numa camada mais funda que a parte mais alta da peça que esconde', () => {
+    // Peças de uma camada só (equipamentos, roupa) escondem só o que fica embaixo delas; uma linhagem,
+    // que tem partes em várias camadas, esconde o que fica embaixo da sua parte mais alta.
     const order = CAMADAS.map((camada) => camada.id);
     for (const peca of PECAS) {
-      const lowest = Math.min(...peca.partes.map((parte) => order.indexOf(parte.camada)));
+      const highest = Math.max(...peca.partes.map((parte) => order.indexOf(parte.camada)));
       for (const target of peca.esconde) {
         const owners = PECAS.flatMap((other) => other.partes.filter((parte) => parte.id === target));
         expect(owners.length, `${peca.id} esconde ${target}`).toBeGreaterThan(0);
-        for (const parte of owners) expect(order.indexOf(parte.camada), `${peca.id} esconde ${target}`).toBeLessThan(lowest);
+        for (const parte of owners) expect(order.indexOf(parte.camada), `${peca.id} esconde ${target}`).toBeLessThan(highest);
       }
     }
   });

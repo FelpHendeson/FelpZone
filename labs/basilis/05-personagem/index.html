@@ -9,14 +9,30 @@
   <body class="pagina-molde">
     <nav class="barra">
       <a href="../../" class="botao-topo">Labs</a>
-      <span class="titulo">Lab 05 · Camadas e paleta</span>
+      <span class="titulo" id="titulo">Lab 05 · Criação de personagem</span>
     </nav>
 
-    <main class="coluna">
+    <div class="abas-lab" role="tablist">
+      <button type="button" data-aba="criacao" role="tab">Criação</button>
+      <button type="button" data-aba="bancada" role="tab">Bancada (camadas)</button>
+    </div>
+
+    <main class="coluna" id="aba-criacao">
       <p class="ajuda">
-        Parte 2 de 6: o personagem montado em camadas pela receita, pintado por rampas da paleta-mestra. O molde e os
-        pontos são da parte 1; criação de personagem, jogo e menu, NPCs e importação de folhas vêm nas próximas partes.
+        Parte 3 de 6: a criação de personagem. Só o corpo se escolhe; todo mundo começa com a roupa da Terra. Toque
+        numa opção para trocar, toque na prévia para virar o personagem.
       </p>
+      <div id="criacao"></div>
+    </main>
+
+    <main class="coluna" id="aba-bancada" hidden>
+      <p class="ajuda">
+        Partes 1 e 2: o personagem montado em camadas pela receita, pintado por rampas da paleta-mestra, com o molde e
+        os pontos. Jogo e menu, NPCs e importação de folhas vêm nas próximas partes.
+      </p>
+      <div class="acoes">
+        <button id="trazer-da-bancada" type="button">Levar esta receita para a criação</button>
+      </div>
 
       <section id="visualizador" aria-label="Visualizador do personagem"></section>
       <div id="montagem" aria-live="polite"></div>
@@ -30,11 +46,12 @@
         <div id="camadas"></div>
       </section>
 
-      <section class="bloco" aria-label="Peças de exemplo">
-        <h2>Peças de exemplo</h2>
+      <section class="bloco" aria-label="Peças">
+        <h2>Peças</h2>
         <p class="ajuda">
-          Uma peça por camada, só para provar a pilha (a variedade é da parte 3). O chapéu esconde só o topo do cabelo; o
-          capuz esconde todo o cabelo e as orelhas; a roupa esconde a roupa de baixo.
+          Todas as peças da criação, mais a roupa e dois equipamentos de cabeça que provam o esconder. O chapéu esconde
+          só o topo do cabelo; o capuz esconde todo o cabelo e as orelhas; a roupa esconde a roupa de baixo; os olhos de
+          lobo escondem os olhos.
         </p>
         <div id="pecas"></div>
       </section>

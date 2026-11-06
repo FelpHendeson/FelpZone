@@ -3,7 +3,7 @@
 
 import type { Direction } from './molde.ts';
 import type { Channel } from './molde.ts';
-import type { ManequimOptions } from './manequim.ts';
+import type { ManequimOptions, Silhueta } from './manequim.ts';
 import type { Pose } from './poses.ts';
 import type { IndexedImage } from './raster.ts';
 
@@ -104,9 +104,14 @@ export interface Peca {
   nome: string;
   slot: Slot;
   partes: ParteDef[];
-  /** Partes de outras peças que esta esconde (sempre de camadas mais fundas). */
+  /**
+   * Partes de outras peças que esta esconde, sempre de camadas mais fundas que a parte mais alta desta
+   * (os olhos de lobo, na camada da linhagem, escondem os olhos da camada do rosto).
+   */
   esconde: string[];
   canais: Channel[];
+  /** Só nas peças do slot `corpo`: o tipo de corpo, que as outras peças seguem ao se desenhar. */
+  silhueta?: Silhueta;
   /** Um quadro de cada parte para uma pose. Partes sem pixel nesta pose podem faltar. */
   desenhar(pose: Pose, options: ManequimOptions): Record<string, IndexedImage>;
 }

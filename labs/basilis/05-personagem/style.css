@@ -6,6 +6,11 @@ body.pagina-molde {
   overflow: auto;
 }
 
+/* Quem rola é a página, não o body: assim a barra e a prévia da criação ficam presas no topo. */
+body.pagina-molde {
+  overflow: visible;
+}
+
 .barra {
   position: sticky;
   top: 0;
@@ -235,4 +240,193 @@ textarea.receita.editado {
 
 .coluna .acoes {
   flex-wrap: wrap;
+}
+
+/* ---- Parte 3: abas e tela de criação ---- */
+
+.abas-lab {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  max-width: 520px;
+  margin: 0 auto;
+  padding: 10px 16px 0;
+}
+
+.abas-lab button {
+  min-height: 40px;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: #1b2b22;
+  color: var(--texto);
+  font: inherit;
+  cursor: pointer;
+}
+
+.abas-lab button.selecionado {
+  background: var(--destaque);
+  color: #1b1405;
+}
+
+/* A prévia fica presa embaixo da barra enquanto as opções rolam. */
+.criacao-palco {
+  position: sticky;
+  top: calc(env(safe-area-inset-top) + 56px);
+  z-index: 1;
+  margin: 0 -16px;
+  padding: 8px 16px;
+  background: var(--fundo);
+  border-bottom: 1px solid var(--borda);
+}
+
+.criacao-topo {
+  display: flex;
+  gap: 12px;
+  align-items: stretch;
+  justify-content: center;
+}
+
+.criacao-previa-caixa {
+  position: relative;
+  flex: 0 1 200px;
+  min-width: 0;
+}
+
+.criacao-previa {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  background: repeating-conic-gradient(#25332b 0% 25%, #1b2b22 0% 50%) 50% / 20px 20px;
+  image-rendering: pixelated;
+  cursor: pointer;
+}
+
+.criacao-direcao {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(11, 18, 14, 0.7);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+
+.criacao-lado {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  min-width: 128px;
+}
+
+.criacao-jogo {
+  display: block;
+  border-radius: 6px;
+  background: repeating-conic-gradient(#25332b 0% 25%, #1b2b22 0% 50%) 50% / 8px 8px;
+  image-rendering: pixelated;
+}
+
+.legenda-jogo {
+  color: var(--texto-suave);
+  font-size: 0.75rem;
+}
+
+.coluna button.sortear {
+  width: 100%;
+  min-height: 48px;
+  background: var(--destaque);
+  color: #1b1405;
+  font-weight: 600;
+}
+
+.criacao-controles,
+.criacao-abas {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.criacao-controles button,
+.criacao-abas button {
+  padding: 0 2px;
+  font-size: 0.82rem;
+}
+
+.criacao-abas button {
+  min-height: 44px;
+}
+
+.criacao-opcoes {
+  padding-top: 4px;
+}
+
+.escolha h3 {
+  margin: 16px 0 8px;
+  font-size: 0.95rem;
+}
+
+.opcoes {
+  display: grid;
+  gap: 8px;
+}
+
+.opcoes-peca {
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+}
+
+.opcoes-cor {
+  grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+}
+
+.coluna button.opcao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 64px;
+  padding: 6px 4px;
+}
+
+.coluna button.opcao.selecionado {
+  background: #2c4434;
+  color: var(--texto);
+  box-shadow: inset 0 0 0 2px var(--destaque);
+}
+
+.opcao canvas {
+  display: block;
+  max-width: 100%;
+  border-radius: 4px;
+  image-rendering: pixelated;
+}
+
+.opcao .nome {
+  font-size: 0.72rem;
+  line-height: 1.15;
+  text-align: center;
+}
+
+.bolinha {
+  width: 32px;
+  height: 32px;
+  border: 2px solid;
+  border-radius: 50%;
+}
+
+pre.receita {
+  box-sizing: border-box;
+  max-height: 300px;
+  margin: 0 0 8px;
+  padding: 10px;
+  overflow: auto;
+  border: 1px solid var(--borda);
+  border-radius: 10px;
+  background: #0b120e;
+  color: var(--texto);
+  font: 0.78rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }

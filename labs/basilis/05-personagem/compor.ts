@@ -2,10 +2,11 @@
 // A arma é colocada pelo ponto `mao-principal` do quadro, na orientação que o molde manda,
 // sem rotação. Feito para ser reaproveitado pelas próximas partes e pelos Labs 06 a 08.
 
+import { frameRect } from '../04-animacao/animation.ts';
 import { pilha, type CamadaId } from './camadas.ts';
 import { MANEQUIM_DEFAULTS, type ManequimOptions } from './manequim.ts';
 import { MOLDE_FORMAT, MOLDE_SIZE, paletteForRamps } from './molde.ts';
-import { folhasDaPeca } from './pecas.ts';
+import { PECA_BY_ID, folhasDaPeca } from './pecas.ts';
 import { MOLDE_POSES } from './poses.ts';
 import { pointsAt } from './pontos.ts';
 import { IndexedImage } from './raster.ts';
@@ -25,16 +26,43 @@ export interface MontarOpcoes {
  */
 export function comporFolha(receita: Receita, opcoes: MontarOpcoes = { manequim: MANEQUIM_DEFAULTS, desligadas: new Set() }): IndexedImage {
   const pecas = pecasDaReceita(receita);
+  const manequim = opcoesDoCorpo(receita, opcoes.manequim);
   const sheet = new IndexedImage(MOLDE_SIZE.width, MOLDE_SIZE.height);
   const { frameWidth, frameHeight } = MOLDE_FORMAT;
   for (const [name, clip] of Object.entries(MOLDE_FORMAT.clips)) {
     const direction = MOLDE_POSES[name][0].direction;
     const y = clip.row * frameHeight;
     for (const { peca, parte } of pilha(pecas, direction, opcoes.desligadas)) {
-      sheet.overlayRect(folhasDaPeca(peca, opcoes.manequim)[parte.id], 0, y, clip.frames * frameWidth, frameHeight);
+      sheet.overlayRect(folhasDaPeca(peca, manequim)[parte.id], 0, y, clip.frames * frameWidth, frameHeight);
     }
   }
   return sheet;
+}
+
+/** Os ajustes de desenho com o tipo de corpo da receita: a roupa e o cabelo seguem o corpo escolhido. */
+export function opcoesDoCorpo(receita: Receita, manequim: ManequimOptions): ManequimOptions {
+  return { ...manequim, silhueta: PECA_BY_ID[receita.corpo]?.silhueta ?? 'a' };
+}
+
+/**
+ * Um quadro só da receita (32 × 32, em tons-índice), sem montar a folha inteira: para miniaturas
+ * (as opções da tela de criação). Usa as mesmas folhas de peça, já guardadas, e a mesma pilha.
+ */
+export function comporQuadro(receita: Receita, clipName: string, index: number, manequim: ManequimOptions = MANEQUIM_DEFAULTS): IndexedImage {
+  const clip = MOLDE_FORMAT.clips[clipName];
+  const { x, y, width, height } = frameRect(MOLDE_FORMAT, clip, index);
+  const opcoes = opcoesDoCorpo(receita, manequim);
+  const frame = new IndexedImage(width, height);
+  for (const { peca, parte } of pilha(pecasDaReceita(receita), MOLDE_POSES[clipName][0].direction)) {
+    const source = folhasDaPeca(peca, opcoes)[parte.id];
+    for (let j = 0; j < height; j++) {
+      for (let i = 0; i < width; i++) {
+        const value = source.get(x + i, y + j);
+        if (value) frame.set(i, j, value);
+      }
+    }
+  }
+  return frame;
 }
 
 /** Quantas cores diferentes a folha pintada usa (sem a transparente). */

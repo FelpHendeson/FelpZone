@@ -29,11 +29,19 @@ export interface Part {
   tones?: readonly [number, number, number, number];
 }
 
+/**
+ * Tipo de corpo (seção 6: corpos A e B, sem rótulo de gênero). O B tem ombros e cintura mais estreitos e o
+ * quadril da largura do A; cabeça, mãos e pés ficam no mesmo lugar, então os pontos e as armas não mudam.
+ */
+export type Silhueta = 'a' | 'b';
+
 export interface ManequimOptions {
   /** Contorno do lado da luz (em cima e à esquerda) um tom mais claro. */
   selectiveOutline: boolean;
   /** Linhas de contorno onde uma parte passa por cima de outra. */
   innerLines: boolean;
+  /** O corpo sobre o qual as peças são desenhadas (a roupa segue o corpo). Padrão: A. */
+  silhueta?: Silhueta;
 }
 
 export const MANEQUIM_DEFAULTS: ManequimOptions = { selectiveOutline: true, innerLines: true };
@@ -101,7 +109,7 @@ export interface BodyGeometry {
 export const LEG = 3;
 export const ARM = 2;
 
-export function bodyGeometry(pose: Pose): BodyGeometry {
+export function bodyGeometry(pose: Pose, silhueta: Silhueta = 'a'): BodyGeometry {
   if (pose.lying) {
     const dy = pose.body.y;
     const head = { ...LYING_HEAD_BOX, y: LYING_HEAD_BOX.y + dy };
@@ -125,8 +133,13 @@ export function bodyGeometry(pose: Pose): BodyGeometry {
   const side = direction === 'side';
   const shift = (box: Box): Box => ({ ...box, x: box.x + body.x, y: box.y + body.y });
   const head = shift(HEAD_BOX[direction]);
-  const torso = shift(TORSO_BOX[direction]);
-  const shoulder = (s: Vec) => ({ x: s.x + body.x, y: s.y + body.y });
+  const hips = shift(TORSO_BOX[direction]);
+  // Corpo B: de frente e de costas, o tronco perde um pixel de cada lado e os ombros vêm junto;
+  // de lado, perde um pixel nas costas. O quadril (a roupa de baixo, a cintura da calça) fica igual.
+  const narrow = silhueta === 'b';
+  const torso = !narrow ? hips : side ? { ...hips, x: hips.x + 1, width: hips.width - 1 } : { ...hips, x: hips.x + 1, width: hips.width - 2 };
+  const inward = (s: Vec) => (narrow && !side ? (s.x < 16 ? 1 : -1) : 0);
+  const shoulder = (s: Vec) => ({ x: s.x + body.x + inward(s), y: s.y + body.y });
   const hipY = 21 + body.y;
   const main: LegGeometry = { hip: { x: skeleton.mainFoot.x + body.x, y: hipY }, foot: pose.mainFoot, depth: 0, thickness: LEG, toes: side ? 1 : 0 };
   const off: LegGeometry = { hip: { x: skeleton.offFoot.x + body.x, y: hipY }, foot: pose.offFoot, depth: side ? -1 : 0, thickness: LEG, toes: side ? 1 : 0 };
@@ -134,7 +147,7 @@ export function bodyGeometry(pose: Pose): BodyGeometry {
     lying: false,
     head,
     torso,
-    shorts: { x: torso.x, y: torso.y + torso.height - 1, width: torso.width, height: 3 },
+    shorts: { x: hips.x, y: hips.y + hips.height - 1, width: hips.width, height: 3 },
     crotch: side ? null : { x: 15 + body.x, y: torso.y + torso.height + 1, width: 2, height: 1 },
     nose: side ? { x: head.x + head.width, y: head.y + 5 } : null,
     mainArm: { shoulder: shoulder(skeleton.mainShoulder), hand: pose.mainHand, layer: pose.mainArm, depth: 0 },
@@ -345,7 +358,7 @@ export function drawEyes(image: IndexedImage, pose: Pose, top: number, bottom: n
 /** O corpo de uma pose como mapa de partes já sombreado, para separar em "corpo" e "roupa-de-baixo". */
 export function renderBody(pose: Pose, options: ManequimOptions, parts: BodyParts = { shorts: true }): { builder: PartBuilder; rendered: Rendered } {
   const builder = new PartBuilder();
-  drawBody(builder, bodyGeometry(pose), parts);
+  drawBody(builder, bodyGeometry(pose, options.silhueta), parts);
   return { builder, rendered: renderParts(builder, options) };
 }
 
