@@ -42,3 +42,8 @@ Separar XP geral, proficiência e qualidade de mana evita tornar todas as capaci
 ## Balanceamento e aceite
 
 Criar pequeno conjunto de personagens de teste, comparar resultados por atividade e detectar combinações dominantes. Aplicar progressão uma única vez por recompensa, recalcular efeitos após trocar item e explicar cada ganho na interface. Migrações de catálogo devem preservar habilidades aprendidas ou compensar alterações de maneira deliberada.
+
+
+## Conjunto inicial de raça, classe e habilidades (11/11/2026)
+
+A lista candidata para formar uma V1 jogável é detalhada em [24-runas-racas-classes-habilidades.md](24-runas-racas-classes-habilidades.md): quatro raças humanoides, três classes de progressão, seis núcleos, quatro traços raciais e quatro habilidades genéricas. O catálogo é **CANDIDATO_JOGAVEL**, não cânone definitivo nem todos os efeitos já implementados. Priorizar os poderes que tenham minigames/atividades reais; não permitir sorteio de poder sem aplicação funcional declarada. A classe continua escolhida após o nascimento.
