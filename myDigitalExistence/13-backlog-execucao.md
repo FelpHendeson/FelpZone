@@ -101,6 +101,12 @@ Cada cartão possui: ID, dependência, entrega e critério de aceite. Só marcar
 | v0.4 | IDLE-01, MANA-03, GAME-02 | autonomia leve, variações de treino e novos ambientes |
 | v0.5+ | RACE-02, TECH-01, SOCIAL-01 | híbridos, ficção científica e sistemas sociais após design específico |
 
+## Pacote criativo inicial e novas tarefas de conteúdo (autorização 11/11/2026)
+
+O criador autorizou produzir **modelos, customizações, raças, runas, habilidades e equipamentos candidatos** para uma versão jogável. Ver [22-pacote-conteudo-v1.md](22-pacote-conteudo-v1.md) e [26-plano-conteudo-e-aceite.md](26-plano-conteudo-e-aceite.md) para ids e critérios; as tarefas CONTENT-01, VIS-01..03, RACE-01, RUNE-01, CORE-01..02, EQUIP-01..03, CLASS-01, SKILL-01..02, MANA-03, PHYS-01, BAL-02, QA-CAT e ART-LEGAL são dependências adicionais, **não tarefas concluídas**.
+
+Para não alterar a promessa de v0.1, a inclusão do pacote é **incremental**: G1 valida uma única base com peças; G2 integra dados básicos; G3/G4 usa pequeno subconjunto seguro; v0.2 classes e habilidades; v0.3 pets; V1 revisa o catálogo mais amplo. A aprovação autoral final dos candidatos depende de demonstração/feedback, enquanto a arquitetura e os testes são responsabilidade autônoma do agente.
+
 ## Dependências críticas
 
 1. ENV antes de arte integrada e build.
