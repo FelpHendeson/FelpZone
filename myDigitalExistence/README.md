@@ -47,6 +47,19 @@ Uma proposta detalhada não se torna decisão por estar documentada. Números il
 
 Conteúdos não aprovados podem ser representados apenas por placeholders DEV_ONLY. As especificações 16–21 definem contratos e testes, não aprovam estilo, nomes, raridades ou balanço. Para implementação, seguir a [governança](15-governanca-criativa.md) e o [roteiro](21-roteiro-agentes.md).
 
+## Conteúdo inicial revisável — autorização de 11/11/2026
+
+O criador autorizou propor e detalhar uma **base de conteúdo concreta** para os agentes implementarem uma V1 jogável: modelos humanoides, customizações, raças, runas, habilidades inspiradas em princípios de RPG/anime/novels e equipamentos de entrada. A regra anterior de aprovação conjunta continua válida para **cânone final e expansões**. O conjunto novo é **CANDIDATO_JOGAVEL**, não arte ou balanceamento final aprovado; pode ser implementado e testado sem consultar o usuário sobre cada arquivo.
+
+Documentos novos:
+22. [Pacote de conteúdo inicial V1](22-pacote-conteudo-v1.md)
+23. [Modelos humanoides e customização](23-modelos-e-personalizacao-v1.md)
+24. [Runas, raças, classes e habilidades originais](24-runas-racas-classes-habilidades.md)
+25. [Dezoito equipamentos de entrada](25-equipamentos-iniciais.md)
+26. [Fases e critérios de aceite desse conteúdo](26-plano-conteudo-e-aceite.md)
+
+O agente deve ler o [AGENTS.md](AGENTS.md), executar primeiro G0 e G1, e só depois escalar o catálogo. **Apenas documentação foi publicada**: não há indicação verificada de sprites, Unity project, APK ou backend já prontos.
+
 ## Base confirmada
 
 **Decisão:** Unity 2D + C# para o cliente. **Requisitos:** Android/mobile, pixel art, humanoide personalizável, conta ligada ao progresso, invocação por runas, até três personagens, cuidados e progressão RPG. Backend online com objetivo de custo inicial zero; fornecedor e tecnologia não escolhidos.
