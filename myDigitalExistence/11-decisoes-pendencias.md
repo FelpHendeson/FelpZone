@@ -6,6 +6,8 @@
 | --- | --- | --- |
 | D01 | Decisão | Unity 2D + C#; stack confirmada para o cliente |
 | D02 | Decisão | Documentação Markdown em `myDigitalExistence/` no FelpZone |
+| D03 | Decisão (11/11/2026) | O criador participa e aprova a direção artística e decisões conceituais de funcionalidades, raças, habilidades, classes, aparência, customização, equipamentos e pets; o agente deve colaborar com ideias e registrar decisões, nunca definir sozinho o cânone. |
+| D04 | Decisão (11/11/2026) | O agente tem autonomia na implementação técnica, editor Unity autorizado, código e arquitetura com convenções legíveis, testes e padrões de engenharia reconhecidos; não precisa consultar o criador para detalhes técnicos rotineiros. |
 | R01 | Requisito | Jogo mobile de pet/personagem/entidade virtual humanoide em pixel art |
 | R02 | Requisito | Base visual reutilizável e personalização em camadas |
 | R03 | Requisito | Conta vinculada ao progresso |
@@ -71,3 +73,11 @@ Ao aprovar uma proposta, registrar data e evidência da escolha e atualizar os d
 Fonte: requisitos de produto fornecidos para esta documentação.
 
 Esta documentação sintetiza as ideias, com foco exclusivo no produto. Regras detalhadas novas aparecem como propostas. Não foram verificadas nesta entrega cotas comerciais nem produzidos executáveis.
+
+## Acordo de trabalho consolidado em 11/11/2026
+
+O conteúdo de D03 e D04 foi explicitamente reforçado pelo criador. Toda nova habilidade, raça, class, regra criativa, aparência, lista de equipamentos, preços e recompensas definitivas exige discussão/aprovação conjunta; propostas no GDD e exemplos técnicos não viram cânone automaticamente. Código, testes, arquitetura e fluxo Unity são executados pelo agente com autonomia técnica, preservando arte/dados existentes e respeitando autorizações de ações externas.
+
+**Documentos normativos:** [AGENTS.md](AGENTS.md) e [15-governanca-criativa.md](15-governanca-criativa.md). Especificações executáveis: [16](16-especificacao-unity.md), [17](17-contratos-de-dominio.md), [18](18-pipeline-visual.md), [19](19-ux-e-qa.md), [20](20-contratos-online.md) e [21](21-roteiro-agentes.md).
+
+**Registro de estado:** o usuário confirmou Unity instalada e a plataforma Android visível no Editor; isso não comprova compilação, APK validado, cenas, scripts ou backend. Gates G0–G4 não devem ser marcados completos por esta atualização documental.
