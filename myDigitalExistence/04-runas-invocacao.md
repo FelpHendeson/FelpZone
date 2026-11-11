@@ -41,3 +41,8 @@ A semente não é credencial, segredo de conta nem justificativa para confiar em
 ## Casos de aceite
 
 Confirmar duas vezes retorna o mesmo resultado; quarto personagem é recusado; duas invocações concorrentes com uma vaga geram no máximo um indivíduo; nova versão de catálogo preserva o nascimento anterior.
+
+
+## Primeiras runas candidatas (11/11/2026)
+
+[24-runas-racas-classes-habilidades.md](24-runas-racas-classes-habilidades.md) descreve **Pulso, Véu e Forja** como três runas de pedra com brilho azul, além de seis habilidades centrais originais e afinidades elementares. Estas definições são CANDIDATO_JOGAVEL: o agente pode implementar previews/gerador de teste e, após infraestrutura G3, persistência autoritativa; a distribuição de raridade e seus pesos definitivos ainda serão refinados com o criador. Não alterar snapshots já gerados quando migrar catálogos.
