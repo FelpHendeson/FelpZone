@@ -23,6 +23,14 @@
 
 Requisitos registram intenção do produto, não aprovação de todas as regras necessárias para implementá-la.
 
+## Autorização adicional de 11/11/2026
+
+**D05 — Escopo criativo delegado para a base inicial:** o usuário permitiu descrever e preparar modelos humanoides iniciais, personalizações de aparência, equipamentos de entrada, raças, runas e habilidades, inspirando-se nos princípios de Shadow Slave, Lord of Mysteries, Naruto, Black Clover, Jujutsu Kaisen, Bleach e RPGs, para construir progressivamente uma V1. O agente pode **implementar** o pacote candidato descrito em 22–26 sem pedir aprovação a cada detalhe técnico. **Não houve aprovação final de cada nome, efeito, paleta, silhueta ou parâmetro de balanceamento.** O criador continuará refinando a direção criativa conjuntamente; novas ideias além desse recorte exigem coautoria.
+
+**Conteúdo em estado CANDIDATO_JOGAVEL:** 4 raças (Humano, Elfo, Dracônico, Vesperino), 3 runas (Pulso, Véu, Forja), 6 afinidades, 6 núcleos, 3 classes, 3 compleições de corpo, personalizações e 18 equipamentos de entrada. Todos são designs originais propostos para prova jogável, revisáveis, não lore final.
+
+**Inspiração e direitos:** conceitos de profundidade, restrições e progressão podem ser aprendidos de obras conhecidas; não reproduzir personagens, nomes de técnicas, símbolos ou arte identificável sem direitos. Ver 22-pacote-conteudo-v1.md.
+
 ## Histórico tecnológico
 
 1. A conversa começou com possibilidades de Android, APK e PWA.
