@@ -5,6 +5,14 @@ Versão 1.0 — 11/11/2026. **Ler antes de editar qualquer arquivo nesta pasta.*
 ## Missão
 Entregar um jogo mobile Android 2D pixel art em **Unity + C#**: personagem humanoide modular, vida virtual, invocação por runas, progressão RPG, cuidados, mana, minigames, inventário e loja. Pets virão depois do primeiro MVP. O agente implementa e testa tecnicamente; o criador é diretor criativo com decisão final sobre conceitos.
 
+## Autorização criativa limitada para pacote inicial (11/11/2026)
+
+O criador autorizou expressamente a descrição e implementação de um **conjunto inicial de modelos humanoides, customizações, raças, runas, habilidades e equipamentos de inspiração genérica**, para formar uma V1 jogável e expandir depois. Ler **22-pacote-conteudo-v1.md a 26-plano-conteudo-e-aceite.md** antes de implementar conteúdo.
+
+O catálogo listado nesses arquivos é **CANDIDATO_JOGAVEL**: o agente PODE criar sprites originais provisórios, definições e comportamento para os itens expressamente descritos, sem consultar por cada detalhe, desde que mantenha o conteúdo modular, versionado e sujeito à revisão do criador. Isso é uma **exceção limitada** à proibição de inventar conteúdo, não aprovação definitiva da identidade de qualquer raça, habilidade ou visual. Novos conceitos fora desse pacote ou alterações conceituais profundas continuam exigindo discussão criativa e aprovação. Valores numéricos permanecem DEV_BALANCE até revisão.
+
+Na ordem de leitura, incluir os arquivos 22–26 depois dos contratos técnicos e antes de produzir assets de catálogo. O resto das instruções permanece válido.
+
 ## Autoridade obrigatória
 **O usuário define conosco a parte criativa:** aparência do personagem e suas proporções; estilo, cabelos, rostos, raças, classes, elementos, habilidades, equipamentos, pets, universo/lore e as decisões conceituais que mudam a experiência (invocação, evolução, economia, mana e mecânicas). O agente pode propor alternativas e explicar trade-offs; **não transformar propostas em cânone sem aprovação explícita do criador**.
 
