@@ -41,3 +41,8 @@ Registrar autor, origem, licença e permissão de uso de cada asset. Imagens de 
 ## Aceite da prova visual
 
 Trocar peças durante a animação sem desalinhamento, manter pixel art legível no Android alvo e exibir fallback para combinação incompatível. Medir custo de memória e tempo por quadro antes de definir o orçamento de conteúdo.
+
+
+## Primeiro catálogo concreto (11/11/2026)
+
+A [especificação de modelos e personalização V1](23-modelos-e-personalizacao-v1.md) propõe um arquétipo humanoide, três compleições, cabelo/olhos/paletas e overlays de quatro raças. **Status CANDIDATO_JOGAVEL**, autorizado para implementação técnica e arte provisória original; proporções 96×128/PPU são hipóteses de teste, não padrão visual congelado. Usar [18-pipeline-visual.md](18-pipeline-visual.md) como contrato de render. O visual final depende de revisão conjunta com o criador.
