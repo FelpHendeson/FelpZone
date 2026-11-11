@@ -6,6 +6,14 @@ O usuário será diretor criativo e coprojetista das mecânicas. Eu/agentes cola
 
 Técnica é responsabilidade autônoma do agente: especificar implementações, escrever e revisar código, operar Unity autorizada, criar testes, configurar Android, organizar arquivos, depurar e propor escolhas de engenharia. **Não solicitar aprovação para detalhes técnicos rotineiros.**
 
+## 1.1 Autorização adicional para o conteúdo inicial
+
+Em 11/11/2026, o criador autorizou a elaboração de **descrições concretas** para bases de personagens, opções comuns de aparência, raças, classes, núcleos e equipamentos de entrada — inspirados em diversos universos, mas originais — para viabilizar uma V1. Por isso, o agente pode produzir e implementar o pacote especificado nos documentos 22–26 como **CANDIDATO_JOGAVEL**, sem consultas para cada detalhe técnico ou sprite provisório.
+
+Este estado não equivale a APROVADO: o criador mantém a palavra final sobre direção criativa, lore, visuais definitivos, habilidades definitivas, economia, expansão do catálogo e balanceamento. Quando o pacote for apresentado em uma build, ele poderá revisar/ajustar conteúdo antes de lançamento. Conteúdo novo **fora do pacote** ainda exige criação conjunta, salvo novos pedidos explícitos do criador.
+
+Ampliação da sequência de status: IDEIA → PROPOSTA → **CANDIDATO_JOGAVEL (autorizado apenas para a base descrita)** → REVISADO → APROVADO → EM IMPLEMENTAÇÃO/VALIDADO conforme contexto. O status de execução técnica não promove status criativo automaticamente.
+
 ## 2. Matriz de autonomia
 | Área | Agente decide sozinho? | Limite |
 | --- | --- | --- |
