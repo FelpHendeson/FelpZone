@@ -44,3 +44,8 @@ Apresentar opções e custos com clareza; compra direta garante o tipo escolhido
 ## Aceite futuro
 
 Pet persiste com seu dono, cuidado altera somente o alvo correto e aquisição não se duplica em reconexão. Antes de excluir humanoide, informar e aplicar a política aprovada de destino de seu pet e respectivos itens.
+
+
+## Equipamentos de entrada da V1 (11/11/2026)
+
+O criador autorizou descrições de equipamentos básicos de RPG com personalidade estética própria. [25-equipamentos-iniciais.md](25-equipamentos-iniciais.md) lista 18 peças candidatas, slots, aparência, compatibilidade, kits e efeitos conceituais. É conteúdo CANDIDATO_JOGAVEL, sem preços ou balanceamento final. O agente pode implementar modelos, sprites originais provisórios e inventário compatível sem aprovar automaticamente números definitivos. Pets continuam fora do primeiro MVP, conforme roadmap.
