@@ -61,3 +61,8 @@ O tutorial conduz uma invocação, uma ação de cuidado, uma troca de peça e u
 ## Fora do MVP proposto
 
 Mundo aberto, arena online, marketplace, sistema completo de hibridização, coleções sazonais, múltiplos lares e comportamento autônomo elaborado. Esses cortes não removem a visão futura.
+
+
+## Material inicial de conteúdo autorizado em 11/11/2026
+
+O criador pediu descrições concretas para permitir implementar uma base de personagens, raças, habilidades, customizações e itens antes de a direção criativa inteira estar fechada. O [pacote inicial V1](22-pacote-conteudo-v1.md) é **CANDIDATO_JOGAVEL**: pode ser implementado em etapas, mas não redefine automaticamente o escopo mínimo de v0.1 nem aprova balanceamento ou estética final. O [plano de fases](26-plano-conteudo-e-aceite.md) estabelece o subconjunto por gate. Não apresentar uma habilidade como disponível quando só existir ficha descritiva.
