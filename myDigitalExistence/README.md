@@ -2,7 +2,7 @@
 
 Documentação de um jogo mobile de personagem virtual com progressão RPG em pixel art.
 
-**Estado em 09/11/2026:** planejamento; esta entrega contém somente documentação. Não há projeto Unity, APK, backend ou funcionalidade implementada nesta pasta. O nome da pasta é confirmado; o título comercial do jogo ainda não foi escolhido.
+**Estado da documentação em 11/11/2026:** planejamento estruturado. O usuário relatou que Unity está instalado e Android aparece nas opções de build; ainda não há evidência de um projeto Unity versionado, APK testado, backend ou funcionalidades implementadas nesta pasta. O nome da pasta é confirmado; o título comercial do jogo ainda não foi escolhido.
 
 ## Como ler
 
@@ -27,6 +27,9 @@ Uma proposta detalhada não se torna decisão por estar documentada. Números il
 9. [Planejamento do backend online](09-backend-online.md)
 10. [Roadmap e validação](10-roadmap.md)
 11. [Decisões, histórico e pendências](11-decisoes-pendencias.md)
+12. [Plano mestre de desenvolvimento](12-plano-mestre.md)
+13. [Backlog de execução](13-backlog-execucao.md)
+14. [Qualidade, testes e validação Android](14-qualidade-validacao.md)
 
 ## Base confirmada
 
@@ -40,7 +43,7 @@ Inspeção em 09/11/2026: branch padrão `main`; raiz com `basilis/`, `docs/`, `
 
 ## Execução e próximos passos
 
-Não há comandos de instalação ou execução nesta etapa. O primeiro passo é confirmar as pendências prioritárias e construir a prova visual descrita no [roadmap](10-roadmap.md). 
+Não há comandos de instalação ou execução nesta etapa. O próximo passo é validar o ambiente com um APK mínimo (G0), depois construir a prova visual descrita no [plano mestre](12-plano-mestre.md) e no [backlog](13-backlog-execucao.md). 
 
 ## Origem
 
