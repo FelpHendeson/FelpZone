@@ -104,3 +104,6 @@ main { flex: 1; display: flex; min-height: 0; }
   #logWrap { max-height: 260px; }
   #map { max-height: 60vh; }
 }
+#hud .heatbar { position: relative; overflow: visible; }
+#hud .heatbar i { border-radius: 4px; }
+#hud .heatbar u { position: absolute; top: -3px; width: 2px; height: 14px; background: #fff; margin-left: -1px; }
