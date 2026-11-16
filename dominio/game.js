@@ -6,8 +6,8 @@ const UPKEEP = 12;          // custo diário por soldado
 const ACTIONS_PER_DAY = 3;
 const TRUCE_DAYS = 4;       // rivais não atacam você antes deste dia
 const POLICE_RADIUS = 210;
-const HEAT_PER_POINT = 2.6;  // cada ponto de calor/dia dos seus pontos vira 1.6 no alvo de calor
-const HEAT_DRIFT = 0.35;     // quanto o calor anda em direção ao alvo por dia
+const HEAT_PER_POINT = 2.6;  // multiplica a soma da visada dos seus pontos para formar o alvo de visada
+const HEAT_DRIFT = 0.35;     // quanto a visada anda em direção ao alvo por dia
 const BRIBE_DAYS = 3;        // dias de vista grossa depois do suborno
 
 const TYPES = {
@@ -28,7 +28,7 @@ const TYPES = {
   porto:     { label: 'Porto',       icon: '🚢', income: 280, heat: 3, resp: 0, def: 1.3,
                desc: 'Contrabando pelo cais. O ponto mais lucrativo da cidade.' },
   policia:   { label: 'Delegacia',   icon: '🚓', income: 0,   heat: 0, resp: 0, def: 0,
-               desc: 'Intocável. Seus pontos aqui perto geram +1 de calor por dia.' },
+               desc: 'Intocável. Seus pontos aqui perto ficam mais visados (+1).' },
 };
 
 const RIVALS = {
@@ -147,7 +147,7 @@ function forecast() {
     if (!n.lowkey) inc += nodeIncome(n);
     heat += nodeHeat(n);
   });
-  // alvo de calor: pra onde a pressão da polícia tende com o seu território atual
+  // alvo de visada: pra onde a pressão da polícia tende com o seu território atual
   let target = clamp(heat * HEAT_PER_POINT, 0, 100);
   if (state.bribeDays > 0) target /= 2;
   const next = clamp(state.heat + (target - state.heat) * HEAT_DRIFT, 0, 100);
@@ -239,7 +239,7 @@ function toggleLowkey(id) {
   const n = state.nodes[id];
   if (n.owner !== 'P' || n.type === 'hq') return;
   n.lowkey = !n.lowkey;
-  log(n.lowkey ? `🤫 ${n.name} baixou a poeira: sem movimento, sem renda e sem calor.` : `🔊 ${n.name} voltou a funcionar.`, 'warn');
+  log(n.lowkey ? `🤫 ${n.name} baixou a poeira: sem movimento, sem renda e fora da mira da polícia.` : `🔊 ${n.name} voltou a funcionar.`, 'warn');
   afterAction();
 }
 
@@ -392,7 +392,7 @@ function randomEvent() {
   const events = [
     () => { state.money += 200; log('🎒 Um olheiro achou uma mochila esquecida num dos pontos. +$200', 'good'); },
     () => { if (state.respect < 15) return; state.free += 2; log('🏍️ Dois moleques de moto pediram pra entrar pro bonde. +2 soldados', 'good'); },
-    () => { state.heat = clamp(state.heat + 8, 0, 100); log('📰 Saiu matéria no jornal sobre a guerra de gangues. Calor +8', 'warn'); },
+    () => { state.heat = clamp(state.heat + 8, 0, 100); log('📰 Saiu matéria no jornal sobre a guerra de gangues. Visada +8', 'warn'); },
     () => { if (!ownInf) return; state.respect = clamp(state.respect + 5, 0, 100); log('🎉 A festa de sábado no inferninho bombou. Todo mundo comentando. +5 respeito', 'good'); },
     () => { if (state.free <= 0) return; state.free--; log('🚔 Um dos seus foi pego numa blitz. -1 soldado', 'bad'); },
     () => { const r = pick(['A', 'B', 'C'].filter((k) => state.rivals[k].alive)); if (!r) return; state.rivals[r].reserve = Math.max(0, state.rivals[r].reserve - 2); log(`🗞️ Racha interno: ${RIVALS[r].name} perderam 2 soldados numa briga entre eles.`, 'rival'); },
@@ -423,11 +423,11 @@ function renderHUD() {
     <div class="stat" title="Renda dos pontos menos o salário dos soldados"><span>Saldo/dia</span><b style="color:${balance >= 0 ? '#86efac' : '#fca5a5'}">${balance >= 0 ? '+' : ''}${money(balance)}</b></div>
     <div class="stat" title="Soldados livres / total"><span>Soldados</span><b>${state.free} / ${totalSoldiers()}</b></div>
     <div class="stat"><span>Respeito</span><b>⭐ ${state.respect}</b></div>
-    <div class="stat" title="O calor anda aos poucos até o alvo, que depende dos seus pontos. Acima de 50 a polícia pode fazer batidas."><span>Calor ${Math.round(state.heat)} → ${f.target}${state.bribeDays ? ` · 💼${state.bribeDays}d` : ''}</span><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div></div>
+    <div class="stat" title="O quanto a polícia está de olho no seu bonde. Anda aos poucos até o alvo (traço branco), que depende dos seus pontos. Acima de 50 a polícia pode fazer batidas."><span>👁️ Visada ${Math.round(state.heat)} → ${f.target}${state.bribeDays ? ` · 💼${state.bribeDays}d` : ''}</span><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div></div>
     <div class="stat"><span>Ações</span><b>${'⚡'.repeat(state.actions)}${'·'.repeat(ACTIONS_PER_DAY - state.actions)}</b></div>
     <div class="spacer"></div>
     <div class="btns">
-      <button onclick="bribe()" ${state.bribeDays > 0 || state.money < bribeCost() || state.heat <= 0 ? 'disabled' : ''} title="Tira 20 de calor na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias">💼 Subornar (${money(bribeCost())})</button>
+      <button onclick="bribe()" ${state.bribeDays > 0 || state.money < bribeCost() || state.heat <= 0 ? 'disabled' : ''} title="Tira 20 de visada na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias">💼 Subornar (${money(bribeCost())})</button>
       <button class="primary" onclick="endDay()" ${state.over ? 'disabled' : ''}>Encerrar dia ▶</button>
       <button onclick="showHelp()">❔</button>
       <button onclick="confirmNew()">↺</button>
@@ -479,7 +479,7 @@ function renderPanel() {
   if (n.type !== 'policia') {
     h.push(`<div class="grid">
       <div>💵 Renda/dia <b>${n.lowkey ? '$0 (parado)' : money(nodeIncome(n))}</b></div>
-      <div>🔥 Calor <b>${n.lowkey ? '0 (parado)' : '+' + nodeHeat(n)}</b></div>
+      <div>👁️ Visada <b>${n.lowkey ? '0 (parado)' : '+' + nodeHeat(n)}</b></div>
       <div>⭐ Respeito/dia <b>+${t.resp}</b></div>
       <div>🛡️ ${n.owner ? 'Guardas' : 'Resistência'} <b>${n.guards}</b></div>
     </div>`);
@@ -510,7 +510,7 @@ function renderPanel() {
     if (n.type !== 'hq') {
       h.push(`<div class="act"><h4>${n.lowkey ? '🤫 Ponto parado' : '🤫 Baixar a poeira'}</h4><div class="row">
         <button onclick="toggleLowkey(${n.id})">${n.lowkey ? 'Voltar a funcionar' : 'Parar o movimento'}</button>
-      </div><div class="note">Parado, o ponto não gera renda, respeito nem calor, e a polícia não faz batida nele. Não gasta ação.</div></div>`);
+      </div><div class="note">Parado, o ponto não gera renda, respeito nem visada, e a polícia não faz batida nele. Não gasta ação.</div></div>`);
     }
 
     if (n.level < 3 && n.type !== 'hq') {
@@ -519,7 +519,7 @@ function renderPanel() {
       </div><div class="note">+50% de renda e +25% de defesa.</div></div>`);
     }
   } else if (n.type === 'policia') {
-    h.push(`<div class="note">Use o botão 💼 Subornar lá em cima pra esfriar o calor.</div>`);
+    h.push(`<div class="note">Use o botão 💼 Subornar lá em cima pra tirar a polícia do seu pé.</div>`);
   } else if (!reachable(n)) {
     h.push(`<div class="act"><h4>🚫 Fora do alcance</h4><div class="note">Domine um ponto ligado a este pela rua primeiro. Os pontos com círculo pontilhado são os que você pode atacar.</div></div>`);
   } else {
@@ -534,12 +534,12 @@ function renderPanel() {
       ${maxSend > 0 ? `<input type="range" min="1" max="${maxSend}" value="${ui.send}" oninput="ui.send=+this.value;renderPanel()">
       <div class="row" style="justify-content:space-between"><span>Mandar <b>${ui.send}</b> de ${maxSend} livres</span><b style="color:${odds[1]}">${odds[0]}</b></div>` : `<div class="note">Você não tem soldados livres. Tire guardas de algum ponto ou recrute.</div>`}
       <div class="row" style="margin-top:8px"><button class="primary" onclick="playerAttack(${n.id})" ${state.actions <= 0 || maxSend <= 0 ? 'disabled' : ''}>${n.owner ? 'Partir pra cima' : 'Tomar o ponto'} (1 ⚡)</button></div>
-      <div class="note">Os sobreviventes ficam de guarda no ponto conquistado. Atacar aumenta o calor.</div></div>`);
+      <div class="note">Os sobreviventes ficam de guarda no ponto conquistado. Atacar deixa o bonde mais visado.</div></div>`);
     if (n.owner === null) {
       const c = negotiateCost(n);
       h.push(`<div class="act"><h4>🤝 Negociar</h4><div class="row">
         <button onclick="playerNegotiate(${n.id})" ${state.actions <= 0 || state.respect < 20 || state.money < c ? 'disabled' : ''}>Comprar o ponto por ${money(c)} (1 ⚡)</button>
-      </div><div class="note">${state.respect < 20 ? 'Precisa de 20 de respeito pra te levarem a sério.' : 'Sem sangue e sem calor, mas o ponto chega sem guardas.'}</div></div>`);
+      </div><div class="note">${state.respect < 20 ? 'Precisa de 20 de respeito pra te levarem a sério.' : 'Sem sangue e sem chamar a polícia, mas o ponto chega sem guardas.'}</div></div>`);
     }
   }
   $('#panel').innerHTML = h.join('');
@@ -582,13 +582,13 @@ function showHelp(fromStart) {
     <h1>Como jogar</h1>
     <ul>
       <li><b>Objetivo:</b> tomar os QGs dos Corvos, das Serpentes e dos Dragões. Se o seu QG cair, você perde.</li>
-      <li><b>Pontos:</b> cada ponto dá renda todo dia. Bocas e o porto dão mais grana, mas geram mais <b>calor</b>.</li>
+      <li><b>Pontos:</b> cada ponto dá renda todo dia. Bocas e o porto dão mais grana, mas deixam o bonde mais <b>visado</b>.</li>
       <li><b>Ações (⚡):</b> você tem ${ACTIONS_PER_DAY} por dia pra atacar ou negociar. Mover guardas, recrutar e melhorar não gastam ação.</li>
       <li><b>Alcance:</b> só dá pra atacar pontos ligados pela rua a um ponto seu (círculo pontilhado).</li>
       <li><b>Soldados:</b> cada um custa ${money(UPKEEP)} por dia. Se faltar dinheiro, uns largam o bonde.</li>
       <li><b>Respeito:</b> deixa seus ataques mais fortes, libera recrutamento e negociação.</li>
-      <li><b>Calor:</b> seus pontos definem um alvo de calor (o número depois da seta), e o calor anda até ele aos poucos. Ataques dão picos. Acima de 50 a polícia faz batidas; acima de 90 ela fecha o ponto.</li>
-      <li><b>Esfriar:</b> o suborno tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. Também dá pra <b>baixar a poeira</b> num ponto: ele para de render e de gerar calor.</li>
+      <li><b>Visada 👁️:</b> o quanto a polícia está de olho em você. Seus pontos definem um alvo (o número depois da seta), e a visada anda até ele aos poucos. Ataques dão picos. Acima de 50 a polícia faz batidas; acima de 90 ela fecha o ponto.</li>
+      <li><b>Sair da mira:</b> o suborno tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. Também dá pra <b>baixar a poeira</b> num ponto: ele para de render e sai da mira da polícia.</li>
       <li><b>Rivais:</b> crescem, recrutam e brigam entre si. Depois do dia ${TRUCE_DAYS} começam a vir pra cima de você.</li>
       <li>O jogo salva sozinho no navegador.</li>
     </ul>
