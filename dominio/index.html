@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0b0b12">
   <title>Domínio — Porto Neon</title>
   <link rel="stylesheet" href="style.css">
 </head>
@@ -13,13 +14,15 @@
       <svg id="map" viewBox="0 0 1000 680" aria-label="Mapa de Porto Neon"></svg>
     </section>
     <aside id="side">
+      <div id="sheetHead"><span class="grab"></span><button id="sheetClose" onclick="closeSheet()" aria-label="Fechar">✕</button></div>
       <div id="panel"></div>
       <div id="logWrap">
-        <h3>📻 Rádio da quebrada</h3>
+        <h3 id="logTitle">📻 Rádio da quebrada</h3>
         <ul id="log"></ul>
       </div>
     </aside>
   </main>
+  <nav id="bottombar"></nav>
   <div id="modal" class="hidden"><div class="box" id="modalBox"></div></div>
   <script src="game.js"></script>
 </body>

@@ -82,7 +82,26 @@ const PLAYER_COLORS = ['#ef4444', '#facc15', '#06b6d4', '#ec4899'];
 
 // ===================== ESTADO =====================
 let state = null;
-const ui = { selected: 0, send: 3, recruitN: 1 };
+const ui = { selected: 0, send: 3, recruitN: 1, sheet: null, summaryDay: 0, unread: false };
+
+// ===================== CELULAR =====================
+// Em tela estreita o mapa fica "em pé" (x e y trocados), os detalhes vão para uma gaveta
+// inferior e as ações frequentes para a barra de baixo. Ver docs/layout-mobile.md.
+const MOBILE_QUERY = window.matchMedia('(max-width: 760px)');
+const isMobile = () => MOBILE_QUERY.matches;
+const T = (x, y) => isMobile() ? [y, x] : [x, y];
+
+function openSheet(mode) { ui.sheet = mode; if (mode !== 'node') ui.unread = false; render(); }
+function closeSheet() { ui.sheet = null; render(); }
+function showMenu() {
+  showModal(`<h1>Menu</h1>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
+      <button onclick="showHelp()">❔ Como jogar</button>
+      <button onclick="confirmNew()">↺ Novo jogo</button>
+      <button onclick="closeModal()">Voltar ao jogo</button>
+    </div>`);
+}
+MOBILE_QUERY.addEventListener('change', () => { if (state && state.nodes) render(); });
 
 const ADJ = MAP.map(() => []);
 EDGES.forEach(([a, b]) => { ADJ[a].push(b); ADJ[b].push(a); });
@@ -302,6 +321,9 @@ function endDay() {
   for (const id of ['A', 'B', 'C']) { rivalTurn(id); if (state.over) break; }
   if (!state.over) randomEvent();
 
+  ui.summaryDay = state.day;
+  ui.unread = true;
+  if (isMobile()) ui.sheet = 'summary';
   state.day++;
   state.actions = ACTIONS_PER_DAY; state.recruited = 0;
   if (state.bribeDays > 0) { state.bribeDays--; if (!state.bribeDays) log('👮 Acabou a vista grossa. A polícia voltou a olhar pra você.', 'warn'); }
@@ -409,7 +431,11 @@ function checkEnd() {
 
 // ===================== RENDER =====================
 function render() {
-  renderHUD(); renderMap(); renderPanel(); renderLog();
+  const m = isMobile();
+  document.body.classList.toggle('mobile', m);
+  document.body.classList.toggle('sheet-open', m && !!ui.sheet);
+  document.body.classList.toggle('sheet-log', m && (ui.sheet === 'log' || ui.sheet === 'summary'));
+  renderHUD(); renderBottom(); renderMap(); renderPanel(); renderLog();
   document.documentElement.style.setProperty('--accent', state.player.color);
 }
 
@@ -426,6 +452,7 @@ function renderHUD() {
     <div class="stat" title="O quanto a polícia está de olho no seu bonde. Anda aos poucos até o alvo (traço branco), que depende dos seus pontos. Acima de 50 a polícia pode fazer batidas."><span>👁️ Visada ${Math.round(state.heat)} → ${f.target}${state.bribeDays ? ` · 💼${state.bribeDays}d` : ''}</span><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div></div>
     <div class="stat"><span>Ações</span><b>${'⚡'.repeat(state.actions)}${'·'.repeat(ACTIONS_PER_DAY - state.actions)}</b></div>
     <div class="spacer"></div>
+    ${hudMobile(f, balance)}
     <div class="btns">
       <button onclick="bribe()" ${state.bribeDays > 0 || state.money < bribeCost() || state.heat <= 0 ? 'disabled' : ''} title="Tira 20 de visada na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias">💼 Subornar (${money(bribeCost())})</button>
       <button class="primary" onclick="endDay()" ${state.over ? 'disabled' : ''}>Encerrar dia ▶</button>
@@ -434,33 +461,69 @@ function renderHUD() {
     </div>`;
 }
 
+function hudMobile(f, balance) {
+  return `<div class="hud-m">
+    <div class="r1">
+      <span>📅 <b>${state.day}</b></span>
+      <span>💵 <b>${money(state.money)}</b><span class="bal" style="color:${balance >= 0 ? '#86efac' : '#fca5a5'}">${balance >= 0 ? '+' : ''}${money(balance)}</span></span>
+      <span title="Soldados livres / total">👥 <b>${state.free}</b>/${totalSoldiers()}</span>
+      <span>⭐ <b>${state.respect}</b></span>
+    </div>
+    <div class="r2">
+      <span>👁️ ${Math.round(state.heat)}→${f.target}${state.bribeDays ? ` 💼${state.bribeDays}d` : ''}</span>
+      <div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div>
+      <span class="act">${'⚡'.repeat(state.actions)}${'·'.repeat(ACTIONS_PER_DAY - state.actions)}</span>
+    </div>
+  </div>`;
+}
+
+function renderBottom() {
+  if (!isMobile()) { $('#bottombar').innerHTML = ''; return; }
+  const logOpen = ui.sheet === 'log' || ui.sheet === 'summary';
+  $('#bottombar').innerHTML = `
+    <button class="${ui.unread && !logOpen ? 'badge-dot' : ''}" onclick="${logOpen ? 'closeSheet()' : "openSheet('log')"}" aria-label="Rádio da quebrada">📻</button>
+    <button onclick="showMenu()" aria-label="Menu">☰</button>
+    <button class="bribe" onclick="bribe()" ${state.bribeDays > 0 || state.money < bribeCost() || state.heat <= 0 || state.over ? 'disabled' : ''}>💼 ${state.bribeDays > 0 ? `${state.bribeDays}d` : money(bribeCost())}</button>
+    <button class="primary" onclick="endDay()" ${state.over ? 'disabled' : ''}>Encerrar dia ▶</button>`;
+}
+
 function renderMap() {
   const s = [];
+  const m = isMobile();
+  const R = m ? 34 : 28;
+  $('#map').setAttribute('viewBox', m ? '0 0 680 1000' : '0 0 1000 680');
+  const sea = [[1000, 330], [900, 380], [820, 330], [760, 400], [700, 470], [620, 520], [600, 680], [1000, 680]].map(([x, y]) => T(x, y));
   s.push(`<defs><radialGradient id="sea" cx="100%" cy="100%" r="70%"><stop offset="0" stop-color="#0c4a6e" stop-opacity=".55"/><stop offset="1" stop-color="#0c4a6e" stop-opacity="0"/></radialGradient></defs>`);
-  s.push(`<path d="M1000,330 C900,380 820,330 760,400 C700,470 620,520 600,680 L1000,680 Z" fill="url(#sea)"/>`);
-  DISTRICTS.forEach(([name, x, y, r, c]) => {
+  s.push(`<path d="M${sea[0]} C${sea[1]} ${sea[2]} ${sea[3]} C${sea[4]} ${sea[5]} ${sea[6]} L${sea[7]} Z" fill="url(#sea)"/>`);
+  DISTRICTS.forEach(([name, x0, y0, r, c]) => {
+    const [x, y] = T(x0, y0);
     s.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`);
     s.push(`<text class="district" x="${x}" y="${y + r - 30}">${name}</text>`);
   });
-  s.push(`<circle cx="${MAP[11][2]}" cy="${MAP[11][3]}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`);
+  const [px, py] = T(MAP[11][2], MAP[11][3]);
+  s.push(`<circle cx="${px}" cy="${py}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`);
   EDGES.forEach(([a, b]) => {
-    const A = state.nodes[a], B = state.nodes[b];
-    s.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#23233a" stroke-width="12" stroke-linecap="round"/>`);
-    s.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#3a3a55" stroke-width="2" stroke-dasharray="8 10"/>`);
+    const [ax, ay] = T(state.nodes[a].x, state.nodes[a].y), [bx, by] = T(state.nodes[b].x, state.nodes[b].y);
+    s.push(`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#23233a" stroke-width="${m ? 14 : 12}" stroke-linecap="round"/>`);
+    s.push(`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#3a3a55" stroke-width="2" stroke-dasharray="8 10"/>`);
   });
-  state.nodes.forEach((n) => {
+  state.nodes.forEach((n0) => {
+    const [x, y] = T(n0.x, n0.y);
+    const n = { ...n0, x, y };
     const t = TYPES[n.type];
     const col = ownerColor(n.owner);
     const sel = ui.selected === n.id;
     const canHit = reachable(n) && !state.over;
     s.push(`<g class="node${sel ? ' selected' : ''}" data-id="${n.id}" onclick="selectNode(${n.id})">`);
-    if (canHit) s.push(`<circle class="target" cx="${n.x}" cy="${n.y}" r="38"/>`);
-    s.push(`<circle class="ring" cx="${n.x}" cy="${n.y}" r="28" stroke="${col}"${n.lowkey ? ' stroke-dasharray="5 5" opacity=".6"' : ''}/>`);
-    if (n.lowkey) s.push(`<text class="emoji" x="${n.x - 24}" y="${n.y + 22}" style="font-size:14px">🤫</text>`);
+    s.push(`<circle cx="${n.x}" cy="${n.y}" r="${R + 18}" fill="transparent"/>`);
+    if (canHit) s.push(`<circle class="target" cx="${n.x}" cy="${n.y}" r="${R + 10}"/>`);
+    s.push(`<circle class="ring" cx="${n.x}" cy="${n.y}" r="${R}" stroke="${col}"${n.lowkey ? ' stroke-dasharray="5 5" opacity=".6"' : ''}/>`);
+    if (n.lowkey) s.push(`<text class="emoji" x="${n.x - R + 4}" y="${n.y + R - 6}" style="font-size:${m ? 18 : 14}px">🤫</text>`);
     s.push(`<text class="emoji" x="${n.x}" y="${n.y + 1}">${t.icon}</text>`);
-    s.push(`<text class="label" x="${n.x}" y="${n.y + 46}">${esc(n.name)}${n.level > 1 ? ' ' + '★'.repeat(n.level - 1) : ''}</text>`);
+    s.push(`<text class="label" x="${n.x}" y="${n.y + R + (m ? 22 : 18)}">${esc(n.name)}${n.level > 1 ? ' ' + '★'.repeat(n.level - 1) : ''}</text>`);
     if (n.type !== 'policia') {
-      s.push(`<g class="badge"><circle cx="${n.x + 22}" cy="${n.y - 22}" r="12" fill="${col}" stroke="#0b0b12" stroke-width="2"/><text x="${n.x + 22}" y="${n.y - 21}">${n.guards}</text></g>`);
+      const o = Math.round(R * 0.8), br = m ? 15 : 12;
+      s.push(`<g class="badge"><circle cx="${n.x + o}" cy="${n.y - o}" r="${br}" fill="${col}" stroke="#0b0b12" stroke-width="2"/><text x="${n.x + o}" y="${n.y - o + 1}">${n.guards}</text></g>`);
     }
     s.push(`</g>`);
   });
@@ -546,10 +609,22 @@ function renderPanel() {
 }
 
 function renderLog() {
-  $('#log').innerHTML = state.log.map((l) => `<li class="${l.kind}"><span class="d">D${l.d}</span>${esc(l.msg)}</li>`).join('');
+  const summary = isMobile() && ui.sheet === 'summary';
+  const items = summary ? state.log.filter((l) => l.d === ui.summaryDay).reverse() : state.log;
+  $('#logTitle').textContent = summary ? `📰 O que rolou no dia ${ui.summaryDay}` : '📻 Rádio da quebrada';
+  $('#log').innerHTML = items.map((l) => `<li class="${l.kind}"><span class="d">D${l.d}</span>${esc(l.msg)}</li>`).join('')
+    + (summary ? `<li style="border:0"><button class="more" onclick="openSheet('log')">Ver rádio completo</button></li>` : '');
 }
 
-function selectNode(id) { ui.selected = id; renderMap(); renderPanel(); }
+function selectNode(id) {
+  if (isMobile()) {
+    if (ui.sheet === 'node' && ui.selected === id) { closeSheet(); return; }
+    ui.selected = id; ui.sheet = 'node'; render();
+    $('#side').scrollTop = 0;
+    return;
+  }
+  ui.selected = id; renderMap(); renderPanel();
+}
 
 function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 
