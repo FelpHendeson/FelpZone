@@ -1,4 +1,5 @@
 'use strict';
+// Regras, dados e estado do jogo. A interface (mapa, câmera, HUD) fica em ui.js.
 
 // ===================== DADOS =====================
 const SAVE_KEY = 'dominio-save-v1';
@@ -82,27 +83,6 @@ const PLAYER_COLORS = ['#ef4444', '#facc15', '#06b6d4', '#ec4899'];
 
 // ===================== ESTADO =====================
 let state = null;
-const ui = { selected: 0, send: 3, recruitN: 1, sheet: null, summaryDay: 0, unread: false };
-
-// ===================== CELULAR =====================
-// Em tela estreita o mapa fica "em pé" (x e y trocados), os detalhes vão para uma gaveta
-// inferior e as ações frequentes para a barra de baixo. Ver docs/layout-mobile.md.
-const MOBILE_QUERY = window.matchMedia('(max-width: 760px)');
-const isMobile = () => MOBILE_QUERY.matches;
-const T = (x, y) => isMobile() ? [y, x] : [x, y];
-
-function openSheet(mode) { ui.sheet = mode; if (mode !== 'node') ui.unread = false; render(); }
-function closeSheet() { ui.sheet = null; render(); }
-function showMenu() {
-  showModal(`<h1>Menu</h1>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:12px">
-      <button onclick="showHelp()">❔ Como jogar</button>
-      <button onclick="confirmNew()">↺ Novo jogo</button>
-      <button onclick="closeModal()">Voltar ao jogo</button>
-    </div>`);
-}
-MOBILE_QUERY.addEventListener('change', () => { if (state && state.nodes) render(); });
-
 const ADJ = MAP.map(() => []);
 EDGES.forEach(([a, b]) => { ADJ[a].push(b); ADJ[b].push(a); });
 
@@ -122,11 +102,10 @@ function newGame(opts) {
     log: [], over: null,
   };
   for (const id in RIVALS) state.rivals[id] = { money: 500, reserve: 5, alive: true };
-  ui.selected = 0;
   log(`${opts.leader} reúne o ${opts.gang} no alto do Morro do Farol. A cidade vai conhecer esse nome.`, 'big');
   log(`As gangues ainda estão te medindo. Você tem ${TRUCE_DAYS - 1} dias antes de começarem a vir pra cima.`, 'warn');
   save();
-  render();
+  onNewGame();
 }
 
 function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* sem espaço */ } }
@@ -215,9 +194,9 @@ function eliminate(rid, by) {
 }
 
 // ===================== AÇÕES DO JOGADOR =====================
-function playerAttack(id) {
+function playerAttack(id, sendWanted) {
   const n = state.nodes[id];
-  const send = clamp(ui.send, 1, state.free);
+  const send = clamp(sendWanted, 1, state.free);
   if (state.actions <= 0 || send <= 0 || !reachable(n)) return;
   state.actions--; state.free -= send;
   state.heat = clamp(state.heat + (n.owner ? 6 : 3), 0, 100);
@@ -230,7 +209,6 @@ function playerAttack(id) {
     state.respect = clamp(state.respect - 3, 0, 100);
     log(`🩸 Ataque a ${n.name} falhou. ${r.losses} dos nossos caíram, derrubamos ${r.defLosses} deles.`, 'bad');
   }
-  ui.send = Math.min(ui.send, Math.max(1, state.free));
   afterAction();
 }
 
@@ -262,14 +240,13 @@ function toggleLowkey(id) {
   afterAction();
 }
 
-function recruit(id) {
+function recruit(id, qtyWanted) {
   const n = state.nodes[id];
   const t = TYPES[n.type];
-  const qty = clamp(ui.recruitN, 1, recruitCap() - state.recruited);
+  const qty = clamp(qtyWanted, 1, recruitCap() - state.recruited);
   if (n.owner !== 'P' || !t.recruit || qty <= 0 || state.money < t.recruit * qty) return;
   state.money -= t.recruit * qty; state.free += qty; state.recruited += qty;
   log(`🧢 ${qty} novo(s) soldado(s) entraram pro bonde no ${n.name}.`, 'good');
-  ui.recruitN = 1;
   afterAction();
 }
 
@@ -321,13 +298,12 @@ function endDay() {
   for (const id of ['A', 'B', 'C']) { rivalTurn(id); if (state.over) break; }
   if (!state.over) randomEvent();
 
-  ui.summaryDay = state.day;
-  ui.unread = true;
-  if (isMobile()) ui.sheet = 'summary';
+  const endedDay = state.day;
   state.day++;
   state.actions = ACTIONS_PER_DAY; state.recruited = 0;
   if (state.bribeDays > 0) { state.bribeDays--; if (!state.bribeDays) log('👮 Acabou a vista grossa. A polícia voltou a olhar pra você.', 'warn'); }
   checkEnd(); save(); render();
+  onDayEnd(endedDay);
 }
 
 function policeRaid() {
@@ -429,268 +405,3 @@ function checkEnd() {
   if (state.over) setTimeout(showEnd, 50);
 }
 
-// ===================== RENDER =====================
-function render() {
-  const m = isMobile();
-  document.body.classList.toggle('mobile', m);
-  document.body.classList.toggle('sheet-open', m && !!ui.sheet);
-  document.body.classList.toggle('sheet-log', m && (ui.sheet === 'log' || ui.sheet === 'summary'));
-  renderHUD(); renderBottom(); renderMap(); renderPanel(); renderLog();
-  document.documentElement.style.setProperty('--accent', state.player.color);
-}
-
-function renderHUD() {
-  const f = forecast();
-  const balance = f.inc - f.upkeep;
-  $('#hud').innerHTML = `
-    <div class="brand">DOMÍNIO<small>${esc(state.player.gang)} · chefe ${esc(state.player.leader)}</small></div>
-    <div class="stat"><span>Dia</span><b>${state.day}</b></div>
-    <div class="stat"><span>Caixa</span><b>${money(state.money)}</b></div>
-    <div class="stat" title="Renda dos pontos menos o salário dos soldados"><span>Saldo/dia</span><b style="color:${balance >= 0 ? '#86efac' : '#fca5a5'}">${balance >= 0 ? '+' : ''}${money(balance)}</b></div>
-    <div class="stat" title="Soldados livres / total"><span>Soldados</span><b>${state.free} / ${totalSoldiers()}</b></div>
-    <div class="stat"><span>Respeito</span><b>⭐ ${state.respect}</b></div>
-    <div class="stat" title="O quanto a polícia está de olho no seu bonde. Anda aos poucos até o alvo (traço branco), que depende dos seus pontos. Acima de 50 a polícia pode fazer batidas."><span>👁️ Visada ${Math.round(state.heat)} → ${f.target}${state.bribeDays ? ` · 💼${state.bribeDays}d` : ''}</span><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div></div>
-    <div class="stat"><span>Ações</span><b>${'⚡'.repeat(state.actions)}${'·'.repeat(ACTIONS_PER_DAY - state.actions)}</b></div>
-    <div class="spacer"></div>
-    ${hudMobile(f, balance)}
-    <div class="btns">
-      <button onclick="bribe()" ${state.bribeDays > 0 || state.money < bribeCost() || state.heat <= 0 ? 'disabled' : ''} title="Tira 20 de visada na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias">💼 Subornar (${money(bribeCost())})</button>
-      <button class="primary" onclick="endDay()" ${state.over ? 'disabled' : ''}>Encerrar dia ▶</button>
-      <button onclick="showHelp()">❔</button>
-      <button onclick="confirmNew()">↺</button>
-    </div>`;
-}
-
-function hudMobile(f, balance) {
-  return `<div class="hud-m">
-    <div class="r1">
-      <span>📅 <b>${state.day}</b></span>
-      <span>💵 <b>${money(state.money)}</b><span class="bal" style="color:${balance >= 0 ? '#86efac' : '#fca5a5'}">${balance >= 0 ? '+' : ''}${money(balance)}</span></span>
-      <span title="Soldados livres / total">👥 <b>${state.free}</b>/${totalSoldiers()}</span>
-      <span>⭐ <b>${state.respect}</b></span>
-    </div>
-    <div class="r2">
-      <span>👁️ ${Math.round(state.heat)}→${f.target}${state.bribeDays ? ` 💼${state.bribeDays}d` : ''}</span>
-      <div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div>
-      <span class="act">${'⚡'.repeat(state.actions)}${'·'.repeat(ACTIONS_PER_DAY - state.actions)}</span>
-    </div>
-  </div>`;
-}
-
-function renderBottom() {
-  if (!isMobile()) { $('#bottombar').innerHTML = ''; return; }
-  const logOpen = ui.sheet === 'log' || ui.sheet === 'summary';
-  $('#bottombar').innerHTML = `
-    <button class="${ui.unread && !logOpen ? 'badge-dot' : ''}" onclick="${logOpen ? 'closeSheet()' : "openSheet('log')"}" aria-label="Rádio da quebrada">📻</button>
-    <button onclick="showMenu()" aria-label="Menu">☰</button>
-    <button class="bribe" onclick="bribe()" ${state.bribeDays > 0 || state.money < bribeCost() || state.heat <= 0 || state.over ? 'disabled' : ''}>💼 ${state.bribeDays > 0 ? `${state.bribeDays}d` : money(bribeCost())}</button>
-    <button class="primary" onclick="endDay()" ${state.over ? 'disabled' : ''}>Encerrar dia ▶</button>`;
-}
-
-function renderMap() {
-  const s = [];
-  const m = isMobile();
-  const R = m ? 34 : 28;
-  $('#map').setAttribute('viewBox', m ? '0 0 680 1000' : '0 0 1000 680');
-  const sea = [[1000, 330], [900, 380], [820, 330], [760, 400], [700, 470], [620, 520], [600, 680], [1000, 680]].map(([x, y]) => T(x, y));
-  s.push(`<defs><radialGradient id="sea" cx="100%" cy="100%" r="70%"><stop offset="0" stop-color="#0c4a6e" stop-opacity=".55"/><stop offset="1" stop-color="#0c4a6e" stop-opacity="0"/></radialGradient></defs>`);
-  s.push(`<path d="M${sea[0]} C${sea[1]} ${sea[2]} ${sea[3]} C${sea[4]} ${sea[5]} ${sea[6]} L${sea[7]} Z" fill="url(#sea)"/>`);
-  DISTRICTS.forEach(([name, x0, y0, r, c]) => {
-    const [x, y] = T(x0, y0);
-    s.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`);
-    s.push(`<text class="district" x="${x}" y="${y + r - 30}">${name}</text>`);
-  });
-  const [px, py] = T(MAP[11][2], MAP[11][3]);
-  s.push(`<circle cx="${px}" cy="${py}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`);
-  EDGES.forEach(([a, b]) => {
-    const [ax, ay] = T(state.nodes[a].x, state.nodes[a].y), [bx, by] = T(state.nodes[b].x, state.nodes[b].y);
-    s.push(`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#23233a" stroke-width="${m ? 14 : 12}" stroke-linecap="round"/>`);
-    s.push(`<line x1="${ax}" y1="${ay}" x2="${bx}" y2="${by}" stroke="#3a3a55" stroke-width="2" stroke-dasharray="8 10"/>`);
-  });
-  state.nodes.forEach((n0) => {
-    const [x, y] = T(n0.x, n0.y);
-    const n = { ...n0, x, y };
-    const t = TYPES[n.type];
-    const col = ownerColor(n.owner);
-    const sel = ui.selected === n.id;
-    const canHit = reachable(n) && !state.over;
-    s.push(`<g class="node${sel ? ' selected' : ''}" data-id="${n.id}" onclick="selectNode(${n.id})">`);
-    s.push(`<circle cx="${n.x}" cy="${n.y}" r="${R + 18}" fill="transparent"/>`);
-    if (canHit) s.push(`<circle class="target" cx="${n.x}" cy="${n.y}" r="${R + 10}"/>`);
-    s.push(`<circle class="ring" cx="${n.x}" cy="${n.y}" r="${R}" stroke="${col}"${n.lowkey ? ' stroke-dasharray="5 5" opacity=".6"' : ''}/>`);
-    if (n.lowkey) s.push(`<text class="emoji" x="${n.x - R + 4}" y="${n.y + R - 6}" style="font-size:${m ? 18 : 14}px">🤫</text>`);
-    s.push(`<text class="emoji" x="${n.x}" y="${n.y + 1}">${t.icon}</text>`);
-    s.push(`<text class="label" x="${n.x}" y="${n.y + R + (m ? 22 : 18)}">${esc(n.name)}${n.level > 1 ? ' ' + '★'.repeat(n.level - 1) : ''}</text>`);
-    if (n.type !== 'policia') {
-      const o = Math.round(R * 0.8), br = m ? 15 : 12;
-      s.push(`<g class="badge"><circle cx="${n.x + o}" cy="${n.y - o}" r="${br}" fill="${col}" stroke="#0b0b12" stroke-width="2"/><text x="${n.x + o}" y="${n.y - o + 1}">${n.guards}</text></g>`);
-    }
-    s.push(`</g>`);
-  });
-  $('#map').innerHTML = s.join('');
-}
-
-function renderPanel() {
-  const n = state.nodes[ui.selected];
-  const t = TYPES[n.type];
-  const col = ownerColor(n.owner);
-  const h = [];
-  h.push(`<h2>${t.icon} ${esc(n.name)}</h2>`);
-  h.push(`<div class="sub">${t.label}${n.level > 1 ? ` nível ${n.level}` : ''} · <b style="color:${col}">${esc(ownerName(n.owner))}</b></div>`);
-  h.push(`<div class="desc">${t.desc}</div>`);
-
-  if (n.type !== 'policia') {
-    h.push(`<div class="grid">
-      <div>💵 Renda/dia <b>${n.lowkey ? '$0 (parado)' : money(nodeIncome(n))}</b></div>
-      <div>👁️ Visada <b>${n.lowkey ? '0 (parado)' : '+' + nodeHeat(n)}</b></div>
-      <div>⭐ Respeito/dia <b>+${t.resp}</b></div>
-      <div>🛡️ ${n.owner ? 'Guardas' : 'Resistência'} <b>${n.guards}</b></div>
-    </div>`);
-  }
-
-  if (state.over) { $('#panel').innerHTML = h.join(''); return; }
-
-  if (n.owner === 'P') {
-    h.push(`<div class="act"><h4>🛡️ Guardas no ponto: ${n.guards}</h4><div class="row">
-      <button onclick="moveGuards(${n.id},-1)" ${n.guards <= 0 ? 'disabled' : ''}>− 1</button>
-      <button onclick="moveGuards(${n.id},1)" ${state.free <= 0 ? 'disabled' : ''}>+ 1</button>
-      <button onclick="moveGuards(${n.id},'all')" ${state.free <= 0 ? 'disabled' : ''}>Pôr todos os livres (${state.free})</button>
-      <button onclick="moveGuards(${n.id},'none')" ${n.guards <= 0 ? 'disabled' : ''}>Tirar todos</button>
-    </div><div class="note">Mover soldados não gasta ação. Ponto sem guarda é presa fácil.</div></div>`);
-
-    if (t.recruit) {
-      const left = recruitCap() - state.recruited;
-      ui.recruitN = clamp(ui.recruitN, 1, Math.max(1, left));
-      const cost = t.recruit * ui.recruitN;
-      h.push(`<div class="act"><h4>🧢 Recrutar (${money(t.recruit)} cada)</h4><div class="row">
-        <button onclick="ui.recruitN--;renderPanel()" ${ui.recruitN <= 1 ? 'disabled' : ''}>−</button>
-        <b>${ui.recruitN}</b>
-        <button onclick="ui.recruitN++;renderPanel()" ${ui.recruitN >= left ? 'disabled' : ''}>+</button>
-        <button class="primary" onclick="recruit(${n.id})" ${left <= 0 || state.money < cost ? 'disabled' : ''}>Recrutar por ${money(cost)}</button>
-      </div><div class="note">Ainda dá pra recrutar ${Math.max(0, left)} hoje. Mais respeito = mais gente querendo entrar.</div></div>`);
-    }
-
-    if (n.type !== 'hq') {
-      h.push(`<div class="act"><h4>${n.lowkey ? '🤫 Ponto parado' : '🤫 Baixar a poeira'}</h4><div class="row">
-        <button onclick="toggleLowkey(${n.id})">${n.lowkey ? 'Voltar a funcionar' : 'Parar o movimento'}</button>
-      </div><div class="note">Parado, o ponto não gera renda, respeito nem visada, e a polícia não faz batida nele. Não gasta ação.</div></div>`);
-    }
-
-    if (n.level < 3 && n.type !== 'hq') {
-      h.push(`<div class="act"><h4>⬆️ Melhorar para nível ${n.level + 1}</h4><div class="row">
-        <button onclick="upgrade(${n.id})" ${state.money < upgradeCost(n) ? 'disabled' : ''}>Investir ${money(upgradeCost(n))}</button>
-      </div><div class="note">+50% de renda e +25% de defesa.</div></div>`);
-    }
-  } else if (n.type === 'policia') {
-    h.push(`<div class="note">Use o botão 💼 Subornar lá em cima pra tirar a polícia do seu pé.</div>`);
-  } else if (!reachable(n)) {
-    h.push(`<div class="act"><h4>🚫 Fora do alcance</h4><div class="note">Domine um ponto ligado a este pela rua primeiro. Os pontos com círculo pontilhado são os que você pode atacar.</div></div>`);
-  } else {
-    const maxSend = state.free;
-    ui.send = clamp(ui.send, 1, Math.max(1, maxSend));
-    const myPow = ui.send * (1 + state.respect / 200);
-    const theirPow = estDef(n) + (n.owner ? 0.5 : 0);
-    const ratio = myPow / Math.max(theirPow, 0.1);
-    const odds = ratio >= 1.5 ? ['Vitória quase certa', '#86efac'] : ratio >= 1.15 ? ['Boa chance', '#bef264'] : ratio >= 0.85 ? ['Cara ou coroa', '#fcd34d'] : ['Suicídio', '#fca5a5'];
-    if (n.owner && RIVALS[n.owner]) h.push(`<div class="quote">${RIVALS[n.owner].leader}: “${RIVALS[n.owner].quotes[n.id % 3]}”</div>`);
-    h.push(`<div class="act"><h4>⚔️ ${n.owner ? 'Atacar' : 'Dominar na força'}</h4>
-      ${maxSend > 0 ? `<input type="range" min="1" max="${maxSend}" value="${ui.send}" oninput="ui.send=+this.value;renderPanel()">
-      <div class="row" style="justify-content:space-between"><span>Mandar <b>${ui.send}</b> de ${maxSend} livres</span><b style="color:${odds[1]}">${odds[0]}</b></div>` : `<div class="note">Você não tem soldados livres. Tire guardas de algum ponto ou recrute.</div>`}
-      <div class="row" style="margin-top:8px"><button class="primary" onclick="playerAttack(${n.id})" ${state.actions <= 0 || maxSend <= 0 ? 'disabled' : ''}>${n.owner ? 'Partir pra cima' : 'Tomar o ponto'} (1 ⚡)</button></div>
-      <div class="note">Os sobreviventes ficam de guarda no ponto conquistado. Atacar deixa o bonde mais visado.</div></div>`);
-    if (n.owner === null) {
-      const c = negotiateCost(n);
-      h.push(`<div class="act"><h4>🤝 Negociar</h4><div class="row">
-        <button onclick="playerNegotiate(${n.id})" ${state.actions <= 0 || state.respect < 20 || state.money < c ? 'disabled' : ''}>Comprar o ponto por ${money(c)} (1 ⚡)</button>
-      </div><div class="note">${state.respect < 20 ? 'Precisa de 20 de respeito pra te levarem a sério.' : 'Sem sangue e sem chamar a polícia, mas o ponto chega sem guardas.'}</div></div>`);
-    }
-  }
-  $('#panel').innerHTML = h.join('');
-}
-
-function renderLog() {
-  const summary = isMobile() && ui.sheet === 'summary';
-  const items = summary ? state.log.filter((l) => l.d === ui.summaryDay).reverse() : state.log;
-  $('#logTitle').textContent = summary ? `📰 O que rolou no dia ${ui.summaryDay}` : '📻 Rádio da quebrada';
-  $('#log').innerHTML = items.map((l) => `<li class="${l.kind}"><span class="d">D${l.d}</span>${esc(l.msg)}</li>`).join('')
-    + (summary ? `<li style="border:0"><button class="more" onclick="openSheet('log')">Ver rádio completo</button></li>` : '');
-}
-
-function selectNode(id) {
-  if (isMobile()) {
-    if (ui.sheet === 'node' && ui.selected === id) { closeSheet(); return; }
-    ui.selected = id; ui.sheet = 'node'; render();
-    $('#side').scrollTop = 0;
-    return;
-  }
-  ui.selected = id; renderMap(); renderPanel();
-}
-
-function esc(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
-
-// ===================== MODAIS =====================
-function showModal(html) { $('#modalBox').innerHTML = html; $('#modal').classList.remove('hidden'); }
-function closeModal() { $('#modal').classList.add('hidden'); }
-
-function showStart() {
-  let color = PLAYER_COLORS[0];
-  showModal(`
-    <h1>DOMÍNIO</h1>
-    <p>Porto Neon está dividida entre três gangues. Você só tem um barraco no alto do morro, seis moleques de confiança e muita vontade. Recrute, domine os pontos, tome os QGs rivais e vire o dono da cidade.</p>
-    <label>Nome do seu bonde</label><input type="text" id="gName" value="Bonde do Farol" maxlength="24">
-    <label>Seu vulgo</label><input type="text" id="lName" value="Felp" maxlength="18">
-    <label>Cor do bonde</label>
-    <div class="colors">${PLAYER_COLORS.map((c, i) => `<button style="background:${c}" class="${i ? '' : 'sel'}" data-c="${c}"></button>`).join('')}</div>
-    <div class="row" style="margin-top:18px;display:flex;gap:8px"><button class="primary" id="startBtn">Começar ▶</button><button onclick="showHelp(true)">Como jogar</button></div>`);
-  document.querySelectorAll('.colors button').forEach((b) => b.onclick = () => {
-    document.querySelectorAll('.colors button').forEach((x) => x.classList.remove('sel'));
-    b.classList.add('sel'); color = b.dataset.c;
-  });
-  $('#startBtn').onclick = () => {
-    newGame({ gang: $('#gName').value.trim() || 'Bonde do Farol', leader: $('#lName').value.trim() || 'Chefe', color });
-    closeModal();
-  };
-}
-
-function showHelp(fromStart) {
-  showModal(`
-    <h1>Como jogar</h1>
-    <ul>
-      <li><b>Objetivo:</b> tomar os QGs dos Corvos, das Serpentes e dos Dragões. Se o seu QG cair, você perde.</li>
-      <li><b>Pontos:</b> cada ponto dá renda todo dia. Bocas e o porto dão mais grana, mas deixam o bonde mais <b>visado</b>.</li>
-      <li><b>Ações (⚡):</b> você tem ${ACTIONS_PER_DAY} por dia pra atacar ou negociar. Mover guardas, recrutar e melhorar não gastam ação.</li>
-      <li><b>Alcance:</b> só dá pra atacar pontos ligados pela rua a um ponto seu (círculo pontilhado).</li>
-      <li><b>Soldados:</b> cada um custa ${money(UPKEEP)} por dia. Se faltar dinheiro, uns largam o bonde.</li>
-      <li><b>Respeito:</b> deixa seus ataques mais fortes, libera recrutamento e negociação.</li>
-      <li><b>Visada 👁️:</b> o quanto a polícia está de olho em você. Seus pontos definem um alvo (o número depois da seta), e a visada anda até ele aos poucos. Ataques dão picos. Acima de 50 a polícia faz batidas; acima de 90 ela fecha o ponto.</li>
-      <li><b>Sair da mira:</b> o suborno tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. Também dá pra <b>baixar a poeira</b> num ponto: ele para de render e sai da mira da polícia.</li>
-      <li><b>Rivais:</b> crescem, recrutam e brigam entre si. Depois do dia ${TRUCE_DAYS} começam a vir pra cima de você.</li>
-      <li>O jogo salva sozinho no navegador.</li>
-    </ul>
-    <button class="primary" onclick="${fromStart ? 'showStart()' : 'closeModal()'}">${fromStart ? 'Voltar' : 'Bora'}</button>`);
-}
-
-function confirmNew() {
-  showModal(`<h1>Novo jogo?</h1><p>O jogo atual vai ser perdido.</p>
-    <div style="display:flex;gap:8px"><button class="danger" onclick="localStorage.removeItem(SAVE_KEY);showStart()">Começar do zero</button><button onclick="closeModal()">Cancelar</button></div>`);
-}
-
-function showEnd() {
-  if (state.over === 'win') {
-    showModal(`<h1>👑 DONO DA CIDADE</h1><p>No dia ${state.day}, o ${esc(state.player.gang)} derrubou o último QG rival. Porto Neon agora responde a ${esc(state.player.leader)}.</p>
-      <p>Caixa final: <b>${money(state.money)}</b> · Respeito: <b>${state.respect}</b> · Pontos: <b>${state.nodes.filter((n) => n.owner === 'P').length}</b></p>
-      <div style="display:flex;gap:8px"><button class="primary" onclick="localStorage.removeItem(SAVE_KEY);showStart()">Jogar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
-  } else {
-    showModal(`<h1>☠️ FIM DA LINHA</h1><p>O QG do Farol caiu no dia ${state.day}. O ${esc(state.player.gang)} virou história de bar.</p>
-      <div style="display:flex;gap:8px"><button class="primary" onclick="localStorage.removeItem(SAVE_KEY);showStart()">Tentar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
-  }
-}
-
-// ===================== INÍCIO =====================
-if (load()) { render(); if (state.over) showEnd(); }
-else {
-  state = { day: 1, money: 0, free: 0, respect: 0, heat: 0, actions: 0, recruited: 0, player: { gang: '', leader: '', color: PLAYER_COLORS[0] },
-    nodes: MAP.map(([name, type, x, y, owner, guards], id) => ({ id, name, type, x, y, owner, guards, level: 1 })), rivals: {}, log: [], over: null };
-  render();
-  showStart();
-}

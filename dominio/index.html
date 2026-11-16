@@ -2,28 +2,36 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
   <meta name="theme-color" content="#0b0b12">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Domínio">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
   <title>Domínio — Porto Neon</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header id="hud"></header>
-  <main>
-    <section id="mapWrap">
-      <svg id="map" viewBox="0 0 1000 680" aria-label="Mapa de Porto Neon"></svg>
-    </section>
-    <aside id="side">
-      <div id="sheetHead"><span class="grab"></span><button id="sheetClose" onclick="closeSheet()" aria-label="Fechar">✕</button></div>
-      <div id="panel"></div>
-      <div id="logWrap">
-        <h3 id="logTitle">📻 Rádio da quebrada</h3>
-        <ul id="log"></ul>
-      </div>
-    </aside>
-  </main>
-  <nav id="bottombar"></nav>
+  <svg id="map" aria-label="Mapa de Porto Neon"></svg>
+
+  <header id="top"></header>
+  <nav id="zoom">
+    <button class="ic" onclick="zoomCenter(0.75)" aria-label="Aproximar">＋</button>
+    <button class="ic" onclick="zoomCenter(1.33)" aria-label="Afastar">－</button>
+    <button class="ic" onclick="goHQ()" aria-label="Ir ao QG">◎</button>
+  </nav>
+  <section id="sel"></section>
+  <button id="endBtn" class="primary">Encerrar dia ▶</button>
+
+  <aside id="radio"></aside>
+  <div id="report" class="hidden" onclick="closeReport()"></div>
+  <div id="rotate" class="hidden"></div>
   <div id="modal" class="hidden"><div class="box" id="modalBox"></div></div>
+
   <script src="game.js"></script>
+  <script src="ui.js"></script>
 </body>
 </html>
