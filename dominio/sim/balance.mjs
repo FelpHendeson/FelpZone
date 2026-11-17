@@ -1,13 +1,32 @@
 // Simulador de equilíbrio: um bot joga várias partidas e mede vitória, duração e visada.
-// Uso: node sim/balance.mjs [partidas=40]
+// Uso: node sim/balance.mjs [partidas=40] [--sem-bonde] [--cuidar]
 import { state, newGame } from '../src/core/state.js';
 import { ADJ } from '../src/data/maps/porto-neon.js';
 import { reachable, estDef, playerAttack, moveGuards, recruit, bribe, endDay } from '../src/core/rules.js';
+import { active, captainAt, assignCaptain, canPromote, promoteCaptain, spendPoint, canGift, gift } from '../src/core/crew.js';
+import { hooks } from '../src/core/state.js';
 
 const GAMES = Number(process.argv[2]) || 40;
 const MAX_DAYS = 90;
 
+const USE_CREW = !process.argv.includes('--sem-bonde');
+const CARE = process.argv.includes('--cuidar');   // dá agrado quando a lealdade cai
+
+// Capitães nos pontos de fronteira mais valiosos; promove quando der; pontos de atributo em Força/Tática.
+function manageCrew() {
+  if (!USE_CREW) return;
+  while (state.cmd.points > 0) spendPoint(state.cmd.points % 2 ? 'tatica' : 'forca');
+  if (!canPromote() && state.money > 2500) promoteCaptain();
+  const free = active().filter((m) => m.node === null || state.nodes[m.node].owner !== 'P');
+  const spots = state.nodes.filter((n) => n.owner === 'P' && !captainAt(n))
+    .map((n) => ({ n, front: ADJ[n.id].filter((m) => { const o = state.nodes[m].owner; return o && o !== 'P' && o !== 'X'; }).length }))
+    .sort((a, b) => (b.n.type === 'hq') - (a.n.type === 'hq') || b.front - a.front);
+  for (const m of free) { const s = spots.shift(); if (!s) break; assignCaptain(m.id, s.n.id); }
+  if (CARE) for (const m of active()) if (m.loyalty < 40 && !canGift(m)) gift(m.id);
+}
+
 function playDay(useBribe) {
+  manageCrew();
   if (state.money > 600) recruit(0, 9);
   if (useBribe && state.heat > 50) bribe();
   for (let a = 0; a < 3; a++) {
@@ -22,13 +41,15 @@ function playDay(useBribe) {
   }
   const before = state.log[0];
   endDay();
-  let raids = 0, megas = 0;
+  let raids = 0, megas = 0, traicoes = 0, mortes = 0;
   for (const l of state.log) {
     if (l === before) break;
     if (l.msg.includes('MEGAOPERAÇÃO')) megas++;
     else if (l.msg.includes('Batida policial')) raids++;
+    if (l.msg.startsWith('🐍')) traicoes++;
+    if (l.msg.startsWith('⚰️')) mortes++;
   }
-  return { raids, megas };
+  return { raids, megas, traicoes, mortes };
 }
 
 function run(useBribe) {
@@ -36,22 +57,24 @@ function run(useBribe) {
   for (let g = 0; g < GAMES; g++) {
     newGame({ gang: 'Bot', leader: 'Bot', color: '#ef4444' });
     const heats = [];
-    let raids = 0, megas = 0;
+    let raids = 0, megas = 0, traicoes = 0, mortes = 0;
     for (let d = 0; d < MAX_DAYS && !state.over; d++) {
       const r = playDay(useBribe);
-      raids += r.raids; megas += r.megas; heats.push(state.heat);
+      raids += r.raids; megas += r.megas; traicoes += r.traicoes; mortes += r.mortes; heats.push(state.heat);
     }
     const late = heats.slice(-15);
     res.push({
       win: state.over === 'win', day: state.day, money: state.money,
       lateHeat: late.reduce((a, c) => a + c, 0) / late.length,
-      at90: heats.filter((h) => h >= 90).length, raids, megas,
+      at90: heats.filter((h) => h >= 90).length, raids, megas, traicoes, mortes,
     });
   }
   const avg = (k) => (res.reduce((a, r) => a + r[k], 0) / res.length).toFixed(1);
   const med = (k) => { const v = res.map((r) => r[k]).sort((a, b) => a - b); return Math.round(v[v.length >> 1]); };
-  console.log(`${useBribe ? 'COM suborno' : 'SEM suborno'} | vitórias ${res.filter((r) => r.win).length}/${GAMES} | dias ${avg('day')} | caixa final (mediana) $${med('money')} | visada final ${avg('lateHeat')} | dias≥90 ${avg('at90')} | batidas ${avg('raids')} | mega ${avg('megas')}`);
+  console.log(`${useBribe ? 'COM suborno' : 'SEM suborno'} | vitórias ${res.filter((r) => r.win).length}/${GAMES} | dias ${avg('day')} | caixa final (mediana) $${med('money')} | visada final ${avg('lateHeat')} | dias≥90 ${avg('at90')} | batidas ${avg('raids')} | mega ${avg('megas')} | traições ${avg('traicoes')} | mortes ${avg('mortes')}`);
 }
 
+hooks.scene = () => {};
+console.log(USE_CREW ? `Bot usando o bonde (capitães, promoções, atributos)${CARE ? ' e cuidando da lealdade' : ', sem cuidar da lealdade'}` : 'Bot sem usar o bonde');
 run(true);
 run(false);

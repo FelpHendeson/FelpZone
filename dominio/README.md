@@ -1,7 +1,7 @@
 # Domínio — Porto Neon
 
 Jogo de navegador de gestão de gangue, por turnos, numa cidade fictícia.
-Você começa com um QG no Morro do Farol e precisa dominar a cidade contra três gangues rivais.
+Você cria o seu personagem, funda um bonde no Morro do Farol e precisa dominar a cidade contra três gangues rivais.
 
 Versão publicada: https://dominio-porto-neon.vercel.app
 
@@ -12,6 +12,7 @@ Versão publicada: https://dominio-porto-neon.vercel.app
 - Você tem 3 ações (⚡) por dia para atacar ou negociar. Mover guardas, recrutar e melhorar pontos não gastam ação.
 - "Encerrar dia" recebe a renda, paga os soldados, faz os rivais jogarem e pode disparar batidas policiais.
 - Vence quem tomar os três QGs rivais. Perde quem tiver o próprio QG tomado.
+- **O bonde (👥):** você é o Comandante, com atributos, nível e origem. O vice e os capitães comandam pontos e dão bônus pelos traços. Cuide da lealdade: abaixo de 25, alguém pode trair. Membro com nome que morre não volta (exceto no modo leve).
 - O progresso é salvo automaticamente no navegador.
 
 ## Rodar localmente
@@ -44,7 +45,7 @@ node sim/balance.mjs 40
 
 - `save.test.mjs`: um save antigo (v0.1–v0.4) abre na versão atual.
 - `bridge.test.mjs`: todo botão do HTML chama uma função que existe.
-- `balance.mjs`: um bot joga N partidas, com e sem suborno, e mede vitórias, duração, caixa final e visada. Rode a cada mudança de regra.
+- `balance.mjs`: um bot joga N partidas, com e sem suborno, e mede vitórias, duração, caixa final, visada, traições e mortes. `--sem-bonde` (bot ignora capitães) e `--cuidar` (bot dá agrado quando a lealdade cai). Rode a cada mudança de regra.
 
 ## Estrutura
 
@@ -53,9 +54,16 @@ dominio/
 ├── index.html, style.css      # página e visual
 ├── manifest.json, icon*       # instalar na tela inicial (tela cheia, horizontal)
 ├── src/
-│   ├── data/                  # dados: tipos de ponto, gangues rivais, mapas
-│   ├── core/                  # regras puras (sem DOM): estado, save versionado, combate, IA, polícia
-│   └── ui/main.js             # mapa com câmera, HUD, painéis, relatório, rádio, tela cheia
+│   ├── data/                  # dados: tipos de ponto, rivais, mapas, bonde (atributos, origens, traços, nomes),
+│   │                          #        aparência, bandeiras, cenas e dicas
+│   ├── core/                  # regras puras (sem DOM): estado, save versionado, combate, IA, polícia,
+│   │                          #        bonde (crew.js: personagem, capitães, lealdade, traição, morte)
+│   └── ui/
+│       ├── main.js            # mapa com câmera, HUD, painéis, relatório, rádio, tela cheia
+│       ├── art.js             # avatares e bandeiras em SVG em camadas
+│       ├── create.js          # criação do personagem e editor de bandeira/jaqueta
+│       ├── crewui.js          # tela do bonde e escolha de capitão
+│       └── dialog.js          # cenas de diálogo e dicas do tutorial (puláveis)
 ├── sim/                       # simulador de equilíbrio e testes (Node)
 └── docs/
     ├── gdd.md                 # documento de design: campanha em eras e roadmap
@@ -67,11 +75,19 @@ dominio/
 
 ## Estado atual
 
-v0.5 (F0 do roadmap): código reorganizado em módulos, save versionado com migração do formato antigo, simulador e testes no Node. A jogabilidade é a mesma da v0.4.
+v0.6 (F1 do roadmap: identidade e personagem):
+- **Criação do personagem** em 4 passos: nome, vulgo, origem, aparência (avatar ilustrado), atributos, bandeira e jaqueta, modo leve.
+- **Bonde:** vice e capitães com nome, traços, nível e lealdade; designar capitão a um ponto; promover; agrado; tentação dos rivais; traição; morte permanente (ou hospital no modo leve); prisão em megaoperação.
+- **Comandante:** XP e nível, pontos de atributo; atributos afetam ataque, defesa, recrutamento, compra de pontos e visada.
+- **Identidade:** bandeira hasteada nos seus pontos, avatar do capitão no mapa, bandeira no topo.
+- **Cenas de diálogo** (abertura com escolha, traição, morte, nível, capitão novo) e **dicas** do tutorial, tudo pulável e desligável.
+- Save v3: saves antigos ganham um Comandante e um bonde padrão.
+
+- **v0.5:** código em módulos, save versionado, simulador e testes no Node.
 
 - **v0.4:** layout de jogo de estratégia, com o mapa em tela cheia (arrastar e zoom), a interface flutuando nas bordas e ações conforme o ponto tocado. No celular, tela cheia na horizontal.
 - **v0.2:** a "Visada" (atenção da polícia) anda até um alvo definido pelos seus pontos; o suborno dá 3 dias de vista grossa; dá pra "baixar a poeira" num ponto.
 
-Equilíbrio atual (bot simples, 40 partidas): vence ~90% em ~55–58 dias. Termina com ~$45 mil em caixa (dinheiro sobrando: será tratado com armas, hierarquia e construção). Sem controlar a visada, ela fica perto de 75 no fim.
+Equilíbrio atual (bot usando o bonde, 60 partidas): vence ~95% em ~55 dias e termina com ~$45 mil em caixa (dinheiro sobrando: a F3 traz armas e construção para gastar). Sem cuidar da lealdade, ~0,7 traição por partida; cuidando, ~0,1. ~0,4 capitão morto por partida. Sem controlar a visada, ela fica perto de 75 no fim.
 
-**Próximo:** F1 (identidade e personagem) do `docs/gdd.md`.
+**Próximo:** F2 (Era Escola) do `docs/gdd.md`.

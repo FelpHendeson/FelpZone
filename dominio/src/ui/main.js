@@ -5,8 +5,13 @@ import { TYPES } from '../data/types.js';
 import { RIVALS, PLAYER_COLORS } from '../data/rivals.js';
 import { MAP, EDGES, DISTRICTS, POLICE_NODE } from '../data/maps/porto-neon.js';
 import { money, clamp } from '../core/util.js';
-import { state, hooks, replaceState, freshNodes, newGame, load } from '../core/state.js';
+import { state, hooks, replaceState, freshNodes, newGame, load, save } from '../core/state.js';
 import { clearSave } from '../core/save.js';
+import { captainAt, memberTitle, attackMult } from '../core/crew.js';
+import { avatarSVG, flagSVG, flagInner } from './art.js';
+import { queueScene, tryPlay, setBusyCheck, onSceneEnd, sceneActive, showTip, closeTip, dialogNext, dialogChoose, dialogSkip, prefs, setPref } from './dialog.js';
+import { showCreate, showIdentityEditor, cr } from './create.js';
+import { showCrew, showCaptainPicker, crewUI, initCrewUI, crewOpen } from './crewui.js';
 import {
   forecast, totalSoldiers, reachable, estDef, ownerColor, ownerName, nodeIncome, nodeHeat,
   recruitCap, bribeCost, upgradeCost, negotiateCost,
@@ -172,6 +177,8 @@ function selectNode(id) {
   ui.recruitN = 1;
   renderMap(); renderBottom();
   ensureVisible(state.nodes[id]);
+  const n = state.nodes[id];
+  if (n.owner === 'P') showTip('own'); else if (reachable(n)) showTip('attack');
 }
 function deselect() {
   if (ui.selected === null) return;
@@ -194,6 +201,10 @@ function render() {
   if (!state || !state.nodes) return;
   document.documentElement.style.setProperty('--accent', state.player.color);
   renderTop(); renderMap(); renderBottom(); renderRadio(); renderReport(); renderRotate();
+  if (!state.cmd) return;
+  if (state.heat >= 30) showTip('visada');
+  else if (state.actions < ACTIONS_PER_DAY) showTip('endDay');
+  tryPlay();
 }
 
 const canFullscreen = () => !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
@@ -203,7 +214,7 @@ function renderTop() {
   const f = forecast();
   const bal = f.inc - f.upkeep;
   $('#top').innerHTML = `
-    <div class="pill gang"><i class="flag"></i><div><b>${esc(state.player.gang)}</b><small>Dia ${state.day}</small></div></div>
+    <div class="pill gang">${state.flag ? flagSVG(state.flag, 'flag') : '<i class="flag"></i>'}<div><b>${esc(state.player.gang)}</b><small>Dia ${state.day}</small></div></div>
     <div class="res">
       <div class="pill" title="Caixa e saldo por dia (renda menos salários)">💵 <b>${money(state.money)}</b><small class="${bal >= 0 ? 'pos' : 'neg'}">${bal >= 0 ? '+' : ''}${money(bal)}</small></div>
       <div class="pill" title="Soldados livres / total">👥 <b>${state.free}</b><small>/${totalSoldiers()}</small></div>
@@ -212,6 +223,7 @@ function renderTop() {
       <div class="pill visada" title="Visada: o quanto a polícia está de olho. Anda até o alvo (traço branco). Acima de 50 tem batida.">👁️ <b>${Math.round(state.heat)}</b><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div>${state.bribeDays ? `<small>💼${state.bribeDays}d</small>` : ''}</div>
     </div>
     <div class="tr">
+      ${state.cmd ? `<button class="ic av${state.cmd.points ? ' dot' : ''}" onclick="showCrew()" title="Bonde: você, vice e capitães">${avatarSVG(state.cmd.look, state.jacket, state.flag)}</button>` : ''}
       <button class="ic${ui.unread ? ' dot' : ''}" onclick="toggleRadio()" title="Rádio da quebrada">📻</button>
       ${canFullscreen() ? `<button class="ic" onclick="toggleFullscreen()" title="Tela cheia">${inFullscreen() ? '🗗' : '⛶'}</button>` : ''}
       <button class="ic" onclick="showMenu()" title="Menu">☰</button>
@@ -252,6 +264,13 @@ function renderMap() {
     if (n.lowkey) s.push(`<text class="emoji" x="${n.x - NODE_R + 4}" y="${n.y + NODE_R - 6}" style="font-size:15px">🤫</text>`);
     s.push(`<text class="emoji" x="${n.x}" y="${n.y + 1}">${t.icon}</text>`);
     s.push(`<text class="label" x="${n.x}" y="${n.y + NODE_R + 18}">${esc(n.name)}${n.level > 1 ? ' ' + '★'.repeat(n.level - 1) : ''}</text>`);
+    if (n.owner === 'P' && state.flag) {
+      // bandeira hasteada
+      s.push(`<line x1="${n.x - 26}" y1="${n.y - 22}" x2="${n.x - 26}" y2="${n.y - 56}" stroke="#d6d3d1" stroke-width="2"/>`);
+      s.push(`<svg x="${n.x - 25}" y="${n.y - 56}" width="27" height="18" viewBox="0 0 150 100" preserveAspectRatio="none">${flagInner(state.flag)}</svg>`);
+    }
+    const cap = n.owner === 'P' && state.members ? captainAt(n) : null;
+    if (cap) s.push(avatarSVG(cap.look, state.jacket, state.flag, { ring: state.flag.bg }).replace('<svg class="avatar"', `<svg x="${n.x - 40}" y="${n.y + 2}" width="26" height="26"`));
     if (n.type !== 'policia') {
       const o = NODE_R * 0.8;
       s.push(`<g class="badge"><circle cx="${n.x + o}" cy="${n.y - o}" r="13" fill="${col}" stroke="#0b0b12" stroke-width="2"/><text x="${n.x + o}" y="${n.y - o + 1}">${n.guards}</text></g>`);
@@ -262,7 +281,7 @@ function renderMap() {
 }
 
 function odds(n) {
-  const ratio = (ui.send * (1 + state.respect / 200)) / Math.max(estDef(n) + (n.owner ? 0.5 : 0), 0.1);
+  const ratio = (ui.send * (1 + state.respect / 200) * attackMult()) / Math.max(estDef(n) + (n.owner ? 0.5 : 0), 0.1);
   return ratio >= 1.5 ? ['Vitória quase certa', 'g'] : ratio >= 1.15 ? ['Boa chance', 'g2'] : ratio >= 0.85 ? ['Cara ou coroa', 'y'] : ['Suicídio', 'r'];
 }
 
@@ -306,6 +325,11 @@ function nodePanel(n) {
 
   const a = [];
   if (n.owner === 'P') {
+    if (state.members) {
+      const c = captainAt(n);
+      a.push(c ? `<button class="tile cap" onclick="showCaptainPicker(${n.id})" title="Trocar o capitão">${avatarSVG(c.look, state.jacket, state.flag)}<span>${esc(c.vulgo)}<small>🤝 ${c.loyalty}</small></span></button>`
+        : `<button class="tile" onclick="showCaptainPicker(${n.id})">👤 Designar capitão</button>`);
+    }
     a.push(`<div class="w"><span class="wl">🛡️</span>
       <button onclick="moveGuards(${n.id},-1)" ${n.guards <= 0 ? 'disabled' : ''}>−</button><b>${n.guards}</b>
       <button onclick="moveGuards(${n.id},1)" ${state.free <= 0 ? 'disabled' : ''}>+</button>
@@ -354,7 +378,11 @@ function onDayEnd(day) {
   ui.unread = true;
   if (!state.over) { ui.report = day; renderReport(); renderTop(); }
 }
-function closeReport() { ui.report = null; ui.unread = false; renderReport(); renderTop(); }
+function closeReport() {
+  ui.report = null; ui.unread = false; renderReport(); renderTop();
+  tryPlay();
+  if (!sceneActive()) showTip('crew');
+}
 function renderReport() {
   const el = $('#report');
   if (ui.report == null) { el.classList.add('hidden'); return; }
@@ -410,6 +438,10 @@ function showMenu() {
   showModal(`<h1>Menu</h1>
     <div class="menu">
       <button onclick="showHelp()">❔ Como jogar</button>
+      ${state.cmd ? `<button onclick="closeModal();showCrew()">👥 Bonde</button>` : ''}
+      <label class="check"><input type="checkbox" ${prefs.tips ? 'checked' : ''} onchange="setPref('tips', this.checked)"> Dicas do tutorial</label>
+      <label class="check"><input type="checkbox" ${prefs.scenes ? 'checked' : ''} onchange="setPref('scenes', this.checked)"> Cenas de diálogo</label>
+      ${state.seenTips ? `<button onclick="state.seenTips={};setPref('tips', true);closeModal()">↻ Rever as dicas</button>` : ''}
       ${canFullscreen() ? `<button onclick="closeModal();toggleFullscreen()">⛶ Tela cheia</button>` : ''}
       <button onclick="confirmNew()">↺ Novo jogo</button>
       <button class="primary" onclick="closeModal()">Voltar ao jogo</button>
@@ -417,23 +449,20 @@ function showMenu() {
 }
 
 function showStart() {
-  let color = PLAYER_COLORS[0];
   showModal(`
     <h1>DOMÍNIO</h1>
-    <p>Porto Neon está dividida entre três gangues. Você só tem um barraco no alto do morro, seis moleques de confiança e muita vontade. Recrute, domine os pontos, tome os QGs rivais e vire o dono da cidade.</p>
-    <label>Nome do seu bonde</label><input type="text" id="gName" value="Bonde do Farol" maxlength="24">
-    <label>Seu vulgo</label><input type="text" id="lName" value="Felp" maxlength="18">
-    <label>Cor do bonde</label>
-    <div class="colors">${PLAYER_COLORS.map((c, i) => `<button style="background:${c}" class="${i ? '' : 'sel'}" data-c="${c}"></button>`).join('')}</div>
-    <div class="row"><button class="primary" id="startBtn">Começar ▶</button><button onclick="showHelp(true)">Como jogar</button></div>`);
-  document.querySelectorAll('.colors button').forEach((b) => b.onclick = () => {
-    document.querySelectorAll('.colors button').forEach((x) => x.classList.remove('sel'));
-    b.classList.add('sel'); color = b.dataset.c;
+    <p>Porto Neon está dividida entre três gangues. Você só tem um barraco no alto do morro, um vice de confiança, dois capitães e muita vontade. Recrute, domine os pontos, tome os QGs rivais e vire o dono da cidade.</p>
+    <div class="row"><button class="primary" id="startBtn" onclick="startCreate()">Criar personagem ▶</button><button onclick="showHelp(true)">Como jogar</button></div>`);
+}
+function startCreate() {
+  closeModal();
+  showCreate((opts) => { if (opts) newGame(opts); else showStart(); });
+}
+function editIdentity() {
+  showIdentityEditor({ ...state.cmd, gang: state.player.gang, flag: state.flag, jacket: state.jacket }, (res) => {
+    if (res) { state.flag = res.flag; state.jacket = res.jacket; state.player.color = res.flag.bg; save(); }
+    render();
   });
-  $('#startBtn').onclick = () => {
-    closeModal();
-    newGame({ gang: $('#gName').value.trim() || 'Bonde do Farol', leader: $('#lName').value.trim() || 'Chefe', color });
-  };
 }
 
 function showHelp(fromStart) {
@@ -441,6 +470,7 @@ function showHelp(fromStart) {
     <h1>Como jogar</h1>
     <ul>
       <li><b>Controles:</b> arraste o mapa (mouse ou dedo), dê zoom com a roda ou com dois dedos. Toque num ponto pra ver as ações; toque no vazio pra fechar. No PC: setas/WASD movem, + e − dão zoom, Esc fecha.</li>
+      <li><b>O bonde 👥:</b> você é o Comandante. Atributos (Força, Tática, Lábia, Sangue-frio) dão bônus; vencer dá XP e nível. O vice e os capitães comandam pontos e dão defesa e bônus pelos traços. Cuide da <b>lealdade</b>: abaixo de 25, alguém pode trair. Membro com nome que morre não volta.</li>
       <li><b>Objetivo:</b> tomar os QGs dos Corvos, das Serpentes e dos Dragões. Se o seu QG cair, você perde.</li>
       <li><b>Pontos:</b> cada ponto dá renda todo dia. Bocas e o porto dão mais grana, mas deixam o bonde mais <b>visado</b>.</li>
       <li><b>Ações (⚡):</b> você tem ${ACTIONS_PER_DAY} por dia pra atacar ou comprar pontos. Mover guardas, recrutar e melhorar não gastam ação.</li>
@@ -477,13 +507,22 @@ function onNewGame() {
   ui.selected = null; ui.report = null; ui.radio = false; ui.unread = false; ui.tIdx = -1;
   render();
   initialCam();
+  playIntro();
 }
+function playIntro() {
+  if (!state.introPending) return;
+  queueScene('intro', {}, () => { state.introPending = false; save(); });
+}
+onSceneEnd(() => { render(); if (!state.introPending) showTip('map'); });
+setBusyCheck(() => !$('#modal').classList.contains('hidden') || ui.report != null || !$('#create').classList.contains('hidden') || crewOpen());
+initCrewUI({ changed: render, focusNode: (id) => { const n = state.nodes[id]; focusOn(n.x, n.y); selectNode(id); }, editIdentity });
 
 // ===================== INÍCIO =====================
 hooks.changed = render;
 hooks.newGame = onNewGame;
 hooks.dayEnded = onDayEnd;
 hooks.gameOver = () => setTimeout(showEnd, 50);
+hooks.scene = (id, ctx) => queueScene(id, ctx);
 
 // Ponte para os onclick escritos nos templates HTML (módulos não ficam no escopo global).
 Object.assign(window, {
@@ -491,10 +530,11 @@ Object.assign(window, {
   zoomCenter, goHQ, deselect, selectNode, nextTarget, setSend, setRecruit, initialCam,
   toggleRadio, toggleFullscreen, closeReport, renderRotate, showMenu, showHelp, showStart, showEnd, confirmNew, closeModal, resetSave,
   newGame, endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
+  startCreate, editIdentity, cr, showCrew, showCaptainPicker, crewUI, dialogNext, dialogChoose, dialogSkip, closeTip, setPref,
 });
 
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };
-if (load()) { render(); initialCam(); if (state.over) showEnd(); }
+if (load()) { render(); initialCam(); if (state.over) showEnd(); else playIntro(); }
 else {
   // Estado vazio só pra desenhar o mapa atrás da tela de início.
   replaceState({ day: 1, money: 0, free: 0, respect: 0, heat: 0, actions: 0, recruited: 0, bribeDays: 0,

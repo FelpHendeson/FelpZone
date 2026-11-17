@@ -1,6 +1,6 @@
 // Tipos de ponto do mapa.
 export const TYPES = {
-  hq:        { label: 'QG',          icon: '🏚️', income: 150, heat: 0, resp: 0, def: 2.0, recruit: 100,
+  hq:        { label: 'QG',          icon: '🏚️', income: 170, heat: 0, resp: 0, def: 2.0, recruit: 100,
                desc: 'O coração do bonde. Se cair, acabou.' },
   boca:      { label: 'Boca',        icon: '💊', income: 220, heat: 4, resp: 0, def: 1.0,
                desc: 'Dinheiro rápido, mas chama muita atenção da polícia.' },

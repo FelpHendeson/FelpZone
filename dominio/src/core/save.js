@@ -3,7 +3,7 @@
 // Formato atual: localStorage['dominio-save'] = { version, savedAt, state }
 // Legado (v0.1–v0.4): localStorage['dominio-save-v1'] = state  (tratado como versão 1)
 
-export const SAVE_VERSION = 2;
+export const SAVE_VERSION = 3;
 const KEY = 'dominio-save';
 const LEGACY_KEY = 'dominio-save-v1';
 
@@ -15,6 +15,8 @@ const MIGRATIONS = {
     for (const n of s.nodes) n.lowkey = !!n.lowkey;
     return s;
   },
+  // v3 (F1): bonde com nome. O state.js cria o Comandante e os membros padrão ao carregar.
+  2: (s) => { s.needsCrew = true; return s; },
 };
 
 const storage = () => (typeof localStorage !== 'undefined' ? localStorage : null);
