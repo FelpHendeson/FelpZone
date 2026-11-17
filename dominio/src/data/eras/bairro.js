@@ -60,7 +60,7 @@ export const BAIRRO = {
     price: 1, startMoney: 800, startFree: 6, startRespect: 10, rivalStartMoney: 400, rivalStartReserve: 4,
     raid: 'policia', motoCost: 0,
     rivalCapBase: 10, rivalCapPerNode: 3, guardBase: 3, guardEvery: 7,
-    build: true, weapons: true, events: true,
+    build: true, weapons: true, events: true, market: true,
   },
   words: {
     heat: 'Visada', heatIcon: '👁️', police: 'polícia', bribe: 'Subornar', bribeIcon: '💼', soldiers: 'soldados',

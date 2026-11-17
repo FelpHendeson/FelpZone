@@ -16,6 +16,7 @@ export function useEra(id, mapData) {
   ERA = ERAS[id] || CIDADE;
   ({ types: TYPES, rivals: RIVALS } = ERA);
   const m = mapData || ERA.map;
+  if (m.rivalDefs) RIVALS = m.rivalDefs;            // cidades do estado têm gangues próprias
   ({ MAP, EDGES, DISTRICTS, POLICE_NODE } = m);
   POLICE_NODES = m.POLICE_NODES || [POLICE_NODE];
   MAP_W = m.W || 1000; MAP_H = m.H || 680;

@@ -16,7 +16,8 @@ let onFinish = null;
 let editOnly = false;
 const STEPS = ['Você', 'Atributos', 'O bonde', 'Pronto'];
 
-export function showCreate(done) {
+// defaults: valores iniciais opcionais (ex.: nome do bonde local numa cidade do estado).
+export function showCreate(done, defaults = {}) {
   editOnly = false;
   onFinish = done;
   step = 0;
@@ -24,6 +25,7 @@ export function showCreate(done) {
     name: '', leader: 'Felp', origin: 'morro', look: { ...DEFAULT_LOOK },
     attrs: Object.fromEntries(ATTR_KEYS.map((k) => [k, ATTR_BASE])),
     gang: 'Bonde do Farol', flag: { ...DEFAULT_FLAG }, jacket: { ...DEFAULT_JACKET }, leve: false,
+    ...defaults,
   };
   draw();
 }

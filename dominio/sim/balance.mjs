@@ -1,5 +1,5 @@
 // Simulador de equilíbrio: um bot joga várias partidas e mede vitória, duração e visada.
-// Uso: node sim/balance.mjs [partidas=40] [--era escola|bairro|cidade] [--sem-bonde] [--cuidar] [--armas] [--ops]
+// Uso: node sim/balance.mjs [partidas=40] [--era escola|bairro|cidade] [--sem-bonde] [--cuidar] [--armas] [--ops] [--estado ferro|praia|serra|capital]
 import { state, newGame } from '../src/core/state.js';
 import { ADJ } from '../src/core/era.js';
 import { reachable, estDef, playerAttack, moveGuards, recruit, bribe, endDay, canBuyMoto, motoCost, buyMoto, playerAttackMult } from '../src/core/rules.js';
@@ -8,6 +8,7 @@ import { hooks } from '../src/core/state.js';
 import { buyWeapon, canBuyWeapon, stock, storage, canBuyLot, buyLot, lotCost, startBuild } from '../src/core/business.js';
 import { canHeist, heistOdds, doHeist } from '../src/core/ops.js';
 import { TYPES } from '../src/core/era.js';
+import { openEstado, sendMember, orgMembers } from '../src/core/estado.js';
 
 const GAMES = Number(process.argv[2]) || 40;
 
@@ -17,7 +18,8 @@ const USE_CREW = !process.argv.includes('--sem-bonde');
 const MAX_DAYS = ERA_ID === 'cidade' ? 150 : 90;   // a cidade gerada é maior: partida mais longa
 const CARE = process.argv.includes('--cuidar');   // dá agrado quando a lealdade cai
 const ARMS = process.argv.includes('--armas');    // compra pistolas quando sobra dinheiro
-const OPS = process.argv.includes('--ops');       // capitães agressivos na fronteira + assaltos com boa chance
+const OPS = process.argv.includes('--ops');
+const ESTADO = process.argv.includes('--estado') ? process.argv[process.argv.indexOf('--estado') + 1] : null;   // cidade do estado (braço mandado)       // capitães agressivos na fronteira + assaltos com boa chance
 
 // Capitães nos pontos de fronteira mais valiosos; promove quando der; pontos de atributo em Força/Tática.
 function manageCrew() {
@@ -76,6 +78,12 @@ function run(useBribe) {
   const res = [];
   for (let g = 0; g < GAMES; g++) {
     newGame({ gang: 'Bot', leader: 'Bot', color: '#ef4444', era: ERA_ID, skipIntro: true });
+    if (ESTADO) {
+      // simula a chegada de um braço mandado: organização criada, cidades no caminho já são suas
+      state.campaign = true; openEstado(); state.org.treasury = 3000;
+      for (const id of ['ferro', 'praia', 'serra']) if (id !== ESTADO) state.org.cities[id] = { status: 'yours', patron: { name: 'x', vulgo: 'x', look: state.cmd.look } };
+      sendMember(ESTADO, orgMembers()[0].id);
+    }
     const heats = [];
     let raids = 0, megas = 0, traicoes = 0, mortes = 0;
     for (let d = 0; d < MAX_DAYS && !state.over; d++) {

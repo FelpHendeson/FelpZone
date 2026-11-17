@@ -15,6 +15,8 @@ Versão publicada: https://dominio-porto-neon.vercel.app
 - Atacar um QG é uma **briga de bonde**: 3 rodadas de Avançar, Segurar ou Cercar (Avançar vence Cercar, Cercar vence Segurar, Segurar vence Avançar). Uma "leitura" do inimigo dá uma pista (acerta 70%), e o seu personagem pode entrar na briga uma vez.
 - **Bairro e Cidade:** lotes vazios 🚧 se compram (não se tomam na força) e viram o que você construir; o 🔫 Arsenal compra armas de fornecedores (mais força, munição diária, mais visada; os rivais também se armam); eventos (bailão, racha, churrasco, ação social) dão bônus; o inferninho traz boatos e marca com ⚠️ o ponto que um rival vai atacar amanhã.
 - **Cidade (F4):** mapa gerado por semente (~50 pontos, 4 gangues), zonas neutras (hospital, igreja, escola; delegacia não dá pra atravessar), pontos especiais (assalto, sequestro com resgate, extorsão), trégua, aliança (pode trair), assassinato do braço direito, emboscada com boato, política dos capitães (segura, lucro, equilibrada, agressiva) e +1 ⚡ a cada 10 pontos seus.
+- **Mercado (📈, Bairro e Cidade):** produto das bocas (erva, pó, sintético), fornecedor (custo, qualidade, risco de apreensão), preço (barato rouba freguês e irrita os rivais; caro dá margem) e atração dos inferninhos; eventos de mercado mexem na demanda.
+- **Estado (campanha):** ao dominar Porto Neon, abre o mapa do estado. Em cada cidade nova você escolhe **mandar alguém** do bonde (leal, com apoio, forasteiro) ou **achar alguém** (personagem novo que se filia ao fazer nome). Cidade dominada vira sua, com patrão e tributo diário pra organização.
 - **Era Escola:** o "Barulho" gera advertências da diretoria (3 = suspensão de 2 dias), motos na oficina deixam atacar a duas ruas de distância, e um tutorial guiado mostra um objetivo por vez (dá pra pular). Ninguém morre na escola.
 - **O bonde (👥):** você é o Comandante, com atributos, nível e origem. O vice e os capitães comandam pontos e dão bônus pelos traços. Cuide da lealdade: abaixo de 25, alguém pode trair. Membro com nome que morre não volta (exceto no modo leve).
 - O progresso é salvo automaticamente no navegador.
@@ -67,7 +69,8 @@ dominio/
 │   │                          #        aparência, bandeiras, cenas e dicas
 │   ├── core/                  # regras puras (sem DOM): estado, save versionado, combate, IA, polícia, negócios (business.js),
 │   │                          #        bonde (crew.js), era ativa (era.js), briga de bonde (brawl.js),
-│   │                          #        gerador de cidades (mapgen.js), operações especiais (ops.js)
+│   │                          #        gerador de cidades (mapgen.js), operações especiais (ops.js),
+│   │                          #        mercado (market.js), organização e estado (estado.js)
 │   └── ui/
 │       ├── main.js            # mapa com câmera, HUD, painéis, relatório, rádio, tela cheia
 │       ├── art.js             # avatares e bandeiras em SVG em camadas
@@ -75,6 +78,8 @@ dominio/
 │       ├── crewui.js          # tela do bonde e escolha de capitão
 │       ├── brawlui.js         # tela da briga de bonde
 │       ├── arsenalui.js       # arsenal e fornecedores
+│       ├── marketui.js        # mercado das bocas e atrações
+│       ├── estadoui.js        # mapa do estado e escolha do braço
 │       └── dialog.js          # cenas de diálogo e dicas do tutorial (puláveis)
 ├── sim/                       # simulador de equilíbrio e testes (Node)
 └── docs/
@@ -87,6 +92,11 @@ dominio/
 - **Save versionado** (`src/core/save.js`): cada mudança de formato ganha uma migração em `MIGRATIONS`, e partidas antigas continuam abrindo.
 
 ## Estado atual
+
+v1.0 (F5 do roadmap: mercado e Estado):
+- **Mercado** das bocas e atração dos inferninhos, com eventos de mercado e apreensão de carga.
+- **Estado:** 5 cidades (Porto Neon, Vale do Ferro, Praia Dourada, Serra Azul e a Capital), cada uma com 4 gangues próprias e dificuldade crescente. Expansão por braços (mandar ou achar), filiação ao fazer nome (normal ou cobrando caro), patrões e tributo. Final "o estado é seu".
+- Save v7.
 
 v0.9 (F4 do roadmap: Cidade completa):
 - **Cidade gerada por semente** (~50 pontos, ruas sem cruzamentos estranhos, sempre conectada) com **4 gangues** (entram os Lobos da Serra); a semente aparece no menu e pode ser escolhida no Modo Livre.
@@ -126,4 +136,6 @@ v0.7 (F2 do roadmap: Era Escola):
 
 Equilíbrio atual: **Escola** (era tutorial) ~25 dias, o bot sempre vence. **Bairro** ~95% em ~40 dias. **Cidade gerada** (4 gangues): bot básico ~66% em ~120 dias; bot usando operações e armas ~90–95% em ~100–120 dias. Com assaltos, o caixa volta a sobrar no fim (~$70 mil): o mercado (F5) e novos gastos vão equilibrar. Sem cuidar da lealdade, ~0,7 traição por partida; cuidando, ~0,1. ~0,4 capitão morto por partida. Sem controlar a visada, ela fica perto de 75 no fim.
 
-**Próximo:** F5 do `docs/gdd.md`: mercado (produto, fornecedor, preço por bairro), Estado/País/Mundo com expansão por braços.
+Estado: cada cidade leva ~100–115 dias pro bot usando operações e armas (vence 90–100%).
+
+**Próximo:** F6 do `docs/gdd.md`: País e Mundo (o mesmo mecanismo de braços, em escala maior), tenentes, mais lore e polimento (animações, sons).

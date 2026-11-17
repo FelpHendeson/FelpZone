@@ -9,7 +9,7 @@ import { state, hooks, replaceState, freshNodes, newGame, load, save, advanceEra
 import { clearSave } from '../core/save.js';
 import { captainAt, memberTitle } from '../core/crew.js';
 import { avatarSVG, flagSVG, flagInner } from './art.js';
-import { queueScene, tryPlay, setBusyCheck, onSceneEnd, sceneActive, showTip, closeTip, dialogNext, dialogChoose, dialogSkip, prefs, setPref } from './dialog.js';
+import { queueScene, tryPlay, setBusyCheck, onSceneEnd, sceneActive, showTip, closeTip, dialogNext, dialogChoose, dialogSkip, prefs, setPref, registerChoice } from './dialog.js';
 import { showCreate, showIdentityEditor, cr } from './create.js';
 import { showCrew, showCaptainPicker, crewUI, initCrewUI, crewOpen } from './crewui.js';
 import {
@@ -20,6 +20,10 @@ import {
 } from '../core/rules.js';
 import { brawlStart, brawlMove, brawlToggleCmd, brawlClose, initBrawlUI, brawlOpen, resumeBrawl } from './brawlui.js';
 import { showArsenal, arsenalUI, initArsenalUI } from './arsenalui.js';
+import { showMarket, marketUI, initMarketUI } from './marketui.js';
+import { hasMarket } from '../core/market.js';
+import { showEstado, hideEstado, estadoUI, initEstadoUI, estadoOpen } from './estadoui.js';
+import { openEstado, finishCity, affiliate, inEstado, allMine } from '../core/estado.js';
 import { canBuyLot, buyLot, lotCost, buildOptions, canBuild, startBuild, eventsFor, canHoldEvent, holdEvent, threats, weaponMult } from '../core/business.js';
 import { EVENTS } from '../data/arsenal.js';
 import { has, P, MAP_W, MAP_H } from '../core/era.js';
@@ -219,6 +223,7 @@ function render() {
   if (!state || !state.nodes) return;
   document.documentElement.style.setProperty('--accent', state.player.color);
   renderTop(); renderMap(); renderBottom(); renderRadio(); renderReport(); renderRotate();
+  if (inEstado()) { showEstado(); tryPlay(); return; }
   if (!state.cmd) return;
   if (threats().length) showTip('intel');
   else if (state.heat >= 30) showTip('visada');
@@ -246,6 +251,7 @@ function renderTop() {
     </div>
     <div class="tr">
       ${state.cmd ? `<button class="ic av${state.cmd.points ? ' dot' : ''}" onclick="showCrew()" title="Bonde: você, vice e capitães">${avatarSVG(state.cmd.look, state.jacket, state.flag)}</button>` : ''}
+      ${hasMarket() ? `<button class="ic" onclick="showMarket()" title="Mercado: produto, fornecedor e preço das bocas">📈</button>` : ''}
       ${has('weapons') ? `<button class="ic" onclick="showArsenal()" title="Arsenal: armas e fornecedores (+${Math.round((weaponMult() - 1) * 100)}% de força)">🔫</button>` : ''}
       <button class="ic${ui.unread ? ' dot' : ''}" onclick="toggleRadio()" title="Rádio da quebrada">📻</button>
       ${canFullscreen() ? `<button class="ic" onclick="toggleFullscreen()" title="Tela cheia">${inFullscreen() ? '🗗' : '⛶'}</button>` : ''}
@@ -331,7 +337,7 @@ function renderBottom() {
 
 function overPanel() {
   return `<div class="head"><b>${state.over === 'win' ? ERA.text.winTitle : ERA.text.loseTitle}</b></div>
-    <div class="acts"><button class="tile go" onclick="showEnd()">${state.over === 'win' && state.campaign && nextEra(state.era) ? 'Continuar a história ▶' : 'Ver resultado'}</button><button class="tile" onclick="confirmNew()">↺ Novo jogo</button></div>`;
+    <div class="acts"><button class="tile go" onclick="showEnd()">${state.campaign && (nextEra(state.era) || state.era === 'cidade') && (state.over === 'win' || state.cityId) ? 'Continuar a história ▶' : 'Ver resultado'}</button><button class="tile" onclick="confirmNew()">↺ Novo jogo</button></div>`;
 }
 
 function idlePanel() {
@@ -581,6 +587,7 @@ function showHelp(fromStart) {
       <li><b>Sair da mira:</b> ${ERA.words.bribeIcon} ${ERA.words.bribe} tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. 🤫 Baixar a poeira para um ponto: sem renda e sem ${ERA.words.heat.toLowerCase()}.</li>
       ${has('build') ? '<li><b>Lotes 🚧:</b> lote vazio não se toma na força: compre (precisa de um ponto seu vizinho) e escolha o que construir. Em obra, o ponto fica frágil.</li>' : ''}
       ${has('weapons') ? '<li><b>Arsenal 🔫:</b> armas compradas de fornecedores deixam o bonde mais forte no ataque e na defesa, mas gastam munição todo dia e aumentam a visada. Os rivais também se armam.</li>' : ''}
+      ${hasMarket() ? '<li><b>Mercado 📈:</b> escolha o produto das bocas (erva, pó, sintético), o fornecedor (preço, qualidade, risco de apreensão), o preço (barato rouba freguês e irrita os rivais; caro dá margem) e a atração dos inferninhos.</li>' : ''}
       ${has('events') ? '<li><b>Eventos:</b> bailão, racha, churrasco e ação social dão bônus no ponto certo (um por dia).</li><li><b>Inferninho 👂:</b> traz boatos: os pontos seus que os rivais vão atacar amanhã aparecem com ⚠️.</li>' : ''}
       ${ERA.cfg.motoCost ? '<li><b>Motos 🏍️:</b> compradas na oficina. Deixam atacar pontos a duas ruas de distância e dão +5% na briga.</li>' : ''}
       ${ERA.generate ? `<li><b>Cidade grande:</b> 4 gangues num mapa gerado. Zonas neutras (hospital, igreja, escola) dá pra atravessar; pontos especiais (banco, joalheria, lotérica, mercado, caixa, mansão) não se dominam: assalte, sequestre ou cobre proteção. Contra gangues: 🕊️ trégua, 🤝 aliança (pode trair), 🗡️ assassinato do braço direito, 🪤 emboscada (com boato). Capitães têm política: segura, lucro, equilibrada ou agressiva (ataca sozinho). A cada 10 pontos seus, +1 ⚡ por dia.</li>` : ''}
@@ -597,6 +604,14 @@ function confirmNew() {
 
 function showEnd() {
   const X = ERA.text, vars = { dia: state.day, gang: esc(state.player.gang), leader: esc(state.player.leader) };
+  // campanha na cidade: a sede (Porto Neon) abre o mapa do estado; uma cidade do estado volta pra ele
+  if (state.campaign && state.era === 'cidade' && (state.cityId || state.over === 'win')) {
+    const city = !!state.cityId;
+    showModal(`<h1>${state.over === 'win' ? (city ? '🏙️ CIDADE TOMADA' : X.winTitle) : '☠️ O BRAÇO CAIU'}</h1>
+      <p>${state.over === 'win' ? (city ? `${esc(state.cmd.vulgo)} agora é patrão da cidade. Ela vai mandar tributo pra organização.` : T(X.win, vars)) : `${esc(state.cmd.vulgo)} perdeu a cidade. A organização vai ter que tentar de novo, com outra pessoa.`}</p>
+      <div class="row"><button class="primary" onclick="goEstado()">${city ? 'Voltar ao mapa do estado ▶' : 'Continuar a história ▶'}</button><button onclick="closeModal()">Ver o mapa</button></div>`);
+    return;
+  }
   if (state.over === 'win' && state.campaign && nextEra(state.era)) {
     showModal(`<h1>${X.winTitle}</h1><p>${T(X.win, vars)}</p>
       <p>Respeito: <b>${state.respect}</b> · Dias: <b>${state.day}</b> · Nível de ${esc(state.cmd.vulgo)}: <b>${state.cmd.level}</b></p>
@@ -613,7 +628,15 @@ function showEnd() {
   }
 }
 
-function resetSave() { clearSave(); showStart(); }
+function resetSave() { clearSave(); hideEstado(); showStart(); }
+
+// Vai pro mapa do estado: na primeira vez cria a organização; depois de uma cidade, fecha ela.
+function goEstado() {
+  closeModal();
+  if (state.cityId) finishCity(); else openEstado();
+  if (allMine()) queueScene('estadoWin', {});
+  render();
+}
 
 // Salto no tempo: cena, quem continua, repaginar a marca e começar a próxima era.
 function goNextEra() {
@@ -634,12 +657,16 @@ function onNewGame() {
 }
 function playIntro() {
   if (!state.introPending) return;
-  queueScene(ERA.introScene || 'intro', {}, () => { state.introPending = false; save(); });
+  queueScene(state.introScene || ERA.introScene || 'intro', {}, () => { state.introPending = false; delete state.introScene; save(); });
 }
 onSceneEnd(() => { render(); if (!state.introPending) showTip('map'); });
 setBusyCheck(() => !$('#modal').classList.contains('hidden') || ui.report != null || !$('#create').classList.contains('hidden') || crewOpen() || brawlOpen());
+// (o mapa do estado não bloqueia cenas: a abertura e o final tocam por cima dele)
 initBrawlUI(() => { tryPlay(); });
 initArsenalUI(render);
+initMarketUI(render);
+initEstadoUI({ create: (cb, defaults) => showCreate(cb, defaults) });
+registerChoice('affiliate', (e) => { affiliate(e.kind); save(); render(); });
 initCrewUI({ changed: render, focusNode: (id) => { const n = state.nodes[id]; focusOn(n.x, n.y); selectNode(id); }, editIdentity });
 
 // ===================== INÍCIO =====================
@@ -660,10 +687,11 @@ Object.assign(window, {
   openBrawl, brawlMove, brawlToggleCmd, brawlClose, buyMoto, skipTutorial, goNextEra,
   showArsenal, arsenalUI, buyLotAt, buildAt, eventAt,
   heistAt, extortAt, ambushAt, truceWith, allyWith, hitOn, policyAt,
+  showMarket, marketUI, estadoUI, goEstado,
 });
 
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };
-if (load()) { render(); initialCam(); if (state.over) showEnd(); else if (state.brawl) resumeBrawl(); else playIntro(); }
+if (load()) { render(); initialCam(); if (inEstado()) showEstado(); else if (state.over) showEnd(); else if (state.brawl) resumeBrawl(); else playIntro(); }
 else {
   // Estado vazio só pra desenhar o mapa atrás da tela de início.
   replaceState({ day: 1, money: 0, free: 0, respect: 0, heat: 0, actions: 0, recruited: 0, bribeDays: 0,

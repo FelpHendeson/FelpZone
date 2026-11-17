@@ -5,6 +5,14 @@ import { rng } from './crew.js';
 
 const W = 1600, H = 1100;
 
+// "Os Fundidores" → "dos Fundidores", "Família Coral" → "da Família Coral", "Clã do Trilho" → "do Clã do Trilho".
+export function ofName(name) {
+  if (name.startsWith('Os ')) return 'dos ' + name.slice(3);
+  if (name.startsWith('As ')) return 'das ' + name.slice(3);
+  if (/^(Família|Facção|Gangue)/.test(name)) return 'da ' + name;
+  return 'do ' + name;
+}
+
 const NAMES = {
   boca: ['da Escadaria', 'da Praça', 'do Viaduto', 'do Beco', 'da Curva', 'do Campinho', 'da Linha', 'do Túnel', 'da Feira', 'do Morrinho', 'da Laje', 'do Valão'],
   bar: ['do Tonhão', 'da Esquina', 'do Português', 'da Dona Cida', 'Estrela', 'do Pitbull', 'Recanto', 'do Gringo'],
@@ -39,7 +47,8 @@ const COMMON = [['boca', 22], ['bar', 11], ['inferninho', 8], ['desmanche', 7], 
 const ZONES = new Set(['policia', 'hospital', 'igreja', 'escola', 'banco', 'joalheria', 'loterica', 'supermercado', 'caixa', 'mansao']);
 const GUARDS = { boca: 2, bar: 2, inferninho: 3, desmanche: 3, fliperama: 2, mercado: 4, campinho: 2, porto: 5, lote: 0 };
 
-export function generateCity(seed, rivals = ['A', 'B', 'C', 'D']) {
+// opts.rivalDefs: gangues locais (nome, líder, cor...); opts.hqName: nome do seu QG.
+export function generateCity(seed, rivals = ['A', 'B', 'C', 'D'], opts = {}) {
   const r = rng(seed);
   const pick = (arr) => arr[Math.floor(r() * arr.length)];
 
@@ -112,7 +121,12 @@ export function generateCity(seed, rivals = ['A', 'B', 'C', 'D']) {
   // 5) nomes únicos
   const used = new Set();
   const nameFor = (t, i) => {
-    if (t === 'hq') return { P: 'QG do Farol', A: 'QG dos Corvos', B: 'QG das Serpentes', C: 'QG dos Dragões', D: 'QG dos Lobos' }[pts[i].hq];
+    if (t === 'hq') {
+      const o = pts[i].hq;
+      if (o === 'P') return opts.hqName || 'QG do Farol';
+      if (opts.rivalDefs && opts.rivalDefs[o]) return `QG ${ofName(opts.rivalDefs[o].name)}`;
+      return { A: 'QG dos Corvos', B: 'QG das Serpentes', C: 'QG dos Dragões', D: 'QG dos Lobos' }[o];
+    }
     const pool = NAMES[t] || [t];
     for (let k = 0; k < 20; k++) {
       const base = pick(pool);
@@ -132,5 +146,5 @@ export function generateCity(seed, rivals = ['A', 'B', 'C', 'D']) {
   const DISTRICTS = owners.map((o, k) => [o === 'P' ? 'MORRO DO FAROL' : DISTRICT_NAMES[k - 1], ANCHORS[o][0], ANCHORS[o][1], 260, DISTRICT_COLORS[o]]);
   DISTRICTS.push(['CENTRO', 800, 520, 230, '#facc1508']);
   const POLICE_NODES = MAP.map((m, i) => (m[1] === 'policia' ? i : -1)).filter((i) => i >= 0);
-  return { MAP, EDGES, DISTRICTS, POLICE_NODE: POLICE_NODES[0] ?? 0, POLICE_NODES, W, H, seed, rivals, generated: true };
+  return { MAP, EDGES, DISTRICTS, POLICE_NODE: POLICE_NODES[0] ?? 0, POLICE_NODES, W, H, seed, rivals, generated: true, rivalDefs: opts.rivalDefs || null };
 }

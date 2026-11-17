@@ -34,6 +34,34 @@ export const SCENES = {
     { who: 'vice', text: 'É agora, {vulgo}. Porto Neon inteira. Os moleques do colégio viraram os donos da cidade, e a gente vai cobrar.' },
     { who: 'cmd', text: 'Metade do caixa e todas as armas vêm com a gente. Bora.' },
   ],
+  estadoIntro: [
+    { who: 'narr', text: 'PORTO NEON É SUA.' },
+    { who: 'narr', text: 'Mas o estado é grande. Vale do Ferro, Praia Dourada, Serra Azul... e a Capital, onde mora o poder.' },
+    { who: 'vice', text: '{vulgo}, não dá pra estar em todo lugar. A gente precisa de braços: gente nossa lá dentro, ou gente de lá que trabalhe pra gente.' },
+    { who: 'cmd', text: 'Então vamos espalhar o {gang}. Cidade por cidade.' },
+  ],
+  cityMandar: [
+    { who: 'chief', text: '{vulgo}, você é o meu braço em {cidade} agora. Leva grana, leva gente, leva o nome do {org}.' },
+    { who: 'cmd', text: 'Ninguém aqui conhece a gente, {chefe}. Vão vir pra cima do forasteiro.' },
+    { who: 'chief', text: 'Então mostra pra eles quem a gente é. Quando a cidade for nossa, ela é sua.' },
+  ],
+  cityAchar: [
+    { who: 'narr', text: '{cidade}. Ninguém aqui nunca ouviu falar do {org}.' },
+    { who: 'cmd', text: 'Minha cidade, minhas regras. Uma hora alguém grande vai reparar no {gang}.' },
+  ],
+  affiliation: [
+    { who: 'narr', text: 'O nome do {gang} chegou longe. Chegou até {chefe}, do {org}.' },
+    { who: 'chief', text: 'Tô de olho em você, {vulgo}. Trabalha pra mim em {cidade}: grana, gente e a bandeira do {org} nas costas.' },
+    { who: 'cmd', text: 'E o que eu ganho com isso?', choices: [
+      { text: 'Fechado. O {org} tem um braço em {cidade}.', effect: { action: 'affiliate', kind: 'normal' }, reply: 'Bem-vindo à família.' },
+      { text: 'Fecho, mas o preço é alto: quero o dobro e fico com mais da renda.', effect: { action: 'affiliate', kind: 'caro' }, reply: 'Ambicioso. Gosto disso... por enquanto.' },
+    ] },
+  ],
+  estadoWin: [
+    { who: 'narr', text: 'DA CAPITAL AO VALE, DA SERRA À PRAIA: O ESTADO RESPONDE AO {org}.' },
+    { who: 'chief', text: 'Lembra do terraço do Estadual? Olha onde o {org} chegou.' },
+    { who: 'chief', text: 'Isso é só o estado. O país inteiro tá olhando pra cá agora.' },
+  ],
   objective: [
     { who: 'vice', text: '{texto}' },
   ],

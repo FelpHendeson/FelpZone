@@ -12,12 +12,20 @@ import {
 } from './crew.js';
 import { weaponMult, weaponHeat, ammoCost, buffSum, buffOn, tickBuilds, tickBuffs, reportIntel, arsenal, stock, storage } from './business.js';
 import { extortIncome, extortHeat, tickDiplomacy, aggressiveCaptains, peaceful, isAlly, ambushMult } from './ops.js';
+import { bocaMult, bocaHeatMult, rivalBocaMult, marketCost, attraction, tickMarket } from './market.js';
+import { tickOrg, checkAffiliation } from './estado.js';
 
 const MAX_MOTOS = 4;
 
 // ===================== CONSULTAS =====================
 export const lvlMult = (n) => 1 + 0.5 * (n.level - 1);
-export const nodeIncome = (n) => Math.round(TYPES[n.type].income * lvlMult(n) * (n.owner === 'P' ? crewIncomeMult(n) : 1));
+// Renda do ponto: tipo × nível × bônus do bonde; bocas seguem o mercado; inferninhos, a atração da semana.
+function marketFactor(n) {
+  if (n.type === 'boca') return n.owner === 'P' ? bocaMult() : n.owner && n.owner !== 'X' ? rivalBocaMult() : 1;
+  if (n.type === 'inferninho' && n.owner === 'P') return attraction().income;
+  return 1;
+}
+export const nodeIncome = (n) => Math.round(TYPES[n.type].income * lvlMult(n) * (n.owner === 'P' ? crewIncomeMult(n) : 1) * marketFactor(n));
 export const defMult = (n) => TYPES[n.type].def * (1 + 0.25 * (n.level - 1));
 export const rivalArms = (o) => (state.rivals && state.rivals[o] && state.rivals[o].wm) || 1;
 export const estDef = (n) => n.guards * defMult(n) * (n.owner === 'P' ? crewDefMult(n) * weaponMult() : rivalArms(n.owner)) * (n.build ? 0.6 : 1);
@@ -53,7 +61,13 @@ export const canBuyMoto = () => ERA.cfg.motoCost > 0 && (state.motos || 0) < MAX
 // Ataque do jogador: atributos do Comandante + motos (+5% cada).
 export const playerAttackMult = () => attackMult() * weaponMult() * (1 + 0.05 * Math.min(state.motos || 0, MAX_MOTOS));
 
-export const nodeHeat = (n) => n.lowkey ? 0 : Math.max(0, TYPES[n.type].heat + (nearPolice(n) ? 1 : 0) + (n.owner === 'P' ? crewHeatAdj(n) : 0));
+export function nodeHeat(n) {
+  if (n.lowkey) return 0;
+  let h = TYPES[n.type].heat;
+  if (n.owner === 'P' && n.type === 'boca') h = Math.round(h * bocaHeatMult());
+  if (n.owner === 'P' && n.type === 'inferninho') h += attraction().heat;
+  return Math.max(0, h + (nearPolice(n) ? 1 : 0) + (n.owner === 'P' ? crewHeatAdj(n) : 0));
+}
 
 export function forecast() {
   let inc = 0, heat = 0;
@@ -68,7 +82,7 @@ export function forecast() {
   if (state.bribeDays > 0) target /= 2;
   if (buffOn('calm')) target *= 0.7;
   const next = clamp(state.heat + (target - state.heat) * HEAT_DRIFT, 0, 100);
-  return { inc, heat, target: Math.round(target), next, upkeep: totalSoldiers() * UPKEEP + salaries() + ammoCost(), ammo: ammoCost() };
+  return { inc, heat, target: Math.round(target), next, upkeep: totalSoldiers() * UPKEEP + salaries() + ammoCost() + marketCost(), ammo: ammoCost(), supply: marketCost() };
 }
 
 // ===================== COMBATE =====================
@@ -231,7 +245,7 @@ export function buyMoto() {
   afterAction();
 }
 
-export function afterAction() { checkObjectives(); checkEnd(); save(); hooks.changed(); }
+export function afterAction() { checkObjectives(); checkAffiliation(); checkEnd(); save(); hooks.changed(); }
 
 // ===================== OBJETIVOS (tutorial guiado) =====================
 export const objectives = () => ERA.objectives || [];
@@ -261,7 +275,7 @@ export function endDay() {
   if (state.over) return;
   const f = forecast();
   state.money += f.inc;
-  state.nodes.filter((n) => n.owner === 'P' && !n.lowkey).forEach((n) => { state.respect += TYPES[n.type].resp; });
+  state.nodes.filter((n) => n.owner === 'P' && !n.lowkey).forEach((n) => { state.respect += TYPES[n.type].resp + (n.type === 'inferninho' && ERA.cfg.market ? attraction().resp : 0); });
   state.respect = clamp(state.respect, 0, 100);
   state.heat = f.next;
 
@@ -289,6 +303,8 @@ export function endDay() {
   if (!state.over) randomEvent();
   tickBuffs();
   tickDiplomacy();
+  tickMarket();
+  tickOrg();
   reportIntel();
 
   const endedDay = state.day;

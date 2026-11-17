@@ -26,7 +26,7 @@ export function freshNodes() {
 }
 
 // Campos de uma era nova (mapa, rivais, recursos iniciais).
-function eraFields(gang, leader, color) {
+export function eraFields(gang, leader, color) {
   const c = ERA.cfg;
   const rivals = {};
   for (const id of mapRivals()) rivals[id] = { money: c.rivalStartMoney, reserve: c.rivalStartReserve, alive: true };
@@ -37,15 +37,15 @@ function eraFields(gang, leader, color) {
     player: { gang, leader, color }, nodes: freshNodes(), rivals, log: [], over: null,
   };
 }
-function startLogs() {
+export function startLogs() {
   for (const [msg, kind] of ERA.text.start) log(T(msg, { leader: state.player.leader, gang: state.player.gang, 'trégua': TRUCE_DAYS - 1 }), kind);
 }
 
 // Ativa a era; se ela gera mapa, cria a cidade pela semente e devolve os dados pra guardar no save.
-function enterEra(id, seed) {
+export function enterEra(id, seed, mapOpts = {}) {
   useEra(id);
   if (!ERA.generate) return null;
-  const map = generateCity(seed ?? Math.floor(Math.random() * 1e9));
+  const map = generateCity(seed ?? Math.floor(Math.random() * 1e9), undefined, mapOpts);
   useEra(id, map);
   return map;
 }

@@ -139,7 +139,7 @@ export function tickBuffs() {
 }
 
 // ===================== BOATOS (inferninho) =====================
-export const hasIntel = () => state.nodes.some((n) => n.owner === 'P' && !n.lowkey && !n.build && TYPES[n.type].intel);
+export const hasIntel = () => state.nodes.some((n) => n.owner === 'P' && !n.build && TYPES[n.type].intel && (!n.lowkey || (state.market && state.market.attraction === 'tematica')));
 export function threats() {
   if (!hasIntel()) return [];
   return Object.entries(state.rivals)

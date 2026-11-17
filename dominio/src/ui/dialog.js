@@ -4,6 +4,8 @@ import { ORIGINS } from '../data/crew.js';
 import { state, save } from '../core/state.js';
 import { member } from '../core/crew.js';
 import { ERA, T } from '../core/era.js';
+import { CITIES } from '../data/estado.js';
+const CITY_NAMES = Object.fromEntries(Object.entries(CITIES).map(([k, c]) => [k, c.name]));
 import { clamp } from '../core/util.js';
 import { avatarSVG } from './art.js';
 
@@ -42,6 +44,7 @@ export function tryPlay() {
 
 function speaker(who, ctx) {
   if (who === 'narr') return { narr: true };
+  if (who === 'chief' && state.org) return { name: state.org.chief.vulgo, sub: `Chefe do ${state.org.gang}`, look: state.org.chief.look };
   if (who === 'cmd') return { name: state.cmd.vulgo, sub: 'Você', look: state.cmd.look };
   const m = who === 'vice' ? state.members.find((x) => x.role === 'vice') : member(ctx[who]);
   if (!m) return { name: '???', sub: '', look: state.cmd.look };
@@ -51,6 +54,7 @@ function fill(text, ctx) {
   const m = ctx.m ? member(ctx.m) : null;
   const caps = state.members.filter((x) => x.role === 'cap' && x.status === 'ok').map((x) => `${x.name} “${x.vulgo}”`);
   const vars = {
+    chefe: state.org ? state.org.chief.vulgo : '', org: state.org ? state.org.gang : '', cidade: state.cityId ? (CITY_NAMES[state.cityId] || '') : '',
     vulgo: state.cmd.vulgo, gang: state.player.gang, originLine: ORIGINS[state.cmd.origin].line,
     capitaes: caps.length ? caps.join(' e ') : 'Os moleques',
     falaEntrada: m ? m.line : '', vulgoM: m ? m.vulgo : '', ...ctx,
@@ -93,6 +97,7 @@ export function dialogNext() {
 }
 export function dialogChoose(k) {
   const c = current.lines[current.i].choices[k];
+  if (c.effect && c.effect.action && choiceHandlers[c.effect.action]) choiceHandlers[c.effect.action](c.effect);
   if (c.effect) {
     if (c.effect.loyalty) state.members.forEach((m) => { if (m.status === 'ok') m.loyalty = clamp(m.loyalty + c.effect.loyalty, 0, 100); });
     if (c.effect.respect) state.respect = clamp(state.respect + c.effect.respect, 0, 100);
@@ -100,7 +105,17 @@ export function dialogChoose(k) {
   }
   if (c.reply) { current.reply = c.reply; drawLine(); } else dialogNext();
 }
-export function dialogSkip() { finish(); }
+export function dialogSkip() {
+  // pular uma cena com escolha obrigatória aplica a primeira opção
+  if (current) for (let i = current.i; i < current.lines.length; i++) {
+    const ln = current.lines[i];
+    if (ln.choices && ln.choices[0].effect && ln.choices[0].effect.action && choiceHandlers[ln.choices[0].effect.action]) { choiceHandlers[ln.choices[0].effect.action](ln.choices[0].effect); break; }
+  }
+  finish();
+}
+// Escolhas que disparam ações do jogo (ex.: filiar o braço local).
+const choiceHandlers = {};
+export function registerChoice(name, fn) { choiceHandlers[name] = fn; }
 function finish() {
   const done = current && current.onDone;
   current = null;
