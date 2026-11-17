@@ -27,6 +27,32 @@ export const TYPES = {
                desc: 'Recruta lutadores: cada um já chega com faca/taco (arma leve), se couber no arsenal.' },
   deposito:  { label: 'Depósito',    icon: '📦', income: 0,   heat: 1, resp: 0, def: 1.4,
                desc: 'Guarda armas: +30 de espaço no arsenal.', storage: 30 },
+  // F4: zonas neutras (não se tomam)
+  hospital:  { label: 'Hospital',    icon: '🏥', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               desc: 'Zona neutra. Com um ponto seu vizinho, quem está no hospital volta na metade do tempo.' },
+  igreja:    { label: 'Igreja',      icon: '⛪', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               desc: 'Zona neutra. Ação social num ponto seu vizinho tira o dobro de visada.' },
+  escola:    { label: 'Escola',      icon: '🏫', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               desc: 'Zona neutra. Atacar perto de uma escola: +8 de visada e −2 de respeito. A cidade não perdoa.' },
+  // F4: pontos especiais (não se dominam: são alvos de ação)
+  banco:     { label: 'Banco',       icon: '🏦', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               special: { kind: 'assalto', security: 16, loot: 4500, heat: 32 },
+               desc: 'Assalto grande: muito dinheiro, muita visada. Precisa de muita gente bem armada.' },
+  joalheria: { label: 'Joalheria',   icon: '💎', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               special: { kind: 'assalto', security: 10, loot: 2400, heat: 24 },
+               desc: 'Vitrine cheia e segurança armada.' },
+  loterica:  { label: 'Lotérica',    icon: '🎰', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               special: { kind: 'assalto', security: 4, loot: 700, heat: 10, extort: 110 },
+               desc: 'Dá pra assaltar ou extorquir toda semana (renda diária, um pouco de visada).' },
+  supermercado: { label: 'Supermercado', icon: '🛒', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               special: { kind: 'assalto', security: 5, loot: 900, heat: 12, extort: 140 },
+               desc: 'Dá pra assaltar ou cobrar "proteção" (renda diária, um pouco de visada).' },
+  caixa:     { label: 'Caixa 24h',   icon: '🏧', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               special: { kind: 'assalto', security: 3, loot: 500, heat: 8 },
+               desc: 'Explodir o caixa: pouco dinheiro, pouco risco.' },
+  mansao:    { label: 'Mansão',      icon: '🏛️', income: 0, heat: 0, resp: 0, def: 0, zone: true,
+               special: { kind: 'sequestro', security: 9, ransom: 5500, heat: 38 },
+               desc: 'Sequestrar o dono: o resgate chega em 2 dias. A cidade inteira vai estar procurando.' },
 };
 
 // O que dá pra erguer num lote: custo (na escala da era) e dias de obra.

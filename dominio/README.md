@@ -14,6 +14,7 @@ Versão publicada: https://dominio-porto-neon.vercel.app
 - Vence quem tomar os três QGs rivais. Perde quem tiver o próprio QG tomado.
 - Atacar um QG é uma **briga de bonde**: 3 rodadas de Avançar, Segurar ou Cercar (Avançar vence Cercar, Cercar vence Segurar, Segurar vence Avançar). Uma "leitura" do inimigo dá uma pista (acerta 70%), e o seu personagem pode entrar na briga uma vez.
 - **Bairro e Cidade:** lotes vazios 🚧 se compram (não se tomam na força) e viram o que você construir; o 🔫 Arsenal compra armas de fornecedores (mais força, munição diária, mais visada; os rivais também se armam); eventos (bailão, racha, churrasco, ação social) dão bônus; o inferninho traz boatos e marca com ⚠️ o ponto que um rival vai atacar amanhã.
+- **Cidade (F4):** mapa gerado por semente (~50 pontos, 4 gangues), zonas neutras (hospital, igreja, escola; delegacia não dá pra atravessar), pontos especiais (assalto, sequestro com resgate, extorsão), trégua, aliança (pode trair), assassinato do braço direito, emboscada com boato, política dos capitães (segura, lucro, equilibrada, agressiva) e +1 ⚡ a cada 10 pontos seus.
 - **Era Escola:** o "Barulho" gera advertências da diretoria (3 = suspensão de 2 dias), motos na oficina deixam atacar a duas ruas de distância, e um tutorial guiado mostra um objetivo por vez (dá pra pular). Ninguém morre na escola.
 - **O bonde (👥):** você é o Comandante, com atributos, nível e origem. O vice e os capitães comandam pontos e dão bônus pelos traços. Cuide da lealdade: abaixo de 25, alguém pode trair. Membro com nome que morre não volta (exceto no modo leve).
 - O progresso é salvo automaticamente no navegador.
@@ -65,7 +66,8 @@ dominio/
 │   ├── data/                  # dados: eras (eras/escola.js, eras/cidade.js), tipos de ponto, rivais, mapas, bonde,
 │   │                          #        aparência, bandeiras, cenas e dicas
 │   ├── core/                  # regras puras (sem DOM): estado, save versionado, combate, IA, polícia, negócios (business.js),
-│   │                          #        bonde (crew.js), era ativa (era.js), briga de bonde (brawl.js)
+│   │                          #        bonde (crew.js), era ativa (era.js), briga de bonde (brawl.js),
+│   │                          #        gerador de cidades (mapgen.js), operações especiais (ops.js)
 │   └── ui/
 │       ├── main.js            # mapa com câmera, HUD, painéis, relatório, rádio, tela cheia
 │       ├── art.js             # avatares e bandeiras em SVG em camadas
@@ -85,6 +87,14 @@ dominio/
 - **Save versionado** (`src/core/save.js`): cada mudança de formato ganha uma migração em `MIGRATIONS`, e partidas antigas continuam abrindo.
 
 ## Estado atual
+
+v0.9 (F4 do roadmap: Cidade completa):
+- **Cidade gerada por semente** (~50 pontos, ruas sem cruzamentos estranhos, sempre conectada) com **4 gangues** (entram os Lobos da Serra); a semente aparece no menu e pode ser escolhida no Modo Livre.
+- **Zonas neutras** (hospital acelera a recuperação, igreja dobra a ação social, escola pune briga do lado) que dá pra atravessar.
+- **Pontos especiais:** assalto (banco, joalheria, lotérica, supermercado, caixa 24h), sequestro (mansão, resgate em 2 dias) e extorsão (renda diária).
+- **Contra gangues:** trégua, aliança (30% de traição no fim), assassinato do braço direito (o executor pode ser preso ou morrer) e emboscada (com boato do inferninho).
+- **Política dos capitães**; o agressivo ataca sozinho. **+1 ⚡ a cada 10 pontos** seus.
+- Save v6 (saves antigos seguem no mapa fixo).
 
 v0.8 (F3 do roadmap: Era Bairro):
 - **Campanha em 3 eras:** Escola → anos depois → **Bairro** (Morro do Farol, 3 gangues locais, 6 lotes) → expansão → Cidade. Na expansão ninguém sai do bonde; metade do caixa e todas as armas vêm junto.
@@ -114,6 +124,6 @@ v0.7 (F2 do roadmap: Era Escola):
 - **v0.4:** layout de jogo de estratégia, com o mapa em tela cheia (arrastar e zoom), a interface flutuando nas bordas e ações conforme o ponto tocado. No celular, tela cheia na horizontal.
 - **v0.2:** a "Visada" (atenção da polícia) anda até um alvo definido pelos seus pontos; o suborno dá 3 dias de vista grossa; dá pra "baixar a poeira" num ponto.
 
-Equilíbrio atual: **Escola** (era tutorial) ~25 dias, o bot sempre vence. **Bairro** ~78% em ~51 dias. **Cidade** (bot usando bonde, lotes e armas) ~92–97% em ~56 dias, terminando com ~$20 mil em caixa (era ~$45 mil antes de haver armas e obras). Sem cuidar da lealdade, ~0,7 traição por partida; cuidando, ~0,1. ~0,4 capitão morto por partida. Sem controlar a visada, ela fica perto de 75 no fim.
+Equilíbrio atual: **Escola** (era tutorial) ~25 dias, o bot sempre vence. **Bairro** ~95% em ~40 dias. **Cidade gerada** (4 gangues): bot básico ~66% em ~120 dias; bot usando operações e armas ~90–95% em ~100–120 dias. Com assaltos, o caixa volta a sobrar no fim (~$70 mil): o mercado (F5) e novos gastos vão equilibrar. Sem cuidar da lealdade, ~0,7 traição por partida; cuidando, ~0,1. ~0,4 capitão morto por partida. Sem controlar a visada, ela fica perto de 75 no fim.
 
-**Próximo:** F4 (Era Cidade completa: mapa gerado maior, zonas neutras, pontos especiais, ações especiais, mercado, capitães com setor e política) do `docs/gdd.md`.
+**Próximo:** F5 do `docs/gdd.md`: mercado (produto, fornecedor, preço por bairro), Estado/País/Mundo com expansão por braços.

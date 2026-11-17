@@ -60,7 +60,9 @@ assert.equal(state.over, 'win', 'escola vencida');
 assert.ok(objectivesDone.includes('banheiro') || state.objIdx >= 1, 'tutorial avançou');
 
 // deixa um membro com lealdade baixa pra ver ele seguir outro caminho
-const low = active().find((m) => m.role === 'cap');
+// (se o acaso deixou todo mundo fora de combate, devolve um capitão pra testar)
+let low = active().find((m) => m.role === 'cap');
+if (!low) { low = state.members.find((m) => m.role === 'cap'); low.status = 'ok'; low.timer = 0; }
 low.loyalty = 10;
 const lvl = state.cmd.level;
 

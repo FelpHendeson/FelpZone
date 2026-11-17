@@ -1,5 +1,6 @@
 // Estado da partida e ganchos para a interface. Nada aqui toca no DOM.
-import { ERA, RIVALS, MAP, ACTIONS_PER_DAY, TRUCE_DAYS, useEra, P, T } from './era.js';
+import { ERA, RIVALS, MAP, ACTIONS_PER_DAY, TRUCE_DAYS, useEra, mapRivals, P, T } from './era.js';
+import { generateCity } from './mapgen.js';
 import { saveGame, loadGame } from './save.js';
 import { initCrew, defaultCrewOpts, makeMember } from './crew.js';
 
@@ -28,7 +29,7 @@ export function freshNodes() {
 function eraFields(gang, leader, color) {
   const c = ERA.cfg;
   const rivals = {};
-  for (const id in RIVALS) rivals[id] = { money: c.rivalStartMoney, reserve: c.rivalStartReserve, alive: true };
+  for (const id of mapRivals()) rivals[id] = { money: c.rivalStartMoney, reserve: c.rivalStartReserve, alive: true };
   return {
     era: ERA.id, day: 1, money: c.startMoney, free: c.startFree, respect: c.startRespect, heat: 0,
     actions: ACTIONS_PER_DAY, bribeDays: 0, recruited: 0, motos: 0, warnings: 0, suspended: 0,
@@ -40,10 +41,20 @@ function startLogs() {
   for (const [msg, kind] of ERA.text.start) log(T(msg, { leader: state.player.leader, gang: state.player.gang, 'trégua': TRUCE_DAYS - 1 }), kind);
 }
 
-// opts.era: 'escola' (campanha) ou 'cidade' (Modo Livre). Padrão: cidade.
+// Ativa a era; se ela gera mapa, cria a cidade pela semente e devolve os dados pra guardar no save.
+function enterEra(id, seed) {
+  useEra(id);
+  if (!ERA.generate) return null;
+  const map = generateCity(seed ?? Math.floor(Math.random() * 1e9));
+  useEra(id, map);
+  return map;
+}
+
+// opts.era: 'escola' (campanha) ou 'cidade' (Modo Livre). Padrão: cidade. opts.mapSeed: semente da cidade.
 export function newGame(opts) {
-  useEra(opts.era || 'cidade');
+  const map = enterEra(opts.era || 'cidade', opts.mapSeed);
   replaceState(eraFields(opts.gang, opts.leader, opts.color));
+  state.map = map;
   state.campaign = opts.era === 'escola';
   initCrew(opts.origin ? opts : { ...defaultCrewOpts(opts), ...opts });
   state.introPending = !opts.skipIntro;
@@ -65,8 +76,8 @@ export function advanceEra(nextId, opts = {}) {
   const carry = timeskip ? 0 : Math.round(state.money * 0.5);
   const gang = opts.gang || state.player.gang;
   const color = (opts.flag || state.flag).bg;
-  useEra(nextId);
-  replaceState({ ...eraFields(gang, state.player.leader, color), ...keep });
+  const map = enterEra(nextId);
+  replaceState({ ...eraFields(gang, state.player.leader, color), ...keep, map });
   // anos depois: quem era fiel continua (mais experiente); os outros seguiram a vida
   const stayed = [], left = [];
   for (const m of state.members) {
@@ -95,7 +106,7 @@ export function load() {
   const s = loadGame();
   if (!s) return false;
   replaceState(s);
-  useEra(state.era || 'cidade');
+  useEra(state.era || 'cidade', state.map || undefined);
   // mapa ganhou pontos novos (ex.: lotes da F3): completa o save antigo
   if (state.nodes.length < MAP.length) state.nodes.push(...freshNodes().slice(state.nodes.length));
   if (state.needsCrew) {

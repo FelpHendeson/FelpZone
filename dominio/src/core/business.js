@@ -55,7 +55,7 @@ export function buyWeapon(sid, w, qty = 1) {
 
 // ===================== LOTES E OBRAS =====================
 export const lotCost = () => P(300 + 100 * (state.stats.lots || 0));
-export const nextToMine = (n) => ADJ[n.id].some((m) => state.nodes[m].owner === 'P');
+export const nextToMine = (n) => ADJ[n.id].some((m) => state.nodes[m].owner === 'P' || (state.nodes[m].owner === 'X' && state.nodes[m].type !== 'policia' && ADJ[m].some((k) => state.nodes[k].owner === 'P')));
 export function canBuyLot(n) {
   if (!has('build') || n.type !== 'lote' || n.owner !== null) return 'Indisponível';
   if (!nextToMine(n)) return 'Precisa de um ponto seu vizinho';
@@ -118,6 +118,7 @@ export function holdEvent(n, key) {
   state.stats.events = (state.stats.events || 0) + 1;
   if (e.respect) state.respect = clamp(state.respect + e.respect, 0, 100);
   if (e.heat) state.heat = clamp(state.heat + e.heat, 0, 100);
+  if (key === 'social' && ADJ[n.id].some((m) => state.nodes[m].type === 'igreja')) state.heat = clamp(state.heat - 20, 0, 100);   // igreja do lado: o dobro
   if (e.loyalty) active().forEach((m) => { m.loyalty = clamp(m.loyalty + e.loyalty, 0, 100); });
   if (e.xp) gainXP(e.xp);
   if (e.buff) (state.buffs || (state.buffs = [])).push({ ...e.buff, src: key });

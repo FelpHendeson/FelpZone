@@ -6,6 +6,8 @@ import {
   captainCap, captainCount, captainRespect, spendPoint, canGift, gift, giftCost,
 } from '../core/crew.js';
 import { money } from '../core/util.js';
+import { ERA } from '../core/era.js';
+import { POLICIES, policyOf, cyclePolicy } from '../core/ops.js';
 import { avatarSVG, flagSVG } from './art.js';
 
 const $ = (sel) => document.querySelector(sel);
@@ -34,6 +36,7 @@ function memberCard(m) {
       ${m.status === 'ok' ? `<div class="mbtn">
         ${node ? `<button onclick="crewUI.goto(${node.id})">Ver ponto</button><button onclick="crewUI.unassign(${m.id})">Tirar do ponto</button>` : ''}
         <button onclick="crewUI.gift(${m.id})" ${giftWhy ? 'disabled' : ''} title="+15 de lealdade">💵 Agrado ${giftWhy || money(giftCost(m))}</button>
+        ${ERA.generate ? `<button onclick="crewUI.policy(${m.id})" title="${POLICIES[policyOf(m)].desc}">${POLICIES[policyOf(m)].icon} ${POLICIES[policyOf(m)].label}</button>` : ''}
       </div>` : ''}
     </div></div>`;
 }
@@ -100,6 +103,7 @@ export const crewUI = {
   unassign(id) { unassignCaptain(id); save(); deps.changed(); showCrew(); },
   assign(mid, nid) { assignCaptain(mid, nid); save(); $('#crew').classList.add('hidden'); deps.changed(); },
   gift(id) { gift(id); save(); deps.changed(); showCrew(); },
+  policy(id) { cyclePolicy(id); save(); deps.changed(); showCrew(); },
   point(k) { spendPoint(k); save(); deps.changed(); showCrew(); },
   promote() { if (promoteCaptain()) { save(); $('#crew').classList.add('hidden'); deps.changed(); } },
   identity() { $('#crew').classList.add('hidden'); deps.editIdentity(); },

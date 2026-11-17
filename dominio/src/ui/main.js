@@ -16,21 +16,30 @@ import {
   forecast, totalSoldiers, reachable, estDef, ownerColor, ownerName, nodeIncome, nodeHeat,
   recruitCap, bribeCost, upgradeCost, negotiateCost,
   endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
-  playerAttackMult, canBuyMoto, motoCost, buyMoto, currentObjective, objectives, skipTutorial, afterAction,
+  playerAttackMult, canBuyMoto, motoCost, buyMoto, currentObjective, objectives, skipTutorial, afterAction, actionsPerDay,
 } from '../core/rules.js';
 import { brawlStart, brawlMove, brawlToggleCmd, brawlClose, initBrawlUI, brawlOpen, resumeBrawl } from './brawlui.js';
 import { showArsenal, arsenalUI, initArsenalUI } from './arsenalui.js';
 import { canBuyLot, buyLot, lotCost, buildOptions, canBuild, startBuild, eventsFor, canHoldEvent, holdEvent, threats, weaponMult } from '../core/business.js';
 import { EVENTS } from '../data/arsenal.js';
-import { has, P } from '../core/era.js';
+import { has, P, MAP_W, MAP_H } from '../core/era.js';
+import {
+  heistOdds, canHeist, doHeist, canExtort, toggleExtort, canTruce, proposeTruce, truceCost, truceOdds, canAlly, proposeAlliance,
+  allianceCost, canHit, orderHit, hitman, hitOdds, canAmbush, setAmbush, isAlly, inTruce, POLICIES, policyOf, cyclePolicy,
+} from '../core/ops.js';
 
 const $ = (sel) => document.querySelector(sel);
 
 const ui = { selected: null, send: 3, recruitN: 1, radio: false, report: null, unread: false, portraitOk: false, tIdx: -1 };
 
 // O mundo tem uma margem de quadras em volta dos pontos, pra arrastar ter cara de "andar pela cidade".
+// Mundo e área de foco seguem o tamanho do mapa da era (a cidade gerada é maior).
 const WORLD = { x: -420, y: -280, w: 1840, h: 1240 };
 const FOCUS = { w: 1080, h: 770 };   // área que precisa caber no zoom mínimo (todos os pontos)
+function fitWorld() {
+  WORLD.w = MAP_W + 840; WORLD.h = MAP_H + 560;
+  FOCUS.w = MAP_W + 80; FOCUS.h = MAP_H + 90;
+}
 const NODE_R = 30;
 const MIN_W = 320;                   // zoom máximo (largura visível em unidades do mundo)
 const cam = { cx: 350, cy: 260, w: 1000 };
@@ -106,8 +115,11 @@ function initialCam() {
   const [vw] = viewSize();
   const [t, b] = freeBand();
   const fit = Math.max(560, 360 * vw / Math.max(b - t, 1));
-  cam.w = vw >= 1100 ? maxCamW() : Math.max(fit, Math.min(maxCamW(), vw * 0.9));  // PC: cidade inteira
-  focusOn(320, 255);
+  fitWorld();
+  const q = state.nodes && state.nodes[0];
+  const big = MAP_W > 1200;
+  cam.w = vw >= 1100 && !big ? maxCamW() : Math.max(fit, Math.min(maxCamW(), vw * (big ? 1.1 : 0.9)));  // PC: cidade inteira (se couber)
+  if (big && q) focusOn(q.x + 260, q.y + 160); else focusOn(320, 255);
 }
 
 // ===================== ENTRADA (mouse, toque, teclado) =====================
@@ -227,8 +239,9 @@ function renderTop() {
       <div class="pill" title="Caixa e saldo por dia (renda menos salários)">💵 <b>${money(state.money)}</b><small class="${bal >= 0 ? 'pos' : 'neg'}">${bal >= 0 ? '+' : ''}${money(bal)}</small></div>
       <div class="pill" title="Soldados livres / total">👥 <b>${state.free}</b><small>/${totalSoldiers()}</small></div>
       <div class="pill" title="Respeito">⭐ <b>${state.respect}</b></div>
-      <div class="pill" title="Ações do dia">${'⚡'.repeat(state.actions)}<span class="spent">${'⚡'.repeat(ACTIONS_PER_DAY - state.actions)}</span></div>
+      <div class="pill" title="Ações do dia">${'⚡'.repeat(state.actions)}<span class="spent">${'⚡'.repeat(Math.max(0, actionsPerDay() - state.actions))}</span></div>
       <div class="pill visada" title="${W.heat}: o quanto a ${W.police} está de olho. Anda até o alvo (traço branco). Acima de 50 ${ERA.cfg.raid === 'advertencia' ? 'pode vir advertência (3 = suspensão)' : 'tem batida'}.">${W.heatIcon} <b>${Math.round(state.heat)}</b><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div>${state.bribeDays ? `<small>${W.bribeIcon}${state.bribeDays}d</small>` : ''}${ERA.cfg.raid === 'advertencia' ? `<small class="warns" title="Advertências">${'⚠️'.repeat(state.warnings || 0)}${'·'.repeat(3 - (state.warnings || 0))}</small>` : ''}</div>
+      ${state.ransom ? `<div class="pill" title="Resgate a caminho">🏛️ <b>${money(state.ransom.value)}</b><small>${state.ransom.days}d</small></div>` : ''}
       ${state.suspToday ? '<div class="pill susp" title="Três advertências: o bonde não pode agir hoje">🚫 Suspenso</div>' : ''}
     </div>
     <div class="tr">
@@ -259,13 +272,16 @@ function renderMap() {
     <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0c3a57"/><stop offset="1" stop-color="#071b2b"/></linearGradient>
   </defs>`);
   s.push(`<rect x="${WORLD.x}" y="${WORLD.y}" width="${WORLD.w}" height="${WORLD.h}" fill="url(#blocks)"/>`);
-  if (ERA.decor === 'mar') s.push(`<path class="sea" d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860 L-420,960 L1420,960 Z" fill="url(#sea)"/>`);
-  if (ERA.decor === 'mar') s.push(`<path d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860" fill="none" stroke="#1d5a7d" stroke-width="4" opacity=".7"/>`);
+  if (state.map && state.map.generated) {
+    const y0 = MAP_H + 50;
+    s.push(`<path class="sea" d="M-420,${y0 + 30} C${MAP_W * 0.3},${y0 - 10} ${MAP_W * 0.7},${y0 + 40} ${MAP_W + 420},${y0} L${MAP_W + 420},${MAP_H + 400} L-420,${MAP_H + 400} Z" fill="url(#sea)"/>`);
+  } else if (ERA.decor === 'mar') s.push(`<path class="sea" d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860 L-420,960 L1420,960 Z" fill="url(#sea)"/>`);
+  if (ERA.decor === 'mar' && !(state.map && state.map.generated)) s.push(`<path d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860" fill="none" stroke="#1d5a7d" stroke-width="4" opacity=".7"/>`);
   DISTRICTS.forEach(([name, x, y, r, c]) => {
     s.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`);
     s.push(`<text class="district" x="${x}" y="${y + r - 30}">${name}</text>`);
   });
-  s.push(`<circle cx="${MAP[POLICE_NODE][2]}" cy="${MAP[POLICE_NODE][3]}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`);
+  (state.map && state.map.POLICE_NODES ? state.map.POLICE_NODES : [POLICE_NODE]).forEach((p) => s.push(`<circle cx="${MAP[p][2]}" cy="${MAP[p][3]}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`));
   EDGES.forEach(([a, b]) => {
     const A = state.nodes[a], B = state.nodes[b];
     s.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#262640" stroke-width="16" stroke-linecap="round"/>`);
@@ -274,7 +290,7 @@ function renderMap() {
   const threatened = new Set(state.cmd ? threats().map((x) => x.node) : []);
   state.nodes.forEach((n) => {
     const t = TYPES[n.type];
-    const col = ownerColor(n.owner);
+    const col = t.special ? (n.extorted ? state.flag.bg : '#f59e0b') : n.owner === 'X' && n.type !== 'policia' ? '#94a3b8' : ownerColor(n.owner);
     const sel = ui.selected === n.id;
     const canHit = reachable(n) && !state.over;
     s.push(`<g class="node${sel ? ' selected' : ''}" data-id="${n.id}">`);
@@ -293,7 +309,7 @@ function renderMap() {
     }
     const cap = n.owner === 'P' && state.members ? captainAt(n) : null;
     if (cap) s.push(avatarSVG(cap.look, state.jacket, state.flag, { ring: state.flag.bg }).replace('<svg class="avatar"', `<svg x="${n.x - 40}" y="${n.y + 2}" width="26" height="26"`));
-    if (n.type !== 'policia') {
+    if (n.type !== 'policia' && !t.zone) {
       const o = NODE_R * 0.8;
       s.push(`<g class="badge"><circle cx="${n.x + o}" cy="${n.y - o}" r="13" fill="${col}" stroke="#0b0b12" stroke-width="2"/><text x="${n.x + o}" y="${n.y - o + 1}">${n.guards}</text></g>`);
     }
@@ -336,19 +352,24 @@ function nodePanel(n) {
   h.push(`<div class="head">
     <span class="nm">${t.icon} <b>${esc(n.name)}</b></span>
     <span class="sub">${t.label}${n.level > 1 ? ` nv${n.level}` : ''} · <b style="color:${col}">${esc(ownerName(n.owner))}</b></span>
-    ${n.type !== 'policia' ? `<span class="stats">
+    ${n.type !== 'policia' && !t.zone ? `<span class="stats">
       <span title="Renda por dia">💵 ${n.lowkey ? 'parado' : money(nodeIncome(n))}</span>
       <span title="${ERA.words.heat} que gera">${ERA.words.heatIcon} ${n.lowkey ? '0' : '+' + nodeHeat(n)}</span>
       <span title="Respeito por dia">⭐ +${t.resp}</span>
       <span title="${n.owner ? 'Guardas' : 'Resistência local'}">🛡️ ${n.guards}</span></span>` : ''}
     <button class="x" onclick="deselect()" aria-label="Fechar">✕</button>
   </div>`);
-  if (n.owner && RIVALS[n.owner]) h.push(`<div class="quote">${RIVALS[n.owner].leader}: “${RIVALS[n.owner].quotes[n.id % 3]}”</div>`);
+  if (n.owner && RIVALS[n.owner]) {
+    const rv = state.rivals[n.owner] || {};
+    const tags = [isAlly(n.owner) ? `🤝 aliados até o dia ${rv.allyUntil}` : '', inTruce(n.owner) ? `🕊️ trégua até o dia ${rv.truceUntil}` : '', rv.angryUntil > state.day ? '😡 furiosos com você' : '', rv.wm > 1 ? `🔫 +${Math.round((rv.wm - 1) * 100)}%` : ''].filter(Boolean);
+    h.push(`<div class="quote">${RIVALS[n.owner].leader}: “${RIVALS[n.owner].quotes[n.id % 3]}”${tags.length ? ` <span class="rtags">${tags.join(' · ')}</span>` : ''}</div>`);
+  }
 
   const a = [];
   if (n.owner === 'P') {
     if (state.members) {
       const c = captainAt(n);
+      if (c && ERA.generate) a.push(`<button class="tile" onclick="policyAt(${c.id})" title="${POLICIES[policyOf(c)].desc} (toque pra trocar)">${POLICIES[policyOf(c)].icon} ${POLICIES[policyOf(c)].label}</button>`);
       a.push(c ? `<button class="tile cap" onclick="showCaptainPicker(${n.id})" title="Trocar o capitão">${avatarSVG(c.look, state.jacket, state.flag)}<span>${esc(c.vulgo)}<small>🤝 ${c.loyalty}</small></span></button>`
         : `<button class="tile" onclick="showCaptainPicker(${n.id})">👤 Designar capitão</button>`);
     }
@@ -369,6 +390,10 @@ function nodePanel(n) {
       if (n.build) a.push(`<span class="hint">🏗️ Obra: ${TYPES[n.build.type].icon} ${TYPES[n.build.type].label}, falta(m) ${n.build.days} dia(s). Enquanto isso o ponto fica frágil (−40% de defesa).</span>`);
       else buildOptions().forEach((o) => a.push(`<button class="tile" onclick="buildAt(${n.id}, '${o.type}')" ${canBuild(n, o.type) ? 'disabled' : ''} title="${o.t.desc}">🏗️ ${o.t.icon} ${o.t.label} <small>${money(o.cost)} · ${o.days}d</small></button>`));
     }
+    if (ERA.generate && canAmbush(n) !== 'Sem boato de ataque aqui' && canAmbush(n) !== 'Indisponível') {
+      const why = canAmbush(n);
+      a.push(`<button class="tile go" onclick="ambushAt(${n.id})" ${why ? 'disabled' : ''} title="O boato diz que vão atacar aqui. Com a emboscada, a defesa vale 2,4×.">🪤 ${why || 'Emboscada 1⚡'}</button>`);
+    }
     eventsFor(n).forEach(([k, e]) => { const why = canHoldEvent(n, k); a.push(`<button class="tile" onclick="eventAt(${n.id}, '${k}')" ${why ? 'disabled' : ''} title="${e.desc}${why ? ' · ' + why : ''}">${e.icon} ${e.label} <small>${money(P(e.cost))}${e.action ? ' · 1⚡' : ''}</small></button>`); });
     if (n.type === 'oficina' && canBuyMoto()) a.push(`<button class="tile" onclick="buyMoto()" ${state.money < motoCost() ? 'disabled' : ''} title="Atacar pontos a duas ruas de distância e +5% na briga">🏍️ Moto <small>${money(motoCost())} · tem ${state.motos || 0}</small></button>`);
     if (n.type !== 'hq' && n.type !== 'lote' && n.level < 3) a.push(`<button class="tile" onclick="upgrade(${n.id})" ${state.money < upgradeCost(n) ? 'disabled' : ''} title="+50% de renda e +25% de defesa">⬆️ Nível ${n.level + 1} <small>${money(upgradeCost(n))}</small></button>`);
@@ -378,6 +403,22 @@ function nodePanel(n) {
     a.push(`<button class="tile go" onclick="buyLotAt(${n.id})" ${why ? 'disabled' : ''} title="Lote vazio não se toma na força: se compra. Depois você escolhe o que construir.">🚧 Comprar lote <small>${why || money(lotCost())}</small></button>`);
   } else if (n.type === 'policia') {
     a.push(`<span class="hint">${t.desc} Use ${ERA.words.bribeIcon} ${ERA.words.bribe} pra esfriar.</span>`);
+  } else if (t.special) {
+    const sp = t.special;
+    const free = state.free;
+    ui.send = clamp(ui.send, 1, Math.max(1, free));
+    const why = canHeist(n, ui.send);
+    const { chance } = heistOdds(n, ui.send);
+    const verb = sp.kind === 'sequestro' ? '🏛️ Sequestrar' : '💰 Assaltar';
+    const prize = sp.kind === 'sequestro' ? `resgate ~${money(P(sp.ransom))} em 2d` : `~${money(P(sp.loot))}`;
+    a.push(`<div class="w atk"><span class="wl">🎭</span>
+      <button onclick="setSend(ui.send-1)" ${ui.send <= 1 ? 'disabled' : ''}>−</button><b>${ui.send}</b>
+      <button onclick="setSend(ui.send+1)" ${ui.send >= free ? 'disabled' : ''}>+</button>
+      <span class="odds ${chance >= 0.7 ? 'g' : chance >= 0.45 ? 'y' : 'r'}">${Math.round(chance * 100)}% · ${prize} · 👁️+${sp.heat}</span>
+      <button class="go" onclick="heistAt(${n.id})" ${why ? `disabled title="${why}"` : ''}>${why || `${verb} 1⚡`}</button></div>`);
+    if (sp.extort) { const w2 = canExtort(n); a.push(`<button class="tile" onclick="extortAt(${n.id})" ${w2 ? 'disabled' : ''} title="Renda diária enquanto um ponto seu for vizinho. +1 de visada.">🧾 ${n.extorted ? 'Parar de cobrar' : `Cobrar proteção ${money(P(sp.extort))}/dia`}${w2 ? ` <small>${w2}</small>` : ''}</button>`); }
+  } else if (t.zone) {
+    a.push(`<span class="hint">${t.desc} Dá pra atravessar: os pontos do outro lado contam como vizinhos.</span>`);
   } else if (!reachable(n)) {
     a.push(`<span class="hint">🚫 Fora do alcance. Domine um ponto ligado a este pela rua (os de círculo pontilhado)${ERA.cfg.motoCost ? ', ou compre uma moto na oficina' : ''}.</span>`);
   } else {
@@ -401,6 +442,13 @@ function nodePanel(n) {
       const why = state.respect < 20 ? 'precisa ⭐20' : state.money < c ? 'sem grana' : '';
       a.push(`<button class="tile" onclick="playerNegotiate(${n.id})" ${state.actions <= 0 || why ? 'disabled' : ''} title="Sem sangue e sem visada, mas chega sem guardas">🤝 Comprar ${money(c)}${why ? ` <small>${why}</small>` : ''}</button>`);
     }
+  }
+  if (n.owner && RIVALS[n.owner] && ERA.generate && state.rivals[n.owner] && state.rivals[n.owner].alive) {
+    const rid = n.owner;
+    const w1 = canTruce(rid), w2 = canAlly(rid), w3 = canHit(rid), hm = hitman();
+    a.push(`<button class="tile" onclick="truceWith('${rid}')" ${w1 ? 'disabled' : ''} title="${Math.round(truceOdds() * 100)}% de aceitarem. Recusa: perde metade e eles ficam com raiva.">🕊️ Trégua 6d <small>${w1 || `${money(truceCost())} · 1⚡`}</small></button>`);
+    a.push(`<button class="tile" onclick="allyWith('${rid}')" ${w2 ? 'disabled' : ''} title="10 dias: eles param de te atacar e vão pra cima do maior rival. No fim, 30% de chance de traírem.">🤝 Aliança <small>${w2 || `${money(allianceCost())} · 1⚡`}</small></button>`);
+    a.push(`<button class="tile" onclick="hitOn('${rid}')" ${w3 ? 'disabled' : ''} title="Seu melhor capitão tenta apagar o braço direito do líder: o rival perde 40% da reserva. Ele pode ser preso ou morrer.">🗡️ Assassinato <small>${w3 || `${Math.round(hitOdds(hm) * 100)}% · ${esc(hm.vulgo)} · 1⚡`}</small></button>`);
   }
   h.push(`<div class="acts">${a.join('')}</div>`);
   return h.join('');
@@ -472,6 +520,7 @@ function showMenu() {
     <div class="menu">
       <button onclick="showHelp()">❔ Como jogar</button>
       ${state.cmd ? `<button onclick="closeModal();showCrew()">👥 Bonde</button>` : ''}
+      ${state.map && state.map.seed !== undefined ? `<p class="hint">🗺️ Semente desta cidade: <b>${state.map.seed}</b></p>` : ''}
       <label class="check"><input type="checkbox" ${prefs.tips ? 'checked' : ''} onchange="setPref('tips', this.checked)"> Dicas do tutorial</label>
       <label class="check"><input type="checkbox" ${prefs.scenes ? 'checked' : ''} onchange="setPref('scenes', this.checked)"> Cenas de diálogo</label>
       ${state.seenTips ? `<button onclick="state.seenTips={};setPref('tips', true);closeModal()">↻ Rever as dicas</button>` : ''}
@@ -487,18 +536,28 @@ function showStart() {
     <p>Um RP de bonde em Porto Neon. Crie o seu personagem, junte o seu pessoal e domine território.</p>
     <div class="modes">
       <button class="mode primary" id="startBtn" onclick="startCreate('escola')"><b>🏫 Campanha</b><small>Comece no colégio, com briga de bonde e tutorial guiado. Depois de unificar os colégios: anos depois, a cidade.</small></button>
-      <button class="mode" onclick="startCreate('cidade')"><b>🌃 Modo Livre: Cidade</b><small>Vá direto pra guerra de gangues em Porto Neon.</small></button>
+      <button class="mode" onclick="startCreate('cidade')"><b>🌃 Modo Livre: Cidade</b><small>Vá direto pra guerra de gangues numa Porto Neon gerada, com 4 gangues rivais.</small></button>
+      <label class="seed">Semente da cidade (opcional, pra repetir ou dividir um mapa com amigos): <input type="text" id="seedIn" inputmode="numeric" maxlength="9" placeholder="aleatória"></label>
     </div>
     <div class="row"><button onclick="showHelp(true)">Como jogar</button></div>`);
 }
 function startCreate(era) {
+  const seedTxt = ($('#seedIn') && $('#seedIn').value || '').replace(/\D/g, '');
+  const mapSeed = seedTxt ? Number(seedTxt) : undefined;
   closeModal();
-  showCreate((opts) => { if (opts) newGame({ ...opts, era }); else showStart(); });
+  showCreate((opts) => { if (opts) newGame({ ...opts, era, mapSeed }); else showStart(); });
 }
 function openBrawl(id) { brawlStart(id, ui.send); }
 function buyLotAt(id) { if (buyLot(state.nodes[id])) { afterAction(); showTip('lote'); } }
 function buildAt(id, type) { if (startBuild(state.nodes[id], type)) afterAction(); }
 function eventAt(id, key) { if (holdEvent(state.nodes[id], key)) afterAction(); }
+function heistAt(id) { if (doHeist(id, ui.send) !== null) afterAction(); }
+function extortAt(id) { if (toggleExtort(id)) afterAction(); }
+function ambushAt(id) { if (setAmbush(id)) afterAction(); }
+function truceWith(rid) { if (proposeTruce(rid) !== null) afterAction(); }
+function allyWith(rid) { if (proposeAlliance(rid) !== null) afterAction(); }
+function hitOn(rid) { if (orderHit(rid) !== null) afterAction(); }
+function policyAt(mid) { cyclePolicy(mid); save(); renderBottom(); }
 function editIdentity() {
   showIdentityEditor({ ...state.cmd, leader: state.cmd.vulgo, gang: state.player.gang, flag: state.flag, jacket: state.jacket }, (res) => {
     if (res) { state.flag = res.flag; state.jacket = res.jacket; state.player.color = res.flag.bg; save(); }
@@ -524,6 +583,7 @@ function showHelp(fromStart) {
       ${has('weapons') ? '<li><b>Arsenal 🔫:</b> armas compradas de fornecedores deixam o bonde mais forte no ataque e na defesa, mas gastam munição todo dia e aumentam a visada. Os rivais também se armam.</li>' : ''}
       ${has('events') ? '<li><b>Eventos:</b> bailão, racha, churrasco e ação social dão bônus no ponto certo (um por dia).</li><li><b>Inferninho 👂:</b> traz boatos: os pontos seus que os rivais vão atacar amanhã aparecem com ⚠️.</li>' : ''}
       ${ERA.cfg.motoCost ? '<li><b>Motos 🏍️:</b> compradas na oficina. Deixam atacar pontos a duas ruas de distância e dão +5% na briga.</li>' : ''}
+      ${ERA.generate ? `<li><b>Cidade grande:</b> 4 gangues num mapa gerado. Zonas neutras (hospital, igreja, escola) dá pra atravessar; pontos especiais (banco, joalheria, lotérica, mercado, caixa, mansão) não se dominam: assalte, sequestre ou cobre proteção. Contra gangues: 🕊️ trégua, 🤝 aliança (pode trair), 🗡️ assassinato do braço direito, 🪤 emboscada (com boato). Capitães têm política: segura, lucro, equilibrada ou agressiva (ataca sozinho). A cada 10 pontos seus, +1 ⚡ por dia.</li>` : ''}
       <li><b>Rivais:</b> crescem, recrutam e brigam entre si. Depois do dia ${TRUCE_DAYS} começam a vir pra cima de você.</li>
       <li>O jogo salva sozinho no navegador.</li>
     </ul>
@@ -599,6 +659,7 @@ Object.assign(window, {
   startCreate, editIdentity, cr, showCrew, showCaptainPicker, crewUI, dialogNext, dialogChoose, dialogSkip, closeTip, setPref,
   openBrawl, brawlMove, brawlToggleCmd, brawlClose, buyMoto, skipTutorial, goNextEra,
   showArsenal, arsenalUI, buyLotAt, buildAt, eventAt,
+  heistAt, extortAt, ambushAt, truceWith, allyWith, hitOn, policyAt,
 });
 
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };

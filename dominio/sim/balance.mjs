@@ -1,19 +1,23 @@
 // Simulador de equilíbrio: um bot joga várias partidas e mede vitória, duração e visada.
-// Uso: node sim/balance.mjs [partidas=40] [--era escola|bairro|cidade] [--sem-bonde] [--cuidar] [--armas]
+// Uso: node sim/balance.mjs [partidas=40] [--era escola|bairro|cidade] [--sem-bonde] [--cuidar] [--armas] [--ops]
 import { state, newGame } from '../src/core/state.js';
 import { ADJ } from '../src/core/era.js';
 import { reachable, estDef, playerAttack, moveGuards, recruit, bribe, endDay, canBuyMoto, motoCost, buyMoto, playerAttackMult } from '../src/core/rules.js';
 import { active, captainAt, assignCaptain, canPromote, promoteCaptain, spendPoint, canGift, gift } from '../src/core/crew.js';
 import { hooks } from '../src/core/state.js';
 import { buyWeapon, canBuyWeapon, stock, storage, canBuyLot, buyLot, lotCost, startBuild } from '../src/core/business.js';
+import { canHeist, heistOdds, doHeist } from '../src/core/ops.js';
+import { TYPES } from '../src/core/era.js';
 
 const GAMES = Number(process.argv[2]) || 40;
-const MAX_DAYS = 90;
+
 
 const ERA_ID = process.argv.includes('--era') ? process.argv[process.argv.indexOf('--era') + 1] : 'cidade';
 const USE_CREW = !process.argv.includes('--sem-bonde');
+const MAX_DAYS = ERA_ID === 'cidade' ? 150 : 90;   // a cidade gerada é maior: partida mais longa
 const CARE = process.argv.includes('--cuidar');   // dá agrado quando a lealdade cai
 const ARMS = process.argv.includes('--armas');    // compra pistolas quando sobra dinheiro
+const OPS = process.argv.includes('--ops');       // capitães agressivos na fronteira + assaltos com boa chance
 
 // Capitães nos pontos de fronteira mais valiosos; promove quando der; pontos de atributo em Força/Tática.
 function manageCrew() {
@@ -25,6 +29,7 @@ function manageCrew() {
     .map((n) => ({ n, front: ADJ[n.id].filter((m) => { const o = state.nodes[m].owner; return o && o !== 'P' && o !== 'X'; }).length }))
     .sort((a, b) => (b.n.type === 'hq') - (a.n.type === 'hq') || b.front - a.front);
   for (const m of free) { const s = spots.shift(); if (!s) break; assignCaptain(m.id, s.n.id); }
+  if (OPS) for (const m of active()) m.policy = m.node !== null && m.node !== 0 ? 'agressiva' : 'segura';
   if (CARE) for (const m of active()) if (m.loyalty < 40 && !canGift(m)) gift(m.id);
 }
 
@@ -39,7 +44,11 @@ function playDay(useBribe) {
   if (ARMS) while (state.money > 2500 && !canBuyWeapon('primo', 'pistola', 1)) buyWeapon('primo', 'pistola', 1);
   if (state.money > 600 * (ERA_ID === 'escola' ? 0.12 : 1)) recruit(0, 9);
   if (useBribe && state.heat > 50) bribe();
-  for (let a = 0; a < 3; a++) {
+  if (OPS) for (const n of state.nodes.filter((x) => TYPES[x.type].special && TYPES[x.type].special.kind === 'assalto')) {
+    const send = Math.min(state.free, 12);
+    if (!canHeist(n, send) && heistOdds(n, send).chance >= 0.7 && state.heat < 55) doHeist(n.id, send);
+  }
+  for (let a = 0; a < 5; a++) {
     const t = state.nodes.filter((n) => reachable(n)).map((n) => ({ n, d: estDef(n) })).sort((x, y) => x.d - y.d)[0];
     const pm = playerAttackMult();                    // como uma pessoa vendo a chance no painel
     if (!t || state.free < (t.d * 1.5) / pm + 1) break;

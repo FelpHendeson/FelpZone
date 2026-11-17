@@ -9,6 +9,7 @@ export const CIDADE = {
   types: TYPES, rivals: RIVALS,
   map: { MAP, EDGES, DISTRICTS, POLICE_NODE },
   decor: 'mar',
+  generate: true,                   // partidas novas usam uma cidade gerada por semente (src/core/mapgen.js)
   cfg: {
     upkeep: 12, captainSalary: 15, actions: 3, truceDays: 4,
     policeRadius: 210, heatPerPoint: 2.6, heatDrift: 0.35, bribeDays: 3,
@@ -17,6 +18,7 @@ export const CIDADE = {
     raid: 'policia',                // consequência da visada alta: batidas e megaoperação
     motoCost: 0,                    // motos não existem nesta era (ainda)
     build: true, weapons: true, events: true,
+    rivalCapBase: 10, rivalCapPerNode: 4, guardBase: 4, guardEvery: 12,   // cidade grande: defesa dos rivais cresce mais devagar
   },
   words: {
     heat: 'Visada', heatIcon: '👁️', police: 'polícia', bribe: 'Subornar', bribeIcon: '💼', soldiers: 'soldados',
@@ -46,6 +48,6 @@ export const CIDADE = {
     rivalSplit: '🗞️ Racha interno: {rival} perderam 2 soldados numa briga entre eles.',
   },
   objectives: [
-    { id: 'cidade', text: 'Tome os QGs das três gangues rivais', check: (s) => Object.values(s.rivals).every((r) => !r.alive) },
+    { id: 'cidade', text: 'Tome os QGs de todas as gangues rivais', check: (s) => Object.values(s.rivals).every((r) => !r.alive) },
   ],
 };

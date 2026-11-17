@@ -1,7 +1,7 @@
 // Regras do jogo (qualquer era): economia, combate, IA dos rivais, polícia/diretoria, objetivos e fim do dia.
 // Funções puras sobre `state`; a interface é avisada pelos `hooks`. Dados e números vêm da era ativa (era.js).
 import {
-  ERA, TYPES, RIVALS, MAP, ADJ, POLICE_NODE, UPKEEP, ACTIONS_PER_DAY, TRUCE_DAYS, POLICE_RADIUS,
+  ERA, TYPES, RIVALS, MAP, ADJ, POLICE_NODE, POLICE_NODES, UPKEEP, ACTIONS_PER_DAY, TRUCE_DAYS, POLICE_RADIUS,
   HEAT_PER_POINT, HEAT_DRIFT, BRIBE_DAYS, P, T,
 } from './era.js';
 import { rnd, pick, money, clamp } from './util.js';
@@ -11,6 +11,7 @@ import {
   onPlayerWin, onPlayerLoss, onDefended, onNodeLost, dailyCrew,
 } from './crew.js';
 import { weaponMult, weaponHeat, ammoCost, buffSum, buffOn, tickBuilds, tickBuffs, reportIntel, arsenal, stock, storage } from './business.js';
+import { extortIncome, extortHeat, tickDiplomacy, aggressiveCaptains, peaceful, isAlly, ambushMult } from './ops.js';
 
 const MAX_MOTOS = 4;
 
@@ -21,16 +22,26 @@ export const defMult = (n) => TYPES[n.type].def * (1 + 0.25 * (n.level - 1));
 export const rivalArms = (o) => (state.rivals && state.rivals[o] && state.rivals[o].wm) || 1;
 export const estDef = (n) => n.guards * defMult(n) * (n.owner === 'P' ? crewDefMult(n) * weaponMult() : rivalArms(n.owner)) * (n.build ? 0.6 : 1);
 export const ownerColor = (o) => o === 'P' ? state.player.color : o === 'X' ? '#3b82f6' : o ? RIVALS[o].color : '#64748b';
-export const ownerName = (o) => o === 'P' ? state.player.gang : o === 'X' ? TYPES.policia.label : o ? RIVALS[o].name : 'Neutro';
-export const nearPolice = (n) => Math.hypot(n.x - MAP[POLICE_NODE][2], n.y - MAP[POLICE_NODE][3]) < POLICE_RADIUS;
+export const ownerName = (o) => o === 'P' ? state.player.gang : o === 'X' ? 'Zona neutra' : o ? RIVALS[o].name : 'Neutro';
+export const nearPolice = (n) => POLICE_NODES.some((p) => Math.hypot(n.x - MAP[p][2], n.y - MAP[p][3]) < POLICE_RADIUS);
+// Ponto vizinho de uma zona neutra do tipo `type` (hospital, igreja, escola...).
+export const nextToZone = (n, type) => ADJ[n.id].some((m) => state.nodes[m].type === type);
 // Motos só esticam o alcance na era em que existem à venda (escola).
 export const motoReach = () => ERA.cfg.motoCost > 0 && (state.motos || 0) > 0;
+// Vizinhos "de passagem": zonas neutras públicas (hospital, igreja, escola, comércio) dá pra atravessar. Delegacia não.
+export const linked = (id) => {
+  const out = new Set(ADJ[id]);
+  for (const m of ADJ[id]) if (state.nodes[m].owner === 'X' && state.nodes[m].type !== 'policia') ADJ[m].forEach((k) => { if (k !== id) out.add(k); });
+  return [...out];
+};
 export function reachable(n, owner = 'P') {
   if (n.owner === owner || n.owner === 'X') return false;
   if (n.type === 'lote' && n.owner === null) return false;     // lote vazio não se toma na força: se compra
-  if (ADJ[n.id].some((m) => state.nodes[m].owner === owner)) return true;
+  if (linked(n.id).some((m) => state.nodes[m].owner === owner)) return true;
   return owner === 'P' && motoReach() && ADJ[n.id].some((m) => state.nodes[m].owner !== 'X' && ADJ[m].some((k) => state.nodes[k].owner === 'P'));
 }
+// Mais território, mais braços: +1 ação por dia a cada 10 pontos (até +2).
+export const actionsPerDay = () => ACTIONS_PER_DAY + Math.min(2, Math.floor(state.nodes.filter((n) => n.owner === 'P').length / 10));
 export const totalSoldiers = () => state.free + state.nodes.filter((n) => n.owner === 'P').reduce((s, n) => s + n.guards, 0);
 export const recruitCap = () => 3 + Math.floor(state.respect / 15) + recruitBonus() + buffSum('recruit');
 export const bribeCost = () => P(150 + forecast().target * 8);
@@ -50,7 +61,8 @@ export function forecast() {
     if (!n.lowkey) inc += nodeIncome(n);
     heat += nodeHeat(n);
   });
-  heat += weaponHeat();
+  heat += weaponHeat() + extortHeat();
+  inc += extortIncome();
   // alvo de visada/barulho: pra onde a pressão tende com o seu território atual
   let target = clamp(heat * HEAT_PER_POINT * heatTargetMult(), 0, 100);
   if (state.bribeDays > 0) target /= 2;
@@ -60,8 +72,8 @@ export function forecast() {
 }
 
 // ===================== COMBATE =====================
-export function fight(sent, resp, node, mult = 1) {
-  const def = estDef(node) * rnd(0.75, 1.25) + (node.owner ? 0.5 : 0);
+export function fight(sent, resp, node, mult = 1, defBoost = 1) {
+  const def = estDef(node) * defBoost * rnd(0.75, 1.25) + (node.owner ? 0.5 : 0);
   const att = sent * (1 + resp / 200) * mult * rnd(0.75, 1.25);
   if (att > def) {
     const losses = Math.min(sent - 1, Math.round(sent * Math.min(0.8, (def / att) * 0.6)));
@@ -89,9 +101,9 @@ export function applyResult(att, node, r) {
   return prev;
 }
 
-export function doAttack(att, sent, node) {
+export function doAttack(att, sent, node, defBoost = 1) {
   const resp = att === 'P' ? state.respect : 15 + state.day * 1.5;
-  const r = fight(sent, resp, node, att === 'P' ? playerAttackMult() : rivalArms(att));
+  const r = fight(sent, resp, node, att === 'P' ? playerAttackMult() : rivalArms(att), defBoost);
   const prev = applyResult(att, node, r);
   return { r, prev };
 }
@@ -101,8 +113,9 @@ export function eliminate(rid, by) {
   rv.alive = false;
   state.nodes.forEach((n) => { if (n.owner === rid) { n.owner = null; n.guards = 1; } });
   if (by === 'P') {
-    state.money += rv.money; state.respect = clamp(state.respect + 20, 0, 100);
-    log(T(ERA.text.eliminatedByPlayer, { rival: RIVALS[rid].name, lider: RIVALS[rid].leader, grana: money(rv.money) }), 'big');
+    const loot = Math.min(rv.money, P(6000));        // o caixa grande some na fuga; sobra uma parte
+    state.money += loot; state.respect = clamp(state.respect + 20, 0, 100);
+    log(T(ERA.text.eliminatedByPlayer, { rival: RIVALS[rid].name, lider: RIVALS[rid].leader, grana: money(loot) }), 'big');
   } else {
     log(T(ERA.text.eliminatedByOther, { rival: RIVALS[rid].name, por: ownerName(by) }), 'big');
   }
@@ -133,6 +146,11 @@ export function commitAttack(n, sendWanted) {
   if (!canAttack(n, send)) return 0;
   state.actions--; state.free -= send;
   state.heat = clamp(state.heat + (n.owner ? 6 : 3), 0, 100);
+  if (nextToZone(n, 'escola')) {
+    state.heat = clamp(state.heat + 8, 0, 100);
+    state.respect = clamp(state.respect - 2, 0, 100);
+    log(`🏫 Briga do lado da escola: a cidade inteira viu. Visada +8, respeito −2.`, 'warn');
+  }
   return send;
 }
 
@@ -265,10 +283,12 @@ export function endDay() {
 
   dailyCrew(paidAll);
   tickBuilds();
+  aggressiveCaptains();
   if (ERA.cfg.raid === 'advertencia') schoolDiscipline(); else policeRaid();
   for (const id of Object.keys(state.rivals)) { rivalTurn(id); if (state.over) break; }
   if (!state.over) randomEvent();
   tickBuffs();
+  tickDiplomacy();
   reportIntel();
 
   const endedDay = state.day;
@@ -280,7 +300,7 @@ export function endDay() {
     state.actions = 0;
     state.suspToday = true;
     log(`🚫 Suspenso: hoje o bonde não pode agir (${state.suspended + 1} dia(s) de suspensão).`, 'bad');
-  } else state.actions = ACTIONS_PER_DAY;
+  } else state.actions = actionsPerDay();
   if (state.bribeDays > 0) { state.bribeDays--; if (!state.bribeDays) log(ERA.text.bribeEnd, 'warn'); }
   checkObjectives(); checkEnd(); save(); hooks.changed();
   hooks.dayEnded(endedDay);
@@ -339,7 +359,9 @@ export function rivalTurn(id) {
   const unit = P(100);
   const c = ERA.cfg;
   const armyCap = (c.rivalCapBase ?? 10) + mine.length * (c.rivalCapPerNode ?? 5);
-  const rec = Math.min(3 + Math.floor(state.day / 8), armyCap - army, Math.floor((rv.money - 2 * unit) / unit));
+  // rival rico recruta mais por dia (não fica sentado no dinheiro)
+  const rich = ERA.generate && rv.money > P(3000) ? 3 : 0;
+  const rec = Math.min(3 + rich + Math.floor(state.day / 8), armyCap + rich * 2 - army, Math.floor((rv.money - 2 * unit) / unit));
   if (rec > 0) { rv.money -= rec * unit; rv.reserve += rec; }
 
   // corrida armamentista: rival com caixa sobrando se arma (+10% de força por compra, até +80%)
@@ -355,12 +377,16 @@ export function rivalTurn(id) {
   }
 
   // Alvos possíveis hoje. O rival segue o plano de ontem se ainda der (é o que os boatos do inferninho revelam).
+  const calm = peaceful(id);                                  // trégua ou aliança: não mexe com você
+  const ally = isAlly(id) ? state.rivals[id].allyTarget : null;
+  const angry = state.rivals[id].angryUntil > state.day;
   const candidates = (minDay) => state.nodes
-    .filter((n) => reachable(n, id) && !(n.owner === 'P' && minDay < TRUCE_DAYS))
+    .filter((n) => reachable(n, id) && !(n.owner === 'P' && (minDay < TRUCE_DAYS || calm)))
     .map((n) => ({ n, d: estDef(n) }))
     .filter((o) => rv.reserve * 0.85 > o.d * 1.2 + 0.5);
-  const score = (o) => nodeIncome(o.n) / P(100) / (o.d + 1) + (o.n.type === 'hq' ? 6 : 0) + (o.n.owner === 'P' ? (id === 'A' ? 1.5 : 0.8) : 0) + Math.random();
-  if (Math.random() < def.aggr + state.day * 0.01 && rv.reserve >= 3) {
+  const score = (o) => nodeIncome(o.n) / P(100) / (o.d + 1) + (o.n.type === 'hq' ? 6 : 0) + (o.n.owner === 'P' ? (id === 'A' ? 1.5 : 0.8) + (angry ? 3 : 0) : 0)
+    + (ally && o.n.owner === ally ? 4 : 0) + Math.random();
+  if (Math.random() < def.aggr + state.day * 0.01 + (angry ? 0.3 : 0) && rv.reserve >= 3) {
     const cands = candidates(state.day);
     if (cands.length) {
       cands.sort((a, b) => score(b) - score(a));
@@ -368,7 +394,7 @@ export function rivalTurn(id) {
       const { n, d } = planned || cands[0];
       const send = Math.min(rv.reserve, Math.ceil(d * 1.6) + 1);
       rv.reserve -= send;
-      const { r, prev } = doAttack(id, send, n);
+      const { r, prev } = doAttack(id, send, n, n.owner === 'P' ? ambushMult(n) : 1);
       if (prev === 'P') {
         if (r.win) {
           log(`⚠️ ${def.name} tomaram ${n.name}! ${def.leader}: “${pick(def.quotes)}”`, 'bad');

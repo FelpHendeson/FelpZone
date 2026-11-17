@@ -3,7 +3,7 @@
 // Formato atual: localStorage['dominio-save'] = { version, savedAt, state }
 // Legado (v0.1–v0.4): localStorage['dominio-save-v1'] = state  (tratado como versão 1)
 
-export const SAVE_VERSION = 5;
+export const SAVE_VERSION = 6;
 const KEY = 'dominio-save';
 const LEGACY_KEY = 'dominio-save-v1';
 
@@ -33,6 +33,8 @@ const MIGRATIONS = {
     s.stats = { lots: 0, builds: 0, events: 0, ...s.stats };
     return s;
   },
+  // v6 (F4): mapa gerado (só partidas novas), operações. Saves antigos seguem no mapa fixo da era.
+  5: (s) => { s.map = s.map || null; return s; },
 };
 
 const storage = () => (typeof localStorage !== 'undefined' ? localStorage : null);

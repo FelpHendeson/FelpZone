@@ -3,7 +3,7 @@
 import { ATTRS, ATTR_KEYS, ATTR_BASE, ORIGINS, TRAIT_KEYS, FIRST_NAMES, NICKNAMES } from '../data/crew.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../data/look.js';
 import { DEFAULT_FLAG, DEFAULT_JACKET } from '../data/flags.js';
-import { RIVALS, ERA, P } from './era.js';
+import { RIVALS, ERA, ADJ, P } from './era.js';
 import { state, hooks, log } from './state.js';
 import { clamp, money } from './util.js';
 
@@ -79,6 +79,7 @@ export const attackMult = () => 1 + 0.04 * attr('forca') + 0.03 * attr('tatica')
 export function crewDefMult(node) {
   let m = 1 + 0.03 * attr('tatica');
   const c = captainAt(node);
+  if (c && c.policy === 'segura') m += 0.1;
   if (c) m += (has(c, 'brigao') ? 0.35 : 0.2) + (has(c, 'esquentado') ? 0.2 : 0) - (has(c, 'covarde') ? 0.1 : 0) + 0.05 * (c.level - 1);
   return m;
 }
@@ -87,12 +88,13 @@ export function crewIncomeMult(node) {
   const c = captainAt(node);
   if (has(c, 'esperto')) m += 0.15;
   if (has(c, 'ganancioso')) m += 0.25;
+  if (c && c.policy === 'lucro') m += 0.15;
   if (state.cmd && state.cmd.origin === 'oficina' && node.type === 'desmanche') m += 0.2;
   return m;
 }
 export function crewHeatAdj(node) {
   const c = captainAt(node);
-  return (has(c, 'esquentado') ? 1 : 0) - (has(c, 'frio') ? 2 : 0);
+  return (has(c, 'esquentado') ? 1 : 0) - (has(c, 'frio') ? 2 : 0) + (c && c.policy === 'lucro' ? 1 : 0) - (c && c.policy === 'segura' ? 1 : 0);
 }
 export const heatTargetMult = () => Math.max(0.5, 1 - 0.04 * attr('frio'));
 export const recruitBonus = () => Math.floor(attr('labia') / 2) + (state.cmd && state.cmd.origin === 'morro' ? 1 : 0);
@@ -229,6 +231,8 @@ export function onNodeLost(node, cause = 'rival') {
 export function dailyCrew(paidAll) {
   if (!state.members) return;
   for (const m of state.members) {
+    // hospital vizinho de um ponto seu: recuperação em dobro
+    if (m.status === 'hospital' && state.nodes.some((h) => h.type === 'hospital' && ADJ[h.id].some((k) => state.nodes[k].owner === 'P'))) m.timer--;
     if ((m.status === 'hospital' || m.status === 'preso') && --m.timer <= 0) {
       const from = m.status === 'preso' ? 'da cadeia' : 'do hospital';
       m.status = 'ok';

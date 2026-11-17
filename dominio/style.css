@@ -388,3 +388,8 @@ button.big { min-height: 50px; font-size: 16px; }
   #top .res { gap: 4px; }
   .pill { padding: 0 7px; }
 }
+
+/* ===================== F4: CIDADE GRANDE ===================== */
+.rtags { display: block; font-style: normal; color: #fcd34d; font-size: 11px; margin-top: 2px; }
+#modal label.seed { display: flex; flex-direction: column; gap: 6px; font-size: 12px; margin: 4px 0 0; }
+#modal label.seed input { width: 100%; }
