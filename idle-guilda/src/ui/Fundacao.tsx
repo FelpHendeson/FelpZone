@@ -34,7 +34,7 @@ export function EscolhaClasse(props: { classe: Classe; aoEscolher: (c: Classe) =
   );
 }
 
-export function Fundacao(props: { aoFundar: (nome: string) => void }) {
+export function Fundacao(props: { aoFundar: (nome: string) => void; aoVoltar: () => void }) {
   const [nome, setNome] = useState(() => nomeAleatorio());
   return (
     <div className="fundacao">
@@ -62,6 +62,7 @@ export function Fundacao(props: { aoFundar: (nome: string) => void }) {
       <button className="principal" disabled={!nome.trim()} onClick={() => props.aoFundar(nome.trim().slice(0, 16))}>
         Começar aventura
       </button>
+      <button onClick={props.aoVoltar}>Voltar</button>
     </div>
   );
 }

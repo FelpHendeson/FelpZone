@@ -1,7 +1,7 @@
 import type { Estado } from '../motor/tipos';
 import { descreverEvento, duracao } from './texto';
 
-export function Diario(props: { estado: Estado; aoApagar: () => void }) {
+export function Diario(props: { estado: Estado }) {
   const e = props.estado;
   return (
     <section className="painel">
@@ -15,9 +15,6 @@ export function Diario(props: { estado: Estado; aoApagar: () => void }) {
           </li>
         ))}
       </ol>
-      <button className="perigo" onClick={props.aoApagar}>
-        Apagar guilda
-      </button>
     </section>
   );
 }

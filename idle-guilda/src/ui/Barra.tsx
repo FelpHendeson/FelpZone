@@ -1,6 +1,7 @@
 import { ICONES } from '../arte/sprites';
 import { MATERIAIS } from '../motor/dados';
 import type { Estado, Material } from '../motor/tipos';
+import type { SituacaoNuvem } from './Conta';
 import { Icone } from './pixel';
 import { compacto } from './texto';
 
@@ -14,7 +15,7 @@ export function Recurso(props: { tipo: Material | 'ouro'; valor: number; falta?:
   );
 }
 
-export function Barra(props: { estado: Estado; aoAjuda: () => void }) {
+export function Barra(props: { estado: Estado; nuvem: SituacaoNuvem | null; aoMenu: () => void }) {
   const e = props.estado;
   return (
     <header className="barra">
@@ -24,9 +25,19 @@ export function Barra(props: { estado: Estado; aoAjuda: () => void }) {
           <Recurso key={m} tipo={m} valor={e.materiais[m]} />
         ))}
       </span>
-      <button className="ajuda" onClick={props.aoAjuda} aria-label="Como jogar">
-        ?
-      </button>
+      <span className="barra-direita">
+        {props.nuvem && (
+          <span
+            className={`nuvem ${props.nuvem.erro ? 'com-erro' : ''}`}
+            title={props.nuvem.erro ? `Falha ao salvar na nuvem: ${props.nuvem.erro}` : 'Save na nuvem ligado'}
+          >
+            {props.nuvem.enviando ? '☁…' : props.nuvem.erro ? '☁!' : '☁'}
+          </span>
+        )}
+        <button className="ajuda" onClick={props.aoMenu} aria-label="Menu">
+          ☰
+        </button>
+      </span>
     </header>
   );
 }

@@ -397,11 +397,12 @@ h3 {
   left: 50%;
   bottom: 80px;
   transform: translateX(-50%);
-  background: #6a2a2a;
+  background: var(--painel);
   padding: 8px 14px;
-  box-shadow: 0 0 0 2px var(--borda);
-  z-index: 20;
+  box-shadow: 0 0 0 2px var(--ouro);
+  z-index: 40;
   font-size: 0.88rem;
+  max-width: calc(100% - 32px);
 }
 
 /* Modal do progresso offline */
@@ -770,4 +771,155 @@ button.link {
 
 .classes .papel {
   margin-top: -2px;
+}
+
+/* Menu inicial */
+.menu-inicial {
+  max-width: 480px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  padding: 32px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.menu-inicial h1 {
+  font-size: 2.2rem;
+  color: var(--ouro);
+  text-align: center;
+  letter-spacing: 2px;
+  text-shadow:
+    3px 3px 0 #6a3d0a,
+    -2px 0 0 var(--borda),
+    2px 0 0 var(--borda),
+    0 -2px 0 var(--borda);
+}
+
+.vitrine {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+  padding: 12px 0 6px;
+  background: linear-gradient(#2c3560 0 70%, #2f4a33 70%);
+  box-shadow: 0 0 0 3px var(--borda);
+}
+
+.vitrine .retrato {
+  width: 84px;
+  height: 70px;
+}
+
+.menu-botoes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.menu-botoes button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 12px 14px;
+  text-align: left;
+  font-size: 1rem;
+}
+
+.menu-botoes button small {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: inherit;
+  opacity: 0.8;
+}
+
+.menu-botoes button.principal {
+  align-items: flex-start;
+}
+
+.rodape {
+  margin-top: auto;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--suave);
+}
+
+/* Barra superior com menu e nuvem */
+.barra-direita {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.nuvem {
+  font-size: 0.9rem;
+  color: #8fe39a;
+}
+
+.nuvem.com-erro {
+  color: var(--perigo);
+}
+
+/* Conta, backup e conflito */
+.linha-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.seletor {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.formulario .campo input {
+  padding: 10px;
+  background: #1b1b2a;
+  border: none;
+  box-shadow: 0 0 0 2px var(--borda);
+  color: var(--texto);
+}
+
+.erro {
+  margin: 0;
+  color: #ff9a8a;
+  font-size: 0.88rem;
+}
+
+.codigo {
+  width: 100%;
+  font: 0.75rem ui-monospace, monospace;
+  background: #1b1b2a;
+  color: var(--texto);
+  border: none;
+  box-shadow: 0 0 0 2px var(--borda);
+  padding: 8px;
+  resize: vertical;
+  word-break: break-all;
+}
+
+.opcoes-save {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.opcoes-save button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  text-align: left;
+}
+
+.modal p {
+  margin: 0;
 }
