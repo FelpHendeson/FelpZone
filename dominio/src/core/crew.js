@@ -203,6 +203,7 @@ export function gainXP(amount) {
     c.level++; c.points++;
     log(`🆙 ${c.vulgo} chegou ao nível ${c.level}! +1 ponto de atributo.`, 'big');
     hooks.scene('levelUp', { nivel: c.level });
+    hooks.fx('levelup', { level: c.level });
   }
 }
 function loyal(m, delta) {
@@ -300,6 +301,7 @@ export function betray(m) {
   const rivals = Object.keys(state.rivals).filter((k) => state.rivals[k].alive);
   const node = m.node !== null ? state.nodes[m.node] : null;
   m.status = 'traidor'; m.node = null;
+  hooks.fx('betrayal', { role: m.role });
   if (m.role === 'cap') succession(m);
   if (m.role === 'vice') {
     const stolen = Math.round(state.money * 0.25);

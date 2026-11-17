@@ -42,10 +42,12 @@ export function doHeist(id, sendWanted) {
     state.respect = clamp(state.respect + 4, 0, 100);
     if (sp.kind === 'sequestro') {
       state.ransom = { node: id, days: 2, value: Math.round(P(sp.ransom) * rnd(0.8, 1.2)) };
+      hooks.fx('kidnap', { node: id });
       log(`🏛️ SEQUESTRO na ${n.name}! O resgate (${money(state.ransom.value)}) chega em 2 dias. A cidade inteira está procurando.`, 'big');
     } else {
       const loot = Math.round(P(sp.loot) * rnd(0.75, 1.25) / (1 + 0.3 * (n.hits - 1)));
       state.money += loot;
+      hooks.fx('heist', { node: id, type: n.type, loot });
       log(`💰 ASSALTO na ${n.name}: ${money(loot)} no bolso. Visada +${sp.heat}.`, 'big');
     }
   } else {
@@ -129,6 +131,7 @@ export function tickDiplomacy() {
     if (rv.allyUntil && rv.allyUntil === state.day) {
       if (Math.random() < 0.3) {
         rv.angryUntil = state.day + 6; rv.plan = null;
+        hooks.fx('allyBetrayal', { rid });
         log(`🐍 ${RIVALS[rid].name} ROMPERAM a aliança! ${RIVALS[rid].leader}: “Negócio é negócio.” Eles vêm com tudo.`, 'big');
       } else log(`🤝 A aliança com ${RIVALS[rid].name} acabou em paz.`, 'warn');
     }
@@ -165,6 +168,7 @@ export function orderHit(rid) {
     state.nodes.forEach((n) => { if (n.owner === rid && n.guards > 1) n.guards--; });
     state.respect = clamp(state.respect + 6, 0, 100);
     m.xp += 15;
+    hooks.fx('hit', { rid });
     log(`🗡️ ${memberTitle(m)} apagou o braço direito de ${RIVALS[rid].leader}. ${RIVALS[rid].name} estão desorganizados (e furiosos).`, 'big');
   }
   // o executor pode ser pego, com sucesso ou não

@@ -24,6 +24,10 @@ import { showMarket, marketUI, initMarketUI } from './marketui.js';
 import { hasMarket } from '../core/market.js';
 import { showEstado, hideEstado, estadoUI, initEstadoUI, estadoOpen } from './estadoui.js';
 import { openEstado, finishCity, affiliate, inEstado, allMine, org } from '../core/estado.js';
+import { sfx, unlockAudio, setTrack, applyAudioPrefs } from './sound.js';
+import { syncFx, attackOn, defendOn, floatText, sirenFx, shake, flash } from './fx.js';
+import { onEvent, checkState, setUnlockHandler, ACHIEVEMENTS, unlocked } from '../core/achievements.js';
+import { LORE } from '../data/lore.js';
 import { canBuyLot, buyLot, lotCost, buildOptions, canBuild, startBuild, eventsFor, canHoldEvent, holdEvent, threats, weaponMult } from '../core/business.js';
 import { EVENTS } from '../data/arsenal.js';
 import { has, P, MAP_W, MAP_H } from '../core/era.js';
@@ -61,7 +65,9 @@ function applyCam() {
   const h = cam.w * vh / vw;
   cam.cx = clamp(cam.cx, WORLD.x + cam.w / 2, WORLD.x + WORLD.w - cam.w / 2);
   cam.cy = clamp(cam.cy, WORLD.y + h / 2, WORLD.y + WORLD.h - h / 2);
-  svg.setAttribute('viewBox', `${cam.cx - cam.w / 2} ${cam.cy - h / 2} ${cam.w} ${h}`);
+  const vb = `${cam.cx - cam.w / 2} ${cam.cy - h / 2} ${cam.w} ${h}`;
+  svg.setAttribute('viewBox', vb);
+  syncFx(vb);
   const scale = vw / cam.w;   // px de tela por unidade do mundo
   svg.classList.toggle('far', scale < 0.5);
   // nomes com ~10.5px na tela, sem ficar menores que o tamanho base do mundo
@@ -223,6 +229,8 @@ function render() {
   if (!state || !state.nodes) return;
   document.documentElement.style.setProperty('--accent', state.player.color);
   renderTop(); renderMap(); renderBottom(); renderRadio(); renderReport(); renderRotate();
+  setTrack(inEstado() ? 'estado' : ERA.id);
+  checkState();
   if (inEstado()) { showEstado(); tryPlay(); return; }
   if (!state.cmd) return;
   if (threats().length) showTip('intel');
@@ -527,6 +535,10 @@ function showMenu() {
       <button onclick="showHelp()">❔ Como jogar</button>
       ${state.cmd ? `<button onclick="closeModal();showCrew()">👥 Bonde</button>` : ''}
       ${state.map && state.map.seed !== undefined ? `<p class="hint">🗺️ Semente desta cidade: <b>${state.map.seed}</b></p>` : ''}
+      <button onclick="showAchievements()">🏆 Conquistas (${Object.keys(unlocked()).length}/${Object.keys(ACHIEVEMENTS).length})</button>
+      <button onclick="showLore()">📖 Livro da quebrada</button>
+      <label class="check"><input type="checkbox" ${prefs.sfx ? 'checked' : ''} onchange="setPref('sfx', this.checked)"> Efeitos sonoros</label>
+      <label class="check"><input type="checkbox" ${prefs.music ? 'checked' : ''} onchange="setPref('music', this.checked);applyAudioPrefs()"> Música</label>
       <label class="check"><input type="checkbox" ${prefs.tips ? 'checked' : ''} onchange="setPref('tips', this.checked)"> Dicas do tutorial</label>
       <label class="check"><input type="checkbox" ${prefs.scenes ? 'checked' : ''} onchange="setPref('scenes', this.checked)"> Cenas de diálogo</label>
       ${state.seenTips ? `<button onclick="state.seenTips={};setPref('tips', true);closeModal()">↻ Rever as dicas</button>` : ''}
@@ -595,6 +607,17 @@ function showHelp(fromStart) {
       <li>O jogo salva sozinho no navegador.</li>
     </ul>
     <button class="primary" onclick="${fromStart ? 'showStart()' : 'closeModal()'}">${fromStart ? 'Voltar' : 'Bora'}</button>`);
+}
+
+function showAchievements() {
+  const u = unlocked();
+  showModal(`<h1>🏆 Conquistas</h1><p class="hint">${Object.keys(u).length} de ${Object.keys(ACHIEVEMENTS).length}. Valem pra todas as partidas.</p>
+    <div class="achs">${Object.entries(ACHIEVEMENTS).map(([k, a]) => `<div class="ach ${u[k] ? 'on' : ''}"><span>${u[k] ? a.icon : '🔒'}</span><div><b>${a.title}</b><small>${a.desc}</small></div></div>`).join('')}</div>
+    <div class="row"><button class="primary" onclick="showMenu()">Voltar</button></div>`);
+}
+function showLore() {
+  showModal(`<h1>📖 Livro da quebrada</h1>${LORE.map((l) => `<h3 class="lt2">${l.title}</h3><p>${l.text}</p>`).join('')}
+    <div class="row"><button class="primary" onclick="showMenu()">Voltar</button></div>`);
 }
 
 function confirmNew() {
@@ -675,6 +698,36 @@ hooks.newGame = onNewGame;
 hooks.dayEnded = onDayEnd;
 hooks.gameOver = () => setTimeout(showEnd, 50);
 hooks.scene = (id, ctx) => queueScene(id, ctx);
+hooks.fx = (type, data) => { onEvent(type, data); playFx(type, data); };
+// Som e animação de cada acontecimento.
+function playFx(type, d = {}) {
+  switch (type) {
+    case 'attack': attackOn(d.to, d.win); sfx('attack'); setTimeout(() => sfx(d.win ? 'money' : 'hit'), 650); break;
+    case 'defend': defendOn(d.to, d.win, RIVALS[d.by] && RIVALS[d.by].color); break;
+    case 'police': sirenFx(); sfx('siren'); break;
+    case 'day': if (d.inc) floatText(`+${money(d.inc)}`, 'good'); sfx('day'); break;
+    case 'eliminate': flash('#ffffff'); sfx('win'); break;
+    case 'win': sfx('win'); break;
+    case 'lose': sfx('lose'); break;
+    case 'levelup': floatText('🆙 Nível novo!', 'gold', '#top .tr'); sfx('level'); break;
+    case 'heist': floatText(`💰 +${money(d.loot)}`, 'gold'); sfx('money'); break;
+    case 'kidnap': sfx('siren'); break;
+    case 'betrayal': case 'allyBetrayal': flash('#7f1d1d'); sfx('betrayal'); break;
+    case 'annex': case 'orgLevel': sfx('level'); break;
+    default: break;
+  }
+}
+// Conquista: aviso no topo e som.
+setUnlockHandler((id, a) => {
+  const el = $('#ach');
+  el.innerHTML = `<span class="ai">${a.icon}</span><div><small>🏆 Conquista desbloqueada</small><b>${a.title}</b><small>${a.desc}</small></div>`;
+  el.classList.remove('hidden', 'show'); void el.offsetWidth; el.classList.add('show');
+  sfx('achievement');
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.add('hidden'), 3800);
+});
+// Áudio só liga depois de um toque; cliques em botões fazem um "tic".
+document.addEventListener('pointerdown', unlockAudio);
+document.addEventListener('click', (e) => { if (e.target.closest && e.target.closest('button')) sfx('click'); });
 hooks.objective = (done) => { if (done.say) queueScene('objective', { texto: done.say }); };
 
 // Ponte para os onclick escritos nos templates HTML (módulos não ficam no escopo global).
@@ -687,7 +740,7 @@ Object.assign(window, {
   openBrawl, brawlMove, brawlToggleCmd, brawlClose, buyMoto, skipTutorial, goNextEra,
   showArsenal, arsenalUI, buyLotAt, buildAt, eventAt,
   heistAt, extortAt, ambushAt, truceWith, allyWith, hitOn, policyAt,
-  showMarket, marketUI, estadoUI, goEstado,
+  showMarket, marketUI, estadoUI, goEstado, showAchievements, showLore, applyAudioPrefs,
 });
 
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };

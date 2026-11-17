@@ -20,6 +20,7 @@ Versão publicada: https://dominio-porto-neon.vercel.app
 - **Tenentes:** até 2 por capitão (+8% de defesa no ponto, +2% de ataque do bonde); assumem se o capitão morrer ou trair.
 - **Era Escola:** o "Barulho" gera advertências da diretoria (3 = suspensão de 2 dias), motos na oficina deixam atacar a duas ruas de distância, e um tutorial guiado mostra um objetivo por vez (dá pra pular). Ninguém morre na escola.
 - **O bonde (👥):** você é o Comandante, com atributos, nível e origem. O vice e os capitães comandam pontos e dão bônus pelos traços. Cuide da lealdade: abaixo de 25, alguém pode trair. Membro com nome que morre não volta (exceto no modo leve).
+- **Som e música** sintetizados no navegador (sem arquivos), **animações** de ataque, batida e dinheiro, **22 conquistas** (valem entre partidas) e o **Livro da quebrada** com a história de Porto Neon. Tudo no ☰ Menu.
 - O progresso é salvo automaticamente no navegador.
 
 ## Rodar localmente
@@ -71,7 +72,8 @@ dominio/
 │   ├── core/                  # regras puras (sem DOM): estado, save versionado, combate, IA, polícia, negócios (business.js),
 │   │                          #        bonde (crew.js), era ativa (era.js), briga de bonde (brawl.js),
 │   │                          #        gerador de cidades (mapgen.js), operações especiais (ops.js),
-│   │                          #        mercado (market.js), expansão Estado/País/Mundo e finais (estado.js)
+│   │                          #        mercado (market.js), expansão Estado/País/Mundo e finais (estado.js),
+│   │                          #        conquistas (achievements.js)
 │   └── ui/
 │       ├── main.js            # mapa com câmera, HUD, painéis, relatório, rádio, tela cheia
 │       ├── art.js             # avatares e bandeiras em SVG em camadas
@@ -80,7 +82,9 @@ dominio/
 │       ├── brawlui.js         # tela da briga de bonde
 │       ├── arsenalui.js       # arsenal e fornecedores
 │       ├── marketui.js        # mercado das bocas e atrações
-│       ├── estadoui.js        # mapa do estado e escolha do braço
+│       ├── estadoui.js        # mapa da expansão, escolha do braço, epílogo
+│       ├── sound.js           # efeitos e trilha procedural (Web Audio)
+│       └── fx.js              # animações por cima do mapa e efeitos de tela
 │       └── dialog.js          # cenas de diálogo e dicas do tutorial (puláveis)
 ├── sim/                       # simulador de equilíbrio e testes (Node)
 └── docs/
@@ -93,6 +97,12 @@ dominio/
 - **Save versionado** (`src/core/save.js`): cada mudança de formato ganha uma migração em `MIGRATIONS`, e partidas antigas continuam abrindo.
 
 ## Estado atual
+
+v1.2 (F7 do roadmap: polimento):
+- **Som:** efeitos (ataque, vitória, derrota, dinheiro, sirene, nível, traição, conquista) e trilha procedural com um clima por era, tudo sintetizado na hora. Liga no primeiro toque; desligável no menu.
+- **Animações:** esquadrão correndo pela rua até o alvo, clarão do resultado, rival vindo pra cima, dinheiro subindo no fim do dia, sirene nas bordas da tela, tremida na briga de bonde. Respeita "reduzir movimento" do sistema.
+- **22 conquistas** guardadas entre partidas, com aviso ao desbloquear.
+- **Lore:** Livro da quebrada (9 capítulos), conversas de rua no rádio e provocações dos líderes rivais.
 
 v1.1 (F6 do roadmap: País, Mundo, tenentes e finais):
 - **Níveis da expansão:** Estado → **País** (Sertão, Metrópole, Floresta, Fronteira Sul, Capital Federal) → **Mundo** (Sombra Alta, Porto Austral, Velha Marsala, Neo-Hakuro, Nexus). Lugares e gangues fictícios; gangues do país e do mundo geradas por lugar.
@@ -146,4 +156,4 @@ Equilíbrio atual: **Escola** (era tutorial) ~25 dias, o bot sempre vence. **Bai
 
 Expansão (bot usando operações e armas): cidades comuns do Estado ~95–100% em ~100 dias; os "chefes" (Capital, Capital Federal, Nexus) ~75–95% controlando a visada e bem menos ignorando a polícia.
 
-**Próximo:** F7 do `docs/gdd.md`: polimento (animações, sons e música, mais falas e lore, conquistas).
+**Roadmap do GDD concluído (F0–F7).** Daqui em diante: ajustes a partir de quem joga.

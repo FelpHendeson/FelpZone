@@ -141,6 +141,7 @@ export function annex(id) {
   if (!m) { m = makeMember('cap', Math.floor(Math.random() * 1e9)); m.id = 2000 + Math.floor(Math.random() * 1e6); o.members.push(m); }
   m.status = 'patrao'; m.city = id;
   lvNodes()[id] = { status: 'yours', patron: { name: m.name, vulgo: m.vulgo, look: m.look }, tributeMult: 0.75, annexed: true };
+  hooks.fx('annex', { id });
   log(`💼 ${nodeDef(id).name} foi anexada na negociação por ${money(annexPrice(id))}. ${m.vulgo} vira patrão (tributo 75%).`, 'big');
   save(); hooks.changed();
   return true;
@@ -197,6 +198,7 @@ export function levelUp() {
   // gente nova pro bonde central: o nome cresceu
   for (let i = 0; i < 2; i++) { const m = makeMember('cap', Math.floor(Math.random() * 1e9)); m.id = 3000 + Math.floor(Math.random() * 1e6); m.level = 2; o.members.push(m); }
   hooks.scene(`level_${next}`, {});
+  hooks.fx('orgLevel', { level: next });
   save(); hooks.changed();
   return true;
 }
@@ -206,6 +208,7 @@ export function finishStory(kind) {
   const o = org();
   if (!o) return;
   o.ending = kind;                                       // 'rei' (mundo dominado) ou 'aposentado' (largou a vida)
+  hooks.fx('ending', { kind });
   save(); hooks.changed();
 }
 export function epilogue() {

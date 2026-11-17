@@ -14,6 +14,7 @@ import { weaponMult, weaponHeat, ammoCost, buffSum, buffOn, tickBuilds, tickBuff
 import { extortIncome, extortHeat, tickDiplomacy, aggressiveCaptains, peaceful, isAlly, ambushMult } from './ops.js';
 import { bocaMult, bocaHeatMult, rivalBocaMult, marketCost, attraction, tickMarket } from './market.js';
 import { tickOrg, checkAffiliation } from './estado.js';
+import { RADIO } from '../data/lore.js';
 
 const MAX_MOTOS = 4;
 
@@ -126,6 +127,7 @@ export function eliminate(rid, by) {
   const rv = state.rivals[rid];
   rv.alive = false;
   state.nodes.forEach((n) => { if (n.owner === rid) { n.owner = null; n.guards = 1; } });
+  if (by === 'P') hooks.fx('eliminate', { rid });
   if (by === 'P') {
     const loot = Math.min(rv.money, P(6000));        // o caixa grande some na fuga; sobra uma parte
     state.money += loot; state.respect = clamp(state.respect + 20, 0, 100);
@@ -138,6 +140,7 @@ export function eliminate(rid, by) {
 
 // Consequências do resultado de um ataque do jogador (instantâneo ou briga de bonde).
 export function afterPlayerAttack(n, r, prev) {
+  hooks.fx('attack', { to: n.id, win: r.win, prev, hq: n.type === 'hq' });
   if (r.win) {
     state.respect = clamp(state.respect + (prev ? 6 : 3), 0, 100);
     state.stats.captured++;
@@ -301,6 +304,7 @@ export function endDay() {
   if (ERA.cfg.raid === 'advertencia') schoolDiscipline(); else policeRaid();
   for (const id of Object.keys(state.rivals)) { rivalTurn(id); if (state.over) break; }
   if (!state.over) randomEvent();
+  if (!state.over) streetTalk();
   tickBuffs();
   tickDiplomacy();
   tickMarket();
@@ -319,6 +323,7 @@ export function endDay() {
   } else state.actions = actionsPerDay();
   if (state.bribeDays > 0) { state.bribeDays--; if (!state.bribeDays) log(ERA.text.bribeEnd, 'warn'); }
   checkObjectives(); checkEnd(); save(); hooks.changed();
+  hooks.fx('day', { inc: f.inc, upkeep: f.upkeep });
   hooks.dayEnded(endedDay);
 }
 
@@ -333,6 +338,8 @@ export function policeRaid() {
   const lostM = Math.round(state.money * rnd(0.1, 0.2));
   n.guards -= lostG; state.money -= lostM;
   state.respect = clamp(state.respect - 3, 0, 100);
+  hooks.fx('police', { node: n.id, mega: state.heat >= 90 });
+  state.stats.raids = (state.stats.raids || 0) + 1;
   if (state.heat >= 90) {
     onNodeLost(n, 'police');
     state.free += n.guards; n.owner = null; n.guards = 1; n.lowkey = false;
@@ -349,6 +356,7 @@ export function schoolDiscipline() {
   if (Math.random() > (state.heat - 40) / 100) return;
   state.warnings = (state.warnings || 0) + 1;
   state.heat = clamp(state.heat - 15, 0, 100);
+  hooks.fx('police', { warn: true });
   if (state.warnings >= 3) {
     state.warnings = 0;
     state.suspended = 2;
@@ -413,6 +421,7 @@ export function rivalTurn(id) {
       rv.reserve -= send;
       const { r, prev } = doAttack(id, send, n, n.owner === 'P' ? ambushMult(n) : 1);
       if (prev === 'P') {
+        hooks.fx('defend', { to: n.id, by: id, win: !r.win });
         if (r.win) {
           log(`⚠️ ${def.name} tomaram ${n.name}! ${def.leader}: “${pick(def.quotes)}”`, 'bad');
           if (n.type === 'hq') { state.over = 'lose'; return; }
@@ -456,9 +465,20 @@ export function randomEvent() {
   pick(events)();
 }
 
+// Clima de rua: conversa no rádio e provocação de algum líder rival (só texto, não muda nada).
+export function streetTalk() {
+  const lines = RADIO[ERA.id] || RADIO.cidade;
+  if (Math.random() < 0.25) log(T(pick(lines), { gang: state.player.gang }));
+  const alive = Object.keys(state.rivals).filter((k) => state.rivals[k].alive);
+  if (alive.length && Math.random() < 0.12) {
+    const r = RIVALS[pick(alive)];
+    log(`${r.leader}, no rádio: “${pick(r.quotes)}”`, 'rival');
+  }
+}
+
 export function checkEnd() {
   if (state.over) return;
   if (state.nodes[0].owner !== 'P') state.over = 'lose';
   else if (Object.values(state.rivals).every((r) => !r.alive)) state.over = 'win';
-  if (state.over) hooks.gameOver(state.over);
+  if (state.over) { hooks.fx(state.over, { era: ERA.id }); hooks.gameOver(state.over); }
 }

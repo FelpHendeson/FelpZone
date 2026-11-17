@@ -13,7 +13,7 @@ const PREFS_KEY = 'dominio-prefs';
 
 // Preferências globais (valem pra todas as partidas).
 export const prefs = (() => {
-  const base = { tips: true, scenes: true };
+  const base = { tips: true, scenes: true, sfx: true, music: true };
   try { return { ...base, ...JSON.parse(localStorage.getItem(PREFS_KEY) || '{}') }; } catch (e) { return base; }
 })();
 export function setPref(k, v) {

@@ -434,3 +434,29 @@ button.big { min-height: 50px; font-size: 16px; }
 .ep .opt2.danger { border-color: #b91c1c; }
 .ep .row { display: flex; gap: 8px; }
 .ep.epi ul { padding-left: 18px; color: #cbd5e1; font-size: 14px; line-height: 1.6; }
+
+/* ===================== F7: EFEITOS, CONQUISTAS, LORE ===================== */
+#fx { position: fixed; inset: 0; width: 100vw; height: 100vh; height: 100dvh; pointer-events: none; z-index: 2; }
+#fx .fxt { font-size: 34px; font-weight: 900; text-anchor: middle; paint-order: stroke; stroke: #0b0b12; stroke-width: 6px; }
+.float { position: fixed; transform: translateX(-50%); z-index: 11; font-weight: 900; font-size: 18px; pointer-events: none;
+  text-shadow: 0 2px 6px #000; animation: floatUp 1.6s ease-out forwards; }
+.float.good { color: #86efac; } .float.gold { color: #fcd34d; } .float.bad { color: #fca5a5; }
+@keyframes floatUp { from { opacity: 0; transform: translate(-50%, 6px); } 15% { opacity: 1; } to { opacity: 0; transform: translate(-50%, -46px); } }
+.siren { position: fixed; inset: 0; z-index: 6; pointer-events: none; animation: siren .375s linear 4; }
+@keyframes siren { 0%, 100% { box-shadow: inset 0 0 90px 10px rgba(239,68,68,.55); } 50% { box-shadow: inset 0 0 90px 10px rgba(59,130,246,.55); } }
+.flash { position: fixed; inset: 0; z-index: 6; pointer-events: none; opacity: .5; animation: flash .6s ease-out forwards; }
+@keyframes flash { to { opacity: 0; } }
+.shake { animation: shake .3s ease-in-out; }
+@keyframes shake { 20% { transform: translateX(-6px); } 40% { transform: translateX(6px); } 60% { transform: translateX(-4px); } 80% { transform: translateX(3px); } }
+#ach { position: fixed; top: calc(var(--gap) * 2 + var(--btn) + var(--st) + 50px); left: 50%; transform: translateX(-50%); z-index: 12;
+  display: flex; align-items: center; gap: 10px; background: #1c1c2b; border: 1px solid #fcd34d; border-radius: 14px; padding: 8px 16px 8px 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.6); max-width: calc(100% - 20px); }
+#ach.show { animation: achIn .35s ease-out; }
+@keyframes achIn { from { transform: translate(-50%, -20px); opacity: 0; } }
+#ach .ai { font-size: 30px; } #ach div { display: flex; flex-direction: column; } #ach small { color: var(--muted); font-size: 11px; } #ach small:first-child { color: #fcd34d; }
+.achs { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 6px; margin: 10px 0; }
+.ach { display: flex; gap: 8px; align-items: center; padding: 8px; border-radius: 10px; background: rgba(255,255,255,.03); opacity: .55; }
+.ach.on { opacity: 1; background: rgba(252,211,77,.08); border: 1px solid rgba(252,211,77,.35); }
+.ach span { font-size: 24px; } .ach div { display: flex; flex-direction: column; } .ach small { color: var(--muted); font-size: 12px; }
+#modal h3.lt2 { margin: 14px 0 2px; font-size: 15px; color: #fcd34d; }
+@media (prefers-reduced-motion: reduce) { .float, .siren, .flash, .shake, #ach.show, .threat, .target { animation: none !important; } }

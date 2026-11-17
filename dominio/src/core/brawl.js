@@ -84,6 +84,7 @@ function finishBrawl(b) {
   afterPlayerAttack(node, r, prev);
   b.result = r;
   b.rivalName = prev && RIVALS[prev] ? RIVALS[prev].name : node.name;
+  hooks.fx('brawl', { win: b.win });
 }
 
 // Fecha a briga terminada e devolve o jogo ao normal.

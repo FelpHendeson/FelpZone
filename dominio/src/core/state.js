@@ -19,6 +19,7 @@ export const hooks = {
   gameOver(result) {}, // 'win' ou 'lose'
   scene(id, ctx) {},    // cena de diálogo pedida pelas regras (traição, morte, nível...)
   objective(done, next) {}, // objetivo do tutorial cumprido
+  fx(type, data) {},   // acontecimento pra animação, som e conquistas (ataque, batida, dinheiro, nível...)
 };
 
 export function freshNodes() {

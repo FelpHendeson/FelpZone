@@ -4,6 +4,8 @@ import { state } from '../core/state.js';
 import { MOVES, startBrawl, brawlRound, closeBrawl } from '../core/brawl.js';
 import { randomLook, rng, attr } from '../core/crew.js';
 import { avatarSVG, flagSVG } from './art.js';
+import { sfx } from './sound.js';
+import { shake } from './fx.js';
 
 const $ = (sel) => document.querySelector(sel);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -24,7 +26,16 @@ export function brawlStart(nodeId, send) {
   if (!startBrawl(nodeId, send)) return;
   draw();
 }
-export function brawlMove(move) { brawlRound(move, cmdIn); cmdIn = false; draw(); }
+export function brawlMove(move) {
+  const b = brawlRound(move, cmdIn);
+  cmdIn = false;
+  draw();
+  if (!b) return;
+  const last = b.history[b.history.length - 1];
+  sfx('hit'); shake('#brawl .bx');
+  if (b.done) setTimeout(() => sfx(b.win ? 'win' : 'lose'), 250);
+  else if (last && last.outcome === 'ganhou') setTimeout(() => sfx('money'), 150);
+}
 export function brawlToggleCmd(v) { cmdIn = v; }
 export function brawlClose() { $('#brawl').classList.add('hidden'); closeBrawl(); onClose(); }
 
