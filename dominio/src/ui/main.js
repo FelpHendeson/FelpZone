@@ -1,13 +1,13 @@
 // Interface: mapa com câmera (arrastar / zoom), HUD flutuante, relatório do dia e rádio.
 // As regras ficam em src/core. Ver docs/layout.md.
-import { UPKEEP, ACTIONS_PER_DAY, TRUCE_DAYS, POLICE_RADIUS, BRIBE_DAYS } from '../core/config.js';
-import { TYPES } from '../data/types.js';
-import { RIVALS, PLAYER_COLORS } from '../data/rivals.js';
-import { MAP, EDGES, DISTRICTS, POLICE_NODE } from '../data/maps/porto-neon.js';
+import {
+  ERA, TYPES, RIVALS, MAP, EDGES, DISTRICTS, POLICE_NODE, UPKEEP, ACTIONS_PER_DAY, TRUCE_DAYS, POLICE_RADIUS, BRIBE_DAYS, T, nextEra, useEra,
+} from '../core/era.js';
+import { PLAYER_COLORS } from '../data/rivals.js';
 import { money, clamp } from '../core/util.js';
-import { state, hooks, replaceState, freshNodes, newGame, load, save } from '../core/state.js';
+import { state, hooks, replaceState, freshNodes, newGame, load, save, advanceEra } from '../core/state.js';
 import { clearSave } from '../core/save.js';
-import { captainAt, memberTitle, attackMult } from '../core/crew.js';
+import { captainAt, memberTitle } from '../core/crew.js';
 import { avatarSVG, flagSVG, flagInner } from './art.js';
 import { queueScene, tryPlay, setBusyCheck, onSceneEnd, sceneActive, showTip, closeTip, dialogNext, dialogChoose, dialogSkip, prefs, setPref } from './dialog.js';
 import { showCreate, showIdentityEditor, cr } from './create.js';
@@ -16,7 +16,9 @@ import {
   forecast, totalSoldiers, reachable, estDef, ownerColor, ownerName, nodeIncome, nodeHeat,
   recruitCap, bribeCost, upgradeCost, negotiateCost,
   endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
+  playerAttackMult, canBuyMoto, motoCost, buyMoto, currentObjective, objectives, skipTutorial,
 } from '../core/rules.js';
+import { brawlStart, brawlMove, brawlToggleCmd, brawlClose, initBrawlUI, brawlOpen, resumeBrawl } from './brawlui.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -212,6 +214,7 @@ const inFullscreen = () => !!(document.fullscreenElement || document.webkitFulls
 
 function renderTop() {
   const f = forecast();
+  const W = ERA.words;
   const bal = f.inc - f.upkeep;
   $('#top').innerHTML = `
     <div class="pill gang">${state.flag ? flagSVG(state.flag, 'flag') : '<i class="flag"></i>'}<div><b>${esc(state.player.gang)}</b><small>Dia ${state.day}</small></div></div>
@@ -220,7 +223,8 @@ function renderTop() {
       <div class="pill" title="Soldados livres / total">👥 <b>${state.free}</b><small>/${totalSoldiers()}</small></div>
       <div class="pill" title="Respeito">⭐ <b>${state.respect}</b></div>
       <div class="pill" title="Ações do dia">${'⚡'.repeat(state.actions)}<span class="spent">${'⚡'.repeat(ACTIONS_PER_DAY - state.actions)}</span></div>
-      <div class="pill visada" title="Visada: o quanto a polícia está de olho. Anda até o alvo (traço branco). Acima de 50 tem batida.">👁️ <b>${Math.round(state.heat)}</b><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div>${state.bribeDays ? `<small>💼${state.bribeDays}d</small>` : ''}</div>
+      <div class="pill visada" title="${W.heat}: o quanto a ${W.police} está de olho. Anda até o alvo (traço branco). Acima de 50 ${ERA.cfg.raid === 'advertencia' ? 'pode vir advertência (3 = suspensão)' : 'tem batida'}.">${W.heatIcon} <b>${Math.round(state.heat)}</b><div class="heatbar"><i style="width:${state.heat}%"></i><u style="left:${f.target}%"></u></div>${state.bribeDays ? `<small>${W.bribeIcon}${state.bribeDays}d</small>` : ''}${ERA.cfg.raid === 'advertencia' ? `<small class="warns" title="Advertências">${'⚠️'.repeat(state.warnings || 0)}${'·'.repeat(3 - (state.warnings || 0))}</small>` : ''}</div>
+      ${state.suspToday ? '<div class="pill susp" title="Três advertências: o bonde não pode agir hoje">🚫 Suspenso</div>' : ''}
     </div>
     <div class="tr">
       ${state.cmd ? `<button class="ic av${state.cmd.points ? ' dot' : ''}" onclick="showCrew()" title="Bonde: você, vice e capitães">${avatarSVG(state.cmd.look, state.jacket, state.flag)}</button>` : ''}
@@ -228,6 +232,15 @@ function renderTop() {
       ${canFullscreen() ? `<button class="ic" onclick="toggleFullscreen()" title="Tela cheia">${inFullscreen() ? '🗗' : '⛶'}</button>` : ''}
       <button class="ic" onclick="showMenu()" title="Menu">☰</button>
     </div>`;
+  renderObjective();
+}
+function renderObjective() {
+  const o = state.cmd && !state.over ? currentObjective() : null;
+  const el = $('#obj');
+  if (!o) { el.classList.add('hidden'); return; }
+  const final = (state.objIdx || 0) >= objectives().length - 1;
+  el.innerHTML = `<span class="ot">🎯 ${o.text}${o.progress ? ` <small>${o.progress(state)}</small>` : ''}</span>${final ? '' : '<button class="mini" onclick="skipTutorial()" title="Pular o tutorial guiado desta era">Pular</button>'}`;
+  el.classList.remove('hidden');
 }
 
 function renderMap() {
@@ -240,8 +253,8 @@ function renderMap() {
     <linearGradient id="sea" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0c3a57"/><stop offset="1" stop-color="#071b2b"/></linearGradient>
   </defs>`);
   s.push(`<rect x="${WORLD.x}" y="${WORLD.y}" width="${WORLD.w}" height="${WORLD.h}" fill="url(#blocks)"/>`);
-  s.push(`<path class="sea" d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860 L-420,960 L1420,960 Z" fill="url(#sea)"/>`);
-  s.push(`<path d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860" fill="none" stroke="#1d5a7d" stroke-width="4" opacity=".7"/>`);
+  if (ERA.decor === 'mar') s.push(`<path class="sea" d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860 L-420,960 L1420,960 Z" fill="url(#sea)"/>`);
+  if (ERA.decor === 'mar') s.push(`<path d="M1420,140 C1240,220 1090,380 1080,560 C1070,700 960,770 760,800 C520,840 200,850 -420,860" fill="none" stroke="#1d5a7d" stroke-width="4" opacity=".7"/>`);
   DISTRICTS.forEach(([name, x, y, r, c]) => {
     s.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`);
     s.push(`<text class="district" x="${x}" y="${y + r - 30}">${name}</text>`);
@@ -281,7 +294,7 @@ function renderMap() {
 }
 
 function odds(n) {
-  const ratio = (ui.send * (1 + state.respect / 200) * attackMult()) / Math.max(estDef(n) + (n.owner ? 0.5 : 0), 0.1);
+  const ratio = (ui.send * (1 + state.respect / 200) * playerAttackMult()) / Math.max(estDef(n) + (n.owner ? 0.5 : 0), 0.1);
   return ratio >= 1.5 ? ['Vitória quase certa', 'g'] : ratio >= 1.15 ? ['Boa chance', 'g2'] : ratio >= 0.85 ? ['Cara ou coroa', 'y'] : ['Suicídio', 'r'];
 }
 
@@ -292,8 +305,8 @@ function renderBottom() {
 }
 
 function overPanel() {
-  return `<div class="head"><b>${state.over === 'win' ? '👑 Você é o dono da cidade' : '☠️ O QG caiu'}</b></div>
-    <div class="acts"><button class="tile go" onclick="showEnd()">Ver resultado</button><button class="tile" onclick="confirmNew()">↺ Novo jogo</button></div>`;
+  return `<div class="head"><b>${state.over === 'win' ? ERA.text.winTitle : ERA.text.loseTitle}</b></div>
+    <div class="acts"><button class="tile go" onclick="showEnd()">${state.over === 'win' && state.campaign && nextEra(state.era) ? 'Continuar a história ▶' : 'Ver resultado'}</button><button class="tile" onclick="confirmNew()">↺ Novo jogo</button></div>`;
 }
 
 function idlePanel() {
@@ -302,7 +315,7 @@ function idlePanel() {
   return `<div class="head"><span class="hint">Arraste o mapa e toque num ponto pra agir.</span></div>
     <div class="acts">
       <button class="tile" onclick="nextTarget()" ${targets ? '' : 'disabled'}>🎯 Próximo alvo <small>${targets}</small></button>
-      <button class="tile" onclick="bribe()" ${bribeOff ? 'disabled' : ''} title="Tira 20 de visada e corta o alvo pela metade por ${BRIBE_DAYS} dias">💼 ${state.bribeDays > 0 ? `Vista grossa ${state.bribeDays}d` : `Subornar ${money(bribeCost())}`}</button>
+      <button class="tile" onclick="bribe()" ${bribeOff ? 'disabled' : ''} title="${T(ERA.words.bribeTip, { dias: BRIBE_DAYS })}">${ERA.words.bribeIcon} ${state.bribeDays > 0 ? `Vista grossa ${state.bribeDays}d` : `${ERA.words.bribe} ${money(bribeCost())}`}</button>
       <button class="tile" onclick="goHQ()">🏠 QG</button>
     </div>`;
 }
@@ -316,7 +329,7 @@ function nodePanel(n) {
     <span class="sub">${t.label}${n.level > 1 ? ` nv${n.level}` : ''} · <b style="color:${col}">${esc(ownerName(n.owner))}</b></span>
     ${n.type !== 'policia' ? `<span class="stats">
       <span title="Renda por dia">💵 ${n.lowkey ? 'parado' : money(nodeIncome(n))}</span>
-      <span title="Visada que gera">👁️ ${n.lowkey ? '0' : '+' + nodeHeat(n)}</span>
+      <span title="${ERA.words.heat} que gera">${ERA.words.heatIcon} ${n.lowkey ? '0' : '+' + nodeHeat(n)}</span>
       <span title="Respeito por dia">⭐ +${t.resp}</span>
       <span title="${n.owner ? 'Guardas' : 'Resistência local'}">🛡️ ${n.guards}</span></span>` : ''}
     <button class="x" onclick="deselect()" aria-label="Fechar">✕</button>
@@ -343,12 +356,13 @@ function nodePanel(n) {
         <button onclick="setRecruit(ui.recruitN+1)" ${ui.recruitN >= left ? 'disabled' : ''}>+</button>
         <button class="go" onclick="recruit(${n.id}, ui.recruitN)" ${left <= 0 || state.money < cost ? 'disabled' : ''}>${left <= 0 ? 'Sem gente hoje' : `Recrutar ${money(cost)}`}</button></div>`);
     }
+    if (n.type === 'oficina' && canBuyMoto()) a.push(`<button class="tile" onclick="buyMoto()" ${state.money < motoCost() ? 'disabled' : ''} title="Atacar pontos a duas ruas de distância e +5% na briga">🏍️ Moto <small>${money(motoCost())} · tem ${state.motos || 0}</small></button>`);
     if (n.type !== 'hq' && n.level < 3) a.push(`<button class="tile" onclick="upgrade(${n.id})" ${state.money < upgradeCost(n) ? 'disabled' : ''} title="+50% de renda e +25% de defesa">⬆️ Nível ${n.level + 1} <small>${money(upgradeCost(n))}</small></button>`);
     if (n.type !== 'hq') a.push(`<button class="tile" onclick="toggleLowkey(${n.id})" title="Parado: sem renda, sem visada e sem batida">${n.lowkey ? '🔊 Reativar' : '🤫 Baixar a poeira'}</button>`);
   } else if (n.type === 'policia') {
-    a.push(`<span class="hint">${t.desc} Use 💼 Subornar pra tirar a polícia do seu pé.</span>`);
+    a.push(`<span class="hint">${t.desc} Use ${ERA.words.bribeIcon} ${ERA.words.bribe} pra esfriar.</span>`);
   } else if (!reachable(n)) {
-    a.push(`<span class="hint">🚫 Fora do alcance. Domine um ponto ligado a este pela rua (os de círculo pontilhado).</span>`);
+    a.push(`<span class="hint">🚫 Fora do alcance. Domine um ponto ligado a este pela rua (os de círculo pontilhado)${ERA.cfg.motoCost ? ', ou compre uma moto na oficina' : ''}.</span>`);
   } else {
     const free = state.free;
     if (free > 0) {
@@ -359,9 +373,11 @@ function nodePanel(n) {
         <button onclick="setSend(ui.send+1)" ${ui.send >= free ? 'disabled' : ''}>+</button>
         <button class="sm" onclick="setSend(${free})">Máx ${free}</button>
         <span class="odds ${cls}">${label}</span>
-        <button class="go" onclick="playerAttack(${n.id}, ui.send)" ${state.actions <= 0 ? 'disabled' : ''}>${state.actions <= 0 ? 'Sem ⚡' : `${n.owner ? 'Atacar' : 'Tomar'} 1⚡`}</button></div>`);
+        ${n.type === 'hq'
+          ? `<button class="go" onclick="openBrawl(${n.id})" ${state.actions <= 0 ? 'disabled' : ''} title="Confronto de 3 rodadas">${state.actions <= 0 ? 'Sem ⚡' : '👊 Briga de bonde 1⚡'}</button>`
+          : `<button class="go" onclick="playerAttack(${n.id}, ui.send)" ${state.actions <= 0 ? 'disabled' : ''}>${state.actions <= 0 ? 'Sem ⚡' : `${n.owner ? 'Atacar' : 'Tomar'} 1⚡`}</button>`}</div>`);
     } else {
-      a.push(`<span class="hint">Sem soldados livres. Tire guardas de um ponto seu ou recrute.</span>`);
+      a.push(`<span class="hint">Sem ${ERA.words.soldiers} livres. Tire guardas de um ponto seu ou recrute.</span>`);
     }
     if (n.owner === null) {
       const c = negotiateCost(n);
@@ -451,15 +467,20 @@ function showMenu() {
 function showStart() {
   showModal(`
     <h1>DOMÍNIO</h1>
-    <p>Porto Neon está dividida entre três gangues. Você só tem um barraco no alto do morro, um vice de confiança, dois capitães e muita vontade. Recrute, domine os pontos, tome os QGs rivais e vire o dono da cidade.</p>
-    <div class="row"><button class="primary" id="startBtn" onclick="startCreate()">Criar personagem ▶</button><button onclick="showHelp(true)">Como jogar</button></div>`);
+    <p>Um RP de bonde em Porto Neon. Crie o seu personagem, junte o seu pessoal e domine território.</p>
+    <div class="modes">
+      <button class="mode primary" id="startBtn" onclick="startCreate('escola')"><b>🏫 Campanha</b><small>Comece no colégio, com briga de bonde e tutorial guiado. Depois de unificar os colégios: anos depois, a cidade.</small></button>
+      <button class="mode" onclick="startCreate('cidade')"><b>🌃 Modo Livre: Cidade</b><small>Vá direto pra guerra de gangues em Porto Neon.</small></button>
+    </div>
+    <div class="row"><button onclick="showHelp(true)">Como jogar</button></div>`);
 }
-function startCreate() {
+function startCreate(era) {
   closeModal();
-  showCreate((opts) => { if (opts) newGame(opts); else showStart(); });
+  showCreate((opts) => { if (opts) newGame({ ...opts, era }); else showStart(); });
 }
+function openBrawl(id) { brawlStart(id, ui.send); }
 function editIdentity() {
-  showIdentityEditor({ ...state.cmd, gang: state.player.gang, flag: state.flag, jacket: state.jacket }, (res) => {
+  showIdentityEditor({ ...state.cmd, leader: state.cmd.vulgo, gang: state.player.gang, flag: state.flag, jacket: state.jacket }, (res) => {
     if (res) { state.flag = res.flag; state.jacket = res.jacket; state.player.color = res.flag.bg; save(); }
     render();
   });
@@ -471,14 +492,15 @@ function showHelp(fromStart) {
     <ul>
       <li><b>Controles:</b> arraste o mapa (mouse ou dedo), dê zoom com a roda ou com dois dedos. Toque num ponto pra ver as ações; toque no vazio pra fechar. No PC: setas/WASD movem, + e − dão zoom, Esc fecha.</li>
       <li><b>O bonde 👥:</b> você é o Comandante. Atributos (Força, Tática, Lábia, Sangue-frio) dão bônus; vencer dá XP e nível. O vice e os capitães comandam pontos e dão defesa e bônus pelos traços. Cuide da <b>lealdade</b>: abaixo de 25, alguém pode trair. Membro com nome que morre não volta.</li>
-      <li><b>Objetivo:</b> tomar os QGs dos Corvos, das Serpentes e dos Dragões. Se o seu QG cair, você perde.</li>
+      <li><b>Objetivo:</b> tomar os QGs dos rivais (${Object.values(RIVALS).map((r) => r.name).join(', ')}). Se a sua base cair, você perde. Atacar um QG é uma <b>briga de bonde</b>: 3 rodadas de Avançar, Segurar ou Cercar (Avançar vence Cercar, Cercar vence Segurar, Segurar vence Avançar).</li>
       <li><b>Pontos:</b> cada ponto dá renda todo dia. Bocas e o porto dão mais grana, mas deixam o bonde mais <b>visado</b>.</li>
       <li><b>Ações (⚡):</b> você tem ${ACTIONS_PER_DAY} por dia pra atacar ou comprar pontos. Mover guardas, recrutar e melhorar não gastam ação.</li>
       <li><b>Alcance:</b> só dá pra atacar pontos ligados pela rua a um ponto seu (círculo pontilhado). 🎯 Próximo alvo mostra um por um.</li>
-      <li><b>Soldados:</b> cada um custa ${money(UPKEEP)} por dia. Se faltar dinheiro, uns largam o bonde.</li>
+      <li><b>${ERA.words.soldiers[0].toUpperCase() + ERA.words.soldiers.slice(1)}:</b> cada um custa ${money(UPKEEP)} por dia. Se faltar dinheiro, uns largam o bonde.</li>
       <li><b>Respeito:</b> deixa seus ataques mais fortes, libera recrutamento e compra de pontos.</li>
-      <li><b>Visada 👁️:</b> o quanto a polícia está de olho. Seus pontos definem um alvo (traço branco na barra) e a visada anda até ele aos poucos. Acima de 50 tem batida; acima de 90 a polícia fecha o ponto.</li>
-      <li><b>Sair da mira:</b> 💼 Subornar tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. 🤫 Baixar a poeira para um ponto: sem renda e sem visada.</li>
+      <li><b>${ERA.words.heat} ${ERA.words.heatIcon}:</b> o quanto a ${ERA.words.police} está de olho. Seus pontos definem um alvo (traço branco na barra) e o valor anda até ele aos poucos. ${ERA.cfg.raid === 'advertencia' ? 'Acima de 50 pode vir advertência; na terceira, o bonde é suspenso por 2 dias.' : 'Acima de 50 tem batida; acima de 90 a polícia fecha o ponto.'}</li>
+      <li><b>Sair da mira:</b> ${ERA.words.bribeIcon} ${ERA.words.bribe} tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. 🤫 Baixar a poeira para um ponto: sem renda e sem ${ERA.words.heat.toLowerCase()}.</li>
+      ${ERA.cfg.motoCost ? '<li><b>Motos 🏍️:</b> compradas na oficina. Deixam atacar pontos a duas ruas de distância e dão +5% na briga.</li>' : ''}
       <li><b>Rivais:</b> crescem, recrutam e brigam entre si. Depois do dia ${TRUCE_DAYS} começam a vir pra cima de você.</li>
       <li>O jogo salva sozinho no navegador.</li>
     </ul>
@@ -491,17 +513,35 @@ function confirmNew() {
 }
 
 function showEnd() {
+  const X = ERA.text, vars = { dia: state.day, gang: esc(state.player.gang), leader: esc(state.player.leader) };
+  if (state.over === 'win' && state.campaign && nextEra(state.era)) {
+    showModal(`<h1>${X.winTitle}</h1><p>${T(X.win, vars)}</p>
+      <p>Respeito: <b>${state.respect}</b> · Dias: <b>${state.day}</b> · Nível de ${esc(state.cmd.vulgo)}: <b>${state.cmd.level}</b></p>
+      <div class="row"><button class="primary" onclick="goNextEra()">Continuar a história ▶</button><button onclick="closeModal()">Ver o mapa</button></div>`);
+    return;
+  }
   if (state.over === 'win') {
-    showModal(`<h1>👑 DONO DA CIDADE</h1><p>No dia ${state.day}, o ${esc(state.player.gang)} derrubou o último QG rival. Porto Neon agora responde a ${esc(state.player.leader)}.</p>
+    showModal(`<h1>${X.winTitle}</h1><p>${T(X.win, vars)}</p>
       <p>Caixa final: <b>${money(state.money)}</b> · Respeito: <b>${state.respect}</b> · Pontos: <b>${state.nodes.filter((n) => n.owner === 'P').length}</b></p>
       <div class="row"><button class="primary" onclick="resetSave()">Jogar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
   } else {
-    showModal(`<h1>☠️ FIM DA LINHA</h1><p>O QG do Farol caiu no dia ${state.day}. O ${esc(state.player.gang)} virou história de bar.</p>
+    showModal(`<h1>${X.loseTitle}</h1><p>${T(X.lose, vars)}</p>
       <div class="row"><button class="primary" onclick="resetSave()">Tentar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
   }
 }
 
 function resetSave() { clearSave(); showStart(); }
+
+// Salto no tempo: cena, quem continua, repaginar a marca e começar a próxima era.
+function goNextEra() {
+  closeModal();
+  const next = nextEra(state.era);
+  queueScene(`timeskip_${state.era}`, {}, () => {
+    showIdentityEditor({ ...state.cmd, leader: state.cmd.vulgo, gang: state.player.gang, flag: state.flag, jacket: state.jacket, renameGang: true }, (res) => {
+      advanceEra(next, res ? { gang: res.gang, flag: res.flag, jacket: res.jacket } : {});
+    });
+  });
+}
 
 function onNewGame() {
   ui.selected = null; ui.report = null; ui.radio = false; ui.unread = false; ui.tIdx = -1;
@@ -511,10 +551,11 @@ function onNewGame() {
 }
 function playIntro() {
   if (!state.introPending) return;
-  queueScene('intro', {}, () => { state.introPending = false; save(); });
+  queueScene(ERA.introScene || 'intro', {}, () => { state.introPending = false; save(); });
 }
 onSceneEnd(() => { render(); if (!state.introPending) showTip('map'); });
-setBusyCheck(() => !$('#modal').classList.contains('hidden') || ui.report != null || !$('#create').classList.contains('hidden') || crewOpen());
+setBusyCheck(() => !$('#modal').classList.contains('hidden') || ui.report != null || !$('#create').classList.contains('hidden') || crewOpen() || brawlOpen());
+initBrawlUI(() => { tryPlay(); });
 initCrewUI({ changed: render, focusNode: (id) => { const n = state.nodes[id]; focusOn(n.x, n.y); selectNode(id); }, editIdentity });
 
 // ===================== INÍCIO =====================
@@ -523,6 +564,7 @@ hooks.newGame = onNewGame;
 hooks.dayEnded = onDayEnd;
 hooks.gameOver = () => setTimeout(showEnd, 50);
 hooks.scene = (id, ctx) => queueScene(id, ctx);
+hooks.objective = (done) => { if (done.say) queueScene('objective', { texto: done.say }); };
 
 // Ponte para os onclick escritos nos templates HTML (módulos não ficam no escopo global).
 Object.assign(window, {
@@ -531,10 +573,11 @@ Object.assign(window, {
   toggleRadio, toggleFullscreen, closeReport, renderRotate, showMenu, showHelp, showStart, showEnd, confirmNew, closeModal, resetSave,
   newGame, endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
   startCreate, editIdentity, cr, showCrew, showCaptainPicker, crewUI, dialogNext, dialogChoose, dialogSkip, closeTip, setPref,
+  openBrawl, brawlMove, brawlToggleCmd, brawlClose, buyMoto, skipTutorial, goNextEra,
 });
 
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };
-if (load()) { render(); initialCam(); if (state.over) showEnd(); else playIntro(); }
+if (load()) { render(); initialCam(); if (state.over) showEnd(); else if (state.brawl) resumeBrawl(); else playIntro(); }
 else {
   // Estado vazio só pra desenhar o mapa atrás da tela de início.
   replaceState({ day: 1, money: 0, free: 0, respect: 0, heat: 0, actions: 0, recruited: 0, bribeDays: 0,

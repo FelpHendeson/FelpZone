@@ -3,7 +3,7 @@
 // Formato atual: localStorage['dominio-save'] = { version, savedAt, state }
 // Legado (v0.1–v0.4): localStorage['dominio-save-v1'] = state  (tratado como versão 1)
 
-export const SAVE_VERSION = 3;
+export const SAVE_VERSION = 4;
 const KEY = 'dominio-save';
 const LEGACY_KEY = 'dominio-save-v1';
 
@@ -17,6 +17,15 @@ const MIGRATIONS = {
   },
   // v3 (F1): bonde com nome. O state.js cria o Comandante e os membros padrão ao carregar.
   2: (s) => { s.needsCrew = true; return s; },
+  // v4 (F2): eras. Saves antigos são partidas do Modo Livre: Cidade, com o tutorial já cumprido.
+  3: (s) => {
+    s.era = s.era || 'cidade';
+    s.motos = s.motos || 0; s.warnings = 0; s.suspended = 0;
+    s.stats = s.stats || { recruited: 0, captured: 0 };
+    s.objIdx = s.objIdx || 0;
+    s.campaign = false;
+    return s;
+  },
 };
 
 const storage = () => (typeof localStorage !== 'undefined' ? localStorage : null);

@@ -3,11 +3,10 @@
 import { ATTRS, ATTR_KEYS, ATTR_BASE, ORIGINS, TRAIT_KEYS, FIRST_NAMES, NICKNAMES } from '../data/crew.js';
 import { LOOK_OPTIONS, DEFAULT_LOOK } from '../data/look.js';
 import { DEFAULT_FLAG, DEFAULT_JACKET } from '../data/flags.js';
-import { RIVALS } from '../data/rivals.js';
+import { RIVALS, ERA, P } from './era.js';
 import { state, hooks, log } from './state.js';
 import { clamp, money } from './util.js';
 
-export const CAPTAIN_SALARY = 15;     // por dia, por membro com nome (soldado custa 12)
 const XP_PER_LEVEL = 40;              // nível n → n+1 custa 40·n
 const BETRAYAL_LINE = 25;
 
@@ -65,7 +64,7 @@ export function initCrew(opts) {
   state.members.push(makeMember('vice', seed));
   state.members.push(makeMember('cap', seed + 1));
   state.members.push(makeMember('cap', seed + 2));
-  if (state.cmd.origin === 'playboy') state.money += 600;
+  if (state.cmd.origin === 'playboy') state.money += P(600);
 }
 
 // ---------- consultas ----------
@@ -98,11 +97,11 @@ export function crewHeatAdj(node) {
 export const heatTargetMult = () => Math.max(0.5, 1 - 0.04 * attr('frio'));
 export const recruitBonus = () => Math.floor(attr('labia') / 2) + (state.cmd && state.cmd.origin === 'morro' ? 1 : 0);
 export const negotiateDiscount = () => attr('labia') * 40;
-export const salaries = () => active().filter((m) => m.role !== 'vice').length * CAPTAIN_SALARY;   // o vice é sócio, não recebe salário
+export const salaries = () => active().filter((m) => m.role !== 'vice').length * ERA.cfg.captainSalary;   // o vice é sócio, não recebe salário
 
 export const captainCount = () => active().filter((m) => m.role === 'cap').length;
 export const captainCap = () => Math.min(6, 2 + Math.floor((state.cmd ? state.cmd.level : 1) / 2));
-export const captainCost = () => Math.round((500 + 300 * captainCount()) * (1 - 0.05 * attr('labia')));
+export const captainCost = () => P((500 + 300 * captainCount()) * (1 - 0.05 * attr('labia')));
 export const captainRespect = () => 10 + 10 * captainCount();
 
 // ---------- ações do jogador ----------
@@ -138,7 +137,7 @@ export function promoteCaptain() {
   return m;
 }
 // Agrado: dinheiro na mão pra segurar a lealdade. Um por membro a cada 3 dias.
-export const giftCost = (m) => 150 + 100 * m.level;
+export const giftCost = (m) => P(150 + 100 * m.level);
 export function canGift(m) {
   if (!m || m.status !== 'ok') return 'Indisponível';
   if (m.giftDay && state.day - m.giftDay < 3) return `De novo em ${3 - (state.day - m.giftDay)}d`;
@@ -197,6 +196,17 @@ export function onNodeLost(node, cause = 'rival') {
   if (cause === 'police') {
     c.status = 'preso'; c.timer = 8;
     log(`🚔 ${memberTitle(c)} caiu na operação da polícia. Volta da cadeia em 8 dias, se não abrir o bico.`, 'bad');
+    return;
+  }
+  if (ERA.id === 'escola') {
+    // briga de colégio: ninguém morre. Quem apanha fica de molho em casa.
+    if (!has(c, 'covarde') && Math.random() < 0.4) {
+      c.status = 'hospital'; c.timer = 3;
+      log(`🤕 ${memberTitle(c)} se machucou na briga em ${node.name} e ficou 3 dias de molho em casa.`, 'bad');
+    } else {
+      loyal(c, -10);
+      log(`🏃 ${memberTitle(c)} saiu correndo de ${node.name} quando o ponto caiu.`, 'warn');
+    }
     return;
   }
   if (!has(c, 'covarde') && Math.random() < 0.4) {

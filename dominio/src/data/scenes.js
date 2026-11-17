@@ -12,6 +12,25 @@ export const SCENES = {
     ] },
     { who: 'vice', text: 'Eu fecho contigo até o fim. {capitaes} tão de prontidão. É só dar a ordem.' },
   ],
+  introEscola: [
+    { who: 'vice', text: 'E aí, {vulgo}. Esse Estadual tá largado. O Técnico, a Vila e o Cais acham que mandam na região inteira.' },
+    { who: 'cmd', text: '{originLine}' },
+    { who: 'vice', text: 'Então qual é o plano?', choices: [
+      { text: 'A gente começa pelo nosso colégio. Um canto de cada vez.', effect: { loyalty: 5 }, reply: 'Gostei. Primeiro a casa, depois a rua.' },
+      { text: 'A gente vai mostrar pros três colégios quem manda.', effect: { respect: 3 }, reply: 'É isso! O {gang} vai ser lenda no recreio.' },
+    ] },
+    { who: 'vice', text: 'Primeiro passo: chamar uns moleques pro bonde. Toca no Terraço e recruta. Eu e {capitaes} tamo contigo.' },
+  ],
+  objective: [
+    { who: 'vice', text: '{texto}' },
+  ],
+  timeskip_escola: [
+    { who: 'cmd', text: 'Os colégios são nossos. Mas isso aqui é só o começo.' },
+    { who: 'narr', text: 'ANOS DEPOIS...' },
+    { who: 'narr', text: 'Os moleques cresceram. As rixas de colégio viraram facções de verdade, e Porto Neon virou um tabuleiro.' },
+    { who: 'vice', text: '{vulgo}, lembra do terraço do Estadual? Os Corvos, as Serpentes e os Dragões tomaram a cidade. O jogo agora é outro.' },
+    { who: 'cmd', text: 'Então a gente toma de volta. Um ponto de cada vez. Mas antes: o bonde merece uma marca à altura.' },
+  ],
   betrayalCaptain: [
     { who: 'm', text: 'Foi mal, {vulgo}. O {rival} pagou melhor. O {ponto} agora é deles.' },
     { who: 'cmd', text: 'Você vai se arrepender do dia em que virou as costas pro {gang}.' },
@@ -43,6 +62,6 @@ export const TIPS = {
   attack:   { title: 'Atacar', text: 'Escolha quantos soldados livres mandar e veja a chance. Quem sobreviver fica de guarda no ponto. Cada ataque gasta 1 ⚡.' },
   own:      { title: 'Seu ponto', text: 'Coloque guardas pra proteger e designe um capitão: dá defesa e os bônus dos traços.' },
   endDay:   { title: 'Fim do dia', text: 'Quando acabarem as ações, toque em Encerrar dia. Os rivais jogam, a renda entra e os salários saem.' },
-  visada:   { title: 'Visada 👁️', text: 'A polícia está de olho. Acima de 50 tem batida. Suborne ou baixe a poeira num ponto pra esfriar.' },
+  visada:   { title: '{heat} {heatIcon}', text: 'A {police} está de olho no bonde. Acima de 50 {consequencia}. Use {bribeIcon} {bribe} ou baixe a poeira num ponto pra esfriar.' },
   crew:     { title: 'O bonde', text: 'No 👥 Bonde você vê o seu personagem, o vice e os capitães. De olho na lealdade: abaixo de 25, alguém pode trair.' },
 };

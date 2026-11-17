@@ -3,6 +3,7 @@ import { SCENES, TIPS } from '../data/scenes.js';
 import { ORIGINS } from '../data/crew.js';
 import { state, save } from '../core/state.js';
 import { member } from '../core/crew.js';
+import { ERA, T } from '../core/era.js';
 import { clamp } from '../core/util.js';
 import { avatarSVG } from './art.js';
 
@@ -40,6 +41,7 @@ export function tryPlay() {
 }
 
 function speaker(who, ctx) {
+  if (who === 'narr') return { narr: true };
   if (who === 'cmd') return { name: state.cmd.vulgo, sub: 'Você', look: state.cmd.look };
   const m = who === 'vice' ? state.members.find((x) => x.role === 'vice') : member(ctx[who]);
   if (!m) return { name: '???', sub: '', look: state.cmd.look };
@@ -64,6 +66,12 @@ function drawLine() {
   const choices = line.choices && !current.reply;
   const text = current.reply ? fill(current.reply, current.ctx) : fill(line.text, current.ctx);
   const first = current.i === 0 && !current.reply && el.classList.contains('hidden');
+  if (sp.narr) {
+    el.innerHTML = `<div class="dlg narr ${first ? 'first' : ''}" onclick="dialogNext()"><div class="body"><div class="tx">${fill(line.text, current.ctx)}</div>
+      <div class="ft"><span>Toque pra continuar ▸</span><button onclick="event.stopPropagation();dialogSkip()">Pular cena ⏭</button></div></div></div>`;
+    el.classList.remove('hidden');
+    return;
+  }
   el.innerHTML = `<div class="dlg ${line.who === 'cmd' ? 'me' : ''} ${first ? 'first' : ''}" onclick="dialogNext()">
     <div class="who">${avatarSVG(sp.look, state.jacket, state.flag, { status: sp.status })}</div>
     <div class="body">
@@ -111,7 +119,10 @@ export function showTip(id) {
   state.seenTips[id] = 1;
   save();
   tipShowing = id;
-  const t = TIPS[id];
+  const W = ERA.words;
+  const vars = { heat: W.heat, heatIcon: W.heatIcon, police: W.police, bribe: W.bribe, bribeIcon: W.bribeIcon,
+    consequencia: ERA.cfg.raid === 'advertencia' ? 'pode vir advertência, e na terceira o bonde é suspenso' : 'tem batida' };
+  const t = { title: T(TIPS[id].title, vars), text: T(TIPS[id].text, vars) };
   const el = $('#tip');
   el.innerHTML = `<div class="tipbox"><b>❔ ${t.title}</b><p>${t.text}</p>
     <div class="row"><button class="primary" onclick="closeTip()">Entendi</button><button onclick="closeTip(true)">Desativar dicas</button></div></div>`;

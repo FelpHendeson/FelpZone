@@ -1,14 +1,15 @@
 // Simulador de equilíbrio: um bot joga várias partidas e mede vitória, duração e visada.
-// Uso: node sim/balance.mjs [partidas=40] [--sem-bonde] [--cuidar]
+// Uso: node sim/balance.mjs [partidas=40] [--era escola|cidade] [--sem-bonde] [--cuidar]
 import { state, newGame } from '../src/core/state.js';
-import { ADJ } from '../src/data/maps/porto-neon.js';
-import { reachable, estDef, playerAttack, moveGuards, recruit, bribe, endDay } from '../src/core/rules.js';
+import { ADJ } from '../src/core/era.js';
+import { reachable, estDef, playerAttack, moveGuards, recruit, bribe, endDay, canBuyMoto, motoCost, buyMoto } from '../src/core/rules.js';
 import { active, captainAt, assignCaptain, canPromote, promoteCaptain, spendPoint, canGift, gift } from '../src/core/crew.js';
 import { hooks } from '../src/core/state.js';
 
 const GAMES = Number(process.argv[2]) || 40;
 const MAX_DAYS = 90;
 
+const ERA_ID = process.argv.includes('--era') ? process.argv[process.argv.indexOf('--era') + 1] : 'cidade';
 const USE_CREW = !process.argv.includes('--sem-bonde');
 const CARE = process.argv.includes('--cuidar');   // dá agrado quando a lealdade cai
 
@@ -16,7 +17,7 @@ const CARE = process.argv.includes('--cuidar');   // dá agrado quando a lealdad
 function manageCrew() {
   if (!USE_CREW) return;
   while (state.cmd.points > 0) spendPoint(state.cmd.points % 2 ? 'tatica' : 'forca');
-  if (!canPromote() && state.money > 2500) promoteCaptain();
+  if (!canPromote() && state.money > 2500 * (ERA_ID === 'escola' ? 0.12 : 1)) promoteCaptain();
   const free = active().filter((m) => m.node === null || state.nodes[m.node].owner !== 'P');
   const spots = state.nodes.filter((n) => n.owner === 'P' && !captainAt(n))
     .map((n) => ({ n, front: ADJ[n.id].filter((m) => { const o = state.nodes[m].owner; return o && o !== 'P' && o !== 'X'; }).length }))
@@ -27,7 +28,8 @@ function manageCrew() {
 
 function playDay(useBribe) {
   manageCrew();
-  if (state.money > 600) recruit(0, 9);
+  if (canBuyMoto() && state.money > motoCost() * 1.5) buyMoto();
+  if (state.money > 600 * (ERA_ID === 'escola' ? 0.12 : 1)) recruit(0, 9);
   if (useBribe && state.heat > 50) bribe();
   for (let a = 0; a < 3; a++) {
     const t = state.nodes.filter((n) => reachable(n)).map((n) => ({ n, d: estDef(n) })).sort((x, y) => x.d - y.d)[0];
@@ -45,7 +47,7 @@ function playDay(useBribe) {
   for (const l of state.log) {
     if (l === before) break;
     if (l.msg.includes('MEGAOPERAÇÃO')) megas++;
-    else if (l.msg.includes('Batida policial')) raids++;
+    else if (l.msg.includes('Batida policial') || l.msg.includes('Advertência') || l.msg.includes('ADVERTÊNCIA')) raids++;
     if (l.msg.startsWith('🐍')) traicoes++;
     if (l.msg.startsWith('⚰️')) mortes++;
   }
@@ -55,7 +57,7 @@ function playDay(useBribe) {
 function run(useBribe) {
   const res = [];
   for (let g = 0; g < GAMES; g++) {
-    newGame({ gang: 'Bot', leader: 'Bot', color: '#ef4444' });
+    newGame({ gang: 'Bot', leader: 'Bot', color: '#ef4444', era: ERA_ID, skipIntro: true });
     const heats = [];
     let raids = 0, megas = 0, traicoes = 0, mortes = 0;
     for (let d = 0; d < MAX_DAYS && !state.over; d++) {
@@ -75,6 +77,7 @@ function run(useBribe) {
 }
 
 hooks.scene = () => {};
+console.log(`Era: ${ERA_ID}`);
 console.log(USE_CREW ? `Bot usando o bonde (capitães, promoções, atributos)${CARE ? ' e cuidando da lealdade' : ', sem cuidar da lealdade'}` : 'Bot sem usar o bonde');
 run(true);
 run(false);

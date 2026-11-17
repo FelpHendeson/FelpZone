@@ -81,7 +81,7 @@ function stepAttrs() {
 }
 function stepGang() {
   return `
-    ${editOnly ? '' : `<label>Nome do bonde</label><input type="text" value="${esc(d.gang)}" maxlength="24" oninput="cr.set('gang', this.value)">`}
+    ${editOnly && !d.renameGang ? '' : `<label>Nome do bonde</label><input type="text" id="crGang" value="${esc(d.gang)}" maxlength="24" oninput="cr.set('gang', this.value)">`}
     <label>Bandeira: fundo</label>${swatches(FLAG_COLORS, d.flag.bg, 'cr.flag.bg')}
     <label>Padrão</label><div class="chips">${Object.entries(PATTERNS).map(([k, v]) => `<button class="${d.flag.pattern === k ? 'sel' : ''}" onclick="cr.flag.pattern('${k}')">${v}</button>`).join('')}</div>
     <label>Cor do padrão</label>${swatches(FLAG_COLORS, d.flag.fg, 'cr.flag.fg')}
@@ -111,10 +111,10 @@ function draw() {
   const last = editOnly ? step === 2 : step === 3;
   const valid = step !== 0 || (d.leader || '').trim().length > 0;
   $('#create').innerHTML = `<div class="cbox">
-    <div class="chead">${editOnly ? '<h2>Bandeira e jaqueta</h2>' : `<h2>Criar personagem</h2><div class="steps">${STEPS.map((s, i) => `<span class="${i === step ? 'on' : i < step ? 'done' : ''}">${i + 1}. ${s}</span>`).join('')}</div>`}</div>
+    <div class="chead">${editOnly ? `<h2>${d.renameGang ? 'Anos depois: a nova marca do bonde' : 'Bandeira e jaqueta'}</h2>` : `<h2>Criar personagem</h2><div class="steps">${STEPS.map((s, i) => `<span class="${i === step ? 'on' : i < step ? 'done' : ''}">${i + 1}. ${s}</span>`).join('')}</div>`}</div>
     <div class="cmain">${preview()}<div class="cform">${body}</div></div>
     <div class="cfoot">
-      ${editOnly ? '<button onclick="cr.cancel()">Cancelar</button>' : step > 0 ? '<button onclick="cr.go(-1)">‹ Voltar</button>' : '<button onclick="cr.cancel()">Voltar</button>'}
+      ${editOnly ? `<button onclick="cr.cancel()">${d.renameGang ? 'Manter como está' : 'Cancelar'}</button>` : step > 0 ? '<button onclick="cr.go(-1)">‹ Voltar</button>' : '<button onclick="cr.cancel()">Voltar</button>'}
       <button class="primary" onclick="${last ? 'cr.finish()' : 'cr.go(1)'}" ${valid ? '' : 'disabled'}>${last ? (editOnly ? 'Salvar' : 'Começar ▶') : 'Próximo ›'}</button>
     </div></div>`;
   $('#create').classList.remove('hidden');
@@ -123,7 +123,7 @@ function redrawKeepFocus() {
   const id = document.activeElement && document.activeElement.id;
   const pos = id && document.activeElement.selectionStart;
   // só a prévia e o rodapé mudam ao digitar; redesenhar tudo tiraria o foco do campo
-  if (id === 'crName' || id === 'crVulgo') {
+  if (id === 'crName' || id === 'crVulgo' || id === 'crGang') {
     document.querySelector('#create .pv').outerHTML = preview();
     const btn = document.querySelector('#create .cfoot .primary');
     btn.disabled = step === 0 && !(d.leader || '').trim();
