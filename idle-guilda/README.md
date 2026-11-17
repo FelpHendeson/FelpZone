@@ -2,6 +2,8 @@
 
 Idle de RPG e gerenciamento de personagens. Você comanda uma pequena guilda de aventureiros que caçam, mineram e descansam sozinhos, inclusive com o jogo fechado. O seu papel é decidir: onde cada um trabalha, como distribuir os pontos de atributo, quais armas forjar e quem contratar. Nome provisório.
 
+**Versão publicada:** [idle-guilda.vercel.app](https://idle-guilda.vercel.app/)
+
 ## Hipótese
 
 Voltar ao jogo e ver o progresso acumulado já dá vontade de tomar a próxima decisão (subir um atributo, forjar uma arma, mudar de zona), mesmo com pouco conteúdo.
@@ -50,6 +52,10 @@ Decisões:
 - **O motor emite acontecimentos estruturados** (`Evento`), e o texto é montado em `ui/texto.ts`.
 - **As ações devolvem um estado novo ou um erro**, sem alterar o anterior.
 - **O monstro continua ferido enquanto o herói descansa**, para que um herói fraco avance devagar em vez de ficar travado. O botão da zona marca *perigoso* quando o herói lutaria menos da metade do tempo.
+
+## Publicação
+
+Projeto `idle-guilda` na Vercel, ligado ao repositório com **Root Directory** `idle-guilda` e preset Vite. É um site estático, sem variáveis de ambiente.
 
 ## Próximos passos possíveis
 
