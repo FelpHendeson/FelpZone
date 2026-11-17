@@ -1,5 +1,5 @@
 import { ARMAS, CLASSES, MATERIAIS, ZONAS } from './dados';
-import type { Estado, Heroi, Tarefa } from './tipos';
+import type { Estado, Heroi } from './tipos';
 
 export interface Save {
   estado: Estado;
@@ -15,12 +15,7 @@ type Obj = Record<string, unknown>;
 const ehObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !Array.isArray(v);
 const ehNumero = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 const temChaves = (o: unknown, chaves: string[]) => ehObj(o) && chaves.every((c) => ehNumero(o[c]));
-
-function tarefaValida(t: unknown): t is Tarefa {
-  if (!ehObj(t)) return false;
-  if (t.tipo === 'minerar' || t.tipo === 'descansar') return true;
-  return t.tipo === 'cacar' && typeof t.zona === 'string' && t.zona in ZONAS;
-}
+const ehZona = (z: unknown) => typeof z === 'string' && z in ZONAS;
 
 function heroiValido(h: unknown): h is Heroi {
   return (
@@ -31,17 +26,15 @@ function heroiValido(h: unknown): h is Heroi {
     h.classe in CLASSES &&
     typeof h.arma === 'string' &&
     h.arma in ARMAS &&
-    typeof h.descansoAutomatico === 'boolean' &&
-    ['nivel', 'xp', 'pontosLivres', 'vida', 'fadiga', 'progressoAbate', 'abates', 'nocautes'].every((c) =>
-      ehNumero(h[c]),
-    ) &&
-    temChaves(h.atributos, ['forca', 'destreza', 'mente', 'vigor']) &&
-    tarefaValida(h.tarefa) &&
-    (h.tarefaAnterior === null || tarefaValida(h.tarefaAnterior))
+    ['nivel', 'xp', 'pontosLivres', 'vida'].every((c) => ehNumero(h[c])) &&
+    temChaves(h.atributos, ['poder', 'vigor'])
   );
 }
 
-/** Lê um save; devolve null se estiver ausente, corrompido ou em versão desconhecida. */
+/**
+ * Lê um save; devolve null se estiver ausente, corrompido ou em versão
+ * desconhecida (saves da v0.1 não são compatíveis e começam do zero).
+ */
 export function desserializar(texto: string | null): Save | null {
   if (!texto) return null;
   let dados: unknown;
@@ -54,17 +47,20 @@ export function desserializar(texto: string | null): Save | null {
   const e = dados.estado;
   if (
     !ehObj(e) ||
-    e.versao !== 1 ||
-    !ehNumero(e.tempo) ||
-    !ehNumero(e.ouro) ||
-    !ehNumero(e.proximoId) ||
+    e.versao !== 2 ||
+    !['tempo', 'ouro', 'proximoId', 'progressoAbate', 'objetivo'].every((c) => ehNumero(e[c])) ||
     !temChaves(e.materiais, Object.keys(MATERIAIS)) ||
     !temChaves(e.armas, Object.keys(ARMAS)) ||
     !Array.isArray(e.herois) ||
     e.herois.length === 0 ||
     !e.herois.every(heroiValido) ||
+    !ehZona(e.zona) ||
+    (e.situacao !== 'lutando' && e.situacao !== 'descansando') ||
     !Array.isArray(e.zonasLiberadas) ||
-    !e.zonasLiberadas.every((z) => typeof z === 'string' && z in ZONAS) ||
+    !e.zonasLiberadas.every(ehZona) ||
+    !ehObj(e.estatisticas) ||
+    !temChaves(e.estatisticas.abates, Object.keys(ZONAS)) ||
+    !temChaves(e.estatisticas, ['pontosDistribuidos', 'armasForjadas', 'armasEquipadas']) ||
     !Array.isArray(e.diario)
   ) {
     return null;

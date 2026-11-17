@@ -5,10 +5,16 @@ import { Recurso } from './Barra';
 import { EscolhaClasse } from './Fundacao';
 import { nomeAleatorio } from './texto';
 
-export function Taverna(props: { estado: Estado; agir: (acao: (e: Estado) => Resultado) => void }) {
-  const e = props.estado;
+interface Props {
+  estado: Estado;
+  agir: (acao: (e: Estado) => Resultado) => void;
+  aoContratar: () => void;
+}
+
+export function Taverna({ estado: e, agir, aoContratar }: Props) {
   const usados = e.herois.map((h) => h.nome);
-  const [classe, setClasse] = useState<Classe>('cacadora');
+  const sugestao: Classe = e.herois.some((h) => h.classe === 'mistica') ? 'cacadora' : 'mistica';
+  const [classe, setClasse] = useState<Classe>(sugestao);
   const [nome, setNome] = useState(() => nomeAleatorio(usados));
   const custo = custoProximaContratacao(e);
 
@@ -16,7 +22,7 @@ export function Taverna(props: { estado: Estado; agir: (acao: (e: Estado) => Res
     return (
       <section className="painel">
         <h2>Taverna</h2>
-        <p className="dica">A guilda está completa por enquanto: três aventureiros é o máximo desta versão.</p>
+        <p className="dica">Sua party está completa: três heróis é o máximo desta versão.</p>
       </section>
     );
   }
@@ -24,7 +30,9 @@ export function Taverna(props: { estado: Estado; agir: (acao: (e: Estado) => Res
   return (
     <section className="painel">
       <h2>Taverna</h2>
-      <p className="dica">Um novo aventureiro chega no nível 1. Mais heróis permitem caçar e minerar ao mesmo tempo.</p>
+      <p className="dica">
+        Quem você contratar entra na party e luta junto a partir do nível 1, aprendendo rápido com o grupo.
+      </p>
       <EscolhaClasse classe={classe} aoEscolher={setClasse} />
       <label className="campo">
         Nome
@@ -39,12 +47,14 @@ export function Taverna(props: { estado: Estado; agir: (acao: (e: Estado) => Res
         className="principal"
         disabled={e.ouro < custo || !nome.trim()}
         onClick={() => {
-          props.agir((s) => contratar(s, nome, classe));
+          agir((s) => contratar(s, nome, classe));
           setNome(nomeAleatorio([...usados, nome]));
+          aoContratar();
         }}
       >
         Contratar por <Recurso tipo="ouro" valor={custo} falta={e.ouro < custo} />
       </button>
+      {e.ouro < custo && <p className="dica">Falta ouro: a party ganha ouro a cada monstro derrotado.</p>}
     </section>
   );
 }

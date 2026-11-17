@@ -1,5 +1,6 @@
 import { ARMAS, CLASSES, ZONAS } from '../motor/dados';
-import type { Estado, Evento, Tarefa } from '../motor/tipos';
+import { OBJETIVOS } from '../motor/objetivos';
+import type { Estado, Evento } from '../motor/tipos';
 
 export function inteiro(n: number): string {
   return Math.floor(n).toLocaleString('pt-BR');
@@ -20,25 +21,19 @@ export function duracao(segundos: number): string {
   return `${s} s`;
 }
 
-export function descreverTarefa(t: Tarefa): string {
-  if (t.tipo === 'cacar') return `Caçando ${ZONAS[t.zona].monstro.plural} em ${ZONAS[t.zona].nome}`;
-  if (t.tipo === 'minerar') return 'Minerando na pedreira';
-  return 'Descansando no acampamento';
-}
-
 export function descreverEvento(e: Estado, ev: Evento): string {
   const nome = (id: string) => e.herois.find((h) => h.id === id)?.nome ?? 'Alguém';
   switch (ev.tipo) {
     case 'subiuNivel':
       return `${nome(ev.heroi)} chegou ao nível ${ev.nivel}.`;
-    case 'nocaute':
-      return `${nome(ev.heroi)} foi nocauteado em ${ZONAS[ev.zona].nome} e voltou ao acampamento.`;
     case 'zonaLiberada':
       return `Nova zona liberada: ${ZONAS[ev.zona].nome}!`;
     case 'forjou':
       return `A forja entregou: ${ARMAS[ev.arma].nome}.`;
     case 'contratou':
-      return `${nome(ev.heroi)}, ${CLASSES[ev.classe].nome.toLowerCase()}, entrou para a guilda.`;
+      return `${nome(ev.heroi)}, ${CLASSES[ev.classe].nome.toLowerCase()}, entrou para a party.`;
+    case 'objetivo':
+      return `Objetivo concluído: ${OBJETIVOS[ev.indice]?.titulo ?? ''}.`;
   }
 }
 

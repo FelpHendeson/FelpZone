@@ -1,11 +1,12 @@
+import { CLASSES } from '../motor/dados';
 import { vidaMaxima } from '../motor/regras';
-import type { Heroi, ZonaId } from '../motor/tipos';
+import type { Estado, Heroi, ZonaId } from '../motor/tipos';
 import { desenhar, type Sprite } from './sprite';
 import { CENARIO, MAO, MONSTROS, spriteArma, spriteHeroi } from './sprites';
 
-export const CENA_LARGURA = 112;
-export const CENA_ALTURA = 48;
-const CHAO = 38;
+export const CENA_LARGURA = 128;
+export const CENA_ALTURA = 56;
+const CHAO = 44;
 
 interface Ambiente {
   ceu: [string, string];
@@ -14,17 +15,17 @@ interface Ambiente {
   enfeites: { s: Sprite; x: number; espelhar?: boolean }[];
 }
 
-const AMBIENTES: Record<ZonaId | 'pedreira' | 'acampamento', Ambiente> = {
+const AMBIENTES: Record<ZonaId | 'acampamento', Ambiente> = {
   campina: {
     ceu: ['#8fd3ff', '#cdeeff'],
     chao: '#5aa84a',
     borda: '#7cc85a',
     enfeites: [
       { s: CENARIO.arvore, x: 2 },
-      { s: CENARIO.tufo, x: 40 },
-      { s: CENARIO.flor, x: 56 },
-      { s: CENARIO.tufo, x: 92 },
-      { s: CENARIO.arvore, x: 98, espelhar: true },
+      { s: CENARIO.tufo, x: 60 },
+      { s: CENARIO.flor, x: 70 },
+      { s: CENARIO.tufo, x: 104 },
+      { s: CENARIO.arvore, x: 114, espelhar: true },
     ],
   },
   bosque: {
@@ -33,10 +34,9 @@ const AMBIENTES: Record<ZonaId | 'pedreira' | 'acampamento', Ambiente> = {
     borda: '#3f7048',
     enfeites: [
       { s: CENARIO.pinheiro, x: 0 },
-      { s: CENARIO.pinheiro, x: 12 },
-      { s: CENARIO.pinheiro, x: 48 },
-      { s: CENARIO.pinheiro, x: 88 },
-      { s: CENARIO.pinheiro, x: 100 },
+      { s: CENARIO.pinheiro, x: 56 },
+      { s: CENARIO.pinheiro, x: 104 },
+      { s: CENARIO.pinheiro, x: 116 },
     ],
   },
   ruinas: {
@@ -44,43 +44,42 @@ const AMBIENTES: Record<ZonaId | 'pedreira' | 'acampamento', Ambiente> = {
     chao: '#5e5a66',
     borda: '#7a7684',
     enfeites: [
-      { s: CENARIO.pilar, x: 4 },
-      { s: CENARIO.pilarQuebrado, x: 48 },
-      { s: CENARIO.pilar, x: 100 },
+      { s: CENARIO.pilar, x: 2 },
+      { s: CENARIO.pilarQuebrado, x: 60 },
+      { s: CENARIO.pilar, x: 118 },
     ],
-  },
-  pedreira: {
-    ceu: ['#c9a27a', '#f0d9b0'],
-    chao: '#8a6a4a',
-    borda: '#a5835e',
-    enfeites: [{ s: CENARIO.rochaMinerio, x: 84 }, { s: CENARIO.tufo, x: 10 }],
   },
   acampamento: {
     ceu: ['#141a33', '#2c3560'],
     chao: '#2f4a33',
     borda: '#3f5f42',
-    enfeites: [{ s: CENARIO.pinheiro, x: 2 }, { s: CENARIO.pinheiro, x: 98 }],
+    enfeites: [
+      { s: CENARIO.pinheiro, x: 2 },
+      { s: CENARIO.pinheiro, x: 114 },
+    ],
   },
 };
+
+const MONSTRO_DA_ZONA = { campina: 'gosma', bosque: 'lobo', ruinas: 'esqueleto' } as const;
 
 function fundo(ctx: CanvasRenderingContext2D, amb: Ambiente): void {
   const faixas = 6;
   for (let i = 0; i < faixas; i++) {
     ctx.fillStyle = i < faixas / 2 ? amb.ceu[0] : amb.ceu[1];
-    ctx.fillRect(0, Math.floor((i * CHAO) / faixas), CENA_LARGURA, Math.ceil(CHAO / faixas));
+    ctx.fillRect(0, Math.floor((i * CHAO) / faixas), CENA_LARGURA, Math.ceil(CHAO / faixas) + 1);
   }
   ctx.fillStyle = amb.chao;
   ctx.fillRect(0, CHAO, CENA_LARGURA, CENA_ALTURA - CHAO);
   ctx.fillStyle = amb.borda;
   ctx.fillRect(0, CHAO, CENA_LARGURA, 1);
-  for (let x = 3; x < CENA_LARGURA; x += 9) ctx.fillRect(x, CHAO + 4 + ((x * 7) % 5), 2, 1);
+  for (let x = 3; x < CENA_LARGURA; x += 9) ctx.fillRect(x, CHAO + 4 + ((x * 7) % 6), 2, 1);
   for (const e of amb.enfeites) {
     desenhar(ctx, e.s, e.x, CHAO - e.s.linhas.length, { espelhar: e.espelhar });
   }
 }
 
 function estrelas(ctx: CanvasRenderingContext2D, t: number): void {
-  const pontos = [[8, 4], [22, 10], [40, 3], [61, 8], [77, 5], [93, 12], [104, 3]];
+  const pontos = [[8, 4], [22, 10], [40, 3], [61, 8], [77, 5], [93, 12], [104, 3], [120, 9]];
   pontos.forEach(([x, y], i) => {
     ctx.fillStyle = Math.floor(t * 2 + i) % 3 === 0 ? '#6a75b0' : '#e6ecf2';
     ctx.fillRect(x, y, 1, 1);
@@ -96,67 +95,67 @@ function barra(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, f
   ctx.fillRect(x, y, Math.round(w * Math.max(0, Math.min(1, fracao))), 2);
 }
 
-function heroiComArma(
-  ctx: CanvasRenderingContext2D,
-  h: Heroi,
-  x: number,
-  y: number,
-  arma: ReturnType<typeof spriteArma> | null,
-  baixarArma = 0,
-  olhosFechados = false,
-): void {
-  desenhar(ctx, spriteHeroi(h.classe), x, y, olhosFechados ? { trocas: { e: 'S' } } : {});
-  if (arma) desenhar(ctx, arma.sprite, x + MAO.x - arma.pega.x, y + MAO.y - arma.pega.y + baixarArma);
+/** Posição de cada herói: o tanque na frente, a cura atrás. */
+function posicoes(herois: Heroi[]): { h: Heroi; x: number }[] {
+  const ordem = { cura: 0, dano: 1, tanque: 2 } as const;
+  const ordenados = [...herois].sort((a, b) => ordem[CLASSES[a.classe].papel] - ordem[CLASSES[b.classe].papel]);
+  const frente = 48;
+  return ordenados.map((h, i) => ({ h, x: frente - (ordenados.length - 1 - i) * 17 }));
 }
 
-/**
- * Desenha a cena do herói conforme a tarefa. `t` é o tempo em segundos,
- * usado só para animar (2 quadros por ciclo).
- */
-export function desenharCena(ctx: CanvasRenderingContext2D, h: Heroi, t: number): void {
+function desenharHeroi(ctx: CanvasRenderingContext2D, h: Heroi, x: number, y: number, op: { golpe?: boolean; dormindo?: boolean }) {
+  desenhar(ctx, spriteHeroi(h.classe), x, y, op.dormindo ? { trocas: { e: 'S' } } : {});
+  if (op.dormindo) return;
+  const arma = spriteArma(h.arma);
+  desenhar(ctx, arma.sprite, x + MAO.x - arma.pega.x, y + MAO.y - arma.pega.y + (op.golpe ? 2 : 0));
+}
+
+/** Desenha a party lutando na zona atual ou descansando. `t` em segundos, só para animar. */
+export function desenharCena(ctx: CanvasRenderingContext2D, e: Estado, t: number): void {
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, CENA_LARGURA, CENA_ALTURA);
   const quadro = Math.floor(t * 4) % 2;
-  const tarefa = h.tarefa;
+  const party = posicoes(e.herois);
 
-  if (tarefa.tipo === 'cacar') {
-    fundo(ctx, AMBIENTES[tarefa.zona]);
-    const ataque = quadro === 1;
-    heroiComArma(ctx, h, 26 + (ataque ? 3 : 0), CHAO - 16, spriteArma(h.arma), ataque ? 3 : 0);
-
-    const nomeMonstro = ({ campina: 'gosma', bosque: 'lobo', ruinas: 'esqueleto' } as const)[tarefa.zona];
-    const monstro = MONSTROS[nomeMonstro];
-    const pulo = nomeMonstro === 'gosma' && quadro === 0 ? -1 : 0;
-    const recuo = ataque ? 1 : 0;
-    const mx = 66 + recuo;
-    desenhar(ctx, monstro, mx, CHAO - 16 + pulo);
-    if (ataque) {
-      desenhar(ctx, CENARIO.faisca, mx + 1, CHAO - 10);
+  if (e.situacao === 'lutando') {
+    fundo(ctx, AMBIENTES[e.zona]);
+    // Cada herói golpeia num tempo diferente, para a cena não marchar em uníssono.
+    party.forEach(({ h, x }, i) => {
+      const golpe = (Math.floor(t * 4) + i) % 2 === 1;
+      desenharHeroi(ctx, h, x + (golpe ? 2 : 0), CHAO - 16, { golpe });
+      barra(ctx, x + 3, CHAO - 20, 10, h.vida / vidaMaxima(h), '#5fcf5a');
+    });
+    const curandeira = e.herois.find((h) => CLASSES[h.classe].papel === 'cura');
+    if (curandeira && quadro === 1) {
+      const alvo = party.reduce((pior, p) => (p.h.vida / vidaMaxima(p.h) < pior.h.vida / vidaMaxima(pior.h) ? p : pior));
+      desenhar(ctx, CENARIO.cura, alvo.x + 7, CHAO - 25 - (Math.floor(t * 8) % 2));
     }
-    barra(ctx, mx + 2, CHAO - 21, 12, 1 - h.progressoAbate, '#e04a4a');
-  } else if (tarefa.tipo === 'minerar') {
-    fundo(ctx, AMBIENTES.pedreira);
-    const golpe = quadro === 1;
-    heroiComArma(ctx, h, 64, CHAO - 16, spriteArma('picareta'), golpe ? 2 : -1);
-    if (golpe) desenhar(ctx, CENARIO.faisca, 82, CHAO - 7);
+
+    const monstro = MONSTROS[MONSTRO_DA_ZONA[e.zona]];
+    const pulo = e.zona === 'campina' && quadro === 0 ? -1 : 0;
+    const mx = 84 + (quadro === 1 ? 1 : 0);
+    desenhar(ctx, monstro, mx, CHAO - 16 + pulo);
+    if (quadro === 1) desenhar(ctx, CENARIO.faisca, mx + 1, CHAO - 10);
+    barra(ctx, mx + 1, CHAO - 21, 14, 1 - e.progressoAbate, '#e04a4a');
   } else {
     fundo(ctx, AMBIENTES.acampamento);
     estrelas(ctx, t);
     const fogo = CENARIO.fogueira;
-    desenhar(ctx, fogo, 60, CHAO - fogo.linhas.length, { espelhar: quadro === 1 });
-    heroiComArma(ctx, h, 36, CHAO - 16, null, 0, true);
+    desenhar(ctx, fogo, 76, CHAO - fogo.linhas.length, { espelhar: quadro === 1 });
+    party.forEach(({ h, x }) => {
+      desenharHeroi(ctx, h, x + 8, CHAO - 16, { dormindo: true });
+      barra(ctx, x + 11, CHAO - 20, 10, h.vida / vidaMaxima(h), '#5fcf5a');
+    });
     const subida = (t * 3) % 6;
-    desenhar(ctx, CENARIO.zz, 48, CHAO - 20 - subida);
-    const proporcao = h.vida / vidaMaxima(h);
-    barra(ctx, 38, CHAO - 21, 12, proporcao, '#5fcf5a');
+    desenhar(ctx, CENARIO.zz, 62, CHAO - 22 - subida);
   }
 }
 
-/** Desenho do herói sozinho, para retratos e escolha de classe. */
-export function desenharRetrato(ctx: CanvasRenderingContext2D, h: Pick<Heroi, 'classe' | 'arma'>, t: number): void {
+/** Herói sozinho, para retratos (24×20). */
+export function desenharRetrato(ctx: CanvasRenderingContext2D, h: Pick<Heroi, 'classe' | 'arma'>, t: number, animar = true): void {
   ctx.imageSmoothingEnabled = false;
   ctx.clearRect(0, 0, 24, 20);
-  const pulo = Math.floor(t * 2) % 2;
+  const pulo = animar ? Math.floor(t * 2) % 2 : 0;
   const arma = spriteArma(h.arma);
   desenhar(ctx, spriteHeroi(h.classe), 2, 2 + pulo);
   desenhar(ctx, arma.sprite, 2 + MAO.x - arma.pega.x, 2 + pulo + MAO.y - arma.pega.y);

@@ -6,25 +6,24 @@ Idle de RPG e gerenciamento de personagens. Você comanda uma pequena guilda de 
 
 ## Hipótese
 
-Voltar ao jogo e ver o progresso acumulado já dá vontade de tomar a próxima decisão (subir um atributo, forjar uma arma, mudar de zona), mesmo com pouco conteúdo.
+Voltar ao jogo e ver o progresso acumulado já dá vontade de tomar a próxima decisão (montar a party, forjar uma arma, mudar de zona), mesmo com pouco conteúdo.
 
 ## Estado atual
 
-**v0.1 jogável**, com:
+**v0.2: party única e tutorial por objetivos.** A v0.1 tinha cada herói numa tarefa separada, com fadiga, mineração e muitos botões, e no teste ficou confusa. Nesta versão:
 
-- **Fundação:** escolha da classe e do nome do primeiro aventureiro.
-- **Três classes:** Guerreiro (Força, mais vida), Caçadora (Destreza, mais saque) e Mística (Mente, mais XP, frágil).
-- **Tarefas:** caçar em três zonas (Campina Verde, Bosque Sombrio e Ruínas Antigas, liberadas nos níveis 1, 5 e 10), minerar e descansar.
-- **Vida e fadiga:** a fadiga reduz o rendimento até 50%. O *descanso automático* tira o herói da luta com vida baixa ou exausto e o devolve à tarefa quando ele se recupera. Sem descanso automático, ele pode ser nocauteado.
-- **Níveis:** cada nível dá +1 no atributo principal da classe e 2 pontos livres para distribuir. Cada atributo tem um efeito próprio.
-- **Forja:** quatro armas feitas de ouro e materiais (gosma, couro, minério e fragmento arcano). Uma arma com afinidade rende 50% a mais na classe certa, e cada unidade fica com um único herói.
-- **Taverna:** contratação de até três heróis (150 e 900 de ouro).
-- **Progresso offline:** até 8 horas, com um resumo ao voltar. Uma aba escondida por mais de 30 s também conta como tempo fora.
-- **Diário** com os acontecimentos importantes e um botão para apagar a guilda.
-- **Pixel art desenhada no código:** os sprites são grades de texto com paleta (`src/arte/sprites.ts`), sem imagens externas.
-- **Save** no `localStorage`, validado ao carregar.
+- **Uma party só:** até três heróis vão juntos para a zona e lutam juntos numa cena grande.
+- **Papéis claros:** o **Guerreiro** (tanque) recebe todos os golpes; a **Mística** (cura) cura quem está mais ferido e dá +25% de XP ao grupo; a **Caçadora** (dano) bate forte e acha +25% de materiais. Sem tanque, o dano se divide entre todos.
+- **Descanso automático do grupo:** se alguém cai abaixo de 25% da vida, a party volta ao acampamento e retorna quando todos se recuperam. O monstro continua ferido enquanto isso.
+- **Dois atributos:** Poder (dano, ou cura na Mística) e Vigor (vida e defesa). Cada nível dá 2 pontos, e o botão "Distribuir sugerido" reparte conforme o papel.
+- **Objetivos como tutorial:** 12 passos em sequência (forjar, equipar, contratar, avançar de zona), cada um com dica, atalho para a tela certa e recompensa em ouro. As abas mostram um marcador quando há algo a fazer nelas.
+- **"Como jogar"** na primeira vez e no botão **?** do topo.
+- **Zonas:** Campina Verde, Bosque Sombrio e Ruínas Antigas (níveis 1, 5 e 10). Cada botão mostra o XP por minuto esperado, medido simulando 10 minutos, ou avisa quando a zona é difícil demais.
+- **Forja** com 4 armas (gosma, couro e fragmentos), **Taverna** para completar a party, **Diário** e **progresso offline** de até 8 horas com resumo.
+- **Pixel art desenhada no código** (`src/arte/sprites.ts`), sem imagens externas.
+- **Save** no `localStorage`. Saves da v0.1 não são compatíveis e o jogo começa do zero.
 
-Ritmo medido por simulação, jogando de forma simples: Bosque por volta de 10 min, Ruínas por volta de 30 min e nível 16 em cerca de 4 h. O minério é o gargalo, o que dá motivo para minerar.
+Ritmo medido com um bot que segue os objetivos: os sete primeiros saem em poucos minutos, o Bosque passa a compensar perto de 10 minutos e as Ruínas perto de 75. A sequência inteira leva cerca de 1 h 20.
 
 ## Executar localmente
 
@@ -41,17 +40,18 @@ Abra a URL exibida pelo Vite. Para testar no celular na mesma rede, use `npm run
 
 | Pasta | Conteúdo |
 | --- | --- |
-| `src/motor/` | Regras em TypeScript puro, sem React: tipos, dados (classes, zonas, armas), fórmulas, simulação por segundo, ações e save. Tudo determinístico e testado. |
-| `src/arte/` | Sprites em texto, desenho no canvas e montagem das cenas de cada tarefa. |
+| `src/motor/` | Regras em TypeScript puro, sem React: tipos, dados (classes, zonas, armas), fórmulas, combate da party por segundo, objetivos, ações e save. Tudo determinístico e testado. |
+| `src/arte/` | Sprites em texto, desenho no canvas e montagem da cena da party (luta ou acampamento). |
 | `src/ui/` | Componentes React que mostram o estado e chamam as ações do motor. |
 
 Decisões:
 
-- **Simulação em passos de 1 s**, iguais com o jogo aberto ou fechado: oito horas offline são 28.800 passos por herói, o que leva milissegundos.
+- **Simulação em passos de 1 s**, iguais com o jogo aberto ou fechado: oito horas offline são 28.800 passos, o que leva milissegundos.
+- **A estimativa de cada zona é uma simulação curta** (10 minutos a partir da vida cheia), em vez de uma fórmula, para continuar correta quando as regras mudarem.
 - **Saque pelo valor esperado:** os materiais acumulam frações (0,5 gosma por abate), então não há sorteio e os testes são reproduzíveis.
 - **O motor emite acontecimentos estruturados** (`Evento`), e o texto é montado em `ui/texto.ts`.
 - **As ações devolvem um estado novo ou um erro**, sem alterar o anterior.
-- **O monstro continua ferido enquanto o herói descansa**, para que um herói fraco avance devagar em vez de ficar travado. O botão da zona marca *perigoso* quando o herói lutaria menos da metade do tempo.
+- **Menos controles, mais consequência:** a decisão principal é a composição da party e a zona, não o microgerenciamento de cada herói.
 
 ## Publicação
 
@@ -59,9 +59,9 @@ Projeto `idle-guilda` na Vercel, ligado ao repositório com **Root Directory** `
 
 ## Próximos passos possíveis
 
-1. Algo em que gastar ouro depois da forja (treinos, melhorias da guilda), já que ele sobra no meio do jogo.
+1. Algo em que gastar ouro depois da forja (melhorias da guilda, armaduras), já que ele sobra depois do tutorial.
 2. Chefes que bloqueiam a próxima zona e exigem preparo.
-3. Traços de personalidade (preguiçoso, ganancioso etc.) e grupos em que um tanque protege os outros.
+3. Mais heróis do que vagas na party, com reservas treinando ou coletando.
 4. Armaduras e um segundo espaço de equipamento.
 5. Prestígio: aposentar um veterano para ganhar bônus permanentes.
 6. Publicação como PWA, para instalar no celular.

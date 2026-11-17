@@ -1,10 +1,8 @@
 export type Classe = 'guerreiro' | 'cacadora' | 'mistica';
-export type Atributo = 'forca' | 'destreza' | 'mente' | 'vigor';
-export type Material = 'gosma' | 'couro' | 'minerio' | 'fragmento';
+export type Atributo = 'poder' | 'vigor';
+export type Material = 'gosma' | 'couro' | 'fragmento';
 export type ZonaId = 'campina' | 'bosque' | 'ruinas';
 export type ArmaId = 'bastao' | 'espada' | 'arco' | 'cajado' | 'lamina';
-
-export type Tarefa = { tipo: 'cacar'; zona: ZonaId } | { tipo: 'minerar' } | { tipo: 'descansar' };
 
 export interface Heroi {
   id: string;
@@ -15,26 +13,19 @@ export interface Heroi {
   pontosLivres: number;
   atributos: Record<Atributo, number>;
   vida: number;
-  /** 0 a 100. Acima de 0 reduz o rendimento. */
-  fadiga: number;
-  tarefa: Tarefa;
-  /** Tarefa a retomar depois de um descanso automático. */
-  tarefaAnterior: Tarefa | null;
-  descansoAutomatico: boolean;
   arma: ArmaId;
-  /** Fração do monstro atual já derrotada (0 a 1). */
-  progressoAbate: number;
-  abates: number;
-  nocautes: number;
 }
+
+/** A party inteira faz a mesma coisa: lutar numa zona ou descansar no acampamento. */
+export type Situacao = 'lutando' | 'descansando';
 
 /** Acontecimentos estruturados; o texto é montado na interface. */
 export type Evento =
   | { tipo: 'subiuNivel'; heroi: string; nivel: number }
-  | { tipo: 'nocaute'; heroi: string; zona: ZonaId }
   | { tipo: 'zonaLiberada'; zona: ZonaId }
   | { tipo: 'forjou'; arma: ArmaId }
-  | { tipo: 'contratou'; heroi: string; classe: Classe };
+  | { tipo: 'contratou'; heroi: string; classe: Classe }
+  | { tipo: 'objetivo'; indice: number };
 
 export interface RegistroEvento {
   /** Segundos de jogo em que aconteceu. */
@@ -42,8 +33,16 @@ export interface RegistroEvento {
   evento: Evento;
 }
 
+/** Contadores usados pelos objetivos e pelo resumo offline. */
+export interface Estatisticas {
+  abates: Record<ZonaId, number>;
+  pontosDistribuidos: number;
+  armasForjadas: number;
+  armasEquipadas: number;
+}
+
 export interface Estado {
-  versao: 1;
+  versao: 2;
   /** Segundos de jogo simulados desde a fundação. */
   tempo: number;
   ouro: number;
@@ -52,7 +51,14 @@ export interface Estado {
   /** Armas possuídas além do bastão, que é ilimitado. */
   armas: Record<ArmaId, number>;
   herois: Heroi[];
+  zona: ZonaId;
+  situacao: Situacao;
+  /** Fração do monstro atual já derrotada (0 a 1). O monstro espera a party descansar. */
+  progressoAbate: number;
   zonasLiberadas: ZonaId[];
+  /** Índice do objetivo atual na lista de objetivos. */
+  objetivo: number;
+  estatisticas: Estatisticas;
   diario: RegistroEvento[];
   proximoId: number;
 }

@@ -14,14 +14,19 @@ export function Recurso(props: { tipo: Material | 'ouro'; valor: number; falta?:
   );
 }
 
-export function Barra(props: { estado: Estado }) {
+export function Barra(props: { estado: Estado; aoAjuda: () => void }) {
   const e = props.estado;
   return (
     <header className="barra">
-      <Recurso tipo="ouro" valor={e.ouro} />
-      {(Object.keys(MATERIAIS) as Material[]).map((m) => (
-        <Recurso key={m} tipo={m} valor={e.materiais[m]} />
-      ))}
+      <span className="recursos">
+        <Recurso tipo="ouro" valor={e.ouro} />
+        {(Object.keys(MATERIAIS) as Material[]).map((m) => (
+          <Recurso key={m} tipo={m} valor={e.materiais[m]} />
+        ))}
+      </span>
+      <button className="ajuda" onClick={props.aoAjuda} aria-label="Como jogar">
+        ?
+      </button>
     </header>
   );
 }
@@ -29,9 +34,9 @@ export function Barra(props: { estado: Estado }) {
 export function Medidor(props: { rotulo: string; valor: number; maximo: number; cor: string; texto?: string }) {
   const fracao = props.maximo > 0 ? Math.max(0, Math.min(1, props.valor / props.maximo)) : 0;
   return (
-    <div className="medidor">
+    <span className="medidor">
       <span className="medidor-rotulo">{props.rotulo}</span>
-      <div
+      <span
         className="medidor-trilho"
         role="meter"
         aria-label={props.rotulo}
@@ -39,9 +44,9 @@ export function Medidor(props: { rotulo: string; valor: number; maximo: number; 
         aria-valuemax={props.maximo}
         aria-valuenow={Math.floor(props.valor)}
       >
-        <div className="medidor-cheio" style={{ width: `${fracao * 100}%`, background: props.cor }} />
-      </div>
+        <span className="medidor-cheio" style={{ width: `${fracao * 100}%`, background: props.cor }} />
+      </span>
       <span className="medidor-texto">{props.texto}</span>
-    </div>
+    </span>
   );
 }

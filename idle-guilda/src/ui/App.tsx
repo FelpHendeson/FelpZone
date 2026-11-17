@@ -1,21 +1,25 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { novoJogo, type Resultado } from '../motor/acoes';
+import { objetivoAtual, objetivoCumprido, type Destino } from '../motor/objetivos';
 import { desserializar, serializar } from '../motor/save';
 import { aplicarTempoOffline, avancar, type ResumoOffline } from '../motor/simulacao';
-import type { Classe, Estado } from '../motor/tipos';
+import type { Estado } from '../motor/tipos';
 import { Barra } from './Barra';
-import { CartaoHeroi } from './CartaoHeroi';
+import { ComoJogar } from './ComoJogar';
 import { Diario } from './Diario';
+import { Expedicao } from './Expedicao';
+import { FichaHeroi } from './FichaHeroi';
 import { Forja } from './Forja';
 import { Fundacao } from './Fundacao';
+import { Objetivo } from './Objetivo';
 import { ResumoOfflineModal } from './ResumoOfflineModal';
 import { Taverna } from './Taverna';
 
-const CHAVE_SAVE = 'idle-guilda:save';
+const CHAVE_SAVE = 'idle-guilda:save:v2';
 /** Pausas maiores que isso (aba escondida, celular bloqueado) contam como tempo fora. */
 const LIMITE_TEMPO_FORA = 30;
 
-type Aba = 'guilda' | 'forja' | 'taverna' | 'diario';
+type Aba = Destino | 'diario';
 
 function carregar(): { estado: Estado | null; resumo: ResumoOffline | null } {
   const save = desserializar(localStorage.getItem(CHAVE_SAVE));
@@ -25,11 +29,20 @@ function carregar(): { estado: Estado | null; resumo: ResumoOffline | null } {
   return aplicarTempoOffline(save.estado, fora);
 }
 
+const ABAS: [Aba, string][] = [
+  ['expedicao', 'Expedição'],
+  ['forja', 'Forja'],
+  ['taverna', 'Taverna'],
+  ['diario', 'Diário'],
+];
+
 export function App() {
   const [inicial] = useState(carregar);
   const [estado, setEstado] = useState<Estado | null>(inicial.estado);
   const [resumo, setResumo] = useState<ResumoOffline | null>(inicial.resumo);
-  const [aba, setAba] = useState<Aba>('guilda');
+  const [aba, setAba] = useState<Aba>('expedicao');
+  const [heroiAberto, setHeroiAberto] = useState<string | null>(null);
+  const [ajuda, setAjuda] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
 
   const estadoRef = useRef(estado);
@@ -39,9 +52,11 @@ export function App() {
     if (estadoRef.current) localStorage.setItem(CHAVE_SAVE, serializar(estadoRef.current, Date.now()));
   }, []);
 
+  const jogando = estado !== null;
+
   // Laço do jogo: avança pelo tempo real decorrido, guardando a fração de segundo.
   useEffect(() => {
-    if (!estado) return;
+    if (!jogando) return;
     let ultimo = performance.now();
     let sobra = 0;
     const id = setInterval(() => {
@@ -69,8 +84,7 @@ export function App() {
       document.removeEventListener('visibilitychange', aoEsconder);
       window.removeEventListener('pagehide', salvar);
     };
-    // Reinicia apenas ao fundar ou apagar a guilda.
-  }, [estado === null, salvar]);
+  }, [jogando, salvar]);
 
   useEffect(() => {
     if (!aviso) return;
@@ -94,13 +108,21 @@ export function App() {
     [salvar],
   );
 
+  const irPara = (destino: Aba) => {
+    setHeroiAberto(null);
+    setAba(destino);
+    window.scrollTo({ top: 0 });
+  };
+
   if (!estado) {
     return (
       <Fundacao
-        aoFundar={(nome: string, classe: Classe) => {
-          const e = novoJogo(nome, classe);
+        aoFundar={(nome) => {
+          const e = novoJogo(nome);
           localStorage.setItem(CHAVE_SAVE, serializar(e, Date.now()));
           setEstado(e);
+          setAba('expedicao');
+          setAjuda(true);
         }}
       />
     );
@@ -110,18 +132,25 @@ export function App() {
     if (confirm('Apagar a guilda e começar do zero? Isso não pode ser desfeito.')) {
       localStorage.removeItem(CHAVE_SAVE);
       setEstado(null);
-      setAba('guilda');
     }
   };
 
+  const objetivo = objetivoAtual(estado);
+  const pontosPendentes = estado.herois.some((h) => h.pontosLivres > 0);
+  const alerta = (id: Aba) =>
+    (objetivo && !objetivoCumprido(estado) && objetivo.destino === id && aba !== id) ||
+    (id === 'expedicao' && pontosPendentes && aba !== id);
+
   return (
     <div className="app">
-      <Barra estado={estado} />
+      <Barra estado={estado} aoAjuda={() => setAjuda(true)} />
       <main>
-        {aba === 'guilda' &&
-          estado.herois.map((h) => <CartaoHeroi key={h.id} estado={estado} heroi={h} agir={agir} />)}
+        <Objetivo estado={estado} abaAtual={aba} agir={agir} aoIr={irPara} />
+        {aba === 'expedicao' && (
+          <Expedicao estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} aoIrTaverna={() => irPara('taverna')} />
+        )}
         {aba === 'forja' && <Forja estado={estado} agir={agir} />}
-        {aba === 'taverna' && <Taverna estado={estado} agir={agir} />}
+        {aba === 'taverna' && <Taverna estado={estado} agir={agir} aoContratar={() => irPara('expedicao')} />}
         {aba === 'diario' && <Diario estado={estado} aoApagar={apagar} />}
       </main>
       {aviso && (
@@ -130,20 +159,24 @@ export function App() {
         </div>
       )}
       <nav className="abas">
-        {(
-          [
-            ['guilda', 'Guilda'],
-            ['forja', 'Forja'],
-            ['taverna', 'Taverna'],
-            ['diario', 'Diário'],
-          ] as const
-        ).map(([id, rotulo]) => (
-          <button key={id} className={aba === id ? 'ativa' : ''} onClick={() => setAba(id)}>
+        {ABAS.map(([id, rotulo]) => (
+          <button key={id} className={aba === id ? 'ativa' : ''} onClick={() => irPara(id)}>
             {rotulo}
+            {alerta(id) && <span className="alerta" aria-label="(tem algo para fazer aqui)" />}
           </button>
         ))}
       </nav>
-      {resumo && <ResumoOfflineModal resumo={resumo} aoFechar={() => setResumo(null)} />}
+      {heroiAberto && (
+        <FichaHeroi
+          estado={estado}
+          heroiId={heroiAberto}
+          agir={agir}
+          aoFechar={() => setHeroiAberto(null)}
+          aoIrForja={() => irPara('forja')}
+        />
+      )}
+      {resumo && !ajuda && <ResumoOfflineModal resumo={resumo} aoFechar={() => setResumo(null)} />}
+      {ajuda && <ComoJogar aoFechar={() => setAjuda(false)} />}
     </div>
   );
 }

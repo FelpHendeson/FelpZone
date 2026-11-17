@@ -94,7 +94,7 @@ export interface SpriteArma {
 
 const METAL = { w: '#e6ecf2', W: '#8f9bb0', c: '#c9a227', b: '#6b4a2f', k: CONTORNO };
 
-const ARMAS_SPRITES: Record<ArmaId | 'picareta', SpriteArma> = {
+const ARMAS_SPRITES: Record<ArmaId, SpriteArma> = {
   bastao: {
     sprite: sprite(['....b', '...b.', '..b..', '.b...', 'b....'], { b: '#8a6a42' }),
     pega: { x: 1, y: 3 },
@@ -137,16 +137,9 @@ const ARMAS_SPRITES: Record<ArmaId | 'picareta', SpriteArma> = {
     ),
     pega: { x: 0, y: 8 },
   },
-  picareta: {
-    sprite: sprite(
-      ['..WWWW.', '.W..b.W', 'W...b..', '....b..', '....b..', '....b..'],
-      { W: '#8f9bb0', b: '#8a6a42' },
-    ),
-    pega: { x: 4, y: 5 },
-  },
 };
 
-export function spriteArma(arma: ArmaId | 'picareta'): SpriteArma {
+export function spriteArma(arma: ArmaId): SpriteArma {
   return ARMAS_SPRITES[arma];
 }
 
@@ -281,19 +274,6 @@ export const CENARIO = {
     ['..kk...', '.kpPk..', '.kppk..', '.kpPpk.', 'kkpppkk', 'kpppppk'],
     { k: '#2a2633', p: '#9a93a8', P: '#6e6880' },
   ),
-  rochaMinerio: sprite(
-    [
-      '....kkkk....',
-      '..kkrrrrkk..',
-      '.krrbrrrrRk.',
-      '.krrrrrbrRk.',
-      'krbrrrrrrRRk',
-      'krrrrbrrrRRk',
-      'kRrrrrrrRRRk',
-      '.kkkkkkkkkk.',
-    ],
-    { k: '#22222c', r: '#7a7a88', R: '#55555f', b: '#6fd0ff' },
-  ),
   fogueira: sprite(
     [
       '...y....',
@@ -308,6 +288,7 @@ export const CENARIO = {
   ),
   zz: sprite(['kkk', '..k', '.k.', 'kkk'], { k: '#e6ecf2' }),
   faisca: sprite(['.w.', 'wyw', '.w.'], { w: '#ffffff', y: '#ffe36a' }),
+  cura: sprite(['.g.', 'gwg', '.g.'], { g: '#5fcf5a', w: '#e9ffe0' }),
 };
 
 /* ---------- Ícones (8×8) ---------- */
@@ -324,10 +305,6 @@ export const ICONES: Record<Material | 'ouro', Sprite> = {
   couro: sprite(
     ['.k....k.', 'kckkkkck', 'kccccCck', '.kcccCk.', '.kccCck.', 'kcccccCk', 'kCkkkkCk', '.k....k.'],
     { k: '#3a2416', c: '#b07a48', C: '#7f5330' },
-  ),
-  minerio: sprite(
-    ['...kkk..', '..krrRk.', '.krbrrRk', 'krrrrbRk', 'krbrrrRk', 'kRrrrRRk', '.kRRRRk.', '..kkkk..'],
-    { k: '#22222c', r: '#9a9aa8', R: '#66666f', b: '#6fd0ff' },
   ),
   fragmento: sprite(
     ['...kk...', '..kwPk..', '..kwPk..', '.kwpPPk.', '.kwpPPk.', '.kppPPk.', '..kpPk..', '...kk...'],
