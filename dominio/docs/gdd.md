@@ -1,6 +1,6 @@
 # Domínio: documento de design (GDD)
 
-> Versão 1 · rascunho para validação. Nada aqui está implementado, exceto o que já existe no "Modo Cidade" (v0.4).
+> Versão 2 · decisões do dono do jogo incorporadas (seção 16). Nada aqui está implementado, exceto o que já existe no "Modo Cidade" (v0.4).
 > Números são pontos de partida para balancear com simulação, como fizemos com a visada.
 
 ## 1. Visão
@@ -27,22 +27,38 @@ Inspiração de clima: guerra de bondes e lealdade (estilo anime de gangue) e cr
 
 ## 2. Estrutura da campanha: eras de escala
 
-| Era | Mapa | Duração alvo | Mecânicas novas | Polícia ("visada") |
+| Era | Mapa | Tamanho | Mecânicas novas | Polícia ("visada") |
 |---|---|---|---|---|
-| **1. Escola** | Colégio e arredores (~15 pontos) | 30–45 min | Respeito, recrutar, brigas, hierarquia básica (você + vice), bandeira e uniforme, motos | **Advertências** da diretoria e do inspetor |
+| **1. Escola** | Colégio e arredores | ~15 pontos | Respeito, recrutar, brigas, hierarquia básica (você + vice), bandeira e uniforme, motos | **Advertências** da diretoria e do inspetor |
 | ⏳ *Salto no tempo* | Cena: "Anos depois..." | — | Quem do bonde continua com você? | — |
-| **2. Bairro** | Um bairro (~25 pontos) | 45–60 min | Dinheiro, lotes vazios e construção, tipos de ponto com função, capitães, armas leves, eventos (bailão) | **PM** (a visada atual) |
-| **3. Cidade** | Cidade gerada (~60–80 pontos, 4–6 gangues) | 1–2 h | Zonas neutras, pontos especiais, ações especiais, mercado, tenentes, alianças | **Polícia Civil**, com operações |
-| **4. Estado** | Mapa de cidades (uma por uma) | várias sessões | Rotas entre cidades, facções estaduais, logística, governar cidades conquistadas | **Força-tarefa** |
-| **5. País** | Mapa de estados | várias sessões | Contrabando por portos e fronteiras, cartéis, corrupção política | **Federal** |
-| **6. Mundo** | Mapa-múndi estratégico | final | Conexões internacionais, lavagem, guerra de cartéis | **Cooperação internacional** |
+| **2. Bairro** | Um bairro | ~25 pontos | Dinheiro, lotes vazios e construção, tipos de ponto com função, capitães, armas leves, eventos (bailão) | **PM** (a visada atual) |
+| **3. Cidade** | Cidade gerada, 4–6 gangues | ~60–80 pontos | Zonas neutras, pontos especiais, ações especiais, mercado, tenentes, alianças | **Polícia Civil**, com operações |
+| **4. Estado** | Mapa do estado: cada cidade é um ponto, e cada cidade é um mapa completo | várias cidades | **Braços** em outras cidades (2.1), rotas e logística, facções estaduais | **Força-tarefa** |
+| **5. País** | Mapa do país: estados como pontos | vários estados | Contrabando por portos e fronteiras, cartéis, corrupção política | **Federal** |
+| **6. Mundo** | Mapa-múndi: países como pontos | final | Conexões internacionais, lavagem, guerra de cartéis | **Cooperação internacional** |
 
+- **Sem limite de tempo:** a campanha vai até o fim, no ritmo de cada um. Tem quem corra e tem quem queira 100%. O save guarda tudo.
 - **Eras 1–3** são jogadas no mapa de pontos (como hoje).
-- **Eras 4–6** são uma **camada estratégica**. O mapa mostra cidades, estados ou países como nós. Você só entra no mapa de pontos de uma cidade quando quer guerrear lá de perto. O resto é gerenciado pelos capitães, pela "política" que você escolher. Isso mantém o escopo viável e a partida sem arrastar.
+- **Eras 4–6** têm um **mapa-camada** (estado → país → mundo) onde cada nó leva a mapas de cidade completos. A expansão acontece por **braços** (2.1). Cidades que você não está jogando no momento são tocadas pelo braço de lá, pela política escolhida, e eventos podem te chamar de volta ("guerra em Porto Neon!").
 - **Transição de era:** quando você vence uma era, acontece uma cena e uma escolha (quem promover, que território manter de base). O que se carrega: personagem (nível e habilidades), membros com nome, bandeira, uniforme, reputação e parte do dinheiro.
 - **Modo Livre:** jogar qualquer era já desbloqueada direto, como partida avulsa. O jogo atual vira o **Modo Livre: Cidade**.
 
-### 2.1 Era 1: Escola (detalhe)
+### 2.1 Expansão por braços (eras 4–6)
+
+Inspiração: Peaky Blinders e Impuros, com a organização se espalhando por pessoas de confiança.
+
+1. Ao dominar a cidade, aparece o botão **🗺️ Expandir**, que abre o **mapa do estado** (traçado com as cidades como pontos e rotas entre elas).
+2. Ao entrar numa cidade nova, você escolhe como começar:
+
+| Caminho | Quem você joga | Começo | Vantagem | Desvantagem |
+|---|---|---|---|---|
+| **📨 Mandar alguém** | Um membro seu (capitão, tenente ou o vice) | Num ponto vazio, com um pouco de grana e de gente enviada | **Leal desde o início**, recebe apoio (dinheiro, armas, reforços pela rota) | **Forasteiro**: respeito local baixo, rivais da cidade se unem contra "os de fora" |
+| **🔎 Achar alguém** | Um **personagem novo**, criado ali | Do zero, num ponto vazio **ou como membro de baixo de uma gangue local** | **Legitimidade local**: respeito, contatos e recrutamento melhores | Ainda não conhece você: só ao **fazer nome** (respeito alto) acontece a cena em que ele **chama a sua atenção**. Aí você o filia (ou ele recusa, ou cobra caro). Começa com lealdade menor |
+
+3. Quando a cidade cai, o braço vira **Patrão da cidade** (um posto na sua hierarquia), e a cidade passa a render para a organização e a mandar gente pela rota.
+4. O mesmo padrão sobe de nível: **País** (estados como pontos) e **Mundo** (países como pontos).
+
+### 2.2 Era 1: Escola (detalhe)
 
 - **Mapa:** Colégio Estadual de Porto Neon e arredores, com pátio, quadra, terraço, cantina, banheiro dos fundos, sala de música, portão, ponto de ônibus, fliperama, lanchonete, oficina de motos e mais **3 colégios rivais**.
 - **Recursos:** **Respeito** (principal), **Grana** (pouca, vem de bicos: lavar carro, entregas, consertar moto) e **Advertências** (a "visada" da escola; 3 = suspensão, e você perde 3 dias).
@@ -57,7 +73,7 @@ Inspiração de clima: guerra de bondes e lealdade (estilo anime de gangue) e cr
 
 ### 3.1 Criação do personagem (você)
 
-- **Nome, vulgo, aparência** (avatar montado: rosto, cabelo, cicatriz, acessórios; arte simples em camadas).
+- **Nome, vulgo, aparência:** avatar ilustrado em **SVG em camadas** (rosto, tom de pele, cabelo, olhos, cicatriz, acessórios e jaqueta). A jaqueta usa as cores e o símbolo da bandeira automaticamente. Ilustrações pintadas para cenas podem vir depois, como arquivos de imagem.
 - **Atributos** (distribui pontos):
 
   | Atributo | Efeito |
@@ -88,7 +104,7 @@ Inspiração de clima: guerra de bondes e lealdade (estilo anime de gangue) e cr
 - Todo membro com nome tem **nível, 2–3 traços** (*Brigão, Leal, Ganancioso, Esquentado, Esperto, Covarde, Carismático*), **lealdade (0–100)** e uma **fala/bordão**.
 - **Lealdade** sobe com promoção, vitória, salário em dia e eventos. Cai com derrota, perda de amigos, salário atrasado e ser preterido.
 - Abaixo de 25, o membro pode **desertar, dedurar ou trair** (com uma cena).
-- **Morte e prisão:** membros com nome podem cair em confronto ou ser presos em batida. Isso é permanente (com opção de "modo leve" nas configurações).
+- **Morte e prisão:** membros com nome podem cair em confronto ou ser presos em batida. **A morte é permanente** (decisão do dono do jogo). Existe um "modo leve" opcional nas configurações, que troca a morte por hospital.
 
 ## 4. Mapa e pontos
 
@@ -252,10 +268,10 @@ As ações aparecem como botões no painel do ponto ou do líder rival, com a ch
 
 Cada fase termina com: simulação de equilíbrio, teste no PC e no celular, deploy e você jogando.
 
-## 16. Decisões em aberto (pra validar)
+## 16. Decisões tomadas
 
-1. **Morte permanente** de membros com nome: sim por padrão, com "modo leve" opcional?
-2. **Duração das eras 1–3:** os alvos de 30 min a 2 h estão bons?
-3. **Arte dos avatares:** emoji e camadas simples (rápido) ou ilustrações (mais bonito, mais trabalho)?
-4. **Nome do colégio, das gangues juvenis e do seu vice:** tem preferência ou deixa comigo?
-5. **Eras 4–6:** a camada estratégica abstrata (proposta) está ok, ou você imagina mapas de pontos em todas?
+1. **Morte permanente** de membros com nome: **sim**, com "modo leve" opcional.
+2. **Duração:** **sem limite**. O jogador joga até terminar a campanha, no ritmo dele.
+3. **Arte:** **ilustrações** em SVG em camadas, feitas no próprio jogo (recoloríveis pela bandeira e pela jaqueta). Arte pintada para cenas pode vir depois.
+4. **Nomes:** inspiração em **Brasil + anime** (vulgos de rua brasileiros, gangues com nome de bicho/elemento, apelidos estilo anime).
+5. **Eras 4–6:** **mapa de pontos em cada cidade**, com a expansão por **braços** (seção 2.1): mandar alguém ou achar alguém local.
