@@ -1,4 +1,4 @@
-import { ARMAS, CUSTO_CONTRATACAO, CLASSES, MAXIMO_HEROIS } from './dados';
+import { ARMAS, CUSTO_CONTRATACAO, CLASSES, MAXIMO_HEROIS, OURO_APLAUSO_DADO, OURO_APLAUSO_RECEBIDO } from './dados';
 import { objetivoAtual, objetivoCumprido } from './objetivos';
 import { vidaMaxima } from './regras';
 import { registrar } from './simulacao';
@@ -146,6 +146,25 @@ export function contratar(estado: Estado, nome: string, classe: Classe): Resulta
   e.ouro -= custo;
   e.herois.push(criarHeroi(id, nomeLimpo, classe));
   registrar(e, { tipo: 'contratou', heroi: id, classe });
+  return { ok: true, estado: e };
+}
+
+/** Aplausos de outros jogadores, entregues pelo servidor. */
+export function receberAplausos(estado: Estado, quantidade: number): Resultado {
+  const n = Math.max(0, Math.floor(quantidade));
+  if (n === 0) return falha('Nenhum aplauso.');
+  const e = structuredClone(estado);
+  const ouro = n * OURO_APLAUSO_RECEBIDO;
+  e.ouro += ouro;
+  registrar(e, { tipo: 'aplausosRecebidos', quantidade: n, ouro });
+  return { ok: true, estado: e };
+}
+
+/** Recompensa por aplaudir outra guilda (o servidor já confirmou o aplauso). */
+export function aplausoDado(estado: Estado, apelido: string): Resultado {
+  const e = structuredClone(estado);
+  e.ouro += OURO_APLAUSO_DADO;
+  registrar(e, { tipo: 'aplaudiu', apelido: apelido.slice(0, 16), ouro: OURO_APLAUSO_DADO });
   return { ok: true, estado: e };
 }
 

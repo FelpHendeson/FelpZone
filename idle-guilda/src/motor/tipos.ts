@@ -25,7 +25,9 @@ export type Evento =
   | { tipo: 'zonaLiberada'; zona: ZonaId }
   | { tipo: 'forjou'; arma: ArmaId }
   | { tipo: 'contratou'; heroi: string; classe: Classe }
-  | { tipo: 'objetivo'; indice: number };
+  | { tipo: 'objetivo'; indice: number }
+  | { tipo: 'aplausosRecebidos'; quantidade: number; ouro: number }
+  | { tipo: 'aplaudiu'; apelido: string; ouro: number };
 
 export interface RegistroEvento {
   /** Segundos de jogo em que aconteceu. */

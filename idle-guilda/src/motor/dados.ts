@@ -154,3 +154,7 @@ export const RECUPERACAO_VIDA = 0.05;
 /** Bônus de grupo trazidos pelas classes de apoio. */
 export const BONUS_XP_MISTICA = 0.25;
 export const BONUS_SAQUE_CACADORA = 0.25;
+
+/** Ouro dado por aplauso: quem recebe e quem aplaude ganham. */
+export const OURO_APLAUSO_RECEBIDO = 25;
+export const OURO_APLAUSO_DADO = 10;

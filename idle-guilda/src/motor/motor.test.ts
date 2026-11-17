@@ -9,6 +9,8 @@ import {
   irPara,
   novoJogo,
   receberObjetivo,
+  receberAplausos,
+  aplausoDado,
   type Resultado,
 } from './acoes';
 import { OFFLINE_MAXIMO_SEGUNDOS } from './dados';
@@ -170,6 +172,18 @@ describe('ações', () => {
     e = ok(contratar(e, 'Nim', 'cacadora'));
     expect(e.ouro).toBe(1000 - 40 - 250);
     expect(contratar(e, 'Bo', 'guerreiro').ok).toBe(false);
+  });
+});
+
+describe('aplausos', () => {
+  it('recebidos e dados viram ouro e entram no diário', () => {
+    let e = novoJogo('Aren');
+    expect(receberAplausos(e, 0).ok).toBe(false);
+    e = ok(receberAplausos(e, 2));
+    expect(e.ouro).toBe(50);
+    e = ok(aplausoDado(e, 'Bia'));
+    expect(e.ouro).toBe(60);
+    expect(e.diario.at(-1)?.evento).toEqual({ tipo: 'aplaudiu', apelido: 'Bia', ouro: 10 });
   });
 });
 

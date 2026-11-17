@@ -57,7 +57,7 @@ export function MenuInicial({ estado, conta, aoContinuar, aoNovoJogo, aoConta, a
         </button>
         <button onClick={aoAjuda}>Como jogar</button>
       </nav>
-      <p className="rodape">v0.3 · o progresso fica salvo neste aparelho automaticamente</p>
+      <p className="rodape">v0.4 · o progresso fica salvo neste aparelho automaticamente</p>
     </div>
   );
 }

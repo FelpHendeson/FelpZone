@@ -1,6 +1,6 @@
-// GET: quem está conectado. POST { acao: 'criar' | 'entrar' | 'sair', apelido, senha }.
+// GET: quem está conectado. POST { acao: 'criar' | 'entrar' | 'sair' | 'excluir', apelido, senha }.
 import { ErroHttp, obterBanco } from './_lib/banco.js';
-import { contaDaSessao, criarConta, entrar, sair } from './_lib/contas.js';
+import { contaDaSessao, criarConta, entrar, excluirConta, sair } from './_lib/contas.js';
 import { cookieSessao, json, lerCorpo, lerToken, tratar } from './_lib/http.js';
 
 export function GET(req: Request): Promise<Response> {
@@ -14,6 +14,10 @@ export function POST(req: Request): Promise<Response> {
   return tratar(async () => {
     const banco = obterBanco();
     const corpo = await lerCorpo(req);
+    if (corpo.acao === 'excluir') {
+      await excluirConta(banco, lerToken(req), corpo.senha);
+      return json({ apelido: null }, 200, cookieSessao(null));
+    }
     if (corpo.acao === 'sair') {
       await sair(banco, lerToken(req));
       return json({ apelido: null }, 200, cookieSessao(null));

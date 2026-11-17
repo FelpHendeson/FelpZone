@@ -2,6 +2,7 @@
 import { ErroHttp, obterBanco } from './_lib/banco.js';
 import { contaDaSessao, gravarSave, lerSave } from './_lib/contas.js';
 import { json, lerCorpo, lerToken, tratar } from './_lib/http.js';
+import { atualizarMundo } from './_lib/mundo.js';
 
 async function contaObrigatoria(req: Request) {
   const conta = await contaDaSessao(obterBanco(), lerToken(req));
@@ -20,7 +21,9 @@ export function PUT(req: Request): Promise<Response> {
   return tratar(async () => {
     const conta = await contaObrigatoria(req);
     const corpo = await lerCorpo(req);
-    const registro = await gravarSave(obterBanco(), conta.id, corpo.texto);
-    return json({ salvoEm: registro.salvoEm, recebidoEm: registro.recebidoEm });
+    const banco = obterBanco();
+    const registro = await gravarSave(banco, conta.id, corpo.texto);
+    const perfil = await atualizarMundo(banco, conta.id, conta.apelido, registro.texto);
+    return json({ salvoEm: registro.salvoEm, recebidoEm: registro.recebidoEm, renome: perfil.renome });
   });
 }

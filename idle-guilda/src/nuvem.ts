@@ -47,6 +47,10 @@ export async function acessarConta(acao: 'criar' | 'entrar', apelido: string, se
   return r.apelido;
 }
 
+export async function excluirConta(senha: string): Promise<void> {
+  await chamar('POST', '/api/conta', { acao: 'excluir', senha });
+}
+
 export async function sairDaConta(): Promise<void> {
   await chamar('POST', '/api/conta', { acao: 'sair' });
 }
@@ -59,4 +63,46 @@ export async function enviarSave(texto: string, aoSair = false): Promise<SaveRem
   // keepalive deixa o envio terminar mesmo se a aba for fechada.
   const r = await chamar<{ salvoEm: number; recebidoEm: number }>('PUT', '/api/save', { texto }, aoSair);
   return { texto, ...r };
+}
+
+export interface HeroiPublico {
+  nome: string;
+  classe: string;
+  nivel: number;
+  arma: string;
+}
+
+export interface PerfilPublico {
+  id: string;
+  apelido: string;
+  renome: number;
+  nivel: number;
+  herois: HeroiPublico[];
+  zona: string;
+  objetivo: number;
+  aplausos: number;
+  atualizadoEm: number;
+  posicao?: number;
+}
+
+export interface Mundo {
+  online: number;
+  ranking: (PerfilPublico & { posicao: number })[];
+  minhaPosicao: number | null;
+  meuPerfil: PerfilPublico | null;
+  mural: { t: number; id: string; apelido: string; texto: string }[];
+  eu: string | null;
+}
+
+export function lerMundo(): Promise<Mundo> {
+  return chamar<Mundo>('GET', '/api/mundo');
+}
+
+/** Presença a cada minuto; devolve quantos aplausos chegaram desde o último pulso. */
+export async function pulso(): Promise<number> {
+  return (await chamar<{ presentes: number }>('GET', '/api/mundo?pulso=1')).presentes;
+}
+
+export async function aplaudir(alvo: string): Promise<number> {
+  return (await chamar<{ restantes: number }>('POST', '/api/mundo', { acao: 'aplaudir', alvo })).restantes;
 }

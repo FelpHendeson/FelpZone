@@ -34,6 +34,10 @@ export function descreverEvento(e: Estado, ev: Evento): string {
       return `${nome(ev.heroi)}, ${CLASSES[ev.classe].nome.toLowerCase()}, entrou para a party.`;
     case 'objetivo':
       return `Objetivo concluído: ${OBJETIVOS[ev.indice]?.titulo ?? ''}.`;
+    case 'aplausosRecebidos':
+      return `Sua guilda recebeu ${ev.quantidade} ${ev.quantidade === 1 ? 'aplauso' : 'aplausos'} de outros jogadores: +${ev.ouro} de ouro! 👏`;
+    case 'aplaudiu':
+      return `Você aplaudiu a guilda de ${ev.apelido} e ganhou ${ev.ouro} de ouro.`;
   }
 }
 

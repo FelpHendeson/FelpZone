@@ -20,11 +20,13 @@ interface Props {
   nuvem: SituacaoNuvem;
   aoEntrar: (apelido: string) => void;
   aoSair: () => void;
+  /** Rejeita com a mensagem do servidor (ex.: senha incorreta). */
+  aoExcluir: (senha: string) => Promise<void>;
   aoEnviar: () => void;
   aoFechar: () => void;
 }
 
-export function Conta({ conta, nuvem, aoEntrar, aoSair, aoEnviar, aoFechar }: Props) {
+export function Conta({ conta, nuvem, aoEntrar, aoSair, aoExcluir, aoEnviar, aoFechar }: Props) {
   const [modo, setModo] = useState<'entrar' | 'criar'>('entrar');
   const [apelido, setApelido] = useState('');
   const [senha, setSenha] = useState('');
@@ -63,6 +65,40 @@ export function Conta({ conta, nuvem, aoEntrar, aoSair, aoEnviar, aoFechar }: Pr
           </button>
           <button onClick={aoSair}>Sair da conta</button>
         </div>
+        <details className="excluir">
+          <summary>Excluir conta</summary>
+          <p className="dica">
+            Apaga a conta, o save na nuvem e a guilda do ranking. O progresso deste aparelho continua. Não dá para desfazer.
+          </p>
+          <form
+            className="formulario"
+            onSubmit={async (ev) => {
+              ev.preventDefault();
+              setErro(null);
+              setEnviando(true);
+              try {
+                await aoExcluir(senha);
+              } catch (e) {
+                setErro(e instanceof Error ? e.message : 'Não deu para excluir.');
+              } finally {
+                setEnviando(false);
+              }
+            }}
+          >
+            <label className="campo">
+              Confirme a senha
+              <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="current-password" required />
+            </label>
+            {erro && (
+              <p className="erro" role="alert">
+                {erro}
+              </p>
+            )}
+            <button className="perigo" type="submit" disabled={enviando || !senha}>
+              Excluir minha conta
+            </button>
+          </form>
+        </details>
       </Modal>
     );
   }

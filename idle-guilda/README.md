@@ -10,7 +10,19 @@ Voltar ao jogo e ver o progresso acumulado já dá vontade de tomar a próxima d
 
 ## Estado atual
 
-**v0.3: menu, save e conta.** Sobre a v0.2, entraram:
+**v0.4: mundo "pseudo online".** O jogo continua individual, mas quem tem conta participa de um mundo comum, na aba **Mundo**:
+
+- **Ranking de renome:** as 20 guildas com mais renome, cada uma com a party desenhada, o nível, a zona e os aplausos. O renome soma os níveis dos heróis × 10, os objetivos × 25 e os monstros ÷ 100. A sua posição aparece mesmo fora do top 20.
+- **Acontecimentos do mundo:** um mural com os feitos de todos ("chegou ao nível 10!", "recrutou Lia, uma Mística", "forjou a Lâmina das ruínas!"). O servidor compara o save novo com o anterior para descobrir o que mudou.
+- **Jogadores online agora:** quem passou pelo jogo nos últimos 5 minutos.
+- **Aplausos:** aplaudir outra guilda dá +10 de ouro para você na hora e +25 para ela, entregues no próximo "pulso" (a cada minuto, com o jogo aberto) e registrados no Diário. São até 5 aplausos por dia e 1 por guilda por dia.
+- **Excluir conta** (pede a senha): apaga a conta, o save na nuvem e a presença no ranking e no mural.
+
+O ranking confia no save enviado pelo jogo, então quem editar o próprio save consegue trapacear. Para um jogo entre amigos, isso é aceitável por enquanto.
+
+### v0.3: menu, save e conta
+
+Entraram nesta versão:
 
 - **Menu inicial:** Continuar (com o resumo do progresso), Novo jogo, Conta e Como jogar.
 - **Menu no jogo (☰):** Salvar agora (mostra quando foi o último save), Conta, Backup, Como jogar, Menu inicial e Apagar guilda.
@@ -54,7 +66,7 @@ Abra a URL exibida pelo Vite. O servidor de desenvolvimento também atende `/api
 | `src/arte/` | Sprites em texto, desenho no canvas e montagem da cena da party (luta ou acampamento). |
 | `src/ui/` | Componentes React que mostram o estado e chamam as ações do motor. |
 | `src/nuvem.ts` | Chamadas às funções `/api` a partir do jogo. |
-| `api/` | Funções da Vercel: `conta.ts` (criar, entrar, sair) e `save.ts` (ler e gravar o save). As regras ficam em `api/_lib/`, testadas com um banco em memória. |
+| `api/` | Funções da Vercel: `conta.ts` (criar, entrar, sair, excluir), `save.ts` (ler e gravar o save) e `mundo.ts` (ranking, mural, online, pulso e aplausos). As regras ficam em `api/_lib/`, testadas com um banco em memória. |
 
 Decisões:
 

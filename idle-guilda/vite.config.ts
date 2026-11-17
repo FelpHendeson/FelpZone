@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 const ROTAS: Record<string, string> = {
   '/api/conta': '/api/conta.ts',
   '/api/save': '/api/save.ts',
+  '/api/mundo': '/api/mundo.ts',
 };
 
 /**

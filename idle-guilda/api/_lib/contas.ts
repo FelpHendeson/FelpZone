@@ -2,6 +2,7 @@
 // sessão como token aleatório, com só o hash dele guardado no servidor.
 import { createHash, randomBytes, scrypt as scryptCallback, timingSafeEqual } from 'node:crypto';
 import { ErroHttp, PREFIXO, type Banco } from './banco.js';
+import { sairDoMundo } from './mundo.js';
 
 export const SESSAO_SEGUNDOS = 60 * 60 * 24 * 60;
 const TENTATIVAS_MAXIMAS = 10;
@@ -105,6 +106,20 @@ export async function contaDaSessao(banco: Banco, token: string | null): Promise
 
 export async function sair(banco: Banco, token: string | null): Promise<void> {
   if (token) await banco.del(chaves.sessao(hashToken(token)));
+}
+
+/** Exclui a conta de vez (pede a senha de novo): dados, save e presença pública. */
+export async function excluirConta(banco: Banco, token: string | null, senha: unknown): Promise<void> {
+  const conta = await contaDaSessao(banco, token);
+  if (!conta) throw new ErroHttp(401, 'Entre na conta para excluí-la.');
+  const texto = await banco.get(chaves.conta(conta.id));
+  if (typeof senha !== 'string' || !texto || !(await conferirSenha(senha, (JSON.parse(texto) as Conta).senha))) {
+    throw new ErroHttp(401, 'Senha incorreta.');
+  }
+  await sairDoMundo(banco, conta.id);
+  await banco.del(chaves.save(conta.id));
+  await banco.del(chaves.conta(conta.id));
+  await sair(banco, token);
 }
 
 export async function lerSave(banco: Banco, id: string): Promise<SaveNaNuvem | null> {

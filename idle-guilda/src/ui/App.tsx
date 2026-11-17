@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { novoJogo, type Resultado } from '../motor/acoes';
+import { novoJogo, receberAplausos, type Resultado } from '../motor/acoes';
 import { objetivoAtual, objetivoCumprido, type Destino } from '../motor/objetivos';
 import { desserializar, serializar, type Save } from '../motor/save';
 import { aplicarTempoOffline, avancar, type ResumoOffline } from '../motor/simulacao';
 import type { Estado } from '../motor/tipos';
-import { baixarSave, consultarConta, enviarSave, ErroNuvem, sairDaConta } from '../nuvem';
+import { baixarSave, consultarConta, enviarSave, ErroNuvem, excluirConta, pulso, sairDaConta } from '../nuvem';
 import { Backup } from './Backup';
 import { Barra } from './Barra';
 import { ComoJogar } from './ComoJogar';
@@ -17,6 +17,7 @@ import { Forja } from './Forja';
 import { Fundacao } from './Fundacao';
 import { Menu } from './Menu';
 import { MenuInicial } from './MenuInicial';
+import { Mundo } from './Mundo';
 import { Objetivo } from './Objetivo';
 import { ResumoOfflineModal } from './ResumoOfflineModal';
 import { Taverna } from './Taverna';
@@ -25,8 +26,9 @@ const CHAVE_SAVE = 'idle-guilda:save:v2';
 /** Pausas maiores que isso (aba escondida, celular bloqueado) contam como tempo fora. */
 const LIMITE_TEMPO_FORA = 30;
 const INTERVALO_NUVEM = 2 * 60 * 1000;
+const INTERVALO_PULSO = 60 * 1000;
 
-type Aba = Destino | 'diario';
+type Aba = Destino | 'mundo' | 'diario';
 type Tela = 'inicio' | 'fundacao' | 'jogo';
 type Janela = 'menu' | 'conta' | 'backup' | 'ajuda' | null;
 
@@ -52,6 +54,7 @@ const ABAS: [Aba, string][] = [
   ['expedicao', 'Expedição'],
   ['forja', 'Forja'],
   ['taverna', 'Taverna'],
+  ['mundo', 'Mundo'],
   ['diario', 'Diário'],
 ];
 
@@ -160,7 +163,7 @@ export function App() {
 
   useEffect(() => {
     if (!aviso) return;
-    const id = setTimeout(() => setAviso(null), 2500);
+    const id = setTimeout(() => setAviso(null), 3500);
     return () => clearTimeout(id);
   }, [aviso]);
 
@@ -179,6 +182,25 @@ export function App() {
     },
     [salvarLocal],
   );
+
+  // Presença no mundo e entrega dos aplausos recebidos, a cada minuto.
+  useEffect(() => {
+    if (!jogando || !conta.apelido) return;
+    const bater = async () => {
+      try {
+        const n = await pulso();
+        if (n > 0) {
+          agir((e) => receberAplausos(e, n));
+          setAviso(`👏 Sua guilda recebeu ${n} ${n === 1 ? 'aplauso' : 'aplausos'}! Confira no Diário.`);
+        }
+      } catch {
+        // Sem conexão: tenta no próximo pulso.
+      }
+    };
+    void bater();
+    const id = setInterval(() => void bater(), INTERVALO_PULSO);
+    return () => clearInterval(id);
+  }, [jogando, conta.apelido, agir]);
 
   const aoEntrarNaConta = async (apelido: string) => {
     setConta({ disponivel: true, apelido });
@@ -206,6 +228,14 @@ export function App() {
     }
   };
 
+  const aoExcluirConta = async (senha: string) => {
+    await excluirConta(senha);
+    setConta((c) => ({ ...c, apelido: null }));
+    setNuvem({ enviando: false, ultimoEnvio: null, erro: null });
+    setJanela(null);
+    setAviso('Conta excluída. O progresso continua neste aparelho.');
+  };
+
   const aoSairDaConta = async () => {
     await enviarNuvem();
     await sairDaConta().catch(() => undefined);
@@ -229,6 +259,7 @@ export function App() {
           nuvem={nuvem}
           aoEntrar={(a) => void aoEntrarNaConta(a)}
           aoSair={() => void aoSairDaConta()}
+          aoExcluir={aoExcluirConta}
           aoEnviar={() => void enviarNuvem()}
           aoFechar={() => setJanela(null)}
         />
@@ -337,6 +368,7 @@ export function App() {
         )}
         {aba === 'forja' && <Forja estado={estado} agir={agir} />}
         {aba === 'taverna' && <Taverna estado={estado} agir={agir} aoContratar={() => irPara('expedicao')} />}
+        {aba === 'mundo' && <Mundo conta={conta} agir={agir} aoConta={() => setJanela('conta')} aoAviso={setAviso} />}
         {aba === 'diario' && <Diario estado={estado} />}
       </main>
       <nav className="abas">

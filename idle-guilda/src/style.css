@@ -923,3 +923,117 @@ button.link {
 .modal p {
   margin: 0;
 }
+
+/* Mundo */
+.abas {
+  grid-template-columns: repeat(5, 1fr);
+  gap: 6px;
+}
+
+.abas button {
+  font-size: 0.78rem;
+  padding: 10px 2px;
+}
+
+.mundo-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.online {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: #8fe39a;
+}
+
+.ponto-online {
+  width: 8px;
+  height: 8px;
+  background: #5fcf5a;
+  box-shadow: 0 0 0 2px var(--borda);
+  animation: pulsar 1.4s steps(2) infinite;
+}
+
+.convite {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.convite p {
+  margin: 0;
+  font-size: 0.88rem;
+}
+
+.ranking {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.guilda {
+  display: grid;
+  grid-template-columns: 34px auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 6px 8px;
+  background: var(--painel-2);
+}
+
+.guilda.minha {
+  box-shadow: 0 0 0 2px var(--ouro);
+}
+
+.posicao {
+  font-weight: 700;
+  color: var(--ouro);
+}
+
+.guilda-herois {
+  display: flex;
+}
+
+.mini {
+  width: 30px;
+  height: 25px;
+  margin-right: -6px;
+}
+
+.guilda-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: 0.85rem;
+}
+
+.guilda-info small {
+  font-size: 0.72rem;
+}
+
+.aplaudir {
+  padding: 6px 9px;
+  font-size: 1rem;
+}
+
+.excluir summary {
+  cursor: pointer;
+  color: var(--suave);
+  font-size: 0.85rem;
+}
+
+.excluir[open] {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.diario li span strong {
+  color: var(--ouro);
+}
