@@ -3,7 +3,7 @@
 // Formato atual: localStorage['dominio-save'] = { version, savedAt, state }
 // Legado (v0.1–v0.4): localStorage['dominio-save-v1'] = state  (tratado como versão 1)
 
-export const SAVE_VERSION = 4;
+export const SAVE_VERSION = 5;
 const KEY = 'dominio-save';
 const LEGACY_KEY = 'dominio-save-v1';
 
@@ -24,6 +24,13 @@ const MIGRATIONS = {
     s.stats = s.stats || { recruited: 0, captured: 0 };
     s.objIdx = s.objIdx || 0;
     s.campaign = false;
+    return s;
+  },
+  // v5 (F3): arsenal, eventos, lotes. Os lotes novos do mapa são completados pelo state.js ao carregar.
+  4: (s) => {
+    s.arsenal = s.arsenal || {};
+    s.buffs = s.buffs || [];
+    s.stats = { lots: 0, builds: 0, events: 0, ...s.stats };
     return s;
   },
 };

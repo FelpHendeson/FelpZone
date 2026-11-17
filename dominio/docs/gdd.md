@@ -261,8 +261,8 @@ As ações aparecem como botões no painel do ponto ou do líder rival, com a ch
 | **F0: Fundação** ✅ | Reorganizar em módulos, save versionado (migrando o atual), simulador em `sim/` | Sim, igual ao atual |
 | **F1: Identidade e personagem** ✅ | Criação do Comandante (atributos, origem, avatar), bandeira e jaqueta, membros com nome (vice e capitães), lealdade, motor de diálogos e de tutorial (puláveis) | Sim, Modo Cidade com personagens |
 | **F2: Era Escola** ✅ | Mapa do colégio, advertências, brigas, recrutar por tipo, motos, briga de bonde (3 rodadas), tutorial guiado, cena do salto no tempo | Sim, **primeira era da campanha** |
-| **F3: Era Bairro** | Lotes vazios e construção, tipos com função, armas e fornecedores, eventos (bailão, racha), capitães com setor e política | Sim |
-| **F4: Era Cidade** | Mapa gerado grande, zonas neutras, pontos especiais, ações especiais, mercado, alianças, tenentes; o Modo Cidade atual vira a base | Sim |
+| **F3: Era Bairro** ✅ | Lotes vazios e construção, tipos com função, armas e fornecedores, eventos (bailão, racha), capitães com setor e política | Sim |
+| **F4: Era Cidade** | Mapa gerado grande, zonas neutras, pontos especiais, ações especiais, mercado, alianças, tenentes, **capitães com setor e política** (veio da F3); o Modo Cidade atual vira a base | Sim |
 | **F5: Estado / País / Mundo** | Camada estratégica, rotas, facções maiores, finais | Sim |
 | **F6: Polimento contínuo** | Animações, sons, música, mais lore e falas, conquistas | — |
 

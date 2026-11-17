@@ -10,6 +10,7 @@ import {
   attackMult, crewDefMult, crewIncomeMult, crewHeatAdj, heatTargetMult, recruitBonus, negotiateDiscount, salaries,
   onPlayerWin, onPlayerLoss, onDefended, onNodeLost, dailyCrew,
 } from './crew.js';
+import { weaponMult, weaponHeat, ammoCost, buffSum, buffOn, tickBuilds, tickBuffs, reportIntel, arsenal, stock, storage } from './business.js';
 
 const MAX_MOTOS = 4;
 
@@ -17,7 +18,8 @@ const MAX_MOTOS = 4;
 export const lvlMult = (n) => 1 + 0.5 * (n.level - 1);
 export const nodeIncome = (n) => Math.round(TYPES[n.type].income * lvlMult(n) * (n.owner === 'P' ? crewIncomeMult(n) : 1));
 export const defMult = (n) => TYPES[n.type].def * (1 + 0.25 * (n.level - 1));
-export const estDef = (n) => n.guards * defMult(n) * (n.owner === 'P' ? crewDefMult(n) : 1);
+export const rivalArms = (o) => (state.rivals && state.rivals[o] && state.rivals[o].wm) || 1;
+export const estDef = (n) => n.guards * defMult(n) * (n.owner === 'P' ? crewDefMult(n) * weaponMult() : rivalArms(n.owner)) * (n.build ? 0.6 : 1);
 export const ownerColor = (o) => o === 'P' ? state.player.color : o === 'X' ? '#3b82f6' : o ? RIVALS[o].color : '#64748b';
 export const ownerName = (o) => o === 'P' ? state.player.gang : o === 'X' ? TYPES.policia.label : o ? RIVALS[o].name : 'Neutro';
 export const nearPolice = (n) => Math.hypot(n.x - MAP[POLICE_NODE][2], n.y - MAP[POLICE_NODE][3]) < POLICE_RADIUS;
@@ -25,11 +27,12 @@ export const nearPolice = (n) => Math.hypot(n.x - MAP[POLICE_NODE][2], n.y - MAP
 export const motoReach = () => ERA.cfg.motoCost > 0 && (state.motos || 0) > 0;
 export function reachable(n, owner = 'P') {
   if (n.owner === owner || n.owner === 'X') return false;
+  if (n.type === 'lote' && n.owner === null) return false;     // lote vazio não se toma na força: se compra
   if (ADJ[n.id].some((m) => state.nodes[m].owner === owner)) return true;
   return owner === 'P' && motoReach() && ADJ[n.id].some((m) => state.nodes[m].owner !== 'X' && ADJ[m].some((k) => state.nodes[k].owner === 'P'));
 }
 export const totalSoldiers = () => state.free + state.nodes.filter((n) => n.owner === 'P').reduce((s, n) => s + n.guards, 0);
-export const recruitCap = () => 3 + Math.floor(state.respect / 15) + recruitBonus();
+export const recruitCap = () => 3 + Math.floor(state.respect / 15) + recruitBonus() + buffSum('recruit');
 export const bribeCost = () => P(150 + forecast().target * 8);
 export const upgradeCost = (n) => P(400 * n.level);
 export const negotiateCost = (n) => Math.max(P(150), P(250 + n.guards * 150 + (n.level - 1) * 150 - state.respect * 3 - negotiateDiscount()));
@@ -37,7 +40,7 @@ export const motoCost = () => Math.round(ERA.cfg.motoCost * (1 + 0.5 * (state.mo
 export const canBuyMoto = () => ERA.cfg.motoCost > 0 && (state.motos || 0) < MAX_MOTOS
   && state.nodes.some((n) => n.owner === 'P' && n.type === 'oficina');
 // Ataque do jogador: atributos do Comandante + motos (+5% cada).
-export const playerAttackMult = () => attackMult() * (1 + 0.05 * Math.min(state.motos || 0, MAX_MOTOS));
+export const playerAttackMult = () => attackMult() * weaponMult() * (1 + 0.05 * Math.min(state.motos || 0, MAX_MOTOS));
 
 export const nodeHeat = (n) => n.lowkey ? 0 : Math.max(0, TYPES[n.type].heat + (nearPolice(n) ? 1 : 0) + (n.owner === 'P' ? crewHeatAdj(n) : 0));
 
@@ -47,11 +50,13 @@ export function forecast() {
     if (!n.lowkey) inc += nodeIncome(n);
     heat += nodeHeat(n);
   });
+  heat += weaponHeat();
   // alvo de visada/barulho: pra onde a pressão tende com o seu território atual
   let target = clamp(heat * HEAT_PER_POINT * heatTargetMult(), 0, 100);
   if (state.bribeDays > 0) target /= 2;
+  if (buffOn('calm')) target *= 0.7;
   const next = clamp(state.heat + (target - state.heat) * HEAT_DRIFT, 0, 100);
-  return { inc, heat, target: Math.round(target), next, upkeep: totalSoldiers() * UPKEEP + salaries() };
+  return { inc, heat, target: Math.round(target), next, upkeep: totalSoldiers() * UPKEEP + salaries() + ammoCost(), ammo: ammoCost() };
 }
 
 // ===================== COMBATE =====================
@@ -75,6 +80,7 @@ export function applyResult(att, node, r) {
     node.owner = att;
     node.guards = r.survivors;
     node.lowkey = false;
+    delete node.build;
     if (node.type === 'hq' && prev && prev !== 'P') eliminate(prev, att);
   } else {
     node.guards = Math.max(0, node.guards - r.defLosses);
@@ -85,7 +91,7 @@ export function applyResult(att, node, r) {
 
 export function doAttack(att, sent, node) {
   const resp = att === 'P' ? state.respect : 15 + state.day * 1.5;
-  const r = fight(sent, resp, node, att === 'P' ? playerAttackMult() : 1);
+  const r = fight(sent, resp, node, att === 'P' ? playerAttackMult() : rivalArms(att));
   const prev = applyResult(att, node, r);
   return { r, prev };
 }
@@ -175,6 +181,8 @@ export function recruit(id, qtyWanted) {
   if (n.owner !== 'P' || !t.recruit || qty <= 0 || state.money < t.recruit * qty) return;
   state.money -= t.recruit * qty; state.free += qty; state.recruited += qty;
   state.stats.recruited += qty;
+  // academia: os lutadores já chegam com faca/taco (se couber no arsenal)
+  if (n.type === 'academia') { const fit = Math.max(0, Math.min(qty, storage() - stock())); arsenal().faca = (arsenal().faca || 0) + fit; }
   log(`🧢 ${qty} ${ERA.words.soldiers === 'alunos' ? 'aluno(s)' : 'soldado(s)'} entraram pro bonde no ${n.name}.`, 'good');
   afterAction();
 }
@@ -256,9 +264,12 @@ export function endDay() {
   log(`☀️ Fim do dia: +${money(f.inc)} de renda, -${money(f.upkeep)} de ${ERA.cfg.upkeep > 5 ? 'salários' : 'lanche do bonde'}.`);
 
   dailyCrew(paidAll);
+  tickBuilds();
   if (ERA.cfg.raid === 'advertencia') schoolDiscipline(); else policeRaid();
   for (const id of Object.keys(state.rivals)) { rivalTurn(id); if (state.over) break; }
   if (!state.over) randomEvent();
+  tickBuffs();
+  reportIntel();
 
   const endedDay = state.day;
   state.day++;
@@ -331,20 +342,30 @@ export function rivalTurn(id) {
   const rec = Math.min(3 + Math.floor(state.day / 8), armyCap - army, Math.floor((rv.money - 2 * unit) / unit));
   if (rec > 0) { rv.money -= rec * unit; rv.reserve += rec; }
 
+  // corrida armamentista: rival com caixa sobrando se arma (+10% de força por compra, até +80%)
+  if (ERA.cfg.weapons && rv.money > P(1600) && (rv.wm || 1) < 1.8) {
+    rv.money -= P(1000);
+    rv.wm = Math.round(((rv.wm || 1) + 0.1) * 10) / 10;
+    if (Math.round(rv.wm * 10) % 2 === 0) log(`🔫 ${def.name} compraram armamento novo. Estão ${Math.round((rv.wm - 1) * 100)}% mais fortes.`, 'rival');
+  }
+
   if (rv.money > P(900)) {
     const n = pick(mine.filter((m) => m.level < 3 && m.type !== 'hq'));
     if (n) { rv.money -= upgradeCost(n); n.level++; }
   }
 
+  // Alvos possíveis hoje. O rival segue o plano de ontem se ainda der (é o que os boatos do inferninho revelam).
+  const candidates = (minDay) => state.nodes
+    .filter((n) => reachable(n, id) && !(n.owner === 'P' && minDay < TRUCE_DAYS))
+    .map((n) => ({ n, d: estDef(n) }))
+    .filter((o) => rv.reserve * 0.85 > o.d * 1.2 + 0.5);
+  const score = (o) => nodeIncome(o.n) / P(100) / (o.d + 1) + (o.n.type === 'hq' ? 6 : 0) + (o.n.owner === 'P' ? (id === 'A' ? 1.5 : 0.8) : 0) + Math.random();
   if (Math.random() < def.aggr + state.day * 0.01 && rv.reserve >= 3) {
-    const cands = state.nodes
-      .filter((n) => reachable(n, id) && !(n.owner === 'P' && state.day < TRUCE_DAYS))
-      .map((n) => ({ n, d: estDef(n) }))
-      .filter((o) => rv.reserve * 0.85 > o.d * 1.2 + 0.5);
+    const cands = candidates(state.day);
     if (cands.length) {
-      const score = (o) => nodeIncome(o.n) / P(100) / (o.d + 1) + (o.n.type === 'hq' ? 6 : 0) + (o.n.owner === 'P' ? (id === 'A' ? 1.5 : 0.8) : 0) + Math.random();
       cands.sort((a, b) => score(b) - score(a));
-      const { n, d } = cands[0];
+      const planned = cands.find((o) => o.n.id === rv.plan);
+      const { n, d } = planned || cands[0];
       const send = Math.min(rv.reserve, Math.ceil(d * 1.6) + 1);
       rv.reserve -= send;
       const { r, prev } = doAttack(id, send, n);
@@ -362,6 +383,10 @@ export function rivalTurn(id) {
       }
     }
   }
+
+  // plano pra amanhã (pode mudar se o alvo ficar forte demais)
+  const next = candidates(state.day + 1).sort((a, b) => score(b) - score(a))[0];
+  rv.plan = next ? next.n.id : null;
 
   const frontier = state.nodes
     .filter((n) => n.owner === id && ADJ[n.id].some((m) => { const o = state.nodes[m].owner; return o !== id && o !== 'X'; }))

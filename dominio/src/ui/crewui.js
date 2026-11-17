@@ -45,6 +45,7 @@ export function showCrew() {
   const alive = state.members.filter((m) => m.status !== 'morto' && m.status !== 'traidor');
   const gone = state.members.filter((m) => m.status === 'morto' || m.status === 'traidor');
   const why = canPromote();
+  delete $('#crew').dataset.view;
   $('#crew').innerHTML = `<div class="crbox">
     <div class="crhead">
       <div class="crflag">${flagSVG(state.flag)}</div>

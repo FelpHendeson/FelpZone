@@ -2,9 +2,10 @@
 // quem importa daqui sempre enxerga a era em uso, e `useEra(id)` troca tudo de uma vez.
 import { CIDADE } from '../data/eras/cidade.js';
 import { ESCOLA } from '../data/eras/escola.js';
+import { BAIRRO } from '../data/eras/bairro.js';
 
-export const ERAS = { escola: ESCOLA, cidade: CIDADE };
-export const ERA_ORDER = ['escola', 'cidade'];
+export const ERAS = { escola: ESCOLA, bairro: BAIRRO, cidade: CIDADE };
+export const ERA_ORDER = ['escola', 'bairro', 'cidade'];
 
 export let ERA = CIDADE;
 export let TYPES, RIVALS, MAP, EDGES, DISTRICTS, POLICE_NODE, ADJ;
@@ -28,3 +29,6 @@ export const P = (v) => Math.max(1, Math.round(v * ERA.cfg.price));
 // Texto da era com {chaves}.
 export const T = (tpl, vars = {}) => tpl.replace(/\{([^}]+)\}/g, (_, k) => (vars[k] !== undefined ? vars[k] : `{${k}}`));
 export const nextEra = (id) => ERA_ORDER[ERA_ORDER.indexOf(id) + 1] || null;
+// Mecânicas liberadas na era (construção, armas, eventos).
+export const has = (feature) => !!ERA.cfg[feature];
+export const eraIndex = (id) => ERA_ORDER.indexOf(id);

@@ -363,3 +363,28 @@ button.big { min-height: 50px; font-size: 16px; }
   .moves button { min-height: 70px; padding: 6px; } .moves .mi { font-size: 22px; } .moves small { display: none; }
   .bx { padding: 10px 12px; gap: 7px; } .bh b { font-size: 16px; }
 }
+
+/* ===================== F3: ARSENAL, LOTES, EVENTOS, BOATOS ===================== */
+.arms { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ast { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 12px; padding: 10px; text-align: center; display: flex; flex-direction: column; }
+.ast b { font-size: 20px; } .ast small { color: var(--muted); font-size: 12px; }
+.stock { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin: 10px 0 4px; }
+.wpn { display: flex; flex-direction: column; align-items: center; gap: 2px; background: rgba(255,255,255,.03); border-radius: 10px; padding: 8px 4px; text-align: center; }
+.wpn .wi { font-size: 24px; } .wpn b { font-size: 18px; } .wpn small { color: var(--muted); font-size: 11px; }
+.sup { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.scard { background: rgba(255,255,255,.04); border: 1px solid var(--line); border-radius: 12px; padding: 10px; display: flex; flex-direction: column; gap: 6px; }
+.scard .sh { display: flex; gap: 10px; } .scard .si { font-size: 30px; }
+.scard .sh div { display: flex; flex-direction: column; } .scard small { color: var(--muted); font-size: 12px; }
+.buy { display: flex; align-items: center; gap: 6px; } .buy span { flex: 1; display: flex; flex-direction: column; }
+.buy button { min-width: 48px; min-height: 36px; }
+.threat { animation: blink 1.2s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .35; } }
+@media (max-height: 520px) { .arms .ast b { font-size: 16px; } .stock .wpn { padding: 4px; } }
+@media (max-width: 640px) { .arms { grid-template-columns: 1fr; } .stock { grid-template-columns: repeat(2, 1fr); } }
+/* tela estreita (celular deitado): só a bandeira no canto, pra caber a barra de recursos numa linha */
+@media (max-width: 940px) {
+  #top .gang { padding: 0 8px; }
+  #top .gang > div { display: none; }
+  #top .res { gap: 4px; }
+  .pill { padding: 0 7px; }
+}

@@ -21,6 +21,19 @@ export const SCENES = {
     ] },
     { who: 'vice', text: 'Primeiro passo: chamar uns moleques pro bonde. Toca no Terraço e recruta. Eu e {capitaes} tamo contigo.' },
   ],
+  introBairro: [
+    { who: 'vice', text: 'O morro tá dividido em três: a Ladeira do Tião, a Família do Martelo e os Vira-Latas do Pitoco.' },
+    { who: 'vice', text: 'Tem terreno vazio por todo lado, {vulgo}. Quem comprar e construir primeiro vai mandar no bairro.' },
+    { who: 'cmd', text: 'Então a gente compra, constrói, se arma e toma. Nessa ordem.' },
+    { who: 'vice', text: 'E faz uma festa de vez em quando. Bailão no campinho traz gente nova pro bonde.' },
+  ],
+  timeskip_bairro: [
+    { who: 'cmd', text: 'O Morro do Farol é nosso. Cada laje, cada beco.' },
+    { who: 'narr', text: 'MESES DEPOIS...' },
+    { who: 'narr', text: 'O nome do bonde desceu o morro. Na cidade, os Corvos, as Serpentes e os Dragões já sabem quem está chegando.' },
+    { who: 'vice', text: 'É agora, {vulgo}. Porto Neon inteira. Os moleques do colégio viraram os donos da cidade, e a gente vai cobrar.' },
+    { who: 'cmd', text: 'Metade do caixa e todas as armas vêm com a gente. Bora.' },
+  ],
   objective: [
     { who: 'vice', text: '{texto}' },
   ],
@@ -29,7 +42,8 @@ export const SCENES = {
     { who: 'narr', text: 'ANOS DEPOIS...' },
     { who: 'narr', text: 'Os moleques cresceram. As rixas de colégio viraram facções de verdade, e Porto Neon virou um tabuleiro.' },
     { who: 'vice', text: '{vulgo}, lembra do terraço do Estadual? Os Corvos, as Serpentes e os Dragões tomaram a cidade. O jogo agora é outro.' },
-    { who: 'cmd', text: 'Então a gente toma de volta. Um ponto de cada vez. Mas antes: o bonde merece uma marca à altura.' },
+    { who: 'cmd', text: 'A cidade vai ter que esperar. Primeiro a gente vira dono do nosso bairro, o Morro do Farol.' },
+    { who: 'cmd', text: 'E o bonde merece uma marca à altura.' },
   ],
   betrayalCaptain: [
     { who: 'm', text: 'Foi mal, {vulgo}. O {rival} pagou melhor. O {ponto} agora é deles.' },
@@ -63,5 +77,7 @@ export const TIPS = {
   own:      { title: 'Seu ponto', text: 'Coloque guardas pra proteger e designe um capitão: dá defesa e os bônus dos traços.' },
   endDay:   { title: 'Fim do dia', text: 'Quando acabarem as ações, toque em Encerrar dia. Os rivais jogam, a renda entra e os salários saem.' },
   visada:   { title: '{heat} {heatIcon}', text: 'A {police} está de olho no bonde. Acima de 50 {consequencia}. Use {bribeIcon} {bribe} ou baixe a poeira num ponto pra esfriar.' },
+  lote:     { title: 'Lote comprado 🚧', text: 'Toque no lote e escolha o que construir. A obra leva dias e, enquanto isso, o ponto fica frágil: bote guardas.' },
+  intel:    { title: 'Boato ⚠️', text: 'O inferninho ouviu que um rival vai atacar o ponto marcado com ⚠️ amanhã. Reforce os guardas ou ataque primeiro.' },
   crew:     { title: 'O bonde', text: 'No 👥 Bonde você vê o seu personagem, o vice e os capitães. De olho na lealdade: abaixo de 25, alguém pode trair.' },
 };

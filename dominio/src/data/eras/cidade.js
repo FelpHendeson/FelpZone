@@ -16,6 +16,7 @@ export const CIDADE = {
     startMoney: 800, startFree: 6, startRespect: 10, rivalStartMoney: 500, rivalStartReserve: 5,
     raid: 'policia',                // consequência da visada alta: batidas e megaoperação
     motoCost: 0,                    // motos não existem nesta era (ainda)
+    build: true, weapons: true, events: true,
   },
   words: {
     heat: 'Visada', heatIcon: '👁️', police: 'polícia', bribe: 'Subornar', bribeIcon: '💼', soldiers: 'soldados',

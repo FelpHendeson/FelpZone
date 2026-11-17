@@ -32,7 +32,7 @@ function eraFields(gang, leader, color) {
   return {
     era: ERA.id, day: 1, money: c.startMoney, free: c.startFree, respect: c.startRespect, heat: 0,
     actions: ACTIONS_PER_DAY, bribeDays: 0, recruited: 0, motos: 0, warnings: 0, suspended: 0,
-    stats: { recruited: 0, captured: 0 }, objIdx: 0,
+    stats: { recruited: 0, captured: 0, lots: 0, builds: 0, events: 0 }, objIdx: 0, arsenal: {}, buffs: [],
     player: { gang, leader, color }, nodes: freshNodes(), rivals, log: [], over: null,
   };
 }
@@ -59,8 +59,10 @@ export function advanceEra(nextId, opts = {}) {
     cmd: state.cmd, members: state.members, flag: opts.flag || state.flag, jacket: opts.jacket || state.jacket,
     settings: state.settings, seenTips: state.seenTips, nextMemberId: state.nextMemberId, campaign: state.campaign,
     history: [...(state.history || []), { era: state.era, days: state.day, respect: state.respect }],
-    motos: state.motos,
+    motos: state.motos, arsenal: state.arsenal || {},
   };
+  const timeskip = state.era === 'escola';      // escola → bairro: anos depois. bairro → cidade: expansão
+  const carry = timeskip ? 0 : Math.round(state.money * 0.5);
   const gang = opts.gang || state.player.gang;
   const color = (opts.flag || state.flag).bg;
   useEra(nextId);
@@ -69,7 +71,7 @@ export function advanceEra(nextId, opts = {}) {
   const stayed = [], left = [];
   for (const m of state.members) {
     if (m.status !== 'ok' && m.status !== 'hospital' && m.status !== 'preso') continue;
-    if (m.loyalty >= 40) { m.status = 'ok'; m.node = null; m.timer = 0; m.level++; m.loyalty = Math.max(40, m.loyalty - 10); stayed.push(m); }
+    if (!timeskip || m.loyalty >= 40) { m.status = 'ok'; m.node = null; m.timer = 0; m.level++; m.loyalty = Math.max(40, m.loyalty - 10); stayed.push(m); }
     else { m.status = 'saiu'; m.node = null; left.push(m); }
   }
   if (!stayed.some((m) => m.role === 'vice')) {
@@ -79,7 +81,7 @@ export function advanceEra(nextId, opts = {}) {
   while (state.members.filter((m) => m.status === 'ok' && m.role === 'cap').length < 2) {
     state.members.push(makeMember('cap', Math.floor(Math.random() * 1e9)));
   }
-  state.money += Math.round((state.history.at(-1).respect || 0) * 8);   // respeito da era anterior vira capital inicial
+  state.money += Math.round((state.history.at(-1).respect || 0) * 8) + carry;   // respeito vira capital; na expansão, metade do caixa vem junto
   state.introPending = true;
   startLogs();
   for (const m of left) log(`🚶 ${m.name} “${m.vulgo}” seguiu outro caminho nesses anos.`, 'warn');
@@ -94,6 +96,8 @@ export function load() {
   if (!s) return false;
   replaceState(s);
   useEra(state.era || 'cidade');
+  // mapa ganhou pontos novos (ex.: lotes da F3): completa o save antigo
+  if (state.nodes.length < MAP.length) state.nodes.push(...freshNodes().slice(state.nodes.length));
   if (state.needsCrew) {
     delete state.needsCrew;
     const money0 = state.money;

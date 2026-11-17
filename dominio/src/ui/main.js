@@ -16,9 +16,13 @@ import {
   forecast, totalSoldiers, reachable, estDef, ownerColor, ownerName, nodeIncome, nodeHeat,
   recruitCap, bribeCost, upgradeCost, negotiateCost,
   endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
-  playerAttackMult, canBuyMoto, motoCost, buyMoto, currentObjective, objectives, skipTutorial,
+  playerAttackMult, canBuyMoto, motoCost, buyMoto, currentObjective, objectives, skipTutorial, afterAction,
 } from '../core/rules.js';
 import { brawlStart, brawlMove, brawlToggleCmd, brawlClose, initBrawlUI, brawlOpen, resumeBrawl } from './brawlui.js';
+import { showArsenal, arsenalUI, initArsenalUI } from './arsenalui.js';
+import { canBuyLot, buyLot, lotCost, buildOptions, canBuild, startBuild, eventsFor, canHoldEvent, holdEvent, threats, weaponMult } from '../core/business.js';
+import { EVENTS } from '../data/arsenal.js';
+import { has, P } from '../core/era.js';
 
 const $ = (sel) => document.querySelector(sel);
 
@@ -204,7 +208,8 @@ function render() {
   document.documentElement.style.setProperty('--accent', state.player.color);
   renderTop(); renderMap(); renderBottom(); renderRadio(); renderReport(); renderRotate();
   if (!state.cmd) return;
-  if (state.heat >= 30) showTip('visada');
+  if (threats().length) showTip('intel');
+  else if (state.heat >= 30) showTip('visada');
   else if (state.actions < ACTIONS_PER_DAY) showTip('endDay');
   tryPlay();
 }
@@ -228,6 +233,7 @@ function renderTop() {
     </div>
     <div class="tr">
       ${state.cmd ? `<button class="ic av${state.cmd.points ? ' dot' : ''}" onclick="showCrew()" title="Bonde: você, vice e capitães">${avatarSVG(state.cmd.look, state.jacket, state.flag)}</button>` : ''}
+      ${has('weapons') ? `<button class="ic" onclick="showArsenal()" title="Arsenal: armas e fornecedores (+${Math.round((weaponMult() - 1) * 100)}% de força)">🔫</button>` : ''}
       <button class="ic${ui.unread ? ' dot' : ''}" onclick="toggleRadio()" title="Rádio da quebrada">📻</button>
       ${canFullscreen() ? `<button class="ic" onclick="toggleFullscreen()" title="Tela cheia">${inFullscreen() ? '🗗' : '⛶'}</button>` : ''}
       <button class="ic" onclick="showMenu()" title="Menu">☰</button>
@@ -265,6 +271,7 @@ function renderMap() {
     s.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#262640" stroke-width="16" stroke-linecap="round"/>`);
     s.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#44446a" stroke-width="2" stroke-dasharray="8 10"/>`);
   });
+  const threatened = new Set(state.cmd ? threats().map((x) => x.node) : []);
   state.nodes.forEach((n) => {
     const t = TYPES[n.type];
     const col = ownerColor(n.owner);
@@ -274,6 +281,8 @@ function renderMap() {
     if (sel) s.push(`<circle class="selring" cx="${n.x}" cy="${n.y}" r="${NODE_R + 14}" stroke="${col}"/>`);
     if (canHit) s.push(`<circle class="target" cx="${n.x}" cy="${n.y}" r="${NODE_R + 9}"/>`);
     s.push(`<circle class="ring" cx="${n.x}" cy="${n.y}" r="${NODE_R}" stroke="${col}"${n.lowkey ? ' stroke-dasharray="5 5" opacity=".6"' : ''}/>`);
+    if (n.build) s.push(`<text class="emoji" x="${n.x + NODE_R - 2}" y="${n.y + NODE_R - 4}" style="font-size:16px">🏗️</text>`);
+    if (threatened.has(n.id)) s.push(`<g class="threat"><circle cx="${n.x}" cy="${n.y}" r="${NODE_R + 18}" fill="none" stroke="#f59e0b" stroke-width="3" stroke-dasharray="4 5"/><text class="emoji" x="${n.x - NODE_R - 6}" y="${n.y - NODE_R + 2}" style="font-size:18px">⚠️</text></g>`);
     if (n.lowkey) s.push(`<text class="emoji" x="${n.x - NODE_R + 4}" y="${n.y + NODE_R - 6}" style="font-size:15px">🤫</text>`);
     s.push(`<text class="emoji" x="${n.x}" y="${n.y + 1}">${t.icon}</text>`);
     s.push(`<text class="label" x="${n.x}" y="${n.y + NODE_R + 18}">${esc(n.name)}${n.level > 1 ? ' ' + '★'.repeat(n.level - 1) : ''}</text>`);
@@ -356,9 +365,17 @@ function nodePanel(n) {
         <button onclick="setRecruit(ui.recruitN+1)" ${ui.recruitN >= left ? 'disabled' : ''}>+</button>
         <button class="go" onclick="recruit(${n.id}, ui.recruitN)" ${left <= 0 || state.money < cost ? 'disabled' : ''}>${left <= 0 ? 'Sem gente hoje' : `Recrutar ${money(cost)}`}</button></div>`);
     }
+    if (n.type === 'lote') {
+      if (n.build) a.push(`<span class="hint">🏗️ Obra: ${TYPES[n.build.type].icon} ${TYPES[n.build.type].label}, falta(m) ${n.build.days} dia(s). Enquanto isso o ponto fica frágil (−40% de defesa).</span>`);
+      else buildOptions().forEach((o) => a.push(`<button class="tile" onclick="buildAt(${n.id}, '${o.type}')" ${canBuild(n, o.type) ? 'disabled' : ''} title="${o.t.desc}">🏗️ ${o.t.icon} ${o.t.label} <small>${money(o.cost)} · ${o.days}d</small></button>`));
+    }
+    eventsFor(n).forEach(([k, e]) => { const why = canHoldEvent(n, k); a.push(`<button class="tile" onclick="eventAt(${n.id}, '${k}')" ${why ? 'disabled' : ''} title="${e.desc}${why ? ' · ' + why : ''}">${e.icon} ${e.label} <small>${money(P(e.cost))}${e.action ? ' · 1⚡' : ''}</small></button>`); });
     if (n.type === 'oficina' && canBuyMoto()) a.push(`<button class="tile" onclick="buyMoto()" ${state.money < motoCost() ? 'disabled' : ''} title="Atacar pontos a duas ruas de distância e +5% na briga">🏍️ Moto <small>${money(motoCost())} · tem ${state.motos || 0}</small></button>`);
-    if (n.type !== 'hq' && n.level < 3) a.push(`<button class="tile" onclick="upgrade(${n.id})" ${state.money < upgradeCost(n) ? 'disabled' : ''} title="+50% de renda e +25% de defesa">⬆️ Nível ${n.level + 1} <small>${money(upgradeCost(n))}</small></button>`);
-    if (n.type !== 'hq') a.push(`<button class="tile" onclick="toggleLowkey(${n.id})" title="Parado: sem renda, sem visada e sem batida">${n.lowkey ? '🔊 Reativar' : '🤫 Baixar a poeira'}</button>`);
+    if (n.type !== 'hq' && n.type !== 'lote' && n.level < 3) a.push(`<button class="tile" onclick="upgrade(${n.id})" ${state.money < upgradeCost(n) ? 'disabled' : ''} title="+50% de renda e +25% de defesa">⬆️ Nível ${n.level + 1} <small>${money(upgradeCost(n))}</small></button>`);
+    if (n.type !== 'hq' && n.type !== 'lote') a.push(`<button class="tile" onclick="toggleLowkey(${n.id})" title="Parado: sem renda, sem visada e sem batida">${n.lowkey ? '🔊 Reativar' : '🤫 Baixar a poeira'}</button>`);
+  } else if (n.type === 'lote' && n.owner === null) {
+    const why = canBuyLot(n);
+    a.push(`<button class="tile go" onclick="buyLotAt(${n.id})" ${why ? 'disabled' : ''} title="Lote vazio não se toma na força: se compra. Depois você escolhe o que construir.">🚧 Comprar lote <small>${why || money(lotCost())}</small></button>`);
   } else if (n.type === 'policia') {
     a.push(`<span class="hint">${t.desc} Use ${ERA.words.bribeIcon} ${ERA.words.bribe} pra esfriar.</span>`);
   } else if (!reachable(n)) {
@@ -479,6 +496,9 @@ function startCreate(era) {
   showCreate((opts) => { if (opts) newGame({ ...opts, era }); else showStart(); });
 }
 function openBrawl(id) { brawlStart(id, ui.send); }
+function buyLotAt(id) { if (buyLot(state.nodes[id])) { afterAction(); showTip('lote'); } }
+function buildAt(id, type) { if (startBuild(state.nodes[id], type)) afterAction(); }
+function eventAt(id, key) { if (holdEvent(state.nodes[id], key)) afterAction(); }
 function editIdentity() {
   showIdentityEditor({ ...state.cmd, leader: state.cmd.vulgo, gang: state.player.gang, flag: state.flag, jacket: state.jacket }, (res) => {
     if (res) { state.flag = res.flag; state.jacket = res.jacket; state.player.color = res.flag.bg; save(); }
@@ -500,6 +520,9 @@ function showHelp(fromStart) {
       <li><b>Respeito:</b> deixa seus ataques mais fortes, libera recrutamento e compra de pontos.</li>
       <li><b>${ERA.words.heat} ${ERA.words.heatIcon}:</b> o quanto a ${ERA.words.police} está de olho. Seus pontos definem um alvo (traço branco na barra) e o valor anda até ele aos poucos. ${ERA.cfg.raid === 'advertencia' ? 'Acima de 50 pode vir advertência; na terceira, o bonde é suspenso por 2 dias.' : 'Acima de 50 tem batida; acima de 90 a polícia fecha o ponto.'}</li>
       <li><b>Sair da mira:</b> ${ERA.words.bribeIcon} ${ERA.words.bribe} tira 20 na hora e corta o alvo pela metade por ${BRIBE_DAYS} dias. 🤫 Baixar a poeira para um ponto: sem renda e sem ${ERA.words.heat.toLowerCase()}.</li>
+      ${has('build') ? '<li><b>Lotes 🚧:</b> lote vazio não se toma na força: compre (precisa de um ponto seu vizinho) e escolha o que construir. Em obra, o ponto fica frágil.</li>' : ''}
+      ${has('weapons') ? '<li><b>Arsenal 🔫:</b> armas compradas de fornecedores deixam o bonde mais forte no ataque e na defesa, mas gastam munição todo dia e aumentam a visada. Os rivais também se armam.</li>' : ''}
+      ${has('events') ? '<li><b>Eventos:</b> bailão, racha, churrasco e ação social dão bônus no ponto certo (um por dia).</li><li><b>Inferninho 👂:</b> traz boatos: os pontos seus que os rivais vão atacar amanhã aparecem com ⚠️.</li>' : ''}
       ${ERA.cfg.motoCost ? '<li><b>Motos 🏍️:</b> compradas na oficina. Deixam atacar pontos a duas ruas de distância e dão +5% na briga.</li>' : ''}
       <li><b>Rivais:</b> crescem, recrutam e brigam entre si. Depois do dia ${TRUCE_DAYS} começam a vir pra cima de você.</li>
       <li>O jogo salva sozinho no navegador.</li>
@@ -556,6 +579,7 @@ function playIntro() {
 onSceneEnd(() => { render(); if (!state.introPending) showTip('map'); });
 setBusyCheck(() => !$('#modal').classList.contains('hidden') || ui.report != null || !$('#create').classList.contains('hidden') || crewOpen() || brawlOpen());
 initBrawlUI(() => { tryPlay(); });
+initArsenalUI(render);
 initCrewUI({ changed: render, focusNode: (id) => { const n = state.nodes[id]; focusOn(n.x, n.y); selectNode(id); }, editIdentity });
 
 // ===================== INÍCIO =====================
@@ -574,6 +598,7 @@ Object.assign(window, {
   newGame, endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
   startCreate, editIdentity, cr, showCrew, showCaptainPicker, crewUI, dialogNext, dialogChoose, dialogSkip, closeTip, setPref,
   openBrawl, brawlMove, brawlToggleCmd, brawlClose, buyMoto, skipTutorial, goNextEra,
+  showArsenal, arsenalUI, buyLotAt, buildAt, eventAt,
 });
 
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };
