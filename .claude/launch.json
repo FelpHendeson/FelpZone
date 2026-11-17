@@ -12,6 +12,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["--prefix", "labs", "run", "dev", "--", "--port", "5175"],
       "port": 5175
+    },
+    {
+      "name": "idle-guilda",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "idle-guilda", "run", "dev", "--", "--port", "5176"],
+      "port": 5176
     }
   ]
 }

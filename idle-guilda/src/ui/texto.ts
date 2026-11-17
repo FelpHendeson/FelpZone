@@ -1,0 +1,51 @@
+import { ARMAS, CLASSES, ZONAS } from '../motor/dados';
+import type { Estado, Evento, Tarefa } from '../motor/tipos';
+
+export function inteiro(n: number): string {
+  return Math.floor(n).toLocaleString('pt-BR');
+}
+
+export function compacto(n: number): string {
+  if (n < 10) return n.toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+  if (n < 10_000) return inteiro(n);
+  return n.toLocaleString('pt-BR', { notation: 'compact', maximumFractionDigits: 1 });
+}
+
+export function duracao(segundos: number): string {
+  const s = Math.floor(segundos);
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 0) return `${h} h ${m.toString().padStart(2, '0')} min`;
+  if (m > 0) return `${m} min`;
+  return `${s} s`;
+}
+
+export function descreverTarefa(t: Tarefa): string {
+  if (t.tipo === 'cacar') return `Caçando ${ZONAS[t.zona].monstro.plural} em ${ZONAS[t.zona].nome}`;
+  if (t.tipo === 'minerar') return 'Minerando na pedreira';
+  return 'Descansando no acampamento';
+}
+
+export function descreverEvento(e: Estado, ev: Evento): string {
+  const nome = (id: string) => e.herois.find((h) => h.id === id)?.nome ?? 'Alguém';
+  switch (ev.tipo) {
+    case 'subiuNivel':
+      return `${nome(ev.heroi)} chegou ao nível ${ev.nivel}.`;
+    case 'nocaute':
+      return `${nome(ev.heroi)} foi nocauteado em ${ZONAS[ev.zona].nome} e voltou ao acampamento.`;
+    case 'zonaLiberada':
+      return `Nova zona liberada: ${ZONAS[ev.zona].nome}!`;
+    case 'forjou':
+      return `A forja entregou: ${ARMAS[ev.arma].nome}.`;
+    case 'contratou':
+      return `${nome(ev.heroi)}, ${CLASSES[ev.classe].nome.toLowerCase()}, entrou para a guilda.`;
+  }
+}
+
+const NOMES = ['Aren', 'Lia', 'Bram', 'Nim', 'Tavi', 'Ossa', 'Rune', 'Kael', 'Mira', 'Dov', 'Iska', 'Pell', 'Yara', 'Fenn'];
+
+export function nomeAleatorio(usados: string[] = []): string {
+  const livres = NOMES.filter((n) => !usados.includes(n));
+  const lista = livres.length ? livres : NOMES;
+  return lista[Math.floor(Math.random() * lista.length)];
+}
