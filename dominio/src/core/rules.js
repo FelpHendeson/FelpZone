@@ -1,145 +1,30 @@
-'use strict';
-// Regras, dados e estado do jogo. A interface (mapa, câmera, HUD) fica em ui.js.
-
-// ===================== DADOS =====================
-const SAVE_KEY = 'dominio-save-v1';
-const UPKEEP = 12;          // custo diário por soldado
-const ACTIONS_PER_DAY = 3;
-const TRUCE_DAYS = 4;       // rivais não atacam você antes deste dia
-const POLICE_RADIUS = 210;
-const HEAT_PER_POINT = 2.6;  // multiplica a soma da visada dos seus pontos para formar o alvo de visada
-const HEAT_DRIFT = 0.35;     // quanto a visada anda em direção ao alvo por dia
-const BRIBE_DAYS = 3;        // dias de vista grossa depois do suborno
-
-const TYPES = {
-  hq:        { label: 'QG',          icon: '🏚️', income: 150, heat: 0, resp: 0, def: 2.0, recruit: 100,
-               desc: 'O coração do bonde. Se cair, acabou.' },
-  boca:      { label: 'Boca',        icon: '💊', income: 220, heat: 4, resp: 0, def: 1.0,
-               desc: 'Dinheiro rápido, mas chama muita atenção da polícia.' },
-  inferninho:{ label: 'Inferninho',  icon: '💃', income: 170, heat: 2, resp: 2, def: 1.0,
-               desc: 'Casa noturna de fachada. Dá grana e fama na rua.' },
-  desmanche: { label: 'Desmanche',   icon: '🔧', income: 150, heat: 2, resp: 0, def: 1.1,
-               desc: 'Carro roubado entra inteiro, sai em peças.' },
-  bar:       { label: 'Bar',         icon: '🍺', income: 60,  heat: 0, resp: 1, def: 1.0, recruit: 80,
-               desc: 'Onde a molecada do bairro se junta. Bom pra recrutar.' },
-  fliperama: { label: 'Fliperama',   icon: '🕹️', income: 80,  heat: 0, resp: 1, def: 1.0, recruit: 90,
-               desc: 'Ponto de encontro das gangues de moto. Dá pra recrutar.' },
-  mercado:   { label: 'Mercadão',    icon: '🏪', income: 180, heat: 1, resp: 1, def: 1.1,
-               desc: 'Os comerciantes pagam “proteção” toda semana.' },
-  porto:     { label: 'Porto',       icon: '🚢', income: 280, heat: 3, resp: 0, def: 1.3,
-               desc: 'Contrabando pelo cais. O ponto mais lucrativo da cidade.' },
-  policia:   { label: 'Delegacia',   icon: '🚓', income: 0,   heat: 0, resp: 0, def: 0,
-               desc: 'Intocável. Seus pontos aqui perto ficam mais visados (+1).' },
-};
-
-const RIVALS = {
-  A: { name: 'Os Corvos', leader: 'Navalha', color: '#a855f7', aggr: 0.55,
-       quotes: ['Tu tá pisando em terreno de corvo, moleque.', 'A Zona Industrial tem dono.', 'Vou te ensinar a voar... pra baixo.'] },
-  B: { name: 'As Serpentes', leader: 'Dona Víbora', color: '#22c55e', aggr: 0.45,
-       quotes: ['Quem morde a cobra morre de veneno.', 'A Vila é minha desde antes de tu nascer.', 'Paciência, querido. Serpente sabe esperar.'] },
-  C: { name: 'Dragões do Cais', leader: 'Ryu', color: '#f97316', aggr: 0.35,
-       quotes: ['O mar leva tudo, até gente teimosa.', 'No Cais, quem manda é o Dragão.', 'Honra se ganha na rua, não na conversa.'] },
-};
-
-// [nome, tipo, x, y, dono, guardas]   dono: 'P' você, A/B/C rivais, null neutro, 'X' polícia
-const MAP = [
-  ['QG do Farol',          'hq',         150, 120, 'P', 4],  // 0
-  ['Boca da Escadaria',    'boca',       290,  90, null, 2], // 1
-  ['Bar do Tonhão',        'bar',        110, 270, null, 2], // 2
-  ['Inferninho Lua Rubra', 'inferninho', 330, 235, null, 3], // 3
-  ['Fliperama Neon',       'fliperama',  480, 130, null, 2], // 4
-  ['Boca da Praça',        'boca',       520, 300, null, 3], // 5
-  ['Mercadão',             'mercado',    660, 210, null, 4], // 6
-  ['QG dos Corvos',        'hq',         850, 100, 'A', 6],  // 7
-  ['Desmanche da Linha',   'desmanche',  700,  80, 'A', 3],  // 8
-  ['Boca do Viaduto',      'boca',       890, 260, 'A', 3],  // 9
-  ['Inferninho Paraíso',   'inferninho', 420, 420, null, 3], // 10
-  ['13ª Delegacia',        'policia',    570, 470, 'X', 0],  // 11
-  ['QG das Serpentes',     'hq',         140, 560, 'B', 6],  // 12
-  ['Boca do Campinho',     'boca',       270, 460, 'B', 3],  // 13
-  ['Bar da Esquina',       'bar',        300, 610, 'B', 3],  // 14
-  ['Cais 7',               'porto',      730, 470, null, 5], // 15
-  ['QG dos Dragões',       'hq',         890, 590, 'C', 6],  // 16
-  ['Boate Maré Alta',      'inferninho', 660, 610, 'C', 3],  // 17
-  ['Boca do Cais',         'boca',       880, 420, 'C', 3],  // 18
-  ['Ferro Velho',          'desmanche',  480, 590, null, 3], // 19
-];
-
-const EDGES = [
-  [0,1],[0,2],[1,3],[1,4],[2,3],[2,13],[3,5],[3,10],[4,5],[4,6],[5,6],[5,10],
-  [6,8],[6,9],[8,7],[7,9],[9,18],[6,15],[5,15],[10,13],[10,19],[12,13],[12,14],
-  [13,14],[14,19],[19,17],[19,15],[15,17],[15,18],[17,16],[18,16],
-];
-
-const DISTRICTS = [
-  ['MORRO DO FAROL', 210, 175, 190, '#ef444410'],
-  ['ZONA INDUSTRIAL', 810, 170, 180, '#a855f712'],
-  ['CENTRO', 540, 250, 160, '#facc1508'],
-  ['VILA ESPERANÇA', 230, 545, 180, '#22c55e10'],
-  ['CAIS', 790, 530, 180, '#f9731610'],
-];
-
-const PLAYER_COLORS = ['#ef4444', '#facc15', '#06b6d4', '#ec4899'];
-
-// ===================== ESTADO =====================
-let state = null;
-const ADJ = MAP.map(() => []);
-EDGES.forEach(([a, b]) => { ADJ[a].push(b); ADJ[b].push(a); });
-
-const $ = (s) => document.querySelector(s);
-const rnd = (a, b) => a + Math.random() * (b - a);
-const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
-const money = (v) => '$' + Math.round(v).toLocaleString('pt-BR');
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-
-function newGame(opts) {
-  state = {
-    day: 1, money: 800, free: 6, respect: 10, heat: 0,
-    actions: ACTIONS_PER_DAY, bribeDays: 0, recruited: 0,
-    player: { gang: opts.gang, leader: opts.leader, color: opts.color },
-    nodes: MAP.map(([name, type, x, y, owner, guards], id) => ({ id, name, type, x, y, owner, guards, level: 1 })),
-    rivals: {},
-    log: [], over: null,
-  };
-  for (const id in RIVALS) state.rivals[id] = { money: 500, reserve: 5, alive: true };
-  log(`${opts.leader} reúne o ${opts.gang} no alto do Morro do Farol. A cidade vai conhecer esse nome.`, 'big');
-  log(`As gangues ainda estão te medindo. Você tem ${TRUCE_DAYS - 1} dias antes de começarem a vir pra cima.`, 'warn');
-  save();
-  onNewGame();
-}
-
-function save() { try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) { /* sem espaço */ } }
-function load() {
-  try {
-    const s = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (s && s.nodes) { if (s.bribeDays === undefined) s.bribeDays = 0; delete s.bribed; state = s; return true; }
-  } catch (e) {}
-  return false;
-}
-
-function log(msg, kind = '') {
-  state.log.unshift({ d: state.day, msg, kind });
-  if (state.log.length > 80) state.log.pop();
-}
+// Regras do Modo Cidade: economia, combate, IA dos rivais, polícia e fim do dia.
+// Funções puras sobre `state`; a interface é avisada pelos `hooks`.
+import { UPKEEP, ACTIONS_PER_DAY, TRUCE_DAYS, POLICE_RADIUS, HEAT_PER_POINT, HEAT_DRIFT, BRIBE_DAYS } from './config.js';
+import { TYPES } from '../data/types.js';
+import { RIVALS } from '../data/rivals.js';
+import { MAP, ADJ, POLICE_NODE } from '../data/maps/porto-neon.js';
+import { rnd, pick, money, clamp } from './util.js';
+import { state, hooks, save, log } from './state.js';
 
 // ===================== REGRAS =====================
-const lvlMult = (n) => 1 + 0.5 * (n.level - 1);
-const nodeIncome = (n) => Math.round(TYPES[n.type].income * lvlMult(n));
-const defMult = (n) => TYPES[n.type].def * (1 + 0.25 * (n.level - 1));
-const estDef = (n) => n.guards * defMult(n);
-const ownerColor = (o) => o === 'P' ? state.player.color : o === 'X' ? '#3b82f6' : o ? RIVALS[o].color : '#64748b';
-const ownerName = (o) => o === 'P' ? state.player.gang : o === 'X' ? 'Polícia' : o ? RIVALS[o].name : 'Neutro';
-const nearPolice = (n) => Math.hypot(n.x - MAP[11][2], n.y - MAP[11][3]) < POLICE_RADIUS;
-const reachable = (n, owner = 'P') => n.owner !== owner && n.owner !== 'X' && ADJ[n.id].some((m) => state.nodes[m].owner === owner);
-const totalSoldiers = () => state.free + state.nodes.filter((n) => n.owner === 'P').reduce((s, n) => s + n.guards, 0);
-const recruitCap = () => 3 + Math.floor(state.respect / 15);
-const bribeCost = () => 150 + Math.round(forecast().target * 8);
-const upgradeCost = (n) => 400 * n.level;
-const negotiateCost = (n) => Math.max(150, 250 + n.guards * 150 + (n.level - 1) * 150 - state.respect * 3);
+export const lvlMult = (n) => 1 + 0.5 * (n.level - 1);
+export const nodeIncome = (n) => Math.round(TYPES[n.type].income * lvlMult(n));
+export const defMult = (n) => TYPES[n.type].def * (1 + 0.25 * (n.level - 1));
+export const estDef = (n) => n.guards * defMult(n);
+export const ownerColor = (o) => o === 'P' ? state.player.color : o === 'X' ? '#3b82f6' : o ? RIVALS[o].color : '#64748b';
+export const ownerName = (o) => o === 'P' ? state.player.gang : o === 'X' ? 'Polícia' : o ? RIVALS[o].name : 'Neutro';
+export const nearPolice = (n) => Math.hypot(n.x - MAP[POLICE_NODE][2], n.y - MAP[POLICE_NODE][3]) < POLICE_RADIUS;
+export const reachable = (n, owner = 'P') => n.owner !== owner && n.owner !== 'X' && ADJ[n.id].some((m) => state.nodes[m].owner === owner);
+export const totalSoldiers = () => state.free + state.nodes.filter((n) => n.owner === 'P').reduce((s, n) => s + n.guards, 0);
+export const recruitCap = () => 3 + Math.floor(state.respect / 15);
+export const bribeCost = () => 150 + Math.round(forecast().target * 8);
+export const upgradeCost = (n) => 400 * n.level;
+export const negotiateCost = (n) => Math.max(150, 250 + n.guards * 150 + (n.level - 1) * 150 - state.respect * 3);
 
-const nodeHeat = (n) => n.lowkey ? 0 : TYPES[n.type].heat + (nearPolice(n) ? 1 : 0);
+export const nodeHeat = (n) => n.lowkey ? 0 : TYPES[n.type].heat + (nearPolice(n) ? 1 : 0);
 
-function forecast() {
+export function forecast() {
   let inc = 0, heat = 0;
   state.nodes.filter((n) => n.owner === 'P').forEach((n) => {
     if (!n.lowkey) inc += nodeIncome(n);
@@ -152,7 +37,7 @@ function forecast() {
   return { inc, heat, target: Math.round(target), next, upkeep: totalSoldiers() * UPKEEP };
 }
 
-function fight(sent, resp, node) {
+export function fight(sent, resp, node) {
   const def = estDef(node) * rnd(0.75, 1.25) + (node.owner ? 0.5 : 0);
   const att = sent * (1 + resp / 200) * rnd(0.75, 1.25);
   if (att > def) {
@@ -164,7 +49,7 @@ function fight(sent, resp, node) {
   return { win: false, survivors: sent - losses, losses, defLosses };
 }
 
-function doAttack(att, sent, node) {
+export function doAttack(att, sent, node) {
   const resp = att === 'P' ? state.respect : 15 + state.day * 1.5;
   const prev = node.owner;
   const r = fight(sent, resp, node);
@@ -180,7 +65,7 @@ function doAttack(att, sent, node) {
   return { r, prev };
 }
 
-function eliminate(rid, by) {
+export function eliminate(rid, by) {
   const rv = state.rivals[rid];
   rv.alive = false;
   state.nodes.forEach((n) => { if (n.owner === rid) { n.owner = null; n.guards = 1; } });
@@ -194,7 +79,7 @@ function eliminate(rid, by) {
 }
 
 // ===================== AÇÕES DO JOGADOR =====================
-function playerAttack(id, sendWanted) {
+export function playerAttack(id, sendWanted) {
   const n = state.nodes[id];
   const send = clamp(sendWanted, 1, state.free);
   if (state.actions <= 0 || send <= 0 || !reachable(n)) return;
@@ -212,7 +97,7 @@ function playerAttack(id, sendWanted) {
   afterAction();
 }
 
-function playerNegotiate(id) {
+export function playerNegotiate(id) {
   const n = state.nodes[id];
   const cost = negotiateCost(n);
   if (state.actions <= 0 || n.owner !== null || state.respect < 20 || state.money < cost || !reachable(n)) return;
@@ -222,7 +107,7 @@ function playerNegotiate(id) {
   afterAction();
 }
 
-function moveGuards(id, delta) {
+export function moveGuards(id, delta) {
   const n = state.nodes[id];
   if (n.owner !== 'P') return;
   if (delta === 'all') { n.guards += state.free; state.free = 0; }
@@ -232,7 +117,7 @@ function moveGuards(id, delta) {
   afterAction();
 }
 
-function toggleLowkey(id) {
+export function toggleLowkey(id) {
   const n = state.nodes[id];
   if (n.owner !== 'P' || n.type === 'hq') return;
   n.lowkey = !n.lowkey;
@@ -240,7 +125,7 @@ function toggleLowkey(id) {
   afterAction();
 }
 
-function recruit(id, qtyWanted) {
+export function recruit(id, qtyWanted) {
   const n = state.nodes[id];
   const t = TYPES[n.type];
   const qty = clamp(qtyWanted, 1, recruitCap() - state.recruited);
@@ -250,7 +135,7 @@ function recruit(id, qtyWanted) {
   afterAction();
 }
 
-function upgrade(id) {
+export function upgrade(id) {
   const n = state.nodes[id];
   const cost = upgradeCost(n);
   if (n.owner !== 'P' || n.level >= 3 || state.money < cost) return;
@@ -259,7 +144,7 @@ function upgrade(id) {
   afterAction();
 }
 
-function bribe() {
+export function bribe() {
   const cost = bribeCost();
   if (state.bribeDays > 0 || state.money < cost || state.heat <= 0) return;
   state.money -= cost; state.bribeDays = BRIBE_DAYS;
@@ -268,10 +153,10 @@ function bribe() {
   afterAction();
 }
 
-function afterAction() { checkEnd(); save(); render(); }
+export function afterAction() { checkEnd(); save(); hooks.changed(); }
 
 // ===================== FIM DO DIA =====================
-function endDay() {
+export function endDay() {
   if (state.over) return;
   const f = forecast();
   state.money += f.inc;
@@ -302,11 +187,11 @@ function endDay() {
   state.day++;
   state.actions = ACTIONS_PER_DAY; state.recruited = 0;
   if (state.bribeDays > 0) { state.bribeDays--; if (!state.bribeDays) log('👮 Acabou a vista grossa. A polícia voltou a olhar pra você.', 'warn'); }
-  checkEnd(); save(); render();
-  onDayEnd(endedDay);
+  checkEnd(); save(); hooks.changed();
+  hooks.dayEnded(endedDay);
 }
 
-function policeRaid() {
+export function policeRaid() {
   if (state.heat < 50) return;
   if (Math.random() > (state.heat - 40) / 100) return;
   const mine = state.nodes.filter((n) => n.owner === 'P' && n.type !== 'hq' && !n.lowkey);
@@ -326,7 +211,7 @@ function policeRaid() {
   state.heat = clamp(state.heat - 15, 0, 100);
 }
 
-function rivalTurn(id) {
+export function rivalTurn(id) {
   const rv = state.rivals[id];
   if (!rv.alive) return;
   const def = RIVALS[id];
@@ -384,7 +269,7 @@ function rivalTurn(id) {
   }
 }
 
-function randomEvent() {
+export function randomEvent() {
   if (Math.random() > 0.3) return;
   const ownInf = state.nodes.some((n) => n.owner === 'P' && n.type === 'inferninho');
   const events = [
@@ -398,10 +283,10 @@ function randomEvent() {
   pick(events)();
 }
 
-function checkEnd() {
+export function checkEnd() {
   if (state.over) return;
   if (state.nodes[0].owner !== 'P') state.over = 'lose';
   else if (Object.values(state.rivals).every((r) => !r.alive)) state.over = 'win';
-  if (state.over) setTimeout(showEnd, 50);
+  if (state.over) hooks.gameOver(state.over);
 }
 

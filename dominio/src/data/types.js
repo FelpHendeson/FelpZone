@@ -1,0 +1,21 @@
+// Tipos de ponto do mapa.
+export const TYPES = {
+  hq:        { label: 'QG',          icon: '🏚️', income: 150, heat: 0, resp: 0, def: 2.0, recruit: 100,
+               desc: 'O coração do bonde. Se cair, acabou.' },
+  boca:      { label: 'Boca',        icon: '💊', income: 220, heat: 4, resp: 0, def: 1.0,
+               desc: 'Dinheiro rápido, mas chama muita atenção da polícia.' },
+  inferninho:{ label: 'Inferninho',  icon: '💃', income: 170, heat: 2, resp: 2, def: 1.0,
+               desc: 'Casa noturna de fachada. Dá grana e fama na rua.' },
+  desmanche: { label: 'Desmanche',   icon: '🔧', income: 150, heat: 2, resp: 0, def: 1.1,
+               desc: 'Carro roubado entra inteiro, sai em peças.' },
+  bar:       { label: 'Bar',         icon: '🍺', income: 60,  heat: 0, resp: 1, def: 1.0, recruit: 80,
+               desc: 'Onde a molecada do bairro se junta. Bom pra recrutar.' },
+  fliperama: { label: 'Fliperama',   icon: '🕹️', income: 80,  heat: 0, resp: 1, def: 1.0, recruit: 90,
+               desc: 'Ponto de encontro das gangues de moto. Dá pra recrutar.' },
+  mercado:   { label: 'Mercadão',    icon: '🏪', income: 180, heat: 1, resp: 1, def: 1.1,
+               desc: 'Os comerciantes pagam “proteção” toda semana.' },
+  porto:     { label: 'Porto',       icon: '🚢', income: 280, heat: 3, resp: 0, def: 1.3,
+               desc: 'Contrabando pelo cais. O ponto mais lucrativo da cidade.' },
+  policia:   { label: 'Delegacia',   icon: '🚓', income: 0,   heat: 0, resp: 0, def: 0,
+               desc: 'Intocável. Seus pontos aqui perto ficam mais visados (+1).' },
+};

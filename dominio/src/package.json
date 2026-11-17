@@ -1,0 +1,5 @@
+{
+  "type": "module",
+  "private": true,
+  "description": "Marca src/ como módulos ES para o Node (simulação e testes). O site não precisa de build."
+}

@@ -1,6 +1,19 @@
-'use strict';
 // Interface: mapa com câmera (arrastar / zoom), HUD flutuante, relatório do dia e rádio.
-// As regras ficam em game.js. Ver docs/layout.md.
+// As regras ficam em src/core. Ver docs/layout.md.
+import { UPKEEP, ACTIONS_PER_DAY, TRUCE_DAYS, POLICE_RADIUS, BRIBE_DAYS } from '../core/config.js';
+import { TYPES } from '../data/types.js';
+import { RIVALS, PLAYER_COLORS } from '../data/rivals.js';
+import { MAP, EDGES, DISTRICTS, POLICE_NODE } from '../data/maps/porto-neon.js';
+import { money, clamp } from '../core/util.js';
+import { state, hooks, replaceState, freshNodes, newGame, load } from '../core/state.js';
+import { clearSave } from '../core/save.js';
+import {
+  forecast, totalSoldiers, reachable, estDef, ownerColor, ownerName, nodeIncome, nodeHeat,
+  recruitCap, bribeCost, upgradeCost, negotiateCost,
+  endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
+} from '../core/rules.js';
+
+const $ = (sel) => document.querySelector(sel);
 
 const ui = { selected: null, send: 3, recruitN: 1, radio: false, report: null, unread: false, portraitOk: false, tIdx: -1 };
 
@@ -221,7 +234,7 @@ function renderMap() {
     s.push(`<circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/>`);
     s.push(`<text class="district" x="${x}" y="${y + r - 30}">${name}</text>`);
   });
-  s.push(`<circle cx="${MAP[11][2]}" cy="${MAP[11][3]}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`);
+  s.push(`<circle cx="${MAP[POLICE_NODE][2]}" cy="${MAP[POLICE_NODE][3]}" r="${POLICE_RADIUS}" fill="#3b82f608" stroke="#3b82f633" stroke-dasharray="4 8"/>`);
   EDGES.forEach(([a, b]) => {
     const A = state.nodes[a], B = state.nodes[b];
     s.push(`<line x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}" stroke="#262640" stroke-width="16" stroke-linecap="round"/>`);
@@ -444,19 +457,21 @@ function showHelp(fromStart) {
 
 function confirmNew() {
   showModal(`<h1>Novo jogo?</h1><p>O jogo atual vai ser perdido.</p>
-    <div class="row"><button class="danger" onclick="localStorage.removeItem(SAVE_KEY);showStart()">Começar do zero</button><button onclick="closeModal()">Cancelar</button></div>`);
+    <div class="row"><button class="danger" onclick="resetSave()">Começar do zero</button><button onclick="closeModal()">Cancelar</button></div>`);
 }
 
 function showEnd() {
   if (state.over === 'win') {
     showModal(`<h1>👑 DONO DA CIDADE</h1><p>No dia ${state.day}, o ${esc(state.player.gang)} derrubou o último QG rival. Porto Neon agora responde a ${esc(state.player.leader)}.</p>
       <p>Caixa final: <b>${money(state.money)}</b> · Respeito: <b>${state.respect}</b> · Pontos: <b>${state.nodes.filter((n) => n.owner === 'P').length}</b></p>
-      <div class="row"><button class="primary" onclick="localStorage.removeItem(SAVE_KEY);showStart()">Jogar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
+      <div class="row"><button class="primary" onclick="resetSave()">Jogar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
   } else {
     showModal(`<h1>☠️ FIM DA LINHA</h1><p>O QG do Farol caiu no dia ${state.day}. O ${esc(state.player.gang)} virou história de bar.</p>
-      <div class="row"><button class="primary" onclick="localStorage.removeItem(SAVE_KEY);showStart()">Tentar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
+      <div class="row"><button class="primary" onclick="resetSave()">Tentar de novo</button><button onclick="closeModal()">Ver o mapa</button></div>`);
   }
 }
+
+function resetSave() { clearSave(); showStart(); }
 
 function onNewGame() {
   ui.selected = null; ui.report = null; ui.radio = false; ui.unread = false; ui.tIdx = -1;
@@ -465,11 +480,25 @@ function onNewGame() {
 }
 
 // ===================== INÍCIO =====================
+hooks.changed = render;
+hooks.newGame = onNewGame;
+hooks.dayEnded = onDayEnd;
+hooks.gameOver = () => setTimeout(showEnd, 50);
+
+// Ponte para os onclick escritos nos templates HTML (módulos não ficam no escopo global).
+Object.assign(window, {
+  ui, state, cam,
+  zoomCenter, goHQ, deselect, selectNode, nextTarget, setSend, setRecruit, initialCam,
+  toggleRadio, toggleFullscreen, closeReport, renderRotate, showMenu, showHelp, showStart, showEnd, confirmNew, closeModal, resetSave,
+  newGame, endDay, playerAttack, playerNegotiate, moveGuards, toggleLowkey, recruit, upgrade, bribe,
+});
+
 $('#endBtn').onclick = () => { ui.selected = null; endDay(); };
 if (load()) { render(); initialCam(); if (state.over) showEnd(); }
 else {
-  state = { day: 1, money: 0, free: 0, respect: 0, heat: 0, actions: 0, recruited: 0, bribeDays: 0, player: { gang: '', leader: '', color: PLAYER_COLORS[0] },
-    nodes: MAP.map(([name, type, x, y, owner, guards], id) => ({ id, name, type, x, y, owner, guards, level: 1 })), rivals: {}, log: [], over: null };
+  // Estado vazio só pra desenhar o mapa atrás da tela de início.
+  replaceState({ day: 1, money: 0, free: 0, respect: 0, heat: 0, actions: 0, recruited: 0, bribeDays: 0,
+    player: { gang: '', leader: '', color: PLAYER_COLORS[0] }, nodes: freshNodes(), rivals: {}, log: [], over: null });
   render(); initialCam();
   showStart();
 }

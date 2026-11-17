@@ -258,7 +258,7 @@ As ações aparecem como botões no painel do ponto ou do líder rival, com a ch
 
 | Fase | Entrega | Jogável ao fim? |
 |---|---|---|
-| **F0: Fundação** | Reorganizar em módulos, save versionado (migrando o atual), simulador em `sim/` | Sim, igual ao atual |
+| **F0: Fundação** ✅ | Reorganizar em módulos, save versionado (migrando o atual), simulador em `sim/` | Sim, igual ao atual |
 | **F1: Identidade e personagem** | Criação do Comandante (atributos, origem, avatar), bandeira e jaqueta, membros com nome (vice e capitães), lealdade, motor de diálogos e de tutorial (puláveis) | Sim, Modo Cidade com personagens |
 | **F2: Era Escola** | Mapa do colégio, advertências, brigas, recrutar por tipo, motos, briga de bonde (3 rodadas), tutorial guiado, cena do salto no tempo | Sim, **primeira era da campanha** |
 | **F3: Era Bairro** | Lotes vazios e construção, tipos com função, armas e fornecedores, eventos (bailão, racha), capitães com setor e política | Sim |
