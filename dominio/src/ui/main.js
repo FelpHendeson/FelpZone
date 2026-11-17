@@ -23,7 +23,7 @@ import { showArsenal, arsenalUI, initArsenalUI } from './arsenalui.js';
 import { showMarket, marketUI, initMarketUI } from './marketui.js';
 import { hasMarket } from '../core/market.js';
 import { showEstado, hideEstado, estadoUI, initEstadoUI, estadoOpen } from './estadoui.js';
-import { openEstado, finishCity, affiliate, inEstado, allMine } from '../core/estado.js';
+import { openEstado, finishCity, affiliate, inEstado, allMine, org } from '../core/estado.js';
 import { canBuyLot, buyLot, lotCost, buildOptions, canBuild, startBuild, eventsFor, canHoldEvent, holdEvent, threats, weaponMult } from '../core/business.js';
 import { EVENTS } from '../data/arsenal.js';
 import { has, P, MAP_W, MAP_H } from '../core/era.js';
@@ -634,7 +634,7 @@ function resetSave() { clearSave(); hideEstado(); showStart(); }
 function goEstado() {
   closeModal();
   if (state.cityId) finishCity(); else openEstado();
-  if (allMine()) queueScene('estadoWin', {});
+  if (allMine()) queueScene(`win_${org().level}`, {});
   render();
 }
 
@@ -665,7 +665,7 @@ setBusyCheck(() => !$('#modal').classList.contains('hidden') || ui.report != nul
 initBrawlUI(() => { tryPlay(); });
 initArsenalUI(render);
 initMarketUI(render);
-initEstadoUI({ create: (cb, defaults) => showCreate(cb, defaults) });
+initEstadoUI({ create: (cb, defaults) => showCreate(cb, defaults), newGame: () => { hideEstado(); clearSave(); showStart(); } });
 registerChoice('affiliate', (e) => { affiliate(e.kind); save(); render(); });
 initCrewUI({ changed: render, focusNode: (id) => { const n = state.nodes[id]; focusOn(n.x, n.y); selectNode(id); }, editIdentity });
 

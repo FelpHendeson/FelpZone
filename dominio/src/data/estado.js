@@ -6,7 +6,7 @@ const q = (a, b, c) => [a, b, c];
 export const CITIES = {
   porto: { name: 'Porto Neon', x: 200, y: 360, diff: 1, tribute: 400, start: true,
            desc: 'Onde tudo começou. O coração da organização.' },
-  ferro: { name: 'Vale do Ferro', x: 450, y: 170, diff: 1.1, tribute: 450,
+  ferro: { annex: 25000, name: 'Vale do Ferro', x: 450, y: 170, diff: 1.1, tribute: 450,
            desc: 'Cidade de galpões, siderúrgica e desmanche. Gente dura.',
            gangs: {
              A: { name: 'Os Fundidores', leader: 'Brasa', color: '#a855f7', aggr: 0.5, quotes: q('Aqui o ferro derrete, forasteiro.', 'Vale do Ferro não se curva.', 'Volta pra tua praia.') },
@@ -14,7 +14,7 @@ export const CITIES = {
              C: { name: 'Bonde da Escória', leader: 'Carvão', color: '#f97316', aggr: 0.4, quotes: q('Escória é o que sobra. E a gente sobra.', 'Quem não trabalha, briga.', 'Vem que tem.') },
              D: { name: 'Os Guindastes', leader: 'Torre', color: '#eab308', aggr: 0.35, quotes: q('A gente levanta qualquer peso.', 'Do alto a gente vê tudo.', 'Cai de cima, cai feio.') },
            } },
-  praia: { name: 'Praia Dourada', x: 470, y: 520, diff: 1.15, tribute: 500,
+  praia: { annex: 28000, name: 'Praia Dourada', x: 470, y: 520, diff: 1.15, tribute: 500,
            desc: 'Turismo de dia, festa de noite. Muito dinheiro circulando, muita polícia de olho.',
            gangs: {
              A: { name: 'Os Tubarões da Orla', leader: 'Mako', color: '#a855f7', aggr: 0.5, quotes: q('Na orla, tubarão come primeiro.', 'Turista paga, local obedece.', 'Sangue na água atrai a gente.') },
@@ -22,7 +22,7 @@ export const CITIES = {
              C: { name: 'Os Salva-Vidas', leader: 'Boia', color: '#f97316', aggr: 0.35, quotes: q('A gente salva... quem paga.', 'Bandeira vermelha pra você.', 'Maré tá virando.') },
              D: { name: 'Bonde do Quiosque', leader: 'Caipira', color: '#eab308', aggr: 0.4, quotes: q('Todo quiosque paga pedágio.', 'Gelada e porrada, sempre.', 'Chega mais, a casa é sua... até não ser.') },
            } },
-  serra: { name: 'Serra Azul', x: 740, y: 240, diff: 1.25, tribute: 550,
+  serra: { annex: 32000, name: 'Serra Azul', x: 740, y: 240, diff: 1.25, tribute: 550,
            desc: 'Estrada de montanha e rota de contrabando. Quem controla a serra controla o que entra no estado.',
            gangs: {
              A: { name: 'Lobos da Neblina', leader: 'Uivo', color: '#a855f7', aggr: 0.5, quotes: q('Na neblina ninguém te vê chegar.', 'A serra engole forasteiro.', 'Lobo solitário morre. A gente anda em bando.') },

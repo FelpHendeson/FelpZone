@@ -57,7 +57,25 @@ export const SCENES = {
       { text: 'Fecho, mas o preço é alto: quero o dobro e fico com mais da renda.', effect: { action: 'affiliate', kind: 'caro' }, reply: 'Ambicioso. Gosto disso... por enquanto.' },
     ] },
   ],
-  estadoWin: [
+  win_pais: [
+    { who: 'narr', text: 'DO SERTÃO À FRONTEIRA, DA FLORESTA À CAPITAL FEDERAL: O PAÍS RESPONDE AO {org}.' },
+    { who: 'chief', text: 'Agora o mundo. Lá fora tem cidades que nunca ouviram falar da gente. Ainda.' },
+  ],
+  win_mundo: [
+    { who: 'narr', text: 'O NEXUS CAIU. NÃO SOBROU NINGUÉM ACIMA DO {org}.' },
+    { who: 'chief', text: 'Tudo começou num terraço de colégio. Lembra? Eu lembro de cada um que ficou pelo caminho.' },
+  ],
+  level_pais: [
+    { who: 'narr', text: 'O PAÍS.' },
+    { who: 'chief', text: 'O estado inteiro é nosso. Agora o país: Metrópole, Sertão, Floresta, Fronteira... e a Capital Federal.' },
+    { who: 'chief', text: 'Os braços vão levar mais grana, mais gente e escopeta. Quem não quiser guerra, a gente compra na negociação.' },
+  ],
+  level_mundo: [
+    { who: 'narr', text: 'O MUNDO.' },
+    { who: 'chief', text: 'Sombra Alta, Velha Marsala, Neo-Hakuro, Porto Austral... e o Nexus, onde o dinheiro do mundo é lavado.' },
+    { who: 'chief', text: 'Lá fora ninguém fala a nossa língua. Mas todo mundo entende uma bandeira hasteada.' },
+  ],
+  win_estado: [
     { who: 'narr', text: 'DA CAPITAL AO VALE, DA SERRA À PRAIA: O ESTADO RESPONDE AO {org}.' },
     { who: 'chief', text: 'Lembra do terraço do Estadual? Olha onde o {org} chegou.' },
     { who: 'chief', text: 'Isso é só o estado. O país inteiro tá olhando pra cá agora.' },

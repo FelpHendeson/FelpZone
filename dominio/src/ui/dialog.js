@@ -4,8 +4,7 @@ import { ORIGINS } from '../data/crew.js';
 import { state, save } from '../core/state.js';
 import { member } from '../core/crew.js';
 import { ERA, T } from '../core/era.js';
-import { CITIES } from '../data/estado.js';
-const CITY_NAMES = Object.fromEntries(Object.entries(CITIES).map(([k, c]) => [k, c.name]));
+import { LEVELS } from '../data/world.js';
 import { clamp } from '../core/util.js';
 import { avatarSVG } from './art.js';
 
@@ -54,7 +53,7 @@ function fill(text, ctx) {
   const m = ctx.m ? member(ctx.m) : null;
   const caps = state.members.filter((x) => x.role === 'cap' && x.status === 'ok').map((x) => `${x.name} “${x.vulgo}”`);
   const vars = {
-    chefe: state.org ? state.org.chief.vulgo : '', org: state.org ? state.org.gang : '', cidade: state.cityId ? (CITY_NAMES[state.cityId] || '') : '',
+    chefe: state.org ? state.org.chief.vulgo : '', org: state.org ? state.org.gang : '', cidade: state.cityId && state.org ? (LEVELS[state.org.level || 'estado'].nodes[state.cityId] || {}).name || '' : '',
     vulgo: state.cmd.vulgo, gang: state.player.gang, originLine: ORIGINS[state.cmd.origin].line,
     capitaes: caps.length ? caps.join(' e ') : 'Os moleques',
     falaEntrada: m ? m.line : '', vulgoM: m ? m.vulgo : '', ...ctx,

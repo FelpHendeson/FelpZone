@@ -57,7 +57,8 @@ export function generateCity(seed, rivals = ['A', 'B', 'C', 'D'], opts = {}) {
   const owners = ['P', ...rivals];
   for (const o of owners) pts.push({ x: ANCHORS[o][0], y: ANCHORS[o][1], hq: o });
   const MIN = 150;
-  for (let tries = 0; tries < 6000 && pts.length < 56; tries++) {
+  const target = opts.size || 56;                    // níveis mais altos usam cidades um pouco menores
+  for (let tries = 0; tries < 6000 && pts.length < target; tries++) {
     const x = 80 + r() * (W - 160), y = 70 + r() * (H - 140);
     if (pts.every((p) => Math.hypot(p.x - x, p.y - y) >= MIN)) pts.push({ x: Math.round(x), y: Math.round(y) });
   }

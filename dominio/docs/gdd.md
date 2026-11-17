@@ -264,7 +264,7 @@ As ações aparecem como botões no painel do ponto ou do líder rival, com a ch
 | **F3: Era Bairro** ✅ | Lotes vazios e construção, tipos com função, armas e fornecedores, eventos (bailão, racha); capitães com setor e política foram para a F4 | Sim |
 | **F4: Era Cidade** ✅ | Mapa gerado grande, zonas neutras, pontos especiais, ações especiais, alianças, capitães com política (veio da F3); **mercado e tenentes foram para a F5** | Sim |
 | **F5: Mercado + Estado** ✅ | Mercado das bocas, mapa do estado com 5 cidades, expansão por braços (mandar/achar), filiação, patrões e tributo | Sim |
-| **F6: País / Mundo + tenentes** | O mesmo mecanismo de braços em escala maior, rotas e logística, facções maiores, tenentes, finais | Sim |
+| **F6: País / Mundo + tenentes** ✅ | O mesmo mecanismo de braços em escala maior, rotas e logística, facções maiores, tenentes, finais | Sim |
 | **F7: Polimento contínuo** | Animações, sons, música, mais lore e falas, conquistas | — |
 
 Cada fase termina com: simulação de equilíbrio, teste no PC e no celular, deploy e você jogando.

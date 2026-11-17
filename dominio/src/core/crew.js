@@ -73,14 +73,46 @@ export const active = () => (state.members || []).filter((m) => m.status === 'ok
 export const member = (id) => (state.members || []).find((m) => m.id === id);
 export const captainAt = (node) => (state.members || []).find((m) => m.node === node.id && m.status === 'ok');
 export const has = (m, t) => m && m.traits.includes(t);
-export const memberTitle = (m) => `${m.role === 'vice' ? 'Vice' : 'Cap.'} ${m.name} “${m.vulgo}”`;
+export const memberTitle = (m) => `${m.role === 'vice' ? 'Vice' : m.role === 'ten' ? 'Ten.' : 'Cap.'} ${m.name} “${m.vulgo}”`;
 
-export const attackMult = () => 1 + 0.04 * attr('forca') + 0.03 * attr('tatica');
+// ---------- tenentes (até 2 por capitão) ----------
+export const MAX_LTS = 2;
+export const lieutenantsOf = (cap) => active().filter((m) => m.role === 'ten' && m.boss === cap.id);
+export const lieutenantCost = () => P(300);
+export function canPromoteLt(cap) {
+  if (!cap || cap.status !== 'ok' || cap.role === 'ten') return 'Indisponível';
+  if (lieutenantsOf(cap).length >= MAX_LTS) return `Máximo de ${MAX_LTS} tenentes`;
+  if (state.respect < 20) return 'Precisa de ⭐20';
+  if (state.money < lieutenantCost()) return `Precisa de ${money(lieutenantCost())}`;
+  return '';
+}
+export function promoteLieutenant(capId) {
+  const cap = member(capId);
+  if (canPromoteLt(cap)) return null;
+  state.money -= lieutenantCost();
+  const t = makeMember('ten', Math.floor(Math.random() * 1e9));
+  t.boss = cap.id; t.loyalty = Math.max(t.loyalty, cap.loyalty - 5);
+  state.members.push(t);
+  log(`🎖️ ${t.name} “${t.vulgo}” virou tenente de ${cap.vulgo}.`, 'good');
+  return t;
+}
+// Quando um capitão cai (morte, prisão, traição), o tenente mais leal assume.
+export function succession(cap) {
+  const lts = state.members.filter((m) => m.role === 'ten' && m.boss === cap.id && m.status === 'ok').sort((a, b) => b.loyalty - a.loyalty);
+  if (!lts.length) return null;
+  const heir = lts[0];
+  heir.role = 'cap'; delete heir.boss;
+  lts.slice(1).forEach((o) => { o.boss = heir.id; });
+  log(`🎖️ ${heir.name} “${heir.vulgo}” assumiu o lugar de ${cap.vulgo} como capitão.`, 'warn');
+  return heir;
+}
+
+export const attackMult = () => 1 + 0.04 * attr('forca') + 0.03 * attr('tatica') + Math.min(0.2, 0.02 * active().filter((m) => m.role === 'ten').length);
 export function crewDefMult(node) {
   let m = 1 + 0.03 * attr('tatica');
   const c = captainAt(node);
   if (c && c.policy === 'segura') m += 0.1;
-  if (c) m += (has(c, 'brigao') ? 0.35 : 0.2) + (has(c, 'esquentado') ? 0.2 : 0) - (has(c, 'covarde') ? 0.1 : 0) + 0.05 * (c.level - 1);
+  if (c) m += (has(c, 'brigao') ? 0.35 : 0.2) + (has(c, 'esquentado') ? 0.2 : 0) - (has(c, 'covarde') ? 0.1 : 0) + 0.05 * (c.level - 1) + 0.08 * lieutenantsOf(c).length;
   return m;
 }
 export function crewIncomeMult(node) {
@@ -99,7 +131,7 @@ export function crewHeatAdj(node) {
 export const heatTargetMult = () => Math.max(0.5, 1 - 0.04 * attr('frio'));
 export const recruitBonus = () => Math.floor(attr('labia') / 2) + (state.cmd && state.cmd.origin === 'morro' ? 1 : 0);
 export const negotiateDiscount = () => attr('labia') * 40;
-export const salaries = () => active().filter((m) => m.role !== 'vice').length * ERA.cfg.captainSalary;   // o vice é sócio, não recebe salário
+export const salaries = () => Math.round(active().reduce((s, m) => s + (m.role === 'vice' ? 0 : m.role === 'ten' ? 0.5 : 1), 0) * ERA.cfg.captainSalary);   // vice é sócio; tenente ganha metade
 
 export const captainCount = () => active().filter((m) => m.role === 'cap').length;
 export const captainCap = () => Math.min(6, 2 + Math.floor((state.cmd ? state.cmd.level : 1) / 2));
@@ -217,6 +249,7 @@ export function onNodeLost(node, cause = 'rival') {
       log(`🏥 ${memberTitle(c)} levou um tiro em ${node.name}. Fica 5 dias no hospital.`, 'bad');
     } else {
       c.status = 'morto';
+      succession(c);
       log(`⚰️ ${memberTitle(c)} morreu defendendo ${node.name}.`, 'bad');
       active().forEach((m) => loyal(m, -3));
       hooks.scene('captainDied', { m: c.id, nome: `${c.name} “${c.vulgo}”`, ponto: node.name });
@@ -241,7 +274,9 @@ export function dailyCrew(paidAll) {
   }
   for (const m of active()) {
     if (!paidAll) loyal(m, -6);                      // salário em dia é obrigação; atrasar dói
-    if (m.node === null) loyal(m, -1);              // capitão sem ponto pra comandar se sente encostado
+    // capitão sem ponto pra comandar se sente encostado; tenente segue o chefe dele
+    const idle = m.role === 'ten' ? (() => { const b = member(m.boss); return !b || b.node === null; })() : m.node === null;
+    if (idle) loyal(m, -1);
     if (has(m, 'leal')) loyal(m, 1);
     if (has(m, 'ganancioso')) loyal(m, -2);
     if (m.node !== null && has(m, 'carismatico')) state.respect = clamp(state.respect + 1, 0, 100);
@@ -265,6 +300,7 @@ export function betray(m) {
   const rivals = Object.keys(state.rivals).filter((k) => state.rivals[k].alive);
   const node = m.node !== null ? state.nodes[m.node] : null;
   m.status = 'traidor'; m.node = null;
+  if (m.role === 'cap') succession(m);
   if (m.role === 'vice') {
     const stolen = Math.round(state.money * 0.25);
     state.money -= stolen;
@@ -277,9 +313,10 @@ export function betray(m) {
     log(`🐍 ${memberTitle(m)} TRAIU o bonde e entregou ${node.name} pr${RIVALS[rid].name.startsWith('As') ? 'as' : 'os'} ${RIVALS[rid].name.replace(/^(Os|As) /, '')}!`, 'big');
     hooks.scene('betrayalCaptain', { m: m.id, rival: RIVALS[rid].name, ponto: node.name });
   } else {
-    const stolen = Math.round(state.money * 0.15);
+    const small = m.role === 'ten';                  // tenente leva pouco: 5% do caixa e 1 soldado
+    const stolen = Math.round(state.money * (small ? 0.05 : 0.15));
     state.money -= stolen;
-    const take = Math.min(state.free, 3); state.free -= take;
+    const take = Math.min(state.free, small ? 1 : 3); state.free -= take;
     log(`🐍 ${memberTitle(m)} largou o bonde levando ${money(stolen)} e ${take} soldado(s).`, 'bad');
     hooks.scene('betrayalFree', { m: m.id });
   }

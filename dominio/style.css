@@ -426,3 +426,11 @@ button.big { min-height: 50px; font-size: 16px; }
   .eh h2 { font-size: 15px; } .eh small { font-size: 11px; }
 }
 @media (max-width: 640px) { .em { flex-direction: column; } .estmap { flex: none; height: 45vh; } .ep { max-width: none; } }
+
+/* ===================== F6: TENENTES ===================== */
+.lts { display: flex; flex-wrap: wrap; gap: 4px; }
+.lt { display: flex; align-items: center; gap: 4px; background: rgba(255,255,255,.05); border-radius: 999px; padding: 2px 8px 2px 2px; font-size: 11px; }
+.lt svg { width: 22px; height: 22px; } .lt small { color: var(--muted); }
+.ep .opt2.danger { border-color: #b91c1c; }
+.ep .row { display: flex; gap: 8px; }
+.ep.epi ul { padding-left: 18px; color: #cbd5e1; font-size: 14px; line-height: 1.6; }

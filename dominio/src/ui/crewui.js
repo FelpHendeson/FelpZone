@@ -3,7 +3,7 @@ import { ATTRS, ATTR_KEYS, ORIGINS, TRAITS } from '../data/crew.js';
 import { state, save } from '../core/state.js';
 import {
   active, captainAt, memberTitle, assignCaptain, unassignCaptain, canPromote, promoteCaptain, captainCost,
-  captainCap, captainCount, captainRespect, spendPoint, canGift, gift, giftCost,
+  captainCap, captainCount, captainRespect, spendPoint, canGift, gift, giftCost, lieutenantsOf, canPromoteLt, promoteLieutenant, lieutenantCost,
 } from '../core/crew.js';
 import { money } from '../core/util.js';
 import { ERA } from '../core/era.js';
@@ -29,13 +29,15 @@ function memberCard(m) {
   return `<div class="mcard ${m.status !== 'ok' ? 'off' : ''}">
     <div class="ma">${avatarSVG(m.look, state.jacket, state.flag, { status: m.status })}</div>
     <div class="mb">
-      <div class="mt"><b>${esc(m.vulgo)}</b><small>${m.role === 'vice' ? 'Vice' : 'Capitão'} · ${esc(m.name)} · nv${m.level}</small></div>
+      <div class="mt"><b>${esc(m.vulgo)}</b><small>${m.role === 'vice' ? 'Vice' : m.role === 'ten' ? 'Tenente' : 'Capitão'} · ${esc(m.name)} · nv${m.level}</small></div>
       <div class="tr">${m.traits.map((t) => `<span class="trait" title="${TRAITS[t].desc}">${TRAITS[t].icon} ${TRAITS[t].label}</span>`).join('')}</div>
       ${m.status === 'ok' ? `<div class="loy" title="Lealdade: abaixo de 25 pode trair"><i style="width:${m.loyalty}%;background:${loyColor(m.loyalty)}"></i><span>🤝 ${m.loyalty}</span></div>` : ''}
       <div class="st">${status}</div>
+      ${m.status === 'ok' && m.role !== 'ten' && lieutenantsOf(m).length ? `<div class="lts">${lieutenantsOf(m).map((t) => `<span class="lt" title="Tenente · ${TRAITS[t.traits[0]].label} · lealdade ${t.loyalty}">${avatarSVG(t.look, state.jacket, state.flag)}<b>${esc(t.vulgo)}</b><small>🤝${t.loyalty}</small></span>`).join('')}</div>` : ''}
       ${m.status === 'ok' ? `<div class="mbtn">
         ${node ? `<button onclick="crewUI.goto(${node.id})">Ver ponto</button><button onclick="crewUI.unassign(${m.id})">Tirar do ponto</button>` : ''}
         <button onclick="crewUI.gift(${m.id})" ${giftWhy ? 'disabled' : ''} title="+15 de lealdade">💵 Agrado ${giftWhy || money(giftCost(m))}</button>
+        ${m.role !== 'ten' ? (() => { const w = canPromoteLt(m); return `<button onclick="crewUI.lt(${m.id})" ${w ? `disabled title="${w}"` : 'title="Tenente: +8% de defesa no ponto do capitão, +2% de ataque do bonde; assume se o capitão cair"'}>🎖️ + Tenente ${w ? '' : money(lieutenantCost())}</button>`; })() : ''}
         ${ERA.generate ? `<button onclick="crewUI.policy(${m.id})" title="${POLICIES[policyOf(m)].desc}">${POLICIES[policyOf(m)].icon} ${POLICIES[policyOf(m)].label}</button>` : ''}
       </div>` : ''}
     </div></div>`;
@@ -45,7 +47,7 @@ export function showCrew() {
   const c = state.cmd;
   const o = ORIGINS[c.origin];
   const xpNeed = 40 * c.level;
-  const alive = state.members.filter((m) => m.status !== 'morto' && m.status !== 'traidor');
+  const alive = state.members.filter((m) => m.status !== 'morto' && m.status !== 'traidor' && !(m.role === 'ten' && m.status === 'ok'));
   const gone = state.members.filter((m) => m.status === 'morto' || m.status === 'traidor');
   const why = canPromote();
   delete $('#crew').dataset.view;
@@ -83,7 +85,7 @@ export const crewOpen = () => !$('#crew').classList.contains('hidden');
 export function showCaptainPicker(nodeId) {
   const node = state.nodes[nodeId];
   const cur = captainAt(node);
-  const list = active();
+  const list = active().filter((m) => m.role !== 'ten');
   $('#crew').innerHTML = `<div class="crbox small">
     <div class="crhead"><div><h2>Capitão de ${esc(node.name)}</h2><small>Dá +20% de defesa e os bônus dos traços.</small></div>
       <button class="x" onclick="crewUI.close()" aria-label="Fechar">✕</button></div>
@@ -104,6 +106,7 @@ export const crewUI = {
   assign(mid, nid) { assignCaptain(mid, nid); save(); $('#crew').classList.add('hidden'); deps.changed(); },
   gift(id) { gift(id); save(); deps.changed(); showCrew(); },
   policy(id) { cyclePolicy(id); save(); deps.changed(); showCrew(); },
+  lt(id) { promoteLieutenant(id); save(); deps.changed(); showCrew(); },
   point(k) { spendPoint(k); save(); deps.changed(); showCrew(); },
   promote() { if (promoteCaptain()) { save(); $('#crew').classList.add('hidden'); deps.changed(); } },
   identity() { $('#crew').classList.add('hidden'); deps.editIdentity(); },

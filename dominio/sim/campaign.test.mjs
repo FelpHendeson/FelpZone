@@ -194,6 +194,36 @@ assert.equal(state.flag.bg, state.org.flag.bg, 'bandeira da organização');
 for (const k in state.rivals) if (state.rivals[k].alive) R.eliminate(k, 'P');
 R.checkEnd(); ES.finishCity();
 assert.ok(ES.isMine('praia'));
-assert.equal(state.org.cities.praia.tributeMult, 0.5, 'quem cobrou caro manda metade do tributo');
+assert.equal(state.org.nodes.estado.praia.tributeMult, 0.5, 'quem cobrou caro manda metade do tributo');
 assert.ok(ES.available('capital'), 'Capital na rota');
-console.log(`estado: ok (Porto, Vale do Ferro e Praia Dourada são suas; caixa ${state.org.treasury})`);
+// anexar a Serra Azul com dinheiro; a Capital (final) não se compra
+state.org.treasury = 100000;
+assert.ok(ES.annex('serra'), 'Serra Azul anexada');
+assert.equal(ES.canAnnex('capital'), 'Esse não se compra: só na guerra');
+state.org.nodes.estado.capital = { status: 'yours', patron: { name: 'x', vulgo: 'x', look: state.cmd.look } };
+assert.ok(ES.allMine() && ES.canLevelUp(), 'estado completo');
+assert.ok(ES.levelUp());
+assert.equal(ES.level(), 'pais');
+assert.ok(ES.isMine('farol') && ES.available('sertao') && ES.available('metropole'));
+assert.ok(ES.tributePerDay() > 3000, 'tributo soma estado inteiro + país');
+// braço no País: gangues geradas, mapa menor, apoio maior
+const bp = ES.orgMembers()[0];
+state.org.treasury = 20000;
+assert.ok(ES.sendMember('sertao', bp.id));
+assert.equal(state.nodes.length <= 46, true, 'cidade do país é menor');
+assert.ok(state.arsenal.escopeta >= 4, 'apoio do país inclui escopetas');
+assert.ok(Object.values(E.RIVALS).every((r) => r.name && r.leader), 'gangues geradas');
+for (const k in state.rivals) if (state.rivals[k].alive) R.eliminate(k, 'P');
+R.checkEnd(); ES.finishCity();
+assert.ok(ES.isMine('sertao'));
+// pula o resto do país e do mundo
+for (const id of Object.keys(ES.L().nodes)) state.org.nodes.pais[id] = { status: 'yours', patron: { name: 'x', vulgo: 'x', look: state.cmd.look } };
+assert.ok(ES.levelUp());
+assert.equal(ES.level(), 'mundo');
+for (const id of Object.keys(ES.L().nodes)) state.org.nodes.mundo[id] = { status: 'yours', patron: { name: 'x', vulgo: 'x', look: state.cmd.look } };
+assert.ok(ES.allMine() && !ES.canLevelUp(), 'mundo é o último nível');
+ES.finishStory('rei');
+const ep = ES.epilogue();
+assert.equal(ep.kind, 'rei');
+assert.ok(ep.conquered.length >= 15, 'epílogo lista o que foi dominado');
+console.log(`estado/país/mundo: ok (${ep.conquered.length} lugares dominados, ${ep.days} dias de história)`);

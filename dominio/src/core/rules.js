@@ -374,10 +374,11 @@ export function rivalTurn(id) {
   // recrutam guardando uma reserva de caixa, com teto pelo tamanho do território
   const unit = P(100);
   const c = ERA.cfg;
-  const armyCap = (c.rivalCapBase ?? 10) + mine.length * (c.rivalCapPerNode ?? 5);
+  const boost = state.rivalBoost || 1;                      // lugares mais difíceis da expansão (país, mundo)
+  const armyCap = Math.round(((c.rivalCapBase ?? 10) + mine.length * (c.rivalCapPerNode ?? 5)) * boost);
   // rival rico recruta mais por dia (não fica sentado no dinheiro)
   const rich = ERA.generate && rv.money > P(3000) ? 3 : 0;
-  const rec = Math.min(3 + rich + Math.floor(state.day / 8), armyCap + rich * 2 - army, Math.floor((rv.money - 2 * unit) / unit));
+  const rec = Math.min(3 + rich + Math.floor(state.day / 8) + Math.round((boost - 1) * 3), armyCap + rich * 2 - army, Math.floor((rv.money - 2 * unit) / unit));
   if (rec > 0) { rv.money -= rec * unit; rv.reserve += rec; }
 
   // corrida armamentista: rival com caixa sobrando se arma (+10% de força por compra, até +80%)
@@ -402,7 +403,7 @@ export function rivalTurn(id) {
     .filter((o) => rv.reserve * 0.85 > o.d * 1.2 + 0.5);
   const score = (o) => nodeIncome(o.n) / P(100) / (o.d + 1) + (o.n.type === 'hq' ? 6 : 0) + (o.n.owner === 'P' ? (id === 'A' ? 1.5 : 0.8) + (angry ? 3 : 0) : 0)
     + (ally && o.n.owner === ally ? 4 : 0) + Math.random();
-  if (Math.random() < def.aggr + state.day * 0.01 + (angry ? 0.3 : 0) && rv.reserve >= 3) {
+  if (Math.random() < def.aggr + state.day * 0.01 + (angry ? 0.3 : 0) + ((state.rivalBoost || 1) - 1) * 0.25 && rv.reserve >= 3) {
     const cands = candidates(state.day);
     if (cands.length) {
       cands.sort((a, b) => score(b) - score(a));
@@ -433,7 +434,7 @@ export function rivalTurn(id) {
   const frontier = state.nodes
     .filter((n) => n.owner === id && ADJ[n.id].some((m) => { const o = state.nodes[m].owner; return o !== id && o !== 'X'; }))
     .sort((a, b) => a.guards - b.guards);
-  const cap = (ERA.cfg.guardBase ?? 4) + Math.floor(state.day / (ERA.cfg.guardEvery ?? 6));
+  const cap = Math.round(((ERA.cfg.guardBase ?? 4) + Math.floor(state.day / (ERA.cfg.guardEvery ?? 6))) * (state.rivalBoost || 1));
   for (const n of frontier) {
     if (rv.reserve <= 2) break;
     if (n.guards < cap) { n.guards++; rv.reserve--; }

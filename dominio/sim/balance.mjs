@@ -1,14 +1,15 @@
 // Simulador de equilíbrio: um bot joga várias partidas e mede vitória, duração e visada.
-// Uso: node sim/balance.mjs [partidas=40] [--era escola|bairro|cidade] [--sem-bonde] [--cuidar] [--armas] [--ops] [--estado ferro|praia|serra|capital]
+// Uso: node sim/balance.mjs [partidas=40] [--era escola|bairro|cidade] [--sem-bonde] [--cuidar] [--armas] [--ops] [--estado <lugar de qualquer nível: ferro, capital, sertao, federal, hakuro, nexus...>]
 import { state, newGame } from '../src/core/state.js';
 import { ADJ } from '../src/core/era.js';
 import { reachable, estDef, playerAttack, moveGuards, recruit, bribe, endDay, canBuyMoto, motoCost, buyMoto, playerAttackMult } from '../src/core/rules.js';
-import { active, captainAt, assignCaptain, canPromote, promoteCaptain, spendPoint, canGift, gift } from '../src/core/crew.js';
+import { active, captainAt, assignCaptain, canPromote, promoteCaptain, spendPoint, canGift, gift, canPromoteLt, promoteLieutenant } from '../src/core/crew.js';
 import { hooks } from '../src/core/state.js';
 import { buyWeapon, canBuyWeapon, stock, storage, canBuyLot, buyLot, lotCost, startBuild } from '../src/core/business.js';
 import { canHeist, heistOdds, doHeist } from '../src/core/ops.js';
 import { TYPES } from '../src/core/era.js';
 import { openEstado, sendMember, orgMembers } from '../src/core/estado.js';
+import { LEVELS } from '../src/data/world.js';
 
 const GAMES = Number(process.argv[2]) || 40;
 
@@ -26,7 +27,9 @@ function manageCrew() {
   if (!USE_CREW) return;
   while (state.cmd.points > 0) spendPoint(state.cmd.points % 2 ? 'tatica' : 'forca');
   if (!canPromote() && state.money > 2500 * (ERA_ID === 'escola' ? 0.12 : 1)) promoteCaptain();
-  const free = active().filter((m) => m.node === null || state.nodes[m.node].owner !== 'P');
+  const free = active().filter((m) => m.role !== 'ten' && (m.node === null || state.nodes[m.node].owner !== 'P'));
+  // tenentes quando sobra dinheiro (um por capitão por vez)
+  for (const cap of active().filter((m) => m.role === 'cap')) if (state.money > 3000 * (ERA_ID === 'escola' ? 0.12 : 1) && !canPromoteLt(cap)) promoteLieutenant(cap.id);
   const spots = state.nodes.filter((n) => n.owner === 'P' && !captainAt(n))
     .map((n) => ({ n, front: ADJ[n.id].filter((m) => { const o = state.nodes[m].owner; return o && o !== 'P' && o !== 'X'; }).length }))
     .sort((a, b) => (b.n.type === 'hq') - (a.n.type === 'hq') || b.front - a.front);
@@ -80,8 +83,12 @@ function run(useBribe) {
     newGame({ gang: 'Bot', leader: 'Bot', color: '#ef4444', era: ERA_ID, skipIntro: true });
     if (ESTADO) {
       // simula a chegada de um braço mandado: organização criada, cidades no caminho já são suas
-      state.campaign = true; openEstado(); state.org.treasury = 3000;
-      for (const id of ['ferro', 'praia', 'serra']) if (id !== ESTADO) state.org.cities[id] = { status: 'yours', patron: { name: 'x', vulgo: 'x', look: state.cmd.look } };
+      state.campaign = true; openEstado();
+      const lv = Object.keys(LEVELS).find((k) => LEVELS[k].nodes[ESTADO]);
+      state.org.level = lv; state.org.nodes[lv] = state.org.nodes[lv] || {};
+      state.org.treasury = LEVELS[lv].support.cap;
+      // tudo do nível já é seu, menos o alvo (pra ele ficar na rota)
+      for (const id of Object.keys(LEVELS[lv].nodes)) if (id !== ESTADO) state.org.nodes[lv][id] = { status: 'yours', patron: { name: 'x', vulgo: 'x', look: state.cmd.look } };
       sendMember(ESTADO, orgMembers()[0].id);
     }
     const heats = [];
