@@ -1,10 +1,12 @@
 import { Modal } from './Modal';
 
 const PASSOS = [
-  ['⚔', 'A party luta sozinha', 'Seus heróis caçam monstros automaticamente, até com o jogo fechado (por até 8 horas). Você não precisa clicar para atacar.'],
-  ['🎯', 'Siga os objetivos', 'O quadro amarelo no topo diz o próximo passo e onde fazê-lo. Cumpra e toque em "Receber" para ganhar ouro.'],
-  ['🛡', 'Monte a party', 'O Guerreiro protege, a Mística cura e a Caçadora causa dano. Contrate na Taverna e forje armas na Forja.'],
-  ['⬆', 'Evolua e avance', 'Cada nível dá pontos de Poder ou Vigor. Zonas mais difíceis dão mais XP e ouro. Se a party recua demais, volte uma zona.'],
+  ['⚔', 'A batalha é contínua', 'A party luta sozinha, em ondas, mesmo com o jogo fechado (até 8 horas). Velocidade define a frequência dos ataques; Velocidade mágica e física aceleram a recarga das habilidades.'],
+  ['📜', 'Siga os capítulos', 'O quadro dourado no topo conta a história e ensina o próximo passo. Cumpra e receba a recompensa.'],
+  ['🛡', 'Monte a party', 'Até cinco heróis: tanque na frente, dano explosivo, dano constante, magia em área e suporte. Recrute na Taverna (Cidade).'],
+  ['🎒', 'Equipe e melhore', 'Dez espaços: elmo, peitoral, manoplas, calças, botas, arma, mão secundária, dois acessórios e uma relíquia. Conjuntos dão bônus por peças.'],
+  ['✨', 'Habilidades', 'Cada herói usa até 5 habilidades além do ataque básico. Elas sobem de nível com o uso, abrem na Árvore e se fundem no Jardim.'],
+  ['🧭', 'Expedições', 'Mande heróis explorar (itens e relíquias) ou treinar (XP). Eles saem da batalha enquanto isso.'],
 ] as const;
 
 export function ComoJogar({ aoFechar }: { aoFechar: () => void }) {

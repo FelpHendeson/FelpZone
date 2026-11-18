@@ -9,6 +9,7 @@ interface Props {
   aoSalvar: () => void;
   aoConta: () => void;
   aoBackup: () => void;
+  aoDiario: () => void;
   aoAjuda: () => void;
   aoMenuInicial: () => void;
   aoApagar: () => void;
@@ -33,6 +34,10 @@ export function Menu(p: Props) {
         <button onClick={p.aoBackup}>
           📦 Backup
           <small>Copiar ou colar um código com todo o progresso</small>
+        </button>
+        <button onClick={p.aoDiario}>
+          📖 Diário de viagem
+          <small>Tudo o que aconteceu na aventura</small>
         </button>
         <button onClick={p.aoAjuda}>❓ Como jogar</button>
         <button onClick={p.aoMenuInicial}>🏠 Menu inicial</button>

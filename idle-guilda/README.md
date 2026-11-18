@@ -1,51 +1,43 @@
-# Idle Guilda
+# LionHearth: Crônicas das Sky Islands
 
-Idle de RPG e gerenciamento de personagens. Você comanda uma pequena guilda de aventureiros que caçam, mineram e descansam sozinhos, inclusive com o jogo fechado. O seu papel é decidir: onde cada um trabalha, como distribuir os pontos de atributo, quais armas forjar e quem contratar. Nome provisório.
+Idle RPG de gerenciamento de party em pixel art. **Sir LionHearth**, herdeiro da Ilha de Aço, parte para espalhar o nome da família pelas Sky Islands do reino de Hope. No caminho, reúne uma party de cinco heróis que luta sozinha, em ondas, mesmo com o jogo fechado. O seu papel é montar a party, distribuir atributos, escolher equipamentos e habilidades, forjar, explorar e fundir habilidades no Jardim.
+
+A pasta e o projeto na Vercel continuam com o nome `idle-guilda`, das primeiras versões.
 
 **Versão publicada:** [idle-guilda.vercel.app](https://idle-guilda.vercel.app/)
 
-## Hipótese
-
-Voltar ao jogo e ver o progresso acumulado já dá vontade de tomar a próxima decisão (montar a party, forjar uma arma, mudar de zona), mesmo com pouco conteúdo.
+O design completo está no **[GDD](docs/GDD.md)**: personagens e lore, atributos, fórmulas de combate, habilidades, árvore, jardim, equipamentos, economia, ritmo e interface.
 
 ## Estado atual
 
-**v0.4: mundo "pseudo online".** O jogo continua individual, mas quem tem conta participa de um mundo comum, na aba **Mundo**:
+**v1.0: o jogo reimaginado.** O motor, a interface e a arte foram refeitos. Saves das versões anteriores não são compatíveis.
 
-- **Ranking de renome:** as 20 guildas com mais renome, cada uma com a party desenhada, o nível, a zona e os aplausos. O renome soma os níveis dos heróis × 10, os objetivos × 25 e os monstros ÷ 100. A sua posição aparece mesmo fora do top 20.
-- **Acontecimentos do mundo:** um mural com os feitos de todos ("chegou ao nível 10!", "recrutou Lia, uma Mística", "forjou a Lâmina das ruínas!"). O servidor compara o save novo com o anterior para descobrir o que mudou.
-- **Jogadores online agora:** quem passou pelo jogo nos últimos 5 minutos.
-- **Aplausos:** aplaudir outra guilda dá +10 de ouro para você na hora e +25 para ela, entregues no próximo "pulso" (a cada minuto, com o jogo aberto) e registrados no Diário. São até 5 aplausos por dia e 1 por guilda por dia.
-- **Excluir conta** (pede a senha): apaga a conta, o save na nuvem e a presença no ranking e no mural.
+- **Party de cinco** com raça, papel, elemento e lore:
+  - Sir LionHearth (dano explosivo);
+  - Quentin Salamander (tanque);
+  - Cyrus Viper (raio em área);
+  - Vesper Ashveil (dano constante);
+  - Odalys Thornwick (buffs e debuffs).
 
-O ranking confia no save enviado pelo jogo, então quem editar o próprio save consegue trapacear. Para um jogo entre amigos, isso é aceitável por enquanto.
-
-### v0.3: menu, save e conta
-
-Entraram nesta versão:
-
-- **Menu inicial:** Continuar (com o resumo do progresso), Novo jogo, Conta e Como jogar.
-- **Menu no jogo (☰):** Salvar agora (mostra quando foi o último save), Conta, Backup, Como jogar, Menu inicial e Apagar guilda.
-- **Save:** automático neste aparelho a cada 5 s e ao fechar, mais o botão manual.
-- **Conta opcional**, só com apelido e senha (sem e-mail, então a senha não pode ser recuperada). Com a conta conectada, o progresso vai para a nuvem a cada 2 minutos, ao esconder a aba e no "Salvar agora". Em outro aparelho, é só entrar com a mesma conta. Se o aparelho e a nuvem tiverem progressos diferentes, o jogo pergunta qual usar e não envia nada antes da escolha. Um ☁ no topo mostra que o save na nuvem está ligado.
-- **Backup:** um código de texto com todo o progresso, para copiar e colar em outro aparelho, mesmo sem conta.
-
-### v0.2: party única e tutorial por objetivos
-
- A v0.1 tinha cada herói numa tarefa separada, com fadiga, mineração e muitos botões, e no teste ficou confusa. Nesta versão:
-
-- **Uma party só:** até três heróis vão juntos para a zona e lutam juntos numa cena grande.
-- **Papéis claros:** o **Guerreiro** (tanque) recebe todos os golpes; a **Mística** (cura) cura quem está mais ferido e dá +25% de XP ao grupo; a **Caçadora** (dano) bate forte e acha +25% de materiais. Sem tanque, o dano se divide entre todos.
-- **Descanso automático do grupo:** se alguém cai abaixo de 25% da vida, a party volta ao acampamento e retorna quando todos se recuperam. O monstro continua ferido enquanto isso.
-- **Dois atributos:** Poder (dano, ou cura na Mística) e Vigor (vida e defesa). Cada nível dá 2 pontos, e o botão "Distribuir sugerido" reparte conforme o papel.
-- **Objetivos como tutorial:** 12 passos em sequência (forjar, equipar, contratar, avançar de zona), cada um com dica, atalho para a tela certa e recompensa em ouro. As abas mostram um marcador quando há algo a fazer nelas.
-- **"Como jogar"** na primeira vez e no menu.
-- **Zonas:** Campina Verde, Bosque Sombrio e Ruínas Antigas (níveis 1, 5 e 10). Cada botão mostra o XP por minuto esperado, medido simulando 10 minutos, ou avisa quando a zona é difícil demais.
-- **Forja** com 4 armas (gosma, couro e fragmentos), **Taverna** para completar a party, **Diário** e **progresso offline** de até 8 horas com resumo.
-- **Pixel art desenhada no código** (`src/arte/sprites.ts`), sem imagens externas.
-- **Save** no `localStorage`. Saves da v0.1 não são compatíveis e o jogo começa do zero.
-
-Ritmo medido com um bot que segue os objetivos: os sete primeiros saem em poucos minutos, o Bosque passa a compensar perto de 10 minutos e as Ruínas perto de 75. A sequência inteira leva cerca de 1 h 20.
+  Os quatro últimos são recrutados na Taverna.
+- **Sete atributos:** Vida, Ataque, Defesa e Velocidade, físicos e mágicos. A velocidade define a frequência dos ataques e a recarga das habilidades. Cada nível dá 3 pontos e 1 ponto de habilidade.
+- **Combate contínuo:** em ondas, com aggro do tanque, elementos, críticos, escudos, dano contínuo, buffs e debuffs. Há um chefe a cada 10 ondas, e o **Leão das Chamas** é a transformação do Sir LionHearth.
+- **Habilidades:**
+  - Até 5 em uso por herói, além do ataque básico, com a ordem definindo a prioridade.
+  - Cada uma tem tipo, escola, elemento, rank (D a S) e nível (1 a 10, sobe com o uso).
+  - **Árvore** com dois ramos por herói.
+  - **Jardim** de fusão, com 5 receitas secretas e fusões geradas por regras para qualquer combinação.
+- **Equipamentos:**
+  - 10 espaços (elmo, peitoral, manoplas, calças, botas, arma, mão secundária, 2 acessórios e relíquia);
+  - 4 tipos de armadura;
+  - 5 raridades com afixos;
+  - 5 conjuntos com bônus de 2, 4 e 5 peças;
+  - 10 relíquias com passivas.
+- **Cidade:** Ferreiro (forjar, melhorar de +1 a +10, desmontar), Loja (comprar e vender itens e materiais), Taverna e Jardim.
+- **Expedições** (15 min, 2 h e 8 h por mapa, com chance de relíquia) e **treino**.
+- **5 mapas** liberados pelo nível do Sir LionHearth, cada um com monstros, material e conjunto próprios.
+- **Campanha de 21 capítulos**, que também ensina o jogo.
+- **Menu inicial, prólogo, save automático e manual, backup por código, conta, ranking, mural, jogadores online e aplausos**, mantidos das versões anteriores e adaptados.
 
 ## Executar localmente
 
@@ -56,45 +48,43 @@ npm install
 npm run dev
 ```
 
-Abra a URL exibida pelo Vite. O servidor de desenvolvimento também atende `/api` (contas e save na nuvem) com um banco em memória, que se apaga ao reiniciar. Para testar no celular na mesma rede, use `npm run dev:rede`. Para as regras, `npm test`. Para os tipos e a versão de produção, `npm run build`.
+Abra a URL exibida pelo Vite. O servidor de desenvolvimento também atende `/api` (contas, save na nuvem e mundo) com um banco em memória, que se apaga ao reiniciar. Para testar no celular na mesma rede, use `npm run dev:rede`. Para as regras, `npm test`. Para os tipos e a versão de produção, `npm run build`.
+
+Para revisar a arte, abra `/src/arte/preview.html` (sprites e ícones) ou `/src/arte/preview-batalha.html` (as cenas de batalha) no servidor de desenvolvimento.
 
 ## Arquitetura
 
 | Pasta | Conteúdo |
 | --- | --- |
-| `src/motor/` | Regras em TypeScript puro, sem React: tipos, dados (classes, zonas, armas), fórmulas, combate da party por segundo, objetivos, ações e save. Tudo determinístico e testado. |
-| `src/arte/` | Sprites em texto, desenho no canvas e montagem da cena da party (luta ou acampamento). |
-| `src/ui/` | Componentes React que mostram o estado e chamam as ações do motor. |
-| `src/nuvem.ts` | Chamadas às funções `/api` a partir do jogo. |
-| `api/` | Funções da Vercel: `conta.ts` (criar, entrar, sair, excluir), `save.ts` (ler e gravar o save) e `mundo.ts` (ranking, mural, online, pulso e aplausos). As regras ficam em `api/_lib/`, testadas com um banco em memória. |
+| `src/motor/dados/` | Dados do jogo: personagens, habilidades e receitas, árvores, itens, conjuntos, relíquias, mapas, monstros e missões. |
+| `src/motor/` | Regras em TypeScript puro: atributos (`status.ts`), combate (`combate.ts`), itens, progressão, ações do jogador, capítulos, save e avanço do tempo (`jogo.ts`). |
+| `src/arte/` | Pixel art em texto: heróis, monstros, ícones de itens e materiais, cenários e a cena de batalha. |
+| `src/ui/` | React: telas, abas, ficha do herói, cidade, expedições, mundo, conta e menus. |
+| `src/nuvem.ts` | Chamadas às funções `/api`. |
+| `api/` | Funções da Vercel: `conta.ts`, `save.ts` e `mundo.ts`, com as regras em `api/_lib/`. |
 
 Decisões:
 
-- **Simulação em passos de 1 s**, iguais com o jogo aberto ou fechado: oito horas offline são 28.800 passos, o que leva milissegundos.
-- **A estimativa de cada zona é uma simulação curta** (10 minutos a partir da vida cheia), em vez de uma fórmula, para continuar correta quando as regras mudarem.
-- **Saque pelo valor esperado:** os materiais acumulam frações (0,5 gosma por abate), então não há sorteio e os testes são reproduzíveis.
-- **O motor emite acontecimentos estruturados** (`Evento`), e o texto é montado em `ui/texto.ts`.
-- **As ações devolvem um estado novo ou um erro**, sem alterar o anterior.
-- **Menos controles, mais consequência:** a decisão principal é a composição da party e a zona, não o microgerenciamento de cada herói.
+- **Simulação em passos de 0,5 s**, iguais com o jogo aberto ou fechado. Oito horas offline são simuladas em menos de 1 segundo.
+- **Determinístico:** críticos, drops e sorteios usam um gerador com semente guardada no save. A mesma situação dá sempre o mesmo resultado, o que torna os testes reproduzíveis.
+- **Um modelo de modificadores** serve para buffs, passivas, auras, conjuntos, relíquias, afixos e nós da árvore. Um sistema novo só precisa produzir modificadores.
+- **Ações puras:** cada ação devolve um estado novo ou um erro. A interface não guarda regra.
+- **Ritmo medido por um bot**, que joga como uma pessoa razoável. Os números estão no GDD.
 
 ## Publicação
 
 Projeto `idle-guilda` na Vercel, ligado ao repositório com **Root Directory** `idle-guilda` e preset Vite. As funções de `api/` são publicadas junto.
 
-As contas precisam de um **Upstash Redis**. Pode ser o mesmo banco gratuito do Mesa Online, porque todas as chaves deste jogo começam com `idle-guilda:`. Na Vercel, em **Storage**, abra o banco e use **Connect Project** para o projeto `idle-guilda`; a integração cria as variáveis de [`.env.example`](.env.example). Depois, faça um novo deploy. Sem o banco, a API responde 503 e o jogo mostra as contas como indisponíveis; o save local e o backup continuam funcionando.
+As contas usam o **Upstash Redis** gratuito já conectado ao projeto, que é o mesmo banco do Mesa Online. Todas as chaves deste jogo começam com `idle-guilda:`. As variáveis estão em [`.env.example`](.env.example). Sem o banco, a API responde 503 e o jogo mostra as contas como indisponíveis; o save local e o backup continuam funcionando.
 
 Segurança das contas:
 
 - **Senha:** guardada só como hash `scrypt` com sal.
-- **Sessão:** token aleatório num cookie `httpOnly`, válido por 60 dias. O servidor guarda apenas o hash dele.
-- **Limite de tentativas:** 10 tentativas de entrar a cada 15 minutos por apelido.
-- **Save:** limitado a 200 KB, com formato conferido no servidor e validação completa no jogo ao carregar.
+- **Sessão:** cookie `httpOnly`, com só o hash do token no servidor.
+- **Limite de tentativas:** 10 a cada 15 minutos.
+- **Save:** até 200 KB, validado no jogo ao carregar.
+- **Exclusão:** o jogador pode excluir a conta, o que remove também o ranking e o mural.
 
-## Próximos passos possíveis
+## Próximos passos
 
-1. Algo em que gastar ouro depois da forja (melhorias da guilda, armaduras), já que ele sobra depois do tutorial.
-2. Chefes que bloqueiam a próxima zona e exigem preparo.
-3. Mais heróis do que vagas na party, com reservas treinando ou coletando.
-4. Armaduras e um segundo espaço de equipamento.
-5. Prestígio: aposentar um veterano para ganhar bônus permanentes.
-6. Publicação como PWA, para instalar no celular.
+Estão no fim do [GDD](docs/GDD.md#12-próximos-passos-propostos): chefes de história por mapa, fusão de três habilidades, reserva de heróis, gemas e reforja, ranking validado no servidor, sons e PWA.

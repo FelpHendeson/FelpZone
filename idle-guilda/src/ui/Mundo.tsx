@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { desenharRetrato } from '../arte/cena';
-import { aplausoDado, type Resultado } from '../motor/acoes';
-import { ARMAS, CLASSES, ZONAS } from '../motor/dados';
-import type { ArmaId, Classe, Estado, ZonaId } from '../motor/tipos';
+import { HEROIS } from '../arte/herois';
+import { desenhar } from '../arte/sprite';
+import { aplausoDado, OURO_APLAUSO_DADO, OURO_APLAUSO_RECEBIDO, type Resultado } from '../motor/acoes';
+import { MAPAS } from '../motor/dados/mapas';
+import { PERSONAGENS } from '../motor/dados/personagens';
+import type { Estado, PersonagemId } from '../motor/tipos';
 import { aplaudir, ErroNuvem, lerMundo, type Mundo as DadosMundo, type PerfilPublico } from '../nuvem';
 import type { SituacaoConta } from './Conta';
 import { CanvasPixel } from './pixel';
@@ -18,9 +20,9 @@ interface Props {
 
 const ATUALIZAR_MS = 30_000;
 
-/** Heróis vêm de outros jogadores: só desenha classes e armas conhecidas. */
-function heroiDesenhavel(h: { classe: string; arma: string }): { classe: Classe; arma: ArmaId } | null {
-  return h.classe in CLASSES && h.arma in ARMAS ? { classe: h.classe as Classe, arma: h.arma as ArmaId } : null;
+/** Heróis vêm de outros jogadores: só desenha personagens conhecidos. */
+function heroiDesenhavel(h: { classe: string }): PersonagemId | null {
+  return h.classe in PERSONAGENS ? (h.classe as PersonagemId) : null;
 }
 
 export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
@@ -48,7 +50,7 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
       const restantes = await aplaudir(p.id);
       setAplaudidos((s) => new Set(s).add(p.id));
       agir((e) => aplausoDado(e, p.apelido));
-      aoAviso(`👏 Você aplaudiu ${p.apelido}! +10 de ouro (${restantes} aplausos restantes hoje)`);
+      aoAviso(`👏 Você aplaudiu ${p.apelido}! +${OURO_APLAUSO_DADO} de ouro (${restantes} aplausos restantes hoje)`);
       void atualizar();
     } catch (e) {
       if (e instanceof ErroNuvem && e.status === 409) setAplaudidos((s) => new Set(s).add(p.id));
@@ -75,7 +77,16 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
           {p.herois.map((h, i) => {
             const d = heroiDesenhavel(h);
             return d ? (
-              <CanvasPixel key={i} largura={24} altura={20} className="mini" desenho={(ctx) => desenharRetrato(ctx, d, 0, false)} />
+              <CanvasPixel
+                key={i}
+                largura={18}
+                altura={18}
+                className="mini"
+                desenho={(ctx) => {
+                  ctx.clearRect(0, 0, 18, 18);
+                  desenhar(ctx, HEROIS[d], 0, 0);
+                }}
+              />
             ) : null;
           })}
         </span>
@@ -85,7 +96,7 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
             {sou && ' (você)'}
           </strong>
           <small>
-            Renome {inteiro(p.renome)} · Nv {p.nivel} · {ZONAS[p.zona as ZonaId]?.nome ?? '—'}
+            Renome {inteiro(p.renome)} · Nv {p.nivel} · {MAPAS.find((m) => m.id === p.zona)?.nome ?? '—'}
           </small>
           <small>
             👏 {p.aplausos} · ativo {quandoFoi(p.atualizadoEm)}
@@ -129,7 +140,7 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
             {mundo?.minhaPosicao
               ? `Sua guilda está em ${mundo.minhaPosicao}º lugar. `
               : 'Sua guilda entra no ranking no próximo save na nuvem. '}
-            Aplaudir dá +10 de ouro para você e +25 para quem recebe (5 por dia).
+            Aplaudir dá +{OURO_APLAUSO_DADO} de ouro para você e +{OURO_APLAUSO_RECEBIDO} para quem recebe (5 por dia).
           </p>
         )}
         {erro && <p className="erro">{erro}</p>}
@@ -137,7 +148,7 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
 
       <section className="painel">
         <h2>🏆 Ranking de renome</h2>
-        <p className="dica">Renome soma os níveis dos heróis, os objetivos concluídos e os monstros derrotados.</p>
+        <p className="dica">Renome soma os níveis dos heróis, os capítulos concluídos e os monstros derrotados.</p>
         {!mundo ? (
           <p className="dica">Carregando…</p>
         ) : mundo.ranking.length === 0 ? (

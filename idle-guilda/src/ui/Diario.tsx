@@ -1,12 +1,14 @@
 import type { Estado } from '../motor/tipos';
+import { Modal } from './Modal';
 import { descreverEvento, duracao } from './texto';
 
-export function Diario(props: { estado: Estado }) {
+export function Diario(props: { estado: Estado; aoFechar: () => void }) {
   const e = props.estado;
   return (
-    <section className="painel">
-      <h2>Diário</h2>
-      <p className="dica">Guilda fundada há {duracao(e.tempo)} de jogo.</p>
+    <Modal titulo="Diário de viagem" aoFechar={props.aoFechar}>
+      <p className="dica">
+        {duracao(e.tempo)} de aventura · {e.estatisticas.abates.toLocaleString('pt-BR')} inimigos · {e.estatisticas.chefes} chefes
+      </p>
       <ol className="diario">
         {[...e.diario].reverse().map((r, i) => (
           <li key={`${r.t}-${i}`}>
@@ -15,6 +17,6 @@ export function Diario(props: { estado: Estado }) {
           </li>
         ))}
       </ol>
-    </section>
+    </Modal>
   );
 }

@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <body style="background:#2c2c4a;margin:0">
+    <canvas id="c" width="200" height="120" style="width:1000px;height:600px;image-rendering:pixelated"></canvas>
+    <script type="module">
+      import { HEROIS, JUBA } from './herois.ts';
+      import { desenhar } from './sprite.ts';
+      import { SPRITES_MONSTROS } from './monstros.ts';
+      import { iconeItem, ICONES_MATERIAIS } from './icones.ts';
+      import { BASES } from '../motor/dados/itens.ts';
+      const ctx = document.getElementById('c').getContext('2d');
+      let x = 2;
+      for (const s of Object.values(HEROIS)) {
+        desenhar(ctx, s, x, 4);
+        x += 22;
+      }
+      desenhar(ctx, JUBA, 2, 30);
+      desenhar(ctx, HEROIS.leao, 0, 34);
+      x = 30;
+      for (const s of Object.values(SPRITES_MONSTROS)) {
+        desenhar(ctx, s, x, 34);
+        x += 20;
+      }
+      x = 2;
+      const rar = ['comum', 'incomum', 'raro', 'epico', 'lendario'];
+      Object.keys(BASES).filter((b) => !b.includes('-') || b.endsWith('pesada')).forEach((b, i) => {
+        desenhar(ctx, iconeItem({ base: b, raridade: rar[i % 5] }), 2 + (i % 16) * 12, 60 + Math.floor(i / 16) * 12);
+      });
+      Object.values(ICONES_MATERIAIS).forEach((s, i) => desenhar(ctx, s, 2 + i * 12, 100));
+      window.pronto = true;
+    </script>
+  </body>
+</html>

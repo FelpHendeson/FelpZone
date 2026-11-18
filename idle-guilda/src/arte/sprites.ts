@@ -1,152 +1,6 @@
-import type { ArmaId, Classe, Material } from '../motor/tipos';
-import { sprite, type Sprite } from './sprite';
+import { sprite } from './sprite';
 
 const CONTORNO = '#1b1b2a';
-const PELE = { s: '#f2c29b', S: '#c98d6b', e: CONTORNO };
-
-/* ---------- Heróis (16×16, virados para a direita) ---------- */
-
-const CORPO = [
-  '....kaaaaaak....',
-  '...kaAaaaaask...',
-  '...kaAaaaaak....',
-  '....kccccck.....',
-  '....kpppppk.....',
-  '....kppkppk.....',
-  '....kbbkbbk.....',
-  '....kkk.kkk.....',
-];
-
-const HEROIS: Record<Classe, Sprite> = {
-  guerreiro: sprite(
-    [
-      '.......cc.......',
-      '.....kkkkkk.....',
-      '....khhhhhhk....',
-      '...khhhhhhhhk...',
-      '...kHhhhhhhhk...',
-      '...kHhsssesk....',
-      '...kHhssssSk....',
-      '....kkkssSk.....',
-      ...CORPO,
-    ],
-    {
-      k: CONTORNO, ...PELE,
-      h: '#a9b4c4', H: '#66728a', a: '#5b7fbf', A: '#3d5a8f', c: '#c23b3b', p: '#4a4a5a', b: '#6b4a2f',
-    },
-  ),
-  cacadora: sprite(
-    [
-      '................',
-      '.....kkkkk......',
-      '....khhhhhk.....',
-      '...khhhhhhhk....',
-      '..khHhhhhhhhk...',
-      '..kHHhsssesk....',
-      '...kHhssssSk....',
-      '....kkkssSk.....',
-      ...CORPO,
-    ],
-    {
-      k: CONTORNO, ...PELE,
-      h: '#4f9a4a', H: '#2f6b34', a: '#8a6a42', A: '#5e452b', c: '#d9b44a', p: '#3f5a3a', b: '#4a3322',
-    },
-  ),
-  mistica: sprite(
-    [
-      '........kk......',
-      '.......khhk.....',
-      '......khhhk.....',
-      '.....khhhhhk....',
-      '..kkkhhcchhhkk..',
-      '....kHsssesk....',
-      '....kHssssSk....',
-      '....kkkssSk.....',
-      '....kaaaaaak....',
-      '...kaAaaaaask...',
-      '...kaAaaaaak....',
-      '....kaacaak.....',
-      '...kaaAaaaak....',
-      '...kaaAaaaak....',
-      '...kAAAAAAAk....',
-      '....kkkkkkk.....',
-    ],
-    {
-      k: CONTORNO, ...PELE,
-      h: '#7a4fbf', H: '#e8e0d0', a: '#6a45b0', A: '#47307f', c: '#e8c547', p: '#47307f', b: '#3a2a4a',
-    },
-  ),
-};
-
-export function spriteHeroi(classe: Classe): Sprite {
-  return HEROIS[classe];
-}
-
-/** Coluna e linha da mão do herói, onde a arma é presa. */
-export const MAO = { x: 12, y: 9 };
-
-/* ---------- Armas (presas pela empunhadura `pega`) ---------- */
-
-export interface SpriteArma {
-  sprite: Sprite;
-  pega: { x: number; y: number };
-}
-
-const METAL = { w: '#e6ecf2', W: '#8f9bb0', c: '#c9a227', b: '#6b4a2f', k: CONTORNO };
-
-const ARMAS_SPRITES: Record<ArmaId, SpriteArma> = {
-  bastao: {
-    sprite: sprite(['....b', '...b.', '..b..', '.b...', 'b....'], { b: '#8a6a42' }),
-    pega: { x: 1, y: 3 },
-  },
-  espada: {
-    sprite: sprite(
-      ['......w', '.....wW', '....wW.', '...wW..', 'c.wW...', '.cc....', 'b.c....'],
-      METAL,
-    ),
-    pega: { x: 0, y: 6 },
-  },
-  arco: {
-    sprite: sprite(
-      ['b...', 'wb..', 'wb..', 'w.b.', 'w.b.', 'w.c.', 'w.b.', 'wb..', 'wb..', 'b...'],
-      { b: '#8a5a2b', c: '#d9b44a', w: '#e6ecf2' },
-    ),
-    pega: { x: 2, y: 5 },
-  },
-  cajado: {
-    sprite: sprite(
-      ['.k.', 'kCk', 'cCc', '.k.', '.b.', '.b.', '.b.', '.b.', '.b.', '.b.', '.b.', '.b.'],
-      { k: CONTORNO, C: '#7fe3ff', c: '#3aa7d9', b: '#6b4a2f' },
-    ),
-    pega: { x: 1, y: 7 },
-  },
-  lamina: {
-    sprite: sprite(
-      [
-        '........wP',
-        '.......wPk',
-        '......wPk.',
-        '.....wPk..',
-        '....wPk...',
-        '...wPk....',
-        'c.wPk.....',
-        '.cck......',
-        'b.c.......',
-      ],
-      { w: '#f4e9ff', P: '#a678f0', k: '#5a3a9a', c: '#c9a227', b: '#3a2a4a' },
-    ),
-    pega: { x: 0, y: 8 },
-  },
-};
-
-export function spriteArma(arma: ArmaId): SpriteArma {
-  return ARMAS_SPRITES[arma];
-}
-
-/** Ícone da arma para menus: o próprio sprite. */
-export function iconeArma(arma: ArmaId): Sprite {
-  return ARMAS_SPRITES[arma].sprite;
-}
 
 /* ---------- Monstros (16×16, virados para a esquerda) ---------- */
 
@@ -291,23 +145,11 @@ export const CENARIO = {
   cura: sprite(['.g.', 'gwg', '.g.'], { g: '#5fcf5a', w: '#e9ffe0' }),
 };
 
-/* ---------- Ícones (8×8) ---------- */
+/* ---------- Moeda ---------- */
 
-export const ICONES: Record<Material | 'ouro', Sprite> = {
+export const ICONES = {
   ouro: sprite(
     ['..kkkk..', '.kyyyYk.', 'kyywyyYk', 'kyywyyYk', 'kyywyyYk', 'kyyyyyYk', '.kYYYYk.', '..kkkk..'],
     { k: '#5a3d0a', y: '#f7cf3d', Y: '#c99a1c', w: '#fff3b0' },
-  ),
-  gosma: sprite(
-    ['...kk...', '..kgGk..', '..kggk..', '.kgwggk.', '.kwgggk.', 'kggggGGk', 'kGgggGGk', '.kkkkkk.'],
-    { k: '#173d1f', g: '#5fcf5a', G: '#3a9a46', w: '#e9ffe0' },
-  ),
-  couro: sprite(
-    ['.k....k.', 'kckkkkck', 'kccccCck', '.kcccCk.', '.kccCck.', 'kcccccCk', 'kCkkkkCk', '.k....k.'],
-    { k: '#3a2416', c: '#b07a48', C: '#7f5330' },
-  ),
-  fragmento: sprite(
-    ['...kk...', '..kwPk..', '..kwPk..', '.kwpPPk.', '.kwpPPk.', '.kppPPk.', '..kpPk..', '...kk...'],
-    { k: '#2f1d55', w: '#f0e4ff', p: '#b48cff', P: '#7a4fd8' },
   ),
 };

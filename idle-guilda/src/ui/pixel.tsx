@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type CSSProperties } from 'react';
 import type { Sprite } from '../arte/sprite';
 import { altura, largura, urlDoSprite } from '../arte/sprite';
 
@@ -31,7 +31,14 @@ function inscrever(f: (t: number) => void): () => void {
 }
 
 /** Canvas em resolução baixa, ampliado pelo CSS sem suavização. */
-export function CanvasPixel(props: { largura: number; altura: number; desenho: Desenho; className?: string; rotulo?: string }) {
+export function CanvasPixel(props: {
+  largura: number;
+  altura: number;
+  desenho: Desenho;
+  className?: string;
+  rotulo?: string;
+  estilo?: CSSProperties;
+}) {
   const ref = useRef<HTMLCanvasElement>(null);
   const desenho = useRef(props.desenho);
   desenho.current = props.desenho;
@@ -54,6 +61,7 @@ export function CanvasPixel(props: { largura: number; altura: number; desenho: D
       width={props.largura}
       height={props.altura}
       className={`pixel ${props.className ?? ''}`}
+      style={props.estilo}
       role="img"
       aria-label={props.rotulo}
     />

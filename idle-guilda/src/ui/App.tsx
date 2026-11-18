@@ -1,38 +1,37 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { novoJogo, receberAplausos, type Resultado } from '../motor/acoes';
+import { receberAplausos, type Resultado } from '../motor/acoes';
+import { aplicarTempoOffline, avancar, novoJogo, type ResumoOffline } from '../motor/jogo';
 import { objetivoAtual, objetivoCumprido, type Destino } from '../motor/objetivos';
 import { desserializar, serializar, type Save } from '../motor/save';
-import { aplicarTempoOffline, avancar, type ResumoOffline } from '../motor/simulacao';
-import type { Estado } from '../motor/tipos';
+import type { Estado, PersonagemId } from '../motor/tipos';
 import { baixarSave, consultarConta, enviarSave, ErroNuvem, excluirConta, pulso, sairDaConta } from '../nuvem';
 import { Backup } from './Backup';
 import { Barra } from './Barra';
+import { Batalha } from './Batalha';
+import { Cidade, type AbaCidade } from './Cidade';
 import { ComoJogar } from './ComoJogar';
 import { Conflito } from './Conflito';
 import { Conta, type SituacaoConta, type SituacaoNuvem } from './Conta';
 import { Diario } from './Diario';
-import { Expedicao } from './Expedicao';
-import { FichaHeroi } from './FichaHeroi';
-import { Forja } from './Forja';
-import { Fundacao } from './Fundacao';
+import { Expedicoes } from './Expedicoes';
+import { Ficha } from './Ficha';
 import { Menu } from './Menu';
 import { MenuInicial } from './MenuInicial';
 import { Mundo } from './Mundo';
 import { Objetivo } from './Objetivo';
+import { Party, temNoDisponivel } from './Party';
+import { Prologo } from './Prologo';
 import { ResumoOfflineModal } from './ResumoOfflineModal';
-import { Taverna } from './Taverna';
 
-const CHAVE_SAVE = 'idle-guilda:save:v2';
+const CHAVE_SAVE = 'idle-guilda:save:v3';
 /** Pausas maiores que isso (aba escondida, celular bloqueado) contam como tempo fora. */
 const LIMITE_TEMPO_FORA = 30;
 const INTERVALO_NUVEM = 2 * 60 * 1000;
 const INTERVALO_PULSO = 60 * 1000;
 
-type Aba = Destino | 'mundo' | 'diario';
-type Tela = 'inicio' | 'fundacao' | 'jogo';
-type Janela = 'menu' | 'conta' | 'backup' | 'ajuda' | null;
+type Tela = 'inicio' | 'prologo' | 'jogo';
+type Janela = 'menu' | 'conta' | 'backup' | 'ajuda' | 'diario' | null;
 
-/** Aplica o tempo passado desde que o save foi feito. */
 function retomar(save: Save): { estado: Estado; resumo: ResumoOffline | null } {
   const fora = (Date.now() - save.salvoEm) / 1000;
   if (fora < LIMITE_TEMPO_FORA) return { estado: avancar(save.estado, fora), resumo: null };
@@ -44,18 +43,18 @@ function carregarLocal() {
   return save ? { ...retomar(save), salvoEm: save.salvoEm } : { estado: null, resumo: null, salvoEm: null };
 }
 
-/** Mesma guilda (mesmos heróis) e a nuvem não está à frente: dá para enviar sem perguntar. */
+/** Mesma aventura (mesma semente inicial de heróis) e a nuvem não está à frente: dá para enviar sem perguntar. */
 function nuvemAtrasada(local: Estado, remoto: Estado): boolean {
-  const ids = (e: Estado) => e.herois.map((h) => `${h.id}:${h.nome}`).join('|');
-  return ids(remoto).length > 0 && ids(local).startsWith(ids(remoto)) && remoto.tempo <= local.tempo;
+  const ids = (e: Estado) => e.herois.map((h) => h.id).join('|');
+  return ids(local).startsWith(ids(remoto)) && remoto.tempo <= local.tempo && remoto.estatisticas.abates <= local.estatisticas.abates;
 }
 
-const ABAS: [Aba, string][] = [
-  ['expedicao', 'Expedição'],
-  ['forja', 'Forja'],
-  ['taverna', 'Taverna'],
-  ['mundo', 'Mundo'],
-  ['diario', 'Diário'],
+const ABAS: [Destino, string, string][] = [
+  ['batalha', '⚔', 'Batalha'],
+  ['party', '🛡', 'Party'],
+  ['cidade', '🏰', 'Cidade'],
+  ['expedicoes', '🧭', 'Expedições'],
+  ['mundo', '🌐', 'Mundo'],
 ];
 
 export function App() {
@@ -64,9 +63,10 @@ export function App() {
   const [resumo, setResumo] = useState<ResumoOffline | null>(inicial.resumo);
   const [ultimoSalvo, setUltimoSalvo] = useState<number | null>(inicial.salvoEm);
   const [tela, setTela] = useState<Tela>('inicio');
-  const [aba, setAba] = useState<Aba>('expedicao');
+  const [aba, setAba] = useState<Destino>('batalha');
+  const [abaCidade, setAbaCidade] = useState<AbaCidade>('ferreiro');
   const [janela, setJanela] = useState<Janela>(null);
-  const [heroiAberto, setHeroiAberto] = useState<string | null>(null);
+  const [heroiAberto, setHeroiAberto] = useState<PersonagemId | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [conta, setConta] = useState<SituacaoConta>({ disponivel: null, apelido: null });
   const [nuvem, setNuvem] = useState<SituacaoNuvem>({ enviando: false, ultimoEnvio: null, erro: null });
@@ -99,7 +99,6 @@ export function App() {
     }
   }, []);
 
-  /** Troca o jogo atual por um save (da nuvem ou de um backup). */
   const usarSave = useCallback(
     (save: Save) => {
       const r = retomar(save);
@@ -111,14 +110,13 @@ export function App() {
     [salvarLocal],
   );
 
-  // Consulta a conta ao abrir.
   useEffect(() => {
     consultarConta().then((r) => setConta({ disponivel: r !== null, apelido: r?.apelido ?? null }));
   }, []);
 
   const jogando = estado !== null;
 
-  // Laço do jogo: avança pelo tempo real decorrido, guardando a fração de segundo.
+  // Laço do jogo: avança pelo tempo real decorrido, guardando a fração do passo.
   useEffect(() => {
     if (!jogando) return;
     let ultimo = performance.now();
@@ -134,7 +132,7 @@ export function App() {
         setResumo(r.resumo);
         return;
       }
-      const passos = Math.floor(decorrido);
+      const passos = Math.floor(decorrido * 2) / 2;
       sobra = decorrido - passos;
       if (passos > 0) setEstado((e) => (e ? avancar(e, passos) : e));
     }, 250);
@@ -154,7 +152,6 @@ export function App() {
     };
   }, [jogando, salvarLocal, enviarNuvem]);
 
-  // Cópia periódica na nuvem enquanto houver conta conectada.
   useEffect(() => {
     if (!jogando || !conta.apelido) return;
     const id = setInterval(() => void enviarNuvem(), INTERVALO_NUVEM);
@@ -191,7 +188,7 @@ export function App() {
         const n = await pulso();
         if (n > 0) {
           agir((e) => receberAplausos(e, n));
-          setAviso(`👏 Sua guilda recebeu ${n} ${n === 1 ? 'aplauso' : 'aplausos'}! Confira no Diário.`);
+          setAviso(`👏 Sua guilda recebeu ${n} ${n === 1 ? 'aplauso' : 'aplausos'}!`);
         }
       } catch {
         // Sem conexão: tenta no próximo pulso.
@@ -244,7 +241,7 @@ export function App() {
     setJanela(null);
   };
 
-  const irPara = (destino: Aba) => {
+  const irPara = (destino: Destino) => {
     setHeroiAberto(null);
     setAba(destino);
     window.scrollTo({ top: 0 });
@@ -253,6 +250,7 @@ export function App() {
   const janelas = (
     <>
       {janela === 'ajuda' && <ComoJogar aoFechar={() => setJanela(null)} />}
+      {janela === 'diario' && estado && <Diario estado={estado} aoFechar={() => setJanela(null)} />}
       {janela === 'conta' && (
         <Conta
           conta={conta}
@@ -300,28 +298,29 @@ export function App() {
     </>
   );
 
+  if (tela === 'prologo') {
+    return (
+      <>
+        <Prologo
+          aoVoltar={() => setTela('inicio')}
+          aoComecar={() => {
+            const e = novoJogo();
+            estadoRef.current = e;
+            setEstado(e);
+            setResumo(null);
+            salvarLocal();
+            if (apelidoRef.current) void enviarNuvem();
+            setAba('batalha');
+            setTela('jogo');
+            setJanela('ajuda');
+          }}
+        />
+        {janelas}
+      </>
+    );
+  }
+
   if (tela === 'inicio' || !estado) {
-    if (tela === 'fundacao') {
-      return (
-        <>
-          <Fundacao
-            aoVoltar={() => setTela('inicio')}
-            aoFundar={(nome) => {
-              const e = novoJogo(nome);
-              estadoRef.current = e;
-              setEstado(e);
-              setResumo(null);
-              salvarLocal();
-              if (apelidoRef.current) void enviarNuvem();
-              setAba('expedicao');
-              setTela('jogo');
-              setJanela('ajuda');
-            }}
-          />
-          {janelas}
-        </>
-      );
-    }
     return (
       <>
         <MenuInicial
@@ -330,8 +329,8 @@ export function App() {
           aoContinuar={() => setTela('jogo')}
           aoNovoJogo={() => {
             const onde = conta.apelido ? 'deste aparelho e da sua conta' : 'deste aparelho';
-            if (estado && !confirm(`Começar um jogo novo? O progresso atual será apagado ${onde}.`)) return;
-            setTela('fundacao');
+            if (estado && !confirm(`Começar uma nova aventura? O progresso atual será apagado ${onde}.`)) return;
+            setTela('prologo');
           }}
           aoConta={() => setJanela('conta')}
           aoAjuda={() => setJanela('ajuda')}
@@ -342,7 +341,7 @@ export function App() {
   }
 
   const apagar = () => {
-    if (confirm('Apagar a guilda e começar do zero? Isso não pode ser desfeito.')) {
+    if (confirm('Apagar esta aventura e começar do zero? Isso não pode ser desfeito.')) {
       localStorage.removeItem(CHAVE_SAVE);
       estadoRef.current = null;
       setEstado(null);
@@ -353,41 +352,56 @@ export function App() {
   };
 
   const objetivo = objetivoAtual(estado);
-  const pontosPendentes = estado.herois.some((h) => h.pontosLivres > 0);
-  const alerta = (id: Aba) =>
-    (objetivo && !objetivoCumprido(estado) && objetivo.destino === id && aba !== id) ||
-    (id === 'expedicao' && pontosPendentes && aba !== id);
+  const alerta = (id: Destino) => {
+    if (aba === id) return false;
+    if (objetivo && !objetivoCumprido(estado) && objetivo.destino === id) return true;
+    if (id === 'party') return estado.herois.some((h) => h.pontosLivres > 0 || temNoDisponivel(h));
+    if (id === 'expedicoes') return estado.herois.some((h) => h.atividade.tipo !== 'batalha' && estado.tempo >= h.atividade.fim);
+    if (id === 'cidade') return estado.canteiros.some((c) => c && estado.tempo >= c.fim);
+    return false;
+  };
 
   return (
     <div className="app">
       <Barra estado={estado} nuvem={conta.apelido ? nuvem : null} aoMenu={() => setJanela('menu')} />
       <main>
-        <Objetivo estado={estado} abaAtual={aba} agir={agir} aoIr={irPara} />
-        {aba === 'expedicao' && (
-          <Expedicao estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} aoIrTaverna={() => irPara('taverna')} />
+        <Objetivo
+          estado={estado}
+          abaAtual={aba}
+          agir={agir}
+          aoIr={(d) => {
+            if (d === 'cidade' && objetivo) {
+              const t = objetivo.titulo.toLowerCase();
+              setAbaCidade(t.includes('recrute') ? 'taverna' : t.includes('venda') ? 'loja' : t.includes('fusão') ? 'jardim' : 'ferreiro');
+            }
+            irPara(d);
+          }}
+        />
+        {aba === 'batalha' && <Batalha estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} />}
+        {aba === 'party' && (
+          <Party
+            estado={estado}
+            aoAbrir={setHeroiAberto}
+            aoTaverna={() => {
+              setAbaCidade('taverna');
+              irPara('cidade');
+            }}
+          />
         )}
-        {aba === 'forja' && <Forja estado={estado} agir={agir} />}
-        {aba === 'taverna' && <Taverna estado={estado} agir={agir} aoContratar={() => irPara('expedicao')} />}
+        {aba === 'cidade' && <Cidade estado={estado} agir={agir} aba={abaCidade} aoTrocar={setAbaCidade} />}
+        {aba === 'expedicoes' && <Expedicoes estado={estado} agir={agir} />}
         {aba === 'mundo' && <Mundo conta={conta} agir={agir} aoConta={() => setJanela('conta')} aoAviso={setAviso} />}
-        {aba === 'diario' && <Diario estado={estado} />}
       </main>
       <nav className="abas">
-        {ABAS.map(([id, rotulo]) => (
+        {ABAS.map(([id, icone, rotulo]) => (
           <button key={id} className={aba === id ? 'ativa' : ''} onClick={() => irPara(id)}>
+            <span aria-hidden>{icone}</span>
             {rotulo}
             {alerta(id) && <span className="alerta" aria-label="(tem algo para fazer aqui)" />}
           </button>
         ))}
       </nav>
-      {heroiAberto && (
-        <FichaHeroi
-          estado={estado}
-          heroiId={heroiAberto}
-          agir={agir}
-          aoFechar={() => setHeroiAberto(null)}
-          aoIrForja={() => irPara('forja')}
-        />
-      )}
+      {heroiAberto && <Ficha estado={estado} heroi={heroiAberto} agir={agir} aoFechar={() => setHeroiAberto(null)} />}
       {janela === 'menu' && (
         <Menu
           ultimoSalvo={ultimoSalvo}
@@ -400,6 +414,7 @@ export function App() {
           }}
           aoConta={() => setJanela('conta')}
           aoBackup={() => setJanela('backup')}
+          aoDiario={() => setJanela('diario')}
           aoAjuda={() => setJanela('ajuda')}
           aoMenuInicial={() => {
             salvarLocal();

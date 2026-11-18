@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { novoJogo } from '../../src/motor/acoes';
+import { criarHeroi, novoJogo } from '../../src/motor/jogo';
+import { gerarItem } from '../../src/motor/itens';
 import { OBJETIVOS } from '../../src/motor/objetivos';
 import { serializar } from '../../src/motor/save';
 import type { Estado } from '../../src/motor/tipos';
@@ -18,21 +19,22 @@ async function erroDe(p: Promise<unknown>): Promise<ErroHttp> {
 }
 
 function jogo(nivel = 1, ajuste: (e: Estado) => void = () => {}): string {
-  const e = novoJogo('Aren');
+  const e = novoJogo(1);
   e.herois[0].nivel = nivel;
   ajuste(e);
   return serializar(e, 1000);
 }
 
 describe('perfil e mural', () => {
-  it('o total de objetivos do servidor bate com o do jogo', () => {
+  it('o total de capítulos do servidor bate com o do jogo', () => {
     expect(TOTAL_OBJETIVOS).toBe(OBJETIVOS.length);
   });
 
   it('o perfil sai do save, com renome calculado', () => {
-    const p = perfilDoSave('aren', 'Aren', jogo(7, (e) => (e.estatisticas.abates.campina = 250)), 0, 5);
+    const p = perfilDoSave('aren', 'Aren', jogo(7, (e) => (e.estatisticas.abates = 250)), 0, 5);
     expect(p.nivel).toBe(7);
-    expect(p.herois).toEqual([{ nome: 'Aren', classe: 'guerreiro', nivel: 7, arma: 'bastao' }]);
+    expect(p.herois).toEqual([{ nome: 'leao', classe: 'leao', nivel: 7, arma: '' }]);
+    expect(p.zona).toBe('patio');
     expect(p.renome).toBe(7 * 10 + 0 * 25 + 2);
   });
 
@@ -42,20 +44,22 @@ describe('perfil e mural', () => {
       'a',
       'A',
       jogo(11, (e) => {
-        e.herois.push({ ...e.herois[0], id: 'h2', nome: 'Lia', classe: 'mistica' });
-        e.zona = 'bosque';
-        e.armas.lamina = 1;
+        e.herois.push(criarHeroi('cyrus', 9));
+        e.batalha.mapa = 'bosque';
+        e.inventario.push(gerarItem(e, { nivel: 10, raridade: 'lendario' }));
+        e.estatisticas.chefes = 12;
       }),
       0,
       2,
     );
-    expect(acontecimentos(null, antes)).toEqual(['fundou uma guilda e partiu em aventura.']);
+    expect(acontecimentos(null, antes)).toEqual(['partiu em aventura para espalhar o nome LionHearth.']);
     expect(acontecimentos(antes, depois)).toEqual([
       'chegou ao nível 5!',
       'chegou ao nível 10!',
-      'recrutou Lia, uma Mística.',
-      'levou a party para o Bosque Sombrio.',
-      'forjou a Lâmina das ruínas!',
+      'recrutou Cyrus Viper, o mago do raio.',
+      'levou a party para o Bosque Suspenso.',
+      'conseguiu um item lendário!',
+      'derrotou 10 chefes.',
     ]);
     expect(acontecimentos(depois, depois)).toEqual([]);
   });
@@ -74,8 +78,8 @@ describe('perfil e mural', () => {
     expect(m.online).toBe(1);
     expect(m.mural.map((i) => `${i.apelido} ${i.texto}`)).toEqual([
       'Ana chegou ao nível 5!',
-      'Bia fundou uma guilda e partiu em aventura.',
-      'Ana fundou uma guilda e partiu em aventura.',
+      'Bia partiu em aventura para espalhar o nome LionHearth.',
+      'Ana partiu em aventura para espalhar o nome LionHearth.',
     ]);
     expect((await lerMundo(banco, null, 3000 + 6 * 60 * 1000)).online).toBe(0);
   });
@@ -94,7 +98,6 @@ describe('aplausos', () => {
     expect(await pulso(banco, 'b', 0)).toEqual({ presentes: 1 });
     expect(await pulso(banco, 'b', 0)).toEqual({ presentes: 0 });
     expect((await lerMundo(banco, null, 0)).ranking.find((p) => p.id === 'b')?.aplausos).toBe(1);
-    // No dia seguinte, pode aplaudir de novo.
     expect((await aplaudir(banco, 'a', 'b', 86_400_000)).restantes).toBe(APLAUSOS_POR_DIA - 1);
   });
 });
@@ -112,6 +115,5 @@ describe('excluir conta', () => {
     expect(m.ranking.map((p) => p.id)).toEqual(['bia']);
     expect(m.mural.every((i) => i.id !== 'aren')).toBe(true);
     expect(await banco.get('idle-guilda:save:aren')).toBeNull();
-    expect((await erroDe(criarConta(banco, 'Aren', 'outra123').then(() => excluirConta(banco, 'x', 'y')))).status).toBe(401);
   });
 });

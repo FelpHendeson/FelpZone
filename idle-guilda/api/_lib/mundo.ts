@@ -4,7 +4,7 @@
 import { ErroHttp, PREFIXO, type Banco } from './banco.js';
 
 /** Total de objetivos do jogo (conferido contra o motor nos testes). */
-export const TOTAL_OBJETIVOS = 12;
+export const TOTAL_OBJETIVOS = 21;
 export const ONLINE_JANELA_MS = 5 * 60 * 1000;
 const TAMANHO_MURAL = 50;
 export const APLAUSOS_POR_DIA = 5;
@@ -36,7 +36,8 @@ export interface Perfil {
   zona: string;
   objetivo: number;
   abates: number;
-  armas: string[];
+  chefes: number;
+  lendarios: number;
   aplausos: number;
   atualizadoEm: number;
 }
@@ -52,7 +53,7 @@ const dia = (agora: number) => new Date(agora).toISOString().slice(0, 10);
 const texto = (v: unknown, max: number) => (typeof v === 'string' ? v.slice(0, max) : '');
 const numero = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.floor(v)) : 0);
 
-/** Fama da guilda: níveis dos heróis, objetivos e monstros derrotados. */
+/** Fama da guilda: níveis dos heróis, capítulos e monstros derrotados. */
 export function calcularRenome(p: Pick<Perfil, 'herois' | 'objetivo' | 'abates'>): number {
   return p.herois.reduce((s, h) => s + h.nivel, 0) * 10 + p.objetivo * 25 + Math.floor(p.abates / 100);
 }
@@ -60,46 +61,65 @@ export function calcularRenome(p: Pick<Perfil, 'herois' | 'objetivo' | 'abates'>
 /** Monta o perfil público a partir do save enviado, lendo só o necessário e com limites. */
 export function perfilDoSave(id: string, apelido: string, textoSave: string, aplausos: number, agora: number): Perfil {
   const estado = (JSON.parse(textoSave) as { estado?: Record<string, unknown> }).estado ?? {};
-  const herois = (Array.isArray(estado.herois) ? estado.herois : []).slice(0, 3).map((h: Record<string, unknown>) => ({
-    nome: texto(h?.nome, 16),
-    classe: texto(h?.classe, 12),
+  // O personagem vai em `classe` (o jogo desenha pelo id do personagem).
+  const herois = (Array.isArray(estado.herois) ? estado.herois : []).slice(0, 5).map((h: Record<string, unknown>) => ({
+    nome: texto(h?.id, 16),
+    classe: texto(h?.id, 16),
     nivel: Math.min(999, numero(h?.nivel)),
-    arma: texto(h?.arma, 12),
+    arma: '',
   }));
-  const est = (estado.estatisticas ?? {}) as { abates?: Record<string, unknown> };
-  const abates = Object.values(est.abates ?? {}).reduce<number>((s, v) => s + numero(v), 0);
-  const armas = Object.entries((estado.armas ?? {}) as Record<string, unknown>)
-    .filter(([, q]) => numero(q) > 0)
-    .map(([a]) => texto(a, 12));
+  const est = (estado.estatisticas ?? {}) as { abates?: unknown; chefes?: unknown };
+  const abates = typeof est.abates === 'number' ? numero(est.abates) : 0;
+  const itens = [
+    ...(Array.isArray(estado.inventario) ? estado.inventario : []),
+    ...(Array.isArray(estado.herois) ? estado.herois : []).flatMap((h: Record<string, unknown>) =>
+      Object.values((h?.equipamento ?? {}) as Record<string, unknown>),
+    ),
+  ];
+  const lendarios = itens.filter((i) => (i as { raridade?: unknown })?.raridade === 'lendario').length;
+  const batalha = (estado.batalha ?? {}) as { mapa?: unknown };
   const base = {
     id,
     apelido,
     herois,
     nivel: herois.reduce((m, h) => Math.max(m, h.nivel), 0),
-    zona: texto(estado.zona, 12),
+    zona: texto(batalha.mapa, 12),
     objetivo: Math.min(TOTAL_OBJETIVOS, numero(estado.objetivo)),
     abates,
-    armas,
+    chefes: numero(est.chefes),
+    lendarios: Math.min(999, lendarios),
     aplausos,
     atualizadoEm: agora,
   };
   return { ...base, renome: calcularRenome(base) };
 }
 
-const NOME_CLASSE: Record<string, string> = { guerreiro: 'um Guerreiro', cacadora: 'uma Caçadora', mistica: 'uma Mística' };
-const NOME_ZONA: Record<string, string> = { bosque: 'o Bosque Sombrio', ruinas: 'as Ruínas Antigas' };
+const NOME_PERSONAGEM: Record<string, string> = {
+  quentin: 'Quentin Salamander, o escudeiro',
+  cyrus: 'Cyrus Viper, o mago do raio',
+  vesper: 'Vesper Ashveil, a Lâmina da Névoa',
+  odalys: 'Odalys Thornwick, a feiticeira das runas',
+};
+const NOME_ZONA: Record<string, string> = {
+  bosque: 'o Bosque Suspenso',
+  ruinas: 'as Ruínas da Velha Hope',
+  vulcao: 'a Forja Vulcânica',
+  cidadela: 'a Cidadela das Nuvens',
+};
+const MARCOS_CHEFES = [10, 25, 50, 100, 250, 500, 1000];
 
 /** Acontecimentos que valem ir para o mural, comparando o perfil antigo com o novo. */
 export function acontecimentos(antes: Perfil | null, depois: Perfil): string[] {
-  if (!antes) return ['fundou uma guilda e partiu em aventura.'];
+  if (!antes) return ['partiu em aventura para espalhar o nome LionHearth.'];
   const fatos: string[] = [];
   for (let n = Math.floor(antes.nivel / 5) * 5 + 5; n <= depois.nivel; n += 5) fatos.push(`chegou ao nível ${n}!`);
   for (const h of depois.herois.slice(antes.herois.length)) {
-    fatos.push(`recrutou ${h.nome}, ${NOME_CLASSE[h.classe] ?? 'um aventureiro'}.`);
+    fatos.push(`recrutou ${NOME_PERSONAGEM[h.classe] ?? 'um aventureiro'}.`);
   }
   if (depois.zona !== antes.zona && NOME_ZONA[depois.zona]) fatos.push(`levou a party para ${NOME_ZONA[depois.zona]}.`);
-  if (depois.armas.includes('lamina') && !antes.armas.includes('lamina')) fatos.push('forjou a Lâmina das ruínas!');
-  if (depois.objetivo >= TOTAL_OBJETIVOS && antes.objetivo < TOTAL_OBJETIVOS) fatos.push('concluiu todos os objetivos! 🏆');
+  if (depois.lendarios > (antes.lendarios ?? 0)) fatos.push('conseguiu um item lendário!');
+  for (const m of MARCOS_CHEFES) if ((antes.chefes ?? 0) < m && depois.chefes >= m) fatos.push(`derrotou ${m} chefes.`);
+  if (depois.objetivo >= TOTAL_OBJETIVOS && antes.objetivo < TOTAL_OBJETIVOS) fatos.push('concluiu a campanha das Sky Islands! 🏆');
   return fatos;
 }
 

@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+  <body style="background:#14141f;margin:0">
+    <canvas id="c" width="330" height="372" style="width:990px;height:1116px;image-rendering:pixelated"></canvas>
+    <script type="module">
+      import { desenharBatalha } from './batalha.ts';
+      import { avancar, criarHeroi, novoJogo } from '../motor/jogo.ts';
+      import { criarContexto, vidaMaximaEmBatalha } from '../motor/combate.ts';
+      import { MAPAS } from '../motor/dados/mapas.ts';
+      const ctx = document.getElementById('c').getContext('2d');
+      const cenas = [];
+      for (const m of MAPAS) {
+        let e = novoJogo(5);
+        e.herois = ['leao', 'quentin', 'cyrus', 'vesper', 'odalys'].map((id) => criarHeroi(id, m.nivelInimigo + 3));
+        e.herois[0].habilidades.push({ id: 'leaoDasChamas', nivel: 1, xp: 0 });
+        e.herois[0].equipadas.unshift('leaoDasChamas');
+        e.mapasLiberados = MAPAS.map((x) => x.id);
+        e.batalha.mapa = m.id;
+        e = avancar(e, 6.5);
+        cenas.push(e);
+      }
+      let boss = novoJogo(9);
+      boss.herois = ['leao', 'quentin', 'cyrus'].map((id) => criarHeroi(id, 12));
+      boss.batalha.onda = 10;
+      boss = avancar(boss, 3);
+      cenas.push(boss);
+      let descanso = structuredClone(cenas[1]);
+      descanso.batalha.situacao = 'descansando';
+      cenas.push(descanso);
+      cenas.forEach((e, i) => {
+        const vmax = {};
+        const c = criarContexto(e);
+        for (const h of e.herois) vmax[h.id] = vidaMaximaEmBatalha(c, h.id);
+        const tmp = document.createElement('canvas');
+        tmp.width = 160;
+        tmp.height = 90;
+        desenharBatalha(tmp.getContext('2d'), e, vmax, e.tempo);
+        ctx.drawImage(tmp, (i % 2) * 165, Math.floor(i / 2) * 93);
+      });
+      window.pronto = true;
+    </script>
+  </body>
+</html>

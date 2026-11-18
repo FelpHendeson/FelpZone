@@ -1,13 +1,13 @@
+import { mapaPorId } from '../motor/dados/mapas';
 import { OBJETIVOS } from '../motor/objetivos';
-import { maiorNivel } from '../motor/regras';
 import { desserializar } from '../motor/save';
 import type { Estado } from '../motor/tipos';
-import { duracao, inteiro } from './texto';
+import { duracao } from './texto';
 
 /** Uma linha que identifica um progresso, para comparar saves. */
 export function resumoDoEstado(e: Estado): string {
-  const nomes = e.herois.map((h) => h.nome).join(', ');
-  return `${nomes} · nível ${maiorNivel(e)} · ${inteiro(e.ouro)} de ouro · objetivo ${Math.min(e.objetivo + 1, OBJETIVOS.length)}/${OBJETIVOS.length} · ${duracao(e.tempo)} de jogo`;
+  const lider = e.herois.find((h) => h.id === 'leao')?.nivel ?? 1;
+  return `Sir LionHearth nv ${lider} · ${e.herois.length} na party · ${mapaPorId(e.batalha.mapa).nome} · capítulo ${Math.min(e.objetivo + 1, OBJETIVOS.length)}/${OBJETIVOS.length} · ${duracao(e.tempo)}`;
 }
 
 export function quandoFoi(ms: number, agora = Date.now()): string {
