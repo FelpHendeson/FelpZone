@@ -1,0 +1,45 @@
+{
+  "heroi-leao": {
+    "imagem": "sprites/heroi-leao.png",
+    "largura": 56,
+    "altura": 46,
+    "colunas": 8,
+    "quadros": 22,
+    "pe": 41,
+    "centro": 30.5,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "ataque": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "habilidade": [
+        12,
+        13,
+        14,
+        15,
+        16
+      ],
+      "dano": [
+        17,
+        18
+      ],
+      "caido": [
+        19,
+        20,
+        21
+      ]
+    }
+  }
+}

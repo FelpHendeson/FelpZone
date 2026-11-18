@@ -2,6 +2,7 @@ import { vidaMaximaInimigo } from '../motor/combate';
 import { mapaPorId, type Mapa } from '../motor/dados/mapas';
 import { COR_ELEMENTO, PERSONAGENS } from '../motor/dados/personagens';
 import type { Combatente, Estado, PersonagemId } from '../motor/tipos';
+import { desenharQuadro, folha, quadroDa, type Animacao } from './folhas';
 import { HEROIS, JUBA } from './herois';
 import { spriteMonstro } from './monstros';
 import { desenhar, largura, type Sprite } from './sprite';
@@ -9,6 +10,8 @@ import { CENARIO } from './sprites';
 
 export const BATALHA_LARGURA = 160;
 export const BATALHA_ALTURA = 90;
+/** Resolução real do canvas em relação às unidades da cena. */
+export const BATALHA_ESCALA = 2;
 const CHAO = 80;
 
 /* ---------- Fonte de pixels para números (3×5) ---------- */
@@ -192,6 +195,51 @@ export function posicoesDaParty(ids: PersonagemId[]): Map<PersonagemId, [number,
   return r;
 }
 
+/**
+ * Herói com spritesheet: escolhe a animação pelo que está acontecendo.
+ * Prioridade: caído, descansando, atacando, lançando habilidade, levando dano, parado.
+ */
+function desenharHeroiFolha(
+  ctx: CanvasRenderingContext2D,
+  e: Estado,
+  id: PersonagemId,
+  comb: Combatente | undefined,
+  x: number,
+  y: number,
+  t: number,
+  caido: boolean,
+  descansando: boolean,
+): boolean {
+  const nome = `heroi-${id}`;
+  const f = folha(nome);
+  if (!f) return false;
+  let animacao: Animacao = 'parado';
+  let progresso = t * 0.9;
+  let repetir = true;
+  const lancou = e.batalha.lancadas.some((l) => l.heroi === id && e.tempo - l.t <= 0.5);
+  if (caido) {
+    animacao = 'caido';
+    progresso = 1;
+    repetir = false;
+  } else if (descansando) {
+    animacao = 'caido';
+    progresso = 0;
+    repetir = false;
+  } else if (comb && comb.barra < 0.3) {
+    animacao = 'ataque';
+    progresso = comb.barra / 0.3;
+    repetir = false;
+  } else if (lancou) {
+    animacao = 'habilidade';
+    progresso = (t * 2.5) % 1;
+  } else if (atingido(e, `h:${id}`)) {
+    animacao = 'dano';
+    progresso = (t * 4) % 1;
+  }
+  // Pés no mesmo ponto em que o sprite em texto pisa.
+  return desenharQuadro(ctx, nome, quadroDa(f, animacao, progresso, repetir), x + 9, y + 17);
+}
+
 function atingido(e: Estado, chave: string): boolean {
   return e.batalha.visuais.some((v) => v.alvo === chave && (v.tipo === 'dano' || v.tipo === 'critico') && v.t > e.tempo - 0.5);
 }
@@ -201,6 +249,9 @@ function atingido(e: Estado, chave: string): boolean {
  * porque depende de equipamentos e buffs). `t` é o relógio da animação.
  */
 export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMax: Partial<Record<PersonagemId, number>>, t: number) {
+  // O canvas tem o dobro da resolução: a cena usa unidades de 160×90 e as
+  // spritesheets aproveitam o detalhe extra (1 pixel da folha = meia unidade).
+  ctx.setTransform(BATALHA_ESCALA, 0, 0, BATALHA_ESCALA, 0, 0);
   ctx.imageSmoothingEnabled = false;
   const b = e.batalha;
   const mapa = mapaPorId(b.mapa);
@@ -226,7 +277,9 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
     if (transformado && !descansando) {
       desenhar(ctx, JUBA, x + 1, y - 6 - (Math.floor(t * 6) % 2));
     }
-    if (caido) {
+    if (desenharHeroiFolha(ctx, e, id, comb, x, y, t, caido, descansando)) {
+      // Desenhado pela spritesheet.
+    } else if (caido) {
       ctx.globalAlpha = 0.35;
       desenhar(ctx, HEROIS[id], x, y + 2, { trocas: { e: 'S' } });
       ctx.globalAlpha = 1;

@@ -51,6 +51,8 @@ npm run dev
 
 Abra a URL exibida pelo Vite. O servidor de desenvolvimento também atende `/api` (contas, save na nuvem e mundo) com um banco em memória, que se apaga ao reiniciar. Para testar no celular na mesma rede, use `npm run dev:rede`. Para as regras, `npm test`. Para os tipos e a versão de produção, `npm run build`.
 
+**Spritesheets geradas por IA:** as folhas originais ficam em `arte-fonte/`, com a configuração de cada uma em `arte-fonte/folhas.json` (quadros por linha, redução, espelhar e quais quadros formam cada animação). O comando `python3 scripts/fatiar.py` (requer Pillow) recorta, tira o fundo magenta, refaz a pixelização, gera `public/sprites/*.png` e o manifesto `src/arte/folhas.json`. O jogo usa a folha quando ela existe e volta ao sprite em texto enquanto ela carrega. Os prompts estão em [`prompts/idle-guilda`](../prompts/idle-guilda/spritesheets-gemini.md).
+
 Para revisar a arte, abra `/src/arte/preview.html` (sprites e ícones) ou `/src/arte/preview-batalha.html` (as cenas de batalha) no servidor de desenvolvimento.
 
 ## Arquitetura

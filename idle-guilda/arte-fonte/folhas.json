@@ -1,0 +1,16 @@
+{
+  "heroi-leao": {
+    "arquivo": "heroi-leao.jpg",
+    "linhas": [6, 6, 5, 5],
+    "colunasGrade": 6,
+    "reducao": 4,
+    "espelhar": true,
+    "animacoes": {
+      "parado": [0, 1, 2, 3, 4, 5],
+      "ataque": [6, 7, 8, 9, 10, 11],
+      "habilidade": [12, 13, 14, 15, 16],
+      "dano": [17, 18],
+      "caido": [19, 20, 21]
+    }
+  }
+}

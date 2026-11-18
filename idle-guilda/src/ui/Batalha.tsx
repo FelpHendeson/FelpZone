@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { BATALHA_ALTURA, BATALHA_LARGURA, desenharBatalha } from '../arte/batalha';
+import { BATALHA_ALTURA, BATALHA_ESCALA, BATALHA_LARGURA, desenharBatalha } from '../arte/batalha';
 import { irParaMapa, type Resultado } from '../motor/acoes';
 import { criarContexto, vidaMaximaEmBatalha } from '../motor/combate';
 import { COR_ELEMENTO, PERSONAGENS } from '../motor/dados/personagens';
@@ -35,8 +35,8 @@ export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
     <>
       <section className="painel batalha">
         <CanvasPixel
-          largura={BATALHA_LARGURA}
-          altura={BATALHA_ALTURA}
+          largura={BATALHA_LARGURA * BATALHA_ESCALA}
+          altura={BATALHA_ALTURA * BATALHA_ESCALA}
           className="cena-batalha"
           rotulo={`Batalha em ${mapa.nome}`}
           desenho={(ctx, t) => desenharBatalha(ctx, e, vidaMax, t)}

@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { desenharQuadro, folha, quadroDa } from '../arte/folhas';
 import { HEROIS } from '../arte/herois';
 import { iconeItem, ICONES_MATERIAIS } from '../arte/icones';
 import { desenhar } from '../arte/sprite';
@@ -36,15 +37,21 @@ export function Retrato(props: { id: PersonagemId; tamanho?: number; animar?: bo
   const t = props.tamanho ?? 54;
   return (
     <CanvasPixel
-      largura={18}
-      altura={18}
+      largura={40}
+      altura={40}
       className={`retrato ${props.apagado ? 'apagado' : ''}`}
       estilo={{ width: t, height: t }}
       rotulo={PERSONAGENS[props.id].nome}
       desenho={(ctx, tempo) => {
         ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, 18, 18);
-        desenhar(ctx, HEROIS[props.id], 0, props.animar ? Math.floor(tempo * 2) % 2 : 0);
+        ctx.clearRect(0, 0, 40, 40);
+        // Spritesheet, se houver; senão o sprite em texto ampliado 2×.
+        const f = folha(`heroi-${props.id}`);
+        if (f && desenharQuadro(ctx, `heroi-${props.id}`, quadroDa(f, 'parado', props.animar ? tempo * 0.9 : 0), 18, 38, 1)) return;
+        ctx.save();
+        ctx.scale(2, 2);
+        desenhar(ctx, HEROIS[props.id], 1, props.animar ? Math.floor(tempo * 2) % 2 : 0);
+        ctx.restore();
       }}
     />
   );

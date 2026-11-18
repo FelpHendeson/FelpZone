@@ -15,8 +15,10 @@
     "skipLibCheck": true,
     "noEmit": true,
     "types": [
-      "node"
-    ]
+      "node",
+      "vite/client"
+    ],
+    "resolveJsonModule": true
   },
   "include": [
     "src",

@@ -10,6 +10,13 @@ Prompts para gerar a arte do jogo no Gemini. As folhas voltam para a sessão, qu
 4. Devolva com o **nome de arquivo** indicado.
 5. Se vier com texto, grade desenhada, fundo que não é magenta liso ou personagem mudando de tamanho entre os quadros, gere de novo. Isso quebra o recorte automático.
 
+**O que aprendemos com a primeira folha (`heroi-leao`):**
+
+- O Gemini **não respeita a grade 4×4** à risca: o Leão veio com 6, 6, 5 e 5 quadros por linha, mais uma sobra branca. Não tem problema, porque a configuração de cada folha diz quantos quadros há em cada linha.
+- Ele também pode **inverter a direção** do personagem. O script espelha quando precisa.
+- Os "pixels" não seguem uma grade exata. O script refaz a pixelização: reduz cerca de 4×, unifica a paleta e limpa a franja magenta do JPG.
+- Rastros finos de golpe, como o arco branco da espada, tendem a sumir, porque se misturam com o fundo. O jogo desenha os próprios efeitos.
+
 **Comece pelo teste:** `heroi-leao.png`, `monstro-gosma.png` e `cenario-ilha.png`. Com essas três no jogo, dá para ajustar o processo antes de fazer o resto.
 
 ## Bloco de estilo (cole antes de todo prompt)
