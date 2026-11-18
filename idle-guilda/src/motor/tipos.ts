@@ -209,6 +209,7 @@ export type Evento =
   | { tipo: 'fusao'; heroi: PersonagemId; habilidade: string }
   | { tipo: 'missao'; herois: PersonagemId[]; missao: string; resultado: ResultadoMissao }
   | { tipo: 'objetivo'; indice: number }
+  | { tipo: 'bestiario'; monstro: string; abates: number }
   | { tipo: 'aplausosRecebidos'; quantidade: number; ouro: number }
   | { tipo: 'aplaudiu'; apelido: string; ouro: number };
 
@@ -226,6 +227,8 @@ export interface Estatisticas {
   vendas: number;
   missoes: number;
   fusoes: number;
+  /** Abates e chefes por espécie de monstro. */
+  bestiario: Record<string, { abates: number; chefes: number }>;
 }
 
 export interface Estado {

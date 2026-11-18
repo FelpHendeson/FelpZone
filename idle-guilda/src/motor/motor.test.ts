@@ -10,6 +10,8 @@ import { aplicarTempoOffline, avancar, criarHeroi, novoJogo, OFFLINE_MAXIMO_SEGU
 import { OBJETIVOS } from './objetivos';
 import { desserializar, serializar } from './save';
 import { statsDoHeroi } from './status';
+import { bonusBestiario, LORE_MONSTROS, marcoAtual } from './dados/bestiario';
+import { MONSTROS } from './dados/mapas';
 import type { Estado, PersonagemId } from './tipos';
 
 function ok(r: A.Resultado): Estado {
@@ -289,6 +291,40 @@ describe('taverna e expedições', () => {
     const xp = e.herois[1].xp;
     e = ok(A.concluirAtividade(e, 'quentin'));
     expect(e.herois[1].xp + e.herois[1].nivel * 1e6).toBeGreaterThan(xp + 10 * 1e6);
+  });
+});
+
+describe('bestiário', () => {
+  it('registra abates por espécie e anota a descoberta no diário', () => {
+    const e = avancar(novoJogo(1), 300);
+    const total = Object.values(e.estatisticas.bestiario).reduce((s, f) => s + f.abates, 0);
+    expect(total).toBe(e.estatisticas.abates);
+    expect(e.diario.some((r) => r.evento.tipo === 'bestiario' && r.evento.abates === 1)).toBe(true);
+  });
+
+  it('marcos dão dano extra permanente contra a espécie', () => {
+    const e = novoJogo(1);
+    expect(bonusBestiario(e, 'gosma')).toBe(0);
+    e.estatisticas.bestiario.gosma = { abates: 100, chefes: 0 };
+    expect(bonusBestiario(e, 'gosma')).toBe(5);
+    e.estatisticas.bestiario.gosma.abates = 5000;
+    expect(bonusBestiario(e, 'gosma')).toBe(15);
+    expect(marcoAtual(0)).toBe(-1);
+    // Com o bônus, a mesma luta acaba mais rápido.
+    const sem = avancar(novoJogo(3), 120).estatisticas.abates;
+    const comBonus = novoJogo(3);
+    for (const m of ['gosma', 'lobo']) comBonus.estatisticas.bestiario[m] = { abates: 5000, chefes: 0 };
+    expect(avancar(comBonus, 120).estatisticas.abates).toBeGreaterThan(sem);
+  });
+
+  it('todo monstro tem lore', () => {
+    for (const m of Object.keys(MONSTROS)) expect(LORE_MONSTROS[m]).toBeTruthy();
+  });
+
+  it('saves sem bestiário são aceitos', () => {
+    const texto = JSON.parse(serializar(novoJogo(1), 1));
+    delete texto.estado.estatisticas.bestiario;
+    expect(desserializar(JSON.stringify(texto))?.estado.estatisticas.bestiario).toEqual({});
   });
 });
 

@@ -7,6 +7,7 @@ import type { Estado, PersonagemId } from '../motor/tipos';
 import { baixarSave, consultarConta, enviarSave, ErroNuvem, excluirConta, pulso, sairDaConta } from '../nuvem';
 import { Backup } from './Backup';
 import { Barra } from './Barra';
+import { Bestiario } from './Bestiario';
 import { Batalha } from './Batalha';
 import { Cidade, type AbaCidade } from './Cidade';
 import { ComoJogar } from './ComoJogar';
@@ -30,7 +31,7 @@ const INTERVALO_NUVEM = 2 * 60 * 1000;
 const INTERVALO_PULSO = 60 * 1000;
 
 type Tela = 'inicio' | 'prologo' | 'jogo';
-type Janela = 'menu' | 'conta' | 'backup' | 'ajuda' | 'diario' | null;
+type Janela = 'menu' | 'conta' | 'backup' | 'ajuda' | 'diario' | 'bestiario' | null;
 
 function retomar(save: Save): { estado: Estado; resumo: ResumoOffline | null } {
   const fora = (Date.now() - save.salvoEm) / 1000;
@@ -251,6 +252,7 @@ export function App() {
     <>
       {janela === 'ajuda' && <ComoJogar aoFechar={() => setJanela(null)} />}
       {janela === 'diario' && estado && <Diario estado={estado} aoFechar={() => setJanela(null)} />}
+      {janela === 'bestiario' && estado && <Bestiario estado={estado} aoFechar={() => setJanela(null)} />}
       {janela === 'conta' && (
         <Conta
           conta={conta}
@@ -377,7 +379,7 @@ export function App() {
             irPara(d);
           }}
         />
-        {aba === 'batalha' && <Batalha estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} />}
+        {aba === 'batalha' && <Batalha estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} aoBestiario={() => setJanela('bestiario')} />}
         {aba === 'party' && (
           <Party
             estado={estado}
@@ -415,6 +417,7 @@ export function App() {
           aoConta={() => setJanela('conta')}
           aoBackup={() => setJanela('backup')}
           aoDiario={() => setJanela('diario')}
+          aoBestiario={() => setJanela('bestiario')}
           aoAjuda={() => setJanela('ajuda')}
           aoMenuInicial={() => {
             salvarLocal();

@@ -1,3 +1,4 @@
+import { bonusBestiario, MARCOS_BESTIARIO } from './dados/bestiario';
 import { curvaInimigo, mapaPorId, MONSTROS, nivelDaOnda, ONDAS_POR_CHEFE, recompensaOuro, recompensaXp, type Mapa } from './dados/mapas';
 import { PERSONAGENS, STATS } from './dados/personagens';
 import { gerarItem, guardarItem, PESOS_CHEFE } from './itens';
@@ -139,6 +140,8 @@ function causarDano(e: Estado, de: Lutador, alvo: Lutador, mult: number, escola:
   if (elemento !== 'neutro' && alvo.fraqueza === elemento) dano *= 1.5;
   if (elemento !== 'neutro' && alvo.resistencia === elemento) dano *= 0.6;
   dano *= Math.max(0.1, 1 + de.ag.danoCausado / 100) * Math.max(0.1, 1 + alvo.ag.danoRecebido / 100);
+  // Conhecer a espécie (bestiário) aumenta o dano dos heróis contra ela.
+  if (de.heroi && alvo.inimigo) dano *= 1 + bonusBestiario(e, alvo.inimigo.monstro) / 100;
   const critico = aleatorio(e) * 100 < 5 + de.ag.critico;
   if (critico) dano *= 1.5 + de.ag.danoCritico / 100;
   dano = Math.max(1, dano);
@@ -276,6 +279,12 @@ function recompensar(e: Estado, ctx: Contexto, mapa: Mapa, i: Inimigo) {
   const mult = i.chefe ? 6 : 1;
   e.estatisticas.abates += 1;
   if (i.chefe) e.estatisticas.chefes += 1;
+  const ficha = (e.estatisticas.bestiario[i.monstro] ??= { abates: 0, chefes: 0 });
+  ficha.abates += 1;
+  if (i.chefe) ficha.chefes += 1;
+  if (MARCOS_BESTIARIO.some((m) => m.abates === ficha.abates)) {
+    registrar(e, { tipo: 'bestiario', monstro: i.monstro, abates: ficha.abates });
+  }
   e.ouro += recompensaOuro(i.nivel) * mult * (i.chefe ? 1.5 : 1) * (1 + soma('ouro') / 100);
   const saque = 1 + soma('saque') / 100;
   if (aleatorio(e) < CHANCE_MATERIAL * saque || i.chefe) e.materiais[mapa.material] += i.chefe ? 6 : 1;

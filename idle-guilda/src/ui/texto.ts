@@ -1,6 +1,7 @@
 import { HABILIDADES } from '../motor/dados/habilidades';
 import { BASES, DADOS_RARIDADE, MATERIAIS, sufixoDoNivel } from '../motor/dados/itens';
-import { mapaPorId } from '../motor/dados/mapas';
+import { MARCOS_BESTIARIO } from '../motor/dados/bestiario';
+import { mapaPorId, MONSTROS } from '../motor/dados/mapas';
 import { MISSOES } from '../motor/dados/missoes';
 import { NOME_ELEMENTO, NOME_STAT, PERSONAGENS } from '../motor/dados/personagens';
 import { OBJETIVOS } from '../motor/objetivos';
@@ -130,6 +131,13 @@ export function descreverEvento(e: Estado, ev: Evento): string {
     case 'missao': {
       const m = MISSOES.find((x) => x.id === ev.missao);
       return `${ev.herois.map(nomeHeroi).join(' e ')} voltaram de “${m?.nome ?? ev.missao}” com ${inteiro(ev.resultado.ouro)} de ouro e ${ev.resultado.itens.length} itens.`;
+    }
+    case 'bestiario': {
+      const marco = MARCOS_BESTIARIO.find((m) => m.abates === ev.abates);
+      const nome = MONSTROS[ev.monstro]?.nome ?? ev.monstro;
+      return ev.abates === 1
+        ? `Bestiário: nova criatura registrada, ${nome}.`
+        : `Bestiário: ${ev.abates.toLocaleString('pt-BR')} ${nome} derrotados. ${marco?.texto ?? ''}.`;
     }
     case 'objetivo':
       return `Objetivo concluído: ${OBJETIVOS[ev.indice]?.titulo ?? ''}.`;

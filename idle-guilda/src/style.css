@@ -1482,6 +1482,109 @@ main {
   gap: 8px;
 }
 
+/* ---------- Bestiário ---------- */
+
+.icone-livro {
+  font-size: 1.8rem;
+}
+
+.bestiario-atalho {
+  margin-left: auto;
+  font-size: 0.78rem;
+  padding: 4px 8px;
+}
+
+.bestiario {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.criatura {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  background: var(--painel);
+  box-shadow: 0 0 0 3px var(--borda);
+}
+
+.criatura p {
+  font-size: 0.84rem;
+}
+
+.criatura.desconhecida {
+  opacity: 0.75;
+}
+
+.criatura-topo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 12px;
+  align-items: center;
+}
+
+.criatura-sprite {
+  width: 64px;
+  height: 64px;
+  background: #15151f;
+  box-shadow: 0 0 0 2px var(--borda);
+}
+
+.criatura-sprite.silhueta {
+  background: #33375a;
+}
+
+.criatura-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.criatura-info .bonus {
+  color: #c9a8ff;
+}
+
+.criatura-elementos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 0.78rem;
+}
+
+.criatura-elementos span {
+  padding: 2px 6px;
+  background: var(--painel-2);
+  border-left: 3px solid #6a6d8a;
+}
+
+.criatura-elementos .fraco {
+  border-color: #7ef08a;
+}
+
+.criatura-elementos .resiste {
+  border-color: #ff8a7a;
+}
+
+.criatura-marco {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.criatura-stats {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.8rem;
+}
+
 @media (min-width: 560px) {
   .canteiros {
     grid-template-columns: 1fr 1fr;

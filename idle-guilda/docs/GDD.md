@@ -149,7 +149,22 @@ Um bot que joga razoavelmente bem chega às seguintes marcas:
 
 Sem equipamento, a party trava no primeiro chefe de cada mapa novo. Equipamentos, conjuntos e melhorias são o que faz avançar.
 
-## 10. Online ("pseudo online")
+## 10. Bestiário
+
+- **Registro:** cada espécie derrotada entra no bestiário, que fica na aba Batalha e no menu. Antes do primeiro abate, aparece só a silhueta e o mapa onde vive.
+- **Marcos de abates:**
+
+| Abates | Recompensa |
+| --- | --- |
+| 1 | Lore da criatura |
+| 10 | Atributos, elemento, fraqueza e resistência |
+| 100 | +5% de dano da party contra a espécie |
+| 1.000 | +10% de dano contra a espécie |
+| 5.000 | +15% de dano contra a espécie |
+
+- **Função no ritmo:** os marcos dão um motivo para voltar a mapas antigos e deixam a farm visível. Cada marco é anotado no Diário.
+
+## 11. Online ("pseudo online")
 
 - **Conta opcional:** apelido e senha. O save vai para a nuvem e pode continuar em outro aparelho.
 - **Ranking de renome:** soma níveis × 10, capítulos × 25 e monstros ÷ 100.
@@ -158,7 +173,7 @@ Sem equipamento, a party trava no primeiro chefe de cada mapa novo. Equipamentos
 - **Aplausos:** quem aplaude ganha +15 de ouro e quem recebe ganha +40. São 5 por dia.
 - **Limitação:** o ranking confia no save enviado. Para um jogo entre amigos, isso é aceitável.
 
-## 11. Interface
+## 12. Interface
 
 - **Telas:**
   - Menu inicial;
@@ -175,7 +190,7 @@ Sem equipamento, a party trava no primeiro chefe de cada mapa novo. Equipamentos
   - 5 cenários;
   - números de dano numa fonte de pixels.
 
-## 12. Próximos passos propostos
+## 13. Próximos passos propostos
 
 1. Chefes com nome e mecânicas próprias por mapa, como um chefe de história no fim de cada um.
 2. Fusão de três habilidades e um rank S, só por receita.

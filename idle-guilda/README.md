@@ -36,6 +36,7 @@ O design completo está no **[GDD](docs/GDD.md)**: personagens e lore, atributos
 - **Cidade:** Ferreiro (forjar, melhorar de +1 a +10, desmontar), Loja (comprar e vender itens e materiais), Taverna e Jardim.
 - **Expedições** (15 min, 2 h e 8 h por mapa, com chance de relíquia) e **treino**.
 - **5 mapas** liberados pelo nível do Sir LionHearth, cada um com monstros, material e conjunto próprios.
+- **Bestiário:** as 8 criaturas com lore, atributos e pontos fracos. Cada marco de abates (100, 1.000 e 5.000) dá dano extra permanente contra a espécie.
 - **Campanha de 21 capítulos**, que também ensina o jogo.
 - **Menu inicial, prólogo, save automático e manual, backup por código, conta, ranking, mural, jogadores online e aplausos**, mantidos das versões anteriores e adaptados.
 
@@ -87,4 +88,4 @@ Segurança das contas:
 
 ## Próximos passos
 
-Estão no fim do [GDD](docs/GDD.md#12-próximos-passos-propostos): chefes de história por mapa, fusão de três habilidades, reserva de heróis, gemas e reforja, ranking validado no servidor, sons e PWA.
+Estão no fim do [GDD](docs/GDD.md#13-próximos-passos-propostos): chefes de história por mapa, fusão de três habilidades, reserva de heróis, gemas e reforja, ranking validado no servidor, sons e PWA.

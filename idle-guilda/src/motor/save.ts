@@ -111,6 +111,9 @@ export function desserializar(texto: string | null): Save | null {
   ) {
     return null;
   }
+  // Saves da v1.0 anteriores ao bestiário começam com ele vazio.
+  const est = e.estatisticas as Obj;
+  if (!ehObj(est.bestiario)) est.bestiario = {};
   if (!batalhaValida(e.batalha)) {
     e.batalha = { mapa: 'patio', onda: 1, situacao: 'lutando', inimigos: [], herois: {}, lancadas: [], visuais: [], proximoUid: 0 };
   }

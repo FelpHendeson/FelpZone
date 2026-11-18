@@ -14,9 +14,10 @@ interface Props {
   estado: Estado;
   agir: (acao: (e: Estado) => Resultado) => void;
   aoAbrirHeroi: (id: PersonagemId) => void;
+  aoBestiario: () => void;
 }
 
-export function Batalha({ estado: e, agir, aoAbrirHeroi }: Props) {
+export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
   const b = e.batalha;
   const mapa = mapaPorId(b.mapa);
   const membros = e.herois.filter((h) => h.atividade.tipo === 'batalha');
@@ -47,6 +48,9 @@ export function Batalha({ estado: e, agir, aoAbrirHeroi }: Props) {
               {b.situacao === 'descansando' ? '🔥 Descansando' : chefe ? `☠ Chefe · onda ${b.onda}` : `Onda ${b.onda}`}
             </span>
             <small>inimigos nv {nivelDaOnda(mapa, b.onda)}</small>
+            <button className="bestiario-atalho" onClick={aoBestiario}>
+              🐾 Bestiário
+            </button>
           </div>
           <ul className="lancadas" aria-live="polite">
             {recentes.length === 0 && <li className="dica">Os heróis usam as habilidades sozinhos quando recarregam.</li>}

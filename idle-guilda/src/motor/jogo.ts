@@ -42,7 +42,7 @@ export function novoJogo(semente = Date.now()): Estado {
     criadas: {},
     loja: { itens: [], renovaEm: 0 },
     objetivo: 0,
-    estatisticas: { abates: 0, chefes: 0, maiorOnda: {}, itensForjados: 0, melhorias: 0, vendas: 0, missoes: 0, fusoes: 0 },
+    estatisticas: { abates: 0, chefes: 0, maiorOnda: {}, itensForjados: 0, melhorias: 0, vendas: 0, missoes: 0, fusoes: 0, bestiario: {} },
     diario: [],
     proximoUid: 0,
   };
