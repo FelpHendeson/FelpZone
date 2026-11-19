@@ -71,3 +71,8 @@
   --painel-2: var(--fundo-3);
   --painel-3: var(--fundo-4);
 }
+
+:root {
+  --fonte-pixel: 'Pixelify Sans', ui-monospace, 'Cascadia Mono', Menlo, Consolas, monospace;
+  --fonte-texto: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}

@@ -1,8 +1,9 @@
 :root {
   /* Cores, espaçamento e molduras: ver src/estilos/tokens.css. */
   color-scheme: dark;
-  font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
-  font-size: 15px;
+  /* Texto corrido em sem serifa do sistema; títulos e números em fonte pixel (seção 7.3). */
+  font-family: var(--fonte-texto);
+  font-size: 16px;
   color: var(--texto);
   background: var(--fundo);
 }
@@ -14,6 +15,7 @@
 body {
   margin: 0;
   min-height: 100dvh;
+  font-size: 0.94rem;
 }
 
 button,
@@ -36,13 +38,41 @@ h3 {
   margin: 0;
 }
 
+h1,
+h2,
+h3 {
+  font-family: var(--fonte-pixel);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
 h2 {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
 }
 
 h3 {
-  font-size: 0.95rem;
+  font-size: 1rem;
   margin-top: 4px;
+}
+
+/*
+ * Números grandes em fonte pixel. Abaixo de ~18 px a Pixelify confunde 5 com S
+ * e 8, então números pequenos ficam na fonte do sistema, com algarismos de
+ * largura igual.
+ */
+.numero-grande {
+  font-family: var(--fonte-pixel);
+  font-variant-numeric: tabular-nums;
+}
+
+.recurso,
+.stat-valor,
+.medidor-texto,
+.pilula-mochila-texto,
+.celula > span[aria-hidden],
+.selo,
+.selo-item {
+  font-variant-numeric: tabular-nums;
 }
 
 p {
@@ -178,7 +208,7 @@ button.mais {
 /* ---------- Estrutura ---------- */
 
 .app {
-  max-width: 620px;
+  max-width: 720px;
   margin: 0 auto;
   min-height: 100dvh;
 }
@@ -211,7 +241,7 @@ main {
 }
 
 .etiqueta {
-  font-size: 0.74rem;
+  font-size: 0.81rem;
   padding: 2px 6px;
   background: var(--painel-3);
   color: var(--suave);
@@ -232,7 +262,7 @@ main {
 }
 
 .selo {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   font-weight: 700;
   padding: 1px 6px;
   color: #1b1b2a;
@@ -253,7 +283,7 @@ main {
 }
 
 .papel {
-  font-size: 0.68rem;
+  font-size: 0.81rem;
   font-weight: 700;
   padding: 1px 6px;
   color: #1b1b2a;
@@ -369,7 +399,7 @@ button.pilula-mochila {
 }
 
 .selo-cheio {
-  font-size: 0.68rem;
+  font-size: 0.81rem;
   padding: 1px 4px;
   color: #fff;
   background: var(--perigo);
@@ -403,7 +433,7 @@ button.pilula-mochila {
   left: 50%;
   transform: translateX(-50%);
   width: 100%;
-  max-width: 620px;
+  max-width: 720px;
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 4px;
@@ -491,7 +521,7 @@ button.pilula-mochila {
   grid-template-columns: 44px 1fr auto;
   align-items: center;
   gap: 8px;
-  font-size: 0.76rem;
+  font-size: 0.81rem;
 }
 
 .medidor.sem-rotulo {
@@ -559,7 +589,7 @@ button.pilula-mochila {
 }
 
 .objetivo-topo small {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
 }
 
 .recompensa {
@@ -583,7 +613,7 @@ button.pilula-mochila {
 .objetivo-progresso span {
   position: absolute;
   inset: 0;
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   line-height: 14px;
   text-align: center;
   text-shadow: 1px 1px 0 var(--borda);
@@ -605,10 +635,11 @@ button.pilula-mochila {
 }
 
 .batalha-info {
-  padding: 0 12px 12px;
+  padding: 10px 12px 12px;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .batalha-topo {
@@ -633,6 +664,8 @@ button.pilula-mochila {
 }
 
 .ponto-elemento {
+  display: inline-block;
+  flex: none;
   width: 8px;
   height: 8px;
   box-shadow: 0 0 0 1px var(--borda);
@@ -770,7 +803,7 @@ button.pilula-mochila {
   z-index: 20;
   background: var(--fundo);
   overflow-y: auto;
-  max-width: 620px;
+  max-width: 720px;
   margin: 0 auto;
   padding-bottom: 24px;
 }
@@ -820,7 +853,7 @@ button.pilula-mochila {
     flex: 1 1 0;
     min-width: 0;
     padding-inline: 2px;
-    font-size: 0.72rem;
+    font-size: 0.81rem;
   }
 }
 
@@ -849,7 +882,7 @@ button.pilula-mochila {
 }
 
 .stat-nome small {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
 }
 
 .stat-valor {
@@ -881,7 +914,7 @@ button.pilula-mochila {
 }
 
 .slot small {
-  font-size: 0.74rem;
+  font-size: 0.81rem;
   color: var(--texto);
 }
 
@@ -977,7 +1010,7 @@ button.pilula-mochila {
 }
 
 .item-nome small {
-  font-size: 0.74rem;
+  font-size: 0.81rem;
 }
 
 .conjunto {
@@ -991,7 +1024,7 @@ button.pilula-mochila {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  font-size: 0.8rem;
+  font-size: 0.81rem;
 }
 
 .item-stats .afixo {
@@ -1050,7 +1083,7 @@ button.pilula-mochila {
 }
 
 .habilidade-nome small {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
 }
 
 .habilidade-nivel {
@@ -1058,7 +1091,7 @@ button.pilula-mochila {
   flex-direction: column;
   align-items: flex-end;
   font-weight: 700;
-  font-size: 0.8rem;
+  font-size: 0.81rem;
 }
 
 .rank {
@@ -1094,7 +1127,7 @@ button.pilula-mochila {
 .efeitos {
   margin: 0;
   padding-left: 18px;
-  font-size: 0.8rem;
+  font-size: 0.81rem;
   color: #9fe8e0;
 }
 
@@ -1135,7 +1168,7 @@ button.pilula-mochila {
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 0.64rem;
+  font-size: 0.81rem;
   line-height: 1.15;
   text-align: center;
   border: 3px solid #3a3d5a;
@@ -1148,7 +1181,7 @@ button.pilula-mochila {
 }
 
 .no small {
-  font-size: 0.6rem;
+  font-size: 0.81rem;
 }
 
 .no.aprendido {
@@ -1373,7 +1406,7 @@ button.pilula-mochila {
 }
 
 .guilda-info small {
-  font-size: 0.72rem;
+  font-size: 0.81rem;
 }
 
 .aplaudir {
@@ -1472,7 +1505,7 @@ button.pilula-mochila {
 }
 
 .menu-botoes button small {
-  font-size: 0.74rem;
+  font-size: 0.81rem;
   font-weight: 400;
   color: inherit;
   opacity: 0.8;
@@ -1481,7 +1514,7 @@ button.pilula-mochila {
 .rodape {
   margin-top: auto;
   text-align: center;
-  font-size: 0.74rem;
+  font-size: 0.81rem;
   color: var(--suave);
 }
 
@@ -1608,7 +1641,7 @@ button.pilula-mochila {
 
 .bestiario-atalho {
   margin-left: auto;
-  font-size: 0.78rem;
+  font-size: 0.81rem;
   padding: 4px 8px;
 }
 
@@ -1670,7 +1703,7 @@ button.pilula-mochila {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  font-size: 0.78rem;
+  font-size: 0.81rem;
 }
 
 .criatura-elementos span {
@@ -1700,7 +1733,7 @@ button.pilula-mochila {
   display: flex;
   flex-wrap: wrap;
   gap: 4px 12px;
-  font-size: 0.8rem;
+  font-size: 0.81rem;
 }
 
 @media (min-width: 560px) {
@@ -1888,7 +1921,7 @@ button.pilula-mochila {
 }
 
 .selo-item {
-  font-size: 0.8rem;
+  font-size: 0.81rem;
   font-weight: 700;
   padding: 1px 6px;
   background: var(--fundo-4);
@@ -2217,7 +2250,7 @@ button.chip-raridade.ativa {
 
 .celula > span[aria-hidden] {
   position: absolute;
-  font-size: 0.72rem;
+  font-size: 0.81rem;
   font-weight: 700;
   line-height: 1;
   padding: 2px 3px;
@@ -2374,4 +2407,360 @@ button.chip-raridade.ativa {
   box-shadow:
     0 0 0 2px var(--acento),
     0 0 0 4px var(--borda);
+}
+
+/* ---------- Responsivo (seção 7.6) ---------- */
+
+/* 560 a 899 px: uma coluna mais larga; listas em duas colunas. */
+@media (min-width: 560px) {
+  .party-lista,
+  .lista-itens,
+  .taverna,
+  .missoes,
+  .fora {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--esp-3);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 900 px ou mais: navegação vira coluna lateral e o conteúdo ganha duas colunas. */
+@media (min-width: 900px) {
+  .app {
+    max-width: none;
+    padding-left: 88px;
+  }
+
+  .barra {
+    padding-inline: max(16px, calc((100% - 1100px) / 2 + 16px));
+  }
+
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--esp-4) var(--esp-4) var(--esp-6);
+  }
+
+  .abas {
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 88px;
+    max-width: none;
+    transform: none;
+    grid-template-columns: 1fr;
+    grid-auto-rows: 72px;
+    align-content: start;
+    gap: var(--esp-2);
+    padding: var(--esp-3) var(--esp-1);
+    border-top: none;
+    border-right: 3px solid var(--borda);
+  }
+
+  .abas button {
+    min-height: 0;
+    font-size: 0.81rem;
+    gap: 4px;
+    padding-inline: 0;
+  }
+
+  .aba-rotulo {
+    font-weight: 500;
+    letter-spacing: -0.02em;
+  }
+
+  .aviso {
+    left: calc(50% + 44px);
+    bottom: 24px;
+  }
+
+  .barra-lote {
+    left: calc(50% + 44px);
+    bottom: 16px;
+  }
+
+  .tela-cheia {
+    left: 88px;
+    max-width: 960px;
+  }
+
+  .duas-colunas {
+    display: grid;
+    grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    gap: var(--esp-4);
+    align-items: start;
+  }
+
+  .duas-colunas > .coluna {
+    display: flex;
+    flex-direction: column;
+    gap: var(--esp-4);
+    min-width: 0;
+  }
+
+  .duas-colunas > .fixa {
+    position: sticky;
+    top: 76px;
+  }
+
+  .party-lista,
+  .missoes {
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  }
+
+  .lista-itens {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+/* ---------- Batalha ---------- */
+
+@media (max-width: 899px) {
+  .duas-colunas,
+  .duas-colunas > .coluna {
+    display: flex;
+    flex-direction: column;
+    gap: var(--esp-4);
+  }
+}
+
+.cena-moldura {
+  position: relative;
+}
+
+.cena-rotulo {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  max-width: calc(100% - 100px);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 4px 8px;
+  background: rgb(8 8 16 / 72%);
+  box-shadow: 0 0 0 2px var(--borda);
+  font-size: 0.81rem;
+  pointer-events: none;
+}
+
+.cena-rotulo strong {
+  font-family: var(--fonte-pixel);
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.selo-chefe {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 3px 8px;
+  font-family: var(--fonte-pixel);
+  font-weight: 600;
+  color: #ffd0c0;
+  background: var(--perigo-fundo);
+  box-shadow:
+    0 0 0 2px var(--perigo),
+    0 0 0 4px var(--borda);
+  animation: pulsar 1s steps(2) infinite;
+}
+
+.lancadas {
+  flex: 1;
+}
+
+.party-combate {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+}
+
+.combate-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--esp-2);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.combate-cartao.caido {
+  opacity: 0.55;
+  filter: grayscale(0.7);
+}
+
+button.combate-topo {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--esp-3);
+  padding: 2px;
+  background: none;
+  box-shadow: none;
+  text-align: left;
+}
+
+.barra-vida {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--esp-2);
+  font-size: 0.81rem;
+}
+
+.barra-vida-trilho {
+  position: relative;
+  height: 10px;
+  background: #3a1d2a;
+  box-shadow: 0 0 0 2px var(--borda);
+}
+
+.barra-vida-cheio,
+.barra-vida-escudo {
+  position: absolute;
+  inset: 0 auto 0 0;
+  transition: width 0.25s steps(4);
+}
+
+.barra-vida-cheio {
+  background: var(--verde);
+}
+
+/* Escudo: faixa clara listrada por cima da vida (também escrita no texto). */
+.barra-vida-escudo {
+  top: 0;
+  bottom: auto;
+  height: 5px;
+  background: repeating-linear-gradient(90deg, #cfe6ff 0 4px, #8fbfff 4px 8px);
+}
+
+.escudo-texto {
+  color: #a8d0ff;
+}
+
+.habilidades-combate {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Habilidade: anel que enche no sentido horário enquanto recarrega. */
+.hab-anel {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: conic-gradient(var(--el) var(--p), var(--fundo-1) 0);
+  box-shadow: 0 0 0 2px var(--borda);
+  cursor: help;
+}
+
+.hab-sigla {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: var(--fundo-2);
+  font-weight: 800;
+  font-size: 0.81rem;
+  letter-spacing: 0.02em;
+  color: var(--texto);
+}
+
+.hab-anel.pronta {
+  box-shadow:
+    0 0 0 2px var(--borda),
+    0 0 8px 1px var(--el);
+}
+
+.hab-anel.pronta .hab-sigla {
+  background: color-mix(in srgb, var(--el) 30%, var(--fundo-2));
+}
+
+.hab-anel.passiva {
+  background: repeating-conic-gradient(var(--el) 0 20deg, var(--fundo-1) 20deg 40deg);
+}
+
+/* Mapas em cartões com miniatura do cenário. */
+.mapas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: var(--esp-3);
+}
+
+.mapas .mapa {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  gap: 6px;
+  padding: 0 0 var(--esp-2);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.mapa .mapa-info,
+.mapa .mapa-acoes {
+  padding-inline: var(--esp-2);
+}
+
+.mapa-miniatura {
+  position: relative;
+  aspect-ratio: 16 / 7;
+  background: var(--fundo-1) center / cover no-repeat;
+  image-rendering: pixelated;
+  border-bottom: 3px solid var(--borda);
+}
+
+.mapas .mapa.atual {
+  box-shadow:
+    var(--bisel),
+    0 0 0 2px var(--ouro);
+}
+
+.mapas .mapa.bloqueado {
+  opacity: 0.85;
+}
+
+.mapa.bloqueado .mapa-miniatura {
+  box-shadow: inset 0 0 0 999px rgb(8 8 16 / 62%);
+}
+
+.mapa-cadeado {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-weight: 700;
+  color: var(--texto);
+  text-shadow: 0 2px 0 var(--borda);
+}
+
+.mapa-miniatura .etiqueta.atual {
+  position: absolute;
+  left: 6px;
+  bottom: 6px;
+  color: var(--texto-escuro);
+  background: var(--ouro);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selo-chefe {
+    animation: none;
+  }
+  .barra-vida-cheio,
+  .barra-vida-escudo {
+    transition: none;
+  }
 }
