@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { iconeDeFolha } from '../arte/extras';
 import { desenharQuadro, folha, quadroDa } from '../arte/folhas';
 import { HEROIS } from '../arte/herois';
 import { iconeItem, ICONES_MATERIAIS } from '../arte/icones';
@@ -14,7 +15,9 @@ export function Recurso(props: { tipo: Material | 'ouro'; valor: number; falta?:
   const nome = props.tipo === 'ouro' ? 'Ouro' : MATERIAIS[props.tipo].nome;
   return (
     <span className={`recurso ${props.falta ? 'falta' : ''}`} title={nome}>
-      <Icone chave={`mat-${props.tipo}`} sprite={ICONES_MATERIAIS[props.tipo]} rotulo={nome} />
+      <IconePintado id={props.tipo} tamanho={16} rotulo={nome}>
+        <Icone chave={`mat-${props.tipo}`} sprite={ICONES_MATERIAIS[props.tipo]} rotulo={nome} />
+      </IconePintado>
       {compacto(Math.floor(props.valor))}
     </span>
   );
@@ -57,10 +60,37 @@ export function Retrato(props: { id: PersonagemId; tamanho?: number; animar?: bo
   );
 }
 
+/**
+ * Ícone vindo de uma folha de ícones pintada (relíquias, materiais...). Sem
+ * ícone na folha, mostra `children` (o ícone desenhado em código).
+ */
+export function IconePintado(props: { id: string; tamanho: number; rotulo?: string; children: ReactNode }) {
+  const icone = iconeDeFolha(props.id);
+  if (!icone) return <>{props.children}</>;
+  const escala = props.tamanho / icone.tamanho;
+  return (
+    <span
+      className={`icone icone-pintado ${escala < 1 ? 'reduzido' : ''}`}
+      role="img"
+      aria-label={props.rotulo ?? ''}
+      style={{
+        width: props.tamanho,
+        height: props.tamanho,
+        backgroundImage: `url(${icone.url})`,
+        backgroundSize: `${icone.colunas * props.tamanho}px ${icone.linhas * props.tamanho}px`,
+        backgroundPosition: `-${(icone.indice % icone.colunas) * props.tamanho}px -${Math.floor(icone.indice / icone.colunas) * props.tamanho}px`,
+      }}
+    />
+  );
+}
+
 export function IconeItem(props: { item: Item; escala?: number }) {
+  const escala = props.escala ?? 3;
   return (
     <span className={`icone-item raridade-${props.item.raridade}`}>
-      <Icone chave={`item-${props.item.base}-${props.item.raridade}`} sprite={iconeItem(props.item)} escala={props.escala ?? 3} />
+      <IconePintado id={props.item.base} tamanho={Math.round((escala * 32) / 3)}>
+        <Icone chave={`item-${props.item.base}-${props.item.raridade}`} sprite={iconeItem(props.item)} escala={escala} />
+      </IconePintado>
     </span>
   );
 }

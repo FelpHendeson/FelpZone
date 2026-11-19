@@ -569,5 +569,57 @@
         15
       ]
     }
+  },
+  "icones-reliquias": {
+    "tipo": "icones",
+    "arquivo": "icones-reliquias.jpg",
+    "limiteFundo": 160,
+    "limiteRosado": 90,
+    "chaveBranca": false,
+    "nomes": [
+      "coracaoDeBrasa",
+      "prismaDoTrovao",
+      "penaDaFenix",
+      "dadoDoDestino",
+      "coroaPartida",
+      "raizMae",
+      "emblemaLionHearth",
+      "ampulhetaCeleste",
+      "olhoDeVesper",
+      "sementeDeHope",
+      "ferrugem",
+      "pena",
+      "osso",
+      "brasa",
+      "nucleo",
+      "essencia"
+    ],
+    "verdeMax": 60,
+    "passadasFranja": 3,
+    "alfaMinimo": 150
+  },
+  "cenario-ilha": {
+    "tipo": "cenario",
+    "cenario": "ilha",
+    "arquivo": "cenario-ilha.jpg",
+    "chao": 0.74
+  },
+  "cenario-bosque": {
+    "tipo": "cenario",
+    "cenario": "bosque",
+    "arquivo": "cenario-bosque.jpg",
+    "chao": 0.8
+  },
+  "cenario-ruinas": {
+    "tipo": "cenario",
+    "cenario": "ruinas",
+    "arquivo": "cenario-ruinas.jpg",
+    "chao": 0.76
+  },
+  "cenario-vulcao": {
+    "tipo": "cenario",
+    "cenario": "vulcao",
+    "arquivo": "cenario-vulcao.jpg",
+    "chao": 0.78
   }
 }

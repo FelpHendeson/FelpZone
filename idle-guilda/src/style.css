@@ -829,6 +829,19 @@ main {
   box-shadow: 0 0 0 2px var(--borda);
 }
 
+.icone-pintado {
+  display: inline-block;
+  flex: none;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  vertical-align: middle;
+}
+
+/* Reduzido (ex.: materiais no texto), a média dos pixels fica melhor que o vizinho mais próximo. */
+.icone-pintado.reduzido {
+  image-rendering: auto;
+}
+
 .icone-item.raridade-lendario {
   box-shadow: 0 0 0 2px #c48a1c;
 }

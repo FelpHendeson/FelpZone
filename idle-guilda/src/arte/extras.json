@@ -1,0 +1,41 @@
+{
+  "cenarios": {
+    "ilha": {
+      "imagem": "sprites/cenario-ilha.png"
+    },
+    "bosque": {
+      "imagem": "sprites/cenario-bosque.png"
+    },
+    "ruinas": {
+      "imagem": "sprites/cenario-ruinas.png"
+    },
+    "vulcao": {
+      "imagem": "sprites/cenario-vulcao.png"
+    }
+  },
+  "icones": {
+    "icones-reliquias": {
+      "imagem": "sprites/icones-reliquias.png",
+      "tamanho": 32,
+      "colunas": 8,
+      "indices": {
+        "coracaoDeBrasa": 0,
+        "prismaDoTrovao": 1,
+        "penaDaFenix": 2,
+        "dadoDoDestino": 3,
+        "coroaPartida": 4,
+        "raizMae": 5,
+        "emblemaLionHearth": 6,
+        "ampulhetaCeleste": 7,
+        "olhoDeVesper": 8,
+        "sementeDeHope": 9,
+        "ferrugem": 10,
+        "pena": 11,
+        "osso": 12,
+        "brasa": 13,
+        "nucleo": 14,
+        "essencia": 15
+      }
+    }
+  }
+}

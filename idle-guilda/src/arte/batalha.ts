@@ -2,6 +2,7 @@ import { vidaMaximaInimigo } from '../motor/combate';
 import { mapaPorId, type Mapa } from '../motor/dados/mapas';
 import { COR_ELEMENTO, PERSONAGENS } from '../motor/dados/personagens';
 import type { Combatente, Estado, PersonagemId } from '../motor/tipos';
+import { imagemDoCenario } from './extras';
 import { desenharQuadro, folha, quadroDa, type Animacao } from './folhas';
 import { HEROIS, JUBA } from './herois';
 import { spriteMonstro } from './monstros';
@@ -82,6 +83,16 @@ function nuvem(ctx: CanvasRenderingContext2D, x: number, y: number, cor: string)
 }
 
 function cenario(ctx: CanvasRenderingContext2D, mapa: Mapa, t: number, noite: boolean) {
+  // Cenário pintado (320×180, 1 pixel = meia unidade). No descanso, escurece como noite.
+  const img = imagemDoCenario(mapa.cenario);
+  if (img) {
+    ctx.drawImage(img, 0, 0, BATALHA_LARGURA, BATALHA_ALTURA);
+    if (noite) {
+      ctx.fillStyle = 'rgba(12, 16, 48, 0.55)';
+      ctx.fillRect(0, 0, BATALHA_LARGURA, BATALHA_ALTURA);
+    }
+    return;
+  }
   const anima = Math.floor(t * 2) % 2;
   switch (mapa.cenario) {
     case 'ilha':
