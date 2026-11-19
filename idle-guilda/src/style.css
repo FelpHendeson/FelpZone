@@ -71,25 +71,32 @@ small {
 
 /* ---------- Botões ---------- */
 
+/*
+ * Três níveis (seção 7.5): principal (dourado), secundário (o padrão, em
+ * --fundo-3) e perigo (vermelho, para ações que não se desfazem).
+ */
 button {
   cursor: pointer;
-  background: var(--painel-2);
+  background: var(--fundo-3);
   border: none;
   /* Alvo de toque confortável no celular. */
-  min-height: 40px;
+  min-height: var(--toque);
   padding: 7px 10px;
   border-radius: 2px;
   box-shadow:
-    0 0 0 2px var(--borda),
-    inset 0 -3px 0 rgb(0 0 0 / 30%);
+    var(--bisel),
+    0 0 0 2px var(--borda);
+  transition: filter 80ms;
 }
 
 button:hover:not(:disabled) {
   filter: brightness(1.18);
 }
 
+/* Afunda 2 px e perde o bisel de luz, como uma tecla apertada. */
 button:active:not(:disabled) {
-  transform: translateY(1px);
+  transform: translateY(2px);
+  filter: brightness(0.95);
 }
 
 button:disabled {
@@ -100,8 +107,9 @@ button:disabled {
 button:focus-visible,
 input:focus-visible,
 select:focus-visible,
-textarea:focus-visible {
-  outline: 2px solid var(--ouro);
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 2px solid var(--acento);
   outline-offset: 2px;
 }
 
@@ -113,7 +121,12 @@ button.ativa {
 }
 
 button.principal {
-  background: #2f7a45;
+  background: var(--ouro);
+  color: var(--texto-escuro);
+  box-shadow:
+    inset 2px 2px 0 rgb(255 255 255 / 35%),
+    inset -2px -2px 0 var(--ouro-escuro),
+    0 0 0 2px var(--borda);
   font-weight: 700;
   display: inline-flex;
   align-items: center;
@@ -121,14 +134,29 @@ button.principal {
   gap: 6px;
 }
 
+button.principal small {
+  color: inherit;
+  opacity: 0.8;
+}
+
+/* Dentro do botão dourado, o vermelho de "falta" não tem contraste. */
+button.principal .recurso.falta {
+  color: #7a1a0a;
+}
+
+button.secundario {
+  background: var(--fundo-3);
+}
+
 button.perigo {
-  background: #6a2a2a;
+  background: var(--perigo-fundo);
+  color: #ffd9cf;
 }
 
 button.link {
   background: none;
   box-shadow: none;
-  min-height: 32px;
+  min-height: var(--toque);
   padding: 6px 0;
   color: var(--ouro);
   text-decoration: underline;
@@ -136,7 +164,7 @@ button.link {
 }
 
 button.mais {
-  min-width: 40px;
+  min-width: var(--toque);
   font-weight: 700;
   font-size: 1.1rem;
 }
@@ -159,12 +187,14 @@ main {
   padding: 10px 10px 96px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* Espaço para o degrau de 5 px da moldura dos painéis. */
+  gap: var(--esp-4);
 }
 
+/* Moldura pixel (seção 7.2): bisel, contorno escuro e degrau embaixo. */
 .painel {
-  background: var(--painel);
-  box-shadow: 0 0 0 3px var(--borda);
+  background: var(--fundo-2);
+  box-shadow: var(--moldura);
   border-radius: 2px;
   padding: 12px;
   display: flex;
@@ -260,7 +290,7 @@ main {
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  background: var(--painel);
+  background: var(--fundo-1);
   border-bottom: 3px solid var(--borda);
 }
 
@@ -304,8 +334,8 @@ main {
 }
 
 .ajuda {
-  width: 34px;
-  height: 34px;
+  width: var(--toque);
+  height: var(--toque);
   padding: 0;
   font-weight: 700;
   border-radius: 50%;
@@ -322,7 +352,7 @@ main {
   grid-template-columns: repeat(5, 1fr);
   gap: 6px;
   padding: 8px 8px calc(8px + env(safe-area-inset-bottom));
-  background: var(--painel);
+  background: var(--fundo-1);
   border-top: 3px solid var(--borda);
   z-index: 6;
 }
@@ -793,19 +823,19 @@ main {
 }
 
 .slot.raridade-incomum {
-  box-shadow: 0 0 0 2px #2f6a2a;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-incomum) 62%, #000);
 }
 
 .slot.raridade-raro {
-  box-shadow: 0 0 0 2px #2f4fa0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-raro) 62%, #000);
 }
 
 .slot.raridade-epico {
-  box-shadow: 0 0 0 2px #6a3aa0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-epico) 62%, #000);
 }
 
 .slot.raridade-lendario {
-  box-shadow: 0 0 0 2px #c48a1c;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-lendario) 62%, #000);
 }
 
 .slot-reliquia {
@@ -851,11 +881,11 @@ main {
 }
 
 .icone-item.raridade-lendario {
-  box-shadow: 0 0 0 2px #c48a1c;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-lendario) 62%, #000);
 }
 
 .icone-item.raridade-epico {
-  box-shadow: 0 0 0 2px #6a3aa0;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-epico) 62%, #000);
 }
 
 .item-detalhe {
@@ -975,23 +1005,23 @@ main {
 }
 
 .rank-D {
-  background: #a3a2c2;
+  background: var(--suave);
 }
 
 .rank-C {
-  background: #7ed66a;
+  background: var(--r-incomum);
 }
 
 .rank-B {
-  background: #5b9bff;
+  background: var(--r-raro);
 }
 
 .rank-A {
-  background: #c27bff;
+  background: var(--r-epico);
 }
 
 .rank-S {
-  background: #ffb43a;
+  background: var(--r-lendario);
 }
 
 .efeitos {
@@ -1346,7 +1376,7 @@ main {
   width: 100%;
   height: auto;
   aspect-ratio: 120 / 44;
-  box-shadow: 0 0 0 3px var(--borda);
+  box-shadow: var(--moldura);
 }
 
 .prologo .retrato {
@@ -1530,7 +1560,7 @@ main {
   gap: 8px;
   padding: 10px;
   background: var(--painel);
-  box-shadow: 0 0 0 3px var(--borda);
+  box-shadow: var(--moldura);
 }
 
 .criatura p {
