@@ -430,5 +430,97 @@
         15
       ]
     }
+  },
+  "monstro-golem": {
+    "arquivo": "monstro-golem.jpg",
+    "reducao": 4,
+    "linhas": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "colunasGrade": 4,
+    "espelhar": false,
+    "limiteFundo": 160,
+    "limiteRosado": 40,
+    "franjaSoBorda": true,
+    "passadasFranja": 3,
+    "cores": 48,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        0,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        2
+      ],
+      "morte": [
+        9,
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  },
+  "monstro-diabrete": {
+    "arquivo": "monstro-diabrete.jpg",
+    "reducao": 5,
+    "linhas": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "colunasGrade": 4,
+    "espelhar": false,
+    "limiteFundo": 160,
+    "limiteRosado": 90,
+    "franjaSoBorda": true,
+    "passadasFranja": 2,
+    "cores": 48,
+    "elevacao": 3,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    }
   }
 }
