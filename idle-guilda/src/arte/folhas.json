@@ -120,5 +120,116 @@
         15
       ]
     }
+  },
+  "heroi-cyrus": {
+    "imagem": "sprites/heroi-cyrus.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 58,
+    "centro": 31.0,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "habilidade": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "dano": [
+        12,
+        13
+      ],
+      "caido": [
+        14,
+        15
+      ]
+    }
+  },
+  "heroi-vesper": {
+    "imagem": "sprites/heroi-vesper.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 58,
+    "centro": 29.5,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "habilidade": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "dano": [
+        12,
+        13
+      ],
+      "caido": [
+        14,
+        15
+      ]
+    }
+  },
+  "heroi-odalys": {
+    "imagem": "sprites/heroi-odalys.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 58,
+    "centro": 33.0,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "habilidade": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "dano": [
+        12,
+        13
+      ],
+      "caido": [
+        14,
+        15
+      ]
+    }
   }
 }

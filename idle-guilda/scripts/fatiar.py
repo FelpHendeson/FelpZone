@@ -24,16 +24,17 @@ SAIDA_IMG = RAIZ / 'public' / 'sprites'
 MANIFESTO = RAIZ / 'src' / 'arte' / 'folhas.json'
 
 
-def eh_fundo(r, g, b):
-    """Magenta e suas misturas com o personagem nas bordas do JPG; branco das sobras da grade."""
+def eh_fundo(r, g, b, limite=100):
+    """Magenta e suas misturas com o personagem nas bordas do JPG; branco das sobras da grade.
+    `limite` maior deixa a chave mais estrita (para personagens com roxos e rosas)."""
     if r > 225 and g > 225 and b > 225:
         return True
-    return r > 100 and b > 100 and g < min(r, b) * 0.8
+    return r > limite and b > limite and g < min(r, b) * 0.8
 
 
-def rosado(r, g, b):
+def rosado(r, g, b, limite=70):
     """Resto de magenta misturado com o contorno (franja do JPG)."""
-    return b > 70 and r > 70 and g < min(r, b) * 0.7 and abs(r - b) < 90
+    return b > limite and r > limite and g < min(r, b) * 0.7 and abs(r - b) < 90
 
 
 def processar(nome, cfg):
@@ -59,7 +60,7 @@ def processar(nome, cfg):
             for y in range(cel.size[1]):
                 for x in range(cel.size[0]):
                     r, g, b = px[x, y]
-                    q[x, y] = (0, 0, 0, 0) if eh_fundo(r, g, b) else (r, g, b, 255)
+                    q[x, y] = (0, 0, 0, 0) if eh_fundo(r, g, b, cfg.get('limiteFundo', 100)) else (r, g, b, 255)
             pequeno = rgba.resize((larg, alt), Image.Resampling.BOX)
             p = pequeno.load()
             for y in range(alt):
@@ -71,14 +72,21 @@ def processar(nome, cfg):
                         f = 255 / a
                         p[x, y] = (min(255, round(r * f)), min(255, round(g * f)), min(255, round(b * f)), 255)
             # Franja: rosado na borda some; rosado no meio do desenho vira contorno.
-            copia = pequeno.copy().load()
-            for y in range(alt):
-                for x in range(larg):
-                    r, g, b, a = copia[x, y]
-                    if a == 0 or not rosado(r, g, b):
-                        continue
-                    vizinhos = [copia[x + dx, y + dy][3] if 0 <= x + dx < larg and 0 <= y + dy < alt else 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))]
-                    p[x, y] = (0, 0, 0, 0) if 0 in vizinhos else (27, 27, 42, 255)
+            # Com `franjaSoBorda` (personagens roxos), o miolo fica intacto e a borda
+            # é limpa em algumas passadas.
+            so_borda = cfg.get('franjaSoBorda', False)
+            for _ in range(cfg.get('passadasFranja', 2 if so_borda else 1)):
+                copia = pequeno.copy().load()
+                for y in range(alt):
+                    for x in range(larg):
+                        r, g, b, a = copia[x, y]
+                        if a == 0 or not rosado(r, g, b, cfg.get('limiteRosado', 70)):
+                            continue
+                        vizinhos = [copia[x + dx, y + dy][3] if 0 <= x + dx < larg and 0 <= y + dy < alt else 0 for dx, dy in ((1, 0), (-1, 0), (0, 1), (0, -1))]
+                        if 0 in vizinhos:
+                            p[x, y] = (0, 0, 0, 0)
+                        elif not so_borda:
+                            p[x, y] = (27, 27, 42, 255)
             quadros.append(pequeno)
 
     # Paleta única para todos os quadros (a mesma cor não varia entre quadros).

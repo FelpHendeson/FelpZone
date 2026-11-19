@@ -167,13 +167,13 @@ function barraVida(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
 /** Canto superior esquerdo de cada posição (os pés ficam 9 à direita e 17 abaixo). */
 const POSICOES_HEROIS: Record<'frente' | 'tras', [number, number][]> = {
   frente: [
-    [62, CHAO - 17],
-    [44, CHAO - 25],
+    [64, CHAO - 17],
+    [47, CHAO - 25],
   ],
   tras: [
-    [30, CHAO - 16],
-    [16, CHAO - 25],
-    [2, CHAO - 17],
+    [33, CHAO - 16],
+    [20, CHAO - 25],
+    [8, CHAO - 17],
   ],
 };
 
@@ -303,7 +303,9 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
         ctx.globalAlpha = 1;
       }
     }
-    if (comb) barraVida(ctx, x + 2, y - 3, 12, comb.vida / max, comb.escudo / max, '#5fcf5a');
+    // Sprites de folha são mais altos: a barra sobe para não cobrir o rosto.
+    const alturaBarra = folha(`heroi-${id}`) ? 13 : 3;
+    if (comb) barraVida(ctx, x + 2, y - alturaBarra, 12, comb.vida / max, comb.escudo / max, '#5fcf5a');
   }
 
   if (!descansando) {
