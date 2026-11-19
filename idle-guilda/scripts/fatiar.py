@@ -24,10 +24,11 @@ SAIDA_IMG = RAIZ / 'public' / 'sprites'
 MANIFESTO = RAIZ / 'src' / 'arte' / 'folhas.json'
 
 
-def eh_fundo(r, g, b, limite=100):
+def eh_fundo(r, g, b, limite=100, branco=True):
     """Magenta e suas misturas com o personagem nas bordas do JPG; branco das sobras da grade.
-    `limite` maior deixa a chave mais estrita (para personagens com roxos e rosas)."""
-    if r > 225 and g > 225 and b > 225:
+    `limite` maior deixa a chave mais estrita (para personagens com roxos e rosas).
+    `branco=False` preserva brilhos brancos (armaduras prateadas)."""
+    if branco and r > 225 and g > 225 and b > 225:
         return True
     return r > limite and b > limite and g < min(r, b) * 0.8
 
@@ -60,7 +61,7 @@ def processar(nome, cfg):
             for y in range(cel.size[1]):
                 for x in range(cel.size[0]):
                     r, g, b = px[x, y]
-                    q[x, y] = (0, 0, 0, 0) if eh_fundo(r, g, b, cfg.get('limiteFundo', 100)) else (r, g, b, 255)
+                    q[x, y] = (0, 0, 0, 0) if eh_fundo(r, g, b, cfg.get('limiteFundo', 100), cfg.get('chaveBranca', True)) else (r, g, b, 255)
             pequeno = rgba.resize((larg, alt), Image.Resampling.BOX)
             p = pequeno.load()
             for y in range(alt):
