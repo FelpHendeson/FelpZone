@@ -1,5 +1,6 @@
 import { BASES, RARIDADES } from './dados/itens';
-import { MAPAS } from './dados/mapas';
+import { MAPAS, MONSTROS } from './dados/mapas';
+import { MISSOES } from './dados/missoes';
 import { PERSONAGENS, STATS } from './dados/personagens';
 import type { Estado, Heroi, Item } from './tipos';
 
@@ -38,7 +39,7 @@ function atividadeValida(a: unknown): boolean {
   if (!ehObj(a)) return false;
   if (a.tipo === 'batalha') return true;
   if (a.tipo === 'treino') return ehNumero(a.inicio) && ehNumero(a.fim);
-  return a.tipo === 'exploracao' && ehTexto(a.missao) && ehNumero(a.inicio) && ehNumero(a.fim);
+  return a.tipo === 'exploracao' && ehTexto(a.missao) && MISSOES.some((m) => m.id === a.missao) && ehNumero(a.inicio) && ehNumero(a.fim);
 }
 
 function heroiValido(h: unknown): h is Heroi {
@@ -60,19 +61,52 @@ function heroiValido(h: unknown): h is Heroi {
   );
 }
 
+function combatenteValido(c: unknown): boolean {
+  return (
+    numeros(c, ['vida', 'escudo', 'barra', 'provocando']) &&
+    ehObj((c as Obj).recargas) &&
+    Object.values((c as Obj).recargas as Obj).every(ehNumero) &&
+    Array.isArray((c as Obj).buffs) &&
+    ((c as Obj).buffs as unknown[]).every((b) => ehObj(b) && ehTexto(b.id) && Array.isArray(b.mods) && ehNumero(b.restante)) &&
+    Array.isArray((c as Obj).dots) &&
+    ((c as Obj).dots as unknown[]).every((d) => numeros(d, ['valor', 'restante']) && ehTexto((d as Obj).elemento))
+  );
+}
+
 function batalhaValida(b: unknown): boolean {
   return (
     ehObj(b) &&
     mapaValido(b.mapa) &&
     ehNumero(b.onda) &&
+    b.onda >= 1 &&
     (b.situacao === 'lutando' || b.situacao === 'descansando') &&
     Array.isArray(b.inimigos) &&
-    b.inimigos.every((i) => ehObj(i) && ehNumero(i.vida) && ehTexto(i.monstro) && ehNumero(i.nivel)) &&
+    b.inimigos.every(
+      (i) => combatenteValido(i) && ehTexto(i.monstro) && i.monstro in MONSTROS && numeros(i, ['uid', 'nivel']) && typeof i.chefe === 'boolean',
+    ) &&
     ehObj(b.herois) &&
+    Object.entries(b.herois).every(([id, c]) => id in PERSONAGENS && combatenteValido(c)) &&
     Array.isArray(b.lancadas) &&
     Array.isArray(b.visuais) &&
     ehNumero(b.proximoUid)
   );
+}
+
+const CONTADORES = ['abates', 'chefes', 'itensForjados', 'melhorias', 'vendas', 'missoes', 'fusoes'] as const;
+
+/** Estatísticas ausentes ou quebradas voltam a zero, sem perder o resto do save. */
+function repararEstatisticas(est: Obj): void {
+  for (const c of CONTADORES) if (!ehNumero(est[c])) est[c] = 0;
+  if (!ehObj(est.maiorOnda)) est.maiorOnda = {};
+  const ondas = est.maiorOnda as Obj;
+  for (const [k, v] of Object.entries(ondas)) if (!ehNumero(v)) delete ondas[k];
+  if (!ehObj(est.bestiario)) est.bestiario = {};
+  const bestiario = est.bestiario as Obj;
+  for (const [k, v] of Object.entries(bestiario)) if (!numeros(v, ['abates', 'chefes'])) delete bestiario[k];
+}
+
+function canteiroValido(c: unknown, herois: Heroi[]): boolean {
+  return c === null || (ehObj(c) && herois.some((h) => h.id === c.heroi) && ehTexto(c.a) && ehTexto(c.b) && ehNumero(c.inicio) && ehNumero(c.fim));
 }
 
 /**
@@ -111,9 +145,16 @@ export function desserializar(texto: string | null): Save | null {
   ) {
     return null;
   }
-  // Saves da v1.0 anteriores ao bestiário começam com ele vazio.
-  const est = e.estatisticas as Obj;
-  if (!ehObj(est.bestiario)) est.bestiario = {};
+  const herois = e.herois as Heroi[];
+  // Herói repetido não acontece no jogo: o save foi editado.
+  if (new Set(herois.map((h) => h.id)).size !== herois.length) return null;
+  // Saves da v1.0 anteriores ao bestiário começam com ele vazio; o resto das estatísticas é reparado.
+  repararEstatisticas(e.estatisticas as Obj);
+  e.objetivo = Math.max(0, Math.floor(e.objetivo as number));
+  const loja = e.loja as Obj;
+  loja.itens = (loja.itens as unknown[]).filter(itemValido);
+  if (!ehNumero(loja.renovaEm)) loja.renovaEm = 0;
+  e.canteiros = (e.canteiros as unknown[]).map((c) => (canteiroValido(c, herois) ? c : null));
   if (!batalhaValida(e.batalha)) {
     e.batalha = { mapa: 'patio', onda: 1, situacao: 'lutando', inimigos: [], herois: {}, lancadas: [], visuais: [], proximoUid: 0 };
   }

@@ -27,6 +27,12 @@ export function cookieSessao(token: string | null): Record<string, string> {
   return { 'Set-Cookie': valor };
 }
 
+/** Endereço de quem chamou (na Vercel, o primeiro de x-forwarded-for). */
+export function lerIp(req: Request): string {
+  const encaminhado = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim();
+  return (encaminhado || req.headers.get('x-real-ip') || 'local').slice(0, 64);
+}
+
 export async function lerCorpo(req: Request): Promise<Record<string, unknown>> {
   try {
     const corpo = await req.json();

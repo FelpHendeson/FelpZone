@@ -52,7 +52,7 @@ Sete atributos, inspirados em RPGs de criaturas, mas aplicados ao combate contí
 - **Passos de 0,5 s**, iguais com o jogo aberto ou fechado. São até 8 horas offline, simuladas em menos de 1 s.
 - **Ataque básico:** cada lutador tem uma barra que enche pela velocidade, com intervalo de `2 × 30 / (30 + VEL)` segundos.
 - **Habilidades** disparam sozinhas quando a recarga acaba, por ordem de prioridade, uma por passo. Curas e escudos só disparam quando alguém precisa.
-- **Recarga efetiva:** `recarga × 40/(40 + VEL da escola) × (1 − reduções)`.
+- **Recarga efetiva:** `1,6 × recarga × 40/(40 + VEL da escola) × (1 − reduções)`, com no mínimo 1 s. As reduções (afixos, relíquias e −2% por nível da habilidade) somam no máximo 50%.
 - **Alvos dos inimigos:** atacam quem tem mais ameaça. Provocar multiplica a ameaça por 20. Alguns inimigos atingem a party inteira, e o chefe faz isso a cada três golpes.
 - **Elementos:** fraqueza dá ×1,5 e resistência dá ×0,6.
 - **Crítico:** sorteado pelo gerador com semente, o que mantém o jogo determinístico.
@@ -182,12 +182,14 @@ Sem equipamento, a party trava no primeiro chefe de cada mapa novo. Equipamentos
   - Ficha do herói em tela cheia: Status, Equipamento (boneco com 10 espaços), Habilidades, Árvore e História.
 - **Capítulo atual:** fica sempre no topo e recolhe com um toque. As abas e sub-abas mostram um marcador quando há algo a fazer.
 - **Menu (☰):** salvar, conta, backup, diário, como jogar, menu inicial e apagar.
-- **Pixel art desenhada no código**, sem imagens externas:
-  - 5 heróis com a arma característica;
-  - a juba do Leão das Chamas;
-  - 8 monstros;
-  - 16 formas de item coloridas pela raridade;
-  - 5 cenários;
+- **Pixel art em imagens**, geradas por IA e tratadas por `scripts/fatiar.py`:
+  - 5 heróis e o Leão das Chamas, com animações de parado, ataque, habilidade, dano e caído (a investida só no Leão das Chamas);
+  - 8 monstros, com animações de ataque, dano e morte, e uma versão maior para os chefes;
+  - 5 cenários pintados;
+  - ícones pintados das 10 relíquias e dos materiais.
+- **Pixel art desenhada no código**, usada enquanto as imagens carregam (ou se falharem) e no menu inicial e no ranking:
+  - os mesmos heróis, monstros e a juba do Leão das Chamas;
+  - 16 formas de item coloridas pela raridade (os equipamentos comuns só têm essa versão);
   - números de dano numa fonte de pixels.
 
 ## 13. Próximos passos propostos

@@ -397,7 +397,9 @@ export function passo(e: Estado, ctx: Contexto): void {
       ini.comb.barra -= 1;
       const alvos = vivos(herois);
       if (alvos.length === 0) break;
-      const golpes = ini.inimigo!.chefe ? ((ini.comb.recargas.golpes = (ini.comb.recargas.golpes ?? 0) + 1) % 3 === 0) : false;
+      // O contador fica fora de `recargas`, que diminuem com o tempo.
+      const chefe = ini.inimigo!;
+      const golpes = chefe.chefe ? (chefe.golpes = (chefe.golpes ?? 0) + 1) % 3 === 0 : false;
       if (m.area || golpes) {
         for (const a of alvos) causarDano(e, ini, a, golpes ? 0.9 : 0.6, m.escola, m.elemento);
       } else {

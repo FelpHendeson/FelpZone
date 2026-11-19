@@ -36,6 +36,7 @@ export function distribuirPonto(estado: Estado, id: PersonagemId, stat: Stat, qu
   return alterar(estado, (e) => {
     const h = heroiDe(e, id);
     if (!h) return 'Herói não encontrado.';
+    if (!Number.isInteger(quantidade) || quantidade <= 0) return 'Quantidade inválida.';
     const q = Math.min(quantidade, h.pontosLivres);
     if (q <= 0) return 'Sem pontos para distribuir.';
     h.pontos[stat] += q;
@@ -409,6 +410,7 @@ export function vender(estado: Estado, uids: string[]): Resultado {
 
 export function venderMaterial(estado: Estado, material: Material, quantidade: number): Resultado {
   return alterar(estado, (e) => {
+    if (!(material in MATERIAIS) || !Number.isFinite(quantidade)) return 'Quantidade inválida.';
     const q = Math.min(Math.floor(e.materiais[material]), Math.floor(quantidade));
     if (q <= 0) return 'Nada para vender.';
     e.materiais[material] -= q;
@@ -457,7 +459,12 @@ export function enviarMissao(estado: Estado, missaoId: string, herois: Personage
     if (!e.mapasLiberados.includes(m.mapa)) return 'Libere o mapa da missão primeiro.';
     if (herois.length === 0 || herois.length > m.maxHerois) return `Envie de 1 a ${m.maxHerois} heróis.`;
     const lista = herois.map((id) => heroiDe(e, id));
+    if (new Set(herois).size !== herois.length) return 'Herói repetido.';
     if (lista.some((h) => !h || h.atividade.tipo !== 'batalha')) return 'Algum herói já está fora.';
+    // A volta junta quem saiu na mesma missão no mesmo instante: uma segunda equipe agora se misturaria à primeira.
+    if (e.herois.some((h) => h.atividade.tipo === 'exploracao' && h.atividade.missao === m.id && h.atividade.inicio === e.tempo)) {
+      return 'Essa expedição acabou de sair. Espere um instante para mandar outra equipe.';
+    }
     if (e.herois.filter((h) => h.atividade.tipo === 'batalha').length - herois.length < 1) return 'Pelo menos um herói precisa ficar lutando.';
     for (const h of lista) h!.atividade = { tipo: 'exploracao', missao: m.id, inicio: e.tempo, fim: e.tempo + m.duracao };
     for (const id of herois) delete e.batalha.herois[id];
@@ -468,6 +475,7 @@ export function enviarTreino(estado: Estado, id: PersonagemId, segundos: number)
   return alterar(estado, (e) => {
     const h = heroiDe(e, id);
     if (!h || h.atividade.tipo !== 'batalha') return 'Esse herói está ocupado.';
+    if (!Number.isFinite(segundos) || segundos <= 0) return 'Duração inválida.';
     if (e.herois.filter((x) => x.atividade.tipo === 'batalha').length <= 1) return 'Pelo menos um herói precisa ficar lutando.';
     h.atividade = { tipo: 'treino', inicio: e.tempo, fim: e.tempo + segundos };
     delete e.batalha.herois[id];
@@ -487,7 +495,12 @@ export function concluirAtividade(estado: Estado, id: PersonagemId): Resultado {
       return;
     }
     if (e.tempo < at.fim) return 'A expedição ainda não voltou.';
-    const m = MISSOES.find((x) => x.id === at.missao)!;
+    const m = MISSOES.find((x) => x.id === at.missao);
+    if (!m) {
+      // Missão que não existe mais: o herói só volta.
+      h.atividade = { tipo: 'batalha' };
+      return;
+    }
     const equipe = e.herois.filter((x) => x.atividade.tipo === 'exploracao' && x.atividade.missao === at.missao && x.atividade.inicio === at.inicio);
     const resultado = recompensaMissao(e, m, equipe.map((x) => x.nivel));
     e.ouro += resultado.ouro;

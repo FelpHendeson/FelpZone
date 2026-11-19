@@ -85,15 +85,17 @@ def processar_icones(nome, cfg):
     cw, ch = W / col, H / lin
     lado = cfg.get('tamanho', 32)
     icones = []
-    for i, _ in enumerate(cfg['nomes']):
+    for i, nome_icone in enumerate(cfg['nomes']):
+        # `ajustes` troca a chave de um ícone só (ex.: halo rosado num ícone, roxo legítimo em outro).
+        cfg_icone = {**cfg, **cfg.get('ajustes', {}).get(nome_icone, {})}
         x0, y0 = round((i % col) * cw), round((i // col) * ch)
-        rgba = chavear(im.crop((x0, y0, round(x0 + cw), round(y0 + ch))), cfg)
+        rgba = chavear(im.crop((x0, y0, round(x0 + cw), round(y0 + ch))), cfg_icone)
         caixa = rgba.getchannel('A').getbbox()
         cx, cy = (caixa[0] + caixa[2]) / 2, (caixa[1] + caixa[3]) / 2
         m = max(caixa[2] - caixa[0], caixa[3] - caixa[1]) * 1.06
         quad = Image.new('RGBA', (round(m), round(m)), (0, 0, 0, 0))
         quad.paste(rgba, (round(m / 2 - cx), round(m / 2 - cy)))
-        icones.append(limpar(quad.resize((lado, lado), Image.Resampling.BOX), cfg))
+        icones.append(limpar(quad.resize((lado, lado), Image.Resampling.BOX), cfg_icone))
     junto = Image.new('RGB', (lado * len(icones), lado))
     for i, q in enumerate(icones):
         junto.paste(q.convert('RGB'), (i * lado, 0))

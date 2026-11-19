@@ -1,7 +1,7 @@
 // GET: quem está conectado. POST { acao: 'criar' | 'entrar' | 'sair' | 'excluir', apelido, senha }.
 import { ErroHttp, obterBanco } from './_lib/banco.js';
 import { contaDaSessao, criarConta, entrar, excluirConta, sair } from './_lib/contas.js';
-import { cookieSessao, json, lerCorpo, lerToken, tratar } from './_lib/http.js';
+import { cookieSessao, json, lerCorpo, lerIp, lerToken, tratar } from './_lib/http.js';
 
 export function GET(req: Request): Promise<Response> {
   return tratar(async () => {
@@ -23,7 +23,9 @@ export function POST(req: Request): Promise<Response> {
       return json({ apelido: null }, 200, cookieSessao(null));
     }
     if (corpo.acao !== 'criar' && corpo.acao !== 'entrar') throw new ErroHttp(400, 'Ação desconhecida.');
-    const r = corpo.acao === 'criar' ? await criarConta(banco, corpo.apelido, corpo.senha) : await entrar(banco, corpo.apelido, corpo.senha);
+    const ip = lerIp(req);
+    const r =
+      corpo.acao === 'criar' ? await criarConta(banco, corpo.apelido, corpo.senha, ip) : await entrar(banco, corpo.apelido, corpo.senha, ip);
     return json({ apelido: r.apelido }, 200, cookieSessao(r.token));
   });
 }

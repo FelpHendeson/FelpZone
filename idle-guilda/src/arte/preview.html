@@ -1,13 +1,21 @@
 <!doctype html>
 <html>
   <body style="background:#2c2c4a;margin:0">
+    <p style="color:#c9c9d6;font:14px monospace;margin:8px">Sprites em texto (fallback) e ícones desenhados em código</p>
     <canvas id="c" width="200" height="120" style="width:1000px;height:600px;image-rendering:pixelated"></canvas>
+    <p style="color:#c9c9d6;font:14px monospace;margin:8px">Spritesheets (uma linha por folha: cada animação separada por um espaço), ícones pintados e cenários</p>
+    <canvas id="f" width="1300" height="1450" style="width:1300px;height:1450px;image-rendering:pixelated"></canvas>
     <script type="module">
       import { HEROIS, JUBA } from './herois.ts';
       import { desenhar } from './sprite.ts';
       import { SPRITES_MONSTROS } from './monstros.ts';
       import { iconeItem, ICONES_MATERIAIS } from './icones.ts';
       import { BASES } from '../motor/dados/itens.ts';
+      import { desenharQuadro } from './folhas.ts';
+      import { iconeDeFolha, imagemDoCenario } from './extras.ts';
+      import { imagemPronta } from './carregar.ts';
+      import manifesto from './folhas.json';
+      import extras from './extras.json';
       const ctx = document.getElementById('c').getContext('2d');
       let x = 2;
       for (const s of Object.values(HEROIS)) {
@@ -27,6 +35,40 @@
         desenhar(ctx, iconeItem({ base: b, raridade: rar[i % 5] }), 2 + (i % 16) * 12, 60 + Math.floor(i / 16) * 12);
       });
       Object.values(ICONES_MATERIAIS).forEach((s, i) => desenhar(ctx, s, 2 + i * 12, 100));
+      // Folhas: redesenha até todas as imagens carregarem.
+      const cf = document.getElementById('f').getContext('2d');
+      cf.imageSmoothingEnabled = false;
+      const desenharFolhas = () => {
+        cf.clearRect(0, 0, 1300, 1450);
+        let y = 0;
+        for (const [nome, f] of Object.entries(manifesto)) {
+          let px = 0;
+          cf.fillStyle = '#c9c9d6';
+          cf.font = '10px monospace';
+          cf.fillText(nome, 2, y + 10);
+          for (const [anim, quadros] of Object.entries(f.animacoes)) {
+            for (const q of quadros) {
+              desenharQuadro(cf, nome, q, px + f.centro, y + 12 + f.pe, 1);
+              px += f.largura;
+            }
+            px += 8;
+          }
+          y += f.altura + 14;
+        }
+        const icones = extras.icones['icones-reliquias'];
+        Object.entries(icones.indices).forEach(([id, i]) => {
+          const ic = iconeDeFolha(id);
+          const img = imagemPronta(ic.url);
+          if (img) cf.drawImage(img, (i % ic.colunas) * 32, Math.floor(i / ic.colunas) * 32, 32, 32, i * 36, y, 32, 32);
+        });
+        y += 40;
+        ['ilha', 'bosque', 'ruinas', 'vulcao', 'cidadela'].forEach((c, i) => {
+          const img = imagemDoCenario(c);
+          if (img) cf.drawImage(img, (i % 3) * 330, y + Math.floor(i / 3) * 186);
+        });
+      };
+      desenharFolhas();
+      setInterval(desenharFolhas, 500);
       window.pronto = true;
     </script>
   </body>

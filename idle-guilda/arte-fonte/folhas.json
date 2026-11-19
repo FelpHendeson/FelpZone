@@ -596,7 +596,12 @@
     ],
     "verdeMax": 60,
     "passadasFranja": 3,
-    "alfaMinimo": 150
+    "alfaMinimo": 150,
+    "ajustes": {
+      "sementeDeHope": {
+        "verdeMax": 999
+      }
+    }
   },
   "cenario-ilha": {
     "tipo": "cenario",

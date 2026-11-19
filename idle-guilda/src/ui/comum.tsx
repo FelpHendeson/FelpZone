@@ -1,4 +1,5 @@
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { aoMudarImagens, imagemPronta } from '../arte/carregar';
 import { iconeDeFolha } from '../arte/extras';
 import { desenharQuadro, folha, quadroDa } from '../arte/folhas';
 import { HEROIS } from '../arte/herois';
@@ -36,28 +37,39 @@ export function Medidor(props: { rotulo?: string; valor: number; maximo: number;
   );
 }
 
+/** Lado do canvas do retrato: cabe o quadro de 62 px das folhas sem cortar cabeça nem armas. */
+const TAMANHO_RETRATO = 64;
+
 export function Retrato(props: { id: PersonagemId; tamanho?: number; animar?: boolean; apagado?: boolean }) {
   const t = props.tamanho ?? 54;
   return (
     <CanvasPixel
-      largura={40}
-      altura={40}
+      largura={TAMANHO_RETRATO}
+      altura={TAMANHO_RETRATO}
       className={`retrato ${props.apagado ? 'apagado' : ''}`}
       estilo={{ width: t, height: t }}
       rotulo={PERSONAGENS[props.id].nome}
       desenho={(ctx, tempo) => {
         ctx.imageSmoothingEnabled = false;
-        ctx.clearRect(0, 0, 40, 40);
-        // Spritesheet, se houver; senão o sprite em texto ampliado 2×.
+        ctx.clearRect(0, 0, TAMANHO_RETRATO, TAMANHO_RETRATO);
+        // Spritesheet, se houver (quadro inteiro, pés na base); senão o sprite em texto ampliado 3×.
         const f = folha(`heroi-${props.id}`);
-        if (f && desenharQuadro(ctx, `heroi-${props.id}`, quadroDa(f, 'parado', props.animar ? tempo * 0.9 : 0), 18, 38, 1)) return;
+        const quadro = f && quadroDa(f, 'parado', props.animar ? tempo * 0.9 : 0);
+        if (f && desenharQuadro(ctx, `heroi-${props.id}`, quadro!, TAMANHO_RETRATO / 2, TAMANHO_RETRATO - 2, 1)) return;
         ctx.save();
-        ctx.scale(2, 2);
+        ctx.scale(3, 3);
         desenhar(ctx, HEROIS[props.id], 1, props.animar ? Math.floor(tempo * 2) % 2 : 0);
         ctx.restore();
       }}
     />
   );
+}
+
+/** Se a imagem já carregou; re-renderiza quando ela carrega ou pode ser tentada de novo. */
+function useImagemPronta(url: string | undefined): boolean {
+  const [, setVersao] = useState(0);
+  useEffect(() => (url ? aoMudarImagens(() => setVersao((v) => v + 1)) : undefined), [url]);
+  return url ? imagemPronta(url) !== null : false;
 }
 
 /**
@@ -66,7 +78,9 @@ export function Retrato(props: { id: PersonagemId; tamanho?: number; animar?: bo
  */
 export function IconePintado(props: { id: string; tamanho: number; rotulo?: string; children: ReactNode }) {
   const icone = iconeDeFolha(props.id);
-  if (!icone) return <>{props.children}</>;
+  const pronta = useImagemPronta(icone?.url);
+  // Sem ícone na folha, ou enquanto a folha carrega (ou se falhar), fica o desenho em código.
+  if (!icone || !pronta) return <>{props.children}</>;
   const escala = props.tamanho / icone.tamanho;
   return (
     <span

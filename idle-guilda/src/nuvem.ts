@@ -59,9 +59,15 @@ export async function baixarSave(): Promise<SaveRemoto | null> {
   return (await chamar<{ save: SaveRemoto | null }>('GET', '/api/save')).save;
 }
 
+/** Margem abaixo dos 64 KiB que o fetch com keepalive aceita. */
+const LIMITE_KEEPALIVE = 60_000;
+
 export async function enviarSave(texto: string, aoSair = false): Promise<SaveRemoto> {
-  // keepalive deixa o envio terminar mesmo se a aba for fechada.
-  const r = await chamar<{ salvoEm: number; recebidoEm: number }>('PUT', '/api/save', { texto }, aoSair);
+  // keepalive deixa o envio terminar mesmo se a aba for fechada, mas os navegadores
+  // recusam corpos acima de 64 KiB nesse modo: saves grandes vão pelo envio normal.
+  const corpo = { texto };
+  const pequeno = new TextEncoder().encode(JSON.stringify(corpo)).length < LIMITE_KEEPALIVE;
+  const r = await chamar<{ salvoEm: number; recebidoEm: number }>('PUT', '/api/save', corpo, aoSair && pequeno);
   return { texto, ...r };
 }
 

@@ -3,7 +3,7 @@ import { mapaPorId, type Mapa } from '../motor/dados/mapas';
 import { COR_ELEMENTO, PERSONAGENS } from '../motor/dados/personagens';
 import type { Combatente, Estado, PersonagemId } from '../motor/tipos';
 import { imagemDoCenario } from './extras';
-import { desenharQuadro, folha, quadroDa, type Animacao } from './folhas';
+import { desenharQuadro, folha, folhaPronta, quadroDa, type Animacao } from './folhas';
 import { HEROIS, JUBA } from './herois';
 import { spriteMonstro } from './monstros';
 import { desenhar, largura, type Sprite } from './sprite';
@@ -217,6 +217,12 @@ const DURACAO_MORTE = 0.6;
 const ultimosInimigos = new Map<number, { monstro: string; chefe: boolean; x: number; y: number }>();
 const morrendo: { monstro: string; chefe: boolean; x: number; y: number; inicio: number }[] = [];
 
+/** Esquece os inimigos já vistos (para desenhar cenas independentes, como na prévia). */
+export function esquecerInimigos(): void {
+  ultimosInimigos.clear();
+  morrendo.length = 0;
+}
+
 function desenharMonstroFolha(
   ctx: CanvasRenderingContext2D,
   monstro: string,
@@ -293,7 +299,7 @@ function desenharHeroiFolha(
 ): boolean {
   // Transformado, o Sir LionHearth usa a folha do Leão das Chamas.
   const transformado = !!comb?.buffs.some((b) => b.id.startsWith('transf:'));
-  const nome = id === 'leao' && transformado && !caido && !descansando && folha('heroi-leao-chamas') ? 'heroi-leao-chamas' : `heroi-${id}`;
+  const nome = id === 'leao' && transformado && !caido && !descansando && folhaPronta('heroi-leao-chamas') ? 'heroi-leao-chamas' : `heroi-${id}`;
   const f = folha(nome);
   if (!f) return false;
   let animacao: Animacao = 'parado';
@@ -362,10 +368,10 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
     const x = x0 + (golpe ? 2 : 0) + (descansando ? 10 : 0);
     const transformado = comb?.buffs.some((x) => x.id.startsWith('transf:'));
     // A folha do Leão das Chamas já traz a juba; a de texto é só para o sprite antigo.
-    if (transformado && !descansando && !(id === 'leao' && folha('heroi-leao-chamas'))) {
-      desenhar(ctx, JUBA, x + 1, y - 6 - (Math.floor(t * 6) % 2));
-    }
-    if (desenharHeroiFolha(ctx, e, id, comb, x, y, t, caido, descansando)) {
+    const jubaDeTexto = transformado && !descansando && !(id === 'leao' && folhaPronta('heroi-leao-chamas'));
+    const comFolha = desenharHeroiFolha(ctx, e, id, comb, x, y, t, caido, descansando);
+    if (jubaDeTexto && !comFolha) desenhar(ctx, JUBA, x + 1, y - 6 - (Math.floor(t * 6) % 2));
+    if (comFolha) {
       // Desenhado pela spritesheet.
     } else if (caido) {
       ctx.globalAlpha = 0.35;
@@ -380,8 +386,9 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
         ctx.globalAlpha = 1;
       }
     }
-    // Sprites de folha são mais altos: a barra sobe para não cobrir o rosto.
-    const alturaBarra = folha(`heroi-${id}`) ? 13 : 3;
+    // Sprites de folha são mais altos: a barra sobe para não cobrir o rosto
+    // (só quando a folha foi mesmo desenhada; enquanto carrega, vale o sprite em texto).
+    const alturaBarra = comFolha ? 13 : 3;
     if (comb) barraVida(ctx, x + 2, y - alturaBarra, 12, comb.vida / max, comb.escudo / max, '#5fcf5a');
   }
 

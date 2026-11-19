@@ -85,6 +85,8 @@ button {
   cursor: pointer;
   background: var(--painel-2);
   border: none;
+  /* Alvo de toque confortável no celular. */
+  min-height: 40px;
   padding: 7px 10px;
   border-radius: 2px;
   box-shadow:
@@ -136,7 +138,8 @@ button.perigo {
 button.link {
   background: none;
   box-shadow: none;
-  padding: 2px 0;
+  min-height: 32px;
+  padding: 6px 0;
   color: var(--ouro);
   text-decoration: underline;
   align-self: flex-start;
@@ -717,6 +720,21 @@ main {
 
 .tela-cheia > .subabas {
   padding: 8px 10px 0;
+}
+
+/* Telas estreitas: as cinco abas da ficha cabem sem rolar. */
+@media (max-width: 420px) {
+  .tela-cheia > .subabas {
+    gap: 4px;
+    padding-inline: 6px;
+  }
+
+  .tela-cheia > .subabas button {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: 2px;
+    font-size: 0.72rem;
+  }
 }
 
 .stats,

@@ -156,6 +156,8 @@ export interface Inimigo extends Combatente {
   monstro: string;
   nivel: number;
   chefe: boolean;
+  /** Golpes dados pelo chefe (a cada três, atinge a party toda). */
+  golpes?: number;
 }
 
 export interface EventoVisual {

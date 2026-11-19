@@ -1,3 +1,4 @@
+import { imagemPronta } from './carregar';
 import extras from './extras.json';
 
 /**
@@ -13,21 +14,13 @@ interface FolhaIcones {
 
 const CENARIOS = extras.cenarios as Record<string, { imagem: string }>;
 const FOLHAS_ICONES = extras.icones as Record<string, FolhaIcones>;
-const imagens = new Map<string, HTMLImageElement>();
 
 const url = (caminho: string) => `${import.meta.env.BASE_URL}${caminho}`;
 
 /** Imagem 320×180 do cenário, pronta para desenhar, ou null. */
 export function imagemDoCenario(id: string): HTMLImageElement | null {
   const c = CENARIOS[id];
-  if (!c || typeof Image === 'undefined') return null;
-  let img = imagens.get(id);
-  if (!img) {
-    img = new Image();
-    img.src = url(c.imagem);
-    imagens.set(id, img);
-  }
-  return img.complete && img.naturalWidth > 0 ? img : null;
+  return c ? imagemPronta(url(c.imagem)) : null;
 }
 
 export interface IconeDeFolha {

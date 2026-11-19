@@ -1,3 +1,4 @@
+import { imagemPronta } from './carregar';
 import manifesto from './folhas.json';
 
 /**
@@ -21,22 +22,14 @@ export interface Folha {
 export type Animacao = 'parado' | 'ataque' | 'habilidade' | 'investida' | 'dano' | 'caido' | 'morte' | 'chefe';
 
 const FOLHAS = manifesto as Record<string, Folha>;
-const imagens = new Map<string, HTMLImageElement>();
-
 function imagem(nome: string): HTMLImageElement | null {
   const folha = FOLHAS[nome];
-  if (!folha || typeof Image === 'undefined') return null;
-  let img = imagens.get(nome);
-  if (!img) {
-    img = new Image();
-    img.src = `${import.meta.env.BASE_URL}${folha.imagem}`;
-    imagens.set(nome, img);
-  }
-  return img.complete && img.naturalWidth > 0 ? img : null;
+  return folha ? imagemPronta(`${import.meta.env.BASE_URL}${folha.imagem}`) : null;
 }
 
-export function temFolha(nome: string): boolean {
-  return !!FOLHAS[nome];
+/** A folha existe e a imagem já carregou. */
+export function folhaPronta(nome: string): boolean {
+  return imagem(nome) !== null;
 }
 
 export function folha(nome: string): Folha | undefined {

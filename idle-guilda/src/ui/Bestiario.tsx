@@ -1,3 +1,4 @@
+import { desenharQuadro, folha, quadroDa } from '../arte/folhas';
 import { spriteMonstro } from '../arte/monstros';
 import { desenhar } from '../arte/sprite';
 import { statsBaseInimigo } from '../motor/combate';
@@ -62,17 +63,31 @@ function Ficha({ e, id }: { e: Estado; id: string }) {
     <li className={`criatura ${conhecido ? '' : 'desconhecida'}`}>
       <div className="criatura-topo">
         <CanvasPixel
-          largura={16}
-          altura={16}
+          largura={32}
+          altura={32}
           className={`criatura-sprite ${conhecido ? '' : 'silhueta'}`}
           rotulo={conhecido ? m.nome : 'Criatura desconhecida'}
           desenho={(ctx, t) => {
             ctx.imageSmoothingEnabled = false;
-            ctx.clearRect(0, 0, 16, 16);
-            const s = spriteMonstro(id);
-            // Desconhecida: só a forma, numa cor só.
-            const forma = conhecido ? s : { ...s, paleta: Object.fromEntries(Object.keys(s.paleta).map((k) => [k, '#0b0b14'])) };
-            desenhar(ctx, forma, 0, conhecido ? Math.floor(t * 2) % 2 : 0);
+            ctx.clearRect(0, 0, 32, 32);
+            // Spritesheet (metade do tamanho, pés na base); sem ela, o sprite em texto ampliado 2×.
+            const nome = `monstro-${id}`;
+            const f = folha(nome);
+            const animar = conhecido ? t * 0.8 : 0;
+            const comFolha = !!f && desenharQuadro(ctx, nome, quadroDa(f, 'parado', animar), 16, 31, 0.5);
+            if (!comFolha) {
+              ctx.save();
+              ctx.scale(2, 2);
+              desenhar(ctx, spriteMonstro(id), 0, conhecido ? Math.floor(t * 2) % 2 : 0);
+              ctx.restore();
+            }
+            if (!conhecido) {
+              // Desconhecida: só a forma, numa cor só.
+              ctx.globalCompositeOperation = 'source-in';
+              ctx.fillStyle = '#0b0b14';
+              ctx.fillRect(0, 0, 32, 32);
+              ctx.globalCompositeOperation = 'source-over';
+            }
           }}
         />
         <span className="criatura-info">

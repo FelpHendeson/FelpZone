@@ -126,16 +126,25 @@ export function App() {
       const agora = performance.now();
       const decorrido = (agora - ultimo) / 1000 + sobra;
       ultimo = agora;
+      const atual = estadoRef.current;
+      if (!atual) return;
+      // Tudo passa por estadoRef: uma ação feita entre dois ticks parte do estado
+      // já avançado, e o avanço seguinte parte do estado com a ação.
       if (decorrido >= LIMITE_TEMPO_FORA) {
         sobra = 0;
-        const r = aplicarTempoOffline(estadoRef.current!, decorrido);
+        const r = aplicarTempoOffline(atual, decorrido);
+        estadoRef.current = r.estado;
         setEstado(r.estado);
         setResumo(r.resumo);
         return;
       }
       const passos = Math.floor(decorrido * 2) / 2;
       sobra = decorrido - passos;
-      if (passos > 0) setEstado((e) => (e ? avancar(e, passos) : e));
+      if (passos > 0) {
+        const novo = avancar(atual, passos);
+        estadoRef.current = novo;
+        setEstado(novo);
+      }
     }, 250);
     const salvamento = setInterval(salvarLocal, 5000);
     const aoEsconder = () => {

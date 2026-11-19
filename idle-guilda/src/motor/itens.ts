@@ -1,6 +1,6 @@
-import { BASES, CONJUNTOS, DADOS_RARIDADE, INVENTARIO_MAXIMO, MATERIAIS, RARIDADES, RELIQUIAS, STATS_AFIXO } from './dados/itens';
+import { BASES, CONJUNTOS, DADOS_RARIDADE, INVENTARIO_MAXIMO, RARIDADES, RELIQUIAS, STATS_AFIXO } from './dados/itens';
 import { aleatorio, sortear, sortearPeso } from './rng';
-import type { Estado, Item, Material, Raridade, TipoSlot } from './tipos';
+import type { Estado, Item, Raridade, TipoSlot } from './tipos';
 
 export const PESOS_DROP = [62, 25, 10, 2.6, 0.4];
 export const PESOS_CHEFE = [10, 40, 34, 13, 3];
@@ -68,9 +68,3 @@ export function guardarItem(e: Estado, item: Item): boolean {
   e.inventario.push(item);
   return true;
 }
-
-export function somarMateriais(e: Estado, ganhos: Partial<Record<Material, number>>): void {
-  for (const [m, q] of Object.entries(ganhos) as [Material, number][]) e.materiais[m] += q;
-}
-
-export const precoMaterial = (m: Material) => MATERIAIS[m].preco;

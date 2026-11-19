@@ -3,7 +3,7 @@
   <body style="background:#14141f;margin:0">
     <canvas id="c" width="660" height="744" style="width:990px;height:1116px;image-rendering:pixelated"></canvas>
     <script type="module">
-      import { desenharBatalha } from './batalha.ts';
+      import { desenharBatalha, esquecerInimigos } from './batalha.ts';
       import { avancar, criarHeroi, novoJogo } from '../motor/jogo.ts';
       import { criarContexto, vidaMaximaEmBatalha } from '../motor/combate.ts';
       import { MAPAS } from '../motor/dados/mapas.ts';
@@ -27,16 +27,21 @@
       let descanso = structuredClone(cenas[1]);
       descanso.batalha.situacao = 'descansando';
       cenas.push(descanso);
-      cenas.forEach((e, i) => {
-        const vmax = {};
-        const c = criarContexto(e);
-        for (const h of e.herois) vmax[h.id] = vidaMaximaEmBatalha(c, h.id);
-        const tmp = document.createElement('canvas');
-        tmp.width = 320;
-        tmp.height = 180;
-        desenharBatalha(tmp.getContext('2d'), e, vmax, e.tempo);
-        ctx.drawImage(tmp, (i % 2) * 330, Math.floor(i / 2) * 186);
-      });
+      // Redesenha até as folhas e os cenários carregarem (no primeiro quadro eles ainda não existem).
+      const desenharTudo = () =>
+        cenas.forEach((e, i) => {
+          const vmax = {};
+          const c = criarContexto(e);
+          for (const h of e.herois) vmax[h.id] = vidaMaximaEmBatalha(c, h.id);
+          esquecerInimigos();
+          const tmp = document.createElement('canvas');
+          tmp.width = 320;
+          tmp.height = 180;
+          desenharBatalha(tmp.getContext('2d'), e, vmax, e.tempo);
+          ctx.drawImage(tmp, (i % 2) * 330, Math.floor(i / 2) * 186);
+        });
+      desenharTudo();
+      setInterval(desenharTudo, 500);
       window.pronto = true;
     </script>
   </body>

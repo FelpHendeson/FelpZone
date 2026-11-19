@@ -53,7 +53,7 @@ Abra a URL exibida pelo Vite. O servidor de desenvolvimento também atende `/api
 
 **Spritesheets geradas por IA:** as folhas originais ficam em `arte-fonte/`, com a configuração de cada uma em `arte-fonte/folhas.json` (quadros por linha, redução, espelhar e quais quadros formam cada animação). O comando `python3 scripts/fatiar.py` (requer Pillow) recorta, tira o fundo magenta, refaz a pixelização, gera `public/sprites/*.png` e o manifesto `src/arte/folhas.json`. O jogo usa a folha quando ela existe e volta ao sprite em texto enquanto ela carrega. Os prompts estão em [`prompts/idle-guilda`](../prompts/idle-guilda/spritesheets-gemini.md).
 
-Para revisar a arte, abra `/src/arte/preview.html` (sprites e ícones) ou `/src/arte/preview-batalha.html` (as cenas de batalha) no servidor de desenvolvimento.
+Para revisar a arte, abra `/src/arte/preview.html` (spritesheets com todas as animações, ícones pintados, cenários e os sprites em texto) ou `/src/arte/preview-batalha.html` (as cenas de batalha) no servidor de desenvolvimento. Uma imagem que falha ao carregar é tentada de novo depois de 10 segundos.
 
 ## Arquitetura
 
@@ -61,7 +61,7 @@ Para revisar a arte, abra `/src/arte/preview.html` (sprites e ícones) ou `/src/
 | --- | --- |
 | `src/motor/dados/` | Dados do jogo: personagens, habilidades e receitas, árvores, itens, conjuntos, relíquias, mapas, monstros e missões. |
 | `src/motor/` | Regras em TypeScript puro: atributos (`status.ts`), combate (`combate.ts`), itens, progressão, ações do jogador, capítulos, save e avanço do tempo (`jogo.ts`). |
-| `src/arte/` | Pixel art em texto: heróis, monstros, ícones de itens e materiais, cenários e a cena de batalha. |
+| `src/arte/` | Spritesheets, cenários e ícones pintados (manifestos gerados por `scripts/fatiar.py`), a pixel art em texto usada enquanto as imagens carregam, e a cena de batalha. |
 | `src/ui/` | React: telas, abas, ficha do herói, cidade, expedições, mundo, conta e menus. |
 | `src/nuvem.ts` | Chamadas às funções `/api`. |
 | `api/` | Funções da Vercel: `conta.ts`, `save.ts` e `mundo.ts`, com as regras em `api/_lib/`. |
@@ -84,8 +84,9 @@ Segurança das contas:
 
 - **Senha:** guardada só como hash `scrypt` com sal.
 - **Sessão:** cookie `httpOnly`, com só o hash do token no servidor.
-- **Limite de tentativas:** 10 a cada 15 minutos.
-- **Save:** até 200 KB, validado no jogo ao carregar.
+- **Limite de tentativas:** 10 senhas erradas a cada 15 minutos por apelido e endereço, 50 por endereço, e 5 contas novas por hora por endereço.
+- **Sessões:** valem só para a conta em que foram abertas. Se a conta for excluída e o apelido recriado, as sessões antigas não entram na nova.
+- **Save:** até 200 KB (em bytes), validado no jogo ao carregar. Partes quebradas que não afetam o progresso (batalha em andamento, loja, estatísticas) são reparadas.
 - **Exclusão:** o jogador pode excluir a conta, o que remove também o ranking e o mural.
 
 ## Próximos passos

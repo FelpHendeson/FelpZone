@@ -7,6 +7,10 @@ import { sairDoMundo } from './mundo.js';
 export const SESSAO_SEGUNDOS = 60 * 60 * 24 * 60;
 const TENTATIVAS_MAXIMAS = 10;
 const JANELA_TENTATIVAS = 15 * 60;
+/** Por endereço: muitas senhas erradas em apelidos diferentes, ou muitas contas novas. */
+const TENTATIVAS_POR_IP = 50;
+const CONTAS_POR_IP = 5;
+const JANELA_CONTAS = 60 * 60;
 /** Um save tem poucos KB; o limite evita abuso do armazenamento. */
 export const TAMANHO_MAXIMO_SAVE = 200_000;
 
@@ -28,8 +32,15 @@ const chaves = {
   conta: (id: string) => `${PREFIXO}conta:${id}`,
   sessao: (hash: string) => `${PREFIXO}sessao:${hash}`,
   save: (id: string) => `${PREFIXO}save:${id}`,
-  tentativas: (id: string) => `${PREFIXO}tentativas:${id}`,
+  tentativas: (id: string, ip: string) => `${PREFIXO}tentativas:${id}:${ip}`,
+  tentativasIp: (ip: string) => `${PREFIXO}tentativas-ip:${ip}`,
+  contasIp: (ip: string) => `${PREFIXO}contas-ip:${ip}`,
 };
+
+/** Sessão: aponta para a conta e para o momento em que ela foi criada. */
+const SEPARADOR_SESSAO = '|';
+/** Contas criadas depois disto sempre têm sessões com data (as antigas continuam valendo até expirar). */
+const CONTAS_COM_DATA_NA_SESSAO = Date.UTC(2026, 10, 20);
 
 /** Identificador da conta: sem diferenciar maiúsculas, acentos nem espaços extras. */
 export function normalizarApelido(apelido: string): string {
@@ -67,41 +78,60 @@ async function conferirSenha(senha: string, guardado: string): Promise<boolean> 
 
 const hashToken = (token: string) => createHash('sha256').update(token).digest('base64url');
 
-async function abrirSessao(banco: Banco, id: string): Promise<string> {
+/**
+ * A sessão guarda também `criadaEm` da conta: se a conta for excluída e outra
+ * pessoa criar o mesmo apelido, as sessões antigas não valem na conta nova.
+ */
+async function abrirSessao(banco: Banco, id: string, criadaEm: number): Promise<string> {
   const token = randomBytes(32).toString('base64url');
-  await banco.set(chaves.sessao(hashToken(token)), id, { segundos: SESSAO_SEGUNDOS });
+  await banco.set(chaves.sessao(hashToken(token)), `${id}${SEPARADOR_SESSAO}${criadaEm}`, { segundos: SESSAO_SEGUNDOS });
   return token;
 }
 
-export async function criarConta(banco: Banco, apelido: unknown, senha: unknown) {
+export async function criarConta(banco: Banco, apelido: unknown, senha: unknown, ip = 'local') {
   const dados = validar(apelido, senha);
+  if ((await banco.incr(chaves.contasIp(ip), JANELA_CONTAS)) > CONTAS_POR_IP) {
+    throw new ErroHttp(429, 'Muitas contas criadas daqui. Tente de novo mais tarde.');
+  }
   const id = normalizarApelido(dados.apelido);
   const conta: Conta = { apelido: dados.apelido, senha: await hashSenha(dados.senha), criadaEm: Date.now() };
   const criou = await banco.set(chaves.conta(id), JSON.stringify(conta), { soSeNovo: true });
   if (!criou) throw new ErroHttp(409, 'Esse apelido já está em uso.');
-  return { apelido: conta.apelido, token: await abrirSessao(banco, id) };
+  return { apelido: conta.apelido, token: await abrirSessao(banco, id, conta.criadaEm) };
 }
 
-export async function entrar(banco: Banco, apelido: unknown, senha: unknown) {
+/**
+ * O limite de senhas erradas vale por apelido e endereço: quem erra a senha de
+ * outra pessoa não bloqueia o dono, que entra de outro endereço.
+ */
+export async function entrar(banco: Banco, apelido: unknown, senha: unknown, ip = 'local') {
   if (typeof apelido !== 'string' || typeof senha !== 'string') throw new ErroHttp(400, 'Informe apelido e senha.');
   const id = normalizarApelido(apelido);
-  if ((await banco.incr(chaves.tentativas(id), JANELA_TENTATIVAS)) > TENTATIVAS_MAXIMAS) {
+  const porIp = await banco.incr(chaves.tentativasIp(ip), JANELA_TENTATIVAS);
+  const porConta = await banco.incr(chaves.tentativas(id, ip), JANELA_TENTATIVAS);
+  if (porIp > TENTATIVAS_POR_IP || porConta > TENTATIVAS_MAXIMAS) {
     throw new ErroHttp(429, 'Muitas tentativas. Espere 15 minutos e tente de novo.');
   }
   const texto = await banco.get(chaves.conta(id));
   const conta = texto ? (JSON.parse(texto) as Conta) : null;
   if (!conta || !(await conferirSenha(senha, conta.senha))) throw new ErroHttp(401, 'Apelido ou senha incorretos.');
-  await banco.del(chaves.tentativas(id));
-  return { apelido: conta.apelido, token: await abrirSessao(banco, id) };
+  await banco.del(chaves.tentativas(id, ip));
+  return { apelido: conta.apelido, token: await abrirSessao(banco, id, conta.criadaEm) };
 }
 
 /** Conta da sessão, ou null se o token for inválido ou tiver expirado. */
 export async function contaDaSessao(banco: Banco, token: string | null): Promise<{ id: string; apelido: string } | null> {
   if (!token) return null;
-  const id = await banco.get(chaves.sessao(hashToken(token)));
-  if (!id) return null;
+  const valor = await banco.get(chaves.sessao(hashToken(token)));
+  if (!valor) return null;
+  const [id, criadaEm] = valor.split(SEPARADOR_SESSAO);
   const texto = await banco.get(chaves.conta(id));
-  return texto ? { id, apelido: (JSON.parse(texto) as Conta).apelido } : null;
+  if (!texto) return null;
+  const conta = JSON.parse(texto) as Conta;
+  // Sessão de uma conta excluída: o apelido pode ter sido criado de novo por outra pessoa.
+  // Sessões antigas, sem a data, só valem para contas criadas antes desta regra.
+  if (criadaEm === undefined ? conta.criadaEm > CONTAS_COM_DATA_NA_SESSAO : Number(criadaEm) !== conta.criadaEm) return null;
+  return { id, apelido: conta.apelido };
 }
 
 export async function sair(banco: Banco, token: string | null): Promise<void> {
@@ -133,7 +163,7 @@ export async function lerSave(banco: Banco, id: string): Promise<SaveNaNuvem | n
  */
 export async function gravarSave(banco: Banco, id: string, texto: unknown): Promise<SaveNaNuvem> {
   if (typeof texto !== 'string' || texto.length === 0) throw new ErroHttp(400, 'Save ausente.');
-  if (texto.length > TAMANHO_MAXIMO_SAVE) throw new ErroHttp(413, 'Save grande demais.');
+  if (new TextEncoder().encode(texto).length > TAMANHO_MAXIMO_SAVE) throw new ErroHttp(413, 'Save grande demais.');
   let salvoEm: unknown;
   try {
     const dados = JSON.parse(texto) as { salvoEm?: unknown; estado?: { versao?: unknown } };

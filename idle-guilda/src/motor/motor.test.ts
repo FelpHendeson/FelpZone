@@ -63,6 +63,19 @@ describe('combate contínuo', () => {
     expect(Object.keys(e.batalha.herois.leao!.recargas)).toContain('golpeJusto');
   });
 
+  it('o chefe atinge a party inteira a cada três golpes', () => {
+    let e = comParty(30, ['leao', 'quentin', 'cyrus']);
+    e.herois.forEach((h) => (h.equipadas = []));
+    e.batalha.onda = 10;
+    let golpesEmArea = 0;
+    for (let i = 0; i < 120 && golpesEmArea === 0; i++) {
+      e = avancar(e, 0.5);
+      const alvos = new Set(e.batalha.visuais.filter((v) => v.t === e.tempo && v.alvo.startsWith('h:') && v.tipo !== 'cura' && v.tipo !== 'escudo').map((v) => v.alvo));
+      if (e.batalha.inimigos.some((x) => x.chefe) && alvos.size >= 2) golpesEmArea += 1;
+    }
+    expect(golpesEmArea).toBeGreaterThan(0);
+  });
+
   it('o Leão das Chamas transforma e o ataque básico vira fogo', () => {
     let e = comParty(20, ['leao']);
     e.herois[0].habilidades.push({ id: 'leaoDasChamas', nivel: 1, xp: 0 });
@@ -348,6 +361,49 @@ describe('objetivos, save e offline', () => {
     const batalhaRuim = JSON.parse(serializar(e, 1));
     batalhaRuim.estado.batalha = 'x';
     expect(desserializar(JSON.stringify(batalhaRuim))?.estado.batalha.onda).toBe(1);
+  });
+
+  it('saves com o miolo quebrado são recusados ou reparados, e o jogo continua', () => {
+    const base = avancar(comParty(5), 30);
+    const casos: ((s: { estado: Record<string, any> }) => void)[] = [
+      (s) => (s.estado.batalha.inimigos = [{ vida: 10, monstro: 'dragao', nivel: 1 }]),
+      (s) => (s.estado.batalha.inimigos = [{ vida: 10, monstro: 'gosma', nivel: 1 }]),
+      (s) => (s.estado.batalha.herois = { leao: { vida: 'x' } }),
+      (s) => (s.estado.estatisticas = {}),
+      (s) => (s.estado.loja.itens = [{ uid: 'x', base: 'nada' }]),
+      (s) => (s.estado.canteiros = [{ heroi: 'leao', a: 'x', b: 'y' }, 5]),
+    ];
+    for (const f of casos) {
+      const s = JSON.parse(serializar(base, 1));
+      f(s);
+      const lido = desserializar(JSON.stringify(s));
+      expect(lido).not.toBeNull();
+      const depois = avancar(lido!.estado, 30);
+      expect(depois.estatisticas.abates).toBeGreaterThanOrEqual(0);
+      A.receberObjetivo(depois);
+      A.colherFusao(depois, 0);
+    }
+    const missao = JSON.parse(serializar(base, 1));
+    missao.estado.herois[1].atividade = { tipo: 'exploracao', missao: 'nao-existe', inicio: 0, fim: 0 };
+    expect(desserializar(JSON.stringify(missao))).toBeNull();
+    const repetido = JSON.parse(serializar(base, 1));
+    repetido.estado.herois.push(repetido.estado.herois[0]);
+    expect(desserializar(JSON.stringify(repetido))).toBeNull();
+  });
+
+  it('ações recusam quantidades inválidas', () => {
+    const e = comParty(5, ['leao', 'quentin']);
+    expect(A.distribuirPonto(e, 'leao', 'atq', 0.5).ok).toBe(false);
+    expect(A.enviarTreino(e, 'quentin', -60).ok).toBe(false);
+    expect(A.venderMaterial(e, 'ferrugem', Number.NaN).ok).toBe(false);
+  });
+
+  it('duas equipes não se misturam na mesma expedição', () => {
+    let e = comParty(10, ['leao', 'quentin', 'cyrus']);
+    e = ok(A.enviarMissao(e, 'patio-curta', ['quentin']));
+    expect(A.enviarMissao(e, 'patio-curta', ['cyrus']).ok).toBe(false);
+    e = avancar(e, 1);
+    e = ok(A.enviarMissao(e, 'patio-curta', ['cyrus']));
   });
 
   it('offline respeita 8 horas e resume os ganhos', () => {
