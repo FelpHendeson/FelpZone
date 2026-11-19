@@ -6,7 +6,7 @@ import { ARVORES } from '../motor/dados/arvores';
 import { iconeSlotVazio } from '../arte/icones';
 import { NOME_SLOT, SLOTS } from '../motor/dados/itens';
 import { IconeItem, Medidor, Retrato } from './comum';
-import { ehPossivelMelhoria } from './mochila';
+import { ehPossivelMelhoria } from './regrasMochila';
 import { Icone } from './pixel';
 import { nomeItem } from './texto';
 import { duracao } from './texto';

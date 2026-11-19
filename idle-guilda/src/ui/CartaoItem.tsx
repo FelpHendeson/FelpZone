@@ -6,7 +6,7 @@ import { precoDeVenda } from '../motor/itens';
 import { modsDoItem, pecasDeConjunto, statsDoItem } from '../motor/status';
 import type { Estado, Item, PersonagemId, Slot, Stat } from '../motor/tipos';
 import { IconeItem, Recurso, Retrato } from './comum';
-import { diferencaStats, espacoAlvo } from './mochila';
+import { diferencaStats, espacoAlvo } from './regrasMochila';
 import { compacto, descreverMod, nomeCurto, nomeItem } from './texto';
 
 const NOME_ARMADURA = { pesada: 'pesada', media: 'média', leve: 'leve', tecido: 'tecido' } as const;
