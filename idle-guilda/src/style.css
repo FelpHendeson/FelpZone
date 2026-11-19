@@ -1,15 +1,5 @@
 :root {
-  --fundo: #11121c;
-  --painel: #1e2033;
-  --painel-2: #282b44;
-  --painel-3: #33375a;
-  --borda: #080810;
-  --texto: #ecebf5;
-  --suave: #a3a2c2;
-  --ouro: #f2c14e;
-  --acento: #5b9bff;
-  --perigo: #e0603a;
-  --verde: #5fcf5a;
+  /* Cores, espaçamento e molduras: ver src/estilos/tokens.css. */
   color-scheme: dark;
   font-family: ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Menlo, Consolas, monospace;
   font-size: 15px;

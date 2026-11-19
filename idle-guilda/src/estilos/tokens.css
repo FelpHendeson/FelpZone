@@ -1,0 +1,73 @@
+/*
+ * Tokens do sistema visual (docs/UI-REDESIGN.md, seção 7.1).
+ * Importado antes de style.css. As cores de raridade e de elemento também
+ * existem em TypeScript (DADOS_RARIDADE, COR_ELEMENTO): main.tsx regrava as
+ * variáveis abaixo com esses valores na inicialização, para não divergirem.
+ * Os valores daqui são só o padrão até o script rodar.
+ */
+:root {
+  /* Fundos, do mais escuro (página) ao mais claro (células). */
+  --fundo-0: #0d0e17;
+  --fundo-1: #151728;
+  --fundo-2: #1e2033;
+  --fundo-3: #282b44;
+  --fundo-4: #33375a;
+  --linha: #3a3f6b;
+  --borda: #080810;
+
+  /* Texto. */
+  --texto: #ecebf5;
+  --suave: #a3a2c2;
+  --texto-escuro: #1b1b2a;
+
+  /* Ação, seleção e estado. */
+  --ouro: #f2c14e;
+  --ouro-escuro: #b8862a;
+  --acento: #5b9bff;
+  --verde: #5fcf5a;
+  --perigo: #e0603a;
+  --perigo-fundo: #6a2a2a;
+
+  /* Raridade. */
+  --r-comum: #c9c9d6;
+  --r-incomum: #7ed66a;
+  --r-raro: #5b9bff;
+  --r-epico: #c27bff;
+  --r-lendario: #ffb43a;
+
+  /* Elementos. */
+  --el-neutro: #c9c9d6;
+  --el-fogo: #ff8a3a;
+  --el-raio: #ffe36a;
+  --el-sombra: #b48cff;
+  --el-natureza: #7ed66a;
+  --el-vento: #9fe8e0;
+  --el-gelo: #8fd3ff;
+  --el-luz: #fff3b0;
+
+  /* Espaçamento. */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+
+  /* Área mínima de toque. */
+  --toque: 44px;
+
+  /* Moldura pixel: bisel claro em cima, sombra embaixo, contorno escuro e degrau. */
+  --bisel:
+    inset 2px 2px 0 rgb(255 255 255 / 6%),
+    inset -2px -2px 0 rgb(0 0 0 / 35%);
+  --moldura:
+    var(--bisel),
+    0 0 0 3px var(--borda),
+    0 5px 0 3px var(--borda);
+
+  /* Nomes antigos, mantidos enquanto o CSS migra para os tokens. */
+  --fundo: var(--fundo-0);
+  --painel: var(--fundo-2);
+  --painel-2: var(--fundo-3);
+  --painel-3: var(--fundo-4);
+}
