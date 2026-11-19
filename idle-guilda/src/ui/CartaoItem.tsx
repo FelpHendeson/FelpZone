@@ -4,7 +4,7 @@ import { BASES, CONJUNTOS, DADOS_RARIDADE, NOME_SLOT } from '../motor/dados/iten
 import { NOME_STAT, PERSONAGENS, STATS } from '../motor/dados/personagens';
 import { precoDeVenda } from '../motor/itens';
 import { modsDoItem, pecasDeConjunto, statsDoItem } from '../motor/status';
-import type { Estado, Item, PersonagemId, Stat } from '../motor/tipos';
+import type { Estado, Item, PersonagemId, Slot, Stat } from '../motor/tipos';
 import { IconeItem, Recurso, Retrato } from './comum';
 import { diferencaStats, espacoAlvo } from './mochila';
 import { compacto, descreverMod, nomeCurto, nomeItem } from './texto';
@@ -51,12 +51,14 @@ export function CartaoItem(props: {
   acoes?: ReactNode;
   /** Esconde o valor de venda (ex.: itens da Loja, que mostram o preço). */
   semVenda?: boolean;
+  /** Compara com a peça deste espaço (ex.: escolhendo para um espaço da Ficha). */
+  slot?: Slot;
 }) {
   const { estado: e, item } = props;
   const usaveis = e.herois.filter((h) => !podeUsar(h, item));
   const [escolhido, setEscolhido] = useState<PersonagemId | null>(props.heroiInicial ?? null);
   const heroi = props.dono ? undefined : (usaveis.find((h) => h.id === escolhido) ?? usaveis[0]);
-  const alvo = heroi ? espacoAlvo(heroi, item) : null;
+  const alvo = heroi ? (props.slot ? { slot: props.slot, atual: heroi.equipamento[props.slot] } : espacoAlvo(heroi, item)) : null;
   const stats = statsDoItem(item);
   const dif = heroi ? diferencaStats(item, alvo?.atual) : {};
   const statsUsados = STATS.filter((s) => stats[s] || dif[s]);
@@ -108,7 +110,7 @@ export function CartaoItem(props: {
         <small className="cartao-item-nota">Equipado em {nomeCurto(props.dono)}.</small>
       ) : heroi ? (
         <div className="cartao-item-comparar">
-          {usaveis.length > 1 ? (
+          {usaveis.length > 1 && !props.slot ? (
             <label className="campo-linha">
               Comparar com
               <select value={heroi.id} onChange={(ev) => setEscolhido(ev.target.value as PersonagemId)}>
@@ -178,7 +180,7 @@ export function CartaoItem(props: {
             const motivo = podeUsar(h, item);
             return (
               <li key={h.id} className={motivo ? 'nao' : ''}>
-                <Retrato id={h.id} tamanho={32} apagado={!!motivo} />
+                <Retrato id={h.id} tamanho={32} />
                 <small>
                   {nomeCurto(h.id)}
                   {motivo ? `: ${motivo.replace(`${PERSONAGENS[h.id].nome} `, '')}` : ' ✓'}

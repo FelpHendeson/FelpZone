@@ -27,7 +27,8 @@ import {
 } from '../motor/status';
 import type { Estado, Habilidade, Heroi, PersonagemId, Slot } from '../motor/tipos';
 import { iconeSlotVazio } from '../arte/icones';
-import { DetalheItem, IconeItem, Retrato, SubAbas } from './comum';
+import { IconeItem, Retrato, SubAbas } from './comum';
+import { CartaoItem } from './CartaoItem';
 import { Dica } from './Dica';
 import { Modal } from './Modal';
 import { Icone } from './pixel';
@@ -204,10 +205,12 @@ function EscolherItem({ e, h, slot, agir, aoFechar }: { e: Estado; h: Heroi; slo
   const opcoes = e.inventario.filter((i) => slotsDoItem(i).includes(slot));
   opcoes.sort((a, b) => Number(!!podeUsar(h, a)) - Number(!!podeUsar(h, b)) || b.nivel - a.nivel);
   return (
-    <Modal titulo={`${NOME_SLOT[slot]} de ${nomeCurto(h.id)}`} aoFechar={aoFechar}>
+    <Modal variante="folha" titulo={`${NOME_SLOT[slot]} de ${nomeCurto(h.id)}`} aoFechar={aoFechar}>
       {atual ? (
-        <DetalheItem
+        <CartaoItem
+          estado={e}
           item={atual}
+          dono={h.id}
           acoes={
             <button
               onClick={() => {
@@ -228,10 +231,12 @@ function EscolherItem({ e, h, slot, agir, aoFechar }: { e: Estado; h: Heroi; slo
         {opcoes.map((item) => {
           const motivo = podeUsar(h, item);
           return (
-            <li key={item.uid}>
-              <DetalheItem
+            <li key={item.uid} className="cartao-na-lista">
+              <CartaoItem
+                estado={e}
                 item={item}
-                comparar={atual}
+                heroiInicial={h.id}
+                slot={slot}
                 acoes={
                   motivo ? (
                     <small className="erro">{motivo}</small>
