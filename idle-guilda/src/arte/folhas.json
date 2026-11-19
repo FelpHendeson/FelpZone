@@ -351,5 +351,43 @@
       ]
     },
     "elevacao": 8
+  },
+  "monstro-espectro": {
+    "imagem": "sprites/monstro-espectro.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 55,
+    "centro": 36.5,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "elevacao": 6
   }
 }
