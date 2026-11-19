@@ -621,5 +621,58 @@
     "cenario": "vulcao",
     "arquivo": "cenario-vulcao.jpg",
     "chao": 0.78
+  },
+  "monstro-esqueleto": {
+    "arquivo": "monstro-esqueleto.jpg",
+    "linhas": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "colunasGrade": 4,
+    "reducao": 4,
+    "espelhar": false,
+    "limiteFundo": 160,
+    "limiteRosado": 90,
+    "franjaSoBorda": true,
+    "passadasFranja": 2,
+    "cores": 48,
+    "verdeMax": 60,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    }
+  },
+  "cenario-cidadela": {
+    "tipo": "cenario",
+    "cenario": "cidadela",
+    "arquivo": "cenario-cidadela.jpg",
+    "chao": 0.76,
+    "brilho": 0.72
   }
 }

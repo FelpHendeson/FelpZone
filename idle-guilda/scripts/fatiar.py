@@ -16,7 +16,7 @@ import json
 import sys
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageEnhance
 
 RAIZ = Path(__file__).resolve().parent.parent
 FONTE = RAIZ / 'arte-fonte'
@@ -119,7 +119,10 @@ def processar_cenario(nome, cfg):
     y0 = f * H - a * h
     x0 = (W - w) / 2
     janela = im.crop((round(x0), round(y0), round(x0 + w), round(y0 + h)))
-    final = janela.resize((320, 180), Image.Resampling.BOX).quantize(colors=cfg.get('cores', 96), method=Image.Quantize.MEDIANCUT)
+    reduzida = janela.resize((320, 180), Image.Resampling.BOX)
+    # Fundos muito claros apagam lutadores prateados: `brilho` < 1 escurece.
+    reduzida = ImageEnhance.Brightness(reduzida).enhance(cfg.get('brilho', 1))
+    final = reduzida.quantize(colors=cfg.get('cores', 96), method=Image.Quantize.MEDIANCUT)
     final.save(SAIDA_IMG / f'{nome}.png')
     return {'imagem': f'sprites/{nome}.png'}
 

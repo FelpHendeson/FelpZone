@@ -11,6 +11,9 @@
     },
     "vulcao": {
       "imagem": "sprites/cenario-vulcao.png"
+    },
+    "cidadela": {
+      "imagem": "sprites/cenario-cidadela.png"
     }
   },
   "icones": {

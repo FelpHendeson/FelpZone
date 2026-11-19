@@ -504,5 +504,43 @@
       ]
     },
     "elevacao": 5
+  },
+  "monstro-esqueleto": {
+    "imagem": "sprites/monstro-esqueleto.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 59,
+    "centro": 33.0,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "elevacao": 0
   }
 }
