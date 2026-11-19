@@ -1,15 +1,18 @@
 import { memo, useCallback, useEffect, useMemo, useState, type KeyboardEvent } from 'react';
-import { desmontar, equiparItem, podeUsar, slotsDoItem, vender, type Resultado } from '../motor/acoes';
-import { DADOS_RARIDADE, INVENTARIO_MAXIMO, NOME_SLOT, RARIDADES } from '../motor/dados/itens';
+import { desequipar, desmontar, equiparItem, podeUsar, slotsDoItem, vender, type Resultado } from '../motor/acoes';
+import { DADOS_RARIDADE, INVENTARIO_MAXIMO, NOME_SLOT, RARIDADES, SLOTS } from '../motor/dados/itens';
+import { iconeSlotVazio } from '../arte/icones';
 import { NOME_STAT, PERSONAGENS } from '../motor/dados/personagens';
 import { precoDeVenda } from '../motor/itens';
 import type { Estado, Item, PersonagemId, Raridade, Slot, Stat } from '../motor/tipos';
 import { CartaoItem, rotuloDoItem } from './CartaoItem';
-import { IconeItem, Medidor, Recurso, Retrato } from './comum';
+import { IconeItem, Medidor, Recurso, Retrato, SubAbas } from './comum';
+import { Icone } from './pixel';
 import { Dica } from './Dica';
 import { IconeUi } from './IconeUi';
 import {
   CHAVE_PREFERENCIAS,
+  espacoDoSlot,
   diferencaStats,
   espacoAlvo,
   filtrarItens,
@@ -228,6 +231,8 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
   const [marcados, setMarcados] = useState<Set<string>>(new Set());
   const [confirmarLote, setConfirmarLote] = useState<'vender' | 'desmontar' | null>(null);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [vista, setVista] = useState<'itens' | 'equipados'>('itens');
+  const [equipSel, setEquipSel] = useState<{ heroi: PersonagemId; slot: Slot } | null>(null);
   const estreito = useMidia('(max-width: 559px)');
   const largo = useMidia('(min-width: 900px)');
   const melhorias = useMelhorias(e);
@@ -241,7 +246,9 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
   }, [pref]);
 
   useEffect(() => {
-    if (paraHeroi) setPref((p) => ({ ...p, filtro: { ...FILTRO_PADRAO, heroi: paraHeroi.heroi, soMelhorias: !!paraHeroi.soMelhorias } }));
+    if (!paraHeroi) return;
+    setPref((p) => ({ ...p, filtro: { ...FILTRO_PADRAO, heroi: paraHeroi.heroi, soMelhorias: !!paraHeroi.soMelhorias } }));
+    setVista('itens');
   }, [paraHeroi]);
 
   const mudarFiltro = (f: Partial<FiltroMochila>) => setPref((p) => ({ ...p, filtro: { ...p.filtro, ...f } }));
@@ -307,15 +314,44 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
   const livres = Math.max(0, INVENTARIO_MAXIMO - ocupados);
   const ouroLote = itensMarcados.reduce((s, i) => s + precoDeVenda(i), 0);
 
-  const cartao = itemSelecionado && (
+  const heroiEquip = equipSel ? e.herois.find((h) => h.id === equipSel.heroi) : undefined;
+  const itemEquip = heroiEquip && equipSel ? heroiEquip.equipamento[equipSel.slot] : undefined;
+  const cartaoEquip = itemEquip && heroiEquip && equipSel && (
     <CartaoItem
-      key={itemSelecionado.uid}
+      key={itemEquip.uid}
       estado={e}
-      item={itemSelecionado}
-      heroiInicial={filtro.heroi ?? undefined}
-      acoes={<AcoesItem estado={e} item={itemSelecionado} agir={agir} aoFerreiro={aoFerreiro} aoFeito={() => setSelecionado(null)} />}
+      item={itemEquip}
+      dono={heroiEquip.id}
+      acoes={
+        <>
+          <button
+            disabled={ocupados >= INVENTARIO_MAXIMO}
+            onClick={() => {
+              agir((x) => desequipar(x, heroiEquip.id, equipSel.slot));
+              setEquipSel(null);
+            }}
+          >
+            Tirar e guardar
+          </button>
+          <button onClick={() => aoFerreiro(itemEquip.uid)}>Melhorar no Ferreiro</button>
+          {ocupados >= INVENTARIO_MAXIMO && <small className="erro">Mochila cheia: não dá para guardar.</small>}
+        </>
+      }
     />
   );
+
+  const cartao =
+    vista === 'equipados'
+      ? cartaoEquip
+      : itemSelecionado && (
+          <CartaoItem
+            key={itemSelecionado.uid}
+            estado={e}
+            item={itemSelecionado}
+            heroiInicial={filtro.heroi ?? undefined}
+            acoes={<AcoesItem estado={e} item={itemSelecionado} agir={agir} aoFerreiro={aoFerreiro} aoFeito={() => setSelecionado(null)} />}
+          />
+        );
 
   return (
     <div className={`mochila ${largo ? 'larga' : ''} ${modoLote ? 'em-lote' : ''}`}>
@@ -334,135 +370,175 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
             />
             <small>{livres > 0 ? `${livres} ${livres === 1 ? 'espaço livre' : 'espaços livres'}` : 'sem espaço'}</small>
           </span>
-          <button className={modoLote ? 'ativa' : ''} onClick={() => (modoLote ? sairDoLote() : setModoLote(true))} aria-pressed={modoLote}>
-            <IconeUi nome="selecionar" tamanho={16} /> {modoLote ? 'Cancelar' : 'Selecionar'}
-          </button>
+          {vista === 'itens' && (
+            <button className={modoLote ? 'ativa' : ''} onClick={() => (modoLote ? sairDoLote() : setModoLote(true))} aria-pressed={modoLote}>
+              <IconeUi nome="selecionar" tamanho={16} /> {modoLote ? 'Cancelar' : 'Selecionar'}
+            </button>
+          )}
         </div>
 
         <AvisoMochilaCheia estado={e} agir={agir} />
 
-        <div className="mochila-filtros">
-          <div className="chips" role="group" aria-label="Espaço">
-            {(Object.keys(NOME_ESPACO) as (Espaco | 'todos')[]).map((esp) => (
-              <button
-                key={esp}
-                className={`chip ${filtro.espaco === esp ? 'ativa' : ''}`}
-                aria-pressed={filtro.espaco === esp}
-                onClick={() => mudarFiltro({ espaco: esp })}
-              >
-                {NOME_ESPACO[esp]}
-              </button>
-            ))}
-          </div>
-          {estreito && (
-            <button className="link" aria-expanded={filtrosAbertos} onClick={() => setFiltrosAbertos(!filtrosAbertos)}>
-              <IconeUi nome="filtro" tamanho={14} /> {filtrosAbertos ? 'Menos filtros' : 'Mais filtros e ordem'}
-              {qtdFiltros > 0 && ` (${qtdFiltros} ativos)`}
-            </button>
-          )}
-          {(!estreito || filtrosAbertos) && (
-            <>
-              <div className="chips" role="group" aria-label="Raridade">
-                {RARIDADES.map((r: Raridade) => {
-                  const ativa = filtro.raridades.includes(r);
-                  return (
-                    <button
-                      key={r}
-                      className={`chip chip-raridade ${ativa ? 'ativa' : ''}`}
-                      style={{ '--cor-raridade': DADOS_RARIDADE[r].cor } as React.CSSProperties}
-                      aria-pressed={ativa}
-                      onClick={() => mudarFiltro({ raridades: ativa ? filtro.raridades.filter((x) => x !== r) : [...filtro.raridades, r] })}
-                    >
-                      <span className="ponto-raridade" style={{ background: DADOS_RARIDADE[r].cor }} aria-hidden />
-                      {DADOS_RARIDADE[r].nome}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="mochila-controles">
-                <label className="campo-pilha">
-                  Para quem
-                  <select value={filtro.heroi ?? ''} onChange={(ev) => mudarFiltro({ heroi: (ev.target.value || null) as PersonagemId | null })}>
-                    <option value="">Todos</option>
-                    {e.herois.map((h) => (
-                      <option key={h.id} value={h.id}>
-                        {PERSONAGENS[h.id].nome}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="campo-pilha">
-                  <span>
-                    <IconeUi nome="ordenar" tamanho={14} /> Ordenar por
-                  </span>
-                  <select value={ordem} onChange={(ev) => setPref((p) => ({ ...p, ordem: ev.target.value as Ordem }))}>
-                    {(Object.keys(NOME_ORDEM) as Ordem[]).map((o) => (
-                      <option key={o} value={o}>
-                        {NOME_ORDEM[o]}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-                <label className="alternador">
-                  <input type="checkbox" checked={filtro.soMelhorias} onChange={(ev) => mudarFiltro({ soMelhorias: ev.target.checked })} />
-                  Só possíveis melhorias <span className="melhor">▲</span>
-                </label>
-                {filtroAtivo && (
-                  <button className="link" onClick={() => mudarFiltro(FILTRO_PADRAO)}>
-                    Limpar filtros
-                  </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+        <SubAbas<'itens' | 'equipados'>
+          abas={[
+            ['itens', `Na mochila (${ocupados})`],
+            ['equipados', 'Equipados'],
+          ]}
+          ativa={vista}
+          aoTrocar={(v) => {
+            setVista(v);
+            sairDoLote();
+          }}
+        />
 
-        {modoLote && (
-          <div className="mochila-lote-atalhos">
-            <small>Toque nos itens para marcar ({marcadosValidos.length}).</small>
-            <button className="link" onClick={() => setMarcados(new Set(itensBaratos(e.inventario).map((i) => i.uid)))}>
-              Selecionar comuns e incomuns
-            </button>
-          </div>
-        )}
-
-        {ocupados === 0 ? (
-          <div className="vazio-estado">
-            <IconeUi nome="mochila" tamanho={40} />
-            <p>Mochila vazia.</p>
-            <p className="dica">Monstros, chefes, expedições, a Loja e o Ferreiro dão itens.</p>
-          </div>
-        ) : itens.length === 0 ? (
-          <div className="vazio-estado">
-            <p>Nenhum item com esses filtros.</p>
-            <button onClick={() => mudarFiltro(FILTRO_PADRAO)}>Limpar filtros</button>
-          </div>
-        ) : null}
-
-        {ocupados > 0 && (
-          <GradeItens
+        {vista === 'equipados' && (
+          <Equipados
             estado={e}
-            itens={itens}
-            rotulo={`Itens da mochila: ${itens.length} mostrados`}
-            selecionado={modoLote ? null : itemSelecionado?.uid}
-            marcados={modoLote ? marcados : undefined}
-            melhorias={melhorias}
-            vazios={filtroAtivo ? 0 : livres}
-            aoTocar={aoTocar}
+            selecionado={equipSel}
+            aoTocar={(heroi, slot) => {
+              const item = e.herois.find((h) => h.id === heroi)?.equipamento[slot];
+              if (item) setEquipSel({ heroi, slot });
+              else {
+                // Espaço vazio: mostra na mochila o que o herói pode pôr ali.
+                setPref((p) => ({ ...p, filtro: { ...FILTRO_PADRAO, heroi, espaco: espacoDoSlot(slot) } }));
+                setVista('itens');
+              }
+            }}
           />
         )}
-        {ocupados > 0 && <p className="dica legenda-grade">Canto superior: nível · ▲ possível melhoria · ◆ conjunto · +N melhorias no Ferreiro.</p>}
+
+        {vista === 'itens' && (
+          <>
+            <div className="mochila-filtros">
+              <div className="chips" role="group" aria-label="Espaço">
+                {(Object.keys(NOME_ESPACO) as (Espaco | 'todos')[]).map((esp) => (
+                  <button
+                    key={esp}
+                    className={`chip ${filtro.espaco === esp ? 'ativa' : ''}`}
+                    aria-pressed={filtro.espaco === esp}
+                    onClick={() => mudarFiltro({ espaco: esp })}
+                  >
+                    {NOME_ESPACO[esp]}
+                  </button>
+                ))}
+              </div>
+              {estreito && (
+                <button className="link" aria-expanded={filtrosAbertos} onClick={() => setFiltrosAbertos(!filtrosAbertos)}>
+                  <IconeUi nome="filtro" tamanho={14} /> {filtrosAbertos ? 'Menos filtros' : 'Mais filtros e ordem'}
+                  {qtdFiltros > 0 && ` (${qtdFiltros} ${qtdFiltros === 1 ? 'ativo' : 'ativos'})`}
+                </button>
+              )}
+              {(!estreito || filtrosAbertos) && (
+                <>
+                  <div className="chips" role="group" aria-label="Raridade">
+                    {RARIDADES.map((r: Raridade) => {
+                      const ativa = filtro.raridades.includes(r);
+                      return (
+                        <button
+                          key={r}
+                          className={`chip chip-raridade ${ativa ? 'ativa' : ''}`}
+                          style={{ '--cor-raridade': DADOS_RARIDADE[r].cor } as React.CSSProperties}
+                          aria-pressed={ativa}
+                          onClick={() => mudarFiltro({ raridades: ativa ? filtro.raridades.filter((x) => x !== r) : [...filtro.raridades, r] })}
+                        >
+                          <span className="ponto-raridade" style={{ background: DADOS_RARIDADE[r].cor }} aria-hidden />
+                          {DADOS_RARIDADE[r].nome}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mochila-controles">
+                    <label className="campo-pilha">
+                      Para quem
+                      <select value={filtro.heroi ?? ''} onChange={(ev) => mudarFiltro({ heroi: (ev.target.value || null) as PersonagemId | null })}>
+                        <option value="">Todos</option>
+                        {e.herois.map((h) => (
+                          <option key={h.id} value={h.id}>
+                            {PERSONAGENS[h.id].nome}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="campo-pilha">
+                      <span>
+                        <IconeUi nome="ordenar" tamanho={14} /> Ordenar por
+                      </span>
+                      <select value={ordem} onChange={(ev) => setPref((p) => ({ ...p, ordem: ev.target.value as Ordem }))}>
+                        {(Object.keys(NOME_ORDEM) as Ordem[]).map((o) => (
+                          <option key={o} value={o}>
+                            {NOME_ORDEM[o]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label className="alternador">
+                      <input type="checkbox" checked={filtro.soMelhorias} onChange={(ev) => mudarFiltro({ soMelhorias: ev.target.checked })} />
+                      Só possíveis melhorias <span className="melhor">▲</span>
+                    </label>
+                    {filtroAtivo && (
+                      <button className="link" onClick={() => mudarFiltro(FILTRO_PADRAO)}>
+                        Limpar filtros
+                      </button>
+                    )}
+                  </div>
+                </>
+              )}
+            </div>
+
+            {modoLote && (
+              <div className="mochila-lote-atalhos">
+                <small>Toque nos itens para marcar ({marcadosValidos.length}).</small>
+                <button className="link" onClick={() => setMarcados(new Set(itensBaratos(e.inventario).map((i) => i.uid)))}>
+                  Selecionar comuns e incomuns
+                </button>
+              </div>
+            )}
+
+            {ocupados === 0 ? (
+              <div className="vazio-estado">
+                <IconeUi nome="mochila" tamanho={40} />
+                <p>Mochila vazia.</p>
+                <p className="dica">Monstros, chefes, expedições, a Loja e o Ferreiro dão itens.</p>
+              </div>
+            ) : itens.length === 0 ? (
+              <div className="vazio-estado">
+                <p>Nenhum item com esses filtros.</p>
+                <button onClick={() => mudarFiltro(FILTRO_PADRAO)}>Limpar filtros</button>
+              </div>
+            ) : null}
+
+            {ocupados > 0 && (
+              <GradeItens
+                estado={e}
+                itens={itens}
+                rotulo={`Itens da mochila: ${itens.length} mostrados`}
+                selecionado={modoLote ? null : itemSelecionado?.uid}
+                marcados={modoLote ? marcados : undefined}
+                melhorias={melhorias}
+                vazios={filtroAtivo ? 0 : livres}
+                aoTocar={aoTocar}
+              />
+            )}
+            {ocupados > 0 && <p className="dica legenda-grade">Canto superior: nível · ▲ possível melhoria · ◆ conjunto · +N melhorias no Ferreiro.</p>}
+          </>
+        )}
       </section>
 
       {largo && !modoLote && (
         <aside className="painel mochila-lateral" aria-label="Item selecionado">
-          {cartao ?? <p className="dica">Escolha um item na grade para ver detalhes, comparar e agir.</p>}
+          {cartao || <p className="dica">Escolha um item na grade para ver detalhes, comparar e agir.</p>}
         </aside>
       )}
 
-      {!largo && !modoLote && itemSelecionado && (
+      {!largo && !modoLote && vista === 'itens' && itemSelecionado && (
         <Modal variante="folha" titulo={nomeItem(itemSelecionado)} aoFechar={() => setSelecionado(null)}>
           {cartao}
+        </Modal>
+      )}
+
+      {!largo && vista === 'equipados' && itemEquip && (
+        <Modal variante="folha" titulo={nomeItem(itemEquip)} aoFechar={() => setEquipSel(null)}>
+          {cartaoEquip}
         </Modal>
       )}
 
@@ -606,5 +682,55 @@ function EscolherHeroi(props: { estado: Estado; item: Item; aoFechar: () => void
         A peça trocada volta para a mochila. {inteiro(e.inventario.length)}/{INVENTARIO_MAXIMO} ocupados.
       </p>
     </Modal>
+  );
+}
+
+/** Aba interna "Equipados": os 10 espaços de cada herói. */
+function Equipados(props: { estado: Estado; selecionado: { heroi: PersonagemId; slot: Slot } | null; aoTocar: (heroi: PersonagemId, slot: Slot) => void }) {
+  const { estado: e } = props;
+  return (
+    <ul className="equipados">
+      {e.herois.map((h) => (
+        <li key={h.id}>
+          <span className="equipados-heroi">
+            <Retrato id={h.id} tamanho={32} />
+            <strong>{PERSONAGENS[h.id].nome}</strong>
+            <small>nv {h.nivel}</small>
+          </span>
+          <div className="equipados-espacos" role="group" aria-label={`Equipamento de ${PERSONAGENS[h.id].nome}`}>
+            {SLOTS.map((s) => {
+              const item = h.equipamento[s];
+              const sel = props.selecionado?.heroi === h.id && props.selecionado.slot === s;
+              return item ? (
+                <button
+                  key={s}
+                  className={`celula raridade-${item.raridade} ${sel ? 'selecionada' : ''}`}
+                  style={{ '--cor-raridade': DADOS_RARIDADE[item.raridade].cor } as React.CSSProperties}
+                  aria-label={`${NOME_SLOT[s]}: ${rotuloDoItem(item)}`}
+                  aria-pressed={sel}
+                  onClick={() => props.aoTocar(h.id, s)}
+                >
+                  <IconeItem item={item} escala={3} />
+                  {item.melhoria > 0 && (
+                    <span className="celula-melhoria" aria-hidden>
+                      +{item.melhoria}
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <button
+                  key={s}
+                  className="celula espaco-vazio"
+                  aria-label={`${NOME_SLOT[s]} vazio: procurar na mochila`}
+                  onClick={() => props.aoTocar(h.id, s)}
+                >
+                  <Icone chave={`vazio-${s}`} sprite={iconeSlotVazio(s)} escala={3} />
+                </button>
+              );
+            })}
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

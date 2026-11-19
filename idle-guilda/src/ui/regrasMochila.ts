@@ -48,6 +48,13 @@ export function espacoDoItem(item: Item): Espaco | null {
   return t as Espaco;
 }
 
+/** Filtro de espaço que corresponde a um espaço do herói. */
+export function espacoDoSlot(slot: Slot): Espaco {
+  if (slot === 'acessorio1' || slot === 'acessorio2') return 'acessorio';
+  if (slot === 'arma' || slot === 'secundaria' || slot === 'reliquia') return slot;
+  return 'armadura';
+}
+
 /** Soma simples dos atributos fixos: a base da heurística de comparação. */
 export function somaStats(stats: Partial<Stats>): number {
   return Object.values(stats).reduce((s, v) => s + (v ?? 0), 0);
