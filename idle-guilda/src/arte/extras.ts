@@ -41,3 +41,9 @@ export function iconeDeFolha(id: string): IconeDeFolha | null {
   }
   return null;
 }
+
+/** URL da imagem do cenário (para miniaturas em CSS), ou null se não houver. */
+export function urlDoCenario(id: string): string | null {
+  const c = CENARIOS[id];
+  return c ? url(c.imagem) : null;
+}
