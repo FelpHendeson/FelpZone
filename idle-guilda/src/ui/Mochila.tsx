@@ -24,7 +24,7 @@ import {
   type Espaco,
   type FiltroMochila,
   type Ordem,
-} from './mochila';
+} from './regrasMochila';
 import { Modal } from './Modal';
 import { compacto, inteiro, nomeCurto, nomeItem } from './texto';
 import { useMidia } from './usarMidia';
@@ -92,15 +92,17 @@ interface PropsCelula {
   melhoria: boolean;
   hover: boolean;
   aoTocar: (uid: string) => void;
+  /** Herói que está usando a peça (Ferreiro mostra equipados e mochila juntos). */
+  dono?: PersonagemId;
 }
 
 const Celula = memo(
-  function Celula({ estado, item, selecionado, marcado, melhoria, hover, aoTocar }: PropsCelula) {
+  function Celula({ estado, item, selecionado, marcado, melhoria, hover, aoTocar, dono }: PropsCelula) {
     const botao = (
       <button
         className={`celula raridade-${item.raridade} ${selecionado ? 'selecionada' : ''} ${marcado ? 'marcada' : ''}`}
         style={{ '--cor-raridade': DADOS_RARIDADE[item.raridade].cor } as React.CSSProperties}
-        aria-label={`${rotuloDoItem(item)}${item.conjunto ? ', de conjunto' : ''}${melhoria ? ', possível melhoria' : ''}`}
+        aria-label={`${rotuloDoItem(item)}${item.conjunto ? ', de conjunto' : ''}${melhoria ? ', possível melhoria' : ''}${dono ? `, equipado em ${nomeCurto(dono)}` : ''}`}
         aria-pressed={marcado || selecionado}
         onClick={() => aoTocar(item.uid)}
         data-celula
@@ -117,6 +119,11 @@ const Celula = memo(
         {item.conjunto && (
           <span className="celula-conjunto" aria-hidden>
             ◆
+          </span>
+        )}
+        {dono && (
+          <span className="celula-dono" aria-hidden>
+            {nomeCurto(dono).slice(0, 3)}
           </span>
         )}
         {melhoria && (
@@ -146,8 +153,45 @@ const Celula = memo(
     a.marcado === b.marcado &&
     a.melhoria === b.melhoria &&
     a.hover === b.hover &&
+    a.dono === b.dono &&
     a.aoTocar === b.aoTocar,
 );
+
+/** Grade de itens reaproveitada pela Mochila, Ferreiro e Loja. */
+export function GradeItens(props: {
+  estado: Estado;
+  itens: Item[];
+  rotulo: string;
+  aoTocar: (uid: string) => void;
+  selecionado?: string | null;
+  marcados?: ReadonlySet<string>;
+  melhorias?: ReadonlySet<string>;
+  donos?: ReadonlyMap<string, PersonagemId>;
+  /** Espaços vazios desenhados depois dos itens. */
+  vazios?: number;
+}) {
+  const comMouse = useMidia('(hover: hover) and (pointer: fine)');
+  return (
+    <div className="grade-itens" role="group" aria-label={props.rotulo} onKeyDown={navegarGrade}>
+      {props.itens.map((item) => (
+        <Celula
+          key={item.uid}
+          estado={props.estado}
+          item={item}
+          selecionado={item.uid === props.selecionado}
+          marcado={!!props.marcados?.has(item.uid)}
+          melhoria={!!props.melhorias?.has(item.uid)}
+          dono={props.donos?.get(item.uid)}
+          hover={comMouse}
+          aoTocar={props.aoTocar}
+        />
+      ))}
+      {Array.from({ length: props.vazios ?? 0 }, (_, i) => (
+        <span key={`livre-${i}`} className="celula vazia" aria-hidden />
+      ))}
+    </div>
+  );
+}
 
 /** Setas do teclado movem o foco pela grade. */
 function navegarGrade(ev: KeyboardEvent<HTMLDivElement>) {
@@ -186,7 +230,6 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const estreito = useMidia('(max-width: 559px)');
   const largo = useMidia('(min-width: 900px)');
-  const comMouse = useMidia('(hover: hover) and (pointer: fine)');
   const melhorias = useMelhorias(e);
 
   useEffect(() => {
@@ -397,21 +440,16 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
         ) : null}
 
         {ocupados > 0 && (
-          <div className="grade-itens" role="group" aria-label={`Itens da mochila: ${itens.length} mostrados`} onKeyDown={navegarGrade}>
-            {itens.map((item) => (
-              <Celula
-                key={item.uid}
-                estado={e}
-                item={item}
-                selecionado={!modoLote && item.uid === itemSelecionado?.uid}
-                marcado={modoLote && marcados.has(item.uid)}
-                melhoria={melhorias.has(item.uid)}
-                hover={comMouse}
-                aoTocar={aoTocar}
-              />
-            ))}
-            {!filtroAtivo && Array.from({ length: livres }, (_, i) => <span key={`livre-${i}`} className="celula vazia" aria-hidden />)}
-          </div>
+          <GradeItens
+            estado={e}
+            itens={itens}
+            rotulo={`Itens da mochila: ${itens.length} mostrados`}
+            selecionado={modoLote ? null : itemSelecionado?.uid}
+            marcados={modoLote ? marcados : undefined}
+            melhorias={melhorias}
+            vazios={filtroAtivo ? 0 : livres}
+            aoTocar={aoTocar}
+          />
         )}
         {ocupados > 0 && <p className="dica legenda-grade">Canto superior: nível · ▲ possível melhoria · ◆ conjunto · +N melhorias no Ferreiro.</p>}
       </section>
