@@ -62,7 +62,8 @@ Para revisar a arte, abra `/src/arte/preview.html` (spritesheets com todas as an
 | `src/motor/dados/` | Dados do jogo: personagens, habilidades e receitas, árvores, itens, conjuntos, relíquias, mapas, monstros e missões. |
 | `src/motor/` | Regras em TypeScript puro: atributos (`status.ts`), combate (`combate.ts`), itens, progressão, ações do jogador, capítulos, save e avanço do tempo (`jogo.ts`). |
 | `src/arte/` | Spritesheets, cenários e ícones pintados (manifestos gerados por `scripts/fatiar.py`), a pixel art em texto usada enquanto as imagens carregam, e a cena de batalha. |
-| `src/ui/` | React: telas, abas, ficha do herói, cidade, expedições, mundo, conta e menus. |
+| `src/ui/` | React: telas, abas (incluindo a Mochila), ficha do herói, cidade, expedições, mundo, conta e menus. Componentes comuns: `CartaoItem`, `Dica`, `GradeItens`, `IconeUi`, `Modal` (variante `folha`) e a fila de `Avisos`. Regras só de interface, com testes: `regrasMochila.ts` e `feedback.ts`. |
+| `src/estilos/` | Tokens do sistema visual (`tokens.css`) e as cores de raridade e elemento gravadas como variáveis CSS. A spec do visual está em `docs/UI-REDESIGN.md`. |
 | `src/nuvem.ts` | Chamadas às funções `/api`. |
 | `api/` | Funções da Vercel: `conta.ts`, `save.ts` e `mundo.ts`, com as regras em `api/_lib/`. |
 
