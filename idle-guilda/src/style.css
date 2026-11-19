@@ -501,17 +501,118 @@ button.pilula-mochila {
   vertical-align: middle;
 }
 
-.aviso {
+/* Fila de avisos: até 3, empilhados acima da barra de abas. */
+.avisos {
   position: fixed;
   left: 50%;
-  bottom: 86px;
+  bottom: calc(80px + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  background: var(--painel);
-  padding: 8px 14px;
-  box-shadow: 0 0 0 2px var(--ouro);
+  width: min(440px, calc(100% - 24px));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
   z-index: 60;
-  font-size: 0.86rem;
-  max-width: calc(100% - 32px);
+  pointer-events: none;
+}
+
+.aviso-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 6px 6px 6px 10px;
+  background: var(--fundo-1);
+  font-size: 0.9rem;
+  box-shadow:
+    var(--bisel),
+    0 0 0 2px var(--cor-aviso, var(--ouro)),
+    0 0 0 4px var(--borda),
+    0 6px 14px rgb(0 0 0 / 45%);
+  pointer-events: auto;
+  animation: aviso-entra 160ms ease-out;
+}
+
+.aviso-item.tipo-info {
+  --cor-aviso: var(--acento);
+}
+
+.aviso-item.tipo-sucesso {
+  --cor-aviso: var(--verde);
+}
+
+.aviso-item.tipo-erro {
+  --cor-aviso: var(--perigo);
+}
+
+.aviso-item.tipo-loot,
+.aviso-item.tipo-nivel {
+  --cor-aviso: var(--ouro);
+}
+
+.aviso-icone {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  font-weight: 800;
+  color: var(--texto-escuro);
+  background: var(--cor-aviso, var(--ouro));
+}
+
+.aviso-texto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+button.aviso-fechar {
+  min-height: var(--toque);
+  min-width: var(--toque);
+  padding: 0;
+  background: none;
+  box-shadow: none;
+  color: var(--suave);
+}
+
+.aviso-item.brilho {
+  animation:
+    aviso-entra 160ms ease-out,
+    aviso-brilho 900ms steps(3) 3;
+}
+
+@keyframes aviso-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@keyframes aviso-brilho {
+  50% {
+    box-shadow:
+      var(--bisel),
+      0 0 0 2px #fff3b0,
+      0 0 0 4px var(--borda),
+      0 0 18px 4px var(--cor-aviso, var(--ouro));
+  }
+}
+
+@media (min-width: 900px) {
+  .avisos {
+    left: calc(50% + 44px);
+    bottom: 24px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso-item,
+  .aviso-item.brilho {
+    animation: none;
+  }
 }
 
 /* ---------- Medidores ---------- */
@@ -2487,11 +2588,6 @@ button.chip-raridade.ativa {
     letter-spacing: -0.02em;
   }
 
-  .aviso {
-    left: calc(50% + 44px);
-    bottom: 24px;
-  }
-
   .barra-lote {
     left: calc(50% + 44px);
     bottom: 16px;
@@ -3043,4 +3139,158 @@ button.ranhura.cheia {
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+/* ---------- Resumo do tempo fora ---------- */
+
+.contadores {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--esp-2);
+}
+
+.contador {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: var(--esp-2);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.contador .numero-grande {
+  font-size: 1.4rem;
+}
+
+.contador-icone {
+  font-size: 1.1rem;
+}
+
+.achados {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.achados li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: var(--esp-2);
+  padding: 6px;
+  background: var(--fundo-3);
+}
+
+.achados li span {
+  display: flex;
+  flex-direction: column;
+}
+
+.achados li.raridade-epico,
+.achados li.raridade-lendario {
+  box-shadow: 0 0 10px 1px color-mix(in srgb, var(--r-lendario) 40%, transparent);
+}
+
+.lista-resumo li {
+  display: flex;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.lista-resumo {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ---------- Subir de nível ---------- */
+
+.retrato-com-selo {
+  position: relative;
+  display: inline-block;
+  line-height: 0;
+}
+
+.selo-nivel {
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  transform: translateX(-50%);
+  padding: 2px 5px;
+  white-space: nowrap;
+  line-height: 1.1;
+  font-size: 0.81rem;
+  font-weight: 800;
+  color: var(--texto-escuro);
+  background: var(--ouro);
+  box-shadow: 0 0 0 2px var(--borda);
+  animation: selo-sobe 600ms steps(4);
+}
+
+.combate-cartao.subiu,
+.party-cartao.subiu {
+  animation: brilho-nivel 1s steps(2) 3;
+}
+
+@keyframes selo-sobe {
+  from {
+    transform: translate(-50%, 8px);
+    opacity: 0;
+  }
+}
+
+@keyframes brilho-nivel {
+  50% {
+    box-shadow:
+      var(--bisel),
+      0 0 0 2px var(--ouro);
+  }
+}
+
+/* ---------- Transições ---------- */
+
+.tela {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-4);
+  animation: tela-entra 100ms ease-out;
+}
+
+@keyframes tela-entra {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Recurso que acabou de subir pisca de leve. */
+.recurso .subiu {
+  animation: recurso-sobe 200ms ease-out;
+}
+
+@keyframes recurso-sobe {
+  from {
+    color: #fff3b0;
+    text-shadow: 0 0 6px var(--ouro);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .selo-nivel,
+  .combate-cartao.subiu,
+  .party-cartao.subiu,
+  .tela,
+  .recurso .subiu,
+  .mochila .modal.folha,
+  .hab-anel {
+    animation: none;
+  }
 }

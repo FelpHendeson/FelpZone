@@ -223,7 +223,7 @@ function EscolherItem({ e, h, slot, agir, aoFechar }: { e: Estado; h: Heroi; slo
           }
         />
       ) : (
-        <p className="dica">Nada equipado aqui.</p>
+        <p className="dica">Nada equipado aqui. Escolha uma peça abaixo.</p>
       )}
       <h3>No inventário ({opcoes.length})</h3>
       {opcoes.length === 0 && <p className="dica">Nenhum item para este espaço. Monstros, chefes, expedições, a Loja e o Ferreiro dão itens.</p>}

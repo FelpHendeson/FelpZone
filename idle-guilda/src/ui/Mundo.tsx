@@ -167,7 +167,7 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
 
         <section className="painel">
           <h2>📜 Acontecimentos do mundo</h2>
-          {mundo && mundo.mural.length === 0 && <p className="dica">Nada aconteceu ainda.</p>}
+          {mundo && mundo.mural.length === 0 && <p className="dica">Nada aconteceu ainda. Conquistas das guildas aparecem aqui; suba de nível e vença chefes para aparecer.</p>}
           <ol className="diario">
             {mundo?.mural.map((i, n) => (
               <li key={`${i.t}-${n}`}>

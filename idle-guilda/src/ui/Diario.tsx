@@ -9,6 +9,7 @@ export function Diario(props: { estado: Estado; aoFechar: () => void }) {
       <p className="dica">
         {duracao(e.tempo)} de aventura · {e.estatisticas.abates.toLocaleString('pt-BR')} inimigos · {e.estatisticas.chefes} chefes
       </p>
+      {e.diario.length === 0 && <p className="dica">Nada registrado ainda. Derrote inimigos e chefes para escrever a história da guilda.</p>}
       <ol className="diario">
         {[...e.diario].reverse().map((r, i) => (
           <li key={`${r.t}-${i}`}>
