@@ -12,8 +12,8 @@ Prompts para gerar a arte do jogo no Gemini. As folhas voltam para a sessão, qu
 
 **O que aprendemos com a primeira folha (`heroi-leao`):**
 
-- O Gemini **não respeita a grade 4×4** à risca: o Leão veio com 6, 6, 5 e 5 quadros por linha, mais uma sobra branca. Não tem problema, porque a configuração de cada folha diz quantos quadros há em cada linha.
-- Ele também pode **inverter a direção** do personagem. O script espelha quando precisa.
+- A grade **às vezes muda**: o Leão normal veio com 6, 6, 5 e 5 quadros por linha e uma sobra branca; o Leão das Chamas veio no 4×4 certinho. Não tem problema, porque a configuração de cada folha diz quantos quadros há em cada linha.
+- A direção **varia de folha para folha**: o Leão normal veio virado para a esquerda (foi espelhado), e o Leão das Chamas veio para a direita. Eu confiro em cada folha para onde vão os golpes.
 - Os "pixels" não seguem uma grade exata. O script refaz a pixelização: reduz cerca de 4×, unifica a paleta e limpa a franja magenta do JPG.
 - Rastros finos de golpe, como o arco branco da espada, tendem a sumir, porque se misturam com o fundo. O jogo desenha os próprios efeitos.
 

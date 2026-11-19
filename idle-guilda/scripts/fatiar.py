@@ -101,10 +101,13 @@ def processar(nome, cfg):
     SAIDA_IMG.mkdir(parents=True, exist_ok=True)
     folha.save(SAIDA_IMG / f'{nome}.png')
 
-    # Âncora: base dos pés e centro do primeiro quadro (parado), para alinhar no chão.
+    # Âncora: base dos pés e centro dos pés no primeiro quadro (parado). O centro
+    # vem só das últimas linhas, para efeitos grandes (juba, asas) não deslocarem o personagem.
     primeiro = quadros[0]
-    caixa = primeiro.getchannel('A').getbbox() or (0, 0, larg, alt)
-    centro = (caixa[0] + caixa[2]) / 2
+    alfa = primeiro.getchannel('A')
+    caixa = alfa.getbbox() or (0, 0, larg, alt)
+    pes = alfa.crop((0, max(0, caixa[3] - 6), larg, caixa[3])).getbbox()
+    centro = ((pes[0] + pes[2]) / 2) if pes else (caixa[0] + caixa[2]) / 2
     if cfg.get('espelhar'):
         centro = larg - centro
     return {

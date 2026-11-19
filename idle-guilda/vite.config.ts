@@ -45,7 +45,14 @@ function apiLocal(): Plugin {
           resposta.headers.forEach((valor, nome) => res.setHeader(nome, valor));
           res.end(Buffer.from(await resposta.arrayBuffer()));
         } catch (erro) {
-          next(erro);
+          // Requisição abortada (aba fechada no meio): nada a responder.
+          if (req.destroyed || (erro instanceof Error && erro.message === 'aborted')) return;
+          console.error(erro);
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.setHeader('Content-Type', 'application/json');
+          }
+          res.end(JSON.stringify({ erro: 'Erro no servidor de desenvolvimento.' }));
         }
       });
     },

@@ -195,6 +195,8 @@ export function posicoesDaParty(ids: PersonagemId[]): Map<PersonagemId, [number,
   return r;
 }
 
+const GOLPES_DE_INVESTIDA = ['investidaDoLeao', 'golpeJusto', 'julgamentoDoLeao'];
+
 /**
  * Herói com spritesheet: escolhe a animação pelo que está acontecendo.
  * Prioridade: caído, descansando, atacando, lançando habilidade, levando dano, parado.
@@ -210,13 +212,16 @@ function desenharHeroiFolha(
   caido: boolean,
   descansando: boolean,
 ): boolean {
-  const nome = `heroi-${id}`;
+  // Transformado, o Sir LionHearth usa a folha do Leão das Chamas.
+  const transformado = !!comb?.buffs.some((b) => b.id.startsWith('transf:'));
+  const nome = id === 'leao' && transformado && !caido && !descansando && folha('heroi-leao-chamas') ? 'heroi-leao-chamas' : `heroi-${id}`;
   const f = folha(nome);
   if (!f) return false;
   let animacao: Animacao = 'parado';
   let progresso = t * 0.9;
   let repetir = true;
-  const lancou = e.batalha.lancadas.some((l) => l.heroi === id && e.tempo - l.t <= 0.5);
+  const lancada = e.batalha.lancadas.find((l) => l.heroi === id && e.tempo - l.t <= 0.5);
+  const lancou = !!lancada;
   if (caido) {
     animacao = 'caido';
     progresso = 1;
@@ -230,7 +235,8 @@ function desenharHeroiFolha(
     progresso = comb.barra / 0.3;
     repetir = false;
   } else if (lancou) {
-    animacao = 'habilidade';
+    // Golpes diretos usam a investida, se a folha tiver; o resto, a pose de habilidade.
+    animacao = f.animacoes.investida && GOLPES_DE_INVESTIDA.includes(lancada!.habilidade) ? 'investida' : 'habilidade';
     progresso = (t * 2.5) % 1;
   } else if (atingido(e, `h:${id}`)) {
     animacao = 'dano';
@@ -274,7 +280,8 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
     const golpe = !descansando && comb && comb.barra < 0.15 && !caido;
     const x = x0 + (golpe ? 2 : 0) + (descansando ? 10 : 0);
     const transformado = comb?.buffs.some((x) => x.id.startsWith('transf:'));
-    if (transformado && !descansando) {
+    // A folha do Leão das Chamas já traz a juba; a de texto é só para o sprite antigo.
+    if (transformado && !descansando && !(id === 'leao' && folha('heroi-leao-chamas'))) {
       desenhar(ctx, JUBA, x + 1, y - 6 - (Math.floor(t * 6) % 2));
     }
     if (desenharHeroiFolha(ctx, e, id, comb, x, y, t, caido, descansando)) {
