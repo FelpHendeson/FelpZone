@@ -127,6 +127,8 @@ def processar(nome, cfg):
         'pe': caixa[3],
         'centro': round(centro, 1),
         'animacoes': cfg['animacoes'],
+        # Criaturas voadoras flutuam acima do chão (em unidades da cena).
+        'elevacao': cfg.get('elevacao', 0),
     }
 
 

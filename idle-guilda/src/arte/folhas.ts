@@ -14,6 +14,8 @@ export interface Folha {
   pe: number;
   centro: number;
   animacoes: Record<string, number[]>;
+  /** Voadores: quanto flutuam acima do chão, em unidades da cena. */
+  elevacao?: number;
 }
 
 export type Animacao = 'parado' | 'ataque' | 'habilidade' | 'investida' | 'dano' | 'caido' | 'morte' | 'chefe';

@@ -232,8 +232,9 @@ function desenharMonstroFolha(
     progresso = (t * 4) % 1;
   }
   const escala = chefe ? ESCALA_CHEFE : ESCALA_MONSTRO;
-  // Pés no mesmo ponto do sprite em texto (16×16, ou 32×32 no chefe).
-  const [pX, pY] = chefe ? [x + 16, y + 32] : [x + 8, y + 16];
+  // Pés no mesmo ponto do sprite em texto (16×16, ou 32×32 no chefe); voadores flutuam e oscilam.
+  const voo = f.elevacao ? f.elevacao + Math.round(Math.sin(t * 3)) : 0;
+  const [pX, pY] = chefe ? [x + 16, y + 32 - voo] : [x + 8, y + 16 - voo];
   return desenharQuadro(ctx, nome, quadroDa(f, animacao, progresso, repetir), pX, pY, escala);
 }
 
@@ -253,7 +254,9 @@ function desenharMortes(ctx: CanvasRenderingContext2D, vivos: { uid: number }[],
       continue;
     }
     const f = folha(`monstro-${m.monstro}`)!;
-    const [pX, pY] = m.chefe ? [m.x + 16, m.y + 32] : [m.x + 8, m.y + 16];
+    // Voadores caem até o chão enquanto morrem.
+    const queda = (f.elevacao ?? 0) * (1 - Math.min(1, idade / (DURACAO_MORTE * 0.6)));
+    const [pX, pY] = m.chefe ? [m.x + 16, m.y + 32 - queda] : [m.x + 8, m.y + 16 - queda];
     ctx.globalAlpha = 1 - idade / DURACAO_MORTE / 2;
     desenharQuadro(ctx, `monstro-${m.monstro}`, quadroDa(f, 'morte', idade / DURACAO_MORTE, false), pX, pY, m.chefe ? ESCALA_CHEFE : ESCALA_MONSTRO);
     ctx.globalAlpha = 1;
