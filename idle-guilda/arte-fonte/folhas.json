@@ -293,5 +293,50 @@
         15
       ]
     }
+  },
+  "monstro-lobo": {
+    "arquivo": "monstro-lobo.jpg",
+    "linhas": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "colunasGrade": 4,
+    "reducao": 5,
+    "espelhar": false,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    },
+    "limiteFundo": 160,
+    "limiteRosado": 90,
+    "franjaSoBorda": true,
+    "passadasFranja": 2,
+    "cores": 48
   }
 }
