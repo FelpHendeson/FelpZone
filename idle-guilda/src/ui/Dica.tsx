@@ -27,6 +27,9 @@ const ATRASO_MS = 150;
 const TOQUE_ABERTA_MS = 4000;
 const MARGEM = 8;
 
+/** Só uma dica aberta por vez: abrir uma fecha a anterior. */
+let fecharAberta: (() => void) | null = null;
+
 const interativo = (el: Element | null) => !!el?.matches('button, a, input, select, textarea, [role="button"]');
 
 /**
@@ -50,12 +53,24 @@ export function Dica(props: { conteudo: ReactNode | (() => ReactNode); children:
     setPos(null);
   }, []);
 
+  const abrir = useCallback(() => {
+    if (fecharAberta && fecharAberta !== fechar) fecharAberta();
+    fecharAberta = fechar;
+    setAberta(true);
+  }, [fechar]);
+
   const abrirDepois = (ms: number) => {
     clearTimeout(timer.current);
-    timer.current = setTimeout(() => setAberta(true), ms);
+    timer.current = setTimeout(abrir, ms);
   };
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current);
+      if (fecharAberta === fechar) fecharAberta = null;
+    },
+    [fechar],
+  );
 
   // Posição: em cima do alvo; embaixo se não couber; sempre dentro da tela.
   useLayoutEffect(() => {
@@ -125,9 +140,12 @@ export function Dica(props: { conteudo: ReactNode | (() => ReactNode); children:
         if (aberta) fechar();
         else {
           clearTimeout(timer.current);
-          setAberta(true);
+          abrir();
           timer.current = setTimeout(fechar, TOQUE_ABERTA_MS);
         }
+      } else if (interativo(alvo.current)) {
+        // Mouse ou teclado: ativar o botão fecha a dica, que já cumpriu o papel.
+        fechar();
       }
       p.onClick?.(ev);
     },
