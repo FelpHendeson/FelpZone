@@ -133,3 +133,63 @@ jobs:
             mesa-online/playwright-report
             mesa-online/test-results
           retention-days: 7
+
+  matrix-sim:
+    name: Matrix Sim — test, types and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: matrix-sim
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: matrix-sim/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Run tests
+        run: npm test
+
+      - name: Check types and build
+        run: npm run build
+
+  labs:
+    name: Felp Labs — test, types and build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: labs
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: labs/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Audit dependencies
+        run: npm audit --audit-level=high
+
+      - name: Run tests
+        run: npm test
+
+      - name: Check types and build
+        run: npm run build

@@ -1,0 +1,16 @@
+---
+description: Convenções dos experimentos matrix-sim, labs e basilis
+globs: matrix-sim/**,labs/**,basilis/**
+alwaysApply: false
+---
+
+# Matrix Sim, Felp Labs e Basilis
+
+- Cada lab responde uma única pergunta e registra a conclusão no próprio README; termine um lab antes de começar o seguinte.
+- Novo lab: pasta `labs/<seção>/<número>-<nome>/` com `index.html`, código e README (pergunta, o que testar, conclusão), registrado em `labs/hub/catalog.ts` e na tabela de `labs/README.md`.
+- Documentação de design do Basilis fica em `basilis/docs/`; o código dos experimentos fica em `labs/basilis/`.
+- Matrix Sim: a simulação roda em Web Worker e o desenho em outro, com OffscreenCanvas; não mova cálculo do motor para o React. Efeitos gráficos não avançam o relógio nem usam a aleatoriedade da simulação.
+- Respeite `prefers-reduced-motion` em animações.
+- Regras em TypeScript puro com testes; interface só exibe estado.
+- Pixel art: ampliação sem suavização; spritesheets de IA seguem `basilis/docs/PROMPTS-DE-FOLHAS.md`.
+- Confirme `npm test` e `npm run build` na pasta antes de sugerir commit.

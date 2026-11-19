@@ -1,0 +1,19 @@
+---
+description: Arquitetura e limites do LionHearth (idle-guilda), idle RPG de party em pixel art
+globs: idle-guilda/**
+alwaysApply: false
+---
+
+# LionHearth (idle-guilda)
+
+- Leia `idle-guilda/README.md` e `idle-guilda/docs/GDD.md` antes de implementar; a pasta e o projeto Vercel mantêm o nome `idle-guilda`.
+- Regras ficam em TypeScript puro em `src/motor/`; `src/ui/` só exibe estado e dispara ações. Ações devolvem estado novo ou erro.
+- A simulação roda em passos de 0,5 s, igual com o jogo aberto ou fechado; todo sorteio usa o gerador com semente guardada no save (nada de `Math.random` nas regras).
+- Buffs, passivas, auras, conjuntos, relíquias, afixos e nós da árvore passam pelo mesmo modelo de modificadores; sistema novo deve produzir modificadores.
+- Dados do jogo vivem em `src/motor/dados/`; números novos devem ser conferidos pelo bot de ritmo e registrados no GDD.
+- Trate saves e respostas da API como entrada não confiável; save de nuvem tem limite de 200 KB.
+- Contas: senha só como hash `scrypt`, cookie `httpOnly`; chaves do Redis começam com `idle-guilda:` (o banco é compartilhado com o Mesa Online).
+- Arte: spritesheets geradas por IA ficam em `arte-fonte/` e são processadas por `scripts/fatiar.py`; prompts em `prompts/idle-guilda/`. Mantenha o fallback em sprite de texto enquanto a folha carrega.
+- Interface mobile-first; valide também em desktop.
+- Atualize o GDD quando mudar regra, fórmula ou ritmo.
+- Teste regras e persistência (`npm test`) e confirme `npm run build` antes de sugerir commit.

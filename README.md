@@ -67,6 +67,7 @@ A pasta [`.cursor`](.cursor/README.md) contém o contexto compartilhado com assi
 - `rules/felpzone.mdc`: princípios que devem ser considerados em toda tarefa neste repositório.
 - `rules/mesa-online.mdc`: arquitetura e limites do hub de jogos de tabuleiro.
 - `commands/nova-ideia.md`: roteiro para planejar e iniciar um experimento.
+- `rules/idle-guilda.mdc` e `rules/experimentos-web.mdc`: arquitetura e limites do LionHearth e dos experimentos `matrix-sim`/`labs`.
 - `commands/revisar-ideia.md`: roteiro para avaliar um experimento existente.
 
 As regras dão contexto persistente. Os comandos são prompts reutilizáveis: abra o arquivo correspondente ou invoque-o pelo nome quando o editor oferecer suporte a comandos personalizados.
@@ -86,12 +87,16 @@ Use valores de exemplo em `.env.example`, como `API_KEY=adicione_sua_chave_aqui`
 
 ## Estado atual
 
-Laboratório ativo com dois projetos: o RPG, em protótipo jogável e publicado, e o Mesa Online, um hub de jogos de tabuleiro em primeira versão jogável e publicada. Os Sistemas 1 a 13 do RPG estão implementados e consolidados. Os Sistemas 14 a 17 estão especificados, nesta ordem: itens/equipamentos/preparação; condições/elementos/combate; Jardim de habilidades; NPCs persistentes/agenda/mundo vivo. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
+Laboratório ativo com vários projetos independentes (tabela abaixo). Em novembro de 2026 o foco está no **LionHearth** (`idle-guilda`). O RPG Reset está em protótipo jogável e publicado, com os Sistemas 1 a 29 implementados e o primeiro arco (Os Sete Dias) fechado; o Mesa Online está publicado com Magnata, Dominó e Truco; o `myDigitalExistence` segue só como planejamento. Cada projeto mantém documentação própria sobre decisões confirmadas, sistemas implementados e ideias ainda incertas.
 
 ## Ideias
 
 | Projeto | Estado | Descrição |
 | --- | --- | --- |
-| [RPG Narrativo com IA](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistemas 1–13 completos; 14–17 especificados | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, jornadas, presenças, progressão do Sistema, combate por turnos e evolução planejada até um mundo vivo. |
-| [Mesa Online](mesa-online/README.md) | Publicado; Evolução 1 (acontecimentos, perfis, temas, empréstimos e ausência) | Hub de jogos de tabuleiro multijogador pelo navegador do celular, com salas por código, chat, retratos, temas de tabuleiro e robôs para jogar sozinho. Primeiro jogo: Magnata, de compra e venda de imóveis. |
-| [LionHearth: Crônicas das Sky Islands](idle-guilda/README.md) | v1.0 jogável e [publicada](https://idle-guilda.vercel.app/) | Idle RPG de party em pixel art: cinco heróis com 7 atributos lutam em combate contínuo; equipamentos em 10 espaços com conjuntos e relíquias, árvore e jardim de fusão de habilidades, ferreiro, loja, expedições, campanha e ranking online. |
+| [RPG Narrativo com IA (Reset)](rpg-narrativo-ia/README.md) | Sandbox jogável; Sistemas 1–29 completos; Dias 1–7 fechados | RPG mobile-first com narrativa, exploração, sobrevivência, crafting, combate por rodadas, progressão do Sistema, mundo vivo e arco inicial dos Sete Dias. |
+| [Mesa Online](mesa-online/README.md) | Publicado; Evolução 5 | Hub de jogos de mesa multijogador pelo navegador do celular, com salas por código, contas, Funcoins, grupos privados, avisos e robôs. Jogos: Magnata, Dominó e Truco. |
+| [LionHearth: Crônicas das Sky Islands](idle-guilda/README.md) | v1.0 jogável e [publicada](https://idle-guilda.vercel.app/); arte em produção | Idle RPG de party em pixel art: cinco heróis, equipamentos em 10 espaços, árvore e jardim de habilidades, expedições, campanha e ranking online. |
+| [Matrix Sim](matrix-sim/README.md) | Etapa 3 | Simulação de mundo com território procedural, clima, vegetação e a primeira espécie (Folhins). |
+| [Felp Labs](labs/README.md) | Labs Basilis 01–04 concluídos; 05 em teste | Hub de micro-experimentos, cada um respondendo uma única pergunta. |
+| [Basilis: O Novo Mundo](basilis/README.md) | Labs | Documentação do RPG de ação top-down; os experimentos ficam em `labs/basilis/`. |
+| [myDigitalExistence](myDigitalExistence/README.md) | Só planejamento | Jogo mobile em Unity 2D com personagem modular, runas e progressão RPG; ainda sem projeto Unity versionado. |

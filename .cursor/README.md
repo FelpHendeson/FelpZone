@@ -7,6 +7,8 @@ Esta pasta mantém mecanismos compartilhados para trabalhar com assistentes de I
 Contém regras persistentes no formato `.mdc`. O Cursor carrega essas instruções como contexto do projeto.
 
 - `felpzone.mdc` se aplica sempre e orienta organização, segurança, documentação e qualidade.
+- `rpg-narrativo.mdc`, `mesa-online.mdc`, `idle-guilda.mdc` e `experimentos-web.mdc` se aplicam por `globs` à pasta do projeto correspondente (`matrix-sim`, `labs` e `basilis` compartilham a última).
+- Não há regra para `myDigitalExistence`: ele tem o próprio `AGENTS.md`.
 
 Edite a regra quando um princípio passar a valer para todo o repositório. Para convenções específicas de uma tecnologia, crie outra regra com `alwaysApply: false` e um `globs` adequado, por exemplo `**/*.tsx`.
 
