@@ -197,6 +197,69 @@ export function posicoesDaParty(ids: PersonagemId[]): Map<PersonagemId, [number,
   return r;
 }
 
+/** Tamanho dos monstros de folha: chefes aparecem maiores. */
+const ESCALA_MONSTRO = 0.5;
+const ESCALA_CHEFE = 0.7;
+const DURACAO_MORTE = 0.6;
+
+/** Memória só de desenho: onde cada inimigo estava, para animar a morte depois que ele sai do estado. */
+const ultimosInimigos = new Map<number, { monstro: string; chefe: boolean; x: number; y: number }>();
+const morrendo: { monstro: string; chefe: boolean; x: number; y: number; inicio: number }[] = [];
+
+function desenharMonstroFolha(
+  ctx: CanvasRenderingContext2D,
+  monstro: string,
+  chefe: boolean,
+  barra: number,
+  atingidoAgora: boolean,
+  x: number,
+  y: number,
+  t: number,
+): boolean {
+  const nome = `monstro-${monstro}`;
+  const f = folha(nome);
+  if (!f) return false;
+  let animacao: Animacao = 'parado';
+  let progresso = t * 0.8;
+  let repetir = true;
+  if (chefe && f.animacoes.chefe) animacao = 'chefe';
+  else if (barra < 0.3) {
+    animacao = 'ataque';
+    progresso = barra / 0.3;
+    repetir = false;
+  } else if (atingidoAgora) {
+    animacao = 'dano';
+    progresso = (t * 4) % 1;
+  }
+  const escala = chefe ? ESCALA_CHEFE : ESCALA_MONSTRO;
+  // Pés no mesmo ponto do sprite em texto (16×16, ou 32×32 no chefe).
+  const [pX, pY] = chefe ? [x + 16, y + 32] : [x + 8, y + 16];
+  return desenharQuadro(ctx, nome, quadroDa(f, animacao, progresso, repetir), pX, pY, escala);
+}
+
+/** Inimigos que acabaram de sumir do estado tocam a animação de morte por um instante. */
+function desenharMortes(ctx: CanvasRenderingContext2D, vivos: { uid: number }[], t: number) {
+  const atuais = new Set(vivos.map((i) => i.uid));
+  for (const [uid, dados] of ultimosInimigos) {
+    if (atuais.has(uid)) continue;
+    ultimosInimigos.delete(uid);
+    if (folha(`monstro-${dados.monstro}`)?.animacoes.morte) morrendo.push({ ...dados, inicio: t });
+  }
+  for (let k = morrendo.length - 1; k >= 0; k--) {
+    const m = morrendo[k];
+    const idade = t - m.inicio;
+    if (idade > DURACAO_MORTE || idade < 0) {
+      morrendo.splice(k, 1);
+      continue;
+    }
+    const f = folha(`monstro-${m.monstro}`)!;
+    const [pX, pY] = m.chefe ? [m.x + 16, m.y + 32] : [m.x + 8, m.y + 16];
+    ctx.globalAlpha = 1 - idade / DURACAO_MORTE / 2;
+    desenharQuadro(ctx, `monstro-${m.monstro}`, quadroDa(f, 'morte', idade / DURACAO_MORTE, false), pX, pY, m.chefe ? ESCALA_CHEFE : ESCALA_MONSTRO);
+    ctx.globalAlpha = 1;
+  }
+}
+
 const GOLPES_DE_INVESTIDA = ['investidaDoLeao', 'golpeJusto', 'julgamentoDoLeao'];
 
 /**
@@ -309,13 +372,18 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
   }
 
   if (!descansando) {
+    desenharMortes(ctx, b.inimigos, t);
     b.inimigos.forEach((i, n) => {
       const s: Sprite = spriteMonstro(i.monstro);
       const [px, py] = i.chefe ? [104, CHAO - 34] : POSICOES_INIMIGOS[n % POSICOES_INIMIGOS.length];
       const pulo = Math.floor(t * 3 + n) % 2;
       const flash = atingido(e, `i:${i.uid}`);
       const x = px + (flash ? 1 : 0);
-      if (i.chefe) {
+      ultimosInimigos.set(i.uid, { monstro: i.monstro, chefe: i.chefe, x, y: py });
+      const comFolha = desenharMonstroFolha(ctx, i.monstro, i.chefe, i.barra, flash, x, py, t + n * 0.3);
+      if (comFolha) {
+        // Desenhado pela spritesheet.
+      } else if (i.chefe) {
         // Chefe em dobro: desenha cada pixel 2×2.
         const tmp = document.createElement('canvas');
         tmp.width = largura(s);
@@ -334,7 +402,7 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
         ctx.fillRect(x + 9, py - 6, 2, 2);
       }
       const w = i.chefe ? 28 : 14;
-      barraVida(ctx, x + 1, py - 4 - (i.chefe ? 2 : 0), w, i.vida / vidaMaximaInimigo(i), i.escudo, i.chefe ? '#ff9a3a' : '#e04a4a');
+      barraVida(ctx, x + 1, py - 4 - (i.chefe ? (comFolha ? 10 : 2) : 0), w, i.vida / vidaMaximaInimigo(i), i.escudo, i.chefe ? '#ff9a3a' : '#e04a4a');
     });
   }
 

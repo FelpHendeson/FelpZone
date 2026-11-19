@@ -231,5 +231,42 @@
         15
       ]
     }
+  },
+  "monstro-gosma": {
+    "imagem": "sprites/monstro-gosma.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 58,
+    "centro": 31.0,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    }
   }
 }

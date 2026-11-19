@@ -16,7 +16,7 @@ export interface Folha {
   animacoes: Record<string, number[]>;
 }
 
-export type Animacao = 'parado' | 'ataque' | 'habilidade' | 'investida' | 'dano' | 'caido';
+export type Animacao = 'parado' | 'ataque' | 'habilidade' | 'investida' | 'dano' | 'caido' | 'morte' | 'chefe';
 
 const FOLHAS = manifesto as Record<string, Folha>;
 const imagens = new Map<string, HTMLImageElement>();

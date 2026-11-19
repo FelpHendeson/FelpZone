@@ -253,5 +253,45 @@
         15
       ]
     }
+  },
+  "monstro-gosma": {
+    "arquivo": "monstro-gosma.jpg",
+    "linhas": [
+      4,
+      4,
+      4,
+      4
+    ],
+    "colunasGrade": 4,
+    "reducao": 4,
+    "espelhar": false,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "dano": [
+        8,
+        9
+      ],
+      "morte": [
+        10,
+        11
+      ],
+      "chefe": [
+        12,
+        13,
+        14,
+        15
+      ]
+    }
   }
 }
