@@ -173,7 +173,7 @@ interface Props {
   agir: Agir;
   aoFerreiro: (uid: string) => void;
   /** Vindo da Ficha: abre filtrada para este herói. */
-  paraHeroi?: { heroi: PersonagemId } | null;
+  paraHeroi?: { heroi: PersonagemId; soMelhorias?: boolean } | null;
 }
 
 export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
@@ -198,7 +198,7 @@ export function Mochila({ estado: e, agir, aoFerreiro, paraHeroi }: Props) {
   }, [pref]);
 
   useEffect(() => {
-    if (paraHeroi) setPref((p) => ({ ...p, filtro: { ...FILTRO_PADRAO, heroi: paraHeroi.heroi } }));
+    if (paraHeroi) setPref((p) => ({ ...p, filtro: { ...FILTRO_PADRAO, heroi: paraHeroi.heroi, soMelhorias: !!paraHeroi.soMelhorias } }));
   }, [paraHeroi]);
 
   const mudarFiltro = (f: Partial<FiltroMochila>) => setPref((p) => ({ ...p, filtro: { ...p.filtro, ...f } }));
@@ -526,7 +526,7 @@ function EscolherHeroi(props: { estado: Estado; item: Item; aoFechar: () => void
           const dif = diferencaStats(item, alvo?.atual);
           return (
             <li key={h.id} className={motivo ? 'nao' : ''}>
-              <Retrato id={h.id} tamanho={40} apagado={!!motivo} />
+              <Retrato id={h.id} tamanho={40} />
               <span className="escolha-heroi-info">
                 <strong>{PERSONAGENS[h.id].nome}</strong>
                 {motivo ? (

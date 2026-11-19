@@ -74,7 +74,7 @@ export function App() {
   const [tela, setTela] = useState<Tela>('inicio');
   const [aba, setAba] = useState<DestinoUi>('batalha');
   const [destaqueFerreiro, setDestaqueFerreiro] = useState<string | null>(null);
-  const [mochilaPara, setMochilaPara] = useState<{ heroi: PersonagemId } | null>(null);
+  const [mochilaPara, setMochilaPara] = useState<{ heroi: PersonagemId; soMelhorias?: boolean } | null>(null);
   const [abaCidade, setAbaCidade] = useState<AbaCidade>('ferreiro');
   const [janela, setJanela] = useState<Janela>(null);
   const [heroiAberto, setHeroiAberto] = useState<PersonagemId | null>(null);
@@ -405,6 +405,10 @@ export function App() {
           <Party
             estado={estado}
             aoAbrir={setHeroiAberto}
+            aoEquiparMelhor={(heroi) => {
+              setMochilaPara({ heroi, soMelhorias: true });
+              irPara('mochila');
+            }}
             aoTaverna={() => {
               setAbaCidade('taverna');
               irPara('cidade');

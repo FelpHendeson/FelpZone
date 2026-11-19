@@ -3,7 +3,12 @@ import { MISSOES } from '../motor/dados/missoes';
 import type { Estado, Heroi, PersonagemId } from '../motor/tipos';
 import { situacaoDoNo } from '../motor/acoes';
 import { ARVORES } from '../motor/dados/arvores';
-import { Medidor, Retrato } from './comum';
+import { iconeSlotVazio } from '../arte/icones';
+import { NOME_SLOT, SLOTS } from '../motor/dados/itens';
+import { IconeItem, Medidor, Retrato } from './comum';
+import { ehPossivelMelhoria } from './mochila';
+import { Icone } from './pixel';
+import { nomeItem } from './texto';
 import { duracao } from './texto';
 
 export function atividadeTexto(e: Estado, h: Heroi): string {
@@ -18,7 +23,7 @@ export function temNoDisponivel(h: Heroi): boolean {
   return h.pontosHabilidade > 0 && ARVORES[h.id].nos.some((n) => situacaoDoNo(h, n.id) === 'disponivel');
 }
 
-export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => void; aoTaverna: () => void }) {
+export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => void; aoTaverna: () => void; aoEquiparMelhor: (id: PersonagemId) => void }) {
   const e = props.estado;
   return (
     <section className="painel">
@@ -35,20 +40,21 @@ export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => vo
                   <Retrato id={id} tamanho={64} apagado />
                   <span className="heroi-info">
                     <strong>{p.nome}</strong>
-                    <small>{p.titulo} · {p.raca}</small>
                     <small>
-                      {p.recrutamento ? `Na Taverna a partir do nível ${p.recrutamento.nivel} do Sir LionHearth` : ''}
+                      {p.titulo} · {p.raca}
                     </small>
+                    <small>{p.recrutamento ? `Na Taverna a partir do nível ${p.recrutamento.nivel} do Sir LionHearth` : ''}</small>
                   </span>
                 </button>
               </li>
             );
           }
           const avisos = [h.pontosLivres > 0 && `+${h.pontosLivres} pontos`, temNoDisponivel(h) && 'árvore'].filter(Boolean);
+          const melhores = e.inventario.filter((i) => ehPossivelMelhoria(h, i)).length;
           return (
-            <li key={id}>
+            <li key={id} className="party-cartao">
               <button className="heroi-cartao" onClick={() => props.aoAbrir(id)}>
-                <Retrato id={id} tamanho={64} animar />
+                <Retrato id={id} tamanho={72} animar />
                 <span className="heroi-info">
                   <span className="linha-nome">
                     <strong>{p.nome}</strong>
@@ -57,7 +63,14 @@ export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => vo
                   <small>
                     {p.titulo} · {p.raca} · nível {h.nivel}
                   </small>
-                  <Medidor rotulo="XP" valor={h.xp} maximo={xpParaProximo(h.nivel)} cor="#5b9bff" texto={`${Math.floor((h.xp / xpParaProximo(h.nivel)) * 100)}%`} fino />
+                  <Medidor
+                    rotulo="XP"
+                    valor={h.xp}
+                    maximo={xpParaProximo(h.nivel)}
+                    cor="#5b9bff"
+                    texto={`${Math.floor((h.xp / xpParaProximo(h.nivel)) * 100)}%`}
+                    fino
+                  />
                   <small className={h.atividade.tipo === 'batalha' ? '' : 'fora'}>{atividadeTexto(e, h)}</small>
                   {avisos.length > 0 && (
                     <span className="selos">
@@ -69,6 +82,19 @@ export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => vo
                     </span>
                   )}
                 </span>
+              </button>
+              <ul className="party-espacos" aria-label={`Equipamento de ${p.nome}`}>
+                {SLOTS.map((s) => {
+                  const item = h.equipamento[s];
+                  return (
+                    <li key={s} className={item ? `raridade-${item.raridade}` : 'vazio'} aria-label={`${NOME_SLOT[s]}: ${item ? nomeItem(item) : 'vazio'}`}>
+                      {item ? <IconeItem item={item} escala={2} /> : <Icone chave={`vazio-${s}`} sprite={iconeSlotVazio(s)} escala={2} />}
+                    </li>
+                  );
+                })}
+              </ul>
+              <button className={melhores > 0 ? 'principal' : ''} disabled={melhores === 0} onClick={() => props.aoEquiparMelhor(id)}>
+                {melhores > 0 ? `Equipar melhor (${melhores} na mochila)` : 'Nada melhor na mochila'}
               </button>
             </li>
           );
