@@ -5,6 +5,7 @@ import { objetivoAtual, objetivoCumprido, type Destino } from '../motor/objetivo
 import { desserializar, serializar, type Save } from '../motor/save';
 import type { Estado, PersonagemId } from '../motor/tipos';
 import type { NomeIconeUi } from '../arte/ui';
+import { INVENTARIO_MAXIMO } from '../motor/dados/itens';
 import { baixarSave, consultarConta, enviarSave, ErroNuvem, excluirConta, pulso, sairDaConta } from '../nuvem';
 import { Backup } from './Backup';
 import { Barra } from './Barra';
@@ -17,6 +18,7 @@ import { Conta, type SituacaoConta, type SituacaoNuvem } from './Conta';
 import { Diario } from './Diario';
 import { Expedicoes } from './Expedicoes';
 import { Ficha } from './Ficha';
+import { AvisoMochilaCheia, Mochila, useMelhorias } from './Mochila';
 import { IconeUi } from './IconeUi';
 import { Menu } from './Menu';
 import { MenuInicial } from './MenuInicial';
@@ -52,9 +54,13 @@ function nuvemAtrasada(local: Estado, remoto: Estado): boolean {
   return ids(local).startsWith(ids(remoto)) && remoto.tempo <= local.tempo && remoto.estatisticas.abates <= local.estatisticas.abates;
 }
 
-const ABAS: [Destino, NomeIconeUi, string][] = [
+/** Abas da interface: os destinos do motor mais a Mochila, que só existe na UI. */
+type DestinoUi = Destino | 'mochila';
+
+const ABAS: [DestinoUi, NomeIconeUi, string][] = [
   ['batalha', 'batalha', 'Batalha'],
   ['party', 'party', 'Party'],
+  ['mochila', 'mochila', 'Mochila'],
   ['cidade', 'cidade', 'Cidade'],
   ['expedicoes', 'expedicoes', 'Expedições'],
   ['mundo', 'mundo', 'Mundo'],
@@ -66,7 +72,9 @@ export function App() {
   const [resumo, setResumo] = useState<ResumoOffline | null>(inicial.resumo);
   const [ultimoSalvo, setUltimoSalvo] = useState<number | null>(inicial.salvoEm);
   const [tela, setTela] = useState<Tela>('inicio');
-  const [aba, setAba] = useState<Destino>('batalha');
+  const [aba, setAba] = useState<DestinoUi>('batalha');
+  const [destaqueFerreiro, setDestaqueFerreiro] = useState<string | null>(null);
+  const [mochilaPara, setMochilaPara] = useState<{ heroi: PersonagemId } | null>(null);
   const [abaCidade, setAbaCidade] = useState<AbaCidade>('ferreiro');
   const [janela, setJanela] = useState<Janela>(null);
   const [heroiAberto, setHeroiAberto] = useState<PersonagemId | null>(null);
@@ -253,7 +261,7 @@ export function App() {
     setJanela(null);
   };
 
-  const irPara = (destino: Destino) => {
+  const irPara = (destino: DestinoUi) => {
     setHeroiAberto(null);
     setAba(destino);
     window.scrollTo({ top: 0 });
@@ -365,8 +373,9 @@ export function App() {
   };
 
   const objetivo = objetivoAtual(estado);
-  const alerta = (id: Destino) => {
+  const alerta = (id: DestinoUi, melhorias: number) => {
     if (aba === id) return false;
+    if (id === 'mochila') return estado.inventario.length >= INVENTARIO_MAXIMO - 5 || melhorias > 0;
     if (objetivo && !objetivoCumprido(estado) && objetivo.destino === id) return true;
     if (id === 'party') return estado.herois.some((h) => h.pontosLivres > 0 || temNoDisponivel(h));
     if (id === 'expedicoes') return estado.herois.some((h) => h.atividade.tipo !== 'batalha' && estado.tempo >= h.atividade.fim);
@@ -376,7 +385,7 @@ export function App() {
 
   return (
     <div className="app">
-      <Barra estado={estado} nuvem={conta.apelido ? nuvem : null} aoMenu={() => setJanela('menu')} />
+      <Barra estado={estado} nuvem={conta.apelido ? nuvem : null} aoMenu={() => setJanela('menu')} aoMochila={() => irPara('mochila')} />
       <main>
         <Objetivo
           estado={estado}
@@ -390,6 +399,7 @@ export function App() {
             irPara(d);
           }}
         />
+        {aba === 'batalha' && <AvisoMochilaCheia estado={estado} agir={agir} />}
         {aba === 'batalha' && <Batalha estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} aoBestiario={() => setJanela('bestiario')} />}
         {aba === 'party' && (
           <Party
@@ -401,20 +411,35 @@ export function App() {
             }}
           />
         )}
-        {aba === 'cidade' && <Cidade estado={estado} agir={agir} aba={abaCidade} aoTrocar={setAbaCidade} />}
+        {aba === 'mochila' && (
+          <Mochila
+            estado={estado}
+            agir={agir}
+            paraHeroi={mochilaPara}
+            aoFerreiro={(uid) => {
+              setAbaCidade('ferreiro');
+              setDestaqueFerreiro(uid);
+              irPara('cidade');
+            }}
+          />
+        )}
+        {aba === 'cidade' && <Cidade estado={estado} agir={agir} aba={abaCidade} aoTrocar={setAbaCidade} destaque={destaqueFerreiro} />}
         {aba === 'expedicoes' && <Expedicoes estado={estado} agir={agir} />}
         {aba === 'mundo' && <Mundo conta={conta} agir={agir} aoConta={() => setJanela('conta')} aoAviso={setAviso} />}
       </main>
-      <nav className="abas">
-        {ABAS.map(([id, icone, rotulo]) => (
-          <button key={id} className={aba === id ? 'ativa' : ''} onClick={() => irPara(id)}>
-            <IconeUi nome={icone} tamanho={18} />
-            {rotulo}
-            {alerta(id) && <span className="alerta" aria-label="(tem algo para fazer aqui)" />}
-          </button>
-        ))}
-      </nav>
-      {heroiAberto && <Ficha estado={estado} heroi={heroiAberto} agir={agir} aoFechar={() => setHeroiAberto(null)} />}
+      <Navegacao estado={estado} aba={aba} alerta={alerta} irPara={irPara} />
+      {heroiAberto && (
+        <Ficha
+          estado={estado}
+          heroi={heroiAberto}
+          agir={agir}
+          aoFechar={() => setHeroiAberto(null)}
+          aoMochila={(heroi) => {
+            setMochilaPara({ heroi });
+            irPara('mochila');
+          }}
+        />
+      )}
       {janela === 'menu' && (
         <Menu
           ultimoSalvo={ultimoSalvo}
@@ -442,5 +467,21 @@ export function App() {
       {resumo && !janela && <ResumoOfflineModal resumo={resumo} aoFechar={() => setResumo(null)} />}
       {janelas}
     </div>
+  );
+}
+
+/** Barra de abas. Componente próprio para o cálculo de melhorias rodar só com estado. */
+function Navegacao(props: { estado: Estado; aba: DestinoUi; alerta: (id: DestinoUi, melhorias: number) => boolean; irPara: (d: DestinoUi) => void }) {
+  const melhorias = useMelhorias(props.estado).size;
+  return (
+    <nav className="abas">
+      {ABAS.map(([id, icone, rotulo]) => (
+        <button key={id} className={props.aba === id ? 'ativa' : ''} aria-current={props.aba === id ? 'page' : undefined} onClick={() => props.irPara(id)}>
+          <IconeUi nome={icone} tamanho={20} />
+          <span className="aba-rotulo">{rotulo}</span>
+          {props.alerta(id, melhorias) && <span className="alerta" aria-label="(tem algo para fazer aqui)" />}
+        </button>
+      ))}
+    </nav>
   );
 }

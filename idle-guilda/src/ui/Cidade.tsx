@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   colherFusao,
   comprar,
@@ -33,9 +33,11 @@ interface Props {
   agir: (acao: (e: Estado) => Resultado) => void;
   aba: AbaCidade;
   aoTrocar: (a: AbaCidade) => void;
+  /** Item vindo da Mochila: abre o Ferreiro em Melhorar com ele em destaque. */
+  destaque?: string | null;
 }
 
-export function Cidade({ estado: e, agir, aba, aoTrocar }: Props) {
+export function Cidade({ estado: e, agir, aba, aoTrocar, destaque }: Props) {
   const recrutavel = ORDEM_PERSONAGENS.some((id) => {
     const r = PERSONAGENS[id].recrutamento;
     return r && !e.herois.some((h) => h.id === id) && (e.herois[0]?.nivel ?? 1) >= r.nivel && e.ouro >= r.ouro;
@@ -53,7 +55,7 @@ export function Cidade({ estado: e, agir, aba, aoTrocar }: Props) {
         ativa={aba}
         aoTrocar={aoTrocar}
       />
-      {aba === 'ferreiro' && <Ferreiro e={e} agir={agir} />}
+      {aba === 'ferreiro' && <Ferreiro e={e} agir={agir} destaque={destaque ?? null} />}
       {aba === 'loja' && <Loja e={e} agir={agir} />}
       {aba === 'taverna' && <Taverna e={e} agir={agir} />}
       {aba === 'jardim' && <Jardim e={e} agir={agir} />}
@@ -81,8 +83,15 @@ const GRUPOS_FORJA: [string, string[]][] = [
   ['Acessórios', ['anel', 'amuleto', 'bracelete']],
 ];
 
-function Ferreiro({ e, agir }: { e: Estado; agir: Props['agir'] }) {
-  const [modo, setModo] = useState<'forjar' | 'melhorar' | 'desmontar'>('forjar');
+function Ferreiro({ e, agir, destaque }: { e: Estado; agir: Props['agir']; destaque: string | null }) {
+  const [modo, setModo] = useState<'forjar' | 'melhorar' | 'desmontar'>(destaque ? 'melhorar' : 'forjar');
+  useEffect(() => {
+    if (!destaque) return;
+    setModo('melhorar');
+    // Espera a lista aparecer para rolar até o item.
+    const id = requestAnimationFrame(() => document.getElementById(`melhorar-${destaque}`)?.scrollIntoView({ block: 'center' }));
+    return () => cancelAnimationFrame(id);
+  }, [destaque]);
   const liberados = MAPAS.filter((m) => e.mapasLiberados.includes(m.id));
   const [mapa, setMapa] = useState(liberados.at(-1)!.id);
   const [base, setBase] = useState('peitoral-pesada');
@@ -156,7 +165,7 @@ function Ferreiro({ e, agir }: { e: Estado; agir: Props['agir'] }) {
               const c = custoMelhoria(item);
               const falta = e.ouro < c.ouro || e.materiais[c.material] < c.quantidade || e.materiais.essencia < c.essencia;
               return (
-                <li key={item.uid}>
+                <li key={item.uid} id={`melhorar-${item.uid}`} className={item.uid === destaque ? 'destaque' : ''}>
                   <DetalheItem
                     item={item}
                     compacto
