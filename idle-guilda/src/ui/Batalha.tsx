@@ -2,11 +2,12 @@ import { useMemo } from 'react';
 import { BATALHA_ALTURA, BATALHA_ESCALA, BATALHA_LARGURA, desenharBatalha } from '../arte/batalha';
 import { irParaMapa, type Resultado } from '../motor/acoes';
 import { criarContexto, vidaMaximaEmBatalha } from '../motor/combate';
-import { COR_ELEMENTO, PERSONAGENS } from '../motor/dados/personagens';
+import { COR_ELEMENTO, NOME_ELEMENTO, PERSONAGENS } from '../motor/dados/personagens';
 import { MAPAS, mapaPorId, nivelDaOnda, ONDAS_POR_CHEFE } from '../motor/dados/mapas';
 import { habilidade, recargaEfetiva, statsDoHeroi } from '../motor/status';
-import type { Estado, PersonagemId } from '../motor/tipos';
+import type { Estado, Habilidade, PersonagemId } from '../motor/tipos';
 import { Medidor, Retrato } from './comum';
+import { Dica } from './Dica';
 import { CanvasPixel } from './pixel';
 import { inteiro, nomeCurto, nomeHabilidade } from './texto';
 
@@ -97,19 +98,24 @@ export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
                       {h.equipadas.map((id) => {
                         const hab = habilidade(e, id);
                         if (!hab) return null;
+                        const nivel = h.habilidades.find((x) => x.id === id)?.nivel ?? 1;
                         if (hab.tipo === 'passiva') {
                           return (
-                            <span key={id} className="recarga passiva" title={`${hab.nome} (passiva)`}>
-                              <span style={{ background: COR_ELEMENTO[hab.elemento] }} />
-                            </span>
+                            <Dica key={id} conteudo={<DicaHabilidade hab={hab} nivel={nivel} />}>
+                              <span className="recarga passiva" tabIndex={0} aria-label={`${hab.nome} (passiva)`}>
+                                <span style={{ background: COR_ELEMENTO[hab.elemento] }} />
+                              </span>
+                            </Dica>
                           );
                         }
-                        const total = recargaEfetiva(hab, stats, mods, h.habilidades.find((x) => x.id === id)?.nivel ?? 1);
+                        const total = recargaEfetiva(hab, stats, mods, nivel);
                         const resta = comb?.recargas[id] ?? 0;
                         return (
-                          <span key={id} className={`recarga ${resta <= 0 ? 'pronta' : ''}`} title={`${hab.nome}: ${resta > 0 ? `${Math.ceil(resta)} s` : 'pronta'}`}>
-                            <span style={{ background: COR_ELEMENTO[hab.elemento], height: `${(1 - resta / total) * 100}%` }} />
-                          </span>
+                          <Dica key={id} conteudo={() => <DicaHabilidade hab={hab} nivel={nivel} recarga={total} resta={resta} />}>
+                            <span className={`recarga ${resta <= 0 ? 'pronta' : ''}`} tabIndex={0} aria-label={`${hab.nome}: ${resta > 0 ? `${Math.ceil(resta)} s` : 'pronta'}`}>
+                              <span style={{ background: COR_ELEMENTO[hab.elemento], height: `${(1 - resta / total) * 100}%` }} />
+                            </span>
+                          </Dica>
                         );
                       })}
                     </span>
@@ -159,6 +165,29 @@ export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
           })}
         </ul>
       </section>
+    </>
+  );
+}
+
+/** Conteúdo da dica de uma habilidade em combate. */
+export function DicaHabilidade(props: { hab: Habilidade; nivel: number; recarga?: number; resta?: number }) {
+  const { hab } = props;
+  const tipo = hab.tipo === 'passiva' ? (hab.aura ? 'aura' : 'passiva') : hab.tipo === 'transformacao' ? 'transformação' : 'ativa';
+  return (
+    <>
+      <p>
+        <strong>{hab.nome}</strong> <span className={`rank rank-${hab.rank}`}>{hab.rank}</span>
+      </p>
+      <p className="suave">
+        <span className="ponto-elemento" style={{ background: COR_ELEMENTO[hab.elemento] }} aria-hidden /> {NOME_ELEMENTO[hab.elemento]} · {tipo} · nível {props.nivel}
+      </p>
+      <p>{hab.descricao}</p>
+      {props.recarga !== undefined && (
+        <p className="suave">
+          Recarga {props.recarga.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} s ·{' '}
+          {(props.resta ?? 0) > 0 ? `pronta em ${Math.ceil(props.resta ?? 0)} s` : 'pronta'}
+        </p>
+      )}
     </>
   );
 }

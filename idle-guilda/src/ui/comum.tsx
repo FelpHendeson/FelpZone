@@ -10,17 +10,49 @@ import { NOME_STAT, PERSONAGENS, STATS } from '../motor/dados/personagens';
 import { modsDoItem, statsDoItem } from '../motor/status';
 import type { Item, Material, PersonagemId, Stat } from '../motor/tipos';
 import { CanvasPixel, Icone } from './pixel';
-import { compacto, corRaridade, descreverMod, nomeItem } from './texto';
+import { compacto, corRaridade, descreverMod, inteiro, nomeItem } from './texto';
+import { Dica } from './Dica';
+import { MAPAS } from '../motor/dados/mapas';
 
-export function Recurso(props: { tipo: Material | 'ouro'; valor: number; falta?: boolean }) {
+/** Para que serve e de onde vem cada recurso (dica da barra superior). */
+export function textoDoRecurso(tipo: Material | 'ouro'): { uso: string; origem: string } {
+  if (tipo === 'ouro') return { uso: 'Compra na Loja e paga forja e melhorias.', origem: 'Vem de abates, expedições e vendas.' };
+  if (tipo === 'essencia') return { uso: 'Pedida em melhorias a partir de +6 e na forja com essência.', origem: 'Vem de peças raras desmontadas.' };
+  const mapa = MAPAS.find((m) => m.material === tipo);
+  return {
+    uso: 'Material de mapa: usado na forja e nas melhorias.',
+    origem: `Vem ${mapa ? `de ${mapa.nome}` : 'do mapa'} e de desmontar itens.`,
+  };
+}
+
+export function Recurso(props: { tipo: Material | 'ouro'; valor: number; falta?: boolean; dica?: boolean }) {
   const nome = props.tipo === 'ouro' ? 'Ouro' : MATERIAIS[props.tipo].nome;
-  return (
-    <span className={`recurso ${props.falta ? 'falta' : ''}`} title={nome}>
+  const corpo = (
+    <span className={`recurso ${props.falta ? 'falta' : ''}`} tabIndex={props.dica ? 0 : undefined}>
       <IconePintado id={props.tipo} tamanho={16} rotulo={nome}>
         <Icone chave={`mat-${props.tipo}`} sprite={ICONES_MATERIAIS[props.tipo]} rotulo={nome} />
       </IconePintado>
       {compacto(Math.floor(props.valor))}
     </span>
+  );
+  if (!props.dica) return corpo;
+  return (
+    <Dica
+      conteudo={() => {
+        const t = textoDoRecurso(props.tipo);
+        return (
+          <>
+            <p>
+              <strong>{nome}</strong> · {inteiro(props.valor)}
+            </p>
+            <p>{t.uso}</p>
+            <p className="suave">{t.origem}</p>
+          </>
+        );
+      }}
+    >
+      {corpo}
+    </Dica>
   );
 }
 

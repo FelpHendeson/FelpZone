@@ -28,6 +28,7 @@ import {
 import type { Estado, Habilidade, Heroi, PersonagemId, Slot } from '../motor/tipos';
 import { iconeSlotVazio } from '../arte/icones';
 import { DetalheItem, IconeItem, Retrato, SubAbas } from './comum';
+import { Dica } from './Dica';
 import { Modal } from './Modal';
 import { Icone } from './pixel';
 import { atividadeTexto, temNoDisponivel } from './Party';
@@ -40,9 +41,11 @@ interface Props {
   heroi: PersonagemId;
   agir: (acao: (e: Estado) => Resultado) => void;
   aoFechar: () => void;
+  /** Abre a Mochila filtrada para este herói. */
+  aoMochila?: (heroi: PersonagemId) => void;
 }
 
-export function Ficha({ estado: e, heroi, agir, aoFechar }: Props) {
+export function Ficha({ estado: e, heroi, agir, aoFechar, aoMochila }: Props) {
   const [aba, setAba] = useState<Aba>('status');
   const h = e.herois.find((x) => x.id === heroi);
   if (!h) return null;
@@ -74,7 +77,7 @@ export function Ficha({ estado: e, heroi, agir, aoFechar }: Props) {
       />
       <div className="ficha-corpo">
         {aba === 'status' && <Status e={e} h={h} agir={agir} />}
-        {aba === 'equipamento' && <Equipamento e={e} h={h} agir={agir} />}
+        {aba === 'equipamento' && <Equipamento e={e} h={h} agir={agir} aoMochila={aoMochila && (() => aoMochila(h.id))} />}
         {aba === 'habilidades' && <Habilidades e={e} h={h} agir={agir} />}
         {aba === 'arvore' && <Arvore e={e} h={h} agir={agir} />}
         {aba === 'historia' && (
@@ -123,9 +126,18 @@ function Status({ e, h, agir }: { e: Estado; h: Heroi; agir: Props['agir'] }) {
               {compacto(stats[s])}
               {h.pontos[s] > 0 && <small> ({h.pontos[s]} pts)</small>}
             </span>
-            <button className="mais" disabled={h.pontosLivres <= 0} onClick={() => agir((x) => distribuirPonto(x, h.id, s))} aria-label={`+1 ponto em ${NOME_STAT[s].nome}`} title={`+${VALOR_PONTO[s]}`}>
-              +
-            </button>
+            <Dica
+              conteudo={
+                <p>
+                  +{VALOR_PONTO[s].toLocaleString('pt-BR')} {NOME_STAT[s].curto} por ponto.{' '}
+                  {h.pontosLivres > 0 ? `Você tem ${h.pontosLivres} ${h.pontosLivres === 1 ? 'ponto livre' : 'pontos livres'}.` : 'Sem pontos livres: ganhe mais subindo de nível.'}
+                </p>
+              }
+            >
+              <button className="mais" disabled={h.pontosLivres <= 0} onClick={() => agir((x) => distribuirPonto(x, h.id, s))} aria-label={`+1 ponto em ${NOME_STAT[s].nome}`}>
+                +
+              </button>
+            </Dica>
           </li>
         ))}
       </ul>
@@ -144,7 +156,7 @@ function Status({ e, h, agir }: { e: Estado; h: Heroi; agir: Props['agir'] }) {
 
 /* ---------- Equipamento ---------- */
 
-function Equipamento({ e, h, agir }: { e: Estado; h: Heroi; agir: Props['agir'] }) {
+function Equipamento({ e, h, agir, aoMochila }: { e: Estado; h: Heroi; agir: Props['agir']; aoMochila?: () => void }) {
   const [slot, setSlot] = useState<Slot | null>(null);
   const conjuntos = pecasDeConjunto(h);
   return (
@@ -177,6 +189,11 @@ function Equipamento({ e, h, agir }: { e: Estado; h: Heroi; agir: Props['agir'] 
         </div>
       )}
       <p className="dica">Toque num espaço para equipar algo do inventário. Peças do mesmo conjunto somam bônus.</p>
+      {aoMochila && (
+        <button className="link" onClick={aoMochila}>
+          Ver o que {nomeCurto(h.id)} pode usar na Mochila →
+        </button>
+      )}
       {slot && <EscolherItem e={e} h={h} slot={slot} agir={agir} aoFechar={() => setSlot(null)} />}
     </section>
   );
@@ -257,10 +274,21 @@ export function CartaoHabilidade({ e, h, hab, acoes }: { e: Estado; h?: Heroi; h
           </small>
         </span>
         {aprendida && (
-          <span className="habilidade-nivel" title={`${aprendida.xp}/${XP_HABILIDADE(aprendida.nivel)} usos`}>
-            Nv {aprendida.nivel}
-            {aprendida.nivel < NIVEL_MAXIMO_HABILIDADE && <small>{Math.floor((aprendida.xp / XP_HABILIDADE(aprendida.nivel)) * 100)}%</small>}
-          </span>
+          <Dica
+            conteudo={
+              <p>
+                Nível {aprendida.nivel}
+                {aprendida.nivel < NIVEL_MAXIMO_HABILIDADE
+                  ? ` · faltam ${Math.max(0, Math.ceil(XP_HABILIDADE(aprendida.nivel) - aprendida.xp))} usos para o nível ${aprendida.nivel + 1}`
+                  : ' · nível máximo'}
+              </p>
+            }
+          >
+            <span className="habilidade-nivel" tabIndex={0}>
+              Nv {aprendida.nivel}
+              {aprendida.nivel < NIVEL_MAXIMO_HABILIDADE && <small>{Math.floor((aprendida.xp / XP_HABILIDADE(aprendida.nivel)) * 100)}%</small>}
+            </span>
+          </Dica>
         )}
       </div>
       <p>{hab.descricao}</p>

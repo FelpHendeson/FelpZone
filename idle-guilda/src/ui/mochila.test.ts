@@ -1,16 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { novoJogo } from '../motor/jogo';
 import type { Estado, Item } from '../motor/tipos';
-import {
-  diferencaStats,
-  espacoAlvo,
-  FILTRO_PADRAO,
-  filtrarItens,
-  heroisParaItem,
-  lerPreferencias,
-  ordenarItens,
-  pedeConfirmacao,
-} from './mochila';
+import { diferencaStats, espacoAlvo, FILTRO_PADRAO, filtrarItens, heroisParaItem, lerPreferencias, ordenarItens, pedeConfirmacao } from './mochila';
 
 let n = 0;
 function item(base: string, extra: Partial<Item> = {}): Item {

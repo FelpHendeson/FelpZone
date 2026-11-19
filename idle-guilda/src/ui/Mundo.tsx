@@ -7,6 +7,7 @@ import { PERSONAGENS } from '../motor/dados/personagens';
 import type { Estado, PersonagemId } from '../motor/tipos';
 import { aplaudir, ErroNuvem, lerMundo, type Mundo as DadosMundo, type PerfilPublico } from '../nuvem';
 import type { SituacaoConta } from './Conta';
+import { Dica } from './Dica';
 import { CanvasPixel } from './pixel';
 import { quandoFoi } from './resumo';
 import { inteiro } from './texto';
@@ -103,15 +104,11 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
           </small>
         </span>
         {conta.apelido && !sou && (
-          <button
-            className="aplaudir"
-            disabled={jaAplaudiu}
-            onClick={() => void darAplauso(p)}
-            aria-label={`Aplaudir ${p.apelido}`}
-            title={jaAplaudiu ? 'Já aplaudiu hoje' : 'Aplaudir: vocês dois ganham ouro'}
-          >
-            {jaAplaudiu ? '✓' : '👏'}
-          </button>
+          <Dica conteudo={<p>{jaAplaudiu ? 'Você já aplaudiu esta guilda hoje.' : `Aplaudir: você ganha ${OURO_APLAUSO_DADO} de ouro e ${p.apelido} ganha ${OURO_APLAUSO_RECEBIDO}.`}</p>}>
+            <button className="aplaudir" disabled={jaAplaudiu} onClick={() => void darAplauso(p)} aria-label={`Aplaudir ${p.apelido}`}>
+              {jaAplaudiu ? '✓' : '👏'}
+            </button>
+          </Dica>
         )}
       </li>
     );
