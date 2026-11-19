@@ -222,7 +222,20 @@ No characters, no creatures, no text, no UI, no watermark.
 
 ## Ícones (1:1, grade 4×4, sem referência)
 
-Use o bloco de estilo trocando a parte do personagem por *"Each cell contains one centered item icon, designed on a 32x32 grid, 8x8 blocks, magenta background #FF00FF"*.
+Não use o bloco de estilo dos personagens: com ele o Gemini chegou a pintar os ícones sobre um cenário inteiro, em 16:9.
+Use este bloco completo e cole a lista da folha no final:
+
+```text
+A sprite sheet of 16 RPG item icons, pixel art, 16-bit SNES-era style, crisp hard pixels,
+no anti-aliasing, no blur. Square 1:1 image arranged as a strict 4x4 grid of equal square cells.
+Each cell contains exactly ONE item icon, centered, designed on a 32x32 pixel grid (each pixel drawn
+as a 8x8 block), with a 1-pixel dark outline around the item.
+The ENTIRE background is flat solid magenta #FF00FF: no scenery, no sky, no floor, no shadows,
+no gradients, no frames, no text, no labels.
+```
+
+Se mesmo assim vier com cenário, anexe a imagem gerada e peça a edição:
+*"Keep all 16 item icons exactly as they are (same drawings, same order, same pixel art style), but remove the entire scenery: replace the whole background with a flat, solid magenta color #FF00FF, no sky, no clouds, no ruins, no floor, no shadows, no gradients. Square 1:1 image, icons arranged in a 4x4 grid with equal spacing, each icon centered in its cell."*
 
 ### `icones-equipamentos.png`
 
