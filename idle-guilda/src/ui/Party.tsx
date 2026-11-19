@@ -23,7 +23,7 @@ export function temNoDisponivel(h: Heroi): boolean {
   return h.pontosHabilidade > 0 && ARVORES[h.id].nos.some((n) => situacaoDoNo(h, n.id) === 'disponivel');
 }
 
-export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => void; aoTaverna: () => void; aoEquiparMelhor: (id: PersonagemId) => void }) {
+export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => void; aoTaverna: () => void; aoEquiparMelhor: (id: PersonagemId) => void; recemSubiu?: PersonagemId[] }) {
   const e = props.estado;
   return (
     <section className="painel">
@@ -52,9 +52,12 @@ export function Party(props: { estado: Estado; aoAbrir: (id: PersonagemId) => vo
           const avisos = [h.pontosLivres > 0 && `+${h.pontosLivres} pontos`, temNoDisponivel(h) && 'árvore'].filter(Boolean);
           const melhores = e.inventario.filter((i) => ehPossivelMelhoria(h, i)).length;
           return (
-            <li key={id} className="party-cartao">
+            <li key={id} className={`party-cartao ${props.recemSubiu?.includes(id) ? 'subiu' : ''}`}>
               <button className="heroi-cartao" onClick={() => props.aoAbrir(id)}>
-                <Retrato id={id} tamanho={72} animar />
+                <span className="retrato-com-selo">
+                  <Retrato id={id} tamanho={72} animar />
+                  {props.recemSubiu?.includes(id) && <span className="selo-nivel">▲ {h.nivel}</span>}
+                </span>
                 <span className="heroi-info">
                   <span className="linha-nome">
                     <strong>{p.nome}</strong>

@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { aoMudarImagens, imagemPronta } from '../arte/carregar';
 import { iconeDeFolha } from '../arte/extras';
 import { desenharQuadro, folha, quadroDa } from '../arte/folhas';
@@ -26,12 +26,22 @@ export function textoDoRecurso(tipo: Material | 'ouro'): { uso: string; origem: 
 
 export function Recurso(props: { tipo: Material | 'ouro'; valor: number; falta?: boolean; dica?: boolean }) {
   const nome = props.tipo === 'ouro' ? 'Ouro' : MATERIAIS[props.tipo].nome;
+  // Na barra (com dica), o número pisca de leve quando sobe.
+  const anterior = useRef(Math.floor(props.valor));
+  const [pulso, setPulso] = useState(0);
+  const inteiroAtual = Math.floor(props.valor);
+  useEffect(() => {
+    if (props.dica && inteiroAtual > anterior.current) setPulso((p) => p + 1);
+    anterior.current = inteiroAtual;
+  }, [inteiroAtual, props.dica]);
   const corpo = (
     <span className={`recurso ${props.falta ? 'falta' : ''}`} tabIndex={props.dica ? 0 : undefined}>
       <IconePintado id={props.tipo} tamanho={16} rotulo={nome}>
         <Icone chave={`mat-${props.tipo}`} sprite={ICONES_MATERIAIS[props.tipo]} rotulo={nome} />
       </IconePintado>
-      {compacto(Math.floor(props.valor))}
+      <span key={pulso} className={pulso ? 'subiu' : undefined}>
+        {compacto(inteiroAtual)}
+      </span>
     </span>
   );
   if (!props.dica) return corpo;

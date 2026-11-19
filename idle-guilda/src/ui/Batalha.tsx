@@ -18,6 +18,8 @@ interface Props {
   agir: (acao: (e: Estado) => Resultado) => void;
   aoAbrirHeroi: (id: PersonagemId) => void;
   aoBestiario: () => void;
+  /** Heróis que acabaram de subir de nível (selo animado no retrato). */
+  recemSubiu?: PersonagemId[];
 }
 
 /** Duas letras para o ícone da habilidade: iniciais das duas primeiras palavras longas. */
@@ -27,7 +29,7 @@ export function siglaHabilidade(nome: string): string {
   return base.toUpperCase();
 }
 
-export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
+export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario, recemSubiu = [] }: Props) {
   const b = e.batalha;
   const mapa = mapaPorId(b.mapa);
   const membros = e.herois.filter((h) => h.atividade.tipo === 'batalha');
@@ -92,9 +94,12 @@ export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
               const { stats, mods } = statsDoHeroi(e, h);
               const transformado = comb?.buffs.some((x) => x.id.startsWith('transf:'));
               return (
-                <li key={h.id} className={`combate-cartao ${caido ? 'caido' : ''}`}>
+                <li key={h.id} className={`combate-cartao ${caido ? 'caido' : ''} ${recemSubiu.includes(h.id) ? 'subiu' : ''}`}>
                   <button className="combate-topo" onClick={() => aoAbrirHeroi(h.id)} aria-label={`Abrir ficha de ${PERSONAGENS[h.id].nome}`}>
-                    <Retrato id={h.id} tamanho={48} />
+                    <span className="retrato-com-selo">
+                      <Retrato id={h.id} tamanho={48} />
+                      {recemSubiu.includes(h.id) && <span className="selo-nivel">▲ {h.nivel}</span>}
+                    </span>
                     <span className="linha-nome">
                       <strong>{PERSONAGENS[h.id].nome}</strong>
                       <small>nv {h.nivel}</small>

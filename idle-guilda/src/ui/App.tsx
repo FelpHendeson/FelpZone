@@ -5,7 +5,7 @@ import { objetivoAtual, objetivoCumprido, type Destino } from '../motor/objetivo
 import { desserializar, serializar, type Save } from '../motor/save';
 import type { Estado, PersonagemId } from '../motor/tipos';
 import type { NomeIconeUi } from '../arte/ui';
-import { INVENTARIO_MAXIMO } from '../motor/dados/itens';
+import { DADOS_RARIDADE, INVENTARIO_MAXIMO } from '../motor/dados/itens';
 import { baixarSave, consultarConta, enviarSave, ErroNuvem, excluirConta, pulso, sairDaConta } from '../nuvem';
 import { Backup } from './Backup';
 import { Barra } from './Barra';
@@ -19,6 +19,10 @@ import { Diario } from './Diario';
 import { Expedicoes } from './Expedicoes';
 import { Ficha } from './Ficha';
 import { AvisoMochilaCheia, Mochila, useMelhorias } from './Mochila';
+import { Avisos, useAvisos } from './Avisos';
+import { IconeItem } from './comum';
+import { diferencaDeTick, ehEpicoOuMelhor, extrasOffline, type ExtrasOffline } from './feedback';
+import { nomeCurto, nomeItem } from './texto';
 import { IconeUi } from './IconeUi';
 import { Menu } from './Menu';
 import { MenuInicial } from './MenuInicial';
@@ -37,15 +41,16 @@ const INTERVALO_PULSO = 60 * 1000;
 type Tela = 'inicio' | 'prologo' | 'jogo';
 type Janela = 'menu' | 'conta' | 'backup' | 'ajuda' | 'diario' | 'bestiario' | null;
 
-function retomar(save: Save): { estado: Estado; resumo: ResumoOffline | null } {
+function retomar(save: Save): { estado: Estado; resumo: ResumoOffline | null; extras: ExtrasOffline | null } {
   const fora = (Date.now() - save.salvoEm) / 1000;
-  if (fora < LIMITE_TEMPO_FORA) return { estado: avancar(save.estado, fora), resumo: null };
-  return aplicarTempoOffline(save.estado, fora);
+  if (fora < LIMITE_TEMPO_FORA) return { estado: avancar(save.estado, fora), resumo: null, extras: null };
+  const r = aplicarTempoOffline(save.estado, fora);
+  return { ...r, extras: extrasOffline(save.estado, r.estado) };
 }
 
 function carregarLocal() {
   const save = desserializar(localStorage.getItem(CHAVE_SAVE));
-  return save ? { ...retomar(save), salvoEm: save.salvoEm } : { estado: null, resumo: null, salvoEm: null };
+  return save ? { ...retomar(save), salvoEm: save.salvoEm } : { estado: null, resumo: null, extras: null, salvoEm: null };
 }
 
 /** Mesma aventura (mesma semente inicial de heróis) e a nuvem não está à frente: dá para enviar sem perguntar. */
@@ -78,7 +83,9 @@ export function App() {
   const [abaCidade, setAbaCidade] = useState<AbaCidade>('ferreiro');
   const [janela, setJanela] = useState<Janela>(null);
   const [heroiAberto, setHeroiAberto] = useState<PersonagemId | null>(null);
-  const [aviso, setAviso] = useState<string | null>(null);
+  const { avisos, avisar, remover: removerAviso } = useAvisos();
+  const [recemSubiu, setRecemSubiu] = useState<PersonagemId[]>([]);
+  const [extrasResumo, setExtrasResumo] = useState<ExtrasOffline | null>(inicial.extras);
   const [conta, setConta] = useState<SituacaoConta>({ disponivel: null, apelido: null });
   const [nuvem, setNuvem] = useState<SituacaoNuvem>({ enviando: false, ultimoEnvio: null, erro: null });
   const [conflito, setConflito] = useState<Save | null>(null);
@@ -116,6 +123,7 @@ export function App() {
       estadoRef.current = r.estado;
       setEstado(r.estado);
       setResumo(r.resumo);
+      setExtrasResumo(r.extras);
       salvarLocal();
     },
     [salvarLocal],
@@ -146,6 +154,7 @@ export function App() {
         estadoRef.current = r.estado;
         setEstado(r.estado);
         setResumo(r.resumo);
+        setExtrasResumo(extrasOffline(atual, r.estado));
         return;
       }
       const passos = Math.floor(decorrido * 2) / 2;
@@ -154,6 +163,7 @@ export function App() {
         const novo = avancar(atual, passos);
         estadoRef.current = novo;
         setEstado(novo);
+        notificar.current(atual, novo);
       }
     }, 250);
     const salvamento = setInterval(salvarLocal, 5000);
@@ -178,11 +188,41 @@ export function App() {
     return () => clearInterval(id);
   }, [jogando, conta.apelido, enviarNuvem]);
 
-  useEffect(() => {
-    if (!aviso) return;
-    const id = setTimeout(() => setAviso(null), 3500);
-    return () => clearTimeout(id);
-  }, [aviso]);
+  // Retorno de cada tick: loot novo, itens vendidos com a mochila cheia e níveis.
+  const vendasPendentes = useRef(0);
+  const ultimoAvisoVenda = useRef(0);
+  const notificar = useRef<(antes: Estado, depois: Estado) => void>(() => undefined);
+  notificar.current = (antes, depois) => {
+    const d = diferencaDeTick(antes, depois);
+    for (const item of d.novos.slice(-3)) {
+      const forte = ehEpicoOuMelhor(item);
+      avisar(
+        <>
+          <IconeItem item={item} escala={2} />
+          <span>
+            <strong style={{ color: DADOS_RARIDADE[item.raridade].cor }}>{nomeItem(item)}</strong>{' '}
+            <small>({DADOS_RARIDADE[item.raridade].nome.toLowerCase()})</small>
+          </span>
+        </>,
+        'loot',
+        { duracao: forte ? 5500 : 3500, brilho: forte },
+      );
+    }
+    // Com a mochila cheia, junta as vendas automáticas num aviso a cada 20 s, no máximo.
+    vendasPendentes.current += d.vendidos;
+    if (vendasPendentes.current > 0 && Date.now() - ultimoAvisoVenda.current > 20_000) {
+      const n = vendasPendentes.current;
+      avisar(`Mochila cheia: ${n === 1 ? '1 item vendido' : `${n} itens vendidos`} automaticamente.`, 'erro');
+      vendasPendentes.current = 0;
+      ultimoAvisoVenda.current = Date.now();
+    }
+    for (const n of d.niveis) avisar(`${nomeCurto(n.id)} chegou ao nível ${n.nivel}!`, 'nivel', { duracao: 4500 });
+    if (d.niveis.length > 0) {
+      const ids = d.niveis.map((n) => n.id);
+      setRecemSubiu((l) => [...new Set([...l, ...ids])]);
+      setTimeout(() => setRecemSubiu((l) => l.filter((x) => !ids.includes(x))), 3000);
+    }
+  };
 
   const agir = useCallback(
     (acao: (e: Estado) => Resultado) => {
@@ -194,7 +234,7 @@ export function App() {
         setEstado(r.estado);
         salvarLocal();
       } else {
-        setAviso(r.erro);
+        avisar(r.erro, 'erro');
       }
     },
     [salvarLocal],
@@ -208,7 +248,7 @@ export function App() {
         const n = await pulso();
         if (n > 0) {
           agir((e) => receberAplausos(e, n));
-          setAviso(`👏 Sua guilda recebeu ${n} ${n === 1 ? 'aplauso' : 'aplausos'}!`);
+          avisar(`👏 Sua guilda recebeu ${n} ${n === 1 ? 'aplauso' : 'aplausos'}!`, 'sucesso');
         }
       } catch {
         // Sem conexão: tenta no próximo pulso.
@@ -223,7 +263,7 @@ export function App() {
     setConta({ disponivel: true, apelido });
     apelidoRef.current = apelido;
     setJanela(null);
-    setAviso(`Conectado como ${apelido}`);
+    avisar(`Conectado como ${apelido}`, 'sucesso');
     try {
       const remoto = await baixarSave();
       const save = remoto ? desserializar(remoto.texto) : null;
@@ -233,7 +273,7 @@ export function App() {
         if (local) await enviarNuvem();
       } else if (!local) {
         usarSave(save);
-        setAviso('Progresso carregado da nuvem');
+        avisar('Progresso carregado da nuvem', 'sucesso');
       } else if (nuvemAtrasada(local, save.estado)) {
         await enviarNuvem();
       } else {
@@ -241,7 +281,7 @@ export function App() {
         setConflito(save);
       }
     } catch (e) {
-      setAviso(e instanceof Error ? e.message : 'Não foi possível ler a nuvem.');
+      avisar(e instanceof Error ? e.message : 'Não foi possível ler a nuvem.', 'erro');
     }
   };
 
@@ -250,7 +290,7 @@ export function App() {
     setConta((c) => ({ ...c, apelido: null }));
     setNuvem({ enviando: false, ultimoEnvio: null, erro: null });
     setJanela(null);
-    setAviso('Conta excluída. O progresso continua neste aparelho.');
+    avisar('Conta excluída. O progresso continua neste aparelho.');
   };
 
   const aoSairDaConta = async () => {
@@ -290,7 +330,7 @@ export function App() {
             usarSave(save);
             setJanela(null);
             setTela('jogo');
-            setAviso('Backup carregado');
+            avisar('Backup carregado', 'sucesso');
           }}
           aoFechar={() => setJanela(null)}
         />
@@ -311,11 +351,7 @@ export function App() {
           }}
         />
       )}
-      {aviso && (
-        <div className="aviso" role="status">
-          {aviso}
-        </div>
-      )}
+      <Avisos avisos={avisos} aoSair={removerAviso} />
     </>
   );
 
@@ -399,37 +435,42 @@ export function App() {
             irPara(d);
           }}
         />
-        {aba === 'batalha' && <AvisoMochilaCheia estado={estado} agir={agir} />}
-        {aba === 'batalha' && <Batalha estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} aoBestiario={() => setJanela('bestiario')} />}
-        {aba === 'party' && (
-          <Party
-            estado={estado}
-            aoAbrir={setHeroiAberto}
-            aoEquiparMelhor={(heroi) => {
-              setMochilaPara({ heroi, soMelhorias: true });
-              irPara('mochila');
-            }}
-            aoTaverna={() => {
-              setAbaCidade('taverna');
-              irPara('cidade');
-            }}
-          />
-        )}
-        {aba === 'mochila' && (
-          <Mochila
-            estado={estado}
-            agir={agir}
-            paraHeroi={mochilaPara}
-            aoFerreiro={(uid) => {
-              setAbaCidade('ferreiro');
-              setDestaqueFerreiro(uid);
-              irPara('cidade');
-            }}
-          />
-        )}
-        {aba === 'cidade' && <Cidade estado={estado} agir={agir} aba={abaCidade} aoTrocar={setAbaCidade} destaque={destaqueFerreiro} />}
-        {aba === 'expedicoes' && <Expedicoes estado={estado} agir={agir} />}
-        {aba === 'mundo' && <Mundo conta={conta} agir={agir} aoConta={() => setJanela('conta')} aoAviso={setAviso} />}
+        <div key={aba} className="tela">
+          {aba === 'batalha' && <AvisoMochilaCheia estado={estado} agir={agir} />}
+          {aba === 'batalha' && (
+            <Batalha estado={estado} agir={agir} aoAbrirHeroi={setHeroiAberto} aoBestiario={() => setJanela('bestiario')} recemSubiu={recemSubiu} />
+          )}
+          {aba === 'party' && (
+            <Party
+              estado={estado}
+              aoAbrir={setHeroiAberto}
+              recemSubiu={recemSubiu}
+              aoEquiparMelhor={(heroi) => {
+                setMochilaPara({ heroi, soMelhorias: true });
+                irPara('mochila');
+              }}
+              aoTaverna={() => {
+                setAbaCidade('taverna');
+                irPara('cidade');
+              }}
+            />
+          )}
+          {aba === 'mochila' && (
+            <Mochila
+              estado={estado}
+              agir={agir}
+              paraHeroi={mochilaPara}
+              aoFerreiro={(uid) => {
+                setAbaCidade('ferreiro');
+                setDestaqueFerreiro(uid);
+                irPara('cidade');
+              }}
+            />
+          )}
+          {aba === 'cidade' && <Cidade estado={estado} agir={agir} aba={abaCidade} aoTrocar={setAbaCidade} destaque={destaqueFerreiro} />}
+          {aba === 'expedicoes' && <Expedicoes estado={estado} agir={agir} />}
+          {aba === 'mundo' && <Mundo conta={conta} agir={agir} aoConta={() => setJanela('conta')} aoAviso={avisar} />}
+        </div>
       </main>
       <Navegacao estado={estado} aba={aba} alerta={alerta} irPara={irPara} />
       {heroiAberto && (
@@ -452,7 +493,7 @@ export function App() {
           aoSalvar={() => {
             salvarLocal();
             void enviarNuvem();
-            setAviso(conta.apelido ? 'Salvo no aparelho e na nuvem' : 'Salvo neste aparelho');
+            avisar(conta.apelido ? 'Salvo no aparelho e na nuvem' : 'Salvo neste aparelho', 'sucesso');
           }}
           aoConta={() => setJanela('conta')}
           aoBackup={() => setJanela('backup')}
@@ -468,7 +509,7 @@ export function App() {
           aoFechar={() => setJanela(null)}
         />
       )}
-      {resumo && !janela && <ResumoOfflineModal resumo={resumo} aoFechar={() => setResumo(null)} />}
+      {resumo && !janela && <ResumoOfflineModal resumo={resumo} extras={extrasResumo} aoFechar={() => setResumo(null)} />}
       {janelas}
     </div>
   );
