@@ -6,6 +6,8 @@ export function Modal(props: {
   aoFechar?: () => void;
   children: ReactNode;
   rodape?: ReactNode;
+  /** `folha`: painel que sobe da borda de baixo no celular; centralizado no desktop. */
+  variante?: 'folha';
 }) {
   const { aoFechar } = props;
   useEffect(() => {
@@ -15,9 +17,10 @@ export function Modal(props: {
     return () => window.removeEventListener('keydown', tecla);
   }, [aoFechar]);
 
+  const folha = props.variante === 'folha';
   return (
-    <div className="fundo-modal" onClick={aoFechar}>
-      <div className="modal" role="dialog" aria-modal="true" aria-label={props.titulo} onClick={(e) => e.stopPropagation()}>
+    <div className={`fundo-modal ${folha ? 'com-folha' : ''}`} onClick={aoFechar}>
+      <div className={`modal ${folha ? 'folha' : ''}`} role="dialog" aria-modal="true" aria-label={props.titulo} onClick={(e) => e.stopPropagation()}>
         <div className="modal-topo">
           <h2>{props.titulo}</h2>
           {aoFechar && (
