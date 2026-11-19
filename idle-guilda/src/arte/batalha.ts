@@ -164,15 +164,16 @@ function barraVida(ctx: CanvasRenderingContext2D, x: number, y: number, w: numbe
   }
 }
 
+/** Canto superior esquerdo de cada posição (os pés ficam 9 à direita e 17 abaixo). */
 const POSICOES_HEROIS: Record<'frente' | 'tras', [number, number][]> = {
   frente: [
-    [58, CHAO - 20],
-    [44, CHAO - 14],
+    [62, CHAO - 17],
+    [44, CHAO - 25],
   ],
   tras: [
-    [30, CHAO - 22],
-    [18, CHAO - 14],
-    [4, CHAO - 22],
+    [30, CHAO - 16],
+    [16, CHAO - 25],
+    [2, CHAO - 17],
   ],
 };
 
@@ -186,8 +187,9 @@ const POSICOES_INIMIGOS: [number, number][] = [
 export function posicoesDaParty(ids: PersonagemId[]): Map<PersonagemId, [number, number]> {
   const r = new Map<PersonagemId, [number, number]>();
   const usados = { frente: 0, tras: 0 };
-  // Frente primeiro; se sobrar gente na frente, vai para trás.
-  for (const id of ids) {
+  // O tanque pega a posição mais à frente; quem sobrar na frente vai para trás.
+  const ordem = [...ids].sort((a, b) => Number(PERSONAGENS[b].papel === 'tanque') - Number(PERSONAGENS[a].papel === 'tanque'));
+  for (const id of ordem) {
     let linha = PERSONAGENS[id].linha;
     if (usados[linha] >= POSICOES_HEROIS[linha].length) linha = linha === 'frente' ? 'tras' : 'frente';
     r.set(id, POSICOES_HEROIS[linha][usados[linha]++]);
@@ -272,7 +274,9 @@ export function desenharBatalha(ctx: CanvasRenderingContext2D, e: Estado, vidaMa
     desenhar(ctx, CENARIO.zz, 70, CHAO - 34 - ((t * 3) % 6));
   }
 
-  for (const id of ids) {
+  // De trás para a frente: quem está mais abaixo (mais perto) é desenhado por cima.
+  const ordemDesenho = [...ids].sort((a, b) => pos.get(a)![1] - pos.get(b)![1]);
+  for (const id of ordemDesenho) {
     const [x0, y] = pos.get(id)!;
     const comb: Combatente | undefined = b.herois[id];
     const max = vidaMax[id] ?? 1;

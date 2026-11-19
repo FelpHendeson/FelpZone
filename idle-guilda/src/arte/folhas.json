@@ -83,5 +83,42 @@
         0
       ]
     }
+  },
+  "heroi-quentin": {
+    "imagem": "sprites/heroi-quentin.png",
+    "largura": 62,
+    "altura": 62,
+    "colunas": 8,
+    "quadros": 16,
+    "pe": 58,
+    "centro": 31.5,
+    "animacoes": {
+      "parado": [
+        0,
+        1,
+        2,
+        3
+      ],
+      "ataque": [
+        4,
+        5,
+        6,
+        7
+      ],
+      "habilidade": [
+        8,
+        9,
+        10,
+        11
+      ],
+      "dano": [
+        12,
+        13
+      ],
+      "caido": [
+        14,
+        15
+      ]
+    }
   }
 }
