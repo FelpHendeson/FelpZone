@@ -4,6 +4,7 @@ import { aplicarTempoOffline, avancar, novoJogo, type ResumoOffline } from '../m
 import { objetivoAtual, objetivoCumprido, type Destino } from '../motor/objetivos';
 import { desserializar, serializar, type Save } from '../motor/save';
 import type { Estado, PersonagemId } from '../motor/tipos';
+import type { NomeIconeUi } from '../arte/ui';
 import { baixarSave, consultarConta, enviarSave, ErroNuvem, excluirConta, pulso, sairDaConta } from '../nuvem';
 import { Backup } from './Backup';
 import { Barra } from './Barra';
@@ -16,6 +17,7 @@ import { Conta, type SituacaoConta, type SituacaoNuvem } from './Conta';
 import { Diario } from './Diario';
 import { Expedicoes } from './Expedicoes';
 import { Ficha } from './Ficha';
+import { IconeUi } from './IconeUi';
 import { Menu } from './Menu';
 import { MenuInicial } from './MenuInicial';
 import { Mundo } from './Mundo';
@@ -50,12 +52,12 @@ function nuvemAtrasada(local: Estado, remoto: Estado): boolean {
   return ids(local).startsWith(ids(remoto)) && remoto.tempo <= local.tempo && remoto.estatisticas.abates <= local.estatisticas.abates;
 }
 
-const ABAS: [Destino, string, string][] = [
-  ['batalha', '⚔', 'Batalha'],
-  ['party', '🛡', 'Party'],
-  ['cidade', '🏰', 'Cidade'],
-  ['expedicoes', '🧭', 'Expedições'],
-  ['mundo', '🌐', 'Mundo'],
+const ABAS: [Destino, NomeIconeUi, string][] = [
+  ['batalha', 'batalha', 'Batalha'],
+  ['party', 'party', 'Party'],
+  ['cidade', 'cidade', 'Cidade'],
+  ['expedicoes', 'expedicoes', 'Expedições'],
+  ['mundo', 'mundo', 'Mundo'],
 ];
 
 export function App() {
@@ -406,7 +408,7 @@ export function App() {
       <nav className="abas">
         {ABAS.map(([id, icone, rotulo]) => (
           <button key={id} className={aba === id ? 'ativa' : ''} onClick={() => irPara(id)}>
-            <span aria-hidden>{icone}</span>
+            <IconeUi nome={icone} tamanho={18} />
             {rotulo}
             {alerta(id) && <span className="alerta" aria-label="(tem algo para fazer aqui)" />}
           </button>

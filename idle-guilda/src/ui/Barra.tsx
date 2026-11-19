@@ -2,6 +2,7 @@ import { mapaPorId } from '../motor/dados/mapas';
 import { INVENTARIO_MAXIMO } from '../motor/dados/itens';
 import type { Estado } from '../motor/tipos';
 import { Recurso } from './comum';
+import { IconeUi } from './IconeUi';
 import type { SituacaoNuvem } from './Conta';
 
 export function Barra(props: { estado: Estado; nuvem: SituacaoNuvem | null; aoMenu: () => void }) {
@@ -15,7 +16,7 @@ export function Barra(props: { estado: Estado; nuvem: SituacaoNuvem | null; aoMe
         <Recurso tipo={material} valor={e.materiais[material]} />
         <Recurso tipo="essencia" valor={e.materiais.essencia} />
         <span className={`inventario ${cheio ? 'falta' : ''}`} title="Itens no inventário">
-          🎒 {e.inventario.length}/{INVENTARIO_MAXIMO}
+          <IconeUi nome="mochila" tamanho={16} /> {e.inventario.length}/{INVENTARIO_MAXIMO}
         </span>
       </span>
       <span className="barra-direita">
@@ -25,7 +26,7 @@ export function Barra(props: { estado: Estado; nuvem: SituacaoNuvem | null; aoMe
           </span>
         )}
         <button className="ajuda" onClick={props.aoMenu} aria-label="Menu">
-          ☰
+          <IconeUi nome="menu" tamanho={18} />
         </button>
       </span>
     </header>
