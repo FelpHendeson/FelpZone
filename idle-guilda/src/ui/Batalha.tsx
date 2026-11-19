@@ -94,7 +94,7 @@ export function Batalha({ estado: e, agir, aoAbrirHeroi, aoBestiario }: Props) {
               return (
                 <li key={h.id} className={`combate-cartao ${caido ? 'caido' : ''}`}>
                   <button className="combate-topo" onClick={() => aoAbrirHeroi(h.id)} aria-label={`Abrir ficha de ${PERSONAGENS[h.id].nome}`}>
-                    <Retrato id={h.id} tamanho={48} apagado={caido} />
+                    <Retrato id={h.id} tamanho={48} />
                     <span className="linha-nome">
                       <strong>{PERSONAGENS[h.id].nome}</strong>
                       <small>nv {h.nivel}</small>

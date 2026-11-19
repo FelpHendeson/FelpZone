@@ -37,18 +37,35 @@ export function Objetivo({ estado: e, abaAtual, agir, aoIr }: Props) {
   return (
     <section className={`objetivo ${cumprido ? 'pronto' : ''} ${aberto ? '' : 'recolhido'}`} aria-live="polite">
       <button className="objetivo-topo" onClick={() => setAberto(!aberto)} aria-expanded={aberto}>
-        <small>
-          Capítulo {e.objetivo + 1}/{OBJETIVOS.length}
-        </small>
-        <strong>{o.titulo}</strong>
-        <span className="recompensa">
-          {r.ouro ? <Recurso tipo="ouro" valor={r.ouro} /> : null}
-          {Object.entries(r.materiais ?? {}).map(([m, q]) => (
-            <Recurso key={m} tipo={m as Material} valor={q ?? 0} />
-          ))}
-          {r.item && <span className="etiqueta">{r.item.reliquia ? 'relíquia' : 'item'}</span>}
+        <span className="objetivo-titulo">
+          <small>
+            Capítulo {e.objetivo + 1} de {OBJETIVOS.length}
+          </small>
+          <strong>{o.titulo}</strong>
+        </span>
+        <span className="recompensa" aria-label="Recompensa">
+          <small>Recompensa</small>
+          <span>
+            {r.ouro ? <Recurso tipo="ouro" valor={r.ouro} /> : null}
+            {Object.entries(r.materiais ?? {}).map(([m, q]) => (
+              <Recurso key={m} tipo={m as Material} valor={q ?? 0} />
+            ))}
+            {r.item && <span className="etiqueta">{r.item.reliquia ? 'relíquia' : 'item'}</span>}
+          </span>
         </span>
       </button>
+      <span
+        className="capitulos"
+        role="progressbar"
+        aria-label="Capítulos concluídos"
+        aria-valuemin={0}
+        aria-valuemax={OBJETIVOS.length}
+        aria-valuenow={e.objetivo}
+      >
+        {OBJETIVOS.map((_, i) => (
+          <span key={i} className={i < e.objetivo ? 'feito' : i === e.objetivo ? 'atual' : ''} />
+        ))}
+      </span>
       {aberto && (
         <>
           {total > 1 && (

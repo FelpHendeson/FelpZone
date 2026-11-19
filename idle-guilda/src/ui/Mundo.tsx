@@ -104,7 +104,15 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
           </small>
         </span>
         {conta.apelido && !sou && (
-          <Dica conteudo={<p>{jaAplaudiu ? 'Você já aplaudiu esta guilda hoje.' : `Aplaudir: você ganha ${OURO_APLAUSO_DADO} de ouro e ${p.apelido} ganha ${OURO_APLAUSO_RECEBIDO}.`}</p>}>
+          <Dica
+            conteudo={
+              <p>
+                {jaAplaudiu
+                  ? 'Você já aplaudiu esta guilda hoje.'
+                  : `Aplaudir: você ganha ${OURO_APLAUSO_DADO} de ouro e ${p.apelido} ganha ${OURO_APLAUSO_RECEBIDO}.`}
+              </p>
+            }
+          >
             <button className="aplaudir" disabled={jaAplaudiu} onClick={() => void darAplauso(p)} aria-label={`Aplaudir ${p.apelido}`}>
               {jaAplaudiu ? '✓' : '👏'}
             </button>
@@ -134,44 +142,44 @@ export function Mundo({ conta, agir, aoConta, aoAviso }: Props) {
           </div>
         ) : (
           <p className="dica">
-            {mundo?.minhaPosicao
-              ? `Sua guilda está em ${mundo.minhaPosicao}º lugar. `
-              : 'Sua guilda entra no ranking no próximo save na nuvem. '}
+            {mundo?.minhaPosicao ? `Sua guilda está em ${mundo.minhaPosicao}º lugar. ` : 'Sua guilda entra no ranking no próximo save na nuvem. '}
             Aplaudir dá +{OURO_APLAUSO_DADO} de ouro para você e +{OURO_APLAUSO_RECEBIDO} para quem recebe (5 por dia).
           </p>
         )}
         {erro && <p className="erro">{erro}</p>}
       </section>
 
-      <section className="painel">
-        <h2>🏆 Ranking de renome</h2>
-        <p className="dica">Renome soma os níveis dos heróis, os capítulos concluídos e os monstros derrotados.</p>
-        {!mundo ? (
-          <p className="dica">Carregando…</p>
-        ) : mundo.ranking.length === 0 ? (
-          <p className="dica">Ninguém no ranking ainda. Seja a primeira guilda!</p>
-        ) : (
-          <ol className="ranking">
-            {mundo.ranking.map(linha)}
-            {mundo.meuPerfil && linha({ ...mundo.meuPerfil, posicao: mundo.minhaPosicao ?? undefined })}
-          </ol>
-        )}
-      </section>
+      <div className="duas-colunas">
+        <section className="painel">
+          <h2>🏆 Ranking de renome</h2>
+          <p className="dica">Renome soma os níveis dos heróis, os capítulos concluídos e os monstros derrotados.</p>
+          {!mundo ? (
+            <p className="dica">Carregando…</p>
+          ) : mundo.ranking.length === 0 ? (
+            <p className="dica">Ninguém no ranking ainda. Seja a primeira guilda!</p>
+          ) : (
+            <ol className="ranking">
+              {mundo.ranking.map(linha)}
+              {mundo.meuPerfil && linha({ ...mundo.meuPerfil, posicao: mundo.minhaPosicao ?? undefined })}
+            </ol>
+          )}
+        </section>
 
-      <section className="painel">
-        <h2>📜 Acontecimentos do mundo</h2>
-        {mundo && mundo.mural.length === 0 && <p className="dica">Nada aconteceu ainda.</p>}
-        <ol className="diario">
-          {mundo?.mural.map((i, n) => (
-            <li key={`${i.t}-${n}`}>
-              <small>{quandoFoi(i.t)}</small>
-              <span>
-                <strong>{i.apelido}</strong> {i.texto}
-              </span>
-            </li>
-          ))}
-        </ol>
-      </section>
+        <section className="painel">
+          <h2>📜 Acontecimentos do mundo</h2>
+          {mundo && mundo.mural.length === 0 && <p className="dica">Nada aconteceu ainda.</p>}
+          <ol className="diario">
+            {mundo?.mural.map((i, n) => (
+              <li key={`${i.t}-${n}`}>
+                <small>{quandoFoi(i.t)}</small>
+                <span>
+                  <strong>{i.apelido}</strong> {i.texto}
+                </span>
+              </li>
+            ))}
+          </ol>
+        </section>
+      </div>
     </>
   );
 }

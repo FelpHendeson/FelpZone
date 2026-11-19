@@ -569,23 +569,46 @@ button.pilula-mochila {
 }
 
 .objetivo.concluido {
-  box-shadow: 0 0 0 3px var(--verde);
+  box-shadow:
+    0 0 0 3px var(--verde),
+    0 0 0 5px var(--borda);
   background: var(--painel);
 }
 
 @keyframes brilhar {
   50% {
-    box-shadow: 0 0 0 3px #fff3b0;
+    box-shadow:
+      var(--bisel),
+      0 0 0 3px #fff3b0,
+      0 0 0 5px var(--borda);
   }
+}
+
+.objetivo {
+  box-shadow:
+    var(--bisel),
+    0 0 0 3px var(--ouro),
+    0 0 0 5px var(--borda);
 }
 
 .objetivo-topo {
   all: unset;
   cursor: pointer;
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto;
   align-items: center;
   gap: 8px;
+}
+
+.objetivo-titulo {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.objetivo-titulo strong {
+  font-size: 1.05rem;
 }
 
 .objetivo-topo small {
@@ -594,8 +617,46 @@ button.pilula-mochila {
 
 .recompensa {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  padding: 4px 8px;
+  background: rgb(0 0 0 / 28%);
+  box-shadow: inset 0 0 0 2px #4a3f22;
+}
+
+.recompensa > span {
+  display: flex;
+  gap: 8px;
   align-items: center;
+  font-size: 1.05rem;
+}
+
+.recompensa small {
+  font-size: 0.81rem;
+  color: #d9c58f;
+}
+
+/* Capítulos da campanha: um quadrado por capítulo. */
+.capitulos {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  height: 6px;
+}
+
+.capitulos span {
+  background: #3a3220;
+  box-shadow: 0 0 0 1px var(--borda);
+}
+
+.capitulos span.feito {
+  background: var(--ouro);
+}
+
+.capitulos span.atual {
+  background: repeating-linear-gradient(90deg, var(--ouro) 0 2px, #3a3220 2px 4px);
 }
 
 .objetivo-progresso {
@@ -2417,7 +2478,7 @@ button.chip-raridade.ativa {
   .lista-itens,
   .taverna,
   .missoes,
-  .fora {
+  ul.fora {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--esp-3);
@@ -2763,4 +2824,146 @@ button.combate-topo {
   .barra-vida-escudo {
     transition: none;
   }
+}
+
+.cartao-item-quem li.nao .retrato,
+.escolha-heroi li.nao .retrato {
+  filter: grayscale(1) opacity(0.6);
+}
+
+/* ---------- Party ---------- */
+
+.party-cartao {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-2);
+  padding: var(--esp-2);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.party-cartao .heroi-cartao {
+  background: none;
+  box-shadow: none;
+  padding: 2px;
+}
+
+.party-espacos {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.party-espacos li {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  background: var(--fundo-1);
+  box-shadow: inset 0 0 0 2px var(--fundo-4);
+}
+
+.party-espacos .icone-item {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.party-espacos li[class^='raridade-'] {
+  box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cor-r, var(--linha)) 70%, #000);
+}
+
+.party-espacos li.raridade-incomum {
+  --cor-r: var(--r-incomum);
+}
+
+.party-espacos li.raridade-raro {
+  --cor-r: var(--r-raro);
+}
+
+.party-espacos li.raridade-epico {
+  --cor-r: var(--r-epico);
+}
+
+.party-espacos li.raridade-lendario {
+  --cor-r: var(--r-lendario);
+}
+
+.party-espacos .icone {
+  width: 70%;
+  height: auto;
+}
+
+.party-cartao > button:last-child {
+  width: 100%;
+}
+
+.lista-itens li.cartao-na-lista,
+.lista-itens > li > .cartao-item {
+  padding: var(--esp-3);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.modal .lista-itens {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+}
+
+/* ---------- Expedições ---------- */
+
+.missoes li.missao-cartao {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: var(--esp-3);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.missoes li.missao-cartao span {
+  flex-direction: row;
+}
+
+.missao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--esp-2);
+}
+
+.missao-recompensa {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 0.86rem;
+  color: var(--suave);
+}
+
+.missao-andamento,
+.missao-acao {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.missao-acao {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.missao-herois {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fora li {
+  padding: var(--esp-2);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
 }
