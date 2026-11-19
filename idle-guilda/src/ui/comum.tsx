@@ -5,14 +5,13 @@ import { desenharQuadro, folha, quadroDa } from '../arte/folhas';
 import { HEROIS } from '../arte/herois';
 import { iconeItem, ICONES_MATERIAIS } from '../arte/icones';
 import { desenhar } from '../arte/sprite';
-import { BASES, CONJUNTOS, DADOS_RARIDADE, MATERIAIS, NOME_SLOT } from '../motor/dados/itens';
-import { NOME_STAT, PERSONAGENS, STATS } from '../motor/dados/personagens';
-import { modsDoItem, statsDoItem } from '../motor/status';
-import type { Item, Material, PersonagemId, Stat } from '../motor/tipos';
-import { CanvasPixel, Icone } from './pixel';
-import { compacto, corRaridade, descreverMod, inteiro, nomeItem } from './texto';
-import { Dica } from './Dica';
+import { MATERIAIS } from '../motor/dados/itens';
 import { MAPAS } from '../motor/dados/mapas';
+import { PERSONAGENS } from '../motor/dados/personagens';
+import type { Item, Material, PersonagemId } from '../motor/tipos';
+import { Dica } from './Dica';
+import { CanvasPixel, Icone } from './pixel';
+import { compacto, inteiro } from './texto';
 
 /** Para que serve e de onde vem cada recurso (dica da barra superior). */
 export function textoDoRecurso(tipo: Material | 'ouro'): { uso: string; origem: string } {
@@ -138,50 +137,6 @@ export function IconeItem(props: { item: Item; escala?: number }) {
         <Icone chave={`item-${props.item.base}-${props.item.raridade}`} sprite={iconeItem(props.item)} escala={escala} />
       </IconePintado>
     </span>
-  );
-}
-
-/** Detalhes de um item, com comparação opcional contra o que está equipado. */
-export function DetalheItem(props: { item: Item; comparar?: Item; acoes?: ReactNode; compacto?: boolean }) {
-  const { item } = props;
-  const base = BASES[item.base];
-  const stats = statsDoItem(item);
-  const antes = props.comparar ? statsDoItem(props.comparar) : null;
-  const statsUsados = STATS.filter((s) => stats[s] || antes?.[s]);
-  return (
-    <div className="item-detalhe">
-      <div className="item-topo">
-        <IconeItem item={item} />
-        <span className="item-nome">
-          <strong style={{ color: corRaridade(item) }}>{nomeItem(item)}</strong>
-          <small>
-            {DADOS_RARIDADE[item.raridade].nome} · {NOME_SLOT[base?.slot === 'acessorio' ? 'acessorio1' : (base?.slot ?? 'reliquia')]}
-            {base?.armadura ? ` · ${base.armadura === 'media' ? 'média' : base.armadura}` : ''} · nv {item.nivel}
-          </small>
-          {item.conjunto && <small className="conjunto">◆ {CONJUNTOS[item.conjunto]?.nome}</small>}
-        </span>
-      </div>
-      {!props.compacto && (
-        <ul className="item-stats">
-          {statsUsados.map((s: Stat) => {
-            const v = stats[s] ?? 0;
-            const dif = antes ? v - (antes[s] ?? 0) : 0;
-            return (
-              <li key={s}>
-                {NOME_STAT[s].curto} {compacto(v)}
-                {antes && dif !== 0 && <em className={dif > 0 ? 'melhor' : 'pior'}> {dif > 0 ? '▲' : '▼'}{compacto(Math.abs(dif))}</em>}
-              </li>
-            );
-          })}
-          {modsDoItem(item).map((m, i) => (
-            <li key={`m${i}`} className="afixo">
-              {descreverMod(m)}
-            </li>
-          ))}
-        </ul>
-      )}
-      {props.acoes && <div className="item-acoes">{props.acoes}</div>}
-    </div>
   );
 }
 

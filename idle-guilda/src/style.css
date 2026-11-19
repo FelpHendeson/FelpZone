@@ -1049,48 +1049,12 @@ button.pilula-mochila {
   box-shadow: 0 0 0 2px color-mix(in srgb, var(--r-epico) 62%, #000);
 }
 
-.item-detalhe {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  background: var(--painel-2);
-}
 
-.item-topo {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 10px;
-  align-items: center;
-}
 
-.item-nome {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
 
-.item-nome small {
-  font-size: 0.81rem;
-}
 
-.conjunto {
-  color: #8fe39a !important;
-}
 
-.item-stats {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  font-size: 0.81rem;
-}
 
-.item-stats .afixo {
-  color: #9fe8e0;
-}
 
 .melhor {
   color: #7ef08a;
@@ -1102,13 +1066,6 @@ button.pilula-mochila {
   font-style: normal;
 }
 
-.item-acoes {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 8px;
-}
 
 .custo {
   display: inline-flex;
@@ -2464,11 +2421,6 @@ button.chip-raridade.ativa {
   white-space: nowrap;
 }
 
-.lista-itens li.destaque .item-detalhe {
-  box-shadow:
-    0 0 0 2px var(--acento),
-    0 0 0 4px var(--borda);
-}
 
 /* ---------- Responsivo (seção 7.6) ---------- */
 
@@ -2966,4 +2918,129 @@ button.combate-topo {
   padding: var(--esp-2);
   background: var(--fundo-3);
   box-shadow: var(--bisel);
+}
+
+.celula-dono {
+  bottom: 2px;
+  left: 2px;
+  color: var(--texto-escuro);
+  background: var(--acento);
+}
+
+/* ---------- Cidade ---------- */
+
+.custo-bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cartao-destaque,
+.painel-melhoria {
+  display: flex;
+  flex-direction: column;
+  gap: var(--esp-3);
+  padding: var(--esp-3);
+  background: var(--fundo-3);
+  box-shadow: var(--bisel);
+}
+
+.ferreiro-detalhe {
+  scroll-margin-top: 72px;
+}
+
+.barra-melhoria {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.barra-melhoria-trilho {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 3px;
+}
+
+.barra-melhoria-trilho span {
+  position: relative;
+  height: 14px;
+  background: var(--fundo-1);
+  box-shadow: 0 0 0 2px var(--borda);
+}
+
+.barra-melhoria-trilho span.feito {
+  background: var(--ouro);
+}
+
+.barra-melhoria-trilho span.proximo {
+  background: repeating-linear-gradient(90deg, var(--ouro) 0 2px, var(--fundo-1) 2px 5px);
+}
+
+.barra-melhoria-trilho em {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 0.81rem;
+  font-style: normal;
+  color: var(--el-sombra);
+  line-height: 1;
+}
+
+.acao-lote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--esp-2);
+}
+
+.acao-lote button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.escolha-retratos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.escolha-retratos button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 6px;
+}
+
+.ranhuras {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--esp-2);
+}
+
+button.ranhura {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 64px;
+  text-align: left;
+  background: var(--fundo-1);
+  box-shadow:
+    inset 0 0 0 2px var(--fundo-4),
+    0 0 0 2px var(--borda);
+  border-left: 4px dashed var(--linha);
+}
+
+button.ranhura.cheia {
+  background: var(--fundo-3);
+  border-left: 4px solid var(--el, var(--linha));
+}
+
+.previa-fusao {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
