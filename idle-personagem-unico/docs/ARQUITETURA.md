@@ -54,6 +54,7 @@ src/
 ├── economia/             preços, ralos
 ├── offline.ts            simulação de até 12 h
 ├── save.ts               serialização, versão, migrações, limite de tamanho
+├── armazenamento.ts      interface Armazenamento (localStorage na web, AsyncStorage no mobile)
 ├── dados/                conteúdo (raças, cores, dons, monstros, itens, mapa, missões)
 └── index.ts              API pública do motor
 ```
