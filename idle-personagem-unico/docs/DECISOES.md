@@ -22,6 +22,14 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 16. Pets: reais e espirituais, raridade, nome, atividades próprias, modo União.
 17. Acessórios e relíquias no mesmo molde do resto.
 
+### Decisões de 23/11 (tarde)
+
+18. **Cada personagem é separado**: ficha, mochila, gold, missões e rank de guilda próprios. Só um joga por vez.
+19. **Pets por atividade**: 1 pet por atividade (inicialmente), o mesmo pet pode estar em todas, e ele só trabalha quando o personagem trabalha naquela atividade. Treino, descanso e alimentação do pet são separados.
+20. **Origens**: personagens comuns têm lore básica; personagens **especiais** têm lore única e podem nascer com **besta espiritual vinculada** (exemplos: *Fruto do Vínculo*, *12º Filho do Clã Ironblood*). **Mecânicas de história** podem vir depois.
+21. **Aprovou as propostas do agente** listadas abaixo (P1 a P12), exceto o que estiver em "Perguntas abertas".
+22. O trabalho pode ir direto para a `main`.
+
 ## Propostas do agente aguardando aprovação
 
 | # | Proposta | Onde |
@@ -38,13 +46,16 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 | P10 | Postgres (Neon) + Redis; **adiar banco até a F9**. | ARQUITETURA §6 |
 | P11 | Motor com ciclos para atividades e passos de 0,5 s para combate. | ARQUITETURA §3.1 |
 | P12 | Nível máximo 50 no Ato I. | GDD §5.3 |
+| P13 | Origem comum gerada por modelo (92%) e origem especial escrita à mão (8%), com restrições de raça. | GDD §3.4 e §4.2 |
+| P14 | Pets com **Fome** e **Energia**; cuidados por cronômetro próprio. | GDD §13 |
 
 ## Perguntas abertas
 
-1. **Personagens múltiplos**: só o ativo progride (proposta), ou os três progridem juntos com uma atividade cada?
-2. **Pets em paralelo**: pets com atividades próprias rodam ao mesmo tempo que o personagem (proposta)?
-3. **Nome do jogo.** Só para trocar o nome de trabalho e o projeto Vercel.
-4. **Arte**: pixel art? Sem gráficos no começo, mas qual direção de estilo futura?
-5. **Competição na infraestrutura**: ok adiar a decisão para a F12?
-6. **Hobby da Vercel**: ok seguir enquanto o jogo for pessoal e não comercial?
-7. **Tom**: o autor gosta de humor ácido e temas sombrios; os textos devem seguir esse tom (Limiar, Barqueiro, Trevas)?
+1. **Conta compartilhada**: algo é compartilhado entre os 3 personagens (por exemplo, conquistas, cosméticos, Pergaminhos do Novo Destino) ou nada?
+2. **Cuidados do pet** (alimentar, descansar, treinar): cronômetros do pet que correm em paralelo ao personagem (proposta), ou consomem a atividade do personagem?
+3. **Origens especiais**: 8% de chance e restrição por raça (proposta) estão bons? Quais outras origens você quer escrever?
+4. **Nome do jogo.** Só para trocar o nome de trabalho e o projeto Vercel.
+5. **Arte**: pixel art? Sem gráficos no começo, mas qual direção de estilo futura?
+6. **Competição na infraestrutura**: ok adiar a decisão para a F12?
+7. **Hobby da Vercel**: ok seguir enquanto o jogo for pessoal e não comercial?
+8. **Tom**: o autor gosta de humor ácido e temas sombrios; os textos devem seguir esse tom (Limiar, Barqueiro, Trevas)?

@@ -67,7 +67,7 @@ src/
 
 ### 3.2 Estado (campos principais)
 
-`versao`, `semente`, `ultimoTick`, `conta` (id, personagens[≤3]), por personagem: `nome`, `nivel`, `xp`, `racaId`, `coreId`, `dons[]`, `status{valor,piso,teto}`, `habilidades[]` (maestria), `slots`, `equipamento`, `ferramentas`, `mochila`, `ouro`, `moedas`, `localAtual`, `atividadeAtual`, `viagem`, `missoes`, `guilda{rank,merito}`, `pets[]`, `limiar{ativo,fimEm,cargasEco}`, `cronica[]`, `titulos[]`, `bestiario`.
+`versao`, `semente`, `ultimoTick`, `conta` (id, personagens[≤3], `personagemAtivoId`; **cada personagem tem estado totalmente independente**), por personagem: `origem{tipo,id,loreGerada}`, `bestaVinculadaId?`, `nome`, `nivel`, `xp`, `racaId`, `coreId`, `dons[]`, `status{valor,piso,teto}`, `habilidades[]` (maestria), `slots`, `equipamento`, `ferramentas`, `mochila`, `ouro`, `moedas`, `localAtual`, `atividadeAtual`, `viagem`, `missoes`, `guilda{rank,merito}`, `pets[]` (com `fome`, `energia`, atribuição por atividade), `limiar{ativo,fimEm,cargasEco}`, `cronica[]`, `titulos[]`, `bestiario`.
 
 ## 4. Web (`apps/web`)
 

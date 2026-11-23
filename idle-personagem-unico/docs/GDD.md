@@ -39,6 +39,9 @@ Plataforma: **primeiro 100% web** (Next, mobile-first, instalável como PWA). De
 | 9 | Dentro da cidade não há tempo de deslocamento; entre locais há uma viagem curta (≤ 10 s) com texto "Movendo-se até…". | [Autor] |
 | 10 | Projeto novo, independente do LionHearth (`idle-guilda`). | [Autor] |
 | 11 | Web completa primeiro; port mobile depois. | [Autor] |
+| 12 | **Cada personagem é independente**: ficha, mochila, gold, missões e rank próprios. Só um personagem joga por vez. | [Autor] (23/11) |
+| 13 | **Pets por atividade**: 1 pet por atividade (inicialmente); o mesmo pet pode estar em todas; **só trabalha quando o personagem trabalha ali**. Treino, descanso e alimentação do pet são separados. | [Autor] (23/11) |
+| 14 | **Origens**: personagens comuns têm lore básica; **personagens especiais** têm lore única e podem nascer com uma **besta espiritual vinculada**. Abre espaço para mecânicas de história depois. | [Autor] (23/11) |
 
 ---
 
@@ -56,6 +59,7 @@ Ficha do personagem (ver lista completa de campos em `ARQUITETURA.md`):
 | **Habilidade core** | Núcleo do personagem. Não é equipável; define afinidades e direções. |
 | **Técnicas e habilidades** | Aprendidas, equipáveis, com maestria. |
 | **Aparência** | Cor do cabelo, cor da roupa básica, miniatura de perfil. |
+| **Origem e lore** | Comum (lore básica) ou **especial** (lore única, às vezes com besta espiritual vinculada). Ver §3.4. |
 | **Vínculos** | Pets, guilda, títulos, crônica. |
 
 ### 3.1 Raças iniciais [Proposta]
@@ -100,6 +104,27 @@ Cada core tem **tags de afinidade** (por exemplo `sombra`, `noite`, `furtivo`, `
 - Habilidades de raça são escritas **de acordo com a raça**.
 - Habilidades de core são **mais gerais** e **não equipáveis**; as técnicas que saem delas é que se equipam.
 
+### 3.4 Origem e lore [Autor: ideia; catálogo e números: Proposta]
+
+Todo personagem tem uma **origem**. Ela é puro sabor no começo, mas **abre mecânicas de história depois**.
+
+**Origem comum** (a grande maioria). Lore curta e gerada por modelo, sem ficar igual à do vizinho:
+
+> *Fulano de Tal, nascido numa vila rural, há 12 anos na estrada em busca de renome.*
+
+O modelo combina **berço** (vila rural, porto, acampamento nômade, mosteiro, cortiço da capital...), **anos de estrada** e **motivação** (renome, dívida, curiosidade, fugir do passado). Não dá poder; no máximo um **pequeno bônus de ofício inicial** coerente com o berço.
+
+**Origem especial** (rara). Lore **escrita à mão**, única, com **ganhos próprios** e, em alguns casos, uma **besta espiritual vinculada** desde o nascimento. Exemplos do autor, mantidos como referência:
+
+| Origem especial | Lore | Efeitos propostos |
+| --- | --- | --- |
+| **Fruto do Vínculo** | Nasceu de um projeto cujo único fim era estudar o vínculo de bestas espirituais com bebês, para medir o possível aumento de potencial do indivíduo. | Começa com uma **besta espiritual vinculada** (única, não se perde); mais **Sincronia** no modo União; ganchos de história sobre quem o criou. |
+| **12º Filho do Clã Ironblood** | Décimo segundo filho do patriarca; trama a ruína do próprio clã em busca de vingança. | Reputação inicial hostil com o clã Ironblood e aliada com inimigos dele; bônus contra os inimigos do clã; **cadeia de missões própria**. |
+
+Outras origens especiais para o catálogo inicial [Proposta]: **Sobrevivente do Vazio** (única pessoa a voltar de uma ilha engolida pela escuridão; afinidade com o Limiar), **Órfão do Templo Cinzento**, **Herdeiro sem Nome**, **A Voz do Poço** (ouve algo que ninguém mais ouve). Cada uma é escrita com lore, ganho e gancho de história.
+
+**Ganchos de história** (futuro, [Autor: "podemos até adicionar alguma mecânica de história depois"]): origens especiais abrem **arcos** de missões, NPCs e escolhas próprias. Entram depois do jogo base e não alteram o motor, porque missões já são dados (§11).
+
 ## 4. Sorteio e criação do personagem
 
 ### 4.1 Fluxo [Autor + Proposta]
@@ -111,7 +136,7 @@ Cada core tem **tags de afinidade** (por exemplo `sombra`, `noite`, `furtivo`, `
 
 **Personagens por conta:** até **3** no início. O 2º e o 3º só são criados ao usar um item de reroll (*Pergaminho do Novo Destino*), obtido no jogo. [Autor]
 
-> [Em discussão] Os três personagens evoluem ao mesmo tempo (cada um com a própria atividade) ou só o personagem ativo progride? A proposta é **só o ativo** (mantém a regra "uma atividade por vez", evita triplicar o custo offline e dá peso à troca). Ver `DECISOES.md`.
+**Personagens são independentes** [Autor, 23/11]: cada um tem ficha, mochila, gold, missões, rank de guilda e pets próprios. Só **um personagem joga por vez** (o ativo); os outros ficam parados até serem escolhidos. Troca livre entre eles. [Proposta, aprovada na regra geral]
 
 ### 4.2 Cascata ponto a ponto [Autor, mecânica: Proposta]
 
@@ -124,7 +149,8 @@ Cada passo sorteia usando pesos que dependem dos passos anteriores, e consome um
    - **excêntrica** (sem tags em comum): 5% [Calibrar].
    Combinações excêntricas são permitidas de propósito. Para não serem só "piores", ganham a **Marca da Anomalia**: uma habilidade de sinergia única e narrativa para aquele par (por exemplo, *Lobisomem + Ser das Trevas* → **Lua sem Luz**). A marca existe para todo par excêntrico.
 3. **Dom de raça.** Raridade do dom: Incomum 60%, Raro 28%, Épico 9%, Ancestral 2,5%, Primordial 0,5% [Calibrar]. O **orçamento de raridade** limita o teto: cada passo raro gasta pontos (raça rara, core de afinidade alta ou excêntrica, dom raro), e se o saldo acabou o passo seguinte só sorteia até a raridade permitida.
-4. **Detalhes finais.** Dons menores e um traço de personalidade (puramente narrativo; aparece na Crônica).
+4. **Origem.** Pesos [Calibrar]: **origem comum 92%**, **origem especial 8%**. A origem especial também gasta **orçamento de raridade** (uma origem especial muito forte reduz o que o dom de raça ainda pode ser). Algumas origens têm **restrição de raça** (o Clã Ironblood só faz sentido para determinadas raças) e filtram o sorteio de raça/core de acordo.
+5. **Detalhes finais.** Dons menores e um traço de personalidade (puramente narrativo; aparece na Crônica).
 
 O sorteio é **determinístico por semente** (a semente é guardada para o servidor poder reproduzir e validar o resultado).
 
@@ -339,7 +365,9 @@ Dois grandes grupos:
 | **Pets espirituais (familiares)** | Rituais, habilidades, eventos e marcos. | Sempre acompanham; não podem ser perdidos; crescem com Espírito. |
 
 - Todos têm **nome** (o jogador dá), **raridade**, **nível** e **vínculo**.
-- **Atividades de pet:** o pet pode ser enviado em **expedições/coletas próprias**, **em paralelo** com a atividade do personagem. Isso **não** viola a regra "uma atividade por vez", que vale para o personagem. [Em discussão]
+- **Pet por atividade** [Autor, 23/11]: cada **atividade** tem **1 slot de pet** (inicialmente; mais slots podem vir depois). O **mesmo pet pode estar em todas** as atividades. Ele **só trabalha quando o personagem trabalha naquela atividade**: não existe atividade paralela e a regra de "uma atividade por vez" fica intacta.
+- **Cuidados do pet** [Autor: treino, descanso e alimentação, separados e só para o pet; mecânica: Proposta]: o pet tem **Fome** e **Energia**. Com fome ou sem energia, **não ajuda** (bônus cai a zero). **Alimentar** gasta comida (comprada ou produzida), **descansar** e **treinar** são cronômetros do pet (no Estábulo ou na aba Pets). Enquanto o pet descansa ou treina, ele **não pode ser atribuído**, mas o personagem segue com a atividade normalmente.
+- **Besta espiritual vinculada:** personagens de **origem especial** (§3.4) podem nascer com uma. É um pet espiritual **único**, com lore própria, **não pode ser perdido nem trocado**, e cresce junto com o personagem.
 - **Habilidades de pet** afetam combate e **outros aspectos** (coleta, produção, viagem).
 - **Modo União** (só espirituais): o pet se funde ao personagem por um tempo, libera **habilidades de união** e fortalece outras. Tem barra de **Sincronia** que enche com o uso e esfria depois. [Proposta]
 - **Domar:** chance de domar ao final de certos combates, com item de laço; aumenta com Domador/Percepção. [Proposta]
@@ -350,7 +378,8 @@ Dois grandes grupos:
 - **Eventos aleatórios** durante atividades: viajante, achado raro, emboscada; dão escolhas simples.
 - **Títulos e conquistas** com bônus.
 - **Bestiário** e **catálogo de itens** (completar dá bônus).
-- **Casa/baú** na cidade, ampliável.
+- **Arcos de origem** (história): cadeias de missões e escolhas ligadas à origem especial do personagem. Depois do jogo base. [Autor, futuro]
+- **Casa/baú** na cidade, ampliável (de cada personagem).
 - **Profissões secundárias:** alquimia, culinária, costura.
 - **Selo do Destino** (item raro): ao rerolar na criação, trava um elemento do sorteio. Fica para depois do MVP.
 
