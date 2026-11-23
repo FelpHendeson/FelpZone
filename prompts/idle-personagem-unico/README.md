@@ -19,7 +19,7 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 
 | Ordem | Arquivo | Situação |
 | --- | --- | --- |
-| 0 | `00-fatia-F0-fundacao.md` | Escrito; **aguardando autorização do autor**. |
+| 0 | `00-fatia-F0-fundacao.md` | Escrito e **autorizado em 23/11/2026**. |
 | 1 a 14 | F1 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
 
 Não dispare duas fatias em paralelo. O ciclo é:

@@ -1,10 +1,19 @@
 # Fatia F0 — Fundação
 
-> **Situação:** escrito, **não autorizado**. Só execute depois de o autor autorizar.
+> **Situação:** **autorizada pelo autor em 23/11/2026.** Execute somente esta fatia.
 
 ## Contexto
 
 Projeto `idle-personagem-unico`: idle RPG de personagem único sorteado, uma atividade por vez. Leia antes: `idle-personagem-unico/README.md`, `docs/GDD.md`, `docs/ARQUITETURA.md`, `docs/DECISOES.md`, `docs/ROADMAP.md` e `.cursor/rules/idle-personagem-unico.mdc`.
+
+## Regras de execução
+
+- Leia `.cursor/rules/felpzone.mdc` e `.cursor/rules/idle-personagem-unico.mdc` antes de começar.
+- Trabalhe somente dentro de `idle-personagem-unico/` (e do job de CI). **Não altere outros projetos.**
+- TypeScript em modo `strict`. Dependências na versão estável mais recente compatível; registre no README as versões escolhidas.
+- Textos de interface em português do Brasil.
+- Nada de `Math.random` no motor, nem em testes de regra (use o RNG com semente).
+- Faça um commit pequeno ao final, no estilo do repositório (`feat(idle-personagem-unico): ...`), **sem push**, a menos que o autor peça.
 
 ## Objetivo
 
@@ -33,4 +42,4 @@ Raças, cores, sorteio, atividades, combate, mapa, itens, API, banco, conta, mob
 - `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passam na raiz do projeto.
 - O motor **não importa** `react`, `next`, `window`, `document` nem módulos do Node.
 - Nenhum segredo ou `.env` versionado; `.env.example` só se necessário, com valores fictícios.
-- Relatório final com o que foi validado e o que ficou de fora. Sem commit/push sem pedido.
+- Relatório final com o que foi validado e o que ficou de fora, e confirmação de que nada fora de `idle-personagem-unico/` (e do job de CI) foi alterado.
