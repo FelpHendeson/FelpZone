@@ -80,7 +80,7 @@ Oito raças para o Ato I. Cada uma tem um perfil de status (§5), uma habilidade
 | **Draconato** | Rara | Força, Resistência, Espírito; teto alto, piso baixo (cresce devagar, vai longe). | *Escamas Vivas*: resistência elemental passiva que melhora com o nível. |
 | **Silfo** | Rara | Agilidade, Espírito, Sorte / Resistência. | *Corpo de Vento*: maior velocidade em todas as atividades; flutua por terrenos difíceis. |
 
-**Dons de raça** (a parte sorteada): cada raça tem uma tabela própria com 12 a 20 dons, de **Incomum a Primordial**. Exemplos para o Lobisomem: *Faro de Caçador* (Incomum), *Matilha Fantasma* (Raro: invoca ecos de lobo no combate), *Lua Cheia Plena* (Épico), *Primeira Presa* (Primordial: dano enorme contra a primeira espécie abatida a cada dia). Os dons são escritos por raça, coerentes com o tema dela. [Proposta]
+**Dons de raça** (a parte sorteada): cada raça tem uma tabela própria com 12 a 20 dons, de **Incomum a Primordial** (no Ato I: **13 por raça**, 5 Incomum, 4 Raro, 2 Épico, 1 Ancestral, 1 Primordial; catálogo em `packages/motor/src/dados/dons.ts`). Exemplos para o Lobisomem: *Faro de Caçador* (Incomum), *Matilha Fantasma* (Raro: invoca ecos de lobo no combate), *Lua Cheia Plena* (Épico), *Primeira Presa* (Primordial: dano enorme contra a primeira espécie abatida a cada dia). Os dons são escritos por raça, coerentes com o tema dela. [Proposta]
 
 ### 3.2 Habilidade core [Autor, com catálogo inicial: Proposta]
 
@@ -133,7 +133,7 @@ O catálogo completo (22 origens especiais e o gerador de origem comum) está em
 ### 4.1 Fluxo [Autor + Proposta]
 
 1. O jogador entra, e o jogo **sorteia o personagem** em cascata (§4.2).
-2. Ele tem **5 chances** [Proposta, Calibrar] de rerolar. Pode **aceitar a qualquer momento**; ao esgotar as chances, **aceita o último resultado**.
+2. Ele tem **5 chances** [Proposta, Calibrar] de rerolar. Pode **aceitar a qualquer momento**; ao esgotar as chances, **aceita o último resultado**. Implementado (F1) como **5 tentativas no total** (a 1ª + 4 rerolagens); a 5ª é obrigatória. O estado das tentativas vive no save, então recarregar não devolve chances.
 3. Aceito o resultado, escolhe **nome**, **cor do cabelo**, **cor da roupa básica**; o jogo gera a **miniatura de perfil** conforme raça/core.
 4. Entra no jogo com um **kit básico** (uma ferramenta de cada ofício, arma e roupa simples).
 
@@ -166,9 +166,11 @@ Cada passo sorteia usando pesos que dependem dos passos anteriores, e consome um
    Combinações excêntricas são permitidas de propósito. Para não serem só "piores", ganham a **Marca da Anomalia**: uma habilidade de sinergia única e narrativa para aquele par (por exemplo, *Lobisomem + Ser das Trevas* → **Lua sem Luz**). A marca existe para todo par excêntrico.
 3. **Dom de raça.** Raridade do dom: Incomum 60%, Raro 28%, Épico 9%, Ancestral 2,5%, Primordial 0,5% [Calibrar]. O **orçamento de raridade** limita o teto: cada passo raro gasta pontos (raça rara, core de afinidade alta ou excêntrica, dom raro), e se o saldo acabou o passo seguinte só sorteia até a raridade permitida.
 4. **Origem.** Pesos [Calibrar]: **origem comum 92%**, **origem especial 8%**. A origem especial também gasta **orçamento de raridade** (uma origem especial muito forte reduz o que o dom de raça ainda pode ser). Algumas origens têm **restrição de raça** (o Clã Ironblood só faz sentido para determinadas raças) e filtram o sorteio de raça/core de acordo.
-5. **Detalhes finais.** Dons menores e um traço de personalidade (puramente narrativo; aparece na Crônica).
+5. **Detalhes finais.** Dons menores e um traço de personalidade (puramente narrativo; aparece na Crônica). Na F1 só o **traço de personalidade** existe (12 traços); "dons menores" ficam para quando houver conteúdo.
 
 O sorteio é **determinístico por semente** (a semente é guardada para o servidor poder reproduzir e validar o resultado).
+
+**Orçamento de raridade (F1)** [Calibrar]: saldo inicial **100**. Custos: raça Comum 0 / Incomum 10 / Rara 25; core alta 0 / média 5 / excêntrica 15; dom Incomum 5 / Raro 15 / Épico 30 / Ancestral 50 / Primordial 80; origem comum 0 / especial 15 (+15 com besta vinculada). Em cada passo só entram as opções que cabem no saldo (pesos renormalizados); se nada couber, vale a de menor custo. Ordem implementada: **raça → core → dom → origem → detalhes**; a restrição de raça das origens filtra o passo de origem (não o de raça). Números observados e propostas em [`CALIBRACAO.md`](CALIBRACAO.md).
 
 ## 5. Status e treino
 

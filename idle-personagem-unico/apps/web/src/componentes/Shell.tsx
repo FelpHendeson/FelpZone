@@ -1,14 +1,17 @@
 "use client";
 
-import { relogioDoSistema } from "@idle-pu/motor";
-import { useEffect, useState } from "react";
+import { personagemAtivo, relogioDoSistema, salvarJogo, type Armazenamento, type EstadoJogo, type ResultadoAcao } from "@idle-pu/motor";
+import { useEffect, useRef, useState } from "react";
 import { ABAS } from "@/lib/abas";
 import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
-import { iniciarJogo, type ResultadoInicio } from "@/lib/persistencia";
+import { aplicarESalvar, prepararCriacao } from "@/lib/criacao";
+import { CHAVE_SAVE, iniciarJogo, type ResultadoInicio } from "@/lib/persistencia";
+import { CriacaoPersonagem } from "./CriacaoPersonagem";
+import { FichaPersonagem } from "./FichaPersonagem";
 
-type EstadoSave =
+type EstadoTela =
   | { readonly fase: "carregando" }
-  | { readonly fase: "pronto"; readonly resultado: ResultadoInicio }
+  | { readonly fase: "pronto"; readonly estado: EstadoJogo; readonly origem: ResultadoInicio["origem"] }
   | { readonly fase: "erro"; readonly mensagem: string };
 
 const TEXTO_ORIGEM: Record<ResultadoInicio["origem"], string> = {
@@ -21,25 +24,78 @@ const TEXTO_ORIGEM: Record<ResultadoInicio["origem"], string> = {
 export function Shell() {
   const [abaAtiva, setAbaAtiva] = useState(ABAS[0]!.id);
   const [subAbaPorAba, setSubAbaPorAba] = useState<Record<string, number>>({});
-  const [save, setSave] = useState<EstadoSave>({ fase: "carregando" });
+  const [tela, setTela] = useState<EstadoTela>({ fase: "carregando" });
+  const armazenamento = useRef<Armazenamento | null>(null);
 
   useEffect(() => {
     let cancelado = false;
-    iniciarJogo(criarArmazenamentoLocal(window.localStorage), relogioDoSistema.agora())
-      .then((resultado) => {
-        if (!cancelado) setSave({ fase: "pronto", resultado });
-      })
-      .catch(() => {
-        if (!cancelado) setSave({ fase: "erro", mensagem: "Não foi possível acessar o armazenamento do navegador." });
-      });
+    (async () => {
+      const arm = criarArmazenamentoLocal(window.localStorage);
+      armazenamento.current = arm;
+      const inicio = await iniciarJogo(arm, relogioDoSistema.agora());
+      // Jogo sem personagem já começa o sorteio; grava antes de mostrar.
+      const estado = prepararCriacao(inicio.estado);
+      if (estado !== inicio.estado) await salvarJogo(arm, CHAVE_SAVE, estado);
+      if (!cancelado) {
+        setTela({ fase: "pronto", estado, origem: inicio.origem });
+        // Na F1 só a ficha tem conteúdo: abre direto na aba Personagem.
+        setAbaAtiva("personagem");
+      }
+    })().catch(() => {
+      if (!cancelado) setTela({ fase: "erro", mensagem: "Não foi possível acessar o armazenamento do navegador." });
+    });
     return () => {
       cancelado = true;
     };
   }, []);
 
+  async function aoAgir(resultado: ResultadoAcao): Promise<string | null> {
+    const arm = armazenamento.current;
+    if (!arm) return "Armazenamento indisponível.";
+    try {
+      const gravado = await aplicarESalvar(arm, resultado);
+      if (!gravado.ok) return gravado.erro.mensagem;
+      setTela((atual) => (atual.fase === "pronto" ? { ...atual, estado: gravado.estado } : atual));
+      if (personagemAtivo(gravado.estado)) {
+        setAbaAtiva("personagem");
+        setSubAbaPorAba((a) => ({ ...a, personagem: 0 }));
+      }
+      return null;
+    } catch {
+      return "Não foi possível salvar. Tente de novo.";
+    }
+  }
+
+  if (tela.fase === "carregando") {
+    return (
+      <p className="carregando" role="status">
+        Carregando save…
+      </p>
+    );
+  }
+  if (tela.fase === "erro") {
+    return (
+      <p className="erro carregando" role="alert">
+        {tela.mensagem}
+      </p>
+    );
+  }
+
+  const personagem = personagemAtivo(tela.estado);
+  if (!personagem) {
+    return (
+      <div className="shell">
+        <main className="conteudo">
+          <CriacaoPersonagem estado={tela.estado} aoAgir={aoAgir} />
+        </main>
+      </div>
+    );
+  }
+
   const aba = ABAS.find((a) => a.id === abaAtiva) ?? ABAS[0]!;
   const indiceSub = subAbaPorAba[aba.id] ?? 0;
   const subAba = aba.subAbas[indiceSub] ?? aba.subAbas[0];
+  const mostraFicha = aba.id === "personagem" && indiceSub === 0;
 
   return (
     <div className="shell">
@@ -62,16 +118,18 @@ export function Shell() {
       </header>
 
       <main className="conteudo" role="tabpanel" aria-label={subAba}>
-        <section className="vazio">
-          <h2>{subAba}</h2>
-          <p>Em construção. Esta seção chega nas próximas fatias.</p>
-        </section>
+        {mostraFicha ? (
+          <FichaPersonagem personagem={personagem} />
+        ) : (
+          <section className="vazio">
+            <h2>{subAba}</h2>
+            <p>Em construção. Esta seção chega nas próximas fatias.</p>
+          </section>
+        )}
       </main>
 
       <p className="status-save" role="status" aria-live="polite">
-        {save.fase === "carregando" && "Carregando save…"}
-        {save.fase === "erro" && save.mensagem}
-        {save.fase === "pronto" && TEXTO_ORIGEM[save.resultado.origem]}
+        {TEXTO_ORIGEM[tela.origem]}
       </p>
 
       <nav className="abas" aria-label="Navegação principal">

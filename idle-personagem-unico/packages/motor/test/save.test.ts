@@ -9,6 +9,7 @@ import {
   criarEstadoInicial,
   lerJogo,
   migrarSave,
+  migrarV1ParaV2,
   salvarJogo,
   serializarSave,
   tamanhoUtf8,
@@ -34,9 +35,9 @@ describe("save", () => {
     expect(Rng.deEstado(r.estado.rng).proximoUint32()).toBe(Rng.daSemente("semente-teste").proximoUint32());
   });
 
-  it("tabela real de migrações começa vazia", () => {
-    expect(VERSAO_SAVE_ATUAL).toBe(1);
-    expect(Object.keys(MIGRACOES)).toHaveLength(0);
+  it("tabela real de migrações tem a v1 → v2 da F1", () => {
+    expect(VERSAO_SAVE_ATUAL).toBe(2);
+    expect(Object.keys(MIGRACOES)).toEqual(["1"]);
   });
 
   describe("migração fictícia", () => {
@@ -49,7 +50,7 @@ describe("save", () => {
     };
 
     it("carrega um save antigo passando pela migração", () => {
-      const r = carregarSave(JSON.stringify({ versao: 0, seed: "antiga", tick: T0 }), { migracoes: { 0: deV0 } });
+      const r = carregarSave(JSON.stringify({ versao: 0, seed: "antiga", tick: T0 }), { migracoes: { 0: deV0, 1: migrarV1ParaV2 } });
       expect(r.ok).toBe(true);
       if (!r.ok) return;
       expect(r.migradoDe).toBe(0);
@@ -131,7 +132,7 @@ describe("save", () => {
       const r = carregarSave(com({ extra: 1 }).replace(/^\{/, '{"__proto__":{"poluido":true},'));
       expect(r.ok).toBe(true);
       if (!r.ok) return;
-      expect(Object.keys(r.estado).sort()).toEqual(["criadoEm", "rng", "semente", "ultimoTick", "versao"]);
+      expect(Object.keys(r.estado).sort()).toEqual(["conta", "criadoEm", "rng", "semente", "ultimoTick", "versao"]);
       expect(({} as Record<string, unknown>).poluido).toBeUndefined();
     });
   });

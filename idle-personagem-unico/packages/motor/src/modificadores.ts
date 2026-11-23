@@ -20,7 +20,12 @@ export type TipoOrigemModificador =
   | "reliquia"
   | "titulo"
   | "clima"
-  | "horaDoDia";
+  | "horaDoDia"
+  | "raca"
+  | "dom"
+  | "core"
+  | "origem"
+  | "anomalia";
 
 /**
  * - `somar`: valor fixo somado à base (ex.: +5).

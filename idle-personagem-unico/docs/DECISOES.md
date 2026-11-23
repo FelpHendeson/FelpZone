@@ -64,3 +64,13 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 4. **Competição na infraestrutura**: ok adiar a decisão para a F12?
 5. **Hobby da Vercel**: ok seguir enquanto o jogo for pessoal e não comercial?
 6. **Tom**: o autor gosta de humor ácido e temas sombrios; os textos devem seguir esse tom (Limiar, Barqueiro, Trevas)?
+
+### Da F1 (sorteio), para o autor conferir
+
+7. **Primordiais das raças raras**: com os custos do prompt da F1 (raça Rara 25, Primordial 80, saldo 100), Draconato e Silfo **nunca** tiram dom Primordial. Manter assim ou baixar o custo da raça Rara para 20? Ver `CALIBRACAO.md`.
+8. **"5 chances"** foi lido como **5 tentativas no total** (a 1ª + 4 rerolagens), como no prompt ("a 5ª tentativa é obrigatória"). O GDD dizia "5 chances de rerolar"; se a intenção for 6 tentativas, é só mudar `CONFIG_SORTEIO.tentativas`.
+9. **Tags de afinidade** de raças e cores (vocabulário de 30 tags em `dados/tipos.ts`) e, por consequência, quais pares são excêntricos. **Sem Chama** ficou **sem tags**: é excêntrico para todas as raças e sempre traz uma Marca da Anomalia. Lobisomem + Ser das Trevas ficou excêntrico, como no exemplo do GDD.
+10. **Marca da Anomalia**: 7 marcas curadas à mão; as outras 58 saem de um gerador por modelos (núcleo da raça + complemento do core). Os nomes gerados são aceitáveis, mas o autor pode querer reescrever os pares que mais saem.
+11. **Traço de personalidade** (12, narrativo) entrou como "detalhe final" da cascata e fica na ficha. "Dons menores" não entraram.
+12. **Textos novos**: 104 dons, técnicas de 11 cores (o Ser das Trevas é do autor), 12 traços e as frases do gerador de origem comum foram escritos pelo agente, no tom sombrio com humor seco.
+

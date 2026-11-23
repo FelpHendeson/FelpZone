@@ -20,7 +20,7 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 | Ordem | Arquivo | Situação |
 | --- | --- | --- |
 | 0 | `00-fatia-F0-fundacao.md` | **Concluída** (commit `293c932`); mantida como histórico. |
-| 1 | `01-fatia-F1-sorteio.md` | Escrito e **autorizado em 23/11/2026**. |
+| 1 | `01-fatia-F1-sorteio.md` | **Concluída** em 23/11/2026; mantida como histórico. Decisões para o autor conferir em `docs/DECISOES.md` (7 a 12). |
 | 2 a 14 | F2 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
 
 Não dispare duas fatias em paralelo. O ciclo é:

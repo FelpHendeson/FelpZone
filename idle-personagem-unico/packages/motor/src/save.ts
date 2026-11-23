@@ -4,17 +4,19 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
+import { validarConta, type Conta } from "./personagem/conta";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 1;
+export const VERSAO_SAVE_ATUAL = 2;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
 
 /**
- * Estado do jogo. Na F0 ainda não há regras: só a semente, o RNG e o tempo.
- * As próximas fatias acrescentam campos com migração.
+ * Estado do jogo. v1 (F0): semente, RNG e tempo. v2 (F1): `conta`, com os
+ * personagens, o ativo e o sorteio em andamento. Próximas fatias acrescentam
+ * campos com migração.
  */
 export interface EstadoJogo {
   readonly versao: typeof VERSAO_SAVE_ATUAL;
@@ -24,6 +26,7 @@ export interface EstadoJogo {
   readonly rng: EstadoRng;
   readonly criadoEm: number;
   readonly ultimoTick: number;
+  readonly conta: Conta;
 }
 
 /** Dados crus de um save, antes da validação. */
@@ -32,8 +35,14 @@ export type DadosSave = Readonly<Record<string, unknown>>;
 /** Leva dados da versão `n` para a versão `n + 1`. Não deve alterar a entrada. */
 export type Migracao = (dados: DadosSave) => DadosSave;
 
-/** Tabela de migrações, indexada pela versão de origem. Vazia por enquanto. */
-export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({});
+/** v1 → v2: acrescenta a conta vazia (sem personagens nem sorteio). */
+export const migrarV1ParaV2: Migracao = (dados) => ({
+  ...dados,
+  conta: { personagens: [], personagemAtivoId: null, sorteio: null },
+});
+
+/** Tabela de migrações, indexada pela versão de origem. */
+export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({ 1: migrarV1ParaV2 });
 
 export type CodigoErroSave =
   | "vazio"
@@ -72,6 +81,7 @@ export function criarEstadoInicial(semente: string, agora: number): EstadoJogo {
     rng: estadoDaSemente(semente),
     criadoEm: agora,
     ultimoTick: agora,
+    conta: { personagens: [], personagemAtivoId: null, sorteio: null },
   };
 }
 
@@ -152,16 +162,19 @@ export function migrarSave(
  */
 export function validarEstado(dados: DadosSave): EstadoJogo | null {
   if (dados.versao !== VERSAO_SAVE_ATUAL) return null;
-  const { semente, rng, criadoEm, ultimoTick } = dados;
+  const { semente, rng, criadoEm, ultimoTick, conta } = dados;
   if (typeof semente !== "string" || semente.length === 0 || semente.length > TAMANHO_MAXIMO_SEMENTE) return null;
   if (!ehEstadoRng(rng)) return null;
   if (!ehInstante(criadoEm) || !ehInstante(ultimoTick) || ultimoTick < criadoEm) return null;
+  const contaLimpa = validarConta(conta);
+  if (!contaLimpa) return null;
   return {
     versao: VERSAO_SAVE_ATUAL,
     semente,
     rng: { a: rng.a, b: rng.b, c: rng.c, d: rng.d },
     criadoEm,
     ultimoTick,
+    conta: contaLimpa,
   };
 }
 

@@ -10,13 +10,14 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F0 (Fundação) concluída.** Existe a base técnica, ainda **sem nenhuma regra de jogo**: workspace npm, motor com RNG, tempo, modificadores e save versionado, e um app web com as abas vazias. O design completo e o plano de construção estão em:
+**F1 (Sorteio do personagem) concluída.** Ao abrir o jogo pela primeira vez, a pessoa sorteia o personagem em cascata (raça → core → dom → origem → traço), com orçamento de raridade e 5 tentativas, aceita, escolhe nome e cores e vê a ficha na aba **Personagem → Status**. Ainda não há status numéricos, atividades nem inventário (F2 em diante). O design completo e o plano de construção estão em:
 
 - **[GDD](docs/GDD.md)**: personagem, sorteio, status, atividades, combate, mapa, itens, forja, morte (O Limiar), missões, guilda, habilidades, pets, competição e interface.
 - **[Origens](docs/ORIGENS.md)**: gerador de origem comum e 22 origens especiais com lore, efeito e gancho de história.
 - **[Arquitetura](docs/ARQUITETURA.md)**: motor TS puro, web Next, API, banco, segurança e port mobile.
 - **[Roadmap](docs/ROADMAP.md)**: fatias F0 a F14.
 - **[Decisões](docs/DECISOES.md)**: o que o autor decidiu, o que é proposta e as perguntas abertas.
+- **[Calibração](docs/CALIBRACAO.md)**: números [Calibrar], simulação de 200 mil sorteios e propostas de ajuste.
 
 Prompts de implementação ficam em [`prompts/idle-personagem-unico/`](../prompts/idle-personagem-unico/README.md).
 
@@ -32,6 +33,19 @@ Prompts de implementação ficam em [`prompts/idle-personagem-unico/`](../prompt
 | `apps/web` | Next (App Router), mobile-first: abas inferiores (Atividades, Combate, Mapa, Mochila, Missões, Personagem) e sub-abas do GDD §16, vazias. Cria, salva e carrega o estado vazio em `localStorage` pela interface `Armazenamento`; save inválido vira cópia em `idle-pu:save-invalido` e o jogo recomeça. |
 
 O motor não importa React, Next, DOM nem módulos do Node, e não usa `Math.random`. Isso é garantido três vezes: `tsconfig` do motor sem tipos de DOM/Node, regras do ESLint e um teste que varre `packages/motor/src`.
+
+### O que a F1 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/` | Conteúdo como dado: raridades, **8 raças** (tags, perfil, habilidade comum), **104 dons** (13 por raça), **12 cores** com 2–3 técnicas em texto (Ser das Trevas com o texto do autor), compatibilidade por tags, **65 Marcas da Anomalia** (7 curadas + gerador determinístico por modelos), **22 origens especiais**, 3 bestas vinculadas, gerador de origem comum (10 berços com bônus de ofício como modificador, 10 motivações, 5 marcas), 12 traços e paletas de 12 cores de cabelo e de roupa. Efeitos sem sistema ainda ficam em `efeitoPendente` (não aplicados). |
+| `packages/motor/src/sorteio/` | `config.ts` (pesos e custos [Calibrar]), `cascata.ts` (sorteio com orçamento e fallback de menor custo; tentativa reproduzível pelo estado do RNG) e `acoes.ts` (`iniciarSorteio`, `rerolar`, `aceitarSorteio`, `definirNomeEAparencia`, erros tipados). |
+| `packages/motor/src/personagem/` | Conta (até 3 personagens; só o 1º nesta fatia), ficha inicial, validação do nome, lore da origem e **miniatura SVG** determinística. |
+| `packages/motor/src/save.ts` | **Save v2** com migração real v1 → v2 (`conta` com `personagens[]`, `personagemAtivoId`, `sorteio`). O sorteio guarda o estado do RNG de cada tentativa e um resumo, conferido contra a reprodução ao carregar. |
+| `packages/motor/scripts/simular-sorteio.ts` | Simulação em massa (`npm run simular`). |
+| `apps/web` | Tela de criação mobile-first (cartões, Aceitar/Rerolar, nome e paletas com miniatura ao vivo) e ficha na aba Personagem. Cada ação é gravada antes de aparecer na tela. |
+
+Sem dependências novas.
 
 ### Versões escolhidas (23/11/2026)
 
@@ -74,10 +88,13 @@ npm test           # Vitest no motor e na web
 npm run lint       # ESLint (motor com regras de pureza; web com eslint-config-next)
 npm run typecheck  # tsc no motor (código e testes) e na web
 npm run build      # build de produção do Next
+npm run simular    # simulação de 200 mil sorteios (Markdown para docs/CALIBRACAO.md)
 ```
+
+`npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
 
 Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F1 (Sorteio do personagem)** só começa com autorização do autor.
+A **F2 (Loop de atividade + treino)** só começa com autorização do autor. Antes, vale conferir as decisões da F1 listadas em [`docs/DECISOES.md`](docs/DECISOES.md) (perguntas 7 a 12), em especial os Primordiais das raças raras.
