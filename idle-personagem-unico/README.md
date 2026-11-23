@@ -4,6 +4,8 @@ Idle RPG em que o jogador **sorteia um único personagem** (raça, habilidade co
 
 O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios, rankings e temporadas dão objetivo de longo prazo.
 
+**Versão publicada (acompanhamento a cada fatia):** [idle-personagem-unico.vercel.app](https://idle-personagem-unico.vercel.app/). Projeto Vercel `idle-personagem-unico`, diretório raiz `idle-personagem-unico/apps/web`, deploy automático a cada push na `main`.
+
 > Projeto **novo**, independente do LionHearth (`idle-guilda`). Aproveita as boas ideias técnicas dele (motor em TS puro, simulação determinística, offline), mas é outro jogo.
 
 ## Estado atual
