@@ -1,0 +1,20 @@
+---
+description: Arquitetura e limites do Idle de Personagem Único (idle-personagem-unico), idle RPG de uma atividade por vez
+globs: idle-personagem-unico/**
+alwaysApply: false
+---
+
+# Idle de Personagem Único (idle-personagem-unico)
+
+- Leia `idle-personagem-unico/README.md`, `docs/GDD.md`, `docs/ARQUITETURA.md` e `docs/DECISOES.md` antes de implementar. Respeite os rótulos **[Autor]** (decisão dele) e **[Proposta]** (hipótese do agente); em divergência, o pedido mais recente do autor prevalece.
+- Trabalhe **uma fatia por vez** (`docs/ROADMAP.md`). Um prompt em `prompts/idle-personagem-unico/` não autoriza a execução; o autor autoriza.
+- Plataforma: **web 100% primeiro**; o port mobile (Expo) só depois. O motor não pode usar APIs exclusivas do navegador ou do Node.
+- Regras ficam em TypeScript puro em `packages/motor`; a interface só exibe estado e dispara ações. Ações devolvem estado novo ou erro.
+- Todo sorteio usa o gerador com **semente guardada no save** (nada de `Math.random` nas regras). Saves são **versionados com migração** desde o início.
+- Buffs, passivas, equipamentos, ferramentas, pets, relíquias, títulos, clima e hora do dia passam pelo **mesmo modelo de modificadores**; sistema novo deve produzir modificadores.
+- Só **uma atividade por vez** para o personagem; combate também é atividade. Offline limitado a **12 h**.
+- Trate saves e respostas da API como entrada não confiável; com conta, o servidor é a autoridade e o cliente envia ações.
+- Números novos são conferidos pelo **bot de ritmo** e registrados no GDD; atualize o GDD ao mudar regra, fórmula ou ritmo.
+- Interface mobile-first, em português; valide também em tablet e desktop.
+- Nada de segredos, `.env` ou dados da empresa do autor no repositório público.
+- Teste regras e persistência e confirme o build antes de sugerir commit.
