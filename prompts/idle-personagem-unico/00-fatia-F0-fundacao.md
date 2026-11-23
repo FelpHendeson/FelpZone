@@ -13,7 +13,7 @@ Projeto `idle-personagem-unico`: idle RPG de personagem único sorteado, uma ati
 - TypeScript em modo `strict`. Dependências na versão estável mais recente compatível; registre no README as versões escolhidas.
 - Textos de interface em português do Brasil.
 - Nada de `Math.random` no motor, nem em testes de regra (use o RNG com semente).
-- Faça um commit pequeno ao final, no estilo do repositório (`feat(idle-personagem-unico): ...`), **sem push**, a menos que o autor peça.
+- Trabalhe **direto na `main`**, sem branch nem PR. Ao final, faça o commit no estilo do repositório (`feat(idle-personagem-unico): ...`) e **dê push na `main`**.
 
 ## Objetivo
 
