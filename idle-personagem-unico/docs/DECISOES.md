@@ -30,6 +30,12 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 21. **Aprovou as propostas do agente** listadas abaixo (P1 a P12), exceto o que estiver em "Perguntas abertas".
 22. O trabalho pode ir direto para a `main`.
 
+### Decisões de 23/11 (fim da tarde)
+
+23. **Conta compartilhada** (conquistas e o que o agente achar justo): cada personagem é uma existência diferente. Ver GDD §4.1 para a divisão conta × personagem.
+24. **Cuidados do pet dependem da atividade**: se o pet está na atividade de descanso, o personagem não está trabalhando ali. São atividades do personagem, uma de cada vez.
+25. **Origens** inspiradas em obras de ficção, com origens próprias criadas; catálogo em `ORIGENS.md`.
+
 ## Propostas do agente aguardando aprovação
 
 | # | Proposta | Onde |
@@ -51,11 +57,10 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 
 ## Perguntas abertas
 
-1. **Conta compartilhada**: algo é compartilhado entre os 3 personagens (por exemplo, conquistas, cosméticos, Pergaminhos do Novo Destino) ou nada?
-2. **Cuidados do pet** (alimentar, descansar, treinar): cronômetros do pet que correm em paralelo ao personagem (proposta), ou consomem a atividade do personagem?
-3. **Origens especiais**: 8% de chance e restrição por raça (proposta) estão bons? Quais outras origens você quer escrever?
-4. **Nome do jogo.** Só para trocar o nome de trabalho e o projeto Vercel.
-5. **Arte**: pixel art? Sem gráficos no começo, mas qual direção de estilo futura?
-6. **Competição na infraestrutura**: ok adiar a decisão para a F12?
-7. **Hobby da Vercel**: ok seguir enquanto o jogo for pessoal e não comercial?
-8. **Tom**: o autor gosta de humor ácido e temas sombrios; os textos devem seguir esse tom (Limiar, Barqueiro, Trevas)?
+1. **Origens especiais**: 8% de chance e restrição por raça (proposta) estão bons? Das 22 origens do catálogo, quais cortar, trocar ou reescrever?
+2. **Cuidados do pet**: confirme a leitura de "depende da atividade": alimentar, descansar e treinar são atividades do personagem (uma de cada vez), e o pet só rende onde o personagem está.
+3. **Nome do jogo.** Só para trocar o nome de trabalho e o projeto Vercel.
+3. **Arte**: pixel art? Sem gráficos no começo, mas qual direção de estilo futura?
+4. **Competição na infraestrutura**: ok adiar a decisão para a F12?
+5. **Hobby da Vercel**: ok seguir enquanto o jogo for pessoal e não comercial?
+6. **Tom**: o autor gosta de humor ácido e temas sombrios; os textos devem seguir esse tom (Limiar, Barqueiro, Trevas)?

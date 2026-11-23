@@ -11,6 +11,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 **Só planejamento.** Nenhum código foi escrito. O design completo e o plano de construção estão em:
 
 - **[GDD](docs/GDD.md)**: personagem, sorteio, status, atividades, combate, mapa, itens, forja, morte (O Limiar), missões, guilda, habilidades, pets, competição e interface.
+- **[Origens](docs/ORIGENS.md)**: gerador de origem comum e 22 origens especiais com lore, efeito e gancho de história.
 - **[Arquitetura](docs/ARQUITETURA.md)**: motor TS puro, web Next, API, banco, segurança e port mobile.
 - **[Roadmap](docs/ROADMAP.md)**: fatias F0 a F14.
 - **[Decisões](docs/DECISOES.md)**: o que o autor decidiu, o que é proposta e as perguntas abertas.

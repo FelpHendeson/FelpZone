@@ -42,6 +42,9 @@ Plataforma: **primeiro 100% web** (Next, mobile-first, instalável como PWA). De
 | 12 | **Cada personagem é independente**: ficha, mochila, gold, missões e rank próprios. Só um personagem joga por vez. | [Autor] (23/11) |
 | 13 | **Pets por atividade**: 1 pet por atividade (inicialmente); o mesmo pet pode estar em todas; **só trabalha quando o personagem trabalha ali**. Treino, descanso e alimentação do pet são separados. | [Autor] (23/11) |
 | 14 | **Origens**: personagens comuns têm lore básica; **personagens especiais** têm lore única e podem nascer com uma **besta espiritual vinculada**. Abre espaço para mecânicas de história depois. | [Autor] (23/11) |
+| 15 | **Conta compartilhada**: conquistas e o que o agente achar justo compartilhar; "cada personagem é uma existência diferente". | [Autor] (23/11) |
+| 16 | **Cuidados do pet dependem da atividade**: se o pet está na atividade de descanso, o personagem não está trabalhando ali. | [Autor] (23/11) |
+| 17 | **Origens inspiradas em obras de ficção** (manhwa, anime, mangá, filmes, fantasia e ficção científica), com origens próprias criadas a partir de arquétipos. | [Autor] (23/11) |
 
 ---
 
@@ -121,7 +124,7 @@ O modelo combina **berço** (vila rural, porto, acampamento nômade, mosteiro, c
 | **Fruto do Vínculo** | Nasceu de um projeto cujo único fim era estudar o vínculo de bestas espirituais com bebês, para medir o possível aumento de potencial do indivíduo. | Começa com uma **besta espiritual vinculada** (única, não se perde); mais **Sincronia** no modo União; ganchos de história sobre quem o criou. |
 | **12º Filho do Clã Ironblood** | Décimo segundo filho do patriarca; trama a ruína do próprio clã em busca de vingança. | Reputação inicial hostil com o clã Ironblood e aliada com inimigos dele; bônus contra os inimigos do clã; **cadeia de missões própria**. |
 
-Outras origens especiais para o catálogo inicial [Proposta]: **Sobrevivente do Vazio** (única pessoa a voltar de uma ilha engolida pela escuridão; afinidade com o Limiar), **Órfão do Templo Cinzento**, **Herdeiro sem Nome**, **A Voz do Poço** (ouve algo que ninguém mais ouve). Cada uma é escrita com lore, ganho e gancho de história.
+O catálogo completo (22 origens especiais e o gerador de origem comum) está em **[`ORIGENS.md`](ORIGENS.md)**, inspirado em arquétipos de manhwas, animes, mangás, filmes e livros de fantasia e ficção científica, sempre com nomes e regras originais [Autor, 23/11].
 
 **Ganchos de história** (futuro, [Autor: "podemos até adicionar alguma mecânica de história depois"]): origens especiais abrem **arcos** de missões, NPCs e escolhas próprias. Entram depois do jogo base e não alteram o motor, porque missões já são dados (§11).
 
@@ -135,6 +138,19 @@ Outras origens especiais para o catálogo inicial [Proposta]: **Sobrevivente do 
 4. Entra no jogo com um **kit básico** (uma ferramenta de cada ofício, arma e roupa simples).
 
 **Personagens por conta:** até **3** no início. O 2º e o 3º só são criados ao usar um item de reroll (*Pergaminho do Novo Destino*), obtido no jogo. [Autor]
+
+**Conta e existências** [Autor, 23/11]: cada personagem é **uma existência diferente**. O que é **da conta** (compartilhado) e o que é **do personagem** (separado):
+
+| Da **conta** (compartilhado) [Proposta, aprovada na regra geral] | Do **personagem** (separado) |
+| --- | --- |
+| **Conquistas** (sem poder; dão cosméticos, títulos de conta e marcos) | Ficha, nível, status, raça, core, dons, origem |
+| **Cofre da Conta**: *Pergaminhos do Novo Destino* | Mochila, gold, ferramentas, equipamento |
+| **Cosméticos de perfil** (cores, molduras, miniaturas) | Missões, rank e Mérito da guilda |
+| **Álbum de Descobertas** (raças, cores, origens, monstros já vistos; só informação, sem poder) | Pets e bestas vinculadas |
+| **Histórico de temporadas** e troféus de torneio | Títulos com bônus, Bestiário de abates, Crônica |
+| Nome da conta e configurações | Limiar, Eco da Morte, mapa descoberto |
+
+Conquistas **não dão poder** aos personagens, para respeitar "cada um é uma existência diferente".
 
 **Personagens são independentes** [Autor, 23/11]: cada um tem ficha, mochila, gold, missões, rank de guilda e pets próprios. Só **um personagem joga por vez** (o ativo); os outros ficam parados até serem escolhidos. Troca livre entre eles. [Proposta, aprovada na regra geral]
 
@@ -218,7 +234,11 @@ Habilidades **novas** são aprendidas por livros e mestres (NPCs), pelo core, po
 
 Combate também é uma atividade (e é exclusivo). Tem aba própria (§7).
 
-### 6.6 Missões não são atividades
+### 6.6 Cuidados do pet [Autor: depende da atividade; detalhes: Proposta]
+
+**Alimentar**, **Descansar** e **Treinar** o pet são **atividades** como as outras. O personagem as executa **uma de cada vez**, e o pet atribuído a elas é o que recebe o cuidado. Se o pet está na atividade de **descanso**, o personagem **não está trabalhando em outro lugar**: o pet só rende quando o personagem trabalha na atividade onde ele está (§13).
+
+### 6.7 Missões não são atividades
 
 Missões são **objetivos**: avançam enquanto o personagem faz atividades que contam para elas (§11).
 
@@ -366,7 +386,7 @@ Dois grandes grupos:
 
 - Todos têm **nome** (o jogador dá), **raridade**, **nível** e **vínculo**.
 - **Pet por atividade** [Autor, 23/11]: cada **atividade** tem **1 slot de pet** (inicialmente; mais slots podem vir depois). O **mesmo pet pode estar em todas** as atividades. Ele **só trabalha quando o personagem trabalha naquela atividade**: não existe atividade paralela e a regra de "uma atividade por vez" fica intacta.
-- **Cuidados do pet** [Autor: treino, descanso e alimentação, separados e só para o pet; mecânica: Proposta]: o pet tem **Fome** e **Energia**. Com fome ou sem energia, **não ajuda** (bônus cai a zero). **Alimentar** gasta comida (comprada ou produzida), **descansar** e **treinar** são cronômetros do pet (no Estábulo ou na aba Pets). Enquanto o pet descansa ou treina, ele **não pode ser atribuído**, mas o personagem segue com a atividade normalmente.
+- **Cuidados do pet** [Autor: depende da atividade; mecânica: Proposta]: o pet tem **Fome** e **Energia**. Com fome ou sem energia, **não ajuda** (bônus cai a zero). **Alimentar** gasta comida (comprada ou produzida); **Descansar** recupera Energia; **Treinar** sobe nível e atributos do pet. Todos são **atividades do personagem** (§6.6): consomem a atividade dele, e o pet só está "ali" quando o personagem está.
 - **Besta espiritual vinculada:** personagens de **origem especial** (§3.4) podem nascer com uma. É um pet espiritual **único**, com lore própria, **não pode ser perdido nem trocado**, e cresce junto com o personagem.
 - **Habilidades de pet** afetam combate e **outros aspectos** (coleta, produção, viagem).
 - **Modo União** (só espirituais): o pet se funde ao personagem por um tempo, libera **habilidades de união** e fortalece outras. Tem barra de **Sincronia** que enche com o uso e esfria depois. [Proposta]
@@ -402,7 +422,7 @@ O jogo não termina, então a **competição** dá objetivo de longo prazo.
 
 | Aba | Sub-abas |
 | --- | --- |
-| **Atividades** | Treino · Coleta · Produção (inclui Forja) · Aprendizado |
+| **Atividades** | Treino · Coleta · Produção (inclui Forja) · Aprendizado · Pets (cuidados) |
 | **Combate** | Áreas · Bestiário · O Limiar |
 | **Mapa** | Região · Local atual · Estabelecimentos |
 | **Mochila** | Equipados · Equipáveis · Ferramentas · Materiais · Consumíveis · Nomeados |
