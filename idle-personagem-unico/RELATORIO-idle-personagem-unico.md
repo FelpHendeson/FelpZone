@@ -22,7 +22,7 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | `3759090` | 242 |
 | F6 | O Limiar | ✅ Concluída em 24/11/2026 | `7275030` | 263 |
 | F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | `646316d` | 277 |
-| F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | (ver seção) | 297 |
+| F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | `ed3359e` | 297 |
 | F9 a F13 | Conta · Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
@@ -627,6 +627,7 @@ Reputação com facções e diálogos com escolhas. Acesso por rank a lojas e su
   - ampliar a mochila; equipar 2 anéis nos 2 slots; abas Consumíveis e Nomeados.
 
   Também a **migração real** de um save v8 criado no site publicado (que rodava a F7): "Save atualizado para a versão nova", ofícios de produção no 1 e slots novos vazios. Console limpo, sem rolagem lateral.
+- **CI e Vercel**: job do projeto verde no commit `ed3359e` e deploy em `READY`. O fluxo de produção, fusão e ampliação foi repetido no site publicado em 360 px, com console limpo.
 
 ### Números principais
 
