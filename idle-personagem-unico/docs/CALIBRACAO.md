@@ -1,6 +1,6 @@
 # Calibração
 
-Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino e progressão da F2): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
+Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
 
 ## Sorteio do personagem (F1)
 
@@ -265,6 +265,64 @@ XP por hora de treino: 1200 (sem bônus).
 3. **Proposta (não aplicada):** quando chegarem as próximas fontes de XP (coleta e combate, F3–F4), revisar junto: (a) baixar o ganho base para ~0,4% do teto, ou (b) fazer o custo de encher a faixa crescer com o nível. Mudar agora, só com treino, calibraria um jogo que ainda não existe.
 4. **Silfo** sobe de nível ~10% mais rápido por causa do Corpo de Vento (ciclos mais curtos, mesmo XP por ciclo). Se isso for indesejado, a velocidade pode valer só para o ganho de status.
 
+## Mapa e coleta (F3)
+
+Fonte dos números: `packages/motor/src/dados/mapa.ts`, `dados/coleta.ts`, `personagem/progressao.ts` (`CONFIG_OFICIOS`, `CONFIG_MOCHILA`) e `atividades/ciclos.ts` (bônus de status). Reproduza com `npm run ritmo`.
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Viagem entre locais | 4 a 9 s (Pedravau ↔ Bosque 4, ↔ Lago 5, ↔ Mina 6; Bosque ↔ Lago 4, ↔ Mina 8; Lago ↔ Mina 9); mínimo 1 s com bônus | [Calibrar]; teto de 10 s é [Autor] |
+| Recursos por tier | tier 1: nível 1, ciclo 30 s, 5 XP de ofício · tier 2: nível 10, 36 s, 9 XP · tier 3: nível 20, 42 s, 14 XP; 5 XP do personagem por ciclo | [Calibrar] |
+| Rendimento | 1 item por ciclo × eficiência da ferramenta × bônus; a fração é sorteada (RNG do save) | [Calibrar] |
+| Achado raro | 1% por ciclo × (1 + 1% por ponto de Percepção + Sorte efetivas) × bônus (Lobisomem +50%) | [Calibrar] |
+| Agilidade | +1% de velocidade de coleta por ponto efetivo | [Calibrar] |
+| Ferramentas | básica ×1/×1 (kit inicial) · ferro ×1,25 rendimento / ×1,1 velocidade, 400 g, ofício 5 · aço ×1,5 / ×1,2, 2.500 g, ofício 15 | [Calibrar] |
+| XP de ofício (L → L+1) | round(150 × L^1,5), nível máximo 50 | **mudou** no bot: 40 → 150 |
+| Mochila | 20 espaços + 0,5 por ponto de Força efetiva; pilha de 100 materiais ou 20 achados raros | [Calibrar] |
+| Preços de venda | tier 1: 2 g · tier 2: 5 g · tier 3: 12 g · achados raros: 60 g | [Calibrar] |
+
+### Alvos de ritmo propostos (aguardam o autor)
+
+| Alvo | Resultado (dedicado, 1 ofício) |
+| --- | --- |
+| Ferramenta de ferro no primeiro dia | 0,5 d ✅ |
+| Tier 2 (ofício 10) no primeiro ou segundo dia | 1,3 d ✅ |
+| Tier 3 (ofício 20) dentro da primeira semana | 4,3 d ✅ (com 40 de base eram 1,5 d ❌) |
+| Ferramenta de aço na primeira semana | 2,5 d ✅ |
+
+### Resultado do bot (coleta)
+
+Rendimento por hora de um Humano sem bônus, com a ferramenta básica e com a de aço (Agilidade no piso do nível 1):
+
+| Recurso | Tier | Nível | Itens/h (básica) | Gold/h (básica) | Gold/h (aço) | XP de ofício/h | XP do personagem/h |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Cortar pinho | 1 | 1 | 128 | 316 | 502 | 640 | 640 |
+| Cortar carvalho | 2 | 10 | 106 | 590 | 1035 | 954 | 530 |
+| Cortar carvalho escuro | 3 | 20 | 91 | 1152 | 2052 | 1274 | 455 |
+| Minerar cobre | 1 | 1 | 128 | 436 | 640 | 640 | 640 |
+| Minerar ferro | 2 | 10 | 106 | 710 | 1220 | 954 | 530 |
+| Minerar prata | 3 | 20 | 91 | 1152 | 2004 | 1274 | 455 |
+
+Os quatro ofícios têm os mesmos números por tier; Lenhador e Minerador representam todos.
+
+Pessoa dedicada (3 sessões/dia) focada num ofício: vende tudo a cada sessão, compra a próxima ferramenta quando pode e coleta o maior tier liberado.
+
+| Ofício | Nível 5 | Nível 10 | Nível 15 | Nível 20 | Nível 30 | Ferramenta de ferro | Ferramenta de aço | Gold no 7º dia | Nível do personagem no 7º dia | Itens perdidos/dia |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Lenhador | 0,5 d | 1,3 d | 2,5 d | 4,3 d | 8,8 d | 0,5 d | 2,5 d | 241651 | 18 | 0 |
+| Minerador | 0,5 d | 1,3 d | 2,5 d | 4,3 d | 8,8 d | 0,5 d | 2,5 d | 241605 | 18 | 0 |
+| Pescador | 0,5 d | 1,3 d | 2,5 d | 4,3 d | 8,8 d | 0,5 d | 2,5 d | 241629 | 18 | 0 |
+| Fazendeiro | 0,5 d | 1,3 d | 2,5 d | 4,3 d | 8,8 d | 0,5 d | 2,3 d | 243075 | 18 | 0 |
+
+### Leitura e proposta (F3)
+
+1. **A curva de ofício foi o único ajuste**: com `xpBase` 40, o tier 3 abria em 1,5 dia; com 150, abre em ~4 dias. Testei também 100 (3,3 dias).
+2. **Gold sobra.** No 7º dia a pessoa dedicada tem ~240 mil de gold e nada em que gastar além das duas ferramentas (2.900 g por ofício). É esperado: os ralos de gold (produção, fusão, ampliação de mochila, estábulo) chegam na F8 e na F10. **Proposta:** recalibrar preços quando houver o que comprar; até lá, os preços são provisórios.
+3. **Achados raros pesam no começo**: com a ferramenta básica no tier 1, ~20–30% do gold por hora vem deles (60 g cada). Se o autor achar muito, baixar o preço para 30 g.
+4. **Mochila cheia** só acontece para quem fica mais de ~16 h sem vender no tier 1; o bot dedicado nunca perdeu itens. Para quem abre 1×/dia, a noite de 12 h enche ~16 dos 23 espaços.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -272,3 +330,5 @@ XP por hora de treino: 1200 (sem bônus).
 | 23/11/2026 | Primeira calibração (F1). Custos do orçamento definidos (o GDD não tinha números). | — |
 | 24/11/2026 | F2: fração de piso por raça (pedida pelo GDD: Humano piso alto, Draconato piso baixo). | piso = 0,55 × teto para todas → Humano 0,65, Silfo 0,50, Draconato 0,45, demais 0,55 |
 | 24/11/2026 | F2: números de ciclo, XP, ganho e perfis por raça definidos (não existiam). | — |
+| 24/11/2026 | F3: XP de ofício. Com a base 40, o tier 3 abria em 1,5 dia (alvo: primeira semana). | `xpBase` 40 → 150 |
+| 24/11/2026 | F3: números de viagem, recursos, ferramentas, mochila, preços e bônus de status definidos (não existiam). | — |

@@ -1,6 +1,6 @@
-import { CATALOGO, NOME_STATUS, STATUS, type ResumoAvanco } from "@idle-pu/motor";
+import { CATALOGO, NOME_OFICIO, NOME_STATUS, OFICIOS, STATUS, type ResumoAvanco } from "@idle-pu/motor";
 import { useEffect, useRef } from "react";
-import { formatarDuracao, formatarNumero } from "@/lib/atividade";
+import { formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 
 /** "Enquanto você estava fora": o que o personagem fez com o jogo fechado. */
 export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFechar: () => void }) {
@@ -28,6 +28,22 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
               </strong>
             </li>
           )}
+          {resumo.chegouEm && <li>Chegou a {nomeLocal(resumo.chegouEm)}.</li>}
+          {Object.entries(resumo.itens).map(([id, q]) => (
+            <li key={id}>
+              {CATALOGO.itens.get(id)?.nome} ×{formatarNumero(q, 0)}
+            </li>
+          ))}
+          {resumo.itensPerdidos > 0 && (
+            <li className="erro">Mochila cheia: {formatarNumero(resumo.itensPerdidos, 0)} itens ficaram pelo caminho.</li>
+          )}
+          {OFICIOS.filter((o) => (resumo.niveisOficio[o] ?? 0) > 0).map((o) => (
+            <li key={o}>
+              <strong>
+                {NOME_OFICIO[o]} +{resumo.niveisOficio[o]} {resumo.niveisOficio[o] === 1 ? "nível" : "níveis"}
+              </strong>
+            </li>
+          ))}
           {STATUS.filter((s) => resumo.ganhos[s] > 1e-9).map((s) => (
             <li key={s}>
               {NOME_STATUS[s]} +{formatarNumero(resumo.ganhos[s], 2)}

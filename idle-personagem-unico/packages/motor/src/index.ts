@@ -31,6 +31,7 @@ export {
   migrarSave,
   migrarV1ParaV2,
   migrarV2ParaV3,
+  migrarV3ParaV4,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -75,7 +76,7 @@ export {
 } from "./sorteio/acoes";
 export type { CodigoErroSorteio, ErroSorteio, EscolhasFinais, ResultadoAcao } from "./sorteio/acoes";
 export { CONTA_VAZIA, MAX_PERSONAGENS, resumoTentativa, validarConta } from "./personagem/conta";
-export type { AtividadeAtual, Aparencia, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
+export type { AtividadeAtual, Aparencia, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
 export { NOME_MAX, NOME_MIN, validarNome } from "./personagem/nome";
 export type { CodigoErroNome, ErroNome } from "./personagem/nome";
 export { gerarLoreOrigem } from "./personagem/lore";
@@ -93,9 +94,38 @@ export {
   statusIniciais,
   valorEfetivo,
   xpParaProximoNivel,
+  xpParaProximoNivelOficio,
+  CONFIG_OFICIOS,
+  CONFIG_MOCHILA,
 } from "./personagem/progressao";
+export { adicionarItens, cabeNaMochila, capacidadeMochila, espacosUsados, removerItens } from "./personagem/mochila";
+export type { Mochila } from "./personagem/mochila";
+export { camposIniciaisF3 } from "./personagem/conta";
 export type { BaseModificadores, ConfigProgressao, FaixaStatus, ValoresStatus } from "./personagem/progressao";
-export { avancar, avancarPersonagem, duracaoCicloMs, ganhosZerados, xpDoCiclo } from "./atividades/ciclos";
+export {
+  avancar,
+  avancarPersonagem,
+  BONUS_AGILIDADE_POR_PONTO,
+  BONUS_RARO_POR_PONTO,
+  chanceRaro,
+  duracaoCicloMs,
+  duracaoViagemMs,
+  ganhosZerados,
+  nivelEfetivoOficio,
+  rendimentoMedio,
+  resumoVazio,
+  xpDoCiclo,
+} from "./atividades/ciclos";
 export type { ResultadoCiclos, ResumoAvanco } from "./atividades/ciclos";
-export { iniciarAtividade, pararAtividade } from "./atividades/acoes";
+export {
+  comprarFerramenta,
+  iniciarAtividade,
+  irPara,
+  LOCAL_CIDADE,
+  pararAtividade,
+  precoDeCompra,
+  precoDeVenda,
+  vender,
+  venderTudo,
+} from "./atividades/acoes";
 export type { CodigoErroAtividade, ErroAtividade, ResultadoAtividade } from "./atividades/acoes";

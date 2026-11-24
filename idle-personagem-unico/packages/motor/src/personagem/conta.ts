@@ -2,13 +2,22 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
-import { CATALOGO, STATUS } from "../dados";
+import { CATALOGO, OFICIOS, STATUS } from "../dados";
+import type { OficioId } from "../dados/coleta";
 import type { StatusId } from "../dados/status";
 import { ehEstadoRng, type EstadoRng } from "../rng";
 import { reproduzirTentativa, type ResultadoTentativa } from "../sorteio/cascata";
 import { CONFIG_SORTEIO } from "../sorteio/config";
 import { validarNome } from "./nome";
-import { CONFIG_PROGRESSAO, faixas, modificadoresDoPersonagem, xpParaProximoNivel, type ValoresStatus } from "./progressao";
+import {
+  CONFIG_OFICIOS,
+  CONFIG_PROGRESSAO,
+  faixas,
+  modificadoresDoPersonagem,
+  xpParaProximoNivel,
+  xpParaProximoNivelOficio,
+  type ValoresStatus,
+} from "./progressao";
 
 export const MAX_PERSONAGENS = 3;
 export const TAMANHO_MAXIMO_LORE = 1000;
@@ -36,7 +45,21 @@ export interface AtividadeAtual {
   readonly progressoMs: number;
 }
 
-/** Ficha do personagem. F1: identidade; F2: status, XP e atividade. Inventário chega na F3. */
+/** Viagem entre locais (≤ 10 s). Enquanto dura, o personagem segue no local de origem. */
+export interface Viagem {
+  readonly origemLocalId: string;
+  readonly destinoLocalId: string;
+  readonly destinoSubareaId: string;
+  readonly totalMs: number;
+  readonly restanteMs: number;
+}
+
+export interface ProgressoOficio {
+  readonly nivel: number;
+  readonly xp: number;
+}
+
+/** Ficha do personagem. F1: identidade; F2: status, XP e atividade; F3: lugar, ofícios, ferramentas, mochila e gold. */
 export interface Personagem {
   readonly id: string;
   readonly nome: string;
@@ -55,6 +78,15 @@ export interface Personagem {
   readonly status: ValoresStatus;
   /** `null` = ocioso. */
   readonly atividade: AtividadeAtual | null;
+  readonly localId: string;
+  readonly subareaId: string;
+  readonly viagem: Viagem | null;
+  readonly ouro: number;
+  /** Itens por id e quantidade (só quantidades > 0). */
+  readonly mochila: Readonly<Record<string, number>>;
+  readonly oficios: Readonly<Record<OficioId, ProgressoOficio>>;
+  /** Ferramenta equipada em cada ofício. */
+  readonly ferramentas: Readonly<Record<OficioId, string>>;
 }
 
 /** Uma tentativa do sorteio: o estado do RNG no início basta para reproduzi-la. */
@@ -136,6 +168,8 @@ function validarOrigem(v: unknown, racaId: string): OrigemPersonagem | null {
 function validarPersonagem(v: unknown): Personagem | null {
   if (!ehObjeto(v)) return null;
   const { id, nome, nivel, xp, racaId, coreId, dons, origem, bestaVinculadaId, marcaAnomaliaId, tracoPersonalidadeId, aparencia, criadoEm, status, atividade } = v;
+  const f3 = validarCamposF3(v);
+  if (!f3) return null;
   if (!ehTexto(id, 64)) return null;
   const n = validarNome(nome);
   if (!n.ok || n.nome !== nome) return null;
@@ -176,6 +210,8 @@ function validarPersonagem(v: unknown): Personagem | null {
     const a = CATALOGO.atividades.get(atividade.id);
     if (!a || !ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10)) return null;
     atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs };
+    // A atividade acontece no destino da viagem ou no local atual.
+    if ((f3.viagem ? f3.viagem.destinoLocalId : f3.localId) !== a.localId) return null;
   }
   return {
     id,
@@ -193,7 +229,63 @@ function validarPersonagem(v: unknown): Personagem | null {
     criadoEm,
     status: statusLimpo,
     atividade: atividadeLimpa,
+    ...f3,
   };
+}
+
+type CamposF3 = Pick<Personagem, "localId" | "subareaId" | "viagem" | "ouro" | "mochila" | "oficios" | "ferramentas">;
+
+function subareaExiste(localId: string, subareaId: unknown): subareaId is string {
+  return typeof subareaId === "string" && (CATALOGO.locais.get(localId)?.subareas.some((s) => s.id === subareaId) ?? false);
+}
+
+/** Valida lugar, viagem, gold, mochila, ofícios e ferramentas (F3). */
+function validarCamposF3(v: Record<string, unknown>): CamposF3 | null {
+  const { localId, subareaId, viagem, ouro, mochila, oficios, ferramentas } = v;
+  if (typeof localId !== "string" || !CATALOGO.locais.has(localId) || !subareaExiste(localId, subareaId)) return null;
+  let viagemLimpa: Viagem | null = null;
+  if (viagem !== null) {
+    if (!ehObjeto(viagem)) return null;
+    const { origemLocalId, destinoLocalId, destinoSubareaId, totalMs, restanteMs } = viagem;
+    if (origemLocalId !== localId || typeof destinoLocalId !== "string" || destinoLocalId === localId) return null;
+    if (!CATALOGO.locais.has(destinoLocalId) || !subareaExiste(destinoLocalId, destinoSubareaId)) return null;
+    if (!ehInteiro(totalMs, 1, 10_000) || !ehInteiro(restanteMs, 1, totalMs)) return null;
+    viagemLimpa = { origemLocalId, destinoLocalId, destinoSubareaId, totalMs, restanteMs };
+  }
+  if (!ehInteiro(ouro, 0, Number.MAX_SAFE_INTEGER)) return null;
+  if (!ehObjeto(mochila)) return null;
+  const mochilaLimpa: Record<string, number> = {};
+  const entradas = Object.entries(mochila);
+  if (entradas.length > CATALOGO.itens.size) return null;
+  for (const [itemId, q] of entradas) {
+    if (!CATALOGO.itens.has(itemId) || !ehInteiro(q, 1, 1_000_000)) return null;
+    mochilaLimpa[itemId] = q;
+  }
+  if (!ehObjeto(oficios) || !ehObjeto(ferramentas)) return null;
+  const oficiosLimpos = {} as Record<OficioId, ProgressoOficio>;
+  const ferramentasLimpas = {} as Record<OficioId, string>;
+  for (const o of OFICIOS) {
+    const p = oficios[o];
+    if (!ehObjeto(p) || !ehInteiro(p.nivel, 1, CONFIG_OFICIOS.nivelMaximo)) return null;
+    const limite = xpParaProximoNivelOficio(p.nivel);
+    if (typeof p.xp !== "number" || !Number.isFinite(p.xp) || p.xp < 0 || (limite > 0 ? p.xp >= limite : p.xp !== 0)) return null;
+    oficiosLimpos[o] = { nivel: p.nivel, xp: p.xp };
+    const f = ferramentas[o];
+    if (typeof f !== "string" || CATALOGO.ferramentas.get(f)?.oficio !== o) return null;
+    ferramentasLimpas[o] = f;
+  }
+  return { localId, subareaId: subareaId as string, viagem: viagemLimpa, ouro, mochila: mochilaLimpa, oficios: oficiosLimpos, ferramentas: ferramentasLimpas };
+}
+
+/** Campos iniciais da F3: na Praça de Pedravau, sem gold, mochila vazia, ofícios no 1 e kit básico. */
+export function camposIniciaisF3(): CamposF3 {
+  const oficios = {} as Record<OficioId, ProgressoOficio>;
+  const ferramentas = {} as Record<OficioId, string>;
+  for (const o of OFICIOS) {
+    oficios[o] = { nivel: 1, xp: 0 };
+    ferramentas[o] = `${o}-basica`;
+  }
+  return { localId: "pedravau", subareaId: "praca", viagem: null, ouro: 0, mochila: {}, oficios, ferramentas };
 }
 
 /** Valida a conta vinda do save; devolve `null` se algo estiver inválido. */

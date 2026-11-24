@@ -47,6 +47,7 @@ export const PERFIS_RACA: Readonly<Record<string, PerfilRaca>> = {
 
 
 export interface AtividadeTreino {
+  readonly tipo: "treino";
   readonly id: string;
   readonly nome: string;
   readonly descricao: string;
@@ -55,10 +56,13 @@ export interface AtividadeTreino {
   readonly cicloBaseMs: number;
   /** XP do personagem por ciclo completo. */
   readonly xpPorCiclo: number;
+  /** Desde a F3, todo treino acontece no Campo de Treino de Pedravau. */
+  readonly localId: string;
+  readonly subareaId: string;
 }
 
 function treino(status: StatusId, id: string, nome: string, descricao: string): AtividadeTreino {
-  return { id, nome, descricao, status, cicloBaseMs: 30_000, xpPorCiclo: 10 };
+  return { tipo: "treino", id, nome, descricao, status, cicloBaseMs: 30_000, xpPorCiclo: 10, localId: "pedravau", subareaId: "campo-de-treino" };
 }
 
 export const ATIVIDADES_TREINO: readonly AtividadeTreino[] = [

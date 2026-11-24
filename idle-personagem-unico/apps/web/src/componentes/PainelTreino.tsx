@@ -1,5 +1,5 @@
 import { ATIVIDADES_TREINO, NOME_STATUS, faixaStatus, modificadoresDoPersonagem, type Personagem } from "@idle-pu/motor";
-import { estimarTreino, formatarDuracao, formatarNumero } from "@/lib/atividade";
+import { estimarAtividade, formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 
 interface Props {
   readonly personagem: Personagem;
@@ -13,10 +13,12 @@ export function PainelTreino({ personagem, ocupado, aoIniciar, aoParar }: Props)
   const mods = modificadoresDoPersonagem(personagem, personagem.nivel);
   return (
     <section className="painel" aria-label="Treinos">
-      <p className="suave nota">Uma atividade por vez. Trocar de treino descarta o ciclo em andamento.</p>
+      <p className="suave nota">
+        Todos os treinos são no Campo de Treino de {nomeLocal("pedravau")}. Uma atividade por vez; trocar descarta o ciclo em andamento.
+      </p>
       <ul className="lista-treinos">
         {ATIVIDADES_TREINO.map((a) => {
-          const e = estimarTreino(personagem, a.id);
+          const e = estimarAtividade(personagem, a.id);
           const { piso, teto } = faixaStatus(personagem.racaId, a.status, personagem.nivel, mods);
           const valor = personagem.status[a.status];
           const atual = personagem.atividade?.id === a.id;
@@ -31,6 +33,7 @@ export function PainelTreino({ personagem, ocupado, aoIniciar, aoParar }: Props)
                 </p>
                 <p className="suave">
                   Ciclo de {formatarDuracao(e.duracaoMs)} · +{formatarNumero(e.ganhoPorHora, 2)}/h agora · {formatarNumero(e.xpPorHora, 0)} XP/h
+                  {e.viagemMs > 0 && ` · viagem de ${formatarDuracao(e.viagemMs)}`}
                 </p>
               </div>
               {atual ? (

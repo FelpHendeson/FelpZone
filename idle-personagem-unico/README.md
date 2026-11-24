@@ -10,7 +10,9 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F2 (Loop de atividade + treino) concluída.** Depois de sortear e criar o personagem (F1), a pessoa escolhe um dos 8 treinos em **Atividades → Treino**; o personagem treina sozinho em ciclos, ganha status e XP e sobe de nível, inclusive com o jogo fechado (até 12 h). Ao voltar, aparece "Enquanto você estava fora". **Personagem → Status** mostra nível, XP e os 8 status com piso e teto. Ainda não há mapa, coleta, combate nem inventário (F3 em diante). O design completo e o plano de construção estão em:
+**F3 (Mapa e coleta) concluída.** O personagem sorteado (F1) treina (F2) e agora também **coleta**: madeira, minério, peixe e plantações em 4 locais do Vale de Pedravau, com viagem curta ("Movendo-se até…"), nível por ofício, ferramentas melhores no Ferreiro, mochila com espaço limitado e venda no Mercado, que dá gold. Tudo continua rodando com o jogo fechado (até 12 h). Ainda não há combate, itens equipáveis nem produção (F4 em diante).
+
+O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
 
 - **[GDD](docs/GDD.md)**: personagem, sorteio, status, atividades, combate, mapa, itens, forja, morte (O Limiar), missões, guilda, habilidades, pets, competição e interface.
 - **[Origens](docs/ORIGENS.md)**: gerador de origem comum e 22 origens especiais com lore, efeito e gancho de história.
@@ -60,6 +62,19 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F2:** Corpo de Vento (Silfo, +10% de velocidade), Órfão do Templo Cinzento (+2 Espírito), A Voz do Poço (+2 Percepção), Soldado de uma Guerra Perdida (+2 Resistência), Cria da Matilha (+2 Agilidade), O Reencarnado (−5% Vigor), O Despertado Tardio (teto −10%; +50% de XP e de treino até o nível 20) e o dom Coração de Dragão (teto de Força e Espírito +10%). **Continuam pendentes** (só texto): ofícios e bônus de berço (F3), combate (F4), técnicas e maestria (F5), Limiar (F6), guilda e reputação (F7), itens nomeados (F8), pets (F10), dia/noite e Crônica (F11).
 
+### O que a F3 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/mapa.ts` | Região, 4 locais com subáreas, viagens de 4 a 9 s e local inicial. |
+| `packages/motor/src/dados/coleta.ts` | 4 ofícios, 12 recursos (3 tiers), 16 itens (12 materiais + 4 achados raros) e 12 ferramentas (3 graus por ofício). |
+| `packages/motor/src/atividades/` | Viagem e coleta no avanço do tempo (RNG do save, consistente por partição), XP de ofício, mochila cheia, e as ações `iniciarAtividade` (com viagem automática), `irPara`, `vender`, `venderTudo` e `comprarFerramenta`. |
+| `packages/motor/src/personagem/mochila.ts` | Espaços, pilhas e capacidade pela Força. |
+| `packages/motor/src/save.ts` | **Save v4** com migração v3 → v4. |
+| `apps/web` | Atividades → Coleta; Mapa → Região, Local atual e Estabelecimentos (Mercado e Ferreiro); Mochila → Materiais e Ferramentas; barra com viagem, gold e aviso de mochila cheia; resumo do tempo fora com itens e níveis de ofício. |
+
+**Efeitos que passaram a valer na F3:** bônus de ofício dos berços (+1 nível) e de Liberto das Minas (+2 Mineração), Pele de Pedra (Anão, +10% de minério), Passo Silvestre (Elfo, viagem entre locais naturais −30% e +10% na agricultura), Sentidos Aguçados (Lobisomem, +50% de achados raros), Acampamento nômade (viagem −10%), Cortiço da capital (venda +3%) e Náufrago das Estrelas (compra −5%).
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -102,7 +117,7 @@ npm run lint       # ESLint (motor com regras de pureza; web com eslint-config-n
 npm run typecheck  # tsc no motor (código e testes) e na web
 npm run build      # build de produção do Next
 npm run simular    # simulação de 200 mil sorteios (Markdown para docs/CALIBRACAO.md)
-npm run ritmo      # bot de ritmo do treino (Markdown para docs/CALIBRACAO.md)
+npm run ritmo      # bot de ritmo do treino e da coleta (Markdown para docs/CALIBRACAO.md)
 ```
 
 `npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
@@ -111,4 +126,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F3 (Mapa e coleta)** só começa com autorização do autor. Antes, vale conferir as decisões da F2 em [`docs/DECISOES.md`](docs/DECISOES.md) (13 a 18), em especial os alvos de ritmo e os status que lotam depois do nível 20.
+A **F4 (Combate por área)** só começa com autorização do autor. Antes, vale conferir as decisões da F3 em [`docs/DECISOES.md`](docs/DECISOES.md) (19 a 24), em especial a regra da mochila cheia e a venda só na cidade.

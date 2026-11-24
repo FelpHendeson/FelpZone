@@ -85,3 +85,12 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 17. **Corpo de Vento** deixa o Silfo ~10% mais rápido também em XP (ciclos mais curtos). Manter ou fazer a velocidade valer só para status?
 18. **Efeitos aplicados**: só os que dependem de status, teto, treino, XP ou velocidade (lista no GDD §5.2). *Centelha Humana* e *Sangue de Lua* continuam pendentes (dependem de regra por faixa de nível e de dia/noite).
 
+### Da F3 (mapa e coleta), para o autor conferir
+
+19. **Mapa do Ato I**: Vale de Pedravau com Pedravau, Bosque Raso, Mina Velha e Lago Espelho (nomes e textos do agente). Agricultura acontece nas Hortas do Muro, dentro da cidade.
+20. **Mochila cheia**: a coleta continua dando XP, mas o que não cabe se perde. Alternativa: o personagem para de coletar sozinho.
+21. **Vender só em Pedravau**: quem está coletando longe precisa ir à cidade (a viagem para a atividade). Alternativa: vender à distância com taxa.
+22. **Curva de ofício** ajustada pelo bot (base 40 → 150) para o tier 3 abrir em ~4 dias. Alvos propostos em `CALIBRACAO.md`.
+23. **Gold sem destino até a F8**: além das ferramentas, não há o que comprar; os preços são provisórios.
+24. **Náufrago das Estrelas**: "−5% no preço de compra" foi lido literalmente (paga 5% menos). A lore ("não entende de moeda") sugere o contrário; se for fraqueza, troca-se o sinal.
+

@@ -20,6 +20,10 @@ import { CHAVE_SAVE, iniciarJogo, type ResultadoInicio } from "@/lib/persistenci
 import { BarraAtividade } from "./BarraAtividade";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
+import type { AcaoJogo } from "./acoes";
+import { PainelColeta } from "./PainelColeta";
+import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
+import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelStatus } from "./PainelStatus";
 import { PainelTreino } from "./PainelTreino";
 import { ResumoOffline } from "./ResumoOffline";
@@ -46,6 +50,7 @@ export function Shell() {
   const [tela, setTela] = useState<EstadoTela>({ fase: "carregando" });
   const [resumo, setResumo] = useState<ResumoAvanco | null>(null);
   const [ocupado, setOcupado] = useState(false);
+  const [aviso, setAviso] = useState<string | null>(null);
   const armazenamento = useRef<Armazenamento | null>(null);
   const estadoRef = useRef<EstadoJogo | null>(null);
   const ultimaGravacao = useRef(0);
@@ -147,13 +152,14 @@ export function Shell() {
     }
   }
 
-  async function agirNaAtividade(acao: (estado: EstadoJogo, agora: number) => ResultadoComEstado) {
+  async function agirNaAtividade(acao: AcaoJogo) {
     const estado = estadoRef.current;
     if (!estado) return;
     setOcupado(true);
-    await aoAgir(acao(estado, relogioDoSistema.agora()));
+    setAviso(await aoAgir(acao(estado, relogioDoSistema.agora())));
     setOcupado(false);
   }
+  const agir = (acao: AcaoJogo) => void agirNaAtividade(acao);
 
   if (tela.fase === "carregando") {
     return (
@@ -198,15 +204,21 @@ export function Shell() {
         <FichaPersonagem personagem={personagem} />
       </>
     );
-  } else if (aba.id === "atividades" && indiceSub === 0) {
-    conteudo = (
-      <PainelTreino
-        personagem={personagem}
-        ocupado={ocupado}
-        aoIniciar={(id) => void agirNaAtividade((e, agora) => iniciarAtividade(e, id, agora))}
-        aoParar={() => void agirNaAtividade(pararAtividade)}
-      />
-    );
+  } else if (aba.id === "atividades" && (indiceSub === 0 || indiceSub === 1)) {
+    const props = {
+      personagem,
+      ocupado,
+      aoIniciar: (id: string) => agir((e, agora) => iniciarAtividade(e, id, agora)),
+      aoParar: () => agir(pararAtividade),
+    };
+    conteudo = indiceSub === 0 ? <PainelTreino {...props} /> : <PainelColeta {...props} />;
+  } else if (aba.id === "mapa") {
+    const props = { personagem, ocupado, agir };
+    conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <PainelLocalAtual personagem={personagem} /> : <PainelEstabelecimentos {...props} />;
+  } else if (aba.id === "mochila" && indiceSub === 2) {
+    conteudo = <PainelFerramentas personagem={personagem} />;
+  } else if (aba.id === "mochila" && indiceSub === 3) {
+    conteudo = <PainelMateriais personagem={personagem} ocupado={ocupado} agir={agir} />;
   }
 
   return (
@@ -231,6 +243,14 @@ export function Shell() {
       </header>
 
       <main className="conteudo conteudo-coluna" role="tabpanel" aria-label={subAba}>
+        {aviso && (
+          <p className="erro aviso-acao" role="alert">
+            {aviso}{" "}
+            <button type="button" className="link" onClick={() => setAviso(null)}>
+              Fechar
+            </button>
+          </p>
+        )}
         {conteudo}
       </main>
 

@@ -28,7 +28,10 @@ export const RACAS: readonly Raca[] = [
       id: "pele-de-pedra",
       nome: "Pele de Pedra",
       descricao: "Reduz dano de queda e de armadilhas; bônus em mineração.",
-      efeito: { efeitoPendente: "Redução de dano de queda/armadilha (F4) e bônus de mineração (F3)." },
+      efeito: {
+        modificadores: [{ alvo: "oficio.mineracao.rendimento", operacao: "percentual", valor: 0.1, origem: { tipo: "raca", id: "anao" } }],
+        efeitoPendente: "Redução de dano de queda e de armadilhas (F4).",
+      },
     },
     longeva: true,
     visual: { pele: "#c98f6b", traco: "barba" },
@@ -44,7 +47,12 @@ export const RACAS: readonly Raca[] = [
       id: "passo-silvestre",
       nome: "Passo Silvestre",
       descricao: "Viagens entre locais naturais 30% mais rápidas; bônus em colheita.",
-      efeito: { efeitoPendente: "Viagem entre locais naturais 30% mais curta (F3) e bônus de colheita (F3)." },
+      efeito: {
+        modificadores: [
+          { alvo: "duracao-viagem-natural", operacao: "percentual", valor: -0.3, origem: { tipo: "raca", id: "elfo" } },
+          { alvo: "oficio.agricultura.rendimento", operacao: "percentual", valor: 0.1, origem: { tipo: "raca", id: "elfo" } },
+        ],
+      },
     },
     longeva: true,
     visual: { pele: "#f1d3b8", traco: "orelhas-pontudas" },
@@ -76,7 +84,10 @@ export const RACAS: readonly Raca[] = [
       id: "sentidos-agucados",
       nome: "Sentidos Aguçados",
       descricao: "Detecta recursos e monstros raros; mais chance de encontros especiais.",
-      efeito: { efeitoPendente: "+chance de recursos e monstros raros e de encontros especiais (F3/F4)." },
+      efeito: {
+        modificadores: [{ alvo: "chance-raro", operacao: "percentual", valor: 0.5, origem: { tipo: "raca", id: "lobisomem" } }],
+        efeitoPendente: "Monstros raros e encontros especiais (F4/F11).",
+      },
     },
     longeva: false,
     visual: { pele: "#a68a6d", traco: "orelhas-de-lobo" },

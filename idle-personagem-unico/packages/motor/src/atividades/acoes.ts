@@ -1,9 +1,32 @@
-/** Ações de atividade: começar, trocar e parar. Uma atividade por vez [Autor]. */
-import { CATALOGO } from "../dados";
+/**
+ * Ações do personagem ativo: atividade (uma por vez [Autor]), viagem, venda e
+ * compra. Toda ação primeiro avança o tempo até `agora`.
+ */
+import { CATALOGO, obter } from "../dados";
+import type { Personagem, Viagem } from "../personagem/conta";
+import { removerItens } from "../personagem/mochila";
+import { fator, modificadoresDoPersonagem } from "../personagem/progressao";
 import type { EstadoJogo } from "../save";
-import { avancar, type ResumoAvanco } from "./ciclos";
+import { avancar, duracaoViagemMs, nivelEfetivoOficio, type ResumoAvanco } from "./ciclos";
 
-export type CodigoErroAtividade = "sem_personagem" | "atividade_inexistente" | "ja_na_atividade" | "ja_ocioso";
+/** Local onde ficam o Mercado e o Ferreiro. */
+export const LOCAL_CIDADE = "pedravau";
+
+export type CodigoErroAtividade =
+  | "sem_personagem"
+  | "atividade_inexistente"
+  | "ja_na_atividade"
+  | "ja_ocioso"
+  | "nivel_oficio_insuficiente"
+  | "local_inexistente"
+  | "ja_no_local"
+  | "fora_da_cidade"
+  | "item_inexistente"
+  | "quantidade_invalida"
+  | "mochila_vazia"
+  | "ferramenta_inexistente"
+  | "ferramenta_nao_melhora"
+  | "ouro_insuficiente";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;
@@ -18,32 +41,130 @@ function falha(codigo: CodigoErroAtividade, mensagem: string): ResultadoAtividad
   return { ok: false, erro: { codigo, mensagem } };
 }
 
-function trocar(estado: EstadoJogo, agora: number, atividadeId: string | null): ResultadoAtividade {
-  // Primeiro avança até agora: o tempo até a troca conta para a atividade antiga.
+/** Avança até agora e aplica `mudar` no personagem ativo (ou devolve o erro dele). */
+function comAtivo(
+  estado: EstadoJogo,
+  agora: number,
+  mudar: (p: Personagem) => Personagem | ErroAtividade,
+): ResultadoAtividade {
+  if (!estado.conta.personagens.some((p) => p.id === estado.conta.personagemAtivoId)) {
+    return falha("sem_personagem", "Não há personagem ativo.");
+  }
   const { estado: avancado, resumo } = avancar(estado, agora);
   const id = avancado.conta.personagemAtivoId;
-  const personagens = avancado.conta.personagens.map((p) =>
-    p.id === id ? { ...p, atividade: atividadeId === null ? null : { id: atividadeId, progressoMs: 0 } } : p,
-  );
-  return { ok: true, estado: { ...avancado, conta: { ...avancado.conta, personagens } }, resumo };
+  const ativo = avancado.conta.personagens.find((p) => p.id === id)!;
+  const novo = mudar(ativo);
+  if ("codigo" in novo) return { ok: false, erro: novo };
+  return {
+    ok: true,
+    estado: { ...avancado, conta: { ...avancado.conta, personagens: avancado.conta.personagens.map((p) => (p.id === id ? novo : p)) } },
+    resumo,
+  };
+}
+
+const erro = (codigo: CodigoErroAtividade, mensagem: string): ErroAtividade => ({ codigo, mensagem });
+
+/**
+ * Leva o personagem a (local, subárea). Dentro do mesmo local é instantâneo;
+ * entre locais, inicia uma viagem a partir do local onde ele está (durante uma
+ * viagem, ele ainda está na origem: mudar o destino recomeça a viagem dali, e
+ * voltar à origem cancela a viagem).
+ */
+function moverPara(p: Personagem, localId: string, subareaId: string): Pick<Personagem, "localId" | "subareaId" | "viagem"> {
+  if (localId === p.localId) return { localId, subareaId, viagem: null };
+  const mods = modificadoresDoPersonagem(p, p.nivel);
+  const total = duracaoViagemMs(p.localId, localId, mods);
+  const viagem: Viagem = { origemLocalId: p.localId, destinoLocalId: localId, destinoSubareaId: subareaId, totalMs: total, restanteMs: total };
+  return { localId: p.localId, subareaId: p.subareaId, viagem };
 }
 
 /**
- * Começa (ou troca para) uma atividade. O ciclo parcial da atividade anterior
- * é descartado [Proposta]: trocar tem custo, e não dá para "guardar" meio ciclo.
+ * Começa (ou troca para) uma atividade. Se ela é em outro local, o personagem
+ * viaja até lá e o ciclo só começa ao chegar [Autor]. O ciclo parcial da
+ * atividade anterior é descartado [Proposta].
  */
 export function iniciarAtividade(estado: EstadoJogo, atividadeId: string, agora: number): ResultadoAtividade {
-  const ativo = estado.conta.personagens.find((p) => p.id === estado.conta.personagemAtivoId);
-  if (!ativo) return falha("sem_personagem", "Não há personagem ativo.");
-  if (!CATALOGO.atividades.has(atividadeId)) return falha("atividade_inexistente", "Atividade desconhecida.");
-  if (ativo.atividade?.id === atividadeId) return falha("ja_na_atividade", "O personagem já está nessa atividade.");
-  return trocar(estado, agora, atividadeId);
+  const a = CATALOGO.atividades.get(atividadeId);
+  if (!a) return falha("atividade_inexistente", "Atividade desconhecida.");
+  return comAtivo(estado, agora, (p) => {
+    if (p.atividade?.id === atividadeId) return erro("ja_na_atividade", "O personagem já está nessa atividade.");
+    if (a.tipo === "coleta") {
+      const mods = modificadoresDoPersonagem(p, p.nivel);
+      if (nivelEfetivoOficio(p, a.oficio, mods) < a.nivelMinimo) {
+        return erro("nivel_oficio_insuficiente", `Exige ${a.nivelMinimo} no ofício.`);
+      }
+    }
+    return { ...p, ...moverPara(p, a.localId, a.subareaId), atividade: { id: a.id, progressoMs: 0 } };
+  });
 }
 
-/** Para a atividade atual; o personagem fica ocioso. */
+/** Para a atividade atual; o personagem fica ocioso onde está (uma viagem em curso continua). */
 export function pararAtividade(estado: EstadoJogo, agora: number): ResultadoAtividade {
-  const ativo = estado.conta.personagens.find((p) => p.id === estado.conta.personagemAtivoId);
-  if (!ativo) return falha("sem_personagem", "Não há personagem ativo.");
-  if (!ativo.atividade) return falha("ja_ocioso", "O personagem já está ocioso.");
-  return trocar(estado, agora, null);
+  return comAtivo(estado, agora, (p) => (p.atividade ? { ...p, atividade: null } : erro("ja_ocioso", "O personagem já está ocioso.")));
+}
+
+/** Vai a um local sem atividade (por exemplo, à cidade para vender). Para a atividade atual. */
+export function irPara(estado: EstadoJogo, localId: string, agora: number): ResultadoAtividade {
+  const local = CATALOGO.locais.get(localId);
+  if (!local) return falha("local_inexistente", "Local desconhecido.");
+  return comAtivo(estado, agora, (p) => {
+    const destinoAtual = p.viagem ? p.viagem.destinoLocalId : p.localId;
+    if (destinoAtual === localId && !p.atividade) return erro("ja_no_local", `O personagem já está em ${local.nome}.`);
+    return { ...p, ...moverPara(p, localId, local.subareas[0]!.id), atividade: null };
+  });
+}
+
+function naCidade(p: Personagem): boolean {
+  return p.localId === LOCAL_CIDADE && p.viagem === null;
+}
+
+/** Preço de venda de uma quantidade, com `preco-venda`. Arredonda para baixo. */
+export function precoDeVenda(p: Personagem, itemId: string, quantidade: number): number {
+  const mods = modificadoresDoPersonagem(p, p.nivel);
+  return Math.floor(obter(CATALOGO.itens, itemId).preco * quantidade * fator(mods, "preco-venda"));
+}
+
+/** Preço de compra, com `preco-compra`. Arredonda para cima. */
+export function precoDeCompra(p: Personagem, precoBase: number): number {
+  const mods = modificadoresDoPersonagem(p, p.nivel);
+  return Math.ceil(precoBase * fator(mods, "preco-compra"));
+}
+
+/** Vende itens ao Mercado. Só na cidade (o movimento dentro dela é instantâneo). */
+export function vender(estado: EstadoJogo, itemId: string, quantidade: number, agora: number): ResultadoAtividade {
+  if (!CATALOGO.itens.has(itemId)) return falha("item_inexistente", "Item desconhecido.");
+  return comAtivo(estado, agora, (p) => {
+    if (!naCidade(p)) return erro("fora_da_cidade", "O Mercado fica em Pedravau.");
+    const tem = p.mochila[itemId] ?? 0;
+    if (!Number.isSafeInteger(quantidade) || quantidade < 1 || quantidade > tem) return erro("quantidade_invalida", "Quantidade inválida.");
+    return { ...p, mochila: removerItens(p.mochila, itemId, quantidade), ouro: p.ouro + precoDeVenda(p, itemId, quantidade) };
+  });
+}
+
+/** Vende tudo da mochila (venda em lote, GDD §9.3). */
+export function venderTudo(estado: EstadoJogo, agora: number): ResultadoAtividade {
+  return comAtivo(estado, agora, (p) => {
+    if (!naCidade(p)) return erro("fora_da_cidade", "O Mercado fica em Pedravau.");
+    const itens = Object.entries(p.mochila);
+    if (itens.length === 0) return erro("mochila_vazia", "A mochila está vazia.");
+    let ouro = p.ouro;
+    for (const [id, q] of itens) ouro += precoDeVenda(p, id, q);
+    return { ...p, mochila: {}, ouro };
+  });
+}
+
+/** Compra uma ferramenta melhor no Ferreiro e a equipa (a antiga fica com ele). */
+export function comprarFerramenta(estado: EstadoJogo, ferramentaId: string, agora: number): ResultadoAtividade {
+  const f = CATALOGO.ferramentas.get(ferramentaId);
+  if (!f || f.preco === 0) return falha("ferramenta_inexistente", "O Ferreiro não vende isso.");
+  return comAtivo(estado, agora, (p) => {
+    if (!naCidade(p)) return erro("fora_da_cidade", "O Ferreiro fica em Pedravau.");
+    const atual = obter(CATALOGO.ferramentas, p.ferramentas[f.oficio]);
+    if (f.grau <= atual.grau) return erro("ferramenta_nao_melhora", "Você já tem uma ferramenta igual ou melhor.");
+    const mods = modificadoresDoPersonagem(p, p.nivel);
+    if (nivelEfetivoOficio(p, f.oficio, mods) < f.nivelMinimo) return erro("nivel_oficio_insuficiente", `Exige ${f.nivelMinimo} no ofício.`);
+    const preco = precoDeCompra(p, f.preco);
+    if (p.ouro < preco) return erro("ouro_insuficiente", `Custa ${preco} de gold.`);
+    return { ...p, ouro: p.ouro - preco, ferramentas: { ...p.ferramentas, [f.oficio]: f.id } };
+  });
 }

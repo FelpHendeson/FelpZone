@@ -132,3 +132,21 @@ export function valorEfetivo(valor: number, status: StatusId, mods: readonly Mod
   const r = resumirModificadores(mods, `status.${status}`);
   return Math.max(0, (valor + r.somar) * (1 + r.percentual) * r.multiplicar);
 }
+
+/** Ofícios de coleta (F3): curva própria de XP [Calibrar]. */
+export interface ConfigOficios {
+  readonly nivelMaximo: number;
+  readonly xpBase: number;
+  readonly xpExpoente: number;
+}
+
+export const CONFIG_OFICIOS: ConfigOficios = Object.freeze({ nivelMaximo: 50, xpBase: 150, xpExpoente: 1.5 });
+
+/** XP de ofício para ir do nível `nivel` ao seguinte (0 no máximo). */
+export function xpParaProximoNivelOficio(nivel: number, config: ConfigOficios = CONFIG_OFICIOS): number {
+  if (nivel >= config.nivelMaximo) return 0;
+  return Math.round(config.xpBase * nivel ** config.xpExpoente);
+}
+
+/** Mochila (GDD §9.3) [Calibrar]: espaços = base + Força efetiva × fator. */
+export const CONFIG_MOCHILA = Object.freeze({ espacosBase: 20, espacosPorForca: 0.5 });

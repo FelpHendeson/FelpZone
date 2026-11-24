@@ -21,6 +21,7 @@ import {
   valorEfetivo,
   xpParaProximoNivel,
   CATALOGO,
+  camposIniciaisF3,
   type EstadoJogo,
   type Personagem,
   type ResultadoAtividade,
@@ -51,6 +52,7 @@ function personagem(base: Partial<Base> & { id?: string } = {}): Personagem {
     ...b,
     status: statusIniciais(b),
     atividade: null,
+    ...camposIniciaisF3(),
   };
 }
 function estadoCom(...ps: Personagem[]): EstadoJogo {
@@ -150,8 +152,8 @@ describe("ciclos e atividades", () => {
   it("velocidade encurta o ciclo (Corpo de Vento do Silfo)", () => {
     const silfo = personagem({ racaId: "silfo" });
     const a = CATALOGO.atividades.get("meditacao")!;
-    expect(duracaoCicloMs(a, modificadoresDoPersonagem(personagem(), 1))).toBe(30_000);
-    expect(duracaoCicloMs(a, modificadoresDoPersonagem(silfo, 1))).toBe(Math.round(30_000 / 1.1));
+    expect(duracaoCicloMs(personagem(), a, modificadoresDoPersonagem(personagem(), 1))).toBe(30_000);
+    expect(duracaoCicloMs(silfo, a, modificadoresDoPersonagem(silfo, 1))).toBe(Math.round(30_000 / 1.1));
   });
 
   it("subir de nível não tira nada e leva quem estava abaixo ao novo piso", () => {
@@ -171,7 +173,7 @@ describe("ciclos e atividades", () => {
   it("no nível máximo o XP fica em zero e o treino continua", () => {
     const p = { ...personagem(), nivel: CONFIG_PROGRESSAO.nivelMaximo };
     const noMax: Personagem = { ...p, status: { ...p.status, forca: faixaStatus("humano", "forca", p.nivel, []).piso }, atividade: { id: "levantamento-de-pedras", progressoMs: 0 } };
-    const r = avancarPersonagem(noMax, HORA);
+    const r = avancarPersonagem(noMax, HORA, Rng.daSemente(1));
     expect(r.personagem.nivel).toBe(CONFIG_PROGRESSAO.nivelMaximo);
     expect(r.personagem.xp).toBe(0);
     expect(r.xp).toBe(0);
@@ -181,7 +183,8 @@ describe("ciclos e atividades", () => {
 
 describe("avanço do tempo e offline", () => {
   it("avançar de uma vez ou em partes dá o mesmo estado (propriedade)", () => {
-    const atividades = [...CATALOGO.atividades.keys()];
+    // Treinos e coletas de tier 1 (as outras exigem nível de ofício); inclui viagem e sorteio de itens.
+    const atividades = [...CATALOGO.atividades.values()].filter((a) => a.tipo === "treino" || a.nivelMinimo === 1).map((a) => a.id);
     for (let semente = 0; semente < 30; semente++) {
       const rng = Rng.daSemente(`particao-${semente}`);
       const raca = RACAS[semente % RACAS.length]!.id;
@@ -273,9 +276,9 @@ describe("modificadores de raça, origem e dom aplicados", () => {
     const d = personagem({ origem: especial("o-despertado-tardio") });
     const normal = personagem();
     expect(faixaStatus("humano", "forca", 1, modificadoresDoPersonagem(d, 1)).teto).toBeCloseTo(faixaStatus("humano", "forca", 1, []).teto * 0.9, 9);
-    const r = avancarPersonagem({ ...d, atividade: { id: "meditacao", progressoMs: 0 } }, 30_000);
+    const r = avancarPersonagem({ ...d, atividade: { id: "meditacao", progressoMs: 0 } }, 30_000, Rng.daSemente(1));
     expect(r.xp).toBe(15);
-    const n = avancarPersonagem({ ...normal, atividade: { id: "meditacao", progressoMs: 0 } }, 30_000);
+    const n = avancarPersonagem({ ...normal, atividade: { id: "meditacao", progressoMs: 0 } }, 30_000, Rng.daSemente(1));
     expect(n.xp).toBe(10);
     expect(modificadoresDoPersonagem(d, 21).some((m) => m.alvo === "xp-personagem")).toBe(false);
   });

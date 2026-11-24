@@ -229,6 +229,8 @@ Madeira, mineração, pesca, agricultura e outras (ervas, caça de pele, escava�
 - usa a **ferramenta** do ofício; a ferramenta define eficiência (rendimento) e velocidade, e a **raridade** da ferramenta aumenta os dois;
 - sofre efeito de **habilidades**, **pets**, **clima** e **hora do dia**.
 
+**Implementado na F3** [Proposta, números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]: 4 ofícios (Lenhador, Minerador, Pescador, Fazendeiro), 3 recursos por ofício (tiers liberados nos níveis 1, 10 e 20 do ofício), XP de ofício com curva própria, rendimento fracionário e **achado raro** por ciclo (âmbar, geodo, pérola, semente), ambos sorteados pelo RNG do save. Status passam a valer: **Agilidade** acelera a coleta, **Percepção** e **Sorte** aumentam achados raros e **Força** aumenta a mochila. A coleta também dá XP ao personagem (metade do treino). Bônus de ofício de berço e origem somam níveis de ofício.
+
 ### 6.3 Produção [Autor]
 
 Transforma materiais em itens: forja de equipamento, carpintaria, alquimia, culinária, costura [Proposta]. Exige o **estabelecimento** certo (Ferreiro, Alquimista, Taverna...), que fica numa subárea da cidade. A forja também faz **fusão** (§9.4).
@@ -284,6 +286,8 @@ Região
 - **Estabelecimentos são subáreas**: Ferreiro, Loja, Guilda, Estábulo, Alquimista, Taverna. Usá-los exige estar na subárea correta (gratuito dentro da cidade). [Proposta]
 - **NPCs fixos** ficam em subáreas e geram o **nível extra** de mapa citado pelo autor: algumas subáreas só existem para quem tem certa missão ou rank.
 
+**Implementado na F3** [Proposta]: região **Vale de Pedravau** com 4 locais — **Pedravau** (cidade: Praça, Mercado, Ferreiro, Campo de Treino, Hortas do Muro, Guilda, Taverna), **Bosque Raso**, **Mina Velha** e **Lago Espelho** — e viagens de 4 a 9 s [Calibrar]. Durante a viagem o personagem continua no local de origem; mudar o destino recomeça dali, voltar à origem cancela. "Ir para" um local sem atividade também existe (para vender, por exemplo). Os treinos da F2 acontecem no Campo de Treino.
+
 ### 8.2 Exemplo
 
 > "Carvalho" coleta nos arredores da Cidade X → **Carvalho Escuro** só existe numa floresta selvagem sem cidade por perto. Trocar de uma para a outra mostra "Movendo-se até Floresta Escura" por ~8 s e o ciclo recomeça lá.
@@ -318,6 +322,8 @@ Os nomes **Lendário** e **Mítico** ficam com os **ranks da guilda** (decisão 
 ### 9.3 Mochila [Proposta]
 
 Capacidade em espaços (aumenta com Força, ampliações e baú na cidade). Filtros e **venda em lote** para não cobrar microgestão de um jogo idle.
+
+**Implementado na F3** [Calibrar]: 20 espaços + 0,5 por ponto de Força efetiva; cada espaço guarda uma pilha (100 materiais ou 20 achados raros). **Com a mochila cheia, a coleta continua dando XP, mas o que não cabe se perde** (contado no resumo "Enquanto você estava fora"). Venda por item e "vender tudo" no Mercado de Pedravau. Ferramentas: básica (kit inicial), de ferro e de aço por ofício, compradas no Ferreiro; a antiga fica com ele.
 
 ### 9.4 Forja e fusão [Autor]
 

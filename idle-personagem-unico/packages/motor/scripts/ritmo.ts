@@ -13,6 +13,19 @@ import {
   LIMITE_OFFLINE_MS,
   STATUS,
   avancar,
+  avancarPersonagem,
+  Rng,
+  ATIVIDADES_COLETA,
+  CATALOGO,
+  FERRAMENTAS,
+  NOME_OFICIO,
+  OFICIOS,
+  camposIniciaisF3,
+  comprarFerramenta,
+  irPara,
+  nivelEfetivoOficio,
+  venderTudo,
+  type OficioId,
   ganhoDeTreino,
   criarEstadoInicial,
   faixaStatus,
@@ -48,6 +61,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     criadoEm: T0,
     status: statusIniciais(base),
     atividade: null,
+    ...camposIniciaisF3(),
   };
 }
 
@@ -194,5 +208,91 @@ for (const nivel of [1, 10, 25, 50]) {
 }
 linha();
 linha(`XP por hora de treino: ${(3_600_000 / ATIVIDADES_TREINO[0]!.cicloBaseMs) * ATIVIDADES_TREINO[0]!.xpPorCiclo} (sem bônus).`);
+linha();
+// ---------------------------------------------------------------- Coleta (F3)
+
+interface ResultadoColeta {
+  readonly diasAteNivelOficio: Map<number, number>;
+  readonly diaCompra: Map<number, number>;
+  readonly ouroNoDia7: number;
+  readonly perdidosPorDia: number;
+  readonly nivelPersonagemDia7: number;
+}
+
+/**
+ * Pessoa dedicada focada num ofício: em cada sessão volta à cidade, vende
+ * tudo, compra a próxima ferramenta se der e retoma o maior tier liberado.
+ */
+function jogarColeta(oficio: OficioId, dias = 30): ResultadoColeta {
+  let estado: EstadoJogo = criarEstadoInicial("bot-de-coleta", T0);
+  estado = { ...estado, conta: { personagens: [personagem("humano", comum)], personagemAtivoId: "personagem-1", sorteio: null } };
+  const diasAteNivelOficio = new Map<number, number>();
+  const diaCompra = new Map<number, number>();
+  let ouroNoDia7 = 0;
+  let nivelPersonagemDia7 = 1;
+  let perdidos = 0;
+  const p = () => estado.conta.personagens[0]!;
+  for (let dia = 0; dia < dias; dia++) {
+    for (const h of PERFIS[0]!.sessoes) {
+      const agora = T0 + dia * DIA + h * HORA;
+      const r = avancar(estado, agora);
+      estado = r.estado;
+      perdidos += r.resumo.itensPerdidos;
+      const nivel = p().oficios[oficio].nivel;
+      for (const marco of [5, 10, 15, 20, 30]) if (nivel >= marco && !diasAteNivelOficio.has(marco)) diasAteNivelOficio.set(marco, (agora - T0) / DIA);
+      // Vende e compra na cidade (a viagem é de poucos segundos; o bot "chega" na hora).
+      const ida = irPara(estado, "pedravau", agora);
+      if (ida.ok) estado = avancar(ida.estado, agora + 10_000).estado;
+      const venda = venderTudo(estado, agora + 10_000);
+      if (venda.ok) estado = venda.estado;
+      for (const f of FERRAMENTAS.filter((x) => x.oficio === oficio && x.preco > 0)) {
+        const c = comprarFerramenta(estado, f.id, agora + 10_000);
+        if (c.ok) {
+          estado = c.estado;
+          diaCompra.set(f.grau, (agora - T0) / DIA);
+        }
+      }
+      const mods = modificadoresDoPersonagem(p(), p().nivel);
+      const tier = ATIVIDADES_COLETA.filter((a) => a.oficio === oficio && nivelEfetivoOficio(p(), oficio, mods) >= a.nivelMinimo).at(-1)!;
+      const ini = iniciarAtividade(estado, tier.id, agora + 10_000);
+      if (ini.ok) estado = ini.estado;
+      if (dia === 7 && h === PERFIS[0]!.sessoes[0]) {
+        ouroNoDia7 = p().ouro;
+        nivelPersonagemDia7 = p().nivel;
+      }
+    }
+  }
+  return { diasAteNivelOficio, diaCompra, ouroNoDia7, perdidosPorDia: perdidos / dias, nivelPersonagemDia7 };
+}
+
+linha("### Coleta (F3)");
+linha();
+linha("Rendimento por hora de um Humano sem bônus, com a ferramenta básica e com a de aço (Agilidade no piso do nível 1):");
+linha();
+linha("| Recurso | Tier | Nível | Itens/h (básica) | Gold/h (básica) | Gold/h (aço) | XP de ofício/h | XP do personagem/h |");
+linha("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
+const hc = personagem("humano", comum);
+for (const a of ATIVIDADES_COLETA.filter((x) => x.oficio === "lenhador" || x.oficio === "mineracao")) {
+  const medir = (ferramenta: string) => {
+    const comFerr: Personagem = { ...hc, ferramentas: { ...hc.ferramentas, [a.oficio]: ferramenta }, oficios: { ...hc.oficios, [a.oficio]: { nivel: 49, xp: 0 } }, localId: a.localId, subareaId: a.subareaId, mochila: {}, atividade: { id: a.id, progressoMs: 0 } };
+    return avancarPersonagem(comFerr, HORA, Rng.daSemente(`gold-${a.id}`));
+  };
+  const basica = medir(`${a.oficio}-basica`);
+  const aco = medir(`${a.oficio}-de-aco`);
+  const gold = (r: ReturnType<typeof medir>) => Object.entries(r.itens).reduce((s, [id, q]) => s + CATALOGO.itens.get(id)!.preco * (q as number), 0);
+  linha(`| ${a.nome} | ${a.tier} | ${a.nivelMinimo} | ${num(basica.itens[a.itemId] ?? 0, 0)} | ${num(gold(basica), 0)} | ${num(gold(aco), 0)} | ${num(basica.xpOficios[a.oficio] ?? 0, 0)} | ${num(basica.xp, 0)} |`);
+}
+linha();
+linha("Os quatro ofícios têm os mesmos números por tier; Lenhador e Minerador representam todos.");
+linha();
+linha("Pessoa dedicada (3 sessões/dia) focada num ofício: vende tudo a cada sessão, compra a próxima ferramenta quando pode e coleta o maior tier liberado.");
+linha();
+linha("| Ofício | Nível 5 | Nível 10 | Nível 15 | Nível 20 | Nível 30 | Ferramenta de ferro | Ferramenta de aço | Gold no 7º dia | Nível do personagem no 7º dia | Itens perdidos/dia |");
+linha("| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |");
+for (const o of OFICIOS) {
+  const r = jogarColeta(o);
+  const d = (m: Map<number, number>, k: number) => (m.has(k) ? `${num(m.get(k)!)} d` : "—");
+  linha(`| ${NOME_OFICIO[o]} | ${d(r.diasAteNivelOficio, 5)} | ${d(r.diasAteNivelOficio, 10)} | ${d(r.diasAteNivelOficio, 15)} | ${d(r.diasAteNivelOficio, 20)} | ${d(r.diasAteNivelOficio, 30)} | ${d(r.diaCompra, 2)} | ${d(r.diaCompra, 3)} | ${num(r.ouroNoDia7, 0)} | ${r.nivelPersonagemDia7} | ${num(r.perdidosPorDia, 0)} |`);
+}
 linha();
 console.log(out.join("\n"));

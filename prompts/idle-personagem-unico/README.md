@@ -22,7 +22,10 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 | 0 | `00-fatia-F0-fundacao.md` | **Concluída** (commit `293c932`); mantida como histórico. |
 | 1 | `01-fatia-F1-sorteio.md` | **Concluída** em 23/11/2026; mantida como histórico. Decisões para o autor conferir em `docs/DECISOES.md` (7 a 12). |
 | 2 | `02-fatia-F2-atividade-treino.md` | **Concluída** em 24/11/2026; mantida como histórico. Decisões para o autor conferir em `docs/DECISOES.md` (13 a 18). |
-| 3 a 14 | F3 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
+| 3 | `03-fatia-F3-mapa-coleta.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (19 a 24). |
+| 4 a 14 | F4 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
+
+O relatório de todas as fatias executadas fica em `idle-personagem-unico/RELATORIO-idle-personagem-unico.md`.
 
 Não dispare duas fatias em paralelo. O ciclo é:
 

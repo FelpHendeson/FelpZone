@@ -4,12 +4,12 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
-import { validarConta, type Conta } from "./personagem/conta";
+import { camposIniciaisF3, validarConta, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 3;
+export const VERSAO_SAVE_ATUAL = 4;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -17,7 +17,8 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
 /**
  * Estado do jogo. v1 (F0): semente, RNG e tempo. v2 (F1): `conta`, com os
  * personagens, o ativo e o sorteio em andamento. v3 (F2): status e atividade
- * de cada personagem. Próximas fatias acrescentam campos com migração.
+ * de cada personagem. v4 (F3): lugar, viagem, gold, mochila, ofícios e
+ * ferramentas. Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
   readonly versao: typeof VERSAO_SAVE_ATUAL;
@@ -63,8 +64,28 @@ export const migrarV2ParaV3: Migracao = (dados) => {
   };
 };
 
+/**
+ * v3 → v4: cada personagem fica em Pedravau (no Campo de Treino, se estava
+ * treinando; na Praça, se ocioso), sem gold, com a mochila vazia, ofícios no
+ * nível 1 e o kit básico de ferramentas.
+ */
+export const migrarV3ParaV4: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return {
+    ...dados,
+    conta: {
+      ...(conta as object),
+      personagens: personagens.map((p: Record<string, unknown>) => {
+        const base = camposIniciaisF3();
+        return { ...p, ...base, subareaId: p.atividade ? "campo-de-treino" : base.subareaId };
+      }),
+    },
+  };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
-export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({ 1: migrarV1ParaV2, 2: migrarV2ParaV3 });
+export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({ 1: migrarV1ParaV2, 2: migrarV2ParaV3, 3: migrarV3ParaV4 });
 
 export type CodigoErroSave =
   | "vazio"

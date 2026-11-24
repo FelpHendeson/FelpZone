@@ -1,8 +1,13 @@
 import {
   CATALOGO,
+  capacidadeMochila,
+  chanceRaro,
   duracaoCicloMs,
+  duracaoViagemMs,
+  espacosUsados,
   ganhoDeTreino,
   modificadoresDoPersonagem,
+  rendimentoMedio,
   xpDoCiclo,
   type Personagem,
   type ResumoAvanco,
@@ -10,22 +15,51 @@ import {
 
 export interface Estimativa {
   readonly duracaoMs: number;
-  /** Ganho do status por hora no valor atual (cai à medida que se aproxima do teto). */
+  /** Treino: ganho do status por hora no valor atual (cai perto do teto). */
   readonly ganhoPorHora: number;
   readonly xpPorHora: number;
+  /** Coleta: itens por hora, XP do ofício por hora e chance de achado raro por ciclo. */
+  readonly itensPorHora: number;
+  readonly xpOficioPorHora: number;
+  readonly chanceRaro: number;
+  /** Viagem até o local da atividade (0 se já está lá). */
+  readonly viagemMs: number;
 }
 
-/** Estimativa de uma atividade de treino para o personagem, no estado atual. */
-export function estimarTreino(p: Personagem, atividadeId: string): Estimativa {
+/** Estimativa de uma atividade para o personagem, no estado atual. */
+export function estimarAtividade(p: Personagem, atividadeId: string): Estimativa {
   const a = CATALOGO.atividades.get(atividadeId)!;
   const mods = modificadoresDoPersonagem(p, p.nivel);
-  const duracaoMs = duracaoCicloMs(a, mods);
+  const duracaoMs = duracaoCicloMs(p, a, mods);
   const ciclosPorHora = 3_600_000 / duracaoMs;
+  const origem = p.localId;
+  const viagemMs = origem === a.localId ? 0 : duracaoViagemMs(origem, a.localId, mods);
+  if (a.tipo === "treino") {
+    return {
+      duracaoMs,
+      ganhoPorHora: ganhoDeTreino(p.racaId, a.status, p.status[a.status], p.nivel, mods) * ciclosPorHora,
+      xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora,
+      itensPorHora: 0,
+      xpOficioPorHora: 0,
+      chanceRaro: 0,
+      viagemMs,
+    };
+  }
   return {
     duracaoMs,
-    ganhoPorHora: ganhoDeTreino(p.racaId, a.status, p.status[a.status], p.nivel, mods) * ciclosPorHora,
+    ganhoPorHora: 0,
     xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora,
+    itensPorHora: rendimentoMedio(p, a, mods) * ciclosPorHora,
+    xpOficioPorHora: a.xpOficio * ciclosPorHora,
+    chanceRaro: chanceRaro(p, a, mods),
+    viagemMs,
   };
+}
+
+export function situacaoMochila(p: Personagem): { usados: number; capacidade: number; cheia: boolean } {
+  const capacidade = capacidadeMochila(p.status.forca, modificadoresDoPersonagem(p, p.nivel));
+  const usados = espacosUsados(p.mochila);
+  return { usados, capacidade, cheia: usados >= capacidade };
 }
 
 /** Mostra o resumo "Enquanto você estava fora" só se algo relevante aconteceu. */
@@ -45,4 +79,12 @@ export function formatarDuracao(ms: number): string {
 
 export function formatarNumero(x: number, casas = 1): string {
   return x.toLocaleString("pt-BR", { minimumFractionDigits: casas, maximumFractionDigits: casas });
+}
+
+export function nomeLocal(id: string): string {
+  return CATALOGO.locais.get(id)?.nome ?? id;
+}
+
+export function nomeSubarea(localId: string, subareaId: string): string {
+  return CATALOGO.locais.get(localId)?.subareas.find((s) => s.id === subareaId)?.nome ?? subareaId;
 }
