@@ -25,8 +25,9 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | `ed3359e` | 297 |
 | F9 | Conta e sincronização | ✅ Concluída em 24/11/2026 (banco a ativar pelo autor) | `332069a` | 319 |
 | F10 | Pets | ✅ Concluída em 24/11/2026 | `18a667c` | 337 |
-| F11 | Mundo vivo | ✅ Concluída em 24/11/2026 | (ver seção) | 355 |
-| F12 e F13 | Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
+| F11 | Mundo vivo | ✅ Concluída em 24/11/2026 | `b74e221` | 355 |
+| F12 | Competição | ✅ Concluída em 24/11/2026 | (ver seção) | 374 |
+| F13 | Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -866,6 +867,7 @@ Habilidades próprias dos pets; mais de 1 vaga por atividade; pets lutando como 
   - Títulos com bônus.
 
   Também a **migração real** de um save v11 criado no site publicado (que rodava a F10). Console limpo, sem rolagem lateral.
+- **CI e Vercel**: job do projeto verde no commit `b74e221` e deploy em `READY` (o save v12 usado no teste da F12 foi criado no site publicado com a F11).
 
 ### Números principais
 
@@ -892,6 +894,68 @@ Costura; recursos e monstros exclusivos de um clima ou horário; escolhas ramifi
 
 ---
 
+## F12 — Competição
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Prompt em `prompts/idle-personagem-unico/12-fatia-F12-competicao.md`.
+
+### O que foi executado
+
+- [x] **Retrato** do personagem (status de combate com equipamento e passivas, técnicas de golpe) e **duelo** determinístico: passos de 0,5 s, até 2 min, crítico, esquiva e técnicas. Reproduzível pela semente.
+- [x] **8 arquétipos de bot** gerados pela semente e pelo nível.
+- [x] **Campo de Provas:** 200 lutas contra um arquétipo (ou contra o build de outro jogador, com banco) e a taxa de vitória.
+- [x] **Arena assíncrona:**
+  - 10 lutas por dia contra bots pareados pelo nível e pelo treino;
+  - rating Elo, pontos de temporada e gold por vitória;
+  - os 10 últimos **replays** (semente + retratos), que a tela reproduz lance a lance.
+- [x] **Torneio semanal:** chave de 16 resolvida pela semente quando a semana acaba; prêmio em pontos e gold; entra na Crônica.
+- [x] **Temporadas** de 8 semanas com tema em rodízio (+20% de ataque para quem combina), ranking contra 20 bots, histórico e a **insígnia** nomeada do tema.
+- [x] **API:** registrar e listar builds (`/api/v1/arena/build` e `/builds`); sem banco, 503.
+- [x] **Save v13** com migração v12 → v13.
+- [x] **Web:** Combate → Arena (lutar, replays, ranking, registrar build), Provas e Torneio (inscrever, chave, resgatar).
+- [x] **Bot, calibração, documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais:** `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **374 testes** (355 no motor, 19 na web).
+- **Testes novos (motor, 15):**
+  - duelo reproduzível; bots pela semente, mais fortes no nível maior;
+  - Campo de Provas ~50% contra igual e >85% contra 50% mais forte;
+  - o tema favorece quem combina; o retrato ignora pets e mundo;
+  - calendário (segunda-feira, temporada, rodízio) e virada de temporada;
+  - Arena: limite diário, rating, pontos e replays reproduzíveis; insígnia uma vez; ranking em ordem;
+  - torneio: 16 inscritos, 15 partidas, colocação válida e reproduzível; inscrever, esperar e resgatar;
+  - save v13: ida e volta, 5 adulterações recusadas e migração.
+- **Teste novo (API, 1):** build por conta, lista sem a conta, retrato inválido e bot recusados, sem sessão 401.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - 3 lutas e um replay aberto;
+  - Campo de Provas;
+  - inscrição no torneio, virada da semana, chave e resgate (gold, pontos e Crônica).
+
+  Também a **migração real** de um save v12 criado no site publicado (que rodava a F11). Console limpo, sem rolagem lateral.
+
+### Números principais
+
+- **Vitórias na Arena** de um jogador médio: ~55% (níveis 5, 15 e 30); colocação média no torneio ~7.
+- **Insígnia do tema:** ~5 semanas (de 8) para um jogador médio.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | Arena "no servidor" sem banco. | A Arena roda no motor, contra bots, com a semente do personagem. Com banco, os builds dos jogadores entram no Campo de Provas. | Aguarda o autor |
+| 2 | O combate de área serve para PvP? | Duelo próprio e mais simples (sem pets, mundo, poções ou Limiar), para ser justo e rápido de simular. | Aguarda o autor |
+| 3 | Novato perdia todas as lutas. | Bots com kit básico até o nível 4 e pareamento pelo treino (ocupação da faixa de status). | Resolvido |
+| 4 | Insígnia em 1,5 semana. | 2.500 pontos (~5 semanas). | Resolvido (Calibrar) |
+| 5 | Torneio "numa hora fixa" sem servidor. | A chave é função da semana e do build inscrito; resolve-se quando a semana acaba, no aparelho ou no servidor, com o mesmo resultado. | Resolvido |
+| 6 | Histórico de temporadas: conta ou personagem? | Personagem por enquanto (o GDD põe no cofre; vai junto com os cosméticos). | Aguarda o autor |
+| 7 | Ranking global. | Local, contra 20 bots da temporada; o global precisa de banco e de lote no servidor. | Pendente (banco) |
+
+### O que ficou de fora
+
+Arena contra builds de outros jogadores com ranking global; lote de torneios no servidor (cron); cosméticos de temporada.
+
+---
+
 ## Próximo passo
 
-**F12 — Competição** (já autorizada): Campo de Provas, Arena assíncrona, bots, torneios e temporadas. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1), que a Arena também vai usar.
+**F13 — Acabamento web** (já autorizada): PWA, sons, arte, acessibilidade, balanceamento final e auditoria de ritmo e de segurança. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1).

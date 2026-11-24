@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**F12 (Competição) concluída.** Arena assíncrona contra bots por arquétipo (10 lutas por dia, rating e replays), Campo de Provas, torneio semanal em chave e temporadas de 8 semanas com tema, ranking e uma insígnia nomeada. Tudo reproduzível pela semente.
+
 **F11 (Mundo vivo) concluída.** O mundo tem relógio (1 h real = 1 dia, noite das 19h às 5h) e clima, que mudam o poder de raças e cores, os monstros raros e a coleta; **eventos** com escolhas aparecem enquanto o personagem trabalha; a **Crônica** conta a história; títulos e Bestiário dão bônus; e cada origem especial tem seu **arco** de 3 capítulos.
 
 **F10 (Pets) concluída.** Pets reais (domados com Laço de doma ou comprados no Estábulo) e as bestas vinculadas das origens especiais, com nome, nível, Energia e Fome; 1 pet por atividade, que só cansa quando o personagem trabalha ali; cuidados (alimentar, descansar, treinar) como atividades; e o modo União das bestas.
@@ -143,6 +145,16 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F8:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito (Martelo do Pai e +2 de forja), Náufrago das Estrelas (Bússola Quebrada), berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior, Mão Certeira e Intelecto na produção.
 
+### O que a F12 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/competicao.ts` | Números, 8 arquétipos, 4 temas e as insígnias de temporada. |
+| `packages/motor/src/competicao` | Retrato, duelo, bots, Campo de Provas, calendário, torneio, ranking, estado e ações (Arena e torneio). |
+| `packages/motor/src/save.ts` | **Save v13** com migração v12 → v13. |
+| `apps/web/src/app/api/v1/arena` | Registrar e listar builds (com banco). |
+| `apps/web` | Combate → Arena, Provas e Torneio. |
+
 ### O que a F11 entregou
 
 | Onde | O quê |
@@ -229,4 +241,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F12 (Competição)**.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F13 (Acabamento web)**.

@@ -640,6 +640,32 @@ Fonte: `packages/motor/src/dados/mundo.ts` (`CONFIG_MUNDO`, efeitos, eventos, t�
 - Em 30 dias: noite 42% do tempo; céu limpo 41%, nublado 30%, chuva 19%, neblina 10%.
 - Cadeia completa (60 dias), agora respondendo eventos: **389 eventos** (~6,5 por dia de jogo contínuo) e 9 marcos na Crônica. O nível 50 caiu de 37 para **34 dias** (XP dos eventos e bônus de noite e títulos); continua perto do alvo de 5 a 6 semanas.
 
+## Competição (F12)
+
+Fonte: `packages/motor/src/dados/competicao.ts` (`CONFIG_COMPETICAO`, arquétipos, temas). Reproduza com `npm run ritmo`.
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Duelo | passos de 0,5 s; até 2 min | [Proposta] |
+| Arena | 10 lutas/dia; Elo K=32; vitória 10 pontos e 8 g × nível; derrota 2 pontos | [Calibrar] |
+| Bots | nível ±2; treino do jogador ±10% (Arena e Provas); 20–60% nos torneios; kit básico até o nível 4 | [Calibrar] |
+| Torneio | 16 lutadores; pontos 300/180/100/50/20; gold 400/200/100/40/10 × nível | [Calibrar] |
+| Temporada | 8 semanas; tema +20% de ataque; insígnia com 2.500 pontos | [Calibrar] |
+
+### Resultado do bot (competição)
+
+| Nível | Vitórias na Arena | Colocação média no torneio | Pontos por semana | Semanas até a insígnia |
+| ---: | ---: | ---: | ---: | ---: |
+| 5 | 55% | 7,1 | 488 | 5,1 |
+| 15 | 54% | 7,4 | 478 | 5,2 |
+| 30 | 56% | 6,8 | 501 | 5,0 |
+
+### Leitura e proposta (F12)
+
+1. Com a insígnia em 600 pontos, saía em 1,5 semana; com 2.500, em ~5 semanas de 8.
+2. Personagem novo perdia todas (bots treinados e com couro contra o kit básico): bots do nível 1 a 4 usam o kit básico, e a Arena e as Provas pareiam pelo treino.
+3. O tema pesa (+20% de ataque): na temporada de Pedra e Vento, o Tanque Draconato é o rival mais duro.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -665,3 +691,6 @@ Fonte: `packages/motor/src/dados/mundo.ts` (`CONFIG_MUNDO`, efeitos, eventos, t�
 | 24/11/2026 | F10: descanso do pet (12 h de Energia por hora de descanso). | 1 h → 30 min por ciclo de 5 min |
 | 24/11/2026 | F10: números de pets, cuidados, União e Estábulo definidos (não existiam). | — |
 | 24/11/2026 | F11: números de dia/noite, clima, eventos, títulos, bestiário e arcos definidos (não existiam). | — |
+| 24/11/2026 | F12: pontos para a insígnia (saía em 1,5 semana). | 600 → 2.500 |
+| 24/11/2026 | F12: bots do começo (novato perdia todas). | couro e 30–80% de treino → kit básico até o nível 4, 20–60% e pareamento pelo treino |
+| 24/11/2026 | F12: números de duelo, Arena, torneio e temporada definidos (não existiam). | — |

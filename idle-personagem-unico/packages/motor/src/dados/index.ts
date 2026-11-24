@@ -18,6 +18,7 @@ import { ITENS_LIMIAR, MONSTROS_LIMIAR, PECAS_RETORNADO } from "./limiar";
 import { MISSOES, NPCS, type Missao, type Npc } from "./missoes";
 import { ITENS_F8, RECEITAS, type AtividadeProducao } from "./producao";
 import { CUIDADOS, ITENS_PETS, type AtividadeCuidado } from "./pets";
+import { RELIQUIAS_TEMPORADA } from "./competicao";
 
 /** Livros (F5): um por habilidade de livro, vendidos no Mercado. */
 export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
@@ -35,7 +36,7 @@ export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
 });
 
 /** Itens de todas as fontes (coleta, combate e equipamentos). */
-const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO, ...ITENS_F8, ...ITENS_PETS];
+const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO, ...ITENS_F8, ...ITENS_PETS, ...RELIQUIAS_TEMPORADA];
 
 /** Toda atividade do personagem (uma por vez). Combate também é atividade [Autor]. */
 export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado | AtividadeProducao | AtividadeCuidado;
@@ -204,3 +205,5 @@ export {
   fatorNivelPet,
 } from "./pets";
 export type { AtividadeCuidado, CategoriaPet, Cuidado, EspeciePet, TipoPet } from "./pets";
+export { ARQUETIPOS, CONFIG_COMPETICAO, RELIQUIAS_TEMPORADA, TEMAS } from "./competicao";
+export type { Arquetipo, TemaTemporada } from "./competicao";

@@ -40,6 +40,7 @@ export {
   migrarV9ParaV10,
   migrarV10ParaV11,
   migrarV11ParaV12,
+  migrarV12ParaV13,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -235,3 +236,26 @@ export type { Cronica, EstadoEventos, EstadoMundo, EventoPendente, RegistroCroni
 export { BONUS_TITULOS, CLIMAS, CONFIG_MUNDO, EFEITOS_CLIMA, EFEITOS_NOITE, EVENTOS, MARCOS_BESTIARIO, MARCOS_CRONICA, NOME_CLIMA, bonusBestiario } from "./dados/mundo";
 export type { Clima, EscolhaEvento, Evento, MarcoCronica } from "./dados/mundo";
 export { resolverEvento } from "./mundo/acoes";
+
+// F12: competição.
+export {
+  botDeArena,
+  camposIniciaisF12,
+  campoDeProvas,
+  chaveDoTorneio,
+  diaDe,
+  duelo,
+  emDia,
+  ocupacaoDe,
+  faixaDaColocacao,
+  inicioDaSemana,
+  rankingDaTemporada,
+  resolverTorneio,
+  retratoDe,
+  semanaDe,
+  temaDaTemporada,
+  temporadaDe,
+  validarRetrato,
+} from "./competicao/competicao";
+export type { EstadoCompeticao, LanceDuelo, PartidaTorneio, ReplayArena, ResultadoDuelo, Retrato } from "./competicao/competicao";
+export { inscreverTorneio, lutarArena, resgatarTorneio } from "./competicao/acoes";

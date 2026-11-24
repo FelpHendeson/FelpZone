@@ -30,6 +30,7 @@ import { PainelAprendizado, PainelHabilidades } from "./PainelHabilidades";
 import { PainelLimiar, PainelTitulos } from "./PainelLimiar";
 import { missoesProntas, PainelGuilda, PainelHistoria, PainelMetas, PainelNpcs } from "./PainelMissoes";
 import { EventosPendentes, PainelCronica } from "./PainelMundo";
+import { PainelArena, PainelCampoDeProvas, PainelTorneio } from "./PainelCompeticao";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelConsumiveis, PainelNomeados, PainelProducao } from "./PainelProducao";
@@ -261,6 +262,12 @@ export function Shell() {
         <FichaPersonagem personagem={personagem} />
       </>
     );
+  } else if (aba.id === "combate" && indiceSub === 3) {
+    conteudo = <PainelArena personagem={personagem} ocupado={ocupado} agir={agir} sessao={sessao} />;
+  } else if (aba.id === "combate" && indiceSub === 4) {
+    conteudo = <PainelCampoDeProvas personagem={personagem} />;
+  } else if (aba.id === "combate" && indiceSub === 5) {
+    conteudo = <PainelTorneio personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "personagem" && indiceSub === 4) {
     conteudo = <PainelCronica personagem={personagem} />;
   } else if (aba.id === "personagem" && indiceSub === 2) {

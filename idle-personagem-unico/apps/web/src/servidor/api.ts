@@ -5,7 +5,7 @@
  */
 import { randomBytes, scrypt as scryptCb, createHash, timingSafeEqual, randomUUID } from "node:crypto";
 import { promisify } from "node:util";
-import { aplicarAcao, avancar, carregarSave, serializarSave, VERSAO_SAVE_ATUAL, type EstadoJogo } from "@idle-pu/motor";
+import { aplicarAcao, avancar, carregarSave, serializarSave, validarRetrato, VERSAO_SAVE_ATUAL, type EstadoJogo, type Retrato } from "@idle-pu/motor";
 import type { Armazem } from "./armazem";
 
 const scrypt = promisify(scryptCb) as (senha: string, sal: Buffer, tamanho: number) => Promise<Buffer>;
@@ -180,4 +180,38 @@ export function importar(a: Armazem | null, p: Pedido): Promise<Resposta> {
     await a!.gravar(`save:${contaId}`, save);
     return { status: 200, corpo: { save } };
   });
+}
+
+// ---------------------------------------------------------------- Arena (F12)
+
+interface BuildRegistrada {
+  readonly contaId: string;
+  readonly retrato: Retrato;
+  readonly em: number;
+}
+const MAX_BUILDS = 100;
+
+/** Registra o build (retrato) do personagem para outros jogadores testarem no Campo de Provas. */
+export function enviarBuild(a: Armazem | null, p: Pedido): Promise<Resposta> {
+  return comConta(a, p, async (contaId) => {
+    const retrato = validarRetrato(obj(p.corpo)?.retrato);
+    if (!retrato || retrato.arquetipoId) return erro(400, "retrato_invalido", "Build inválido.");
+    if (!(await a!.gravarSeNovo("trava:arena", "1", LIMITES.travaSegundos))) return erro(409, "ocupado", "Tente de novo em instantes.");
+    try {
+      const atual = JSON.parse((await a!.obter("arena:builds")) ?? "[]") as BuildRegistrada[];
+      const lista = [{ contaId, retrato, em: p.agora }, ...atual.filter((b) => b.contaId !== contaId)].slice(0, MAX_BUILDS);
+      await a!.gravar("arena:builds", JSON.stringify(lista));
+      return { status: 200, corpo: { ok: true, total: lista.length } };
+    } finally {
+      await a!.apagar("trava:arena");
+    }
+  });
+}
+
+/** Builds registrados (sem dizer de que conta são), os mais recentes primeiro. */
+export async function listarBuilds(a: Armazem | null, p: Pedido): Promise<Resposta> {
+  if (!a) return SEM_BANCO;
+  if (!(await limitar(a, `ip:${p.ip}`, LIMITES.pedidosPorJanela, p.agora))) return erro(429, "muitos_pedidos", "Muitos pedidos. Espere um pouco.");
+  const lista = JSON.parse((await a.obter("arena:builds")) ?? "[]") as BuildRegistrada[];
+  return { status: 200, corpo: { builds: lista.slice(0, 50).map((b) => b.retrato) } };
 }

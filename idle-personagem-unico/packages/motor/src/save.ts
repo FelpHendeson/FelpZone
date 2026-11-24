@@ -4,6 +4,7 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
+import { camposIniciaisF12 } from "./competicao/competicao";
 import { camposIniciaisF11 } from "./mundo/mundo";
 import { camposIniciaisF10 } from "./pets/pets";
 import { COFRE_VAZIO } from "./personagem/cofre";
@@ -12,7 +13,7 @@ import { statusIniciais, type BaseModificadores } from "./personagem/progressao"
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 12;
+export const VERSAO_SAVE_ATUAL = 13;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -29,6 +30,7 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * v10 (F9): cofre da conta (conquistas, pergaminhos, descobertas).
  * v11 (F10): pets (a besta vinculada de quem já tinha vira pet).
  * v12 (F11): mundo vivo (dia/noite, clima, eventos e Crônica).
+ * v13 (F12): competição (Arena, torneio e temporada).
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -212,6 +214,14 @@ export const migrarV11ParaV12: Migracao = (dados) => {
   return { ...dados, conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, ...camposIniciaisF11(instante) })) } };
 };
 
+/** v12 → v13: competição zerada (rating 1.000, temporada do último instante salvo). */
+export const migrarV12ParaV13: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  const instante = typeof dados.ultimoTick === "number" ? dados.ultimoTick : 0;
+  return { ...dados, conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, ...camposIniciaisF12(instante) })) } };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -225,6 +235,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   9: migrarV9ParaV10,
   10: migrarV10ParaV11,
   11: migrarV11ParaV12,
+  12: migrarV12ParaV13,
 });
 
 export type CodigoErroSave =

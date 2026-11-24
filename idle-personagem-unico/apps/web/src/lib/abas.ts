@@ -8,7 +8,7 @@ export interface Aba {
 
 export const ABAS: readonly Aba[] = [
   { id: "atividades", rotulo: "Atividades", icone: "⚒", subAbas: ["Treino", "Coleta", "Produção", "Aprendizado", "Pets"] },
-  { id: "combate", rotulo: "Combate", icone: "⚔", subAbas: ["Áreas", "Bestiário", "O Limiar"] },
+  { id: "combate", rotulo: "Combate", icone: "⚔", subAbas: ["Áreas", "Bestiário", "O Limiar", "Arena", "Provas", "Torneio"] },
   { id: "mapa", rotulo: "Mapa", icone: "🗺", subAbas: ["Região", "Local atual", "Estabelecimentos"] },
   {
     id: "mochila",

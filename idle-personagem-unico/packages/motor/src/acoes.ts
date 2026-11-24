@@ -25,6 +25,7 @@ import { comprarLivro, desequiparHabilidade, equiparHabilidade, escolherRamo, in
 import { abandonarMissao, aceitarMissao, entregarMissao, promover } from "./missoes/missoes";
 import { atualizarCofre } from "./personagem/cofre";
 import type { EstadoJogo } from "./save";
+import { inscreverTorneio, lutarArena, resgatarTorneio } from "./competicao/acoes";
 import { resolverEvento } from "./mundo/acoes";
 import { atualizarCronica } from "./mundo/mundo";
 import { ativarUniao, atribuirPet, comprarLaco, comprarPet, nomearPet, soltarPet } from "./pets/acoes";
@@ -67,12 +68,15 @@ export type Acao =
   | { readonly tipo: "atribuirPet"; readonly slot: SlotPet; readonly petId: string | null }
   | { readonly tipo: "soltarPet"; readonly petId: string }
   | { readonly tipo: "ativarUniao" }
-  | { readonly tipo: "resolverEvento"; readonly n: number; readonly escolha: 0 | 1 };
+  | { readonly tipo: "resolverEvento"; readonly n: number; readonly escolha: 0 | 1 }
+  | { readonly tipo: "lutarArena" }
+  | { readonly tipo: "inscreverTorneio" }
+  | { readonly tipo: "resgatarTorneio" };
 
 export type TipoAcao = Acao["tipo"];
 
 export type ResultadoAplicar =
-  | { readonly ok: true; readonly estado: EstadoJogo; readonly resumo: ResumoAvanco; readonly detalhe?: { readonly sucesso?: boolean } }
+  | { readonly ok: true; readonly estado: EstadoJogo; readonly resumo: ResumoAvanco; readonly detalhe?: { readonly sucesso?: boolean; readonly colocacao?: number } }
   | { readonly ok: false; readonly erro: { readonly codigo: string; readonly mensagem: string } };
 
 const invalida = (mensagem = "Ação inválida."): ResultadoAplicar => ({ ok: false, erro: { codigo: "acao_invalida", mensagem } });
@@ -106,6 +110,9 @@ export function validarAcao(v: unknown): Acao | null {
     case "aceitarSorteio":
     case "comprarLaco":
     case "ativarUniao":
+    case "lutarArena":
+    case "inscreverTorneio":
+    case "resgatarTorneio":
       return { tipo: a.tipo };
     case "comprarPet":
       return texto(a.especieId) ? { tipo: a.tipo, especieId: a.especieId } : null;
@@ -230,6 +237,16 @@ function despachar(estado: EstadoJogo, a: Acao, agora: number): ResultadoAplicar
       return ativarUniao(estado, agora);
     case "resolverEvento":
       return resolverEvento(estado, a.n, a.escolha, agora);
+    case "lutarArena": {
+      const r = lutarArena(estado, agora);
+      return r.ok ? { ok: true, estado: r.estado, resumo: r.resumo, detalhe: { sucesso: r.vitoria ?? false } } : r;
+    }
+    case "inscreverTorneio":
+      return inscreverTorneio(estado, agora);
+    case "resgatarTorneio": {
+      const r = resgatarTorneio(estado, agora);
+      return r.ok ? { ok: true, estado: r.estado, resumo: r.resumo, detalhe: { colocacao: r.colocacao ?? 0 } } : r;
+    }
     case "definirNomeEAparencia":
       return doSorteio(definirNomeEAparencia(estado, { nome: a.nome, corCabelo: a.corCabelo, corRoupa: a.corRoupa }, agora));
   }

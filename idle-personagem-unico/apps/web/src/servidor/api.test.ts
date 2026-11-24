@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { aplicarAcao, carregarSave, CORES_CABELO, CORES_ROUPA, criarEstadoInicial, serializarSave, type EstadoJogo } from "@idle-pu/motor";
+import { aplicarAcao, botDeArena, carregarSave, CORES_CABELO, CORES_ROUPA, criarEstadoInicial, retratoDe, serializarSave, type EstadoJogo } from "@idle-pu/motor";
 import { ArmazemMemoria, armazemDoAmbiente } from "./armazem";
-import { acao, entrar, importar, LIMITES, obterJogo, registrar, sair, saude, SEM_BANCO, type Pedido } from "./api";
+import { acao, entrar, enviarBuild, importar, LIMITES, listarBuilds, obterJogo, registrar, sair, saude, SEM_BANCO, type Pedido } from "./api";
 
 const T0 = 1_800_000_000_000;
 const pedido = (corpo: unknown, token: string | null = null, agora = T0, ip = "1.2.3.4"): Pedido => ({ corpo, token, ip, agora });
@@ -26,7 +26,7 @@ async function contaComJogo(a: ArmazemMemoria) {
 describe("API sem banco", () => {
   it("saúde diz que não há banco e o resto responde 503", async () => {
     expect(saude(null).corpo).toMatchObject({ ok: true, banco: false });
-    for (const f of [registrar, entrar, sair, obterJogo, acao, importar]) expect(await f(null, pedido({}))).toEqual(SEM_BANCO);
+    for (const f of [registrar, entrar, sair, obterJogo, acao, importar, enviarBuild, listarBuilds]) expect(await f(null, pedido({}))).toEqual(SEM_BANCO);
   });
 
   it("só usa banco com URL https e token", () => {
@@ -110,5 +110,21 @@ describe("jogo", () => {
     const contaId = (await a.obter(`sessao:${(await import("node:crypto")).createHash("sha256").update(token).digest("hex")}`))!;
     await a.gravar(`trava:${contaId}`, "1", 10);
     expect((await acao(a, pedido({ acao: { tipo: "pararAtividade" } }, token))).status).toBe(409);
+  });
+});
+
+describe("Arena (builds)", () => {
+  it("registra um build por conta e lista sem dizer de quem é", async () => {
+    const a = new ArmazemMemoria(() => T0);
+    const token = await contaComJogo(a);
+    const retrato = retratoDe(jogoNovo().conta.personagens[0]!);
+    expect((await enviarBuild(a, pedido({ retrato }, token))).status).toBe(200);
+    expect((await enviarBuild(a, pedido({ retrato: { ...retrato, nivel: 2 } }, token))).status).toBe(200);
+    const l = await listarBuilds(a, pedido(null));
+    expect(l.corpo.builds).toEqual([{ ...retrato, nivel: 2 }]);
+    expect(JSON.stringify(l.corpo)).not.toContain("contaId");
+    expect((await enviarBuild(a, pedido({ retrato: { ...retrato, sc: { ...retrato.sc, esquiva: 5 } } }, token))).status).toBe(400);
+    expect((await enviarBuild(a, pedido({ retrato: botDeArena("x", 5) }, token))).status).toBe(400);
+    expect((await enviarBuild(a, pedido({ retrato }, null))).status).toBe(401);
   });
 });

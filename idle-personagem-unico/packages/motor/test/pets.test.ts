@@ -18,6 +18,7 @@ import {
   camposIniciaisF8,
   camposIniciaisF10,
   camposIniciaisF11,
+  camposIniciaisF12,
   carregarSave,
   criarEstadoInicial,
   modificadoresDoPersonagem,
@@ -58,6 +59,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
+    ...camposIniciaisF12(),
     ...extra,
   };
 }

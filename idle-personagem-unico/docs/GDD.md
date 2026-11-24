@@ -482,6 +482,15 @@ O jogo não termina, então a **competição** dá objetivo de longo prazo.
 - **Temporadas** (por exemplo, 8 semanas): ranking, recompensas cosméticas, **um item nomeado de temporada**, modificadores temáticos ("Temporada da Lua Negra: sombras +20%"). Reiniciam o ranking, **nunca** o personagem.
 - Ponto técnico: simular em lote exige CPU de servidor. Isso fica **depois** do jogo completo na web e define a infraestrutura (§ `ARQUITETURA.md`).
 
+**Implementado na F12** [Proposta, Calibrar]:
+
+- **Duelo** determinístico entre "retratos" (status de combate com equipamento e passivas; sem pets nem mundo), em passos de 0,5 s, até 2 min, com técnicas, crítico e esquiva. Reproduzível pela semente: os **replays** guardam só semente e retratos.
+- **8 arquétipos** de bot (Tanque Draconato, Assassino Sangue-Pálido, Caçador Lobisomem, Berserker Orc, Arcano Elfo, Paladino Humano, Tempestade Silfo, Muralha Anã). Na Arena e no Campo de Provas são **pareados** pelo nível e pelo quanto o jogador já treinou.
+- **Arena:** 10 lutas por dia, rating Elo (começa em 1.000), pontos de temporada, gold por vitória.
+- **Torneio semanal:** chave de 16 (o jogador e 15 bots da semana), resolvida pela semente quando a semana acaba (segunda, 00:00 UTC); prêmio em pontos e gold.
+- **Temporadas** de 8 semanas com tema em rodízio (Lua Negra, Sol Partido, Fera Solta, Pedra e Vento: +20% de ataque na Arena para quem combina). Com 2.500 pontos, a **insígnia** do tema (relíquia nomeada). Ranking contra 20 bots; a virada guarda os pontos no histórico e aproxima o rating de 1.000.
+- Com banco (F9), o jogador **registra o build** e outros o testam no Campo de Provas. Arena e ranking globais entre jogadores ficam para quando houver banco e lote no servidor.
+
 ## 16. Interface (web, mobile-first) [Autor, detalhes: Proposta]
 
 **Abas inferiores** (navegação principal): **Atividades · Combate · Mapa · Mochila · Missões · Personagem**.

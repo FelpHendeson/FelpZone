@@ -29,6 +29,13 @@ import {
   camposIniciaisF8,
   camposIniciaisF10,
   camposIniciaisF11,
+  camposIniciaisF12,
+  botDeArena,
+  CONFIG_COMPETICAO,
+  duelo,
+  faixaDaColocacao,
+  resolverTorneio,
+  retratoDe,
   climaEm,
   CLIMAS,
   ehNoite,
@@ -122,6 +129,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
+    ...camposIniciaisF12(),
   };
 }
 
@@ -707,4 +715,30 @@ linha();
   linha(`Em 30 dias reais: noite ${num((noites / (n * 24)) * 100, 0)}% do tempo; clima: ${CLIMAS.map((c) => `${NOME_CLIMA[c].toLowerCase()} ${num(((climas[c] ?? 0) / n) * 100, 0)}%`).join(", ")}.`);
   linha();
 }
+// ---------------------------------------------------------------- Competição (F12)
+
+linha("### Competição (F12)");
+linha();
+linha("Humano no nível indicado (status em 50% da faixa, equipamento do tier), contra bots do mesmo nível. Relíquia: semanas para chegar aos pontos com 10 lutas por dia e 1 torneio por semana.");
+linha();
+linha("| Nível | Vitórias na Arena | Colocação média no torneio (20 semanas) | Pontos por semana | Semanas até a relíquia |");
+linha("| ---: | ---: | ---: | ---: | ---: |");
+for (const nivel of [5, 15, 30]) {
+  const g = guerreiro(nivel, 0.5, nivel < 10 ? 1 : nivel < 20 ? 2 : 3);
+  const eu = retratoDe(g);
+  let vitorias = 0;
+  const n = 200;
+  for (let i = 0; i < n; i++) if (duelo(eu, botDeArena(`ritmo-arena:${nivel}:${i}`, nivel), `ritmo:${i}`).vencedor === "a") vitorias++;
+  const taxa = vitorias / n;
+  let soma = 0;
+  let pontosTorneio = 0;
+  for (let s = 0; s < 20; s++) {
+    const r = resolverTorneio(3_000 + s, eu);
+    soma += r.colocacao;
+    pontosTorneio += CONFIG_COMPETICAO.pontosTorneio[faixaDaColocacao(r.colocacao)]!;
+  }
+  const porSemana = 7 * CONFIG_COMPETICAO.lutasPorDia * (taxa * CONFIG_COMPETICAO.pontosVitoria + (1 - taxa) * CONFIG_COMPETICAO.pontosDerrota) + pontosTorneio / 20;
+  linha(`| ${nivel} | ${num(taxa * 100, 0)}% | ${num(soma / 20)} | ${num(porSemana, 0)} | ${num(CONFIG_COMPETICAO.pontosReliquia / porSemana)} |`);
+}
+linha();
 console.log(out.join("\n"));

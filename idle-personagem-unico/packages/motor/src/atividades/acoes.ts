@@ -76,7 +76,12 @@ export type CodigoErroAtividade =
   | "nao_vende_pet"
   | "slot_invalido"
   | "evento_inexistente"
-  | "sem_comida";
+  | "sem_comida"
+  | "sem_lutas"
+  | "ja_inscrito"
+  | "torneio_pendente"
+  | "sem_torneio"
+  | "torneio_em_andamento";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;

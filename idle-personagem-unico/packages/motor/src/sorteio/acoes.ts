@@ -3,6 +3,7 @@
  * novo ou erro tipado. O estado do sorteio vive no save; recarregar a página
  * não devolve chances.
  */
+import { camposIniciaisF12 } from "../competicao/competicao";
 import { camposIniciaisF11 } from "../mundo/mundo";
 import { camposIniciaisF10 } from "../pets/pets";
 import { CATALOGO } from "../dados";
@@ -132,6 +133,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     | keyof ReturnType<typeof camposIniciaisF8>
     | keyof ReturnType<typeof camposIniciaisF10>
     | keyof ReturnType<typeof camposIniciaisF11>
+    | keyof ReturnType<typeof camposIniciaisF12>
   > = {
     id: `personagem-${estado.conta.personagens.length + 1}`,
     nome: nome.nome,
@@ -171,6 +173,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     ...camposIniciaisF8(),
     ...camposIniciaisF10(r.bestaVinculadaId ?? undefined),
     ...camposIniciaisF11(agora),
+    ...camposIniciaisF12(agora),
   };
   const nomeadoInicial = nomeadoDaOrigem(r.origem.tipo === "especial" ? r.origem.id : undefined);
   if (nomeadoInicial) personagem = { ...personagem, mochila: { ...personagem.mochila, [nomeadoInicial]: 1 } };

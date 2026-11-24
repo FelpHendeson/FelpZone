@@ -177,3 +177,14 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 82. **Arcos de origem** gerados a partir do gancho de cada origem (3 capítulos iguais em estrutura). Textos próprios por origem e escolhas ramificadas são um bom trabalho para o autor.
 83. A **Fome da Noite** (Sangue-Pálido) ganhou o bônus noturno; o roubo de vida continua pendente.
 
+### Da F12 (competição), para o autor conferir
+
+84. **Duelo próprio**, mais simples que o combate de área: só status de combate, técnicas de golpe, crítico e esquiva; 2 min no máximo (depois, vence quem tem mais vida em fração). Pets e mundo não entram.
+85. **Arena contra bots** no próprio aparelho (sem banco); 10 lutas por dia; Elo K=32. O rating do bot oponente é o seu ± 150.
+86. **Pareamento** pelo nível (±2) e pelo treino (ocupação da faixa de status ±10%), para o novato não perder sempre.
+87. **Torneio** de 16 resolvido pela semente da semana, com o build inscrito; o prêmio é resgatado depois que a semana acaba.
+88. **Temporada** de 8 semanas; tema em rodízio de 4; relíquia do tema com 2.500 pontos (~5 semanas para um jogador médio).
+89. **Ranking** local: o jogador entre 20 bots com pontos pela semente e pelo andamento da temporada. Ranking global precisa de banco.
+90. **Builds de outros jogadores** (com banco): registro e lista na API; só servem ao Campo de Provas por enquanto.
+91. **Histórico de temporadas** guardado no personagem (o GDD põe no cofre da conta; fica para quando houver cosméticos).
+

@@ -30,6 +30,7 @@ import {
   camposIniciaisF8,
   camposIniciaisF10,
   camposIniciaisF11,
+  camposIniciaisF12,
   type AtividadeCiclica,
   type EstadoJogo,
   type Personagem,
@@ -68,6 +69,7 @@ function personagem(base: Partial<Base> & { id?: string } = {}): Personagem {
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
+    ...camposIniciaisF12(),
     ...semHabilidadesEquipadas(),
   };
 }

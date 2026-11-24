@@ -897,3 +897,9 @@ ol.lista-recursos {
   flex-direction: column;
   gap: 0.375rem;
 }
+
+/* F12 */
+.replay {
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+}

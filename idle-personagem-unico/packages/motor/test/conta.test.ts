@@ -15,6 +15,7 @@ import {
   camposIniciaisF8,
   camposIniciaisF10,
   camposIniciaisF11,
+  camposIniciaisF12,
   carregarSave,
   criarEstadoInicial,
   iniciarAtividade,
@@ -56,6 +57,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
+    ...camposIniciaisF12(),
     ...extra,
   };
 }
