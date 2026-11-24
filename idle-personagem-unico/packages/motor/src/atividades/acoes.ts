@@ -74,7 +74,9 @@ export type CodigoErroAtividade =
   | "sincronia_incompleta"
   | "uniao_ativa"
   | "nao_vende_pet"
-  | "slot_invalido";
+  | "slot_invalido"
+  | "evento_inexistente"
+  | "sem_comida";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;

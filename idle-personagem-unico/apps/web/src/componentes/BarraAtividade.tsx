@@ -1,4 +1,5 @@
-import { CATALOGO, NOME_STATUS, type Personagem } from "@idle-pu/motor";
+import { textoDoMundo } from "./PainelMundo";
+import { CATALOGO, NOME_STATUS, type Personagem, relogioDoSistema } from "@idle-pu/motor";
 import { combateDe, estimarAtividade, formatarDuracao, formatarNumero, nomeLocal, nomeSubarea, situacaoMochila } from "@/lib/atividade";
 import { BarraVida } from "./BarraVida";
 
@@ -15,6 +16,9 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
   const mochila = situacaoMochila(p);
   const extras = (
     <span className="barra-extras">
+      <span className="mundo" aria-label="Hora e clima">
+        {textoDoMundo(relogioDoSistema.agora())}
+      </span>
       {mochila.cheia && <span className="selo selo-alerta">Mochila cheia</span>}
       <span className="ouro" aria-label={`${p.ouro} de gold`}>
         {formatarNumero(p.ouro, 0)} g

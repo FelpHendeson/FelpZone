@@ -172,3 +172,31 @@ export function PainelGuilda(props: Props) {
 export function missoesProntas(p: Personagem): number {
   return p.missoes.ativas.filter((a) => progressoDaMissao(p, a.id).completa).length;
 }
+
+/** Missões → História: o arco da origem especial (só quem tem uma). */
+export function PainelHistoria(props: Props) {
+  const { personagem: p } = props;
+  const arco = missoesVisiveis(p, "arco", relogioDoSistema.agora()).map((x) => x.missao);
+  const visiveis = arco.filter((m) => p.missoes.ativas.some((a) => a.id === m.id) || (p.missoes.concluidas[m.id] ?? 0) > 0 || (m.requisitos.missoes ?? []).every((r) => p.missoes.concluidas[r]));
+  const origem = CATALOGO.origensEspeciais.get(p.origem.id);
+  return (
+    <section className="painel" aria-label="História">
+      {arco.length === 0 ? (
+        <article className="cartao">
+          <p className="suave">Só personagens de origem especial têm um arco de história. A sua origem é comum: a história é a que você faz.</p>
+        </article>
+      ) : (
+        <article className="cartao">
+          <h3>{origem?.nome}</h3>
+          <p className="suave">{origem?.gancho}</p>
+          <ul className="lista-recursos">
+            {visiveis.map((m) => (
+              <LinhaMissao key={m.id} {...props} m={m} />
+            ))}
+          </ul>
+          <p className="suave nota">Capítulos se aceitam e se entregam em qualquer lugar. Cada um entra na Crônica.</p>
+        </article>
+      )}
+    </section>
+  );
+}

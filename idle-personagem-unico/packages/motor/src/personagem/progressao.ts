@@ -8,6 +8,7 @@ import type { Efeito } from "../dados/tipos";
 import { modificadoresDeHabilidades, type Habilidades } from "../habilidades/maestria";
 import { resumirModificadores, type Modificador } from "../modificadores";
 import { modificadoresDePets } from "../pets/pets";
+import { modificadoresDeTitulos, modificadoresDoMundo } from "../mundo/mundo";
 import type { Personagem } from "./conta";
 
 export interface ConfigProgressao {
@@ -61,6 +62,9 @@ export interface BaseModificadores {
   readonly petsPorSlot?: Personagem["petsPorSlot"];
   readonly uniaoRestanteMs?: number;
   readonly status?: Personagem["status"];
+  /** Mundo (F11): noite e clima. */
+  readonly coreId?: string;
+  readonly mundo?: Personagem["mundo"];
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -117,6 +121,9 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
   }
   // Pet que trabalha na atividade atual (F10).
   lista.push(...modificadoresDePets(p));
+  // Mundo vivo (F11): noite, clima e títulos por mortes.
+  lista.push(...modificadoresDoMundo(p));
+  lista.push(...modificadoresDeTitulos(p.mortes ?? 0));
   return lista;
 }
 

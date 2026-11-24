@@ -9,6 +9,7 @@ import {
   sinergiaLimiar,
   titulosPorMortes,
   type Personagem,
+  BONUS_TITULOS,
 } from "@idle-pu/motor";
 import { formatarDuracao, formatarNumero } from "@/lib/atividade";
 import type { Agir } from "./acoes";
@@ -116,11 +117,17 @@ export function PainelTitulos({ personagem: p }: { personagem: Personagem }) {
               <p className="suave">
                 {t.mortes} mortes{t.conquistado ? " · conquistado" : ` · faltam ${t.mortes - p.mortes}`}
               </p>
+              <p className="suave">{textoBonusTitulo(t.id)}</p>
             </div>
           </li>
         ))}
       </ul>
-      <p className="suave nota">Por enquanto, títulos são só honra. Os bônus chegam numa fatia futura.</p>
+      <p className="suave nota">Os bônus dos títulos conquistados valem sempre e se somam.</p>
     </section>
   );
+}
+
+const NOME_BONUS: Record<string, string> = { "duracao-limiar": "tempo no Limiar", defesa: "defesa", ataque: "ataque" };
+function textoBonusTitulo(id: string): string {
+  return (BONUS_TITULOS[id] ?? []).map((m) => `${m.valor > 0 ? "+" : "−"}${Math.round(Math.abs(m.valor) * 100)}% ${NOME_BONUS[m.alvo] ?? m.alvo}`).join(" · ");
 }

@@ -39,6 +39,7 @@ export {
   migrarV8ParaV9,
   migrarV9ParaV10,
   migrarV10ParaV11,
+  migrarV11ParaV12,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -215,3 +216,22 @@ export {
 } from "./pets/pets";
 export type { Pet, SlotPet } from "./pets/pets";
 export { ativarUniao, atribuirPet, comprarLaco, comprarPet, nomearPet, soltarPet } from "./pets/acoes";
+
+// F11: mundo vivo.
+export {
+  acumularEventos,
+  atualizarCronica,
+  camposIniciaisF11,
+  climaEm,
+  ehNoite,
+  estadoDoMundo,
+  horaDoJogo,
+  marcosAtingidos,
+  modificadoresDeTitulos,
+  modificadoresDoMundo,
+  proximaMudanca,
+} from "./mundo/mundo";
+export type { Cronica, EstadoEventos, EstadoMundo, EventoPendente, RegistroCronica } from "./mundo/mundo";
+export { BONUS_TITULOS, CLIMAS, CONFIG_MUNDO, EFEITOS_CLIMA, EFEITOS_NOITE, EVENTOS, MARCOS_BESTIARIO, MARCOS_CRONICA, NOME_CLIMA, bonusBestiario } from "./dados/mundo";
+export type { Clima, EscolhaEvento, Evento, MarcoCronica } from "./dados/mundo";
+export { resolverEvento } from "./mundo/acoes";

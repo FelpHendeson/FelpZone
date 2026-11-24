@@ -5,6 +5,7 @@
  * tempo em partes dá o mesmo resultado.
  */
 import { CONFIG_PETS, ESPECIES_PET, LACO_DE_DOMA } from "../dados/pets";
+import { bonusBestiario } from "../dados/mundo";
 import { especieDe, novoPet } from "../pets/pets";
 import {
   CATALOGO,
@@ -311,6 +312,8 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
     semEfeitosNoMonstro();
   };
   const deveRecuar = () => !limiar && recuoFracao > 0 && vida <= recuoFracao;
+  /** F11: marcos do Bestiário dão dano extra contra a espécie (fora do Limiar). */
+  const contra = (m: Monstro) => (limiar ? 1 : 1 + bonusBestiario(bestiario[m.id] ?? 0));
   const tem = (id: string) => (mochila[id] ?? 0) > 0 || Object.values(p0.equipados).includes(id);
   const abater = (m: Monstro) => {
     estado.abatesNaArea++;
@@ -373,7 +376,7 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
       for (const ef of def.efeitos) {
         if (ef.tipo === "golpe") {
           const critico = rng.flutuante() < sc.critico;
-          estado.vidaMonstro -= dano(sc.ataque * ef.multiplicador * f, monstroEnfraquecido(m, efeitos).defesa) * (critico ? c.multiplicadorCritico : 1);
+          estado.vidaMonstro -= dano(sc.ataque * ef.multiplicador * f * contra(m), monstroEnfraquecido(m, efeitos).defesa) * (critico ? c.multiplicadorCritico : 1);
         } else if (ef.tipo === "cura") {
           vida = Math.min(1, vida + ef.fracao * f);
         } else if (ef.tipo === "reforco") {
@@ -430,7 +433,9 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
           id = chefe ? CHEFES_LIMIAR[rng.inteiro(0, CHEFES_LIMIAR.length - 1)]! : rng.escolhaPonderada(COMUNS_LIMIAR.map((m) => ({ valor: m.monstroId, peso: m.peso })));
         } else {
           const chefe = (estado.abatesNaArea + 1) % area.abatesParaChefe === 0;
-          id = chefe ? area.chefeId : rng.escolhaPonderada(area.monstros.map((m) => ({ valor: m.monstroId, peso: m.peso })));
+          // F11: à noite os raros aparecem mais (`combate.raro`).
+          const fRaro = fator(mods, "combate.raro");
+          id = chefe ? area.chefeId : rng.escolhaPonderada(area.monstros.map((m) => ({ valor: m.monstroId, peso: CATALOGO.monstros.get(m.monstroId)?.tipo === "raro" ? m.peso * fRaro : m.peso })));
         }
         monstro = monstroPorId(id);
         estado = { ...estado, fase: "lutando", restanteMs: 0, monstroId: id, vidaMonstro: monstro.vida, recargaPersonagemMs: c.passoMs, recargaMonstroMs: monstro.intervaloMs };
@@ -464,7 +469,7 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
     if (estado.recargaPersonagemMs <= 0) {
       estado.recargaPersonagemMs += sc.intervaloMs;
       const critico = rng.flutuante() < sc.critico;
-      estado.vidaMonstro -= dano(sc.ataque, monstroEnfraquecido(m, efeitos).defesa) * (critico ? c.multiplicadorCritico : 1);
+      estado.vidaMonstro -= dano(sc.ataque * contra(m), monstroEnfraquecido(m, efeitos).defesa) * (critico ? c.multiplicadorCritico : 1);
       if (estado.vidaMonstro <= 0) {
         abater(m);
         continue;

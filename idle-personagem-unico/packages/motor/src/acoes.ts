@@ -25,6 +25,8 @@ import { comprarLivro, desequiparHabilidade, equiparHabilidade, escolherRamo, in
 import { abandonarMissao, aceitarMissao, entregarMissao, promover } from "./missoes/missoes";
 import { atualizarCofre } from "./personagem/cofre";
 import type { EstadoJogo } from "./save";
+import { resolverEvento } from "./mundo/acoes";
+import { atualizarCronica } from "./mundo/mundo";
 import { ativarUniao, atribuirPet, comprarLaco, comprarPet, nomearPet, soltarPet } from "./pets/acoes";
 import { SLOTS_PET, type SlotPet } from "./pets/pets";
 import { aceitarSorteio, definirNomeEAparencia, iniciarSorteio, rerolar, type ResultadoAcao } from "./sorteio/acoes";
@@ -64,7 +66,8 @@ export type Acao =
   | { readonly tipo: "nomearPet"; readonly petId: string; readonly nome: string }
   | { readonly tipo: "atribuirPet"; readonly slot: SlotPet; readonly petId: string | null }
   | { readonly tipo: "soltarPet"; readonly petId: string }
-  | { readonly tipo: "ativarUniao" };
+  | { readonly tipo: "ativarUniao" }
+  | { readonly tipo: "resolverEvento"; readonly n: number; readonly escolha: 0 | 1 };
 
 export type TipoAcao = Acao["tipo"];
 
@@ -112,6 +115,8 @@ export function validarAcao(v: unknown): Acao | null {
       return typeof a.slot === "string" && (SLOTS_PET as readonly string[]).includes(a.slot) && (a.petId === null || texto(a.petId)) ? { tipo: a.tipo, slot: a.slot as SlotPet, petId: a.petId as string | null } : null;
     case "soltarPet":
       return texto(a.petId) ? { tipo: a.tipo, petId: a.petId } : null;
+    case "resolverEvento":
+      return typeof a.n === "number" && Number.isSafeInteger(a.n) && (a.escolha === 0 || a.escolha === 1) ? { tipo: a.tipo, n: a.n, escolha: a.escolha } : null;
     case "iniciarAtividade":
       return texto(a.atividadeId) ? { tipo: a.tipo, atividadeId: a.atividadeId } : null;
     case "iniciarAprendizado":
@@ -223,6 +228,8 @@ function despachar(estado: EstadoJogo, a: Acao, agora: number): ResultadoAplicar
       return soltarPet(estado, a.petId, agora);
     case "ativarUniao":
       return ativarUniao(estado, agora);
+    case "resolverEvento":
+      return resolverEvento(estado, a.n, a.escolha, agora);
     case "definirNomeEAparencia":
       return doSorteio(definirNomeEAparencia(estado, { nome: a.nome, corCabelo: a.corCabelo, corRoupa: a.corRoupa }, agora));
   }
@@ -240,6 +247,8 @@ export function aplicarAcao(estado: EstadoJogo, acao: unknown, agora: number): R
   const base = a.tipo === "iniciarSorteio" || a.tipo === "rerolar" || a.tipo === "aceitarSorteio" ? avancar(estado, agora).estado : estado;
   const r = despachar(base, a, agora);
   if (!r.ok) return r;
-  const cofre = atualizarCofre(r.estado.conta.cofre, r.estado.conta.personagens);
-  return cofre === r.estado.conta.cofre ? r : { ...r, estado: { ...r.estado, conta: { ...r.estado.conta, cofre } } };
+  // F11: marcos da Crônica de quem está ativo (promoções contam na hora).
+  const personagens = r.estado.conta.personagens.map((p) => (p.id === r.estado.conta.personagemAtivoId ? atualizarCronica(p) : p));
+  const cofre = atualizarCofre(r.estado.conta.cofre, personagens);
+  return { ...r, estado: { ...r.estado, conta: { ...r.estado.conta, personagens, cofre } } };
 }

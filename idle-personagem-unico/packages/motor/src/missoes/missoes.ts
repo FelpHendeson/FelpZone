@@ -4,6 +4,7 @@
  * contador é "contador agora − contador quando começou", então avança sozinho
  * enquanto a atividade contribui, igual com o jogo aberto ou fechado.
  */
+import { registrarNaCronica } from "../mundo/mundo";
 import { comAtivo, erro, falha, type ResultadoAtividade } from "../atividades/acoes";
 import { CATALOGO, CONFIG_GUILDA, OFICIOS, RANK_MAXIMO_ATO_I, RANKS, obter, type Missao, type Objetivo } from "../dados";
 import type { Personagem } from "../personagem/conta";
@@ -80,6 +81,7 @@ export function podeAceitar(p: Personagem, m: Missao, agora: number): { ok: bool
   if (m.tipo === "guilda" && m.rank !== undefined && m.rank < p.guilda.rank - 1) return { ok: false, motivo: "Abaixo do seu rank." };
   if (m.tipo === "prova" && m.rank !== p.guilda.rank) return { ok: false, motivo: "Não é a prova do seu rank." };
   if (m.tipo === "meta") return { ok: false, motivo: "Metas começam sozinhas." };
+  if (m.tipo === "arco" && p.origem.id !== m.requisitos.origemId) return { ok: false, motivo: "Não é a sua história." };
   if (p.missoes.ativas.length >= CONFIG_GUILDA.maximoAtivas) return { ok: false, motivo: `No máximo ${CONFIG_GUILDA.maximoAtivas} missões ativas.` };
   return { ok: true };
 }
@@ -155,6 +157,8 @@ export function entregarMissao(estado: EstadoJogo, missaoId: string, agora: numb
       guilda: { ...p.guilda, merito: p.guilda.merito + m.recompensa.merito },
       missoes: { ativas, concluidas, disponivelEm },
     };
+    // F11: capítulos de arco entram na Crônica.
+    if (m.tipo === "arco") novo = registrarNaCronica(novo, agora, `Capítulo concluído: ${m.titulo}.`);
     // A próxima meta começa sozinha (com o contador de agora).
     if (m.tipo === "meta") {
       const proxima = [...CATALOGO.missoes.values()].find((x) => x.tipo === "meta" && x.requisitos.missoes?.[0] === m.id);
@@ -189,5 +193,7 @@ export function promover(estado: EstadoJogo, agora: number): ResultadoAtividade 
 export function missoesVisiveis(p: Personagem, tipo: Missao["tipo"] | "guilda-e-prova", agora: number): { missao: Missao; ativa: boolean; pode: { ok: boolean; motivo?: string } }[] {
   return [...CATALOGO.missoes.values()]
     .filter((m) => (tipo === "guilda-e-prova" ? m.tipo === "guilda" || m.tipo === "prova" : m.tipo === tipo))
+    // Arcos: só os da origem do personagem.
+    .filter((m) => m.tipo !== "arco" || m.requisitos.origemId === p.origem.id)
     .map((m) => ({ missao: m, ativa: p.missoes.ativas.some((a) => a.id === m.id), pode: podeAceitar(p, m, agora) }));
 }

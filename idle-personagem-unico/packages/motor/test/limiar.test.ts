@@ -15,6 +15,7 @@ import {
   camposIniciaisF7,
   camposIniciaisF8,
   camposIniciaisF10,
+  camposIniciaisF11,
   cargasEco,
   carregarSave,
   criarEstadoInicial,
@@ -64,6 +65,7 @@ function personagem(extra: Partial<Personagem> = {}, coreId = "andarilho"): Pers
     ...camposIniciaisF7(),
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
+    ...camposIniciaisF11(),
     ...extra,
   };
 }

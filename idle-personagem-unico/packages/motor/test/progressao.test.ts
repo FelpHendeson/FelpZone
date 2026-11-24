@@ -29,6 +29,7 @@ import {
   camposIniciaisF7,
   camposIniciaisF8,
   camposIniciaisF10,
+  camposIniciaisF11,
   type AtividadeCiclica,
   type EstadoJogo,
   type Personagem,
@@ -66,6 +67,7 @@ function personagem(base: Partial<Base> & { id?: string } = {}): Personagem {
     ...camposIniciaisF7(),
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
+    ...camposIniciaisF11(),
     ...semHabilidadesEquipadas(),
   };
 }
@@ -126,7 +128,8 @@ describe("ciclos e atividades", () => {
     const e = estadoCom(personagem());
     const { estado, resumo } = avancar(e, T0 + 5 * HORA);
     expect(resumo.ciclos).toBe(0);
-    expect(ativo(estado)).toEqual(ativo(e));
+    // Só o mundo (dia/noite e clima) muda.
+    expect({ ...ativo(estado), mundo: ativo(e).mundo }).toEqual(ativo(e));
     expect(estado.ultimoTick).toBe(T0 + 5 * HORA);
   });
 

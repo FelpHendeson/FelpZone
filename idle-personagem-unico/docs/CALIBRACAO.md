@@ -619,6 +619,27 @@ Fonte: `packages/motor/src/dados/pets.ts` (`CONFIG_PETS`, `CONFIG_CUIDADOS`, esp
 2. **Descanso** começou em 1 h de Energia a cada 5 min (12 h por hora, trivial); com 30 min, cuidar custa ~15% do tempo de trabalho.
 3. Bônus de pet ficam entre 5% e 11% (até 20% no nível 20), abaixo de um item bom: ajudam sem decidir.
 
+## Mundo vivo (F11)
+
+Fonte: `packages/motor/src/dados/mundo.ts` (`CONFIG_MUNDO`, efeitos, eventos, títulos, bestiário). Reproduza com `npm run ritmo`.
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Dia do jogo | 1 h real; noite 19h–5h | [Proposta] |
+| Clima | bloco de 2 h; pesos 4/3/2/1 (limpo/nublado/chuva/neblina) | [Calibrar] |
+| Noite | +10% ataque, +8% defesa (tags noite, trevas, lua); raros ×2; peixes raros +30% | [Calibrar] |
+| Dia | +5% ataque e +10% regeneração (tag luz) | [Calibrar] |
+| Chuva / neblina | +15% lavoura e pesca, viagem +10% / +15% achados, +2 p.p. esquiva | [Calibrar] |
+| Eventos | 1 sorteio por hora de trabalho; 35%; até 3 esperando | [Calibrar] |
+| Títulos | 5 mortes: −5% Limiar; 25: +3% defesa e −5% Limiar; 100: +5% ataque | [Calibrar] |
+| Bestiário | 100/1.000/5.000 abates: +5/+10/+15% de dano contra a espécie | [Calibrar] |
+| Arcos | nível 10 (1.500 XP, 500 g); Guardião (4.000 XP, 1.500 g); nível 25 (10.000 XP, 5.000 g) | [Calibrar] |
+
+### Resultado do bot (mundo vivo)
+
+- Em 30 dias: noite 42% do tempo; céu limpo 41%, nublado 30%, chuva 19%, neblina 10%.
+- Cadeia completa (60 dias), agora respondendo eventos: **389 eventos** (~6,5 por dia de jogo contínuo) e 9 marcos na Crônica. O nível 50 caiu de 37 para **34 dias** (XP dos eventos e bônus de noite e títulos); continua perto do alvo de 5 a 6 semanas.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -643,3 +664,4 @@ Fonte: `packages/motor/src/dados/pets.ts` (`CONFIG_PETS`, `CONFIG_CUIDADOS`, esp
 | 24/11/2026 | F10: chance de domar (um pet a cada poucos minutos). | 3% → 0,07% por abate |
 | 24/11/2026 | F10: descanso do pet (12 h de Energia por hora de descanso). | 1 h → 30 min por ciclo de 5 min |
 | 24/11/2026 | F10: números de pets, cuidados, União e Estábulo definidos (não existiam). | — |
+| 24/11/2026 | F11: números de dia/noite, clima, eventos, títulos, bestiário e arcos definidos (não existiam). | — |

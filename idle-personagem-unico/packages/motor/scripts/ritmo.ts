@@ -28,6 +28,12 @@ import {
   camposIniciaisF7,
   camposIniciaisF8,
   camposIniciaisF10,
+  camposIniciaisF11,
+  climaEm,
+  CLIMAS,
+  ehNoite,
+  NOME_CLIMA,
+  resolverEvento,
   CONFIG_CUIDADOS,
   CONFIG_PETS,
   novoPet,
@@ -115,6 +121,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     ...camposIniciaisF7(),
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
+    ...camposIniciaisF11(),
   };
 }
 
@@ -490,6 +497,7 @@ function cadeiaCompleta(dias: number) {
   const marcos: { dia: number; nivel: number; rank: string; ouro: number; mortes: number; metas: number }[] = [];
   const diasNivel = new Map<number, number>();
   const diasRank = new Map<number, number>();
+  let eventos = 0;
   for (let dia = 0; dia < dias; dia++) {
     for (const h of [8, 13, 20]) {
       const t = T0 + dia * DIA + h * HORA;
@@ -518,6 +526,12 @@ function cadeiaCompleta(dias: number) {
           e = usar(e, comprarEquipamento(e, eq.id, tc));
           e = usar(e, equipar(e, eq.id, tc));
         }
+      }
+      // F11: responde aos eventos (a primeira escolha; se não der, a segunda).
+      for (const ev of [...p().eventos.pendentes]) {
+        const r0 = resolverEvento(e, ev.n, 0, tc);
+        e = r0.ok ? r0.estado : usar(e, resolverEvento(e, ev.n, 1, tc));
+        eventos++;
       }
       for (const a of [...p().missoes.ativas]) if (progressoDaMissao(p(), a.id).completa) e = usar(e, entregarMissao(e, a.id, tc));
       e = usar(e, promover(e, tc));
@@ -548,7 +562,7 @@ function cadeiaCompleta(dias: number) {
     }
   }
   const obtidos = p().obtidos;
-  return { marcos, diasNivel, diasRank, fragmentos: obtidos[FRAGMENTO] ?? 0, reliquias: RELIQUIAS.filter((r) => (obtidos[r.id] ?? 0) > 0).map((r) => r.nome), pocoes: 0 };
+  return { marcos, diasNivel, diasRank, fragmentos: obtidos[FRAGMENTO] ?? 0, reliquias: RELIQUIAS.filter((r) => (obtidos[r.id] ?? 0) > 0).map((r) => r.nome), pocoes: 0, eventos, marcosCronica: p().cronica.marcos.length };
 }
 
 linha("### Cadeia completa (F7)");
@@ -566,6 +580,8 @@ linha();
   linha(`Dias até o rank: ${[...r.diasRank.entries()].map(([rk, d]) => `${RANKS[rk]}: ${num(d)}`).join(" · ")}.`);
   linha();
   linha(`Em 60 dias (F8): ${r.fragmentos} fragmentos de chefe; relíquias: ${r.reliquias.length ? r.reliquias.join(", ") : "nenhuma"}.`);
+  linha();
+  linha(`Em 60 dias (F11): ${r.eventos} eventos respondidos (~${num(r.eventos / 60)} por dia) e ${r.marcosCronica} marcos na Crônica.`);
   linha();
 }
 
@@ -672,6 +688,23 @@ linha();
   linha(`Doma na Trilha dos Lobos (nível 1, equipamento de couro): ${num(domaveis, 0)} lobos e javalis por hora; com chance de ${num(CONFIG_PETS.chanceDomar * 100, 2)}% por abate, um pet a cada ~${num(horasPorPet)} h (1 laço de ${PRECO_LACO} g por pet).`);
   linha();
   linha(`Cuidados: 1 h de descanso devolve ${num((60 / 5) * (CONFIG_CUIDADOS.descansoPorCicloMs / HORA))} h de energia; treinar do nível 1 ao 10 leva ${num((Array.from({ length: 9 }, (_, i) => xpParaProximoNivelPet(i + 1)).reduce((a, b) => a + b, 0) / 5) / 60)} h de Estábulo.`);
+  linha();
+}
+// ---------------------------------------------------------------- Mundo vivo (F11)
+
+linha("### Mundo vivo (F11)");
+linha();
+{
+  const n = 30 * 24;
+  let noites = 0;
+  const climas: Record<string, number> = {};
+  for (let h = 0; h < n; h++) {
+    const t = T0 + h * 3_600_000 + 1_800_000;
+    // Noite por hora real: amostra de 24 pontos dentro da hora.
+    for (let k = 0; k < 24; k++) if (ehNoite(t - 1_800_000 + k * 150_000)) noites++;
+    climas[climaEm(t)] = (climas[climaEm(t)] ?? 0) + 1;
+  }
+  linha(`Em 30 dias reais: noite ${num((noites / (n * 24)) * 100, 0)}% do tempo; clima: ${CLIMAS.map((c) => `${NOME_CLIMA[c].toLowerCase()} ${num(((climas[c] ?? 0) / n) * 100, 0)}%`).join(", ")}.`);
   linha();
 }
 console.log(out.join("\n"));

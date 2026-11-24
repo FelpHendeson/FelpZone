@@ -4,6 +4,7 @@
  */
 import { COFRE_VAZIO, validarCofre, type Cofre } from "./cofre";
 import { validarCamposF10, type Pet, type SlotPet } from "../pets/pets";
+import { validarCamposF11, type Cronica, type EstadoEventos, type EstadoMundo } from "../mundo/mundo";
 import { cabeNoSlot, CATALOGO, CONFIG_GUILDA, CONFIG_MOCHILA_EXTRA, monstroDoLimiar, NOMEADOS_DE_ORIGEM, OFICIOS, OFICIOS_PRODUCAO, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import type { OficioProducaoId } from "../dados/producao";
@@ -194,6 +195,12 @@ export interface Personagem {
   readonly petsCriados: number;
   /** F10: tempo que resta do modo União (0 = desligado). */
   readonly uniaoRestanteMs: number;
+  /** F11: dia/noite e clima no trecho atual. */
+  readonly mundo: EstadoMundo;
+  /** F11: eventos esperando escolha e o contador de sorteios. */
+  readonly eventos: EstadoEventos;
+  /** F11: Crônica (marcos e registros). */
+  readonly cronica: Cronica;
 }
 
 export interface MissaoAtiva {
@@ -305,6 +312,8 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f8) return null;
   const f10 = validarCamposF10(v, typeof bestaVinculadaId === "string" ? bestaVinculadaId : undefined);
   if (!f10) return null;
+  const f11 = validarCamposF11(v);
+  if (!f11) return null;
   // Itens nomeados: uma unidade de cada por personagem (mochila + equipados).
   for (const item of CATALOGO.itens.values()) {
     if (!item.equipamento?.nomeado) continue;
@@ -392,6 +401,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     ...f7,
     ...f8,
     ...f10,
+    ...f11,
   };
 }
 

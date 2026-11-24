@@ -31,6 +31,7 @@ import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
 import { LIMITE_OFFLINE_MS } from "../tempo";
 import { atualizarCofre } from "../personagem/cofre";
+import { acumularEventos, atualizarCronica, estadoDoMundo, proximaMudanca } from "../mundo/mundo";
 import { COMIDA_PET, CONFIG_CUIDADOS, CONFIG_PETS } from "../dados/pets";
 import { especieDe, gastarPet, limiteDoTrecho, petTrabalhando, xpParaProximoNivelPet, type Pet } from "../pets/pets";
 import { ganharMaestria, praticarPassivas, type ProgressoHabilidade } from "../habilidades/maestria";
@@ -86,7 +87,7 @@ export function rendimentoMedio(p: Personagem, a: AtividadeColeta, mods: readonl
 /** Chance de achado raro por ciclo de coleta. */
 export function chanceRaro(p: Personagem, a: AtividadeColeta, mods: readonly Modificador[]): number {
   const pontos = valorEfetivo(p.status.percepcao, "percepcao", mods) + valorEfetivo(p.status.sorte, "sorte", mods);
-  return Math.min(1, a.raro.chanceBase * (1 + BONUS_RARO_POR_PONTO * pontos) * fator(mods, "chance-raro"));
+  return Math.min(1, a.raro.chanceBase * (1 + BONUS_RARO_POR_PONTO * pontos) * fator(mods, "chance-raro", `oficio.${a.oficio}.raro`));
 }
 
 export function ganhosZerados(): Record<StatusId, number> {
@@ -142,6 +143,12 @@ interface Acumulado extends AcumuladoCombate {
   trabalhoMs: number;
 }
 
+/** Põe no personagem o estado do mundo no instante (só cria objeto novo se mudou). */
+function comMundo(p: Personagem, instante: number): Personagem {
+  const m = estadoDoMundo(instante);
+  return p.mundo && p.mundo.noite === m.noite && p.mundo.clima === m.clima ? p : { ...p, mundo: m };
+}
+
 /**
  * Avança `ms` de um personagem (sem limite: quem chama limita). Usa e avança
  * o `rng`. `tempoInicio` é o instante em que o trecho começa (para o Eco).
@@ -170,14 +177,18 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
   let trecho = p;
   let restante = Math.max(0, Math.floor(ms));
   let inicio = tempoInicio;
+  // F11: também onde o dia vira noite ou o clima muda.
   while (restante > 0) {
-    const seg = Math.min(restante, limiteDoTrecho(trecho));
+    trecho = comMundo(trecho, inicio);
+    const seg = Math.min(restante, limiteDoTrecho(trecho), proximaMudanca(inicio));
     const pet = petTrabalhando(trecho);
     acc.trabalhoMs = 0;
     trecho = gastarPet(avancarTrecho(trecho, seg, rng, config, inicio, acc), pet?.id ?? null, acc.trabalhoMs, seg);
+    trecho = acumularEventos(trecho, acc.trabalhoMs);
     restante -= seg;
     inicio += seg;
   }
+  if (ms > 0) trecho = atualizarCronica(comMundo(trecho, inicio));
   // Contadores para as missões (F7): somas, então dividir o tempo não muda nada.
   const obtidos = { ...trecho.obtidos };
   for (const [id, n] of Object.entries(acc.itens)) obtidos[id] = (obtidos[id] ?? 0) + n;

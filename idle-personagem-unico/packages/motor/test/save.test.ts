@@ -19,6 +19,7 @@ import {
   migrarV8ParaV9,
   migrarV9ParaV10,
   migrarV10ParaV11,
+  migrarV11ParaV12,
   salvarJogo,
   serializarSave,
   tamanhoUtf8,
@@ -44,9 +45,9 @@ describe("save", () => {
     expect(Rng.deEstado(r.estado.rng).proximoUint32()).toBe(Rng.daSemente("semente-teste").proximoUint32());
   });
 
-  it("tabela real de migrações: v1 → v2 (F1) … v10 → v11 (F10)", () => {
-    expect(VERSAO_SAVE_ATUAL).toBe(11);
-    expect(Object.keys(MIGRACOES)).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10"]);
+  it("tabela real de migrações: v1 → v2 (F1) … v11 → v12 (F11)", () => {
+    expect(VERSAO_SAVE_ATUAL).toBe(12);
+    expect(Object.keys(MIGRACOES)).toEqual(["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11"]);
   });
 
   describe("migração fictícia", () => {
@@ -59,7 +60,7 @@ describe("save", () => {
     };
 
     it("carrega um save antigo passando pela migração", () => {
-      const r = carregarSave(JSON.stringify({ versao: 0, seed: "antiga", tick: T0 }), { migracoes: { 0: deV0, 1: migrarV1ParaV2, 2: migrarV2ParaV3, 3: migrarV3ParaV4, 4: migrarV4ParaV5, 5: migrarV5ParaV6, 6: migrarV6ParaV7, 7: migrarV7ParaV8, 8: migrarV8ParaV9, 9: migrarV9ParaV10, 10: migrarV10ParaV11 } });
+      const r = carregarSave(JSON.stringify({ versao: 0, seed: "antiga", tick: T0 }), { migracoes: { 0: deV0, 1: migrarV1ParaV2, 2: migrarV2ParaV3, 3: migrarV3ParaV4, 4: migrarV4ParaV5, 5: migrarV5ParaV6, 6: migrarV6ParaV7, 7: migrarV7ParaV8, 8: migrarV8ParaV9, 9: migrarV9ParaV10, 10: migrarV10ParaV11, 11: migrarV11ParaV12 } });
       expect(r.ok).toBe(true);
       if (!r.ok) return;
       expect(r.migradoDe).toBe(0);

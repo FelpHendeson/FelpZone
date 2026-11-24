@@ -28,7 +28,8 @@ import { PainelAreas, PainelBestiario } from "./PainelCombate";
 import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
 import { PainelAprendizado, PainelHabilidades } from "./PainelHabilidades";
 import { PainelLimiar, PainelTitulos } from "./PainelLimiar";
-import { missoesProntas, PainelGuilda, PainelMetas, PainelNpcs } from "./PainelMissoes";
+import { missoesProntas, PainelGuilda, PainelHistoria, PainelMetas, PainelNpcs } from "./PainelMissoes";
+import { EventosPendentes, PainelCronica } from "./PainelMundo";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelConsumiveis, PainelNomeados, PainelProducao } from "./PainelProducao";
@@ -260,6 +261,8 @@ export function Shell() {
         <FichaPersonagem personagem={personagem} />
       </>
     );
+  } else if (aba.id === "personagem" && indiceSub === 4) {
+    conteudo = <PainelCronica personagem={personagem} />;
   } else if (aba.id === "personagem" && indiceSub === 2) {
     conteudo = <PainelPets personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 4) {
@@ -299,7 +302,7 @@ export function Shell() {
     );
   } else if (aba.id === "missoes") {
     const props = { personagem, ocupado, agir };
-    conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : <PainelGuilda {...props} />;
+    conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : indiceSub === 2 ? <PainelGuilda {...props} /> : <PainelHistoria {...props} />;
   } else if (aba.id === "combate" && indiceSub === 2) {
     conteudo = <PainelLimiar personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "personagem" && indiceSub === 5) {
@@ -359,6 +362,7 @@ export function Shell() {
             </button>
           </p>
         )}
+        <EventosPendentes personagem={personagem} ocupado={ocupado} agir={agir} />
         {conteudo}
       </main>
 

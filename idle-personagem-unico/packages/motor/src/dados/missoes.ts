@@ -5,6 +5,7 @@
  */
 import type { StatusId } from "./status";
 import type { OficioId } from "./coleta";
+import { ORIGENS_ESPECIAIS } from "./origens";
 
 /** Ranks da guilda [Autor]. O Ato I vai até S; o resto fica para os próximos Atos. */
 export const RANKS = ["F", "E", "D", "C", "B", "A", "S", "SS", "SSS", "Lendário", "Mítico", "Supremo", "Divino"] as const;
@@ -37,7 +38,7 @@ export interface Recompensa {
   readonly itens: readonly { readonly itemId: string; readonly quantidade: number }[];
 }
 
-export type TipoMissao = "meta" | "npc" | "guilda" | "prova";
+export type TipoMissao = "meta" | "npc" | "guilda" | "prova" | "arco";
 
 export interface Missao {
   readonly id: string;
@@ -48,7 +49,7 @@ export interface Missao {
   readonly npcId?: string;
   /** Guilda: rank do quadro; prova: rank de origem da promoção. */
   readonly rank?: number;
-  readonly requisitos: { readonly missoes?: readonly string[]; readonly nivel?: number };
+  readonly requisitos: { readonly missoes?: readonly string[]; readonly nivel?: number; readonly origemId?: string };
   readonly objetivo: Objetivo;
   readonly recompensa: Recompensa;
   readonly repetivel?: boolean;
@@ -141,5 +142,23 @@ function quadro(): Missao[] {
   return lista;
 }
 
-export const MISSOES: readonly Missao[] = [...METAS, ...DE_NPC, ...quadro()];
+/**
+ * Arcos das origens especiais (F11, GDD §3.4 "ganchos"): 3 capítulos por
+ * origem, que só ela vê. Os textos partem do gancho de cada origem.
+ */
+function arcos(): Missao[] {
+  const lista: Missao[] = [];
+  for (const o of ORIGENS_ESPECIAIS) {
+    const id = (n: number) => `arco-${o.id}-${n}`;
+    const base = { tipo: "arco" as const };
+    lista.push(
+      { ...base, id: id(1), titulo: `${o.nome}: o passado bate à porta`, descricao: `Um boato em Pedravau lembra de onde você veio. ${o.gancho} Fique forte o bastante para ir atrás (nível 10).`, requisitos: { origemId: o.id }, objetivo: { tipo: "nivel", nivel: 10 }, recompensa: R(1_500, 500) },
+      { ...base, id: id(2), titulo: `${o.nome}: rastro antigo`, descricao: "O rastro leva ao Coração do Bosque, onde o Guardião de Casca Negra guarda mais do que árvores.", requisitos: { origemId: o.id, missoes: [id(1)] }, objetivo: { tipo: "abater", monstros: ["guardiao-de-casca-negra"], quantidade: 1 }, recompensa: R(4_000, 1_500) },
+      { ...base, id: id(3), titulo: `${o.nome}: acerto de contas`, descricao: `Hora de encarar o que ficou pendente: ${o.gancho} (nível 25).`, requisitos: { origemId: o.id, missoes: [id(2)] }, objetivo: { tipo: "nivel", nivel: 25 }, recompensa: R(10_000, 5_000) },
+    );
+  }
+  return lista;
+}
+
+export const MISSOES: readonly Missao[] = [...METAS, ...DE_NPC, ...quadro(), ...arcos()];
 export const PRIMEIRA_META = METAS[0]!.id;

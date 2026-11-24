@@ -4,6 +4,7 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
+import { camposIniciaisF11 } from "./mundo/mundo";
 import { camposIniciaisF10 } from "./pets/pets";
 import { COFRE_VAZIO } from "./personagem/cofre";
 import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem, validarConta, type Conta } from "./personagem/conta";
@@ -11,7 +12,7 @@ import { statusIniciais, type BaseModificadores } from "./personagem/progressao"
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 11;
+export const VERSAO_SAVE_ATUAL = 12;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -27,6 +28,7 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * v9 (F8): produção, acessórios, relíquia, nomeados e fusão.
  * v10 (F9): cofre da conta (conquistas, pergaminhos, descobertas).
  * v11 (F10): pets (a besta vinculada de quem já tinha vira pet).
+ * v12 (F11): mundo vivo (dia/noite, clima, eventos e Crônica).
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -202,6 +204,14 @@ export const migrarV10ParaV11: Migracao = (dados) => {
   };
 };
 
+/** v11 → v12: mundo do último instante salvo, sem eventos, Crônica vazia (os marcos voltam no próximo avanço). */
+export const migrarV11ParaV12: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  const instante = typeof dados.ultimoTick === "number" ? dados.ultimoTick : 0;
+  return { ...dados, conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, ...camposIniciaisF11(instante) })) } };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -214,6 +224,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   8: migrarV8ParaV9,
   9: migrarV9ParaV10,
   10: migrarV10ParaV11,
+  11: migrarV11ParaV12,
 });
 
 export type CodigoErroSave =

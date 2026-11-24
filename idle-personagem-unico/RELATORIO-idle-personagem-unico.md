@@ -24,8 +24,9 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | `646316d` | 277 |
 | F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | `ed3359e` | 297 |
 | F9 | Conta e sincronização | ✅ Concluída em 24/11/2026 (banco a ativar pelo autor) | `332069a` | 319 |
-| F10 | Pets | ✅ Concluída em 24/11/2026 | (ver seção) | 337 |
-| F11 a F13 | Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
+| F10 | Pets | ✅ Concluída em 24/11/2026 | `18a667c` | 337 |
+| F11 | Mundo vivo | ✅ Concluída em 24/11/2026 | (ver seção) | 355 |
+| F12 e F13 | Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -791,6 +792,7 @@ Cosméticos e histórico de temporadas no cofre; recuperação de senha; apagar 
   - besta com Sincronia cheia ativa a União (10 min).
 
   Também a **migração real** de um save v10 criado no site publicado (que rodava a F9). Console limpo, sem rolagem lateral.
+- **CI e Vercel**: job do projeto verde no commit `18a667c` e deploy em `READY` (o save v11 usado no teste da F11 foi criado no site publicado com a F10).
 
 ### Números principais
 
@@ -817,6 +819,79 @@ Habilidades próprias dos pets; mais de 1 vaga por atividade; pets lutando como 
 
 ---
 
+## F11 — Mundo vivo
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Prompt em `prompts/idle-personagem-unico/11-fatia-F11-mundo-vivo.md`.
+
+### O que foi executado
+
+- [x] **Relógio do mundo:** 1 h real = 1 dia do jogo, noite das 19h às 5h.
+- [x] **Clima** a cada 2 h reais: céu limpo, nublado, chuva, neblina. É igual para todos (função do instante).
+- [x] **Efeitos de dia, noite e clima:**
+  - Sangue-Pálido, Lobisomem e Ser das Trevas mais fortes à noite; Alma da Luz de dia;
+  - à noite, monstros raros aparecem o dobro e peixes raros +30%;
+  - chuva ajuda lavoura e pesca e atrasa viagens; neblina ajuda achados e esquiva.
+- [x] O avanço do tempo é **dividido nas viradas** de dia/noite e clima, então fechar e abrir o jogo continua dando o mesmo resultado.
+- [x] **Eventos** com 2 escolhas (viajante faminto, brilho na lama, emboscada, andarilho sábio, mercador perdido):
+  - um sorteio por hora de trabalho, com semente própria (não mexe no RNG das atividades);
+  - até 3 esperando; resposta pela ação `resolverEvento`; o resultado entra na Crônica.
+- [x] **Crônica:** abertura (raça, core, traço e lore), 11 marcos e registros de escolhas e capítulos.
+- [x] **Títulos com bônus** (por mortes) e **marcos do Bestiário** (dano extra contra a espécie).
+- [x] **Arcos das origens especiais:** 3 capítulos para cada uma das 22 origens, visíveis só para elas. Cada capítulo entregue vai para a Crônica.
+- [x] **Save v12** com migração v11 → v12.
+- [x] **Web:**
+  - hora e clima na barra de atividade (☀/☾);
+  - eventos no topo de qualquer aba;
+  - Personagem → Crônica; bônus em Títulos e no Bestiário;
+  - Missões → História.
+- [x] **Bot** (cadeia completa responde eventos; distribuição de noite e clima), **calibração** e **documentação**.
+
+### Como foi validado
+
+- **Verificações locais:** `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **355 testes** (337 no motor, 18 na web).
+- **Testes novos (15):**
+  - relógio, noite e a virada exata (200 instantes);
+  - clima determinístico e com os pesos certos (10 mil blocos);
+  - efeitos de noite, dia, chuva, títulos e bestiário;
+  - **dividir o tempo dá o mesmo resultado** em 7 h com viradas de dia, noite e clima (3 sementes);
+  - eventos por hora de trabalho (ocioso não gera);
+  - as escolhas e seus efeitos; marcos em ordem canônica;
+  - arcos só para a própria origem; capítulo entregue na Crônica;
+  - save v12: ida e volta, 6 adulterações recusadas e migração.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - barra com hora e clima;
+  - colher 6 h → eventos no topo; responder;
+  - Crônica com o registro;
+  - virar órfão do templo → Missões → História → aceitar o capítulo 1;
+  - Títulos com bônus.
+
+  Também a **migração real** de um save v11 criado no site publicado (que rodava a F10). Console limpo, sem rolagem lateral.
+
+### Números principais
+
+- **Noite** 42% do tempo; **clima:** limpo 41%, nublado 30%, chuva 19%, neblina 10%.
+- **Eventos:** ~6,5 por dia de trabalho contínuo (o bot respondeu 389 em 60 dias).
+- **Nível 50** na cadeia completa: 37 → **34 dias**.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | Bônus que mudam com a hora quebrariam "dividir o tempo dá o mesmo resultado". | O avanço é cortado nas viradas de dia/noite e de bloco de clima; dentro de cada trecho o mundo é constante. Teste de propriedade cobre. | Resolvido |
+| 2 | Eventos sorteados no meio do avanço mudariam a ordem do RNG das atividades. | Semente própria por personagem e número do sorteio. | Resolvido |
+| 3 | Marco com data dependeria de como o tempo foi dividido. | Marcos da Crônica sem data, em ordem canônica; só escolhas e capítulos (ações) têm data. | Resolvido |
+| 4 | Clima por região? | O Ato I tem uma região só; clima único para o Vale. | Aguarda o autor |
+| 5 | "Recursos e monstros que mudam com a hora". | Por enquanto, chances: raros ×2 à noite, peixes raros +30%, chuva rende mais. Recursos exclusivos ficam para depois. | Aguarda o autor |
+| 6 | Arcos: escrever 22 histórias à mão? | Três capítulos com a mesma estrutura, escritos a partir do gancho de cada origem. Textos próprios e escolhas ramificadas são trabalho para o autor. | Aguarda o autor |
+| 7 | A Crônica em português ficava "elfo de alma alma antiga". | Abertura no formato "Raça · Core · Traço". | Resolvido |
+| 8 | Profissões secundárias (costura). | Fora desta fatia; alquimia e culinária já existem desde a F8. | Pendente |
+
+### O que ficou de fora
+
+Costura; recursos e monstros exclusivos de um clima ou horário; escolhas ramificadas nos arcos; o roubo de vida da Fome da Noite.
+
+---
+
 ## Próximo passo
 
-**F11 — Mundo vivo** (já autorizada): dia/noite, clima, eventos aleatórios, Crônica, títulos, bestiário completo e arcos das origens especiais. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1).
+**F12 — Competição** (já autorizada): Campo de Provas, Arena assíncrona, bots, torneios e temporadas. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1), que a Arena também vai usar.

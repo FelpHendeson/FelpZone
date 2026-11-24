@@ -17,6 +17,7 @@ import {
   camposIniciaisF7,
   camposIniciaisF8,
   camposIniciaisF10,
+  camposIniciaisF11,
   carregarSave,
   criarEstadoInicial,
   entregarMissao,
@@ -61,6 +62,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF7(origem.tipo === "especial" ? origem.id : undefined),
     ...camposIniciaisF8(),
     ...camposIniciaisF10(),
+    ...camposIniciaisF11(),
     ...extra,
   };
 }

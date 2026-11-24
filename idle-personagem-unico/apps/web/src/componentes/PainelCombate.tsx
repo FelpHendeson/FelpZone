@@ -1,4 +1,4 @@
-import { AREAS_COMBATE, CATALOGO, CONFIG_COMBATE, NOME_RARIDADE, riscoDaArea, type Personagem } from "@idle-pu/motor";
+import { AREAS_COMBATE, CATALOGO, CONFIG_COMBATE, NOME_RARIDADE, riscoDaArea, type Personagem, bonusBestiario } from "@idle-pu/motor";
 import { combateDe, estimarAtividade, formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 import { BarraVida } from "./BarraVida";
@@ -80,7 +80,7 @@ export function PainelAreas({ personagem: p, ocupado, agir, aoIniciar, aoParar }
 export function PainelBestiario({ personagem: p }: { personagem: Personagem }) {
   return (
     <section className="painel" aria-label="Bestiário">
-      <p className="suave nota">Monstros nunca abatidos aparecem como “???”. Os bônus por marcos de abates chegam numa fatia futura.</p>
+      <p className="suave nota">Monstros nunca abatidos aparecem como “???”. Marcos de 100, 1.000 e 5.000 abates dão +5%, +10% e +15% de dano contra a espécie.</p>
       {AREAS_COMBATE.map((a) => (
         <article key={a.id} className="cartao">
           <h3>{a.nome}</h3>
@@ -94,7 +94,9 @@ export function PainelBestiario({ personagem: p }: { personagem: Personagem }) {
                     <strong>{n > 0 ? m.nome : "???"}</strong> <span className="suave">· {m.tipo === "chefe" ? "chefe" : m.tipo === "raro" ? "raro" : "comum"}</span>
                     {n > 0 && <p className="suave">{m.descricao}</p>}
                   </div>
-                  <span>{formatarNumero(n, 0)} abates</span>
+                  <span>
+                    {formatarNumero(n, 0)} abates{bonusBestiario(n) > 0 && <span className="selo raridade-raro"> +{Math.round(bonusBestiario(n) * 100)}% dano</span>}
+                  </span>
                 </li>
               );
             })}

@@ -166,3 +166,14 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 74. **Fruto do Vínculo**: "+Sincronia" virou "União 50% mais longa" (efeito simples e verificável).
 75. **Estábulo** em Pedravau (subárea nova), com 4 espécies à venda e o Laço de doma.
 
+### Da F11 (mundo vivo), para o autor conferir
+
+76. **1 h real = 1 dia**, noite das 19h às 5h. O relógio e o clima são funções do instante: o mundo é o mesmo para todos.
+77. **Clima único** para o Vale de Pedravau (a única região do Ato I), em blocos de 2 h reais.
+78. **Efeitos de noite e clima** são bônus pequenos (5% a 15%); a noite também dobra os monstros raros. Recursos e monstros exclusivos de um clima ficam para depois.
+79. **Eventos** com semente própria (personagem + número do sorteio), separada do RNG das atividades: o que aparece não depende de como o tempo foi dividido. Até 3 esperando; os outros sorteios se perdem.
+80. **Crônica**: marcos sem data (só o que nunca diminui) e registros com data (escolhas e capítulos), até 60.
+81. **Bônus dos títulos** por mortes: −5% de Limiar; +3% de defesa e −5% de Limiar; +5% de ataque. Somam-se.
+82. **Arcos de origem** gerados a partir do gancho de cada origem (3 capítulos iguais em estrutura). Textos próprios por origem e escolhas ramificadas são um bom trabalho para o autor.
+83. A **Fome da Noite** (Sangue-Pálido) ganhou o bônus noturno; o roubo de vida continua pendente.
+

@@ -878,3 +878,22 @@ ol.lista-recursos {
   min-width: 0;
   flex: 1 1 8rem;
 }
+
+/* F11 */
+.mundo {
+  font-size: 0.8125rem;
+  color: var(--texto-suave, inherit);
+  white-space: nowrap;
+}
+
+.evento {
+  border-color: var(--destaque);
+}
+
+.lista-simples {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}

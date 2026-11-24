@@ -306,6 +306,13 @@ Ciclo de **dia e noite** (acelerado, por exemplo 1 h real = 1 dia do jogo) e **c
 - monstros que aparecem;
 - poder de raças e cores (Sangue-Pálido e **Ser das Trevas** são mais fortes à noite).
 
+**Implementado na F11** [Proposta, Calibrar]: 1 h real = 1 dia; **noite das 19h às 5h** (42% do tempo). O **clima** muda a cada 2 h reais e é o mesmo para todos (o Vale de Pedravau é uma região só no Ato I): céu limpo (40%), nublado (30%), chuva (20%) e neblina (10%).
+
+- **Noite:** quem tem tag de noite, trevas ou lua (Sangue-Pálido, Lobisomem, Ser das Trevas) ganha +10% de ataque e +8% de defesa; monstros raros aparecem o dobro; peixes raros +30%.
+- **Dia:** a Alma da Luz ganha +5% de ataque e +10% de regeneração.
+- **Chuva:** +15% na lavoura e na pesca; viagem 10% mais lenta. **Neblina:** +15% de achados raros e +2 p.p. de esquiva.
+- O roubo de vida da Fome da Noite continua pendente.
+
 ## 9. Itens, equipamentos e forja
 
 ### 9.1 Raridades (escala única) [Proposta]
@@ -458,6 +465,8 @@ Dois grandes grupos:
 - **Títulos e conquistas** com bônus.
 - **Bestiário** e **catálogo de itens** (completar dá bônus).
 - **Arcos de origem** (história): cadeias de missões e escolhas ligadas à origem especial do personagem. Depois do jogo base. [Autor, futuro]
+
+**Implementado na F11** [Proposta, Calibrar]: **Crônica** (abertura com raça, core, traço e lore; 11 marcos; registros de escolhas e capítulos), **5 eventos** com 2 escolhas cada (um sorteio a cada hora de trabalho, 35%, até 3 esperando), **bônus dos títulos** por mortes, **marcos do Bestiário** (+5/+10/+15% de dano contra a espécie em 100/1.000/5.000 abates) e **arcos** de 3 capítulos para cada uma das 22 origens especiais (nível 10, o Guardião de Casca Negra e nível 25), escritos a partir do gancho de cada origem. Escolhas ramificadas nos arcos e costura ficam para depois.
 - **Casa/baú** na cidade, ampliável (de cada personagem).
 - **Profissões secundárias:** alquimia, culinária, costura.
 - **Selo do Destino** (item raro): ao rerolar na criação, trava um elemento do sorteio. Fica para depois do MVP.

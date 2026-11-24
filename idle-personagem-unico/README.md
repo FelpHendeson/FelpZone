@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**F11 (Mundo vivo) concluída.** O mundo tem relógio (1 h real = 1 dia, noite das 19h às 5h) e clima, que mudam o poder de raças e cores, os monstros raros e a coleta; **eventos** com escolhas aparecem enquanto o personagem trabalha; a **Crônica** conta a história; títulos e Bestiário dão bônus; e cada origem especial tem seu **arco** de 3 capítulos.
+
 **F10 (Pets) concluída.** Pets reais (domados com Laço de doma ou comprados no Estábulo) e as bestas vinculadas das origens especiais, com nome, nível, Energia e Fome; 1 pet por atividade, que só cansa quando o personagem trabalha ali; cuidados (alimentar, descansar, treinar) como atividades; e o modo União das bestas.
 
 **F9 (Conta e sincronização) concluída** (o banco ainda precisa ser ativado na Vercel: veja `docs/DECISOES.md`, item 60). Agora há **até 3 personagens** por conta (o 2º e o 3º com o Pergaminho do Novo Destino, ganho na guilda), o **Cofre da Conta** (conquistas e Álbum de Descobertas) e uma **conta opcional** que sincroniza o jogo entre aparelhos, com o servidor aplicando as ações. Sem conta, tudo continua local.
@@ -141,6 +143,16 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F8:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito (Martelo do Pai e +2 de forja), Náufrago das Estrelas (Bússola Quebrada), berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior, Mão Certeira e Intelecto na produção.
 
+### O que a F11 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/mundo.ts` | Relógio, climas e efeitos, eventos, marcos da Crônica, bônus de títulos e do Bestiário. |
+| `packages/motor/src/mundo` | Estado do mundo, sorteio de eventos, Crônica, validação e a ação de responder evento. |
+| `packages/motor/src/dados/missoes.ts` | Arcos de 3 capítulos para as 22 origens especiais. |
+| `packages/motor/src/save.ts` | **Save v12** com migração v11 → v12. |
+| `apps/web` | Hora e clima na barra; eventos no topo; Personagem → Crônica; bônus em Títulos e no Bestiário; Missões → História. |
+
 ### O que a F10 entregou
 
 | Onde | O quê |
@@ -217,4 +229,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F11 (Mundo vivo)**.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F12 (Competição)**.

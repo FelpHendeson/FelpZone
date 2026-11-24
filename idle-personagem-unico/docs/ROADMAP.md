@@ -17,12 +17,12 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F8** ✅ | Forja, produção e nomeados | Produção, fusão por raridade, receitas, itens nomeados, acessórios e relíquias. | Fusão respeita falha parcial e *pity*; nomeado único por personagem. |
 | **F9** ✅ | Conta e sincronização | Postgres (ou Redis), conta, `/api/v1`, ações autoritativas no servidor, até 3 personagens independentes, **cofre da conta** (conquistas, cosméticos, Pergaminhos), item de reroll. | Mesmo save em dois dispositivos; servidor reproduz o resultado. |
 | **F10** ✅ | Pets | Reais e espirituais, nomear, **1 pet por atividade** (só trabalha quando o personagem trabalha ali), Fome/Energia, **cuidados como atividades do personagem (alimentar, descansar, treinar)**, besta vinculada, domar, União. | Pet atribuído a várias atividades só rende na que o personagem está; pet sem energia não ajuda. |
-| **F11** | Mundo vivo | Dia/noite, clima, eventos aleatórios, Crônica, títulos, bestiário completo, profissões secundárias, **arcos de história das origens especiais**. | Hora do dia muda recursos e poder de raças/cores; origem especial abre seu arco. |
+| **F11** ✅ | Mundo vivo | Dia/noite, clima, eventos aleatórios, Crônica, títulos, bestiário completo, profissões secundárias, **arcos de história das origens especiais**. | Hora do dia muda recursos e poder de raças/cores; origem especial abre seu arco. |
 | **F12** | Competição | Campo de Provas, Arena assíncrona, bots, torneios, temporadas. | Torneio simulado reproduzível pela semente. |
 | **F13** | Acabamento web | PWA, sons, arte, acessibilidade, balanceamento final. | Auditoria de ritmo e de segurança. |
 | **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Paridade com a web. |
 
-**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F10 concluídas em 24/11/2026** (na F9, o banco da sincronização ainda precisa ser ativado pelo autor) (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
+**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F11 concluídas em 24/11/2026** (na F9, o banco da sincronização ainda precisa ser ativado pelo autor) (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
 
 ## Regras de ordem
 
