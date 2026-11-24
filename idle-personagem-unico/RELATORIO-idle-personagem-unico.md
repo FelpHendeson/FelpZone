@@ -19,7 +19,7 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F2 | Loop de atividade e treino | ✅ Concluída em 24/11/2026 | `907153d` | 171 |
 | F3 | Mapa e coleta | ✅ Concluída em 24/11/2026 | `a400963` | 196 |
 | F4 | Combate por área | ✅ Concluída em 24/11/2026 | `84edc9b` | 218 |
-| F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F5`) | 242 |
+| F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | `3759090` | 242 |
 | F6 | O Limiar | ⏳ Aguardando autorização | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
@@ -397,7 +397,7 @@ Habilidades, técnicas e elementos (F5). O Limiar, Barqueiro e Eco da Morte (F6)
   - recarregar.
 
   Também a **migração real** de um save v5 criado no site publicado (que ainda rodava a F4) com **uma luta em andamento**: a luta continuou e as técnicas do core foram equipadas. Console limpo, sem rolagem lateral.
-- **CI e Vercel**: conferidos depois do push (registro abaixo).
+- **CI e Vercel**: job do projeto verde no commit `3759090` e deploy em `READY`. O fluxo (praticar, livro, caçar 24 h, escolher o ramo, recarregar) foi repetido no site publicado em 360 px, com console limpo.
 
 ### Números principais
 
