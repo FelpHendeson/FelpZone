@@ -27,7 +27,7 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F10 | Pets | ✅ Concluída em 24/11/2026 | `18a667c` | 337 |
 | F11 | Mundo vivo | ✅ Concluída em 24/11/2026 | `b74e221` | 355 |
 | F12 | Competição | ✅ Concluída em 24/11/2026 | `a87880f` | 374 |
-| F13 | Acabamento web | ✅ Concluída em 24/11/2026 | (ver seção) | 374 |
+| F13 | Acabamento web | ✅ Concluída em 24/11/2026 | `dc7f731` | 374 |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -991,6 +991,7 @@ Arena contra builds de outros jogadores com ranking global; lote de torneios no 
   - ligar os sons grava a preferência.
 
   Também a regressão das telas da F10 (pets e União) e da F12 (Arena, Provas, Torneio) com a CSP ligada: console limpo, sem rolagem lateral.
+- **CI e Vercel**: job do projeto verde no commit `dc7f731` e deploy em `READY`. No site publicado, em 360 px: cabeçalhos de segurança, manifesto, service worker ativo, **abre sem rede**, sons, e o fluxo da Arena e do torneio, com console limpo.
 
 ### Números principais (auditoria de ritmo)
 
