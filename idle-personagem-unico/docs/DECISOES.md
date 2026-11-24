@@ -94,3 +94,13 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 23. **Gold sem destino até a F8**: além das ferramentas, não há o que comprar; os preços são provisórios.
 24. **Náufrago das Estrelas**: "−5% no preço de compra" foi lido literalmente (paga 5% menos). A lore ("não entende de moeda") sugere o contrário; se for fraqueza, troca-se o sinal.
 
+### Da F4 (combate), para o autor conferir
+
+25. **Desmaio provisório**: até o Limiar (F6), vida zero = acordar em Pedravau com 50% de vida, ocioso, sem perder nada.
+26. **Fórmula de dano** ataque² ÷ (ataque + defesa), em vez de ataque − defesa: defesa nunca anula o golpe.
+27. **Recuos frequentes** (10–25/h mesmo preparado), que tiram ~20–30% do tempo de caça. Manter ou curar mais rápido entre lutas?
+28. **Fugir do chefe o adia** por mais 50 abates (correção de um bug achado pelo bot).
+29. **Equipamento sem afixos**, 5 slots e 3 tiers; tier 3 só por drop. Manoplas, mão secundária, acessórios e relíquia ficam para depois.
+30. **Nomes e textos** das 6 áreas, 24 monstros e 17 equipamentos, escritos pelo agente.
+31. **Bestiário** só conta abates; os bônus por marcos (100/1.000/5.000) ficam para a F11.
+

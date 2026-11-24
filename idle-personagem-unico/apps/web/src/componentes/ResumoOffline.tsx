@@ -19,7 +19,7 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
         )}
         <ul className="lista-resumo">
           <li>
-            {resumo.ciclos} {resumo.ciclos === 1 ? "ciclo" : "ciclos"} · +{formatarNumero(resumo.xp, 0)} XP
+            {resumo.ciclos > 0 && `${resumo.ciclos} ${resumo.ciclos === 1 ? "ciclo" : "ciclos"} · `}+{formatarNumero(resumo.xp, 0)} XP
           </li>
           {resumo.nivelFinal > resumo.nivelInicial && (
             <li>
@@ -29,6 +29,16 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
             </li>
           )}
           {resumo.chegouEm && <li>Chegou a {nomeLocal(resumo.chegouEm)}.</li>}
+          {Object.keys(resumo.abates).length > 0 && (
+            <li>
+              <strong>{formatarNumero(Object.values(resumo.abates).reduce((s, n) => s + n, 0), 0)} abates</strong>:{" "}
+              {Object.entries(resumo.abates)
+                .map(([id, n]) => `${CATALOGO.monstros.get(id)?.nome} ×${n}`)
+                .join(", ")}
+            </li>
+          )}
+          {resumo.recuos > 0 && <li>Recuou {resumo.recuos} {resumo.recuos === 1 ? "vez" : "vezes"} para descansar.</li>}
+          {resumo.desmaios > 0 && <li className="erro">Desmaiou e acordou em {nomeLocal("pedravau")}. Nada foi perdido.</li>}
           {Object.entries(resumo.itens).map(([id, q]) => (
             <li key={id}>
               {CATALOGO.itens.get(id)?.nome} ×{formatarNumero(q, 0)}

@@ -22,6 +22,8 @@ import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
 import type { AcaoJogo } from "./acoes";
 import { PainelColeta } from "./PainelColeta";
+import { PainelAreas, PainelBestiario } from "./PainelCombate";
+import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelStatus } from "./PainelStatus";
@@ -215,6 +217,22 @@ export function Shell() {
   } else if (aba.id === "mapa") {
     const props = { personagem, ocupado, agir };
     conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <PainelLocalAtual personagem={personagem} /> : <PainelEstabelecimentos {...props} />;
+  } else if (aba.id === "combate" && indiceSub === 0) {
+    conteudo = (
+      <PainelAreas
+        personagem={personagem}
+        ocupado={ocupado}
+        agir={agir}
+        aoIniciar={(id) => agir((e, agora) => iniciarAtividade(e, id, agora))}
+        aoParar={() => agir(pararAtividade)}
+      />
+    );
+  } else if (aba.id === "combate" && indiceSub === 1) {
+    conteudo = <PainelBestiario personagem={personagem} />;
+  } else if (aba.id === "mochila" && indiceSub === 0) {
+    conteudo = <PainelEquipados personagem={personagem} ocupado={ocupado} agir={agir} />;
+  } else if (aba.id === "mochila" && indiceSub === 1) {
+    conteudo = <PainelEquipaveis personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "mochila" && indiceSub === 2) {
     conteudo = <PainelFerramentas personagem={personagem} />;
   } else if (aba.id === "mochila" && indiceSub === 3) {

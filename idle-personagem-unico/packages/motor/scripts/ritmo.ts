@@ -21,6 +21,13 @@ import {
   NOME_OFICIO,
   OFICIOS,
   camposIniciaisF3,
+  camposIniciaisF4,
+  AREAS_COMBATE,
+  EQUIPAMENTOS,
+  SLOTS,
+  faixas,
+  riscoDaArea,
+  statusDeCombate,
   comprarFerramenta,
   irPara,
   nivelEfetivoOficio,
@@ -62,6 +69,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     status: statusIniciais(base),
     atividade: null,
     ...camposIniciaisF3(),
+    ...camposIniciaisF4(),
   };
 }
 
@@ -294,5 +302,60 @@ for (const o of OFICIOS) {
   const d = (m: Map<number, number>, k: number) => (m.has(k) ? `${num(m.get(k)!)} d` : "—");
   linha(`| ${NOME_OFICIO[o]} | ${d(r.diasAteNivelOficio, 5)} | ${d(r.diasAteNivelOficio, 10)} | ${d(r.diasAteNivelOficio, 15)} | ${d(r.diasAteNivelOficio, 20)} | ${d(r.diasAteNivelOficio, 30)} | ${d(r.diaCompra, 2)} | ${d(r.diaCompra, 3)} | ${num(r.ouroNoDia7, 0)} | ${r.nivelPersonagemDia7} | ${num(r.perdidosPorDia, 0)} |`);
 }
+linha();
+// ---------------------------------------------------------------- Combate (F4)
+
+/** Personagem num nível, com cada status a `ocupacao` da faixa e o equipamento de um tier. */
+function guerreiro(nivel: number, ocupacao: number, tier: 0 | 1 | 2 | 3): Personagem {
+  const base = personagem("humano", comum);
+  const equipados = { ...base.equipados } as Record<(typeof SLOTS)[number], string | null>;
+  if (tier > 0) for (const s of SLOTS) equipados[s] = EQUIPAMENTOS.find((i) => i.equipamento?.slot === s && i.equipamento.tier === tier)!.id;
+  const comEq = { ...base, equipados };
+  const f = faixas("humano", nivel, modificadoresDoPersonagem(comEq, nivel));
+  const status = Object.fromEntries(Object.entries(f).map(([k, x]) => [k, x.piso + ocupacao * (x.teto - x.piso)])) as Personagem["status"];
+  return { ...comEq, nivel, status };
+}
+
+/** Caça por algumas horas no nível de entrada (sem subir de nível no meio, para medir a área). */
+function cacar(p: Personagem, areaId: string, horas: number) {
+  const area = AREAS_COMBATE.find((a) => a.id === areaId)!;
+  const pc: Personagem = {
+    ...p,
+    localId: area.localId,
+    subareaId: area.subareaId,
+    atividade: { id: area.id, progressoMs: 0, combate: { fase: "procurando", restanteMs: 3_000, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0 } },
+  };
+  const r = avancarPersonagem(pc, horas * HORA, Rng.daSemente(`caca-${areaId}-${p.nivel}`), { ...CONFIG_PROGRESSAO, nivelMaximo: p.nivel });
+  let abates = 0;
+  let xp = 0;
+  for (const [id, n] of Object.entries(r.abates)) {
+    abates += n;
+    xp += CATALOGO.monstros.get(id)!.xp * n;
+  }
+  const gold = Object.entries(r.itens).reduce((g, [id, q]) => g + CATALOGO.itens.get(id)!.preco * q, 0);
+  const sc = statusDeCombate(p.status, modificadoresDoPersonagem(p, p.nivel));
+  const horasReais = r.desmaios > 0 ? Number.NaN : horas;
+  return { abates: abates / horas, xp: xp / horas, gold: gold / horas, recuos: r.recuos / horas, desmaios: r.desmaios, risco: riscoDaArea(sc, area), horasReais };
+}
+
+linha("### Combate (F4)");
+linha();
+linha("Humano caçando por 4 h no nível de entrada da área (sem subir de nível no meio), recuo em 30%. \"Preparado\" = status em 50% da faixa e equipamento do tier indicado; \"despreparado\" = status no piso e só o kit básico.");
+linha();
+linha("| Área | Nível | Perfil | Risco (perda por luta) | Abates/h | XP/h | Gold/h (drops) | Recuos/h | Desmaios em 4 h |");
+linha("| --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |");
+const tierDe = (n: number): 0 | 1 | 2 | 3 => (n < 10 ? 1 : n < 20 ? 2 : 3);
+for (const a of AREAS_COMBATE) {
+  const perfis: [string, Personagem][] = [
+    [`preparado (tier ${tierDe(a.nivelRecomendado)})`, guerreiro(a.nivelRecomendado, 0.5, tierDe(a.nivelRecomendado))],
+    ["despreparado", guerreiro(a.nivelRecomendado, 0, 0)],
+  ];
+  for (const [nome, p] of perfis) {
+    const r = cacar(p, a.id, 4);
+    linha(`| ${a.nome} | ${a.nivelRecomendado} | ${nome} | ${r.risco.risco} (${num(r.risco.perdaPorLuta * 100, 0)}%) | ${num(r.abates, 0)} | ${num(r.xp, 0)} | ${num(r.gold, 0)} | ${num(r.recuos, 1)} | ${r.desmaios} |`);
+  }
+}
+linha();
+linha(`Referência: treino dá ${(3_600_000 / 30_000) * 10} XP/h; coleta tier 1, 640 XP/h.`);
 linha();
 console.log(out.join("\n"));

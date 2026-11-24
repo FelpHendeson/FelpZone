@@ -22,6 +22,8 @@ import {
   xpParaProximoNivel,
   CATALOGO,
   camposIniciaisF3,
+  camposIniciaisF4,
+  type AtividadeCiclica,
   type EstadoJogo,
   type Personagem,
   type ResultadoAtividade,
@@ -53,6 +55,7 @@ function personagem(base: Partial<Base> & { id?: string } = {}): Personagem {
     status: statusIniciais(b),
     atividade: null,
     ...camposIniciaisF3(),
+    ...camposIniciaisF4(),
   };
 }
 function estadoCom(...ps: Personagem[]): EstadoJogo {
@@ -151,7 +154,7 @@ describe("ciclos e atividades", () => {
 
   it("velocidade encurta o ciclo (Corpo de Vento do Silfo)", () => {
     const silfo = personagem({ racaId: "silfo" });
-    const a = CATALOGO.atividades.get("meditacao")!;
+    const a = CATALOGO.atividades.get("meditacao") as AtividadeCiclica;
     expect(duracaoCicloMs(personagem(), a, modificadoresDoPersonagem(personagem(), 1))).toBe(30_000);
     expect(duracaoCicloMs(silfo, a, modificadoresDoPersonagem(silfo, 1))).toBe(Math.round(30_000 / 1.1));
   });
@@ -184,7 +187,7 @@ describe("ciclos e atividades", () => {
 describe("avanço do tempo e offline", () => {
   it("avançar de uma vez ou em partes dá o mesmo estado (propriedade)", () => {
     // Treinos e coletas de tier 1 (as outras exigem nível de ofício); inclui viagem e sorteio de itens.
-    const atividades = [...CATALOGO.atividades.values()].filter((a) => a.tipo === "treino" || a.nivelMinimo === 1).map((a) => a.id);
+    const atividades = [...CATALOGO.atividades.values()].filter((a) => a.tipo === "treino" || (a.tipo === "coleta" && a.nivelMinimo === 1)).map((a) => a.id);
     for (let semente = 0; semente < 30; semente++) {
       const rng = Rng.daSemente(`particao-${semente}`);
       const raca = RACAS[semente % RACAS.length]!.id;

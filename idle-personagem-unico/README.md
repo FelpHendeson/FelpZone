@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F3 (Mapa e coleta) concluída.** O personagem sorteado (F1) treina (F2) e agora também **coleta**: madeira, minério, peixe e plantações em 4 locais do Vale de Pedravau, com viagem curta ("Movendo-se até…"), nível por ofício, ferramentas melhores no Ferreiro, mochila com espaço limitado e venda no Mercado, que dá gold. Tudo continua rodando com o jogo fechado (até 12 h). Ainda não há combate, itens equipáveis nem produção (F4 em diante).
+**F4 (Combate por área) concluída: primeiro marco jogável completo.** O personagem sorteado (F1) treina (F2), coleta e vende (F3) e agora **equipa e caça**: 6 áreas com monstros comuns, raros e chefes, drops de material e de equipamento, recuo automático por % de vida e um bestiário. A luta roda em passos de 0,5 s também com o jogo fechado (até 12 h). Ainda não há habilidades, Limiar, missões nem produção (F5 em diante).
 
 O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
 
@@ -75,6 +75,16 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F3:** bônus de ofício dos berços (+1 nível) e de Liberto das Minas (+2 Mineração), Pele de Pedra (Anão, +10% de minério), Passo Silvestre (Elfo, viagem entre locais naturais −30% e +10% na agricultura), Sentidos Aguçados (Lobisomem, +50% de achados raros), Acampamento nômade (viagem −10%), Cortiço da capital (venda +3%) e Náufrago das Estrelas (compra −5%).
 
+### O que a F4 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/combate.ts` | 17 equipamentos (kit básico + 3 tiers × 5 slots), 6 materiais de combate, 24 monstros e 6 áreas. |
+| `packages/motor/src/atividades/combate.ts` | Status de combate, dano, risco da área e a simulação em passos de 0,5 s (procurar, lutar, abater, recuar, desmaiar). |
+| `packages/motor/src/atividades/acoes.ts` | `equipar`, `desequipar`, `comprarEquipamento` e `definirRecuo`; caçar é `iniciarAtividade` numa área. |
+| `packages/motor/src/save.ts` | **Save v5** com migração v4 → v5. |
+| `apps/web` | Combate → Áreas (risco, recuo, caçar) e Bestiário; Mochila → Equipados e Equipáveis; Ferreiro com armas e armaduras; vida e status de combate na ficha; barra com a luta ao vivo; resumo do tempo fora com abates, recuos e desmaios. |
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -117,7 +127,7 @@ npm run lint       # ESLint (motor com regras de pureza; web com eslint-config-n
 npm run typecheck  # tsc no motor (código e testes) e na web
 npm run build      # build de produção do Next
 npm run simular    # simulação de 200 mil sorteios (Markdown para docs/CALIBRACAO.md)
-npm run ritmo      # bot de ritmo do treino e da coleta (Markdown para docs/CALIBRACAO.md)
+npm run ritmo      # bot de ritmo do treino, da coleta e do combate (Markdown para docs/CALIBRACAO.md)
 ```
 
 `npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
@@ -126,4 +136,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F4 (Combate por área)** só começa com autorização do autor. Antes, vale conferir as decisões da F3 em [`docs/DECISOES.md`](docs/DECISOES.md) (19 a 24), em especial a regra da mochila cheia e a venda só na cidade.
+A **F5 (Habilidades e core)** só começa com autorização do autor. Antes, vale conferir as decisões da F4 em [`docs/DECISOES.md`](docs/DECISOES.md) (25 a 31), em especial o desmaio provisório e os recuos frequentes.

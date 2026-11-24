@@ -8,6 +8,8 @@ import {
   ganhoDeTreino,
   modificadoresDoPersonagem,
   rendimentoMedio,
+  statusDeCombate,
+  type StatusDeCombate,
   xpDoCiclo,
   type Personagem,
   type ResumoAvanco,
@@ -30,6 +32,10 @@ export interface Estimativa {
 export function estimarAtividade(p: Personagem, atividadeId: string): Estimativa {
   const a = CATALOGO.atividades.get(atividadeId)!;
   const mods = modificadoresDoPersonagem(p, p.nivel);
+  if (a.tipo === "combate") {
+    const viagemMs = p.localId === a.localId ? 0 : duracaoViagemMs(p.localId, a.localId, mods);
+    return { duracaoMs: 0, ganhoPorHora: 0, xpPorHora: 0, itensPorHora: 0, xpOficioPorHora: 0, chanceRaro: 0, viagemMs };
+  }
   const duracaoMs = duracaoCicloMs(p, a, mods);
   const ciclosPorHora = 3_600_000 / duracaoMs;
   const origem = p.localId;
@@ -64,7 +70,8 @@ export function situacaoMochila(p: Personagem): { usados: number; capacidade: nu
 
 /** Mostra o resumo "Enquanto você estava fora" só se algo relevante aconteceu. */
 export function resumoRelevante(r: ResumoAvanco): boolean {
-  return r.ciclos > 0 && r.simuladoMs >= 60_000;
+  const algo = r.ciclos > 0 || Object.keys(r.abates).length > 0 || r.desmaios > 0 || r.recuos > 0;
+  return algo && r.simuladoMs >= 60_000;
 }
 
 export function formatarDuracao(ms: number): string {
@@ -87,4 +94,8 @@ export function nomeLocal(id: string): string {
 
 export function nomeSubarea(localId: string, subareaId: string): string {
   return CATALOGO.locais.get(localId)?.subareas.find((s) => s.id === subareaId)?.nome ?? subareaId;
+}
+
+export function combateDe(p: Personagem): StatusDeCombate {
+  return statusDeCombate(p.status, modificadoresDoPersonagem(p, p.nivel));
 }

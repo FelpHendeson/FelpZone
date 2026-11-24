@@ -1,7 +1,11 @@
 import {
   ATIVIDADES_COLETA,
   ATIVIDADES_TREINO,
+  AREAS_COMBATE,
   CATALOGO,
+  EQUIPAMENTOS,
+  NOME_SLOT,
+  comprarEquipamento,
   FERRAMENTAS,
   LOCAL_CIDADE,
   LOCAIS,
@@ -16,6 +20,7 @@ import {
 } from "@idle-pu/motor";
 import { formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 import type { Agir } from "./acoes";
+import { bonusDe } from "./PainelEquipamento";
 import { PainelMercado } from "./PainelMochila";
 
 interface Props {
@@ -28,6 +33,7 @@ function oQueTem(localId: string): string {
   const coisas = [
     ...ATIVIDADES_COLETA.filter((a) => a.localId === localId).map((a) => CATALOGO.itens.get(a.itemId)!.nome),
     ...(ATIVIDADES_TREINO.some((a) => a.localId === localId) ? ["treinos"] : []),
+    ...AREAS_COMBATE.filter((a) => a.localId === localId).map((a) => `caça em ${a.nome} (nível ${a.nivelRecomendado})`),
   ];
   return coisas.join(", ");
 }
@@ -150,6 +156,27 @@ export function PainelEstabelecimentos({ personagem: p, ocupado, agir }: Props) 
             );
           })}
         </ul>
+        <h4 className="subtitulo">Armas e armaduras</h4>
+        <ul className="lista-recursos">
+          {EQUIPAMENTOS.filter((i) => i.equipamento?.precoCompra).map((i) => {
+            const preco = precoDeCompra(p, i.equipamento!.precoCompra!);
+            const semOuro = p.ouro < preco;
+            return (
+              <li key={i.id} className={`recurso${semOuro ? " bloqueado" : ""}`}>
+                <div>
+                  <strong>{i.nome}</strong> <span className={`selo raridade-${i.raridade}`}>{NOME_SLOT[i.equipamento!.slot]}</span>
+                  <p className="suave">
+                    {bonusDe(i)} · {formatarNumero(preco, 0)} g
+                  </p>
+                </div>
+                <button type="button" className="botao botao-principal" disabled={ocupado || semOuro} onClick={() => agir((e, agora) => comprarEquipamento(e, i.id, agora))}>
+                  Comprar
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+        <p className="suave nota">O que você compra vai para a mochila; equipe em Mochila → Equipáveis.</p>
       </article>
     </section>
   );

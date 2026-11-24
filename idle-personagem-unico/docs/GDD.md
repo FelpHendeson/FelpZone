@@ -269,6 +269,8 @@ Tem aba própria, com sub-abas **Áreas**, **Bestiário** e **O Limiar** (reino 
 - **Bestiário**: marcos de abates (100/1.000/5.000) dão bônus permanente contra a espécie, como no LionHearth. [Proposta]
 - **Elementos, críticos, escudos, DoT, buffs e debuffs** seguem o mesmo modelo de modificadores (§12).
 
+**Implementado na F4** [Proposta; números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]: 6 áreas (Trilha dos Lobos 1, Galeria dos Ratos 5, Juncal Escuro 10, Coração do Bosque 15, Margem Afogada 20, Poço sem Fundo 25), cada uma com 2 monstros comuns, 1 raro (5%) e 1 chefe a cada 50 abates; drops de material e de equipamento do tier da área. Status de combate: **vida** (Vigor), **ataque** (Força), **defesa** (Resistência), **velocidade de ataque e esquiva** (Agilidade), **crítico** (Percepção), mais o equipamento. Dano = ataque² ÷ (ataque + defesa). A simulação roda em passos de 0,5 s também offline, com o estado da luta no save. **Recuo automático** de 0 a 90% (padrão 30%). Ataque básico só; habilidades chegam na F5. O risco da área (verde/amarelo/vermelho) é a vida média perdida por luta. Bestiário conta abates; os marcos com bônus ficam para a F11.
+
 ## 8. Mapa e viagem
 
 ### 8.1 Hierarquia [Autor]
@@ -318,6 +320,7 @@ Os nomes **Lendário** e **Mítico** ficam com os **ranks da guilda** (decisão 
 - **Ferramentas de ofício** têm slots **próprios**, separados do combate: machado, picareta, vara de pesca, enxada/foice, faca de coleta, martelo de forja, caldeirão. Todo personagem **começa com a versão básica de cada**. [Autor]
 - Itens têm **raridade**, **afixos** (modificadores) e, se aplicável, **conjunto** (bônus 2/4/5 peças).
 - **Acessórios e relíquias** seguem o mesmo molde [Autor]; relíquias têm efeitos únicos vindos de chefes, Limiar e ranks da guilda.
+- **F4:** arma, elmo, peitoral, calças e botas em 3 tiers (couro, ferro, aço) mais o kit básico (porrete e gibão). Sem afixos ainda (F8). Tiers 1 e 2 no Ferreiro; tier 3 só por drop.
 
 ### 9.3 Mochila [Proposta]
 
@@ -339,6 +342,9 @@ Capacidade em espaços (aumenta com Força, ampliações e baú na cidade). Filt
 - Moedas secundárias [Proposta]: **Essência do Limiar** (pedágio do Barqueiro) e **Mérito da Guilda** (promoções de rank). O **Pergaminho do Novo Destino** (reroll de personagem) é um item raro, não uma moeda.
 
 ## 10. Morte e O Limiar [Autor: ideia; detalhes: Proposta]
+
+> **Provisório até a F6** [Proposta]: sem o Limiar, a vida chegar a zero é um **desmaio**: o personagem acorda em Pedravau com metade da vida, ocioso, sem perder nada.
+
 
 Sem *permadeath*. Quando a vida chega a zero e o recuo não foi acionado, o personagem **atravessa para o Limiar**: um reino entre a vida e a morte onde só pode **combater sem parar** por um tempo.
 

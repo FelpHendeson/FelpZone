@@ -2,12 +2,13 @@
  * Ações do personagem ativo: atividade (uma por vez [Autor]), viagem, venda e
  * compra. Toda ação primeiro avança o tempo até `agora`.
  */
-import { CATALOGO, obter } from "../dados";
+import { CATALOGO, obter, SLOTS, type Slot } from "../dados";
 import type { Personagem, Viagem } from "../personagem/conta";
-import { removerItens } from "../personagem/mochila";
+import { adicionarItens, capacidadeMochila, removerItens } from "../personagem/mochila";
 import { fator, modificadoresDoPersonagem } from "../personagem/progressao";
 import type { EstadoJogo } from "../save";
 import { avancar, duracaoViagemMs, nivelEfetivoOficio, type ResumoAvanco } from "./ciclos";
+import { combateInicial, CONFIG_COMBATE } from "./combate";
 
 /** Local onde ficam o Mercado e o Ferreiro. */
 export const LOCAL_CIDADE = "pedravau";
@@ -26,7 +27,12 @@ export type CodigoErroAtividade =
   | "mochila_vazia"
   | "ferramenta_inexistente"
   | "ferramenta_nao_melhora"
-  | "ouro_insuficiente";
+  | "ouro_insuficiente"
+  | "nao_e_equipamento"
+  | "slot_inexistente"
+  | "slot_vazio"
+  | "mochila_cheia"
+  | "recuo_invalido";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;
@@ -94,7 +100,8 @@ export function iniciarAtividade(estado: EstadoJogo, atividadeId: string, agora:
         return erro("nivel_oficio_insuficiente", `Exige ${a.nivelMinimo} no ofício.`);
       }
     }
-    return { ...p, ...moverPara(p, a.localId, a.subareaId), atividade: { id: a.id, progressoMs: 0 } };
+    const atividade = a.tipo === "combate" ? { id: a.id, progressoMs: 0, combate: combateInicial() } : { id: a.id, progressoMs: 0 };
+    return { ...p, ...moverPara(p, a.localId, a.subareaId), atividade };
   });
 }
 
@@ -167,4 +174,64 @@ export function comprarFerramenta(estado: EstadoJogo, ferramentaId: string, agor
     if (p.ouro < preco) return erro("ouro_insuficiente", `Custa ${preco} de gold.`);
     return { ...p, ouro: p.ouro - preco, ferramentas: { ...p.ferramentas, [f.oficio]: f.id } };
   });
+}
+
+// ------------------------------------------------------------ Equipamento de combate (F4)
+
+function capacidadeDe(p: Personagem): number {
+  return capacidadeMochila(p.status.forca, modificadoresDoPersonagem(p, p.nivel));
+}
+
+/** Equipa um item da mochila; o que estava no slot volta para a mochila. Vale em qualquer lugar. */
+export function equipar(estado: EstadoJogo, itemId: string, agora: number): ResultadoAtividade {
+  const item = CATALOGO.itens.get(itemId);
+  if (!item) return falha("item_inexistente", "Item desconhecido.");
+  const dados = item.equipamento;
+  if (!dados) return falha("nao_e_equipamento", "Isso não se equipa.");
+  return comAtivo(estado, agora, (p) => {
+    if ((p.mochila[itemId] ?? 0) < 1) return erro("quantidade_invalida", "O item não está na mochila.");
+    let mochila = removerItens(p.mochila, itemId, 1);
+    const anterior = p.equipados[dados.slot];
+    if (anterior) {
+      const r = adicionarItens(mochila, anterior, 1, capacidadeDe(p));
+      if (r.aceitos === 0) return erro("mochila_cheia", "Não há espaço na mochila para o item que sai.");
+      mochila = r.mochila;
+    }
+    return { ...p, mochila, equipados: { ...p.equipados, [dados.slot]: itemId } };
+  });
+}
+
+/** Tira o item de um slot e o guarda na mochila. */
+export function desequipar(estado: EstadoJogo, slot: Slot, agora: number): ResultadoAtividade {
+  if (!(SLOTS as readonly string[]).includes(slot)) return falha("slot_inexistente", "Slot desconhecido.");
+  return comAtivo(estado, agora, (p) => {
+    const atual = p.equipados[slot];
+    if (!atual) return erro("slot_vazio", "Não há nada nesse slot.");
+    const r = adicionarItens(p.mochila, atual, 1, capacidadeDe(p));
+    if (r.aceitos === 0) return erro("mochila_cheia", "A mochila está cheia.");
+    return { ...p, mochila: r.mochila, equipados: { ...p.equipados, [slot]: null } };
+  });
+}
+
+/** Compra um equipamento no Ferreiro; ele vai para a mochila. */
+export function comprarEquipamento(estado: EstadoJogo, itemId: string, agora: number): ResultadoAtividade {
+  const item = CATALOGO.itens.get(itemId);
+  const precoBase = item?.equipamento?.precoCompra;
+  if (!item || precoBase === null || precoBase === undefined) return falha("item_inexistente", "O Ferreiro não vende isso.");
+  return comAtivo(estado, agora, (p) => {
+    if (!naCidade(p)) return erro("fora_da_cidade", "O Ferreiro fica em Pedravau.");
+    const preco = precoDeCompra(p, precoBase);
+    if (p.ouro < preco) return erro("ouro_insuficiente", `Custa ${preco} de gold.`);
+    const r = adicionarItens(p.mochila, itemId, 1, capacidadeDe(p));
+    if (r.aceitos === 0) return erro("mochila_cheia", "A mochila está cheia.");
+    return { ...p, ouro: p.ouro - preco, mochila: r.mochila };
+  });
+}
+
+/** Define o recuo automático: recua para a cidade com vida ≤ percentual (0 = nunca recuar). */
+export function definirRecuo(estado: EstadoJogo, percentual: number, agora: number): ResultadoAtividade {
+  if (!Number.isSafeInteger(percentual) || percentual < 0 || percentual > CONFIG_COMBATE.recuoMaximo) {
+    return falha("recuo_invalido", `O recuo vai de 0 a ${CONFIG_COMBATE.recuoMaximo}%.`);
+  }
+  return comAtivo(estado, agora, (p) => ({ ...p, recuoPercentual: percentual }));
 }

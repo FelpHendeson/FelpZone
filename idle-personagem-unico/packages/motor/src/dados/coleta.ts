@@ -2,6 +2,7 @@
  * Ofícios de coleta, itens, ferramentas e recursos (GDD §6.2, §9.2, §9.3).
  * Números [Calibrar] (ver `docs/CALIBRACAO.md`).
  */
+import type { Modificador } from "../modificadores";
 import type { Raridade } from "./tipos";
 
 export const OFICIOS = ["lenhador", "mineracao", "pesca", "agricultura"] as const;
@@ -14,7 +15,22 @@ export const NOME_OFICIO: Readonly<Record<OficioId, string>> = {
   agricultura: "Fazendeiro",
 };
 
-export type CategoriaItem = "material" | "raro";
+export type CategoriaItem = "material" | "raro" | "equipamento";
+
+/** Slots de combate da F4 (manoplas, mão secundária, acessórios e relíquia vêm depois). */
+export const SLOTS = ["arma", "elmo", "peitoral", "calcas", "botas"] as const;
+export type Slot = (typeof SLOTS)[number];
+
+export const NOME_SLOT: Readonly<Record<Slot, string>> = { arma: "Arma", elmo: "Elmo", peitoral: "Peitoral", calcas: "Calças", botas: "Botas" };
+
+export interface DadosEquipamento {
+  readonly slot: Slot;
+  /** 0 = kit inicial; 1–3 = tiers das áreas. */
+  readonly tier: 0 | 1 | 2 | 3;
+  /** Preço no Ferreiro; `null` = só por drop (ou kit). */
+  readonly precoCompra: number | null;
+  readonly modificadores: readonly Modificador[];
+}
 
 export interface Item {
   readonly id: string;
@@ -26,6 +42,7 @@ export interface Item {
   readonly preco: number;
   /** Quantos cabem num espaço da mochila. */
   readonly pilha: number;
+  readonly equipamento?: DadosEquipamento;
 }
 
 export interface Ferramenta {

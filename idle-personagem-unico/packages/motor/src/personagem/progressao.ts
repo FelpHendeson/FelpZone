@@ -39,6 +39,8 @@ export interface BaseModificadores {
   readonly racaId: string;
   readonly dons: readonly string[];
   readonly origem: { readonly tipo: "comum" | "especial"; readonly id: string };
+  /** Equipamento de combate (F4): slot → id do item. */
+  readonly equipados?: Readonly<Record<string, string | null>>;
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -60,7 +62,46 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
   for (const d of p.dons) lista.push(...doEfeito(obter(CATALOGO.dons, d).efeito, nivel));
   const efeitoOrigem = p.origem.tipo === "especial" ? obter(CATALOGO.origensEspeciais, p.origem.id).efeito : obter(CATALOGO.bercos, p.origem.id).efeito;
   lista.push(...doEfeito(efeitoOrigem, nivel));
+  for (const itemId of Object.values(p.equipados ?? {})) {
+    if (itemId) lista.push(...(obter(CATALOGO.itens, itemId).equipamento?.modificadores ?? []));
+  }
   return lista;
+}
+
+/**
+ * Aplica XP ao personagem e sobe de nível quantas vezes couber. Ao subir,
+ * quem está abaixo do novo piso sobe até ele e nada passa do teto. Altera
+ * `status` e `ganhos` no lugar; devolve o nível e o XP novos.
+ */
+export function aplicarXp(
+  p: BaseModificadores,
+  nivel: number,
+  xp: number,
+  ganhoXp: number,
+  status: Record<StatusId, number>,
+  ganhos: Record<StatusId, number>,
+  config: ConfigProgressao = CONFIG_PROGRESSAO,
+): { nivel: number; xp: number; subiu: boolean } {
+  if (nivel >= config.nivelMaximo) return { nivel, xp: 0, subiu: false };
+  let n = nivel;
+  let x = xp + ganhoXp;
+  let subiu = false;
+  while (n < config.nivelMaximo && x >= xpParaProximoNivel(n, config)) {
+    x -= xpParaProximoNivel(n, config);
+    n++;
+    subiu = true;
+  }
+  if (n >= config.nivelMaximo) x = 0;
+  if (subiu) {
+    const mods = modificadoresDoPersonagem(p, n);
+    for (const s of STATUS) {
+      const f = faixaStatus(p.racaId, s, n, mods, config);
+      const novo = Math.min(f.teto, Math.max(f.piso, status[s]));
+      ganhos[s] += novo - status[s];
+      status[s] = novo;
+    }
+  }
+  return { nivel: n, xp: x, subiu };
 }
 
 /** Soma dos percentuais de vários alvos (ex.: `teto` e `teto.forca`). */

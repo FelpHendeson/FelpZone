@@ -12,6 +12,7 @@ import {
   migrarV1ParaV2,
   migrarV2ParaV3,
   migrarV3ParaV4,
+  migrarV4ParaV5,
   salvarJogo,
   serializarSave,
   tamanhoUtf8,
@@ -37,9 +38,9 @@ describe("save", () => {
     expect(Rng.deEstado(r.estado.rng).proximoUint32()).toBe(Rng.daSemente("semente-teste").proximoUint32());
   });
 
-  it("tabela real de migrações: v1 → v2 (F1), v2 → v3 (F2) e v3 → v4 (F3)", () => {
-    expect(VERSAO_SAVE_ATUAL).toBe(4);
-    expect(Object.keys(MIGRACOES)).toEqual(["1", "2", "3"]);
+  it("tabela real de migrações: v1 → v2 (F1), v2 → v3 (F2), v3 → v4 (F3) e v4 → v5 (F4)", () => {
+    expect(VERSAO_SAVE_ATUAL).toBe(5);
+    expect(Object.keys(MIGRACOES)).toEqual(["1", "2", "3", "4"]);
   });
 
   describe("migração fictícia", () => {
@@ -52,7 +53,7 @@ describe("save", () => {
     };
 
     it("carrega um save antigo passando pela migração", () => {
-      const r = carregarSave(JSON.stringify({ versao: 0, seed: "antiga", tick: T0 }), { migracoes: { 0: deV0, 1: migrarV1ParaV2, 2: migrarV2ParaV3, 3: migrarV3ParaV4 } });
+      const r = carregarSave(JSON.stringify({ versao: 0, seed: "antiga", tick: T0 }), { migracoes: { 0: deV0, 1: migrarV1ParaV2, 2: migrarV2ParaV3, 3: migrarV3ParaV4, 4: migrarV4ParaV5 } });
       expect(r.ok).toBe(true);
       if (!r.ok) return;
       expect(r.migradoDe).toBe(0);

@@ -18,7 +18,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F1 | Sorteio do personagem | ✅ Concluída em 23/11/2026; aprovada "por ora" pelo autor em 24/11 | `c025163` | 140 |
 | F2 | Loop de atividade e treino | ✅ Concluída em 24/11/2026 | `907153d` | 171 |
 | F3 | Mapa e coleta | ✅ Concluída em 24/11/2026 | `a400963` | 196 |
-| F4 | Combate por área | ⏳ Aguardando autorização | — | — |
+| F4 | Combate por área | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F4`) | 218 |
+| F5 | Habilidades e core | ⏳ Aguardando autorização | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -242,6 +243,105 @@ Combate e drops (F4). Habilidades e técnicas (F5). Produção, forja, fusão, a
 
 ---
 
+## F4 — Combate por área
+
+**Pedido do autor (24/11/2026):** "Pode seguir". Escrevi o prompt (`prompts/idle-personagem-unico/04-fatia-F4-combate.md`) e executei. É o **primeiro marco jogável completo**: treinar → coletar → vender → equipar → caçar.
+
+### O que foi executado
+
+- [x] **Conteúdo de combate:**
+  - 6 áreas (subáreas de Bosque Raso, Mina Velha e Lago Espelho), níveis 1, 5, 10, 15, 20 e 25;
+  - 24 monstros, por área 2 comuns (um ágil, um resistente), 1 raro (5% de aparição) e 1 chefe a cada 50 abates;
+  - 6 materiais de combate e 17 equipamentos: kit básico (porrete e gibão) e couro, ferro e aço em 5 slots.
+- [x] **Status de combate** vindos dos status e do equipamento, pelo modelo de modificadores:
+  - vida (Vigor), ataque (Força), defesa (Resistência);
+  - velocidade de ataque e esquiva (Agilidade), crítico (Percepção).
+- [x] **Simulação em passos de 0,5 s** dentro do avanço do tempo (procurar → lutar → abater ou recuar), com o estado completo da luta no save. Aparição, crítico, esquiva e drops usam o RNG do save, e dividir o tempo continua dando o mesmo resultado.
+- [x] **Recuo automático** de 0 a 90% (padrão 30%) e **desmaio provisório** (sem Limiar até a F6).
+- [x] **Vida** guardada entre lutas e recuperada fora do combate.
+- [x] **Ações:**
+  - caçar (`iniciarAtividade` numa área, com viagem);
+  - `equipar` e `desequipar`;
+  - `comprarEquipamento` no Ferreiro (tiers 1 e 2);
+  - `definirRecuo`.
+- [x] **Risco da área** (verde/amarelo/vermelho) calculado com os status de verdade.
+- [x] **Save v5** com migração v4 → v5.
+- [x] **Web:**
+  - Combate → Áreas e Bestiário (O Limiar continua "Em construção");
+  - Mochila → Equipados e Equipáveis;
+  - Ferreiro com armas e armaduras;
+  - vida e status de combate na ficha;
+  - barra com a luta ao vivo (vida do personagem e do monstro);
+  - resumo do tempo fora com abates, recuos e desmaios.
+- [x] **Bot de ritmo** do combate e calibração (duas mudanças de número e um bug corrigido).
+- [x] **Documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais**, a partir de instalação limpa: `npm ci`, `npm audit --audit-level=high` (0 vulnerabilidades), `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **218 testes** (209 no motor, 9 na web).
+- **Testes novos**:
+  - catálogo de combate;
+  - fórmulas de status, dano e risco;
+  - viagem até a área e primeira luta;
+  - uma hora de caça (abates, XP, drops, bestiário);
+  - chefe a cada 50, e fugir do chefe o adia;
+  - recuo e desmaio;
+  - cura fora do combate;
+  - equipar, desequipar, comprar e recuo;
+  - save v5: ida e volta no meio de uma luta, migração e 10 adulterações recusadas.
+- **Teste de propriedade**: 18 sementes, todas as áreas, recuo 0/30/60%, partições aleatórias do tempo, todas com o mesmo resultado. 12 h de combate em menos de 1 s.
+- **Navegador**, em 360 px, 390 px e desktop, com a cadeia completa:
+  - 1 h de treino;
+  - 3 h colhendo trigo;
+  - vender tudo (~1.000 g);
+  - comprar espada, gibão e calças de couro e equipar;
+  - caçar na Trilha dos Lobos (risco "Tranquilo", Poço sem Fundo "Perigoso");
+  - ver "Lutando com Lobo cinzento" e as duas barras de vida;
+  - 1 h fora: 300 a 426 abates, chefe abatido, recuos, drops de equipamento;
+  - bestiário preenchido;
+  - recarregar no meio da luta mantém a luta.
+
+  Também a **migração real** de um save v4 criado no site publicado (que ainda rodava a F3). Console limpo, sem rolagem lateral.
+- **CI e Vercel**: conferidos depois do push (registro abaixo).
+
+### Números principais
+
+| Área (nível) | Preparado: risco, XP/h | Despreparado: risco |
+| --- | --- | --- |
+| Trilha dos Lobos (1) | verde 5%, 2.195 XP/h | amarelo 18% |
+| Galeria dos Ratos (5) | amarelo 11%, 1.798 XP/h | amarelo 33% |
+| Juncal Escuro (10) | verde 9%, 2.689 XP/h | vermelho 47% |
+| Coração do Bosque (15) | amarelo 13%, 2.745 XP/h | vermelho 57% |
+| Margem Afogada (20) | verde 8%, 4.204 XP/h | vermelho 64% |
+| Poço sem Fundo (25) | amarelo 10%, 4.187 XP/h | vermelho 69% |
+
+Nenhum desmaio com o recuo padrão. Referência: o treino dá 1.200 XP/h.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | O que acontece na morte se o Limiar só vem na F6? | **Desmaio provisório**: acorda em Pedravau com 50% da vida, ocioso, sem perder nada. Registrado no GDD §10 como provisório. | Aguarda o autor |
+| 2 | Como fazer o combate offline ser igual ao online? | Os mesmos passos de 0,5 s nos dois casos. O estado da luta (fase, monstro, vida dele, recargas, contador do chefe) vai para o save, e o que sobra de meio passo também. Testado por propriedade. | Resolvido |
+| 3 | Vida guardada em pontos ou em fração? | **Fração da vida máxima** (0 a 1). Assim, subir de nível ou trocar de equipamento não deixa a vida inválida, e a cura fora do combate fica linear (dividir o tempo não muda nada). | Aprovado na prática |
+| 4 | Dano = ataque − defesa? | Não: **ataque² ÷ (ataque + defesa)**, mínimo 1. Com a subtração, a armadura anulava golpes inteiros e o equilíbrio quebrava. | Aguarda o autor |
+| 5 | Primeira versão dos monstros: todas as áreas depois da primeira ficavam vermelhas mesmo para quem estava preparado. | O bot mostrou que os monstros cresciam ×9,5 do nível 1 ao 25, contra ×3,4 do personagem. Reescalei para × (1 + 0,15 × (L − 1)), o ritmo de quem treina e se equipa. Antes e depois na calibração. | Aguarda o autor |
+| 6 | O bot mostrou uma caça travada em 12 abates/h. | **Bug**: ao recuar da luta com o chefe, ele reaparecia em toda busca. Correção: fugir do chefe faz ele ir embora até mais 50 abates. Teste novo para isso. | Resolvido |
+| 7 | Recuos frequentes (10–25/h, mesmo preparado). | Subi a cura entre lutas de 0,5%/s para 1%/s; os recuos caíram um pouco. Deixei como está e registrei: dá valor a Vigor e defesa. Alternativa: 2%/s ou busca mais longa. | Aguarda o autor |
+| 8 | Um personagem nível 1 sem equipamento e sem recuo desmaia na primeira área depois de ~10 lutas. | É o ciclo pretendido (treinar → coletar → vender → equipar → caçar): despreparado fica "Arriscado" e o recuo padrão de 30% evita o desmaio. Com equipamento de couro, a área fica "Tranquila". | Aguarda o autor |
+| 9 | Quantos slots e afixos? | 5 slots (arma, elmo, peitoral, calças, botas), **sem afixos** (F8). Manoplas, mão secundária, acessórios e relíquia ficam para depois. O tier 3 só cai de monstros. | Aguarda o autor |
+| 10 | O bestiário dá bônus? | Na F4 só conta abates (e esconde "???" quem nunca foi abatido). Os marcos com bônus ficam para a F11, como no roadmap. | Aguarda o autor |
+| 11 | Como mostrar o risco sem enganar? | É a vida média perdida por luta contra os comuns, calculada com os status e o equipamento atuais: verde < 10%, amarelo < 35%, vermelho acima. | Aguarda o autor |
+| 12 | Combate tem ciclos? O resumo "Enquanto você estava fora" não aparecia para quem só caçou. | Combate não tem ciclos; o resumo agora aparece também quando há abates, recuos ou desmaio. | Resolvido |
+| 13 | Equipar no meio da caça? | Permitido em qualquer lugar (é um jogo idle); os status de combate valem a partir do próximo avanço. | Aprovado na prática |
+| 14 | Bot do ciclo completo (treinar → coletar → vender → equipar → caçar). | Validei a cadeia completa no navegador nas três larguras. O bot mede cada parte separada (treino, coleta e combate por área); um bot da cadeia inteira fica para quando houver missões (F7), que mudam o ritmo. | Parcial |
+
+### O que ficou de fora
+
+Habilidades, técnicas e elementos (F5). O Limiar, Barqueiro e Eco da Morte (F6). Missões e guilda (F7). Afixos, fusão, nomeados, acessórios e relíquias (F8). Pets (F10). Bônus do bestiário, dia/noite e clima (F11). Bot da cadeia completa.
+
+---
+
 ## Próximo passo
 
-**F4 — Combate por área** (primeiro marco "jogável completo": treinar → coletar → vender → equipar → caçar). Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.
+**F5 — Habilidades e core**: eixos, slots, ativas automáticas (prioridade + recarga, como no LionHearth), passivas, técnicas do core, maestria e evolução. Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.

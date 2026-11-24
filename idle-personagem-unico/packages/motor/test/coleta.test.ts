@@ -14,6 +14,7 @@ import {
   avancarPersonagem,
   cabeNaMochila,
   camposIniciaisF3,
+  camposIniciaisF4,
   capacidadeMochila,
   carregarSave,
   chanceRaro,
@@ -32,6 +33,7 @@ import {
   vender,
   venderTudo,
   viagemBaseMs,
+  type AtividadeCiclica,
   type EstadoJogo,
   type Personagem,
   type ResultadoAtividade,
@@ -59,6 +61,7 @@ function personagem(base: Partial<Base> & Partial<Personagem> = {}): Personagem 
     status: statusIniciais(b),
     atividade: null,
     ...camposIniciaisF3(),
+    ...camposIniciaisF4(),
     ...base,
     ...b,
   };
@@ -133,7 +136,7 @@ describe("viagem", () => {
     expect(chegou.resumo.chegouEm).toBe("bosque-raso");
     expect(ativo(chegou.estado)).toMatchObject({ localId: "bosque-raso", subareaId: "orla", viagem: null, atividade: { id: "cortar-pinho", progressoMs: 0 } });
     // Um ciclo depois de chegar (Agilidade acelera um pouco a coleta).
-    const dur = duracaoCicloMs(ativo(chegou.estado), CATALOGO.atividades.get("cortar-pinho")!, modificadoresDoPersonagem(ativo(chegou.estado), 1));
+    const dur = duracaoCicloMs(ativo(chegou.estado), CATALOGO.atividades.get("cortar-pinho") as AtividadeCiclica, modificadoresDoPersonagem(ativo(chegou.estado), 1));
     expect(avancar(chegou.estado, T0 + 4_000 + dur - 1).resumo.ciclos).toBe(0);
     expect(avancar(chegou.estado, T0 + 4_000 + dur).resumo.ciclos).toBe(1);
   });
@@ -201,7 +204,7 @@ describe("coleta", () => {
     const comFerro = personagem({ localId: "mina-velha", subareaId: "galeria-alta", ferramentas: { ...camposIniciaisF3().ferramentas, mineracao: "mineracao-de-ferro" }, atividade: { id: "minerar-cobre", progressoMs: 0 } });
     const a = CATALOGO.atividades.get("minerar-cobre")!;
     const mods = modificadoresDoPersonagem(comFerro, 1);
-    const dur = duracaoCicloMs(comFerro, a, mods);
+    const dur = duracaoCicloMs(comFerro, a as AtividadeCiclica, mods);
     const r = avancarPersonagem(comFerro, dur * 10_000, Rng.daSemente("medias"));
     const ciclos = r.ciclos;
     expect(ciclos).toBeGreaterThan(9_000);

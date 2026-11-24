@@ -3,7 +3,7 @@
  * movimento é instantâneo; entre locais há viagem curta (≤ 10 s) [Autor].
  */
 
-export type TipoSubarea = "estabelecimento" | "treino" | "coleta" | "passagem";
+export type TipoSubarea = "estabelecimento" | "treino" | "coleta" | "combate" | "passagem";
 
 export interface Subarea {
   readonly id: string;
@@ -65,6 +65,8 @@ export const LOCAIS: readonly Local[] = [
     subareas: [
       { id: "orla", nome: "Orla do Bosque", tipo: "coleta", descricao: "Pinheiros e carvalhos ao alcance da cidade." },
       { id: "clareira-funda", nome: "Clareira Funda", tipo: "coleta", descricao: "Onde o carvalho fica escuro e o silêncio, pesado." },
+      { id: "trilha-dos-lobos", nome: "Trilha dos Lobos", tipo: "combate", descricao: "Uma trilha que os lobos usam mais que as pessoas." },
+      { id: "coracao-do-bosque", nome: "Coração do Bosque", tipo: "combate", descricao: "Onde as árvores se mexem quando ninguém olha." },
     ],
   },
   {
@@ -77,6 +79,8 @@ export const LOCAIS: readonly Local[] = [
     subareas: [
       { id: "galeria-alta", nome: "Galeria Alta", tipo: "coleta", descricao: "Veios rasos, ar respirável." },
       { id: "galeria-funda", nome: "Galeria Funda", tipo: "coleta", descricao: "Veios ricos, ar discutível." },
+      { id: "galeria-dos-ratos", nome: "Galeria dos Ratos", tipo: "combate", descricao: "Túneis que algo bem pequeno resolveu ocupar." },
+      { id: "poco-sem-fundo", nome: "Poço sem Fundo", tipo: "combate", descricao: "O fundo que ninguém alcançou." },
     ],
   },
   {
@@ -89,6 +93,8 @@ export const LOCAIS: readonly Local[] = [
     subareas: [
       { id: "margem", nome: "Margem", tipo: "coleta", descricao: "Pesca fácil, peixe pequeno." },
       { id: "pier-quebrado", nome: "Píer Quebrado", tipo: "coleta", descricao: "Águas fundas e peixes que encaram de volta." },
+      { id: "juncal-escuro", nome: "Juncal Escuro", tipo: "combate", descricao: "Juncos altos e coisas que respiram embaixo d'água." },
+      { id: "margem-afogada", nome: "Margem Afogada", tipo: "combate", descricao: "A margem que o lago engoliu." },
     ],
   },
 ];

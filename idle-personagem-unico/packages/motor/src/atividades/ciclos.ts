@@ -8,28 +8,30 @@
  * que três avanços de 1 h.
  */
 import { CATALOGO, obter, STATUS, type StatusId } from "../dados";
-import type { Atividade } from "../dados";
+import type { AtividadeCiclica } from "../dados";
 import type { AtividadeColeta, OficioId } from "../dados/coleta";
 import type { Modificador } from "../modificadores";
 import type { Personagem, ProgressoOficio } from "../personagem/conta";
 import { adicionarItens, capacidadeMochila } from "../personagem/mochila";
 import {
+  aplicarXp,
   CONFIG_OFICIOS,
   CONFIG_PROGRESSAO,
-  faixaStatus,
   fator,
   ganhoDeTreino,
   modificadoresDoPersonagem,
   valorEfetivo,
-  xpParaProximoNivel,
   xpParaProximoNivelOficio,
   type ConfigProgressao,
 } from "../personagem/progressao";
-import { viagemBaseMs as baseViagem } from "../dados/mapa";
 import { resumirModificadores } from "../modificadores";
 import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
 import { LIMITE_OFFLINE_MS } from "../tempo";
+import { avancarCombate, CONFIG_COMBATE, type AcumuladoCombate } from "./combate";
+import { duracaoViagemMs } from "./viagem";
+
+export { duracaoViagemMs };
 
 /** Velocidade vinda de status: Agilidade acelera atividades físicas (coleta) [Calibrar]. */
 export const BONUS_AGILIDADE_POR_PONTO = 0.01;
@@ -42,7 +44,7 @@ export function nivelEfetivoOficio(p: Pick<Personagem, "oficios">, oficio: Ofici
 }
 
 /** Fator de velocidade do ciclo: modificadores × ferramenta × Agilidade (só coleta). */
-function fatorVelocidade(p: Personagem, atividade: Atividade, mods: readonly Modificador[]): number {
+function fatorVelocidade(p: Personagem, atividade: AtividadeCiclica, mods: readonly Modificador[]): number {
   let f = fator(mods, "velocidade-atividade");
   if (atividade.tipo === "coleta") {
     f *= obter(CATALOGO.ferramentas, p.ferramentas[atividade.oficio]).velocidade;
@@ -52,12 +54,12 @@ function fatorVelocidade(p: Personagem, atividade: Atividade, mods: readonly Mod
 }
 
 /** Duração do ciclo, em ms inteiros: base ÷ velocidade, com mínimo. */
-export function duracaoCicloMs(p: Personagem, atividade: Atividade, mods: readonly Modificador[], config: ConfigProgressao = CONFIG_PROGRESSAO): number {
+export function duracaoCicloMs(p: Personagem, atividade: AtividadeCiclica, mods: readonly Modificador[], config: ConfigProgressao = CONFIG_PROGRESSAO): number {
   return Math.max(config.cicloMinimoMs, Math.round(atividade.cicloBaseMs / fatorVelocidade(p, atividade, mods)));
 }
 
 /** XP do personagem por ciclo, com `xp-personagem`. */
-export function xpDoCiclo(atividade: Atividade, mods: readonly Modificador[]): number {
+export function xpDoCiclo(atividade: AtividadeCiclica, mods: readonly Modificador[]): number {
   return atividade.xpPorCiclo * fator(mods, "xp-personagem");
 }
 
@@ -70,15 +72,6 @@ export function rendimentoMedio(p: Personagem, a: AtividadeColeta, mods: readonl
 export function chanceRaro(p: Personagem, a: AtividadeColeta, mods: readonly Modificador[]): number {
   const pontos = valorEfetivo(p.status.percepcao, "percepcao", mods) + valorEfetivo(p.status.sorte, "sorte", mods);
   return Math.min(1, a.raro.chanceBase * (1 + BONUS_RARO_POR_PONTO * pontos) * fator(mods, "chance-raro"));
-}
-
-/** Duração da viagem entre locais, com `duracao-viagem` e, entre locais naturais, `duracao-viagem-natural`. */
-export function duracaoViagemMs(origemId: string, destinoId: string, mods: readonly Modificador[]): number {
-  const base = CATALOGO.locais.has(origemId) && CATALOGO.locais.has(destinoId) ? baseViagem(origemId, destinoId) : 0;
-  if (base === 0) return 0;
-  const naturais = obter(CATALOGO.locais, origemId).natural && obter(CATALOGO.locais, destinoId).natural;
-  const f = fator(mods, "duracao-viagem") * (naturais ? fator(mods, "duracao-viagem-natural") : 1);
-  return Math.max(1_000, Math.round(base * f));
 }
 
 export function ganhosZerados(): Record<StatusId, number> {
@@ -99,64 +92,83 @@ export interface ResultadoCiclos {
   readonly niveisOficio: Readonly<Partial<Record<OficioId, number>>>;
   /** Local onde uma viagem terminou neste avanço. */
   readonly chegouEm: string | null;
+  readonly abates: Readonly<Record<string, number>>;
+  readonly desmaios: number;
+  readonly recuos: number;
+}
+
+/** Recupera vida fora do combate (linear e limitada a 1: dividir o tempo não muda o resultado). */
+function curar(p: Personagem, ms: number): Personagem {
+  if (ms <= 0 || p.vida >= 1) return p;
+  return { ...p, vida: Math.min(1, p.vida + (CONFIG_COMBATE.regenForaPorSegundo * ms) / 1000) };
 }
 
 /** Avança `ms` de um personagem (sem limite: quem chama limita). Usa e avança o `rng`. */
 export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: ConfigProgressao = CONFIG_PROGRESSAO): ResultadoCiclos {
   const ganhos = ganhosZerados();
-  const itens: Record<string, number> = {};
   const xpOficios: Partial<Record<OficioId, number>> = {};
   const niveisOficio: Partial<Record<OficioId, number>> = {};
-  const vazio = (personagem: Personagem, chegouEm: string | null): ResultadoCiclos => ({
-    personagem,
-    ciclos: 0,
-    ganhos,
-    xp: 0,
-    niveisGanhos: 0,
-    itens,
-    itensPerdidos: 0,
-    xpOficios,
-    niveisOficio,
-    chegouEm,
-  });
+  const acc: AcumuladoCombate = { abates: {}, itens: {}, itensPerdidos: 0, xp: 0, desmaios: 0, recuos: 0 };
+  let ciclos = 0;
   let restante = Math.max(0, Math.floor(ms));
   let atual = p;
   let chegouEm: string | null = null;
+  const resultado = (personagem: Personagem): ResultadoCiclos => ({
+    personagem,
+    ciclos,
+    ganhos,
+    xp: acc.xp,
+    niveisGanhos: personagem.nivel - p.nivel,
+    itens: acc.itens,
+    itensPerdidos: acc.itensPerdidos,
+    xpOficios,
+    niveisOficio,
+    chegouEm,
+    abates: acc.abates,
+    desmaios: acc.desmaios,
+    recuos: acc.recuos,
+  });
 
-  // 1. Viagem.
+  // 1. Viagem (fora do combate a vida se recupera).
   if (atual.viagem && restante > 0) {
     const usado = Math.min(restante, atual.viagem.restanteMs);
     restante -= usado;
-    if (usado === atual.viagem.restanteMs) {
-      chegouEm = atual.viagem.destinoLocalId;
-      atual = { ...atual, localId: atual.viagem.destinoLocalId, subareaId: atual.viagem.destinoSubareaId, viagem: null };
+    atual = curar(atual, usado);
+    if (usado === atual.viagem!.restanteMs) {
+      chegouEm = atual.viagem!.destinoLocalId;
+      atual = { ...atual, localId: atual.viagem!.destinoLocalId, subareaId: atual.viagem!.destinoSubareaId, viagem: null };
     } else {
-      atual = { ...atual, viagem: { ...atual.viagem, restanteMs: atual.viagem.restanteMs - usado } };
+      atual = { ...atual, viagem: { ...atual.viagem!, restanteMs: atual.viagem!.restanteMs - usado } };
     }
   }
-  if (!atual.atividade || atual.viagem || restante <= 0) return vazio(atual, chegouEm);
+  if (!atual.atividade || atual.viagem || restante <= 0) return resultado(curar(atual, restante));
 
-  // 2. Ciclos.
   const atividade = obter(CATALOGO.atividades, atual.atividade.id);
   const status = { ...atual.status } as Record<StatusId, number>;
+
+  // 2a. Combate, em passos de 0,5 s.
+  if (atividade.tipo === "combate") {
+    const r = avancarCombate({ personagem: { ...atual, status }, area: atividade, status, ganhos, ms: restante, rng, acumulado: acc, config });
+    return resultado(curar(r.personagem, r.sobraMs));
+  }
+
+  // 2b. Treino e coleta, em ciclos (a vida se recupera junto).
+  atual = curar(atual, restante);
   const oficios = { ...atual.oficios } as Record<OficioId, ProgressoOficio>;
   let mochila = atual.mochila;
   let nivel = atual.nivel;
   let xp = atual.xp;
-  let progresso = atual.atividade.progressoMs + restante;
-  let ciclos = 0;
-  let xpTotal = 0;
-  let perdidos = 0;
+  let progresso = atual.atividade!.progressoMs + restante;
 
-  // Valores que só mudam quando o nível sobe.
   let mods: Modificador[] = [];
   let duracao = 0;
   let capacidade = 0;
   let rendimento = 0;
   let chance = 0;
+  const base = atual;
   const recalcular = () => {
-    mods = modificadoresDoPersonagem(atual, nivel);
-    const comStatus = { ...atual, status };
+    mods = modificadoresDoPersonagem(base, nivel);
+    const comStatus = { ...base, status };
     duracao = duracaoCicloMs(comStatus, atividade, mods, config);
     capacidade = capacidadeMochila(status.forca, mods);
     if (atividade.tipo === "coleta") {
@@ -171,7 +183,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     ciclos++;
     if (atividade.tipo === "treino") {
       const s = atividade.status;
-      const g = ganhoDeTreino(atual.racaId, s, status[s], nivel, mods, config);
+      const g = ganhoDeTreino(base.racaId, s, status[s], nivel, mods, config);
       status[s] += g;
       ganhos[s] += g;
     } else {
@@ -182,10 +194,9 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
       for (const [itemId, quantidade] of [[atividade.itemId, q], [atividade.raro.itemId, achou ? 1 : 0]] as const) {
         const r = adicionarItens(mochila, itemId, quantidade, capacidade);
         mochila = r.mochila;
-        perdidos += r.perdidos;
-        if (r.aceitos > 0) itens[itemId] = (itens[itemId] ?? 0) + r.aceitos;
+        acc.itensPerdidos += r.perdidos;
+        if (r.aceitos > 0) acc.itens[itemId] = (acc.itens[itemId] ?? 0) + r.aceitos;
       }
-      // XP do ofício.
       const o = atividade.oficio;
       const of = oficios[o];
       if (of.nivel < CONFIG_OFICIOS.nivelMaximo) {
@@ -203,43 +214,15 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
       }
     }
     // XP do personagem.
-    if (nivel < config.nivelMaximo) {
-      const ganhoXp = xpDoCiclo(atividade, mods);
-      xp += ganhoXp;
-      xpTotal += ganhoXp;
-      let subiu = false;
-      while (nivel < config.nivelMaximo && xp >= xpParaProximoNivel(nivel, config)) {
-        xp -= xpParaProximoNivel(nivel, config);
-        nivel++;
-        subiu = true;
-      }
-      if (nivel >= config.nivelMaximo) xp = 0;
-      if (subiu) {
-        const novosMods = modificadoresDoPersonagem(atual, nivel);
-        // Quem estava abaixo do novo piso sobe até ele; nada passa do teto.
-        for (const st of STATUS) {
-          const f = faixaStatus(atual.racaId, st, nivel, novosMods, config);
-          const novo = Math.min(f.teto, Math.max(f.piso, status[st]));
-          ganhos[st] += novo - status[st];
-          status[st] = novo;
-        }
-        recalcular();
-      }
-    }
+    const ganhoXp = xpDoCiclo(atividade, mods);
+    if (nivel < config.nivelMaximo) acc.xp += ganhoXp;
+    const r = aplicarXp(base, nivel, xp, ganhoXp, status, ganhos, config);
+    nivel = r.nivel;
+    xp = r.xp;
+    if (r.subiu) recalcular();
   }
 
-  return {
-    personagem: { ...atual, nivel, xp, status, oficios, mochila, atividade: { id: atividade.id, progressoMs: progresso } },
-    ciclos,
-    ganhos,
-    xp: xpTotal,
-    niveisGanhos: nivel - p.nivel,
-    itens,
-    itensPerdidos: perdidos,
-    xpOficios,
-    niveisOficio,
-    chegouEm,
-  };
+  return resultado({ ...atual, nivel, xp, status, oficios, mochila, atividade: { id: atividade.id, progressoMs: progresso } });
 }
 
 /** O que aconteceu num avanço de tempo (para "Enquanto você estava fora"). */
@@ -260,6 +243,9 @@ export interface ResumoAvanco {
   readonly xpOficios: Readonly<Partial<Record<OficioId, number>>>;
   readonly niveisOficio: Readonly<Partial<Record<OficioId, number>>>;
   readonly chegouEm: string | null;
+  readonly abates: Readonly<Record<string, number>>;
+  readonly desmaios: number;
+  readonly recuos: number;
 }
 
 /** Resumo sem nada acontecido (útil para a interface e testes). */
@@ -279,6 +265,9 @@ export function resumoVazio(atividadeId: string | null = null, nivel = 0): Resum
     xpOficios: {},
     niveisOficio: {},
     chegouEm: null,
+    abates: {},
+    desmaios: 0,
+    recuos: 0,
   };
 }
 
@@ -320,6 +309,9 @@ export function avancar(estado: EstadoJogo, agora: number, config: ConfigProgres
       xpOficios: r.xpOficios,
       niveisOficio: r.niveisOficio,
       chegouEm: r.chegouEm,
+      abates: r.abates,
+      desmaios: r.desmaios,
+      recuos: r.recuos,
     },
   };
 }

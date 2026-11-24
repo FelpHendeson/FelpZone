@@ -1,6 +1,6 @@
 # Calibração
 
-Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
+Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3, combate da F4): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
 
 ## Sorteio do personagem (F1)
 
@@ -323,6 +323,68 @@ Pessoa dedicada (3 sessões/dia) focada num ofício: vende tudo a cada sessão, 
 3. **Achados raros pesam no começo**: com a ferramenta básica no tier 1, ~20–30% do gold por hora vem deles (60 g cada). Se o autor achar muito, baixar o preço para 30 g.
 4. **Mochila cheia** só acontece para quem fica mais de ~16 h sem vender no tier 1; o bot dedicado nunca perdeu itens. Para quem abre 1×/dia, a noite de 12 h enche ~16 dos 23 espaços.
 
+## Combate (F4)
+
+Fonte dos números: `packages/motor/src/dados/combate.ts` (monstros, equipamentos, áreas) e `atividades/combate.ts` (`CONFIG_COMBATE`). Reproduza com `npm run ritmo`.
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Passo da simulação | 0,5 s, igual aberto ou fechado | [Proposta] |
+| Busca entre lutas | 3 s | [Calibrar] |
+| Vida máxima | 40 + 8 × Vigor efetivo + bônus de vida | [Calibrar] |
+| Ataque | 2 + Força efetiva + bônus de ataque | [Calibrar] |
+| Defesa | 0,5 × Resistência efetiva + bônus de defesa | [Calibrar] |
+| Intervalo de ataque | 2 s ÷ (1 + 1% por ponto de Agilidade) | [Calibrar] |
+| Esquiva / crítico | 0,4% por ponto de Agilidade / 0,5% por ponto de Percepção (máx. 50%); crítico ×1,5 | [Calibrar] |
+| Dano | ataque² ÷ (ataque + defesa), mínimo 1 | [Proposta] |
+| Monstro (nível L) | vida 45, ataque 7, defesa 2, todos × (1 + 0,15 × (L − 1)); perfis ágil, tanque, raro (×2 vida) e chefe (×6 vida); XP 5 + 0,5 × L (raro ×4, chefe ×15) | **mudou** no bot |
+| Aparição | comuns 47,5% cada, raro 5%; chefe a cada 50 abates (fugir dele o adia) | [Calibrar] |
+| Drops | material da área (70% comuns, 1× / raro 3× / chefe 10×); equipamento do tier da área: 1,5% comum, 15% raro, 60% chefe | [Calibrar] |
+| Recuperação de vida | fora do combate 2%/s; procurando 1%/s | **mudou** no bot (0,5 → 1%/s procurando) |
+| Recuo | padrão 30%, de 0 a 90%; recuo = ida e volta à cidade + cura | [Proposta] |
+| Desmaio (sem Limiar até a F6) | acorda em Pedravau com 50% da vida, ocioso, sem perder nada | [Proposta, provisório] |
+| Equipamento | tier 1 (couro) e 2 (ferro) no Ferreiro; tier 3 (aço) só por drop | [Calibrar] |
+
+### Alvos propostos (aguardam o autor)
+
+| Alvo | Resultado |
+| --- | --- |
+| Personagem preparado (status em 50% da faixa + equipamento do tier) fica verde ou amarelo na área do seu nível | ✅ 5–13% de vida por luta |
+| Despreparado (piso + kit) fica vermelho a partir da 3ª área | ✅ 47–69% |
+| Combate rende mais XP que o treino no nível certo | ✅ 1,5× a 3,5× (1.800–4.200 XP/h contra 1.200) |
+| Nenhum desmaio com o recuo padrão | ✅ 0 em todas as simulações |
+
+### Resultado do bot (combate)
+
+Humano caçando por 4 h no nível de entrada da área (sem subir de nível no meio), recuo em 30%. "Preparado" = status em 50% da faixa e equipamento do tier indicado; "despreparado" = status no piso e só o kit básico.
+
+| Área | Nível | Perfil | Risco (perda por luta) | Abates/h | XP/h | Gold/h (drops) | Recuos/h | Desmaios em 4 h |
+| --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |
+| Trilha dos Lobos | 1 | preparado (tier 1) | verde (5%) | 323 | 2195 | 470 | 9,3 | 0 |
+| Trilha dos Lobos | 1 | despreparado | amarelo (18%) | 130 | 831 | 376 | 33,8 | 0 |
+| Galeria dos Ratos | 5 | preparado (tier 1) | amarelo (11%) | 208 | 1798 | 879 | 20,3 | 0 |
+| Galeria dos Ratos | 5 | despreparado | amarelo (33%) | 75 | 600 | 285 | 39,3 | 0 |
+| Juncal Escuro | 10 | preparado (tier 2) | verde (9%) | 234 | 2689 | 2241 | 18,5 | 0 |
+| Juncal Escuro | 10 | despreparado | vermelho (47%) | 54 | 567 | 585 | 44,5 | 0 |
+| Coração do Bosque | 15 | preparado (tier 2) | amarelo (13%) | 188 | 2745 | 2616 | 24,3 | 0 |
+| Coração do Bosque | 15 | despreparado | vermelho (57%) | 48 | 643 | 612 | 48,5 | 0 |
+| Margem Afogada | 20 | preparado (tier 3) | verde (8%) | 242 | 4204 | 9012 | 18,8 | 0 |
+| Margem Afogada | 20 | despreparado | vermelho (64%) | 35 | 548 | 821 | 48,5 | 0 |
+| Poço sem Fundo | 25 | preparado (tier 3) | amarelo (10%) | 205 | 4187 | 9844 | 22,0 | 0 |
+| Poço sem Fundo | 25 | despreparado | vermelho (69%) | 30 | 549 | 1144 | 47,8 | 0 |
+
+Referência: treino dá 1200 XP/h; coleta tier 1, 640 XP/h.
+
+### Leitura e proposta (F4)
+
+1. **Monstros reescalados.** Na primeira versão, o ataque dos monstros crescia ×9,5 do nível 1 ao 25 (contra ×3,4 do personagem): toda área depois da primeira ficava vermelha mesmo para quem estava preparado. Agora os monstros crescem × (1 + 0,15 × (L − 1)), o ritmo de um personagem treinado e equipado.
+2. **Bug corrigido pelo bot:** fugir do chefe fazia ele reaparecer em toda busca e a caça travava (12 abates/h). Agora o chefe "vai embora" e só volta após mais 50 abates.
+3. **Recuos frequentes:** mesmo preparado, o personagem recua 10 a 25 vezes por hora (cada recuo leva ~40–60 s), porque a cura entre lutas (3% em 3 s de busca) é menor que a perda por luta (5–13%). Isso dá peso ao Vigor e à defesa, mas tira ~20–30% do tempo de caça. **Proposta:** se o autor achar lento, subir a cura procurando para 2%/s ou a busca para 5 s.
+4. **Gold de drops de equipamento domina nas áreas de aço** (~9 mil/h, quase todo de peças tier 3 vendidas). Gold continua sem destino até a F8.
+5. **XP:** o combate passa a ser a principal fonte de XP depois do nível 10 (até 3,5× o treino). O ritmo de nível da F2 (só treino) fica como piso; o ritmo real com combate deve ser medido de novo quando houver missões (F7).
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -332,3 +394,6 @@ Pessoa dedicada (3 sessões/dia) focada num ofício: vende tudo a cada sessão, 
 | 24/11/2026 | F2: números de ciclo, XP, ganho e perfis por raça definidos (não existiam). | — |
 | 24/11/2026 | F3: XP de ofício. Com a base 40, o tier 3 abria em 1,5 dia (alvo: primeira semana). | `xpBase` 40 → 150 |
 | 24/11/2026 | F3: números de viagem, recursos, ferramentas, mochila, preços e bônus de status definidos (não existiam). | — |
+| 24/11/2026 | F4: escala dos monstros (as áreas 2–6 ficavam vermelhas até para quem estava preparado). | vida 25 + 15L, ataque 4 + 2,2L, defesa 1 + 0,8L, XP 4 + 1,2L → (45, 7, 2) × (1 + 0,15(L − 1)), XP 5 + 0,5L |
+| 24/11/2026 | F4: cura procurando monstro. | 0,5%/s → 1%/s |
+| 24/11/2026 | F4: números de combate, equipamentos, drops, recuo e desmaio definidos (não existiam). | — |

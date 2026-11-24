@@ -4,12 +4,12 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
-import { camposIniciaisF3, validarConta, type Conta } from "./personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, validarConta, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 4;
+export const VERSAO_SAVE_ATUAL = 5;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -18,7 +18,8 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * Estado do jogo. v1 (F0): semente, RNG e tempo. v2 (F1): `conta`, com os
  * personagens, o ativo e o sorteio em andamento. v3 (F2): status e atividade
  * de cada personagem. v4 (F3): lugar, viagem, gold, mochila, ofícios e
- * ferramentas. Próximas fatias acrescentam campos com migração.
+ * ferramentas. v5 (F4): equipamento de combate, vida, recuo e bestiário.
+ * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
   readonly versao: typeof VERSAO_SAVE_ATUAL;
@@ -84,8 +85,23 @@ export const migrarV3ParaV4: Migracao = (dados) => {
   };
 };
 
+/** v4 → v5: kit básico de combate equipado, vida cheia, recuo de 30% e bestiário vazio. */
+export const migrarV4ParaV5: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return {
+    ...dados,
+    conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, ...camposIniciaisF4() })) },
+  };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
-export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({ 1: migrarV1ParaV2, 2: migrarV2ParaV3, 3: migrarV3ParaV4 });
+export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
+  1: migrarV1ParaV2,
+  2: migrarV2ParaV3,
+  3: migrarV3ParaV4,
+  4: migrarV4ParaV5,
+});
 
 export type CodigoErroSave =
   | "vazio"

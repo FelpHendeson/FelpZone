@@ -32,6 +32,7 @@ export {
   migrarV1ParaV2,
   migrarV2ParaV3,
   migrarV3ParaV4,
+  migrarV4ParaV5,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -76,7 +77,7 @@ export {
 } from "./sorteio/acoes";
 export type { CodigoErroSorteio, ErroSorteio, EscolhasFinais, ResultadoAcao } from "./sorteio/acoes";
 export { CONTA_VAZIA, MAX_PERSONAGENS, resumoTentativa, validarConta } from "./personagem/conta";
-export type { AtividadeAtual, Aparencia, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
+export type { AtividadeAtual, Aparencia, EstadoCombate, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
 export { NOME_MAX, NOME_MIN, validarNome } from "./personagem/nome";
 export type { CodigoErroNome, ErroNome } from "./personagem/nome";
 export { gerarLoreOrigem } from "./personagem/lore";
@@ -100,7 +101,7 @@ export {
 } from "./personagem/progressao";
 export { adicionarItens, cabeNaMochila, capacidadeMochila, espacosUsados, removerItens } from "./personagem/mochila";
 export type { Mochila } from "./personagem/mochila";
-export { camposIniciaisF3 } from "./personagem/conta";
+export { camposIniciaisF3, camposIniciaisF4 } from "./personagem/conta";
 export type { BaseModificadores, ConfigProgressao, FaixaStatus, ValoresStatus } from "./personagem/progressao";
 export {
   avancar,
@@ -118,7 +119,11 @@ export {
 } from "./atividades/ciclos";
 export type { ResultadoCiclos, ResumoAvanco } from "./atividades/ciclos";
 export {
+  comprarEquipamento,
   comprarFerramenta,
+  definirRecuo,
+  desequipar,
+  equipar,
   iniciarAtividade,
   irPara,
   LOCAL_CIDADE,
@@ -129,3 +134,6 @@ export {
   venderTudo,
 } from "./atividades/acoes";
 export type { CodigoErroAtividade, ErroAtividade, ResultadoAtividade } from "./atividades/acoes";
+export { combateInicial, CONFIG_COMBATE, dano, riscoDaArea, statusDeCombate } from "./atividades/combate";
+export type { Risco, StatusDeCombate } from "./atividades/combate";
+export { aplicarXp } from "./personagem/progressao";

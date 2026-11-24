@@ -1,5 +1,6 @@
 import { CATALOGO, NOME_STATUS, type Personagem } from "@idle-pu/motor";
-import { estimarAtividade, formatarNumero, nomeLocal, nomeSubarea, situacaoMochila } from "@/lib/atividade";
+import { combateDe, estimarAtividade, formatarNumero, nomeLocal, nomeSubarea, situacaoMochila } from "@/lib/atividade";
+import { BarraVida } from "./BarraVida";
 
 function Progresso({ valor, rotulo }: { valor: number; rotulo: string }) {
   return (
@@ -48,6 +49,26 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
     );
   }
   const a = CATALOGO.atividades.get(atual.id)!;
+  if (a.tipo === "combate") {
+    const sc = combateDe(p);
+    const c = atual.combate;
+    const m = c?.monstroId ? CATALOGO.monstros.get(c.monstroId) : undefined;
+    const fase =
+      c?.fase === "lutando" && m ? `Lutando com ${m.nome}${m.tipo === "chefe" ? " (chefe)" : m.tipo === "raro" ? " (raro)" : ""}` : c?.fase === "recuando" ? `Recuando para ${nomeLocal("pedravau")} e descansando…` : "Procurando…";
+    return (
+      <div className="barra-atividade" role="status" aria-label={`Caçando em ${a.nome}`}>
+        <div className="barra-linha">
+          <span className="barra-titulo">Caçando: {a.nome}</span>
+          {extras}
+        </div>
+        <div className="barra-linha suave">
+          <span>{fase}</span>
+        </div>
+        <BarraVida atual={p.vida * sc.vidaMax} maxima={sc.vidaMax} rotulo="Vida" />
+        {c?.fase === "lutando" && m && <BarraVida atual={c.vidaMonstro} maxima={m.vida} rotulo={m.nome} monstro />}
+      </div>
+    );
+  }
   const e = estimarAtividade(p, atual.id);
   const ganho =
     a.tipo === "treino"

@@ -11,10 +11,16 @@ import { RACAS } from "./racas";
 import { ATIVIDADES_TREINO, type AtividadeTreino } from "./status";
 import { ATIVIDADES_COLETA, FERRAMENTAS, ITENS, type AtividadeColeta, type Ferramenta, type Item } from "./coleta";
 import { LOCAIS, REGIOES, type Local, type Regiao } from "./mapa";
+import { AREAS_COMBATE, EQUIPAMENTOS, MATERIAIS_COMBATE, MONSTROS, type AtividadeCombate, type Monstro } from "./combate";
 
-/** Toda atividade do personagem (uma por vez). */
-export type Atividade = AtividadeTreino | AtividadeColeta;
-const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA];
+/** Itens de todas as fontes (coleta, combate e equipamentos). */
+const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS];
+
+/** Toda atividade do personagem (uma por vez). Combate também é atividade [Autor]. */
+export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate;
+/** Atividades por ciclos (treino e coleta). */
+export type AtividadeCiclica = AtividadeTreino | AtividadeColeta;
+const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE];
 import type {
   Berco,
   BestaVinculada,
@@ -76,7 +82,8 @@ export const CATALOGO = {
   coresCabelo: indice<CorPaleta>(CORES_CABELO),
   coresRoupa: indice<CorPaleta>(CORES_ROUPA),
   atividades: indice<Atividade>(ATIVIDADES),
-  itens: indice<Item>(ITENS),
+  itens: indice<Item>(TODOS_ITENS),
+  monstros: indice<Monstro>(MONSTROS),
   ferramentas: indice<Ferramenta>(FERRAMENTAS),
   locais: indice<Local>(LOCAIS),
   regioes: indice<Regiao>(REGIOES),
@@ -102,3 +109,7 @@ export { ATIVIDADES_COLETA, FERRAMENTAS, ITENS, NOME_OFICIO, OFICIOS } from "./c
 export type { AtividadeColeta, CategoriaItem, Ferramenta, Item, OficioId } from "./coleta";
 export { LOCAIS, LOCAL_INICIAL, REGIOES, viagemBaseMs } from "./mapa";
 export type { Local, Regiao, Subarea, TipoSubarea } from "./mapa";
+export { AREAS_COMBATE, EQUIPAMENTOS, KIT_COMBATE, MATERIAIS_COMBATE, MONSTROS } from "./combate";
+export type { AtividadeCombate, Drop, Monstro, TipoMonstro } from "./combate";
+export { NOME_SLOT, SLOTS } from "./coleta";
+export type { DadosEquipamento, Slot } from "./coleta";

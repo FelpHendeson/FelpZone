@@ -1,5 +1,6 @@
 import { CONFIG_PROGRESSAO, NOME_STATUS, STATUS, faixas, modificadoresDoPersonagem, valorEfetivo, xpParaProximoNivel, type Personagem } from "@idle-pu/motor";
-import { formatarNumero } from "@/lib/atividade";
+import { combateDe, formatarNumero } from "@/lib/atividade";
+import { BarraVida } from "./BarraVida";
 
 /** Nível, XP e os 8 status com a faixa piso → teto (GDD §5). */
 export function PainelStatus({ personagem: p }: { personagem: Personagem }) {
@@ -18,6 +19,18 @@ export function PainelStatus({ personagem: p }: { personagem: Personagem }) {
           <div className="progresso-preenchido progresso-xp" style={{ width: `${(p.xp / proximo) * 100}%` }} />
         </div>
       )}
+      {(() => {
+        const sc = combateDe(p);
+        return (
+          <div className="bloco-combate">
+            <BarraVida atual={p.vida * sc.vidaMax} maxima={sc.vidaMax} rotulo="Vida" />
+            <p className="suave">
+              Ataque {formatarNumero(sc.ataque, 1)} · Defesa {formatarNumero(sc.defesa, 1)} · {formatarNumero(1000 / sc.intervaloMs, 2)} ataques/s · Esquiva{" "}
+              {formatarNumero(sc.esquiva * 100, 1)}% · Crítico {formatarNumero(sc.critico * 100, 1)}%
+            </p>
+          </div>
+        );
+      })()}
       <ul className="lista-status">
         {STATUS.map((s) => {
           const { piso, teto } = f[s];

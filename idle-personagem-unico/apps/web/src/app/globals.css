@@ -674,3 +674,83 @@ button:focus-visible {
   text-decoration: underline;
   cursor: pointer;
 }
+
+/* F4: combate, vida e equipamento. */
+.vida-linha {
+  display: grid;
+  grid-template-columns: minmax(3rem, auto) 1fr auto;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+}
+
+.vida-rotulo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 9rem;
+}
+
+.vida-numero {
+  font-variant-numeric: tabular-nums;
+  color: var(--texto-suave);
+}
+
+.progresso-vida {
+  height: 0.5rem;
+}
+
+.vida-ok {
+  background: #6fbf73;
+}
+
+.vida-baixa {
+  background: #ff8a80;
+}
+
+.vida-monstro {
+  background: #c0504d;
+}
+
+.risco-verde {
+  color: #7fd17f;
+}
+
+.risco-amarelo {
+  color: #e6c86e;
+}
+
+.risco-vermelho {
+  color: #ff8a80;
+}
+
+.campo-linha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.campo-linha select {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+  font: inherit;
+}
+
+.bloco-combate {
+  margin: 0.75rem 0;
+}
+
+.bloco-combate p,
+.painel .cartao > p {
+  font-size: 0.875rem;
+}
+
+.subtitulo {
+  margin: 1rem 0 0.25rem;
+}

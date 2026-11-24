@@ -2,8 +2,9 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
-import { CATALOGO, OFICIOS, STATUS } from "../dados";
-import type { OficioId } from "../dados/coleta";
+import { CATALOGO, OFICIOS, SLOTS, STATUS } from "../dados";
+import type { OficioId, Slot } from "../dados/coleta";
+import { KIT_COMBATE } from "../dados/combate";
 import type { StatusId } from "../dados/status";
 import { ehEstadoRng, type EstadoRng } from "../rng";
 import { reproduzirTentativa, type ResultadoTentativa } from "../sorteio/cascata";
@@ -39,10 +40,27 @@ export interface Aparencia {
   readonly corRoupa: string;
 }
 
-/** Atividade em andamento: id e quanto do ciclo atual já passou. */
+/** Estado de uma luta em andamento (F4). Recargas e vida do monstro podem ter casas decimais. */
+export interface EstadoCombate {
+  readonly fase: "procurando" | "lutando" | "recuando";
+  /** Procurando ou recuando: quanto falta. */
+  readonly restanteMs: number;
+  readonly monstroId: string | null;
+  readonly vidaMonstro: number;
+  readonly recargaPersonagemMs: number;
+  readonly recargaMonstroMs: number;
+  /** Contador do chefe: abates desde que chegou à área, mais 1 a cada fuga do chefe (ele aparece a cada N). */
+  readonly abatesNaArea: number;
+}
+
+/**
+ * Atividade em andamento: id e quanto do ciclo atual já passou (no combate,
+ * o que sobra de um passo de 0,5 s) e, no combate, o estado da luta.
+ */
 export interface AtividadeAtual {
   readonly id: string;
   readonly progressoMs: number;
+  readonly combate?: EstadoCombate;
 }
 
 /** Viagem entre locais (≤ 10 s). Enquanto dura, o personagem segue no local de origem. */
@@ -87,6 +105,14 @@ export interface Personagem {
   readonly oficios: Readonly<Record<OficioId, ProgressoOficio>>;
   /** Ferramenta equipada em cada ofício. */
   readonly ferramentas: Readonly<Record<OficioId, string>>;
+  /** Equipamento de combate por slot (F4). */
+  readonly equipados: Readonly<Record<Slot, string | null>>;
+  /** Vida atual como fração da vida máxima (0 a 1). */
+  readonly vida: number;
+  /** Recua para a cidade com vida ≤ este percentual (0 = nunca). */
+  readonly recuoPercentual: number;
+  /** Abates por monstro. */
+  readonly bestiario: Readonly<Record<string, number>>;
 }
 
 /** Uma tentativa do sorteio: o estado do RNG no início basta para reproduzi-la. */
@@ -170,6 +196,8 @@ function validarPersonagem(v: unknown): Personagem | null {
   const { id, nome, nivel, xp, racaId, coreId, dons, origem, bestaVinculadaId, marcaAnomaliaId, tracoPersonalidadeId, aparencia, criadoEm, status, atividade } = v;
   const f3 = validarCamposF3(v);
   if (!f3) return null;
+  const f4 = validarCamposF4(v);
+  if (!f4) return null;
   if (!ehTexto(id, 64)) return null;
   const n = validarNome(nome);
   if (!n.ok || n.nome !== nome) return null;
@@ -195,7 +223,7 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (typeof corRoupa !== "string" || !CATALOGO.coresRoupa.has(corRoupa)) return null;
   // Status: finitos e dentro de piso/teto do nível (com folga de arredondamento).
   if (!ehObjeto(status)) return null;
-  const faixa = faixas(racaId, nivel, modificadoresDoPersonagem({ racaId, dons: dons as string[], origem: origemLimpa }, nivel));
+  const faixa = faixas(racaId, nivel, modificadoresDoPersonagem({ racaId, dons: dons as string[], origem: origemLimpa, equipados: f4.equipados }, nivel));
   const statusLimpo = {} as Record<StatusId, number>;
   for (const s of STATUS) {
     const valor = status[s];
@@ -208,8 +236,16 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (atividade !== null) {
     if (!ehObjeto(atividade) || typeof atividade.id !== "string") return null;
     const a = CATALOGO.atividades.get(atividade.id);
-    if (!a || !ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10)) return null;
-    atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs };
+    if (!a) return null;
+    if (a.tipo === "combate") {
+      if (!ehInteiro(atividade.progressoMs, 0, 499)) return null;
+      const combate = validarCombate(atividade.combate, a.monstros.map((m) => m.monstroId).concat(a.chefeId));
+      if (!combate) return null;
+      atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs, combate };
+    } else {
+      if (!ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10) || atividade.combate !== undefined) return null;
+      atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs };
+    }
     // A atividade acontece no destino da viagem ou no local atual.
     if ((f3.viagem ? f3.viagem.destinoLocalId : f3.localId) !== a.localId) return null;
   }
@@ -230,7 +266,63 @@ function validarPersonagem(v: unknown): Personagem | null {
     status: statusLimpo,
     atividade: atividadeLimpa,
     ...f3,
+    ...f4,
   };
+}
+
+function ehNumero(v: unknown, min: number, max: number): v is number {
+  return typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
+}
+
+function validarCombate(v: unknown, monstrosDaArea: readonly string[]): EstadoCombate | null {
+  if (!ehObjeto(v)) return null;
+  const { fase, restanteMs, monstroId, vidaMonstro, recargaPersonagemMs, recargaMonstroMs, abatesNaArea } = v;
+  if (fase !== "procurando" && fase !== "lutando" && fase !== "recuando") return null;
+  if (!ehNumero(restanteMs, -1_000, 1_000_000) || !ehInteiro(abatesNaArea, 0, Number.MAX_SAFE_INTEGER)) return null;
+  if (!ehNumero(recargaPersonagemMs, -1_000, 60_000) || !ehNumero(recargaMonstroMs, -1_000, 60_000)) return null;
+  if (fase === "lutando") {
+    if (typeof monstroId !== "string" || !monstrosDaArea.includes(monstroId)) return null;
+    if (!ehNumero(vidaMonstro, 0, CATALOGO.monstros.get(monstroId)!.vida) || vidaMonstro === 0) return null;
+  } else if (monstroId !== null) return null;
+  return {
+    fase,
+    restanteMs,
+    monstroId: fase === "lutando" ? (monstroId as string) : null,
+    vidaMonstro: fase === "lutando" ? (vidaMonstro as number) : 0,
+    recargaPersonagemMs,
+    recargaMonstroMs,
+    abatesNaArea,
+  };
+}
+
+type CamposF4 = Pick<Personagem, "equipados" | "vida" | "recuoPercentual" | "bestiario">;
+
+/** Valida equipamento, vida, recuo e bestiário (F4). */
+function validarCamposF4(v: Record<string, unknown>): CamposF4 | null {
+  const { equipados, vida, recuoPercentual, bestiario } = v;
+  if (!ehObjeto(equipados) || !ehObjeto(bestiario)) return null;
+  const eq = {} as Record<Slot, string | null>;
+  for (const s of SLOTS) {
+    const id = equipados[s];
+    if (id === null) eq[s] = null;
+    else if (typeof id === "string" && CATALOGO.itens.get(id)?.equipamento?.slot === s) eq[s] = id;
+    else return null;
+  }
+  if (!ehNumero(vida, 0, 1) || vida === 0) return null;
+  if (!ehInteiro(recuoPercentual, 0, 90)) return null;
+  const best: Record<string, number> = {};
+  const entradas = Object.entries(bestiario);
+  if (entradas.length > CATALOGO.monstros.size) return null;
+  for (const [id, n] of entradas) {
+    if (!CATALOGO.monstros.has(id) || !ehInteiro(n, 1, Number.MAX_SAFE_INTEGER)) return null;
+    best[id] = n;
+  }
+  return { equipados: eq, vida, recuoPercentual, bestiario: best };
+}
+
+/** Campos iniciais da F4: kit básico equipado, vida cheia, recuo de 30% e bestiário vazio. */
+export function camposIniciaisF4(): CamposF4 {
+  return { equipados: { ...KIT_COMBATE }, vida: 1, recuoPercentual: 30, bestiario: {} };
 }
 
 type CamposF3 = Pick<Personagem, "localId" | "subareaId" | "viagem" | "ouro" | "mochila" | "oficios" | "ferramentas">;
