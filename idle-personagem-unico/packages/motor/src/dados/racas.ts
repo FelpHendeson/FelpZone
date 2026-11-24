@@ -124,7 +124,10 @@ export const RACAS: readonly Raca[] = [
       id: "corpo-de-vento",
       nome: "Corpo de Vento",
       descricao: "Maior velocidade em todas as atividades; flutua por terrenos difíceis.",
-      efeito: { efeitoPendente: "+velocidade de atividades (F2) e travessia de terreno difícil (F3)." },
+      efeito: {
+        modificadores: [{ alvo: "velocidade-atividade", operacao: "percentual", valor: 0.1, origem: { tipo: "raca", id: "silfo" } }],
+        efeitoPendente: "Travessia de terreno difícil (F3).",
+      },
     },
     longeva: true,
     visual: { pele: "#cfe3ea", traco: "antenas" },

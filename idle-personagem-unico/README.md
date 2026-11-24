@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F1 (Sorteio do personagem) concluída.** Ao abrir o jogo pela primeira vez, a pessoa sorteia o personagem em cascata (raça → core → dom → origem → traço), com orçamento de raridade e 5 tentativas, aceita, escolhe nome e cores e vê a ficha na aba **Personagem → Status**. Ainda não há status numéricos, atividades nem inventário (F2 em diante). O design completo e o plano de construção estão em:
+**F2 (Loop de atividade + treino) concluída.** Depois de sortear e criar o personagem (F1), a pessoa escolhe um dos 8 treinos em **Atividades → Treino**; o personagem treina sozinho em ciclos, ganha status e XP e sobe de nível, inclusive com o jogo fechado (até 12 h). Ao voltar, aparece "Enquanto você estava fora". **Personagem → Status** mostra nível, XP e os 8 status com piso e teto. Ainda não há mapa, coleta, combate nem inventário (F3 em diante). O design completo e o plano de construção estão em:
 
 - **[GDD](docs/GDD.md)**: personagem, sorteio, status, atividades, combate, mapa, itens, forja, morte (O Limiar), missões, guilda, habilidades, pets, competição e interface.
 - **[Origens](docs/ORIGENS.md)**: gerador de origem comum e 22 origens especiais com lore, efeito e gancho de história.
@@ -46,6 +46,19 @@ O motor não importa React, Next, DOM nem módulos do Node, e não usa `Math.ran
 | `apps/web` | Tela de criação mobile-first (cartões, Aceitar/Rerolar, nome e paletas com miniatura ao vivo) e ficha na aba Personagem. Cada ação é gravada antes de aparecer na tela. |
 
 Sem dependências novas.
+
+### O que a F2 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/status.ts` | 8 status, perfil numérico de cada raça (base e fração de piso) e 8 atividades de treino (ciclo de 30 s, 10 XP). |
+| `packages/motor/src/personagem/progressao.ts` | Curva de XP até o nível 50, piso/teto, ganho decrescente perto do teto, valor efetivo e coleta dos modificadores de raça, dons e origem (inclusive temporários "até o nível N"). |
+| `packages/motor/src/atividades/` | Ciclos e `avancar(estado, agora)` (limite de 12 h, relógio que volta, só o ativo trabalha, resumo do tempo fora) e as ações `iniciarAtividade`/`pararAtividade` com erros tipados. |
+| `packages/motor/src/save.ts` | **Save v3** com migração v2 → v3 (status iniciais no piso e personagem ocioso). Validação de status, XP, nível e atividade. |
+| `packages/motor/scripts/ritmo.ts` | Bot de ritmo (`npm run ritmo`). |
+| `apps/web` | Barra fixa da atividade atual, Atividades → Treino, painel de status e o diálogo "Enquanto você estava fora". Avança a cada 1 s com a página aberta, grava a cada 15 s, ao esconder a página e ao sair. |
+
+**Efeitos que passaram a valer na F2:** Corpo de Vento (Silfo, +10% de velocidade), Órfão do Templo Cinzento (+2 Espírito), A Voz do Poço (+2 Percepção), Soldado de uma Guerra Perdida (+2 Resistência), Cria da Matilha (+2 Agilidade), O Reencarnado (−5% Vigor), O Despertado Tardio (teto −10%; +50% de XP e de treino até o nível 20) e o dom Coração de Dragão (teto de Força e Espírito +10%). **Continuam pendentes** (só texto): ofícios e bônus de berço (F3), combate (F4), técnicas e maestria (F5), Limiar (F6), guilda e reputação (F7), itens nomeados (F8), pets (F10), dia/noite e Crônica (F11).
 
 ### Versões escolhidas (23/11/2026)
 
@@ -89,6 +102,7 @@ npm run lint       # ESLint (motor com regras de pureza; web com eslint-config-n
 npm run typecheck  # tsc no motor (código e testes) e na web
 npm run build      # build de produção do Next
 npm run simular    # simulação de 200 mil sorteios (Markdown para docs/CALIBRACAO.md)
+npm run ritmo      # bot de ritmo do treino (Markdown para docs/CALIBRACAO.md)
 ```
 
 `npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
@@ -97,4 +111,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F2 (Loop de atividade + treino)** só começa com autorização do autor. Antes, vale conferir as decisões da F1 listadas em [`docs/DECISOES.md`](docs/DECISOES.md) (perguntas 7 a 12), em especial os Primordiais das raças raras.
+A **F3 (Mapa e coleta)** só começa com autorização do autor. Antes, vale conferir as decisões da F2 em [`docs/DECISOES.md`](docs/DECISOES.md) (13 a 18), em especial os alvos de ritmo e os status que lotam depois do nível 20.

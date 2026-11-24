@@ -76,3 +76,12 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 11. **Traço de personalidade** (12, narrativo) entrou como "detalhe final" da cascata e fica na ficha. "Dons menores" não entraram.
 12. **Textos novos**: 104 dons, técnicas de 11 cores (o Ser das Trevas é do autor), 12 traços e as frases do gerador de origem comum foram escritos pelo agente, no tom sombrio com humor seco.
 
+### Da F2 (treino), para o autor conferir
+
+13. **Alvos de ritmo** propostos: nível 10 no 1º dia, nível 20 na 1ª semana, nível 50 em 6–8 semanas para quem abre o jogo 3×/dia (quem abre 1×/dia leva ~2×, por causa do limite de 12 h). Os números atuais batem com isso.
+14. **Status lotam depois do nível 20** (77–97% da faixa): o treino perde peso no meio do Ato I. Proposta: revisar o ganho junto com coleta e combate (F3–F4), não agora. Ver `CALIBRACAO.md`.
+15. **Trocar de atividade descarta o ciclo parcial** (no máximo 30 s perdidos). Alternativa: guardar o progresso por atividade.
+16. **Fração de piso por raça** (Humano 0,65, Silfo 0,50, Draconato 0,45, demais 0,55) e **perfis numéricos** das 8 raças. O GDD tinha 0,55 fixo.
+17. **Corpo de Vento** deixa o Silfo ~10% mais rápido também em XP (ciclos mais curtos). Manter ou fazer a velocidade valer só para status?
+18. **Efeitos aplicados**: só os que dependem de status, teto, treino, XP ou velocidade (lista no GDD §5.2). *Centelha Humana* e *Sangue de Lua* continuam pendentes (dependem de regra por faixa de nível e de dia/noite).
+

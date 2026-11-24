@@ -75,7 +75,10 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "Órfão do Templo Cinzento",
     lore: "Criado por monges de um culto já morto, que lhe ensinaram rezas para um deus sem nome.",
     efeitoTexto: "+Espírito; começa com uma técnica espiritual.",
-    efeito: { efeitoPendente: "+Espírito (status, F2) e uma técnica espiritual inicial (F5)." },
+    efeito: {
+      modificadores: [mod("status.espirito", "somar", 2, "orfao-do-templo-cinzento")],
+      efeitoPendente: "Uma técnica espiritual inicial (F5).",
+    },
     gancho: "O que o templo guardava.",
   },
   {
@@ -94,7 +97,10 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "A Voz do Poço",
     lore: "Ouve, desde criança, algo no fundo de um poço que ninguém mais ouve. A coisa sabe o nome dele.",
     efeitoTexto: "+Percepção; avisos de eventos raros na Crônica.",
-    efeito: { efeitoPendente: "+Percepção (F2) e avisos de eventos raros na Crônica (F11)." },
+    efeito: {
+      modificadores: [mod("status.percepcao", "somar", 2, "a-voz-do-poco")],
+      efeitoPendente: "Avisos de eventos raros na Crônica (F11).",
+    },
     gancho: "O que fala no poço.",
   },
   {
@@ -104,7 +110,7 @@ const ESPECIAIS: readonly Especial[] = [
     lore: "Lembra de uma vida anterior, em outro mundo, e age como quem sabe demais para a própria idade.",
     efeitoTexto: "Memória Estranha: um ofício um nível acima; +XP de maestria. Fraqueza: -5% Vigor inicial.",
     efeito: {
-      modificadores: [mod("vigor", "percentual", -0.05, "o-reencarnado")],
+      modificadores: [mod("status.vigor", "percentual", -0.05, "o-reencarnado")],
       efeitoPendente: "Um ofício escolhido +1 nível (F3) e +XP de maestria (valor a calibrar, F5).",
     },
     gancho: "Quem foi na outra vida e por que voltou.",
@@ -124,7 +130,14 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "O Despertado Tardio",
     lore: "Passou a vida inteira sendo o mais fraco da guilda; um dia, algo \"acordou\" nele.",
     efeitoTexto: "Teto de status baixo, mas +XP e +ganho de treino nos primeiros 20 níveis.",
-    efeito: { efeitoPendente: "Teto menor e +XP/+treino até o nível 20 (F2); mensagens do \"Sistema\" na Crônica (F11)." },
+    efeito: {
+      modificadores: [mod("teto", "percentual", -0.1, "o-despertado-tardio")],
+      temporario: {
+        ateNivel: 20,
+        modificadores: [mod("xp-personagem", "percentual", 0.5, "o-despertado-tardio"), mod("ganho-treino", "percentual", 0.5, "o-despertado-tardio")],
+      },
+      efeitoPendente: "Mensagens do \"Sistema\" na Crônica (F11).",
+    },
     gancho: "O que despertou e por quê.",
   },
   {
@@ -175,7 +188,10 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "Soldado de uma Guerra Perdida",
     lore: "Servia num exército que não existe mais. Ainda marcha no sono.",
     efeitoTexto: "Rank inicial da guilda E (em vez de F); +Resistência.",
-    efeito: { efeitoPendente: "Rank inicial E (F7) e +Resistência (F2)." },
+    efeito: {
+      modificadores: [mod("status.resistencia", "somar", 2, "soldado-de-uma-guerra-perdida")],
+      efeitoPendente: "Rank inicial E na guilda (F7).",
+    },
     gancho: "Antigos camaradas e quem venceu a guerra.",
   },
   {
@@ -206,7 +222,10 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "Cria da Matilha",
     lore: "Criado entre lobos; aprendeu a linguagem deles antes da dos homens.",
     efeitoTexto: "Matilha de lobos como aliados ocasionais em combate; +Agilidade.",
-    efeito: { efeitoPendente: "Aliados ocasionais (F4) e +Agilidade (F2)." },
+    efeito: {
+      modificadores: [mod("status.agilidade", "somar", 2, "cria-da-matilha")],
+      efeitoPendente: "Matilha como aliada ocasional em combate (F4).",
+    },
     gancho: "A matilha e o homem que a abandonou.",
     racasPermitidas: ["lobisomem", "humano"],
   },

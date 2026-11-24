@@ -34,7 +34,6 @@ export function FichaPersonagem({ personagem: p }: { personagem: Personagem }) {
         </div>
       </header>
       <CartoesResultado resultado={resultado} lore={p.origem.loreGerada} />
-      <p className="suave nota">Status, treino e atividades chegam na próxima fatia.</p>
     </section>
   );
 }

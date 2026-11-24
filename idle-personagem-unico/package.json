@@ -12,7 +12,8 @@
     "lint": "npm run lint --workspaces --if-present",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "build": "npm run build --workspaces --if-present",
-    "simular": "npm run simular -w @idle-pu/motor --"
+    "simular": "npm run simular -w @idle-pu/motor --",
+    "ritmo": "npm run ritmo -w @idle-pu/motor --"
   },
   "engines": {
     "node": ">=22.12"

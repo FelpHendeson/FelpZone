@@ -6,6 +6,7 @@
 import { CATALOGO } from "../dados";
 import { MAX_PERSONAGENS, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
 import { gerarLoreOrigem } from "../personagem/lore";
+import { statusIniciais } from "../personagem/progressao";
 import { validarNome, type CodigoErroNome } from "../personagem/nome";
 import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
@@ -113,7 +114,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
   }
   const r = tentativaAtual(estado) as ResultadoTentativa;
   const loreGerada = gerarLoreOrigem(r.origem, r.racaId, nome.nome);
-  const personagem: Personagem = {
+  const identidade: Omit<Personagem, "status" | "atividade"> = {
     id: `personagem-${estado.conta.personagens.length + 1}`,
     nome: nome.nome,
     nivel: 1,
@@ -138,6 +139,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     aparencia: { corCabelo: escolhas.corCabelo, corRoupa: escolhas.corRoupa },
     criadoEm: agora,
   };
+  const personagem: Personagem = { ...identidade, status: statusIniciais(identidade), atividade: null };
   return {
     ok: true,
     estado: {

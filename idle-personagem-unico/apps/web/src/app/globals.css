@@ -421,3 +421,170 @@ button:focus-visible {
 .nota {
   font-size: 0.8125rem;
 }
+
+/* F2: atividade atual, treinos, status e resumo offline. */
+.barra-atividade {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.625rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+  font-size: 0.8125rem;
+}
+
+.barra-linha {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.25rem 0.75rem;
+}
+
+.barra-titulo {
+  font-weight: 600;
+  color: var(--destaque);
+}
+
+.progresso {
+  height: 0.375rem;
+  border-radius: 999px;
+  background: var(--borda);
+  overflow: hidden;
+}
+
+.progresso-preenchido {
+  height: 100%;
+  background: var(--destaque);
+  transition: width 0.9s linear;
+}
+
+.progresso-xp {
+  background: #6cb4ff;
+}
+
+.conteudo-coluna {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.lista-treinos {
+  display: grid;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+@media (min-width: 48rem) {
+  .lista-treinos {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.treino {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.treino-atual {
+  border-color: var(--destaque);
+}
+
+.treino-info h3 {
+  margin: 0 0 0.25rem;
+}
+
+.treino-info p {
+  margin: 0.25rem 0;
+  font-size: 0.875rem;
+}
+
+.treino .botao {
+  flex: 0 0 auto;
+}
+
+.painel-status h3 {
+  margin: 0;
+}
+
+.nivel-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.lista-status {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.status-linha {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0 0.5rem;
+  font-size: 0.875rem;
+  margin-bottom: 0.25rem;
+}
+
+.faixa {
+  position: relative;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--borda);
+  overflow: hidden;
+}
+
+.faixa-piso {
+  position: absolute;
+  inset: 0 auto 0 0;
+  background: #4a4458;
+}
+
+.faixa-valor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  background: var(--destaque);
+}
+
+.fundo-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: #000000aa;
+}
+
+.modal {
+  width: min(28rem, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  padding: 1.25rem;
+  border-radius: 0.875rem;
+  background: var(--superficie);
+  border: 1px solid var(--borda);
+}
+
+.modal h2 {
+  margin: 0 0 0.25rem;
+}
+
+.lista-resumo {
+  margin: 1rem 0;
+  padding-left: 1.125rem;
+  line-height: 1.6;
+}

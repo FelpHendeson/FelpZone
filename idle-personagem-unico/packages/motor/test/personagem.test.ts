@@ -17,6 +17,7 @@ import {
   serializarSave,
   sortearTentativa,
   tentativaAtual,
+  statusIniciais,
   validarNome,
   type EstadoJogo,
   type ResultadoAcao,
@@ -96,7 +97,9 @@ describe("criação do personagem", () => {
       criadoEm: T0 + 1000,
     });
     expect(p.origem.loreGerada).toBe(gerarLoreOrigem(r.origem, r.racaId, "Brenna"));
-    expect(Object.keys(p)).not.toContain("status");
+    // F2: nasce ocioso, com os status no piso do nível 1.
+    expect(p.status).toEqual(statusIniciais(p));
+    expect(p.atividade).toBeNull();
     // Salvar e recarregar mantém a ficha.
     const lido = carregarSave(serializarSave(criado));
     expect(lido.ok && lido.estado).toEqual(criado);

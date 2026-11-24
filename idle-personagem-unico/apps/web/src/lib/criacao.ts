@@ -22,10 +22,9 @@ export function prepararCriacao(estado: EstadoJogo): EstadoJogo {
  * Aplica uma ação do motor e grava o resultado antes de devolvê-lo, para
  * que recarregar a página nunca volte a um estado anterior (e devolva chances).
  */
-export async function aplicarESalvar(
-  armazenamento: Armazenamento,
-  resultado: ResultadoAcao,
-): Promise<ResultadoAcao> {
+export type ResultadoComEstado = ResultadoAcao | { readonly ok: false; readonly erro: { readonly mensagem: string } } | { readonly ok: true; readonly estado: EstadoJogo };
+
+export async function aplicarESalvar<R extends ResultadoComEstado>(armazenamento: Armazenamento, resultado: R): Promise<R> {
   if (resultado.ok) await salvarJogo(armazenamento, CHAVE_SAVE, resultado.estado);
   return resultado;
 }

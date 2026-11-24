@@ -1,6 +1,6 @@
 # Fatia F2 — Loop de atividade e treino
 
-> **Situação:** escrita em 24/11/2026, **aguardando autorização do autor**. Não execute antes disso. A F1 já está na `main` (commit `c025163`).
+> **Situação:** autorizada pelo autor e **concluída** em 24/11/2026. A F1 já estava na `main` (commit `c025163`).
 
 ## Contexto
 

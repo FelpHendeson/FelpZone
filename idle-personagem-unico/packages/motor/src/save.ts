@@ -5,18 +5,19 @@
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
 import { validarConta, type Conta } from "./personagem/conta";
+import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 2;
+export const VERSAO_SAVE_ATUAL = 3;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
 
 /**
  * Estado do jogo. v1 (F0): semente, RNG e tempo. v2 (F1): `conta`, com os
- * personagens, o ativo e o sorteio em andamento. Próximas fatias acrescentam
- * campos com migração.
+ * personagens, o ativo e o sorteio em andamento. v3 (F2): status e atividade
+ * de cada personagem. Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
   readonly versao: typeof VERSAO_SAVE_ATUAL;
@@ -41,8 +42,29 @@ export const migrarV1ParaV2: Migracao = (dados) => ({
   conta: { personagens: [], personagemAtivoId: null, sorteio: null },
 });
 
+/**
+ * v2 → v3: cada personagem ganha os status iniciais (piso do nível 1, com os
+ * modificadores de raça, dom e origem) e fica ocioso. Dados inválidos fazem a
+ * migração lançar, e `migrarSave` transforma isso em erro.
+ */
+export const migrarV2ParaV3: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return {
+    ...dados,
+    conta: {
+      ...(conta as object),
+      personagens: personagens.map((p: Record<string, unknown>) => ({
+        ...p,
+        status: statusIniciais(p as unknown as BaseModificadores),
+        atividade: null,
+      })),
+    },
+  };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
-export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({ 1: migrarV1ParaV2 });
+export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({ 1: migrarV1ParaV2, 2: migrarV2ParaV3 });
 
 export type CodigoErroSave =
   | "vazio"

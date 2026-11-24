@@ -3,7 +3,7 @@
  * 2 Épico, 1 Ancestral, 1 Primordial. Efeitos dependem de sistemas futuros
  * e ficam em `efeitoPendente` (não aplicados na F1).
  */
-import type { DomRaca, RaridadeDom } from "./tipos";
+import type { DomRaca, Efeito, RaridadeDom } from "./tipos";
 
 type Linha = readonly [id: string, nome: string, descricao: string];
 type TabelaRaca = Readonly<Record<RaridadeDom, readonly Linha[]>>;
@@ -150,7 +150,7 @@ const TABELAS: Readonly<Record<string, TabelaRaca>> = {
       ["escamas-de-brasa", "Escamas de Brasa", "Quem o ataca corpo a corpo se queima."],
     ],
     epico: [
-      ["coracao-de-dragao", "Coração de Dragão", "O teto de Força e Espírito sobe mais por nível."],
+      ["coracao-de-dragao", "Coração de Dragão", "Teto de Força e Espírito 10% maior."],
       ["rugido-antigo", "Rugido Antigo", "Reduz o ataque de todos os inimigos por alguns segundos."],
     ],
     ancestral: [["memoria-da-ninhada", "Memória da Ninhada", "Dragões e bestas dracônicas o reconhecem como parente."]],
@@ -179,12 +179,23 @@ const TABELAS: Readonly<Record<string, TabelaRaca>> = {
   },
 };
 
+/** Dons cujo efeito já tem significado (F2: só status, teto, treino e XP). */
+const EFEITOS_APLICADOS: Readonly<Record<string, Efeito>> = {
+  "draconato-coracao-de-dragao": {
+    modificadores: [
+      { alvo: "teto.forca", operacao: "percentual", valor: 0.1, origem: { tipo: "dom", id: "draconato-coracao-de-dragao" } },
+      { alvo: "teto.espirito", operacao: "percentual", valor: 0.1, origem: { tipo: "dom", id: "draconato-coracao-de-dragao" } },
+    ],
+  },
+};
+
 function montar(): DomRaca[] {
   const lista: DomRaca[] = [];
   for (const [racaId, tabela] of Object.entries(TABELAS)) {
     for (const raridade of ["incomum", "raro", "epico", "ancestral", "primordial"] as const) {
       for (const [id, nome, descricao] of tabela[raridade]) {
-        lista.push({ id: `${racaId}-${id}`, racaId, nome, raridade, descricao, efeito: { efeitoPendente: descricao } });
+        const idCompleto = `${racaId}-${id}`;
+        lista.push({ id: idCompleto, racaId, nome, raridade, descricao, efeito: EFEITOS_APLICADOS[idCompleto] ?? { efeitoPendente: descricao } });
       }
     }
   }

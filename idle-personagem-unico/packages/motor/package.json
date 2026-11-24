@@ -10,7 +10,8 @@
     "test": "vitest run",
     "lint": "eslint .",
     "typecheck": "tsc -p tsconfig.json && tsc -p tsconfig.test.json",
-    "simular": "node --no-warnings --import ./scripts/resolver-ts.mjs scripts/simular-sorteio.ts"
+    "simular": "node --no-warnings --import ./scripts/resolver-ts.mjs scripts/simular-sorteio.ts",
+    "ritmo": "node --no-warnings --import ./scripts/resolver-ts.mjs scripts/ritmo.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.5",

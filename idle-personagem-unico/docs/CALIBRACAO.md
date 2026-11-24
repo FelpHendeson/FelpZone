@@ -1,6 +1,6 @@
 # Calibração
 
-Registro dos números **[Calibrar]** do jogo: valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
+Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino e progressão da F2): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
 
 ## Sorteio do personagem (F1)
 
@@ -187,8 +187,88 @@ Tentativas em que o orçamento cortou alguma opção: **19.319** (9,66%).
 
 O orçamento já cumpre o papel do GDD ("não tirar tudo raro de uma vez") nas combinações extremas, sem distorcer as chances do dia a dia. Se o autor quiser que ele pese mais, a alternativa coerente é **subir custos de combinação**, e não baixar o saldo: por exemplo, core excêntrico a **25** faz excêntrico e Primordial nunca saírem juntos (0 + 25 + 80 > 100), mantendo o Primordial possível nas outras combinações. Qualquer mudança será registrada aqui com o antes e o depois.
 
-### Histórico
+## Treino e progressão (F2)
+
+Fonte dos números: `packages/motor/src/personagem/progressao.ts` (`CONFIG_PROGRESSAO`) e `packages/motor/src/dados/status.ts` (perfis por raça e atividades). Reproduza com:
+
+```bash
+cd idle-personagem-unico
+npm run ritmo
+```
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Ciclo de treino | 30 s (todas as 8 atividades); ÷ velocidade, mínimo 1 s | [Calibrar] |
+| XP por ciclo | 10 (1.200 XP/h sem bônus) | [Calibrar] |
+| XP para ir de L a L+1 | round(200 × L^1,5); nível máximo 50 (total 1.379.031 XP) | [Calibrar] |
+| Teto | base_raça × (1 + 0,10 × (L − 1)) × (1 + Σ% de `teto` e `teto.<status>`) | fórmula do GDD; [Calibrar] |
+| Piso | fração_da_raça × teto | **mudou**: era 0,55 fixo |
+| Ganho por ciclo | 0,6% do teto (sem modificadores) × (1 − posição na faixa)^0,6 × (1 + Σ% de `ganho-treino`) | [Calibrar] |
+| Perfis por raça | destaque 13, fraqueza 7, resto 10; Draconato 11 com destaques 14; Lobisomem 12 nos destaques secundários | [Calibrar] |
+| Fração de piso | Humano 0,65 · Silfo 0,50 · Draconato 0,45 · demais 0,55 | [Calibrar] |
+
+### Alvos de ritmo propostos (aguardam o autor)
+
+| Alvo | Perfil dedicado (3 sessões/dia) | Resultado |
+| --- | --- | --- |
+| Nível 10 no primeiro dia de jogo | ≤ 1,5 dia corrido | 1,3 d ✅ |
+| Nível 20 na primeira semana | ≤ 7 d | 5,3 d ✅ |
+| Nível 50 (fim do Ato I) em 6 a 8 semanas | 42–56 d | 48,3 d ✅ |
+| Quem abre 1×/dia leva no máximo ~2× o tempo | ≤ 2× | ~2× (o limite de 12 h corta metade do dia) ✅ |
+
+Os números iniciais já ficaram dentro dos alvos; **não houve ajuste**.
+
+### Resultado do bot
+
+- Data: 2026-11-24 · motor 0.1.0 · limite offline 12 h
+- Números: ciclo 30 s, 10 XP/ciclo, XP(L→L+1) = round(200 × L^1,5), teto +10%/nível, ganho base 0,60% do teto por ciclo, expoente 0,6, nível máximo 50.
+- XP total até o nível 50: 1.379.031 (1149 h de atividade sem bônus).
+
+Estratégia: em cada sessão, treina o status mais longe do teto; entre sessões, o offline trabalha (até 12 h).
+
+#### Tempo até o nível (dias corridos desde a criação; horas com atividade)
+
+O XP não depende da raça; o Humano representa todas (exceto origens com bônus de XP).
+
+| Perfil | Nível 5 | Nível 10 | Nível 20 | Nível 30 | Nível 40 | Nível 50 | Horas perdidas pelo limite |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Dedicado (3 sessões/dia: 8 h, 13 h, 20 h) | 0,5 d (5 h) | 1,3 d (24 h) | 5,3 d (120 h) | 13,5 d (317 h) | 27,8 d (660 h) | 48,3 d (1152 h) | 0 h |
+| Casual (1 sessão/dia, às 20 h) | 1,8 d (12 h) | 2,8 d (24 h) | 10,8 d (120 h) | 27,8 d (324 h) | 55,8 d (660 h) | 96,8 d (1152 h) | 1152 h |
+
+#### Ocupação média da faixa piso → teto dos 8 status ao chegar ao nível (perfil dedicado)
+
+| Raça | Nível 5 | Nível 10 | Nível 20 | Nível 30 | Nível 40 | Nível 50 |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Humano | 12% | 22% | 77% | 89% | 93% | 95% |
+| Draconato | 12% | 28% | 85% | 93% | 96% | 97% |
+| Silfo | 13% | 28% | 84% | 92% | 95% | 97% |
+
+#### Treino de um status num nível fixo (Humano, partindo do piso)
+
+Quantas horas de treino levam um status do piso a 50% e a 90% da faixa, sem subir de nível no meio.
+
+| Nível | Faixa piso → teto (Força) | Ganho no 1º ciclo | Até 50% | Até 90% |
+| ---: | ---: | ---: | ---: | ---: |
+| 1 | 6,50 → 10,00 | +0,060 | 0,30 h | 0,73 h |
+| 10 | 12,35 → 19,00 | +0,114 | 0,30 h | 0,73 h |
+| 25 | 22,10 → 34,00 | +0,204 | 0,30 h | 0,73 h |
+| 50 | 38,35 → 59,00 | +0,354 | 0,30 h | 0,73 h |
+
+XP por hora de treino: 1200 (sem bônus).
+
+### Leitura e proposta (F2)
+
+1. **Os primeiros níveis são muito rápidos** (nível 5 em menos de 3 h de atividade). É de propósito para o primeiro dia ter recompensa, mas faz os status ficarem para trás no começo: no nível 10, a faixa piso → teto está só ~22–28% ocupada em média.
+2. **Depois do nível 20 os status quase lotam** (77–97% da faixa), porque levar um status do piso a 90% custa sempre ~0,73 h e cada nível passa a durar horas. O treino de status perde peso no meio do Ato I.
+3. **Proposta (não aplicada):** quando chegarem as próximas fontes de XP (coleta e combate, F3–F4), revisar junto: (a) baixar o ganho base para ~0,4% do teto, ou (b) fazer o custo de encher a faixa crescer com o nível. Mudar agora, só com treino, calibraria um jogo que ainda não existe.
+4. **Silfo** sobe de nível ~10% mais rápido por causa do Corpo de Vento (ciclos mais curtos, mesmo XP por ciclo). Se isso for indesejado, a velocidade pode valer só para o ganho de status.
+
+## Histórico
 
 | Data | Mudança | Antes → depois |
 | --- | --- | --- |
 | 23/11/2026 | Primeira calibração (F1). Custos do orçamento definidos (o GDD não tinha números). | — |
+| 24/11/2026 | F2: fração de piso por raça (pedida pelo GDD: Humano piso alto, Draconato piso baixo). | piso = 0,55 × teto para todas → Humano 0,65, Silfo 0,50, Draconato 0,45, demais 0,55 |
+| 24/11/2026 | F2: números de ciclo, XP, ganho e perfis por raça definidos (não existiam). | — |

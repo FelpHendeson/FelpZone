@@ -2,11 +2,13 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
-import { CATALOGO } from "../dados";
+import { CATALOGO, STATUS } from "../dados";
+import type { StatusId } from "../dados/status";
 import { ehEstadoRng, type EstadoRng } from "../rng";
 import { reproduzirTentativa, type ResultadoTentativa } from "../sorteio/cascata";
 import { CONFIG_SORTEIO } from "../sorteio/config";
 import { validarNome } from "./nome";
+import { CONFIG_PROGRESSAO, faixas, modificadoresDoPersonagem, xpParaProximoNivel, type ValoresStatus } from "./progressao";
 
 export const MAX_PERSONAGENS = 3;
 export const TAMANHO_MAXIMO_LORE = 1000;
@@ -28,7 +30,13 @@ export interface Aparencia {
   readonly corRoupa: string;
 }
 
-/** Ficha inicial (F1). Status, atividades e inventário chegam da F2 em diante. */
+/** Atividade em andamento: id e quanto do ciclo atual já passou. */
+export interface AtividadeAtual {
+  readonly id: string;
+  readonly progressoMs: number;
+}
+
+/** Ficha do personagem. F1: identidade; F2: status, XP e atividade. Inventário chega na F3. */
 export interface Personagem {
   readonly id: string;
   readonly nome: string;
@@ -43,6 +51,10 @@ export interface Personagem {
   readonly tracoPersonalidadeId: string;
   readonly aparencia: Aparencia;
   readonly criadoEm: number;
+  /** Valor treinado de cada status (sem os modificadores `status.<id>`). */
+  readonly status: ValoresStatus;
+  /** `null` = ocioso. */
+  readonly atividade: AtividadeAtual | null;
 }
 
 /** Uma tentativa do sorteio: o estado do RNG no início basta para reproduzi-la. */
@@ -123,11 +135,13 @@ function validarOrigem(v: unknown, racaId: string): OrigemPersonagem | null {
 
 function validarPersonagem(v: unknown): Personagem | null {
   if (!ehObjeto(v)) return null;
-  const { id, nome, nivel, xp, racaId, coreId, dons, origem, bestaVinculadaId, marcaAnomaliaId, tracoPersonalidadeId, aparencia, criadoEm } = v;
+  const { id, nome, nivel, xp, racaId, coreId, dons, origem, bestaVinculadaId, marcaAnomaliaId, tracoPersonalidadeId, aparencia, criadoEm, status, atividade } = v;
   if (!ehTexto(id, 64)) return null;
   const n = validarNome(nome);
   if (!n.ok || n.nome !== nome) return null;
-  if (!ehInteiro(nivel, 1, 10_000) || !ehInteiro(xp, 0, Number.MAX_SAFE_INTEGER) || !ehInteiro(criadoEm, 0, Number.MAX_SAFE_INTEGER)) return null;
+  if (!ehInteiro(nivel, 1, CONFIG_PROGRESSAO.nivelMaximo) || !ehInteiro(criadoEm, 0, Number.MAX_SAFE_INTEGER)) return null;
+  const xpLimite = xpParaProximoNivel(nivel);
+  if (typeof xp !== "number" || !Number.isFinite(xp) || xp < 0 || (xpLimite > 0 ? xp >= xpLimite : xp !== 0)) return null;
   if (typeof racaId !== "string" || !CATALOGO.racas.has(racaId)) return null;
   if (typeof coreId !== "string" || !CATALOGO.cores.has(coreId)) return null;
   if (!Array.isArray(dons) || dons.length > 32) return null;
@@ -145,6 +159,24 @@ function validarPersonagem(v: unknown): Personagem | null {
   const { corCabelo, corRoupa } = aparencia;
   if (typeof corCabelo !== "string" || !CATALOGO.coresCabelo.has(corCabelo)) return null;
   if (typeof corRoupa !== "string" || !CATALOGO.coresRoupa.has(corRoupa)) return null;
+  // Status: finitos e dentro de piso/teto do nível (com folga de arredondamento).
+  if (!ehObjeto(status)) return null;
+  const faixa = faixas(racaId, nivel, modificadoresDoPersonagem({ racaId, dons: dons as string[], origem: origemLimpa }, nivel));
+  const statusLimpo = {} as Record<StatusId, number>;
+  for (const s of STATUS) {
+    const valor = status[s];
+    const { piso, teto } = faixa[s];
+    const folga = 1e-9 * Math.max(1, teto);
+    if (typeof valor !== "number" || !Number.isFinite(valor) || valor < piso - folga || valor > teto + folga) return null;
+    statusLimpo[s] = valor;
+  }
+  let atividadeLimpa: AtividadeAtual | null = null;
+  if (atividade !== null) {
+    if (!ehObjeto(atividade) || typeof atividade.id !== "string") return null;
+    const a = CATALOGO.atividades.get(atividade.id);
+    if (!a || !ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10)) return null;
+    atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs };
+  }
   return {
     id,
     nome,
@@ -159,6 +191,8 @@ function validarPersonagem(v: unknown): Personagem | null {
     tracoPersonalidadeId,
     aparencia: { corCabelo, corRoupa },
     criadoEm,
+    status: statusLimpo,
+    atividade: atividadeLimpa,
   };
 }
 

@@ -30,6 +30,7 @@ export {
   carregarSave,
   migrarSave,
   migrarV1ParaV2,
+  migrarV2ParaV3,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -74,9 +75,27 @@ export {
 } from "./sorteio/acoes";
 export type { CodigoErroSorteio, ErroSorteio, EscolhasFinais, ResultadoAcao } from "./sorteio/acoes";
 export { CONTA_VAZIA, MAX_PERSONAGENS, resumoTentativa, validarConta } from "./personagem/conta";
-export type { Aparencia, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
+export type { AtividadeAtual, Aparencia, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
 export { NOME_MAX, NOME_MIN, validarNome } from "./personagem/nome";
 export type { CodigoErroNome, ErroNome } from "./personagem/nome";
 export { gerarLoreOrigem } from "./personagem/lore";
 export { gerarMiniaturaSvg } from "./personagem/aparencia";
 export type { ParametrosMiniatura } from "./personagem/aparencia";
+
+// F2: progressão, atividades e avanço do tempo.
+export {
+  CONFIG_PROGRESSAO,
+  faixaStatus,
+  faixas,
+  fator,
+  ganhoDeTreino,
+  modificadoresDoPersonagem,
+  statusIniciais,
+  valorEfetivo,
+  xpParaProximoNivel,
+} from "./personagem/progressao";
+export type { BaseModificadores, ConfigProgressao, FaixaStatus, ValoresStatus } from "./personagem/progressao";
+export { avancar, avancarPersonagem, duracaoCicloMs, ganhosZerados, xpDoCiclo } from "./atividades/ciclos";
+export type { ResultadoCiclos, ResumoAvanco } from "./atividades/ciclos";
+export { iniciarAtividade, pararAtividade } from "./atividades/acoes";
+export type { CodigoErroAtividade, ErroAtividade, ResultadoAtividade } from "./atividades/acoes";

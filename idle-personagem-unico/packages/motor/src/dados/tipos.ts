@@ -62,10 +62,17 @@ export type TagAfinidade = (typeof TAGS_AFINIDADE)[number];
 /**
  * Efeito de conteúdo. `modificadores` usa o modelo único da F0 quando o
  * efeito já tem significado; `efeitoPendente` descreve, em texto, o que
- * depende de um sistema que ainda não existe. **Nenhum dos dois é aplicado na F1.**
+ * depende de um sistema que ainda não existe (não é aplicado).
+ *
+ * Desde a F2 são aplicados os alvos `status.<id>`, `teto`, `teto.<id>`,
+ * `ganho-treino`, `xp-personagem` e `velocidade-atividade` (ver
+ * `personagem/progressao.ts`). Os demais alvos (ofícios, preços, Limiar...)
+ * continuam só como dado até a fatia do sistema deles.
  */
 export interface Efeito {
   readonly modificadores?: readonly Modificador[];
+  /** Modificadores que só valem até um nível (ex.: O Despertado Tardio). */
+  readonly temporario?: { readonly ateNivel: number; readonly modificadores: readonly Modificador[] };
   readonly efeitoPendente?: string;
 }
 

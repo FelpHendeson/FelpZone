@@ -198,6 +198,14 @@ Oito status treináveis [Proposta]:
 
 Fórmula inicial: `teto(L) = base_raça × (1 + 0,10 × (L − 1))`, `piso(L) = 0,55 × teto(L)`, `ganho = ganho_base × (1 − (valor − piso)/(teto − piso))^0,6` [Calibrar].
 
+**Implementado na F2** [Calibrar] (números e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md)):
+
+- **Piso por raça:** `piso(L) = fração_da_raça × teto(L)`, para cumprir "Humano piso alto, Draconato piso baixo": Humano 0,65, Silfo 0,50, Draconato 0,45, demais 0,55 (antes: 0,55 para todas).
+- **Perfis:** destaque 13, fraqueza 7, resto 10 (Draconato: 11 e destaques 14), coerentes com a tabela do §3.1.
+- **Ganho:** `ganho_base = 0,6% × teto(L)` por ciclo; o status nunca passa do teto. Ao subir de nível, quem está abaixo do novo piso sobe até ele.
+- **XP:** só o treino dá XP na F2: 10 por ciclo de 30 s; `XP(L → L+1) = round(200 × L^1,5)`.
+- **Modificadores aplicados:** `status.<id>` (valor efetivo), `teto`, `teto.<id>`, `ganho-treino`, `xp-personagem` e `velocidade-atividade`. Exemplos: Corpo de Vento (+10% de velocidade), Órfão do Templo (+2 Espírito), A Voz do Poço (+2 Percepção), Soldado (+2 Resistência), Cria da Matilha (+2 Agilidade), O Reencarnado (−5% Vigor), O Despertado Tardio (teto −10%; +50% de XP e de treino até o nível 20), Coração de Dragão (teto de Força e Espírito +10%).
+
 ### 5.3 Nível máximo
 
 Cresce com os Atos: Ato I vai até o **nível 50** [Proposta]. Novos Atos aumentam o teto de nível, abrem mapas, monstros, raças e cores. [Autor: o jogo não acaba]
@@ -206,9 +214,11 @@ Cresce com os Atos: Ato I vai até o **nível 50** [Proposta]. Novos Atos aument
 
 Só **uma atividade por vez**. Todas rodam em **ciclos**: a atividade tem um tempo base, que cai com velocidade/eficiência, e cada ciclo produz XP e itens. O progresso offline é calculado ao abrir o jogo, por no máximo **12 horas**. [Autor]
 
+Regras da F2 [Proposta]: só ciclos **completos** contam; o que sobra de um ciclo fica guardado. **Trocar de atividade descarta o ciclo parcial.** Tempo além de 12 h é descartado; relógio que volta no tempo não dá ganho. Só o personagem ativo trabalha.
+
 ### 6.1 Treino de status [Autor]
 
-Descrito em §5.2.
+Descrito em §5.2. Atividades da F2 (uma por status, ciclo de 30 s [Calibrar]): Corrida de fôlego (Vigor), Levantamento de pedras (Força), Treino de impacto (Resistência), Circuito de obstáculos (Agilidade), Estudo de tomos (Intelecto), Meditação (Espírito), Vigília na torre (Percepção) e Jogos na taverna (Sorte). Atividades combinadas (ex.: Corrida de resistência) ficaram para depois.
 
 ### 6.2 Coleta [Autor]
 

@@ -8,6 +8,7 @@ import { DONS } from "./dons";
 import { montarMarcaAnomalia } from "./marcas";
 import { BERCOS, BESTAS_VINCULADAS, MARCAS_ORIGEM, MOTIVACOES, ORIGENS_ESPECIAIS, TRACOS_PERSONALIDADE } from "./origens";
 import { RACAS } from "./racas";
+import { ATIVIDADES_TREINO, type AtividadeTreino } from "./status";
 import type {
   Berco,
   BestaVinculada,
@@ -68,6 +69,7 @@ export const CATALOGO = {
   marcasAnomalia: indice<MarcaAnomalia>(MARCAS_ANOMALIA),
   coresCabelo: indice<CorPaleta>(CORES_CABELO),
   coresRoupa: indice<CorPaleta>(CORES_ROUPA),
+  atividades: indice<AtividadeTreino>(ATIVIDADES_TREINO),
 } as const;
 
 /** Busca que lança: para ids que já foram validados. */
@@ -81,3 +83,6 @@ export function obter<T>(mapa: ReadonlyMap<string, T>, id: string): T {
 export function donsDaRaca(racaId: string): readonly DomRaca[] {
   return DONS.filter((d) => d.racaId === racaId);
 }
+
+export { ATIVIDADES_TREINO, NOME_STATUS, PERFIS_RACA, STATUS } from "./status";
+export type { AtividadeTreino, PerfilRaca, StatusId } from "./status";
