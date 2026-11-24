@@ -197,3 +197,11 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 96. **Build da Arena** registrado na API passa a ser gerado do save do servidor (o aparelho não escolhe o próprio build).
 97. **Balanceamento final**: nenhum número do jogo mudou na F13; o bot passou a usar fusão e ampliação de mochila, e o gold do 60º dia caiu de 4,6 milhões para 0,5 milhão. Os ralos funcionam; quem não os usa acumula.
 
+
+## Diretrizes do autor pós-auditoria (24/11/2026)
+
+98. **[Autor]** Tela de apresentação e autenticação; conta representa jogador, não navegador. Mesmo progresso em celular e computador; contas isoladas.
+99. **[Autor]** Agente pode melhorar lógica, interface e navegação além das descrições literais; mudanças centrais de game design devem ser justificadas e documentadas.
+100. **[Autor]** Criar tutorial para orientar o jogador.
+101. **[Autor]** Solicitar spritesheets ao autor via prompts técnicos quando necessário (Gemini/ChatGPT); agente valida e integra.
+102. **[Proposta]** Consolidar web em F13.1–F13.8 antes da F14; avaliar PostgreSQL e recuperação de conta, sem autorização de custo ou migração automática. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md).

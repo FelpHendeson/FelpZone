@@ -28,3 +28,7 @@ Escopo: `apps/web` (páginas e API `/api/v1`) e `packages/motor` (regras e valid
 4. **Modo local é confiável só para o próprio jogador**: quem edita o `localStorage` muda o próprio jogo. A competição global (quando houver banco) deve usar só estados do servidor.
 5. **Limite por IP** atrás de proxy: usa o primeiro `x-forwarded-for`, que a Vercel define. Em outro provedor, revisar.
 6. **Arena e builds de outros jogadores**: o build registrado é gerado pelo servidor a partir do save dele (o que o aparelho manda é ignorado). A Arena local continua sendo do aparelho; um ranking global deve usar só lutas resolvidas no servidor.
+
+## Complemento pós-auditoria (24/11/2026)
+
+A validação estrutural e o relógio do servidor não provam a procedência de um save importado. A rota de importação admite substituição explícita; builds derivadas desse estado não devem ser consideradas competitivamente confiáveis. Separar progresso importado/casual e autoritativo. Corrigir locks com TTL e remoção incondicional (token + liberação atômica + versão), idempotência, isolamento de cache por conta, reconciliação online/offline, recuperação de acesso, limite real de bytes, readiness e cache PWA. São achados estáticos, não exploração prática. Detalhes e critérios em [AUDITORIA-CONSOLIDACAO.md](AUDITORIA-CONSOLIDACAO.md).

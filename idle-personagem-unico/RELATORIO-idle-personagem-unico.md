@@ -1029,3 +1029,7 @@ O jogo web está completo: sorteio, treino, coleta, combate, habilidades, Limiar
 ## Próximo passo
 
 **F14 — Port mobile**, quando o autor decidir. Antes, vale ativar o banco (item 1 acima) e conferir as decisões.
+
+## 24/11/2026 — Auditoria e replanejamento pós-F13
+
+Registrada auditoria estática técnica e funcional com as quatro novas diretrizes do autor (conta real e apresentação; autonomia de UX; tutorial; prompts de spritesheets). A F13 histórica foi preservada; foram propostas subfatias F13.1–F13.8 de consolidação antes da F14. Ver [documento consolidado](docs/AUDITORIA-CONSOLIDACAO.md). Esta entrada é documental, sem implementação, execução de testes ou ativação de infraestrutura.

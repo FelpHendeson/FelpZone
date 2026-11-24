@@ -20,9 +20,22 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F11** ✅ | Mundo vivo | Dia/noite, clima, eventos aleatórios, Crônica, títulos, bestiário completo, profissões secundárias, **arcos de história das origens especiais**. | Hora do dia muda recursos e poder de raças/cores; origem especial abre seu arco. |
 | **F12** ✅ | Competição | Campo de Provas, Arena assíncrona, bots, torneios, temporadas. | Torneio simulado reproduzível pela semente. |
 | **F13** ✅ | Acabamento web | PWA, sons, arte, acessibilidade, balanceamento final. | Auditoria de ritmo e de segurança. |
-| **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Paridade com a web. |
+| **F13.1** | Estabilização técnica e segurança | Corrigir autoridade do save, concorrência, idempotência, sincronização e cache; testes de regressão. | Importação não permite adulterar progresso competitivo; concorrência e falhas de rede testadas. |
+| **F13.2** | Contas e persistência | Autenticação real, banco ativo, isolamento por conta, recuperação e migração de save local. | Mesma conta em dois dispositivos; contas distintas isoladas; logout seguro; persistência comprovada. |
+| **F13.3** | Apresentação e entrada | Tela inicial, login/cadastro, seleção/criação de personagem. | Fluxo completo de usuário novo e recorrente, sem personagem obrigatório antes do login. |
+| **F13.4** | Interface e navegação | Revisar arquitetura de informação, responsividade, feedback e protagonismo do personagem. | Jornadas principais claras em mobile e desktop; funcionalidades existentes preservadas. |
+| **F13.5** | Tutorial | Onboarding interativo e contextual, pulável e revisável, com progresso salvo por conta/personagem conforme escopo. | Jogador aprende sorteio, treino, coleta, venda, equipamento, combate e guilda por ações reais. |
+| **F13.6** | Direção artística | Identidade visual, sprites modulares, ícones e animações; prompts para o autor quando necessários. | Assets validados e integrados; placeholders não bloqueiam desenvolvimento. |
+| **F13.7** | Auditoria em execução | Playwright/E2E, playtest, desempenho mobile, acessibilidade e calibração. | Jornadas críticas verificadas; testes, lint, typecheck e build verdes; resultados documentados. |
+| **F13.8** | Consolidação web/PWA | Revisão de release, regressões, deploy e validação offline/online. | Web aprovada pelo autor, sem bloqueios críticos, antes de F14. |
+| **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Aceite de F13.8 e paridade com a web. |
+| **F15** [Proposta] | Expansão | Ato II e competição online autoritativa. | Escopo futuro a aprovar. |
 
-**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F13 concluídas em 24/11/2026** (jogo web completo; próximo é o port mobile, F14, que depende de decisão do autor) (na F9, o banco da sincronização ainda precisa ser ativado pelo autor) (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
+**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F13 concluídas em 24/11/2026** (escopo inicial entregue; após auditoria, consolidação F13.1–F13.8 proposta antes de F14) (na F9, o banco da sincronização ainda precisa ser ativado pelo autor) (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
+
+## Consolidação pós-auditoria (24/11/2026)
+
+As subfatias são propostas de planejamento, ainda não executadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
 
 ## Regras de ordem
 

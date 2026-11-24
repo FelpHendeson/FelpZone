@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F13 (Acabamento web) concluída: o jogo web está completo (F1 a F13).** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). **Pendente do autor:** ativar o banco da sincronização (veja `docs/DECISOES.md`, item 60) e decidir o port mobile (F14).
+**F13 (Acabamento web) entregue: escopo inicial implementado (F1 a F13), em consolidação antes do port mobile.** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). **Pendente do autor:** ativar o banco da sincronização (veja `docs/DECISOES.md`, item 60) e decidir o port mobile (F14).
 
 **F12 (Competição) concluída.** Arena assíncrona contra bots por arquétipo (10 lutas por dia, rating e replays), Campo de Provas, torneio semanal em chave e temporadas de 8 semanas com tema, ranking e uma insígnia nomeada. Tudo reproduzível pela semente.
 
@@ -250,8 +250,8 @@ npm run ritmo      # bot de ritmo do treino, da coleta, do combate, das habilida
 
 `npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
 
-Não há variáveis de ambiente nem `.env` nesta fatia.
+Para modo online, configure as variáveis de ambiente do banco conforme `apps/web/.env.example`; sem elas, a API de sincronização fica indisponível.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F14 (Port mobile)**, quando o autor decidir.
+O autor autorizou seguir até a **F13** sem parar (histórico). Após a auditoria de 24/11/2026, a próxima fase proposta é **F13.1–F13.8 — consolidação web**, antes da F14. Prioridades do autor: apresentação e login, conta real entre dispositivos, liberdade de melhoria da UX, tutorial e prompts de spritesheets quando necessários. Consulte [auditoria consolidada](docs/AUDITORIA-CONSOLIDACAO.md) e [roadmap](docs/ROADMAP.md). A implementação continua sujeita à autorização do autor.

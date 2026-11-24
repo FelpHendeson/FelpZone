@@ -517,3 +517,7 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 - Arte final, animações e sons (ficam para depois do jogo completo na web).
 - Port mobile (depois do web completo).
 - Monetização. O projeto roda no plano Hobby da Vercel (uso pessoal e não comercial).
+
+## Complemento de experiência do jogador — 24/11/2026
+
+**[Autor]** A entrada deve apresentar o jogo e permitir autenticação em conta persistente entre dispositivos; navegador não define identidade. **[Autor]** A interface e navegação podem ser aprimoradas pelo agente sem seguir descrições anteriores literalmente, preservando princípios do jogo. **[Autor]** Incluir tutorial. **[Autor]** Quando spritesheets forem necessários, solicitar ao autor prompts técnicos para geração. [Proposta] Onboarding por ações reais, contextual, pulável e revisável; apresentação progressiva de sistemas e protagonismo visual do personagem. Ver [auditoria e critérios](AUDITORIA-CONSOLIDACAO.md).

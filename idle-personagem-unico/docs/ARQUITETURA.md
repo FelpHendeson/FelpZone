@@ -1,6 +1,6 @@
 # Arquitetura (proposta)
 
-Rótulos como no GDD: **[Autor]**, **[Proposta]**, **[Em discussão]**, **[Calibrar]**. Nenhum código existe ainda; este documento guia as fatias de `ROADMAP.md`.
+Rótulos como no GDD: **[Autor]**, **[Proposta]**, **[Em discussão]**, **[Calibrar]**. Documento originalmente proposto antes do código; registra decisões e implementação das fatias de `ROADMAP.md`. As diretrizes pós-auditoria abaixo prevalecem sobre propostas anteriores conflitantes.
 
 ## 1. Princípios
 
@@ -136,3 +136,7 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 - Por isso o motor não pode usar APIs exclusivas do navegador ou do Node. Armazenamento entra por uma **interface** (`Armazenamento`), implementada por `localStorage`/IndexedDB na web e por `AsyncStorage`/SQLite no mobile.
 - A API `/api/v1` é a mesma. Notificações push (fim de atividade, Limiar terminado) entram como extra.
 - Só começa quando a web estiver 100% (decisão do autor).
+
+## 11. Consolidação pós-auditoria (24/11/2026)
+
+[Autor] Identidade persistente por conta e sincronização entre dispositivos são requisitos, não apenas sessão local. Tela de apresentação, autenticação e seleção de personagem antecedem a jornada online. Isolar cache por conta e impedir vazamento entre sessões. [Proposta] Avaliar PostgreSQL para persistência principal, sem descartar Redis antes da análise de custo e requisitos; manter motor e API. Revisar autoridade de saves importados, concorrência, idempotência, reconciliação e recuperação de acesso. F14 depende de aceite da consolidação web. Ver [auditoria](AUDITORIA-CONSOLIDACAO.md).
