@@ -17,7 +17,7 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F0 | Fundação | ✅ Concluída (antes deste relatório) | `293c932` | 57 |
 | F1 | Sorteio do personagem | ✅ Concluída em 23/11/2026; aprovada "por ora" pelo autor em 24/11 | `c025163` | 140 |
 | F2 | Loop de atividade e treino | ✅ Concluída em 24/11/2026 | `907153d` | 171 |
-| F3 | Mapa e coleta | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F3`) | 196 |
+| F3 | Mapa e coleta | ✅ Concluída em 24/11/2026 | `a400963` | 196 |
 | F4 | Combate por área | ⏳ Aguardando autorização | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
@@ -204,7 +204,7 @@ Mapa, coleta e venda (F3); combate (F4). Efeitos *Centelha Humana* e *Sangue de 
   - 2 h fora: o resumo mostrou toras, âmbar e +5 níveis de Lenhador;
   - Estabelecimentos fora da cidade: "Ir para Pedravau", viagem, "Vender tudo" (0 g → ~500–690 g);
   - recarregar mantém tudo.
-- **CI e Vercel**: conferidos depois do push (ver a mensagem final da sessão).
+- **CI e Vercel**: job do projeto verde no commit `a400963` e deploy em `READY`. O fluxo de coleta, viagem, resumo do tempo fora e venda foi repetido no site publicado em 360 px, com console limpo.
 
 ### Números principais
 
