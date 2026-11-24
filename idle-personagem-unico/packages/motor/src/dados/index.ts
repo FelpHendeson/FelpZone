@@ -15,6 +15,7 @@ import { AREAS_COMBATE, EQUIPAMENTOS, MATERIAIS_COMBATE, MONSTROS, type Atividad
 import { HABILIDADES, HABILIDADES_LIVRO, idLivro, PRECO_LIVRO, RAMOS_CORE, type Habilidade, type RamoCore } from "./habilidades";
 import { ATIVIDADE_APRENDIZADO, type AtividadeAprendizado } from "./aprendizado";
 import { ITENS_LIMIAR, MONSTROS_LIMIAR, PECAS_RETORNADO } from "./limiar";
+import { MISSOES, NPCS, type Missao, type Npc } from "./missoes";
 
 /** Livros (F5): um por habilidade de livro, vendidos no Mercado. */
 export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
@@ -102,6 +103,8 @@ export const CATALOGO = {
   atividades: indice<Atividade>(ATIVIDADES),
   itens: indice<Item>([...TODOS_ITENS, ...LIVROS]),
   habilidades: indice<Habilidade>(HABILIDADES),
+  missoes: indice<Missao>(MISSOES),
+  npcs: indice<Npc>(NPCS),
   ramos: indice<RamoCore>(RAMOS_CORE),
   monstros: indice<Monstro>([...MONSTROS, ...MONSTROS_LIMIAR]),
   ferramentas: indice<Ferramenta>(FERRAMENTAS),
@@ -163,3 +166,5 @@ export {
 } from "./limiar";
 export { criarMonstro } from "./combate";
 export type { PerfilMonstro } from "./combate";
+export { CONFIG_GUILDA, MISSOES, NPCS, PRIMEIRA_META, RANK_MAXIMO_ATO_I, RANKS } from "./missoes";
+export type { Missao, Npc, Objetivo, Recompensa, TipoMissao } from "./missoes";

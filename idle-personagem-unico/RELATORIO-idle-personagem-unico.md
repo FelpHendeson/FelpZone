@@ -21,7 +21,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F4 | Combate por área | ✅ Concluída em 24/11/2026 | `84edc9b` | 218 |
 | F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | `3759090` | 242 |
 | F6 | O Limiar | ✅ Concluída em 24/11/2026 | `7275030` | 263 |
-| F7 | Missões e Guilda | ⏳ Aguardando autorização | — | — |
+| F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F7`) | 277 |
+| F8 a F13 | Forja · Conta · Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -510,6 +511,76 @@ Bônus dos títulos e a Crônica (F11). Livro ou habilidade específica para enc
 
 ---
 
+## F7 — Missões e Guilda
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Escrevi o prompt (`prompts/idle-personagem-unico/07-fatia-F7-missoes-guilda.md`) e executei. O mesmo processo (testes, navegador, docs, relatório, CI e deploy) vale para cada fatia até a F13.
+
+### O que foi executado
+
+- [x] **Os três tipos de missão do autor:**
+  - **metas próprias**: 10, encadeadas, só XP; a primeira já começa ativa;
+  - **missões de NPC**: Velha Iolanda, Brom, Tico e o Pescador Mudo, com cadeias curtas e recompensas em XP, gold e itens;
+  - **missões da Guilda**: 3 contratos repetíveis por rank, com XP, gold e Mérito.
+- [x] **Progresso automático** pelos contadores do personagem (abates, itens obtidos, ciclos de treino, mortes) e pelo estado (nível, ofício, maestria). Conta o que acontece depois do aceite, igual com o jogo aberto ou fechado.
+- [x] **Ações:** aceitar, entregar e desistir. Aceitar e entregar exigem estar no local de quem deu a missão.
+- [x] **Ranks F → S** no Ato I, com **Mérito** e **prova de promoção** (o chefe da área do rank). **Bônus por rank:** desconto nas compras e rendimento de coleta.
+- [x] **Efeito que passou a valer:** Soldado de uma Guerra Perdida começa em E.
+- [x] **Save v8** com migração v7 → v8.
+- [x] **Web:**
+  - Missões → NPC, Metas e Guilda;
+  - NPCs no Mapa → Local atual;
+  - selo na aba Missões com quantas estão prontas para entregar.
+- [x] **Bot da cadeia completa**, pendente desde a F4: treina, coleta, caça, vende, compra, lê livros, faz missões e pede promoção.
+- [x] **Calibração:** curva de XP do personagem. **Documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais**, a partir de instalação limpa: `npm ci`, `npm audit --audit-level=high` (0 vulnerabilidades), `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **277 testes** (268 no motor, 9 na web).
+- **Testes novos:**
+  - catálogo com referências válidas;
+  - metas que só dão XP e encadeiam;
+  - NPC: local, contagem só depois do aceite, cadeia, item de recompensa;
+  - guilda: filtro por rank, repetível com espera, Mérito;
+  - promoção (Mérito, prova, rank máximo) e bônus de rank;
+  - prova contando o chefe; Soldado começa em E;
+  - save v8: ida e volta, migração e 6 adulterações recusadas.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - meditar 6 min e entregar a primeira meta (selo "1" na aba);
+  - aceitar "Cozinha vazia" (Iolanda) e o contrato de treino da guilda;
+  - treinar e colher;
+  - entregar (Mérito 15/100, gold 80 → 230);
+  - NPCs aparecendo no Mapa.
+
+  Também a **migração real** de um save v7 criado no site publicado (que ainda rodava a F6). Console limpo, sem rolagem lateral.
+- **CI e Vercel**: conferidos depois do push (registro abaixo).
+
+### Números principais (bot da cadeia completa, 3 sessões por dia)
+
+- **Nível:** 10 em 1,3 dia, 20 em 4,8, 50 em **37 dias**.
+- **Rank:** E em 2,8 dias … S em **44,5 dias**.
+- **Mortes:** nenhuma com recuo de 30%.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | Como fazer as missões "avançarem sozinhas" sem quebrar a regra de que dividir o tempo não muda o resultado? | O progresso é **contador do personagem agora − contador no aceite**. Os contadores (abates, itens obtidos, ciclos de treino, mortes) são somas, então dividir o tempo dá o mesmo resultado. | Resolvido |
+| 2 | Missões contam o que já foi feito antes de aceitar? | Não: só o que vem depois do aceite. Objetivos de estado (nível, ofício, maestria) contam na hora. | Aguarda o autor |
+| 3 | O bot da cadeia completa mostrou o **nível 50 em 8,8 dias** (alvo: 6 a 8 semanas). | Curva de XP de 200 × L^1,5 para **150 × L²** (testei 3 curvas). O nível 10 continua no primeiro dia; o 50 vai para ~5 semanas. Quem só treina fica bem mais lento, coerente com o combate ser a principal fonte de XP. | Aguarda o autor |
+| 4 | A primeira versão do bot nunca subiu de rank nem passou da primeira meta. | O bot só caçava; os contratos pedem atividades específicas. Mudei o **bot** (não o jogo) para seguir as missões ativas, como uma pessoa faria. | Resolvido |
+| 5 | Ranks além de S? | A escala inteira do autor (F → Divino) está nos dados; o Ato I vai até **S** (como no roadmap); os outros ficam para os próximos Atos. | Aguarda o autor |
+| 6 | Prova de promoção. | O chefe da área do rank (F: Velha Matriarca … A: O Que Cava). | Aguarda o autor |
+| 7 | Bônus de rank ("descontos, diálogos, acesso a lojas e subáreas, baú, vagas de pet, coleta"). | Na F7: **−2% nas compras e +2% de coleta por rank**. Acesso a lojas, subáreas e vagas de pet fica para quando esses sistemas existirem. | Aguarda o autor |
+| 8 | Onde se aceita e se entrega? | NPC: no local dele. Guilda e provas: em Pedravau. Metas: em qualquer lugar. | Aprovado na prática |
+| 9 | Meta "Ida e volta" (voltar do Limiar) trava quem nunca morre. | Mantive: a meta ensina que morrer não é o fim. Pode virar opcional. | Aguarda o autor |
+| 10 | Gold sobrando (milhões). | Esperado até a F8 (forja e fusão), que vem a seguir. | Pendente (F8) |
+
+### O que ficou de fora
+
+Reputação com facções e diálogos com escolhas. Acesso por rank a lojas e subáreas. Arcos de história das origens especiais (F11).
+
+---
+
 ## Próximo passo
 
-**F7 — Missões e Guilda**: missões de NPC, metas, quadro da Guilda de Aventureiros, ranks F → Divino, Mérito, provas de promoção e subáreas de NPC. Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.
+**F8 — Forja, produção e nomeados** (já autorizada): produção, fusão por raridade, receitas, itens nomeados, acessórios e relíquias. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.

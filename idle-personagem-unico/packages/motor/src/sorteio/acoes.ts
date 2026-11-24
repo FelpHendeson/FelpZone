@@ -4,7 +4,7 @@
  * não devolve chances.
  */
 import { CATALOGO } from "../dados";
-import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, MAX_PERSONAGENS, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, MAX_PERSONAGENS, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
 import { gerarLoreOrigem } from "../personagem/lore";
 import { statusIniciais } from "../personagem/progressao";
 import { validarNome, type CodigoErroNome } from "../personagem/nome";
@@ -122,6 +122,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     | keyof ReturnType<typeof camposIniciaisF4>
     | keyof ReturnType<typeof camposIniciaisF5>
     | keyof ReturnType<typeof camposIniciaisF6>
+    | keyof ReturnType<typeof camposIniciaisF7>
   > = {
     id: `personagem-${estado.conta.personagens.length + 1}`,
     nome: nome.nome,
@@ -157,6 +158,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     ...f4,
     ...f5,
     ...camposIniciaisF6(),
+    ...camposIniciaisF7(r.origem.tipo === "especial" ? r.origem.id : undefined),
   };
   return {
     ok: true,

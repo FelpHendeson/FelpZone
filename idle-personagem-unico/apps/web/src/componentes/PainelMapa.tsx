@@ -5,6 +5,7 @@ import {
   CATALOGO,
   EQUIPAMENTOS,
   NOME_SLOT,
+  NPCS,
   comprarEquipamento,
   FERRAMENTAS,
   LOCAL_CIDADE,
@@ -94,6 +95,11 @@ export function PainelLocalAtual({ personagem: p }: { personagem: Personagem }) 
               <h3>{s.nome}</h3>
               <p className="suave">{s.descricao}</p>
               {s.id === p.subareaId && <p className="suave">O personagem está aqui.</p>}
+              {NPCS.filter((n) => n.localId === l.id && n.subareaId === s.id).map((n) => (
+                <p key={n.id}>
+                  <strong>{n.nome}</strong> <span className="suave">· {n.descricao}</span>
+                </p>
+              ))}
             </div>
           </li>
         ))}

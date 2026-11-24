@@ -1,6 +1,6 @@
 # Calibração
 
-Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3, combate da F4, habilidades da F5, Limiar da F6): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
+Registro dos números **[Calibrar]** do jogo (sorteio da F1 ao fim do Ato I: treino, coleta, combate, habilidades, Limiar, missões): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
 
 ## Sorteio do personagem (F1)
 
@@ -188,6 +188,8 @@ Tentativas em que o orçamento cortou alguma opção: **19.319** (9,66%).
 O orçamento já cumpre o papel do GDD ("não tirar tudo raro de uma vez") nas combinações extremas, sem distorcer as chances do dia a dia. Se o autor quiser que ele pese mais, a alternativa coerente é **subir custos de combinação**, e não baixar o saldo: por exemplo, core excêntrico a **25** faz excêntrico e Primordial nunca saírem juntos (0 + 25 + 80 > 100), mantendo o Primordial possível nas outras combinações. Qualquer mudança será registrada aqui com o antes e o depois.
 
 ## Treino e progressão (F2)
+
+> **Atenção (F7):** a curva de XP mudou para 150 × L². Os tempos desta seção são da curva antiga; os novos estão na seção da F7.
 
 Fonte dos números: `packages/motor/src/personagem/progressao.ts` (`CONFIG_PROGRESSAO`) e `packages/motor/src/dados/status.ts` (perfis por raça e atividades). Reproduza com:
 
@@ -471,6 +473,66 @@ Tempo de Limiar até as 4 peças de O Retornado (nível 25, Eco 3, sempre voltan
 3. **Morrer custa tempo, não itens**: uma morte na área do próprio nível custa de 12 a 18 min (20 a 32 min com Eco 3), rende Essência suficiente para pagar o pedágio da próxima vez e algum XP. O recuo continua sendo a escolha segura.
 4. **O pedágio na entrada** custa um pouco menos do que a Essência que a estadia rende: pagar é trocar o ganho do Limiar por tempo.
 
+## Missões, guilda e cadeia completa (F7)
+
+Fonte dos números: `packages/motor/src/dados/missoes.ts` (`CONFIG_GUILDA`, missões) e `personagem/progressao.ts` (curva de XP). Reproduza com `npm run ritmo`.
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Mérito para subir de rank (F→E … A→S) | 100, 250, 500, 900, 1.500, 2.500 + a prova do rank (chefe da área do rank) | [Calibrar] |
+| Contratos da guilda | 3 por rank, repetíveis a cada 20 h; Mérito 15 a 85 | [Calibrar] |
+| Bônus por rank | −2% no preço de compra e +2% de rendimento de coleta por rank | [Proposta] |
+| Missões ativas | até 10 | [Proposta] |
+| **Curva de XP do personagem** | XP(L → L+1) = **150 × L²** | **mudou** (era 200 × L^1,5) |
+
+### Por que a curva de XP mudou
+
+O bot da cadeia completa (pendente desde a F4) mostrou que, jogando de verdade (caçando, com missões), o personagem chegava ao **nível 50 em 8,8 dias**, contra o alvo de 6 a 8 semanas. Testei três curvas:
+
+| Curva | Nível 10 | Nível 20 | Nível 30 | Nível 50 |
+| --- | ---: | ---: | ---: | ---: |
+| 200 × L^1,5 (antiga) | 0,8 d | 2,3 d | 4,3 d | 8,8 d |
+| **150 × L²** (escolhida) | 1,3 d | 4,8 d | 13,8 d | 37,3 d |
+| 120 × L^2,2 | 1,3 d | 6,3 d | 18,8 d | 58,3 d |
+| 100 × L^2,3 | 1,3 d | 6,8 d | 19,8 d | — (60 d) |
+
+A escolhida mantém o primeiro dia rápido (nível 10) e leva o nível 50 a ~5 semanas, perto do rank S (~6 semanas). Efeito colateral: quem **só treina** fica bem mais lento (nível 50 em mais de 200 dias). É coerente com o combate ser a principal fonte de XP, mas **os tempos da seção da F2 ficaram desatualizados**; os novos estão abaixo.
+
+### Resultado do bot (cadeia completa)
+
+Bot que usa todos os sistemas (Humano, Predador Nato, 3 sessões por dia): vai à cidade a cada sessão, lê livros, equipa o melhor, vende o resto, compra equipamento, entrega e aceita missões (guilda, provas e NPCs da cidade), pede promoção e caça na área mais forte que não esteja vermelha (senão, treina).
+
+| Dia | Nível | Rank | Gold | Mortes | Metas cumpridas |
+| ---: | ---: | --- | ---: | ---: | ---: |
+| 1 | 6 | F | 228 | 0 | 2 |
+| 3 | 15 | E | 13.366 | 0 | 7 |
+| 7 | 23 | D | 58.756 | 0 | 8 |
+| 14 | 30 | C | 200.543 | 0 | 8 |
+| 30 | 45 | A | 1.490.783 | 0 | 8 |
+| 60 | 50 | S | 4.677.363 | 0 | 8 |
+
+Dias até o nível: 10: 1,3 · 20: 4,8 · 30: 13,8 · 40: 23,3 · 50: 37,3.
+
+Dias até o rank: F: 0,3 · E: 2,8 · D: 5,8 · C: 10,8 · B: 18,3 · A: 29,3 · S: 44,5.
+
+#### Só treino, com a curva nova: tempo até o nível (dias corridos desde a criação; horas com atividade)
+
+O XP não depende da raça; o Humano representa todas (exceto origens com bônus de XP).
+
+| Perfil | Nível 5 | Nível 10 | Nível 20 | Nível 30 | Nível 40 | Nível 50 | Horas perdidas pelo limite |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
+| Dedicado (3 sessões/dia: 8 h, 13 h, 20 h) | 0,5 d (5 h) | 1,8 d (36 h) | 13,3 d (312 h) | 45,3 d (1080 h) | 107,3 d (2568 h) | 211,3 d (5064 h) | 0 h |
+| Casual (1 sessão/dia, às 20 h) | 1,8 d (12 h) | 3,8 d (36 h) | 26,8 d (312 h) | 90,8 d (1080 h) | 214,8 d (2568 h) | — | 4368 h |
+
+### Leitura e proposta (F7)
+
+1. **Rank S em ~6 semanas** para quem faz os contratos e as provas; ranks sobem a cada 3 a 15 dias.
+2. **As metas param na 8ª** para quem nunca morre ("Ida e volta" pede voltar do Limiar). É de propósito: a meta ensina que morrer não é o fim. Se o autor achar estranho, ela pode virar opcional.
+3. **Gold explode** (5 milhões no 60º dia), porque ainda não há onde gastar. A F8 (forja e fusão) é o ralo previsto.
+4. Ninguém morreu no bot: com o recuo em 30% e a regra "não caçar no vermelho", a morte só vem por escolha.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -486,3 +548,5 @@ Tempo de Limiar até as 4 peças de O Retornado (nível 25, Eco 3, sempre voltan
 | 24/11/2026 | F5: números de maestria, slots, livros e efeitos das habilidades definidos (não existiam). | — |
 | 24/11/2026 | F6: chefes do Limiar e peças de O Retornado (o set completava em 2 h de Limiar). | chefe 1% → 0,5% por busca; peça 50% → 20% |
 | 24/11/2026 | F6: números do Limiar, Eco, pedágio e O Retornado definidos (não existiam). | — |
+| 24/11/2026 | F7: curva de XP do personagem (o nível 50 saía em 8,8 dias jogando a cadeia completa). | 200 × L^1,5 → 150 × L² |
+| 24/11/2026 | F7: Mérito, contratos e bônus de rank definidos (não existiam). | — |

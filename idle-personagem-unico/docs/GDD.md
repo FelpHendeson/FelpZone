@@ -203,7 +203,7 @@ Fórmula inicial: `teto(L) = base_raça × (1 + 0,10 × (L − 1))`, `piso(L) = 
 - **Piso por raça:** `piso(L) = fração_da_raça × teto(L)`, para cumprir "Humano piso alto, Draconato piso baixo": Humano 0,65, Silfo 0,50, Draconato 0,45, demais 0,55 (antes: 0,55 para todas).
 - **Perfis:** destaque 13, fraqueza 7, resto 10 (Draconato: 11 e destaques 14), coerentes com a tabela do §3.1.
 - **Ganho:** `ganho_base = 0,6% × teto(L)` por ciclo; o status nunca passa do teto. Ao subir de nível, quem está abaixo do novo piso sobe até ele.
-- **XP:** só o treino dá XP na F2: 10 por ciclo de 30 s; `XP(L → L+1) = round(200 × L^1,5)`.
+- **XP:** 10 por ciclo de treino de 30 s; `XP(L → L+1) = 150 × L²` (F7; era `200 × L^1,5`). Com combate e missões, o nível 50 sai em ~5 semanas.
 - **Modificadores aplicados:** `status.<id>` (valor efetivo), `teto`, `teto.<id>`, `ganho-treino`, `xp-personagem` e `velocidade-atividade`. Exemplos: Corpo de Vento (+10% de velocidade), Órfão do Templo (+2 Espírito), A Voz do Poço (+2 Percepção), Soldado (+2 Resistência), Cria da Matilha (+2 Agilidade), O Reencarnado (−5% Vigor), O Despertado Tardio (teto −10%; +50% de XP e de treino até o nível 20), Coração de Dragão (teto de Força e Espírito +10%).
 
 ### 5.3 Nível máximo
@@ -380,6 +380,15 @@ Sem *permadeath*. Quando a vida chega a zero e o recuo não foi acionado, o pers
 - Cada rank tem **bônus próprios em interações com NPCs** (descontos, diálogos novos, acesso a lojas e subáreas) e em outros pontos (espaço de baú, vagas de pet, bônus de coleta).
 - O rank **filtra o tipo de missão** disponível.
 - Subir de rank exige **Mérito** e uma **prova de promoção** [Proposta]: um desafio específico (derrotar um chefe de área, coletar algo raro, sobreviver a uma sequência de ondas).
+
+**Implementado na F7** [Proposta; números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]:
+
+- **Progresso automático** por contadores do personagem (abates no bestiário, itens obtidos, ciclos de treino, mortes) e por estado (nível, ofício, maestria): uma missão conta o que acontece **depois de aceita**. Recompensas saem ao **entregar**.
+- **Metas próprias**: 10, encadeadas (a primeira já começa ativa), só XP.
+- **NPCs**: Velha Iolanda (Taverna), Brom (Ferreiro), Tico (Mercado) e o Pescador Mudo (Lago Espelho), com cadeias curtas; aceita-se e entrega-se no local do NPC.
+- **Guilda** (em Pedravau): 3 contratos repetíveis por rank (caça, encomenda e instrução), a cada 20 h; quadro com o rank atual e o anterior.
+- **Ranks F → S** no Ato I (a escala inteira do autor está nos dados); promoção com Mérito e a **prova** do rank (o chefe da área correspondente). Bônus por rank: −2% nas compras e +2% de rendimento de coleta. O Soldado de uma Guerra Perdida começa em E.
+- Ainda não: reputação com facções, diálogos, acesso a lojas e subáreas por rank, arcos das origens (F11).
 
 ## 12. Habilidades [Autor, estrutura: Proposta]
 

@@ -123,3 +123,13 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 43. **Essência do Limiar** é uma moeda do personagem (não ocupa a mochila) e por enquanto só serve para o pedágio.
 44. **Títulos** por mortes aparecem em Personagem → Títulos, ainda sem bônus.
 
+### Da F7 (missões e guilda), para o autor conferir
+
+45. **Autorização**: o autor pediu para seguir da F7 à F13 "sem parar"; cada fatia continua com testes, revisão no navegador, documentação e relatório.
+46. **Curva de XP** mudou para 150 × L² pelo bot da cadeia completa (nível 50 em ~5 semanas jogando tudo; quem só treina leva mais de 200 dias).
+47. **Missões contam a partir do aceite** (nada retroativo) e só pagam ao entregar, no local de quem deu.
+48. **Ranks F → S** no Ato I; prova de promoção = chefe da área do rank. Os ranks acima de S ficam para os próximos Atos.
+49. **Bônus por rank**: −2% nas compras e +2% de coleta por rank (acesso a lojas, subáreas e vagas de pet fica para depois).
+50. **NPCs e textos** (Iolanda, Brom, Tico, Pescador Mudo) são do agente.
+51. **Meta "Ida e volta"** pede voltar do Limiar: quem nunca morre fica parado na 8ª meta.
+

@@ -26,6 +26,7 @@ import { PainelAreas, PainelBestiario } from "./PainelCombate";
 import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
 import { PainelAprendizado, PainelHabilidades } from "./PainelHabilidades";
 import { PainelLimiar, PainelTitulos } from "./PainelLimiar";
+import { missoesProntas, PainelGuilda, PainelMetas, PainelNpcs } from "./PainelMissoes";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelStatus } from "./PainelStatus";
@@ -233,6 +234,9 @@ export function Shell() {
         aoParar={() => agir(pararAtividade)}
       />
     );
+  } else if (aba.id === "missoes") {
+    const props = { personagem, ocupado, agir };
+    conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : <PainelGuilda {...props} />;
   } else if (aba.id === "combate" && indiceSub === 2) {
     conteudo = <PainelLimiar personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "personagem" && indiceSub === 3) {
@@ -299,6 +303,11 @@ export function Shell() {
               {a.icone}
             </span>
             <span className="aba-rotulo">{a.rotulo}</span>
+            {a.id === "missoes" && missoesProntas(personagem) > 0 && (
+              <span className="aba-selo" aria-label={`${missoesProntas(personagem)} missões prontas para entregar`}>
+                {missoesProntas(personagem)}
+              </span>
+            )}
           </button>
         ))}
       </nav>

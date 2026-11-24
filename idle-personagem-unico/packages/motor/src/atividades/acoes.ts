@@ -48,7 +48,15 @@ export type CodigoErroAtividade =
   | "maestria_maxima"
   | "no_limiar"
   | "fora_do_limiar"
-  | "essencia_insuficiente";
+  | "essencia_insuficiente"
+  | "missao_inexistente"
+  | "missao_indisponivel"
+  | "missao_inativa"
+  | "missao_incompleta"
+  | "fora_do_lugar"
+  | "rank_maximo"
+  | "merito_insuficiente"
+  | "prova_pendente";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;

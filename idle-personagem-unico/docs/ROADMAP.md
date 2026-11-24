@@ -13,7 +13,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F4** ✅ | Combate por área | Áreas, monstros com taxa de aparição, drops, ataque básico, equipamento de combate, recuo automático. **Primeiro marco jogável completo.** | Cadeia treinar → coletar → vender → equipar → caçar funciona. |
 | **F5** ✅ | Habilidades e core | Eixos, slots, ativas automáticas, passivas, técnicas do core, maestria e evolução. | Habilidades de coleta afetam coleta; core abre ramos. |
 | **F6** ✅ | O Limiar | Morte, reino da morte, Barqueiro, Eco da Morte, drops exclusivos, set *O Retornado*. | Morrer não perde progresso; tempo offline no Limiar correto. |
-| **F7** | Missões e Guilda | Missões de NPC, metas, quadro da guilda, ranks F→Divino, Mérito, provas de promoção, subáreas de NPC. | Missão avança sozinha enquanto se faz atividade. |
+| **F7** ✅ | Missões e Guilda | Missões de NPC, metas, quadro da guilda, ranks F→Divino, Mérito, provas de promoção, subáreas de NPC. | Missão avança sozinha enquanto se faz atividade. |
 | **F8** | Forja, produção e nomeados | Produção, fusão por raridade, receitas, itens nomeados, acessórios e relíquias. | Fusão respeita falha parcial e *pity*; nomeado único por personagem. |
 | **F9** | Conta e sincronização | Postgres (ou Redis), conta, `/api/v1`, ações autoritativas no servidor, até 3 personagens independentes, **cofre da conta** (conquistas, cosméticos, Pergaminhos), item de reroll. | Mesmo save em dois dispositivos; servidor reproduz o resultado. |
 | **F10** | Pets | Reais e espirituais, nomear, **1 pet por atividade** (só trabalha quando o personagem trabalha ali), Fome/Energia, **cuidados como atividades do personagem (alimentar, descansar, treinar)**, besta vinculada, domar, União. | Pet atribuído a várias atividades só rende na que o personagem está; pet sem energia não ajuda. |
@@ -22,7 +22,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F13** | Acabamento web | PWA, sons, arte, acessibilidade, balanceamento final. | Auditoria de ritmo e de segurança. |
 | **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Paridade com a web. |
 
-**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F6 concluídas em 24/11/2026** (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). A F7 só começa com autorização do autor.
+**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F7 concluídas em 24/11/2026** (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
 
 ## Regras de ordem
 

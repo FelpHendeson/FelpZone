@@ -24,6 +24,20 @@ import {
   camposIniciaisF4,
   camposIniciaisF5,
   camposIniciaisF6,
+  camposIniciaisF7,
+  CATALOGO as CAT,
+  nivelEfetivoOficio,
+  MISSOES,
+  RANKS,
+  aceitarMissao,
+  comprarEquipamento,
+  entregarMissao,
+  equipar,
+  lerLivro,
+  podeAceitar,
+  progressoDaMissao,
+  promover,
+  type ResultadoAtividade,
   CONFIG_LIMIAR,
   PECAS_RETORNADO,
   custoDoPedagio,
@@ -42,7 +56,6 @@ import {
   statusDeCombate,
   comprarFerramenta,
   irPara,
-  nivelEfetivoOficio,
   venderTudo,
   type OficioId,
   ganhoDeTreino,
@@ -87,6 +100,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     ativasEquipadas: [],
     passivasEquipadas: [],
     ...camposIniciaisF6(),
+    ...camposIniciaisF7(),
   };
 }
 
@@ -442,5 +456,96 @@ linha();
   linha(`Tempo de Limiar até as 4 peças de O Retornado (nível 25, Eco 3, sempre voltando ao Limiar): **${horas} h** (chefes a ${num(CONFIG_LIMIAR.chanceChefe * 100, 1)}% por busca × (1 + 0,5 por carga), peça em ${num(CONFIG_LIMIAR.chancePecaRetornado * 100, 0)}% das vitórias).`);
   linha();
   void duracaoDoLimiar;
+}
+// ---------------------------------------------------------------- Cadeia completa (F7)
+
+/**
+ * Pessoa razoável que usa tudo: 3 sessões por dia; em cada uma vai à cidade,
+ * lê livros, equipa o que for melhor, vende o resto, compra equipamento,
+ * entrega e aceita missões, pede promoção e escolhe a caça mais forte que
+ * não seja vermelha (ou treina o status mais atrasado).
+ */
+function cadeiaCompleta(dias: number) {
+  const usar = (e: EstadoJogo, r: ResultadoAtividade) => (r.ok ? r.estado : e);
+  const base = { ...personagem("humano", comum), ...camposIniciaisF5("predador-nato"), coreId: "predador-nato" };
+  let e: EstadoJogo = { ...criarEstadoInicial("cadeia", T0), conta: { personagens: [base], personagemAtivoId: "personagem-1", sorteio: null } };
+  const p = () => e.conta.personagens[0]!;
+  const marcos: { dia: number; nivel: number; rank: string; ouro: number; mortes: number; metas: number }[] = [];
+  const diasNivel = new Map<number, number>();
+  const diasRank = new Map<number, number>();
+  for (let dia = 0; dia < dias; dia++) {
+    for (const h of [8, 13, 20]) {
+      const t = T0 + dia * DIA + h * HORA;
+      e = avancar(e, t).estado;
+      for (const l of [10, 20, 30, 40, 50]) if (p().nivel >= l && !diasNivel.has(l)) diasNivel.set(l, dia + h / 24);
+      if (!diasRank.has(p().guilda.rank)) diasRank.set(p().guilda.rank, dia + h / 24);
+      if (p().limiar) continue;
+      // Cidade.
+      e = usar(e, irPara(e, "pedravau", t));
+      e = avancar(e, t + 10_000).estado;
+      const tc = t + 10_000;
+      for (const [id] of Object.entries(p().mochila)) {
+        const it = CAT.itens.get(id)!;
+        if (it.livro) e = usar(e, lerLivro(e, id, tc));
+        if (it.equipamento) {
+          const atual = p().equipados[it.equipamento.slot];
+          const tierAtual = atual ? CAT.itens.get(atual)!.equipamento!.tier : -1;
+          if (it.equipamento.tier > tierAtual) e = usar(e, equipar(e, id, tc));
+        }
+      }
+      e = usar(e, venderTudo(e, tc));
+      for (const eq of [...EQUIPAMENTOS].filter((x) => x.equipamento?.precoCompra).sort((a, b) => b.equipamento!.tier - a.equipamento!.tier)) {
+        const atual = p().equipados[eq.equipamento!.slot];
+        const tierAtual = atual ? CAT.itens.get(atual)!.equipamento!.tier : -1;
+        if (eq.equipamento!.tier > tierAtual && p().ouro >= eq.equipamento!.precoCompra!) {
+          e = usar(e, comprarEquipamento(e, eq.id, tc));
+          e = usar(e, equipar(e, eq.id, tc));
+        }
+      }
+      for (const a of [...p().missoes.ativas]) if (progressoDaMissao(p(), a.id).completa) e = usar(e, entregarMissao(e, a.id, tc));
+      e = usar(e, promover(e, tc));
+      for (const m of MISSOES) if ((m.tipo === "guilda" || m.tipo === "prova" || (m.tipo === "npc" && m.npcId !== "pescador-mudo")) && podeAceitar(p(), m, tc).ok) e = usar(e, aceitarMissao(e, m.id, tc));
+      // Atividade: primeiro o que as missões ativas pedem; senão, a área mais forte que não seja vermelha.
+      const sc = statusDeCombate(p().status, modificadoresDoPersonagem(p(), p().nivel));
+      const seguro = (areaId: string) => riscoDaArea(sc, AREAS_COMBATE.find((a) => a.id === areaId)!).risco !== "vermelho";
+      let escolha: string | null = null;
+      for (const a of p().missoes.ativas) {
+        if (progressoDaMissao(p(), a.id).completa) continue;
+        const o = CAT.missoes.get(a.id)!.objetivo;
+        if (o.tipo === "treinar") escolha = escolherTreino(p());
+        else if (o.tipo === "abater" && o.monstros.length > 0) {
+          const area = AREAS_COMBATE.find((ar) => o.monstros.some((m) => ar.monstros.some((x) => x.monstroId === m) || ar.chefeId === m));
+          if (area && seguro(area.id)) escolha = area.id;
+        } else if (o.tipo === "obter") {
+          const coleta = ATIVIDADES_COLETA.find((c) => o.itens.includes(c.itemId) && nivelEfetivoOficio(p(), c.oficio, modificadoresDoPersonagem(p(), p().nivel)) >= c.nivelMinimo);
+          if (coleta) escolha = coleta.id;
+        }
+        if (escolha) break;
+      }
+      if (!escolha) escolha = [...AREAS_COMBATE].reverse().find((a) => seguro(a.id))?.id ?? escolherTreino(p());
+      if (p().atividade?.id !== escolha) e = usar(e, iniciarAtividade(e, escolha, tc));
+    }
+    if ([0, 2, 6, 13, 29, 59].includes(dia)) {
+      const metas = Object.keys(p().missoes.concluidas).filter((id) => id.startsWith("meta-")).length;
+      marcos.push({ dia: dia + 1, nivel: p().nivel, rank: RANKS[p().guilda.rank]!, ouro: p().ouro, mortes: p().mortes, metas });
+    }
+  }
+  return { marcos, diasNivel, diasRank };
+}
+
+linha("### Cadeia completa (F7)");
+linha();
+linha("Bot que usa todos os sistemas (Humano, Predador Nato, 3 sessões por dia): vai à cidade a cada sessão, lê livros, equipa o melhor, vende o resto, compra equipamento, entrega e aceita missões (guilda, provas e NPCs da cidade), pede promoção e caça na área mais forte que não esteja vermelha (senão, treina).");
+linha();
+{
+  const r = cadeiaCompleta(60);
+  linha("| Dia | Nível | Rank | Gold | Mortes | Metas cumpridas |");
+  linha("| ---: | ---: | --- | ---: | ---: | ---: |");
+  for (const m of r.marcos) linha(`| ${m.dia} | ${m.nivel} | ${m.rank} | ${m.ouro.toLocaleString("pt-BR")} | ${m.mortes} | ${m.metas} |`);
+  linha();
+  linha(`Dias até o nível: ${[10, 20, 30, 40, 50].map((l) => `${l}: ${r.diasNivel.has(l) ? num(r.diasNivel.get(l)!) : "—"}`).join(" · ")}.`);
+  linha();
+  linha(`Dias até o rank: ${[...r.diasRank.entries()].map(([rk, d]) => `${RANKS[rk]}: ${num(d)}`).join(" · ")}.`);
+  linha();
 }
 console.log(out.join("\n"));

@@ -821,3 +821,28 @@ ol.lista-recursos {
   font-style: italic;
   color: #cbb8e6;
 }
+
+/* F7: missões. */
+.aba {
+  position: relative;
+}
+
+.aba-selo {
+  position: absolute;
+  top: 0.25rem;
+  right: calc(50% - 1.5rem);
+  min-width: 1.125rem;
+  height: 1.125rem;
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--destaque);
+  color: #1a1408;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  line-height: 1.125rem;
+  text-align: center;
+}
+
+.missao .progresso {
+  margin-top: 0.5rem;
+}

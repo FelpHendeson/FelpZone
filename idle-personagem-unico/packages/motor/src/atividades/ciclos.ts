@@ -106,6 +106,8 @@ export interface ResultadoCiclos {
   readonly essencia: number;
   /** Saídas do Limiar (tempo acabou) neste avanço. */
   readonly saidasDoLimiar: number;
+  /** Ciclos de treino por status. */
+  readonly treinos: Readonly<Record<string, number>>;
 }
 
 /** Recupera vida fora do combate (linear e limitada a 1: dividir o tempo não muda o resultado). */
@@ -122,6 +124,7 @@ interface Acumulado extends AcumuladoCombate {
   ciclos: number;
   chegouEm: string | null;
   saidasDoLimiar: number;
+  treinos: Record<string, number>;
 }
 
 /**
@@ -144,8 +147,15 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     ciclos: 0,
     chegouEm: null,
     saidasDoLimiar: 0,
+    treinos: {},
   };
-  const final = avancarTrecho(p, Math.max(0, Math.floor(ms)), rng, config, tempoInicio, acc);
+  const trecho = avancarTrecho(p, Math.max(0, Math.floor(ms)), rng, config, tempoInicio, acc);
+  // Contadores para as missões (F7): somas, então dividir o tempo não muda nada.
+  const obtidos = { ...trecho.obtidos };
+  for (const [id, n] of Object.entries(acc.itens)) obtidos[id] = (obtidos[id] ?? 0) + n;
+  const treinos = { ...trecho.treinos };
+  for (const [s, n] of Object.entries(acc.treinos)) treinos[s] = (treinos[s] ?? 0) + n;
+  const final = { ...trecho, obtidos, treinos };
   return {
     personagem: final,
     ciclos: acc.ciclos,
@@ -163,6 +173,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     maestria: acc.maestria,
     essencia: acc.essencia,
     saidasDoLimiar: acc.saidasDoLimiar,
+    treinos: acc.treinos,
   };
 }
 
@@ -287,6 +298,7 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
       const g = ganhoDeTreino(base.racaId, s, status[s], nivel, mods, config);
       status[s] += g;
       ganhos[s] += g;
+      acc.treinos[s] = (acc.treinos[s] ?? 0) + 1;
     } else if (atividade.tipo === "aprendizado") {
       if (praticada) {
         const n = ganharMaestria(hab, praticada, atividade.maestriaPorCiclo * fator(mods, "xp-maestria"));

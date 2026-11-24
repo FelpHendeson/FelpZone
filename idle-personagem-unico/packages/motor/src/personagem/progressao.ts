@@ -3,14 +3,14 @@
  * modificadores vindos de raça, dons e origem. Números em `CONFIG_PROGRESSAO`
  * são [Calibrar] (ver `docs/CALIBRACAO.md`).
  */
-import { CATALOGO, CONFIG_LIMIAR, obter, PERFIS_RACA, STATUS, type StatusId } from "../dados";
+import { CATALOGO, CONFIG_GUILDA, CONFIG_LIMIAR, obter, PERFIS_RACA, STATUS, type StatusId } from "../dados";
 import type { Efeito } from "../dados/tipos";
 import { modificadoresDeHabilidades, type Habilidades } from "../habilidades/maestria";
 import { resumirModificadores, type Modificador } from "../modificadores";
 
 export interface ConfigProgressao {
   readonly nivelMaximo: number;
-  /** XP para ir de L a L+1 = round(xpBase × L^xpExpoente). */
+  /** XP para ir de L a L+1 = round(xpBase × L^xpExpoente). F7: 200 × L^1,5 → 150 × L² (o combate acelerava demais). */
   readonly xpBase: number;
   readonly xpExpoente: number;
   /** teto(L) = base × (1 + incremento × (L − 1)). */
@@ -25,8 +25,8 @@ export interface ConfigProgressao {
 
 export const CONFIG_PROGRESSAO: ConfigProgressao = Object.freeze({
   nivelMaximo: 50,
-  xpBase: 200,
-  xpExpoente: 1.5,
+  xpBase: 150,
+  xpExpoente: 2,
   incrementoTetoPorNivel: 0.1,
   fracaoGanhoBase: 0.006,
   expoenteGanho: 0.6,
@@ -47,6 +47,8 @@ export interface BaseModificadores {
   readonly passivasEquipadas?: readonly string[];
   /** Mortes acumuladas (F6: o set O Retornado cresce com elas). */
   readonly mortes?: number;
+  /** Rank na guilda (F7): descontos e coleta. */
+  readonly guilda?: { readonly rank: number };
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -86,6 +88,13 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
       lista.push({ alvo: "defesa", operacao: "percentual", valor: bonus, origem });
       lista.push({ alvo: "duracao-limiar", operacao: "percentual", valor: -0.2, origem });
     }
+  }
+  // Rank da guilda (F7): desconto nas compras e rendimento de coleta.
+  const rank = p.guilda?.rank ?? 0;
+  if (rank > 0) {
+    const origem = { tipo: "titulo" as const, id: `rank-${rank}` };
+    lista.push({ alvo: "preco-compra", operacao: "percentual", valor: -CONFIG_GUILDA.descontoPorRank * rank, origem });
+    lista.push({ alvo: "coleta.rendimento", operacao: "percentual", valor: CONFIG_GUILDA.coletaPorRank * rank, origem });
   }
   return lista;
 }

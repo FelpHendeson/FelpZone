@@ -35,6 +35,7 @@ export {
   migrarV4ParaV5,
   migrarV5ParaV6,
   migrarV6ParaV7,
+  migrarV7ParaV8,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -79,7 +80,7 @@ export {
 } from "./sorteio/acoes";
 export type { CodigoErroSorteio, ErroSorteio, EscolhasFinais, ResultadoAcao } from "./sorteio/acoes";
 export { CONTA_VAZIA, MAX_PERSONAGENS, resumoTentativa, validarConta } from "./personagem/conta";
-export type { AtividadeAtual, Aparencia, EfeitoEmCurso, EstadoCombate, EstadoLimiar, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
+export type { AtividadeAtual, Aparencia, EfeitoEmCurso, EstadoCombate, EstadoLimiar, EstadoMissoes, MissaoAtiva, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
 export { NOME_MAX, NOME_MIN, validarNome } from "./personagem/nome";
 export type { CodigoErroNome, ErroNome } from "./personagem/nome";
 export { gerarLoreOrigem } from "./personagem/lore";
@@ -103,7 +104,7 @@ export {
 } from "./personagem/progressao";
 export { adicionarItens, cabeNaMochila, capacidadeMochila, espacosUsados, removerItens } from "./personagem/mochila";
 export type { Mochila } from "./personagem/mochila";
-export { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6 } from "./personagem/conta";
+export { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7 } from "./personagem/conta";
 export type { BaseModificadores, ConfigProgressao, FaixaStatus, ValoresStatus } from "./personagem/progressao";
 export {
   avancar,
@@ -167,3 +168,19 @@ export {
 
 // F6: O Limiar.
 export { cargasEco, custoDoPedagio, duracaoDoLimiar, entrarNoLimiar, janelaEco, opcoesDoLimiar, sairDoLimiar, sinergiaLimiar, titulosPorMortes } from "./atividades/limiar";
+
+// F7: missões e guilda.
+export {
+  abandonarMissao,
+  aceitarMissao,
+  alvoDoObjetivo,
+  ehContador,
+  entregarMissao,
+  estaNoLugar,
+  meritoParaSubir,
+  missoesVisiveis,
+  podeAceitar,
+  progressoDaMissao,
+  promover,
+  valorDoObjetivo,
+} from "./missoes/missoes";

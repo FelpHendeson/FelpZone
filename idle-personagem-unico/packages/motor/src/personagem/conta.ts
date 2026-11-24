@@ -2,7 +2,7 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
-import { CATALOGO, monstroDoLimiar, OFICIOS, SLOTS, STATUS } from "../dados";
+import { CATALOGO, CONFIG_GUILDA, monstroDoLimiar, OFICIOS, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import { KIT_COMBATE } from "../dados/combate";
 import {
@@ -169,6 +169,28 @@ export interface Personagem {
   readonly essencia: number;
   /** F6: Devedor do Barqueiro já usou a saída de graça. */
   readonly pedagioGratisUsado: boolean;
+  /** F7: itens obtidos em atividades (contador para missões). */
+  readonly obtidos: Readonly<Record<string, number>>;
+  /** F7: ciclos de treino por status (contador para missões). */
+  readonly treinos: Readonly<Record<string, number>>;
+  /** F7: missões ativas (com o contador no momento em que começaram), concluídas e esperas. */
+  readonly missoes: EstadoMissoes;
+  /** F7: rank (0 = F) e Mérito na Guilda de Aventureiros. */
+  readonly guilda: { readonly rank: number; readonly merito: number };
+}
+
+export interface MissaoAtiva {
+  readonly id: string;
+  /** Valor do contador quando a missão começou (0 para objetivos de estado). */
+  readonly base: number;
+}
+
+export interface EstadoMissoes {
+  readonly ativas: readonly MissaoAtiva[];
+  /** Vezes que cada missão foi entregue. */
+  readonly concluidas: Readonly<Record<string, number>>;
+  /** Repetíveis: instante em que voltam ao quadro. */
+  readonly disponivelEm: Readonly<Record<string, number>>;
 }
 
 /** Uma tentativa do sorteio: o estado do RNG no início basta para reproduzi-la. */
@@ -258,6 +280,8 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f5) return null;
   const f6 = validarCamposF6(v, f5.habilidades);
   if (!f6) return null;
+  const f7 = validarCamposF7(v);
+  if (!f7) return null;
   // Itens nomeados: uma unidade de cada por personagem (mochila + equipados).
   for (const item of CATALOGO.itens.values()) {
     if (!item.equipamento?.nomeado) continue;
@@ -342,6 +366,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     ...f4,
     ...f5,
     ...f6,
+    ...f7,
   };
 }
 
@@ -587,4 +612,50 @@ function validarCamposF6(v: Record<string, unknown>, habilidades: Habilidades): 
 /** Campos iniciais da F6: nunca morreu, sem Essência, fora do Limiar. */
 export function camposIniciaisF6(): CamposF6 {
   return { limiar: null, mortes: 0, mortesRecentes: [], essencia: 0, pedagioGratisUsado: false };
+}
+
+type CamposF7 = Pick<Personagem, "obtidos" | "treinos" | "missoes" | "guilda">;
+
+function contadorLimpo(v: unknown, chaveValida: (k: string) => boolean): Record<string, number> | null {
+  if (!ehObjeto(v)) return null;
+  const r: Record<string, number> = {};
+  const entradas = Object.entries(v);
+  if (entradas.length > 500) return null;
+  for (const [k, n] of entradas) {
+    if (!chaveValida(k) || !ehInteiro(n, 1, Number.MAX_SAFE_INTEGER)) return null;
+    r[k] = n;
+  }
+  return r;
+}
+
+/** Valida contadores, missões e guilda (F7). */
+function validarCamposF7(v: Record<string, unknown>): CamposF7 | null {
+  const obtidos = contadorLimpo(v.obtidos, (k) => CATALOGO.itens.has(k));
+  const treinos = contadorLimpo(v.treinos, (k) => (STATUS as readonly string[]).includes(k));
+  if (!obtidos || !treinos) return null;
+  const m = v.missoes;
+  if (!ehObjeto(m) || !Array.isArray(m.ativas) || m.ativas.length > CONFIG_GUILDA.maximoAtivas) return null;
+  const ativas: MissaoAtiva[] = [];
+  for (const a of m.ativas) {
+    if (!ehObjeto(a) || typeof a.id !== "string" || !CATALOGO.missoes.has(a.id) || !ehInteiro(a.base, 0, Number.MAX_SAFE_INTEGER)) return null;
+    if (ativas.some((x) => x.id === a.id)) return null;
+    ativas.push({ id: a.id, base: a.base });
+  }
+  const concluidas = contadorLimpo(m.concluidas, (k) => CATALOGO.missoes.has(k));
+  if (!concluidas) return null;
+  if (!ehObjeto(m.disponivelEm)) return null;
+  const disponivelEm: Record<string, number> = {};
+  for (const [k, t] of Object.entries(m.disponivelEm)) {
+    if (!CATALOGO.missoes.get(k)?.repetivel || !ehInteiro(t, 0, Number.MAX_SAFE_INTEGER)) return null;
+    disponivelEm[k] = t;
+  }
+  const g = v.guilda;
+  if (!ehObjeto(g) || !ehInteiro(g.rank, 0, RANK_MAXIMO_ATO_I) || !ehInteiro(g.merito, 0, Number.MAX_SAFE_INTEGER)) return null;
+  return { obtidos, treinos, missoes: { ativas, concluidas, disponivelEm }, guilda: { rank: g.rank, merito: g.merito } };
+}
+
+/** Campos iniciais da F7: a primeira meta já ativa; rank F (ou o da origem). */
+export function camposIniciaisF7(origemId?: string): CamposF7 {
+  const rank = origemId ? (CATALOGO.origensEspeciais.get(origemId)?.rankInicial ?? 0) : 0;
+  return { obtidos: {}, treinos: {}, missoes: { ativas: [{ id: PRIMEIRA_META, base: 0 }], concluidas: {}, disponivelEm: {} }, guilda: { rank, merito: 0 } };
 }

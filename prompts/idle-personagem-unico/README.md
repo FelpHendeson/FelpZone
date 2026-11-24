@@ -26,7 +26,8 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 | 4 | `04-fatia-F4-combate.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (25 a 31). |
 | 5 | `05-fatia-F5-habilidades.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (32 a 37). |
 | 6 | `06-fatia-F6-limiar.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (38 a 44). |
-| 7 a 14 | F7 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
+| 7 | `07-fatia-F7-missoes-guilda.md` | **Concluída** em 24/11/2026 (F7 a F13 autorizadas juntas). Decisões em `docs/DECISOES.md` (45 a 51). |
+| 8 a 14 | F8 a F14 de `docs/ROADMAP.md` | F8 a F13 autorizadas; prompts escritos uma a uma. A F14 (mobile) ainda não. |
 
 O relatório de todas as fatias executadas fica em `idle-personagem-unico/RELATORIO-idle-personagem-unico.md`.
 

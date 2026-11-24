@@ -186,10 +186,8 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "Soldado de uma Guerra Perdida",
     lore: "Servia num exército que não existe mais. Ainda marcha no sono.",
     efeitoTexto: "Rank inicial da guilda E (em vez de F); +Resistência.",
-    efeito: {
-      modificadores: [mod("status.resistencia", "somar", 2, "soldado-de-uma-guerra-perdida")],
-      efeitoPendente: "Rank inicial E na guilda (F7).",
-    },
+    efeito: { modificadores: [mod("status.resistencia", "somar", 2, "soldado-de-uma-guerra-perdida")] },
+    rankInicial: 1,
     gancho: "Antigos camaradas e quem venceu a guerra.",
   },
   {

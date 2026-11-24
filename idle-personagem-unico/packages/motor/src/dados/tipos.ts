@@ -180,6 +180,8 @@ export interface OrigemEspecial {
   /** Raças permitidas; vazio = qualquer raça. */
   readonly racasPermitidas: readonly string[];
   readonly bestaVinculadaId?: string;
+  /** Rank inicial na guilda (F7; 0 = F). */
+  readonly rankInicial?: number;
   /** Habilidades que a origem ensina desde o início (F5). */
   readonly habilidadesIniciais?: readonly string[];
   /** Escrita pelo autor ([Autor]) ou proposta do agente. */

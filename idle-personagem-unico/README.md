@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F6 (O Limiar) concluída.** O personagem treina, coleta, vende, equipa, caça e usa habilidades (F1 a F5) e agora **pode morrer sem perder nada além de tempo**: atravessa para O Limiar, luta lá contra Almas Penadas e Ceifeiros Menores, junta Essência, pode pagar o Barqueiro para sair antes e volta à atividade de antes. Mortes em sequência acumulam o Eco da Morte, e os chefes raros deixam o set nomeado *O Retornado*. Ainda não há missões, guilda nem produção (F7 em diante).
+**F7 (Missões e Guilda) concluída.** O personagem treina, coleta, vende, equipa, caça, usa habilidades e volta do Limiar (F1 a F6), e agora tem **missões**: metas próprias que ensinam o jogo, NPCs com pequenas histórias e a Guilda de Aventureiros, com contratos, Mérito, provas de promoção e ranks de F a S. As missões avançam sozinhas enquanto o personagem trabalha. Ainda não há produção, conta online nem pets (F8 em diante).
 
 O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
 
@@ -111,6 +111,19 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F6:** Sobrevivente do Vazio (Limiar −25%), Aldeia à beira do Limiar (−5%), Devedor do Barqueiro (primeira saída de graça e Eco que decai em 1 h), e as sinergias de Sangue-Pálido e Ser das Trevas.
 
+### O que a F7 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/missoes.ts` | Ranks do autor, `CONFIG_GUILDA`, 4 NPCs, 10 metas, 9 missões de NPC, 21 contratos e 6 provas. |
+| `packages/motor/src/missoes/missoes.ts` | Progresso por contadores, `aceitarMissao`, `entregarMissao`, `abandonarMissao` e `promover`. |
+| `packages/motor/src/personagem/conta.ts` | Contadores de itens obtidos e treinos, missões e guilda no personagem. |
+| `packages/motor/src/save.ts` | **Save v8** com migração v7 → v8. |
+| `packages/motor/scripts/ritmo.ts` | **Bot da cadeia completa** (treinar, coletar, caçar, vender, comprar, livros e missões). |
+| `apps/web` | Missões → NPC, Metas e Guilda; NPCs no Mapa; selo de missões prontas na aba. |
+
+**Efeitos que passaram a valer na F7:** Soldado de uma Guerra Perdida (rank inicial E). **A curva de XP mudou** para 150 × L² (ver `docs/CALIBRACAO.md`).
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -162,4 +175,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F7 (Missões e Guilda)** só começa com autorização do autor. Antes, vale conferir as decisões da F6 em [`docs/DECISOES.md`](docs/DECISOES.md) (38 a 44), em especial a leitura de "atributos reduzidos" e o retorno automático da atividade.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F8 (Forja, produção e nomeados)**.
