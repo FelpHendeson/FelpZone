@@ -235,6 +235,8 @@ Madeira, mineração, pesca, agricultura e outras (ervas, caça de pele, escava�
 
 Transforma materiais em itens: forja de equipamento, carpintaria, alquimia, culinária, costura [Proposta]. Exige o **estabelecimento** certo (Ferreiro, Alquimista, Taverna...), que fica numa subárea da cidade. A forja também faz **fusão** (§9.4).
 
+**Implementado na F8** [Proposta, números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]: 3 ofícios de produção (Ferreiro, Alquimista, Cozinheiro) com nível e XP próprios, 19 receitas em Pedravau (Ferreiro, Alquimista e Taverna). A produção é uma atividade em ciclos: consome os materiais da mochila, guarda o produto e para sozinha quando falta material ou espaço. **Intelecto** acelera a produção; Fornalha Interior e os berços de ferreiro/taverna também. Carpintaria e costura ficam para depois.
+
 ### 6.4 Aprendizado e treino de habilidade [Autor]
 
 O personagem treina uma habilidade que já possui. Ela ganha **maestria** (nível de domínio) que:
@@ -320,11 +322,14 @@ Os nomes **Lendário** e **Mítico** ficam com os **ranks da guilda** (decisão 
 - **Ferramentas de ofício** têm slots **próprios**, separados do combate: machado, picareta, vara de pesca, enxada/foice, faca de coleta, martelo de forja, caldeirão. Todo personagem **começa com a versão básica de cada**. [Autor]
 - Itens têm **raridade**, **afixos** (modificadores) e, se aplicável, **conjunto** (bônus 2/4/5 peças).
 - **Acessórios e relíquias** seguem o mesmo molde [Autor]; relíquias têm efeitos únicos vindos de chefes, Limiar e ranks da guilda.
-- **F4:** arma, elmo, peitoral, calças e botas em 3 tiers (couro, ferro, aço) mais o kit básico (porrete e gibão). Sem afixos ainda (F8). Tiers 1 e 2 no Ferreiro; tier 3 só por drop.
+- **F4:** arma, elmo, peitoral, calças e botas em 3 tiers (couro, ferro, aço) mais o kit básico (porrete e gibão). Tiers 1 e 2 no Ferreiro; tier 3 só por drop.
+- **F8:** **2 acessórios** (anéis e amuletos, forjados ou preparados) e **1 relíquia** (de chefes de área e do Limiar). O tier 3 de aço passa a ser forjável. **Afixos aleatórios ainda não** (fora do escopo da F8); no lugar, cada equipamento comum tem versões **+1 a +3** pela fusão. Manoplas e mão secundária ficam para depois.
 
 ### 9.3 Mochila [Proposta]
 
 Capacidade em espaços (aumenta com Força, ampliações e baú na cidade). Filtros e **venda em lote** para não cobrar microgestão de um jogo idle.
+
+**F8:** ampliação no Mercado (+5 espaços por compra, preço crescente, até +30). "Vender tudo" deixa de fora poções e nomeados.
 
 **Implementado na F3** [Calibrar]: 20 espaços + 0,5 por ponto de Força efetiva; cada espaço guarda uma pilha (100 materiais ou 20 achados raros). **Com a mochila cheia, a coleta continua dando XP, mas o que não cabe se perde** (contado no resumo "Enquanto você estava fora"). Venda por item e "vender tudo" no Mercado de Pedravau. Ferramentas: básica (kit inicial), de ferro e de aço por ofício, compradas no Ferreiro; a antiga fica com ele.
 
@@ -333,6 +338,7 @@ Capacidade em espaços (aumenta com Força, ampliações e baú na cidade). Filt
 - **Fusão:** combinar equipamentos para **subir a raridade**. [Autor]
 - Regras iniciais [Proposta, Calibrar]: 3 itens do mesmo tipo e raridade → 1 item da raridade seguinte; custo em gold e material crescente; chance de sucesso com falha parcial (perde um item, não os três); **Sorte** aumenta a chance; garantia (*pity*) depois de N falhas seguidas; **itens nomeados não entram em fusão**.
 - Itens nomeados forjáveis usam **receita especial** (fragmentos de chefes + material raro + item de raridade mínima).
+- **Implementado na F8** [Calibrar]: fusão no Ferreiro de Pedravau, 3 iguais → versão +1 (até +3, cada nível sobe a raridade em um degrau e dá +20% nos bônus); chance 70/55/40%, Sorte soma até +20 p.p., *pity* depois de 3 falhas, falha perde 1 dos 3; custo em gold e material crescente. Sorteio com o RNG do save. Nomeados forjáveis: **Presa da Matriarca** e **Coroa do Afogado** (fragmentos de chefe + material raro + item +2). Nomeados de origem: **Lâmina Desperta** (cresce com o nível), **Martelo do Pai** (+15% na fusão) e **Bússola Quebrada**. Nomeados não se vendem nem se fundem, e só existe um de cada por personagem.
 
 ### 9.5 Economia [Autor]
 

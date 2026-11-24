@@ -110,7 +110,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
   const ganho =
     a.tipo === "treino"
       ? `+${formatarNumero(e.ganhoPorHora, 2)} ${NOME_STATUS[a.status]}/h agora`
-      : `~${formatarNumero(e.itensPorHora, 0)} ${CATALOGO.itens.get(a.itemId)!.nome.toLowerCase()}/h`;
+      : `~${formatarNumero(e.itensPorHora, 0)} ${CATALOGO.itens.get(a.tipo === "producao" ? a.saida.itemId : a.itemId)!.nome.toLowerCase()}/h`;
   return (
     <div className="barra-atividade" role="status" aria-label={`Atividade atual: ${a.nome}`}>
       <div className="barra-linha">

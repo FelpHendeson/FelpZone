@@ -4,7 +4,7 @@
  * não devolve chances.
  */
 import { CATALOGO } from "../dados";
-import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, MAX_PERSONAGENS, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, MAX_PERSONAGENS, nomeadoDaOrigem, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
 import { gerarLoreOrigem } from "../personagem/lore";
 import { statusIniciais } from "../personagem/progressao";
 import { validarNome, type CodigoErroNome } from "../personagem/nome";
@@ -123,6 +123,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     | keyof ReturnType<typeof camposIniciaisF5>
     | keyof ReturnType<typeof camposIniciaisF6>
     | keyof ReturnType<typeof camposIniciaisF7>
+    | keyof ReturnType<typeof camposIniciaisF8>
   > = {
     id: `personagem-${estado.conta.personagens.length + 1}`,
     nome: nome.nome,
@@ -150,7 +151,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
   };
   const f4 = camposIniciaisF4();
   const f5 = camposIniciaisF5(r.coreId, r.origem.tipo === "especial" ? r.origem.id : undefined);
-  const personagem: Personagem = {
+  let personagem: Personagem = {
     ...identidade,
     status: statusIniciais({ ...identidade, equipados: f4.equipados, ...f5 }),
     atividade: null,
@@ -159,7 +160,10 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     ...f5,
     ...camposIniciaisF6(),
     ...camposIniciaisF7(r.origem.tipo === "especial" ? r.origem.id : undefined),
+    ...camposIniciaisF8(),
   };
+  const nomeadoInicial = nomeadoDaOrigem(r.origem.tipo === "especial" ? r.origem.id : undefined);
+  if (nomeadoInicial) personagem = { ...personagem, mochila: { ...personagem.mochila, [nomeadoInicial]: 1 } };
   return {
     ok: true,
     estado: {

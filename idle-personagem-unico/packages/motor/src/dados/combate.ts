@@ -3,7 +3,7 @@
  * Números [Calibrar] (ver `docs/CALIBRACAO.md`).
  */
 import type { Modificador } from "../modificadores";
-import type { Item, Slot } from "./coleta";
+import type { Item, Slot, SlotItem } from "./coleta";
 import type { Raridade } from "./tipos";
 
 // ------------------------------------------------------------ Equipamentos
@@ -12,7 +12,7 @@ function eq(
   id: string,
   nome: string,
   descricao: string,
-  slot: Slot,
+  slot: SlotItem,
   tier: 0 | 1 | 2 | 3,
   bonus: { ataque?: number; defesa?: number; vida?: number },
   preco: number,
@@ -58,6 +58,9 @@ export const KIT_COMBATE: Readonly<Record<Slot, string | null>> = {
   peitoral: "gibao-de-viagem",
   calcas: null,
   botas: null,
+  acessorio1: null,
+  acessorio2: null,
+  reliquia: null,
 };
 
 // ------------------------------------------------------------ Materiais de combate

@@ -1,5 +1,5 @@
 import { CATALOGO, NOME_SLOT, SLOTS, desequipar, equipar, type Item, type Personagem } from "@idle-pu/motor";
-import { formatarNumero } from "@/lib/atividade";
+import { formatarNumero, slotDoItem } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 
 interface Props {
@@ -8,10 +8,35 @@ interface Props {
   readonly agir: Agir;
 }
 
-/** Bônus de um equipamento em texto (ataque, defesa, vida). */
-export function bonusDe(item: Item): string {
-  const nomes: Record<string, string> = { ataque: "ataque", defesa: "defesa", vida: "vida" };
-  return (item.equipamento?.modificadores ?? []).map((m) => `+${formatarNumero(m.valor, 0)} ${nomes[m.alvo] ?? m.alvo}`).join(" · ");
+const NOMES_ALVO: Record<string, string> = {
+  ataque: "ataque",
+  defesa: "defesa",
+  vida: "vida",
+  critico: "crítico",
+  esquiva: "esquiva",
+  regeneracao: "regeneração",
+  "chance-raro": "chance de raro",
+  "duracao-limiar": "tempo no Limiar",
+  "producao.sucesso": "sucesso na fusão",
+  "espacos-mochila": "espaços na mochila",
+};
+
+/** Bônus de um equipamento em texto (ataque, defesa, vida…). */
+export function bonusDe(item: Item, nivel?: number): string {
+  const d = item.equipamento;
+  const partes = (d?.modificadores ?? []).map((m) => {
+    const nome = NOMES_ALVO[m.alvo] ?? m.alvo;
+    const sinal = m.valor >= 0 ? "+" : "−";
+    const v = Math.abs(m.valor);
+    if (m.operacao === "percentual" || (m.alvo === "critico" && v < 1)) return `${sinal}${formatarNumero(v * 100, 0)}% ${nome}`;
+    return `${sinal}${formatarNumero(v, 0)} ${nome}`;
+  });
+  const evo = d?.nomeado?.evoluiComNivel;
+  if (evo) {
+    const nome = NOMES_ALVO[evo.alvo] ?? evo.alvo;
+    partes.push(nivel === undefined ? `${nome} cresce com o nível` : `+${formatarNumero(evo.base + evo.porNivel * nivel, 0)} ${nome} (cresce com o nível)`);
+  }
+  return partes.join(" · ");
 }
 
 /** Mochila → Equipados: um item por slot. */
@@ -27,7 +52,7 @@ export function PainelEquipados({ personagem: p, ocupado, agir }: Props) {
               <div>
                 <span className="suave">{NOME_SLOT[s]}</span>
                 <p>{item ? <strong>{item.nome}</strong> : "Vazio"}</p>
-                {item && <p className="suave">{bonusDe(item)}</p>}
+                {item && <p className="suave">{bonusDe(item, p.nivel)}</p>}
               </div>
               {item && (
                 <button type="button" className="botao" disabled={ocupado} onClick={() => agir((e, agora) => desequipar(e, s, agora))}>
@@ -58,7 +83,8 @@ export function PainelEquipaveis({ personagem: p, ocupado, agir }: Props) {
         <ul className="lista-recursos">
           {itens.map(([item, q]) => {
             const slot = item.equipamento!.slot;
-            const atual = p.equipados[slot] ? CATALOGO.itens.get(p.equipados[slot]!) : undefined;
+            const alvo = slotDoItem(p, slot);
+            const atual = p.equipados[alvo] ? CATALOGO.itens.get(p.equipados[alvo]!) : undefined;
             return (
               <li key={item.id} className="recurso">
                 <div>

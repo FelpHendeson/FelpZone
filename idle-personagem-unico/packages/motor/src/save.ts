@@ -4,12 +4,12 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
-import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, validarConta, type Conta } from "./personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem, validarConta, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 8;
+export const VERSAO_SAVE_ATUAL = 9;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -22,6 +22,7 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * v6 (F5): habilidades, slots, ramo e o estado das ativas no combate.
  * v7 (F6): Limiar, mortes, Eco da Morte e Essência.
  * v8 (F7): missões, contadores e guilda.
+ * v9 (F8): produção, acessórios, relíquia, nomeados e fusão.
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -150,6 +151,34 @@ export const migrarV7ParaV8: Migracao = (dados) => {
   };
 };
 
+/**
+ * v8 → v9: ofícios de produção no 1; slots de acessório e relíquia vazios;
+ * quem tem origem com nomeado (Lâmina Desperta, Martelo do Pai, Bússola
+ * Quebrada) recebe o item na mochila.
+ */
+export const migrarV8ParaV9: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return {
+    ...dados,
+    conta: {
+      ...(conta as object),
+      personagens: personagens.map((p: Record<string, unknown>) => {
+        const origem = p.origem as { tipo?: unknown; id?: unknown } | undefined;
+        const nomeado = nomeadoDaOrigem(origem?.tipo === "especial" ? String(origem.id) : undefined);
+        const mochila = { ...((p.mochila as object) ?? {}) } as Record<string, number>;
+        if (nomeado) mochila[nomeado] = 1;
+        return {
+          ...p,
+          ...camposIniciaisF8(),
+          mochila,
+          equipados: { ...((p.equipados as object) ?? {}), acessorio1: null, acessorio2: null, reliquia: null },
+        };
+      }),
+    },
+  };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -159,6 +188,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   5: migrarV5ParaV6,
   6: migrarV6ParaV7,
   7: migrarV7ParaV8,
+  8: migrarV8ParaV9,
 });
 
 export type CodigoErroSave =

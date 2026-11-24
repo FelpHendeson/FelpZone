@@ -23,6 +23,7 @@ import { formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 import { bonusDe } from "./PainelEquipamento";
 import { PainelLivreiro, PainelMercado } from "./PainelMochila";
+import { PainelFusao } from "./PainelProducao";
 
 interface Props {
   readonly personagem: Personagem;
@@ -185,6 +186,7 @@ export function PainelEstabelecimentos({ personagem: p, ocupado, agir }: Props) 
         </ul>
         <p className="suave nota">O que você compra vai para a mochila; equipe em Mochila → Equipáveis.</p>
       </article>
+      <PainelFusao personagem={p} ocupado={ocupado} agir={agir} />
     </section>
   );
 }

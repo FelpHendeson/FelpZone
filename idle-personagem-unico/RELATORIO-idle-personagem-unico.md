@@ -22,7 +22,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | `3759090` | 242 |
 | F6 | O Limiar | ✅ Concluída em 24/11/2026 | `7275030` | 263 |
 | F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | `646316d` | 277 |
-| F8 a F13 | Forja · Conta · Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
+| F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | (ver seção) | 297 |
+| F9 a F13 | Conta · Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -581,6 +582,82 @@ Reputação com facções e diálogos com escolhas. Acesso por rank a lojas e su
 
 ---
 
+## F8 — Forja, produção e nomeados
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Prompt em `prompts/idle-personagem-unico/08-fatia-F8-forja-producao.md`.
+
+### O que foi executado
+
+- [x] **Produção** como atividade em ciclos, em 3 ofícios novos com nível e XP próprios:
+  - **Ferreiro** (forja): equipamento de ferro e de aço (o aço era só drop), anéis e 2 nomeados;
+  - **Alquimista**: poções de vida e amuletos;
+  - **Cozinheiro** (Taverna): pão, ensopado, torta e ração (a ração serve aos pets da F10).
+  
+  Cada ciclo consome os materiais da mochila e guarda o produto; sem material ou sem espaço, o personagem para. **Intelecto** acelera.
+- [x] **Fusão** no Ferreiro: 3 iguais → versão **+1, +2, +3** (raridade sobe um degrau e os bônus +20% por nível). Falha parcial (perde 1 dos 3), **Sorte** aumenta a chance, ***pity*** depois de 3 falhas, custo crescente em gold e material, sorteio pelo RNG do save. Nomeados ficam de fora.
+- [x] **Slots novos:** 2 acessórios e 1 relíquia. Equipar um acessório ocupa o primeiro slot livre.
+- [x] **Itens nomeados** (um de cada por personagem, não se vendem nem se fundem):
+  - de origem: Lâmina Desperta (o ataque cresce com o nível), Martelo do Pai, Bússola Quebrada;
+  - forjáveis com **fragmentos de chefe**: Presa da Matriarca e Coroa do Afogado;
+  - **relíquias** de chefes: Olho do Rato-Rei, Escama do Afogador, Coração de Casca e Moeda do Barqueiro (Limiar).
+- [x] **Poções automáticas** no combate (vida abaixo de 40%, a mais forte primeiro, recarga de 10 s).
+- [x] **Ralos de gold:** fusão e **ampliação de mochila** (+5 espaços por compra, preço crescente).
+- [x] **Efeitos que passaram a valer:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito, Náufrago das Estrelas, berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior e Mão Certeira (as passivas de produção também ganham maestria produzindo).
+- [x] **Save v9** com migração v8 → v9 (o nomeado da origem vai para a mochila de quem já tinha a origem).
+- [x] **Web:**
+  - Atividades → Produção (ofícios, receitas, materiais que faltam em vermelho, quantos ciclos dá para fazer);
+  - Mapa → Estabelecimentos: **Fusão** no Ferreiro (custo, chance, falhas seguidas, resultado) e **ampliação** no Mercado;
+  - Mochila → **Consumíveis** e **Nomeados**; acessórios e relíquia em Equipados;
+  - bônus dos itens em texto (percentuais, "cresce com o nível").
+- [x] **Bot:** economia de cada receita, custo esperado da fusão até +3 e fragmentos/relíquias na cadeia completa.
+- [x] **Calibração** (receitas e fragmento), **documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais:** `npm audit --audit-level=high` (0 vulnerabilidades), `npm test`, `npm run lint`, `npm run typecheck`, `npm run build` e `npm run simular` passando. São **297 testes** (288 no motor, 9 na web).
+- **Testes novos (19):**
+  - catálogo: receitas com itens e locais válidos, variantes +1 a +3 só para itens comuns, acessórios, relíquias e nomeados de origem;
+  - produção: consome, produz, dá XP de ofício e para sem material; nível mínimo; nomeado produzido é único; **avançar de uma vez = em pedaços**;
+  - fusão: determinística pela semente; *pity*; taxa de sucesso bate com a chance em 400 sementes; 6 recusas (nomeado, máximo, poucos itens, gold, material, fora da cidade); item aprimorado dá mais bônus;
+  - ampliação (preço crescente e limite); 2 acessórios e nomeado que não se repete nem se vende; Lâmina que cresce; poções usadas sozinhas;
+  - save v9: ida e volta, 7 adulterações recusadas e migração v8 → v9 com o nomeado da origem.
+- **Navegador** (Playwright), em 360 px, 390 px e desktop:
+  - colher trigo, cozinhar pão (42 pães, a atividade para quando o trigo acaba);
+  - fundir 3 espadas de ferro (sucesso em 2 telas, falha na terceira, com a mensagem certa);
+  - ampliar a mochila; equipar 2 anéis nos 2 slots; abas Consumíveis e Nomeados.
+
+  Também a **migração real** de um save v8 criado no site publicado (que rodava a F7): "Save atualizado para a versão nova", ofícios de produção no 1 e slots novos vazios. Console limpo, sem rolagem lateral.
+
+### Números principais
+
+- **Receitas:** o produto vale **1,6× a 2,5×** os materiais crus. O gargalo é coletar e caçar os materiais.
+- **Fusão da Espada de ferro** (sem Sorte), em média:
+  - até +1: 3,4 espadas e 1.362 g;
+  - até +2: 12,4 espadas e 9.270 g;
+  - até +3: **51 espadas e ~51 mil gold**.
+- **Cadeia completa, 60 dias:** 21 fragmentos de chefe e 3 relíquias.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | "3 itens → 1 da raridade seguinte" exigiria um item novo por raridade para cada equipamento. | Variantes **+1 a +3** geradas a partir de cada item comum (raridade sobe um degrau, bônus +20% por nível). | Aguarda o autor |
+| 2 | Como sortear a fusão sem quebrar o determinismo? | Usa o **RNG do save** (o mesmo das atividades). A mesma semente dá o mesmo resultado; o teste confere a taxa em 400 sementes. | Resolvido |
+| 3 | A primeira versão das receitas de aço rendia **7× o valor dos materiais**. | Dobrei/tripliquei os materiais das receitas de equipamento; agora 1,6× a 2,5×. | Resolvido (números Calibrar) |
+| 4 | Fragmento de chefe com 40% dava **1.895 fragmentos em 60 dias**. | 1% por chefe (21 em 60 dias; os nomeados pedem 3 e 4). | Resolvido (Calibrar) |
+| 5 | Produzir um nomeado duas vezes quebraria a regra "um de cada". | A produção recusa (e para) se o personagem já tem o nomeado. | Resolvido |
+| 6 | "Vender tudo" apagaria nomeados (preço 0) e poções. | Venda individual recusa nomeados; o lote deixa de fora nomeados e poções. | Resolvido |
+| 7 | Poções: botão ou automático? | Automático (jogo idle): vida abaixo de 40%, a mais forte primeiro, recarga de 10 s. | Aguarda o autor |
+| 8 | Relíquias: nomeadas ou comuns? | Nomeadas (uma de cada), de chefes de área e do Limiar. | Aguarda o autor |
+| 9 | Quem já tinha origem com nomeado, antes da F8? | A migração v8 → v9 coloca o item na mochila. | Resolvido |
+| 10 | Gold sobrando (pendente da F7). | Fusão e ampliação são os ralos. O **bot ainda não funde**, então o gold dele continua alto; o ajuste fino fica para a F13 (balanceamento). | Pendente (F13) |
+
+### O que ficou de fora
+
+Afixos aleatórios; carpintaria e costura; manoplas e mão secundária; troca entre jogadores (proibida pelo autor).
+
+---
+
 ## Próximo passo
 
-**F8 — Forja, produção e nomeados** (já autorizada): produção, fusão por raridade, receitas, itens nomeados, acessórios e relíquias. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.
+**F9 — Conta e sincronização** (já autorizada): conta, `/api/v1`, sincronização e até 3 personagens. Precisa de um banco na nuvem: **não vou criar recurso pago**; a API e a sincronização ficam prontas com modo local e resposta 503 sem banco, e a ativação fica registrada como pendente para o autor.

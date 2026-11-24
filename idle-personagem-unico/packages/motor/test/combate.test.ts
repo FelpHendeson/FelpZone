@@ -15,6 +15,7 @@ import {
   camposIniciaisF5,
   camposIniciaisF6,
   camposIniciaisF7,
+  camposIniciaisF8,
   carregarSave,
   comprarEquipamento,
   criarEstadoInicial,
@@ -57,6 +58,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF4(),
     ...camposIniciaisF6(),
     ...camposIniciaisF7(),
+    ...camposIniciaisF8(),
     ...semHabilidadesEquipadas(),
     ...extra,
   };
@@ -83,7 +85,7 @@ describe("catálogo de combate", () => {
       expect(tipos).toEqual(["comum", "comum", "raro"]);
       expect(a.monstros[2]!.peso / a.monstros.reduce((s, m) => s + m.peso, 0)).toBeCloseTo(0.05, 9);
       expect(CATALOGO.monstros.get(a.chefeId)?.tipo).toBe("chefe");
-      for (const s of SLOTS) expect(EQUIPAMENTOS.some((i) => i.equipamento?.slot === s && i.equipamento.tier === a.tierEquipamento), `${a.id} ${s}`).toBe(true);
+      for (const s of SLOTS.filter((x) => !x.startsWith("acessorio") && x !== "reliquia")) expect(EQUIPAMENTOS.some((i) => i.equipamento?.slot === s && i.equipamento.tier === a.tierEquipamento), `${a.id} ${s}`).toBe(true);
     }
     expect(MONSTROS).toHaveLength(24);
     for (const m of MONSTROS) for (const d of m.drops) expect(CATALOGO.itens.has(d.itemId)).toBe(true);
@@ -151,7 +153,7 @@ describe("caçar", () => {
 
   it("o chefe aparece a cada 50 abates na área", () => {
     // Veterano: nível 20, status no piso do nível e equipamento de ferro.
-    const ferro = { arma: "espada-de-ferro", elmo: "elmo-de-ferro", peitoral: "cota-de-malha", calcas: "grevas-de-ferro", botas: "botas-ferradas" };
+    const ferro = { arma: "espada-de-ferro", elmo: "elmo-de-ferro", peitoral: "cota-de-malha", calcas: "grevas-de-ferro", botas: "botas-ferradas", acessorio1: null, acessorio2: null, reliquia: null };
     const base = personagem({ equipados: ferro });
     const f = faixas("humano", 20, modificadoresDoPersonagem(base, 20));
     const status = Object.fromEntries(Object.entries(f).map(([s, x]) => [s, x.piso])) as Personagem["status"];

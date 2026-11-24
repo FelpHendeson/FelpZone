@@ -29,6 +29,7 @@ import { PainelLimiar, PainelTitulos } from "./PainelLimiar";
 import { missoesProntas, PainelGuilda, PainelMetas, PainelNpcs } from "./PainelMissoes";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
+import { PainelConsumiveis, PainelNomeados, PainelProducao } from "./PainelProducao";
 import { PainelStatus } from "./PainelStatus";
 import { PainelTreino } from "./PainelTreino";
 import { ResumoOffline } from "./ResumoOffline";
@@ -209,6 +210,14 @@ export function Shell() {
         <FichaPersonagem personagem={personagem} />
       </>
     );
+  } else if (aba.id === "atividades" && indiceSub === 2) {
+    conteudo = (
+      <PainelProducao personagem={personagem} ocupado={ocupado} aoIniciar={(id) => agir((e, agora) => iniciarAtividade(e, id, agora))} aoParar={() => agir(pararAtividade)} />
+    );
+  } else if (aba.id === "mochila" && indiceSub === 4) {
+    conteudo = <PainelConsumiveis personagem={personagem} />;
+  } else if (aba.id === "mochila" && indiceSub === 5) {
+    conteudo = <PainelNomeados personagem={personagem} />;
   } else if (aba.id === "atividades" && (indiceSub === 0 || indiceSub === 1)) {
     const props = {
       personagem,

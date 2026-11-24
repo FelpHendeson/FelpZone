@@ -25,6 +25,11 @@ import {
   camposIniciaisF5,
   camposIniciaisF6,
   camposIniciaisF7,
+  camposIniciaisF8,
+  FRAGMENTO,
+  infoFusao,
+  RECEITAS,
+  RELIQUIAS,
   CATALOGO as CAT,
   nivelEfetivoOficio,
   MISSOES,
@@ -101,6 +106,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     passivasEquipadas: [],
     ...camposIniciaisF6(),
     ...camposIniciaisF7(),
+    ...camposIniciaisF8(),
   };
 }
 
@@ -340,7 +346,10 @@ linha();
 function guerreiro(nivel: number, ocupacao: number, tier: 0 | 1 | 2 | 3): Personagem {
   const base = personagem("humano", comum);
   const equipados = { ...base.equipados } as Record<(typeof SLOTS)[number], string | null>;
-  if (tier > 0) for (const s of SLOTS) equipados[s] = EQUIPAMENTOS.find((i) => i.equipamento?.slot === s && i.equipamento.tier === tier)!.id;
+  if (tier > 0) for (const s of SLOTS) {
+    const eq = EQUIPAMENTOS.find((i) => i.equipamento?.slot === s && i.equipamento.tier === tier);
+    if (eq) equipados[s] = eq.id;
+  }
   const comEq = { ...base, equipados };
   const f = faixas("humano", nivel, modificadoresDoPersonagem(comEq, nivel));
   const status = Object.fromEntries(Object.entries(f).map(([k, x]) => [k, x.piso + ocupacao * (x.teto - x.piso)])) as Personagem["status"];
@@ -488,14 +497,14 @@ function cadeiaCompleta(dias: number) {
         const it = CAT.itens.get(id)!;
         if (it.livro) e = usar(e, lerLivro(e, id, tc));
         if (it.equipamento) {
-          const atual = p().equipados[it.equipamento.slot];
+          const atual = p().equipados[it.equipamento.slot === "acessorio" ? "acessorio1" : it.equipamento.slot];
           const tierAtual = atual ? CAT.itens.get(atual)!.equipamento!.tier : -1;
           if (it.equipamento.tier > tierAtual) e = usar(e, equipar(e, id, tc));
         }
       }
       e = usar(e, venderTudo(e, tc));
       for (const eq of [...EQUIPAMENTOS].filter((x) => x.equipamento?.precoCompra).sort((a, b) => b.equipamento!.tier - a.equipamento!.tier)) {
-        const atual = p().equipados[eq.equipamento!.slot];
+        const atual = p().equipados[eq.equipamento!.slot === "acessorio" ? "acessorio1" : eq.equipamento!.slot];
         const tierAtual = atual ? CAT.itens.get(atual)!.equipamento!.tier : -1;
         if (eq.equipamento!.tier > tierAtual && p().ouro >= eq.equipamento!.precoCompra!) {
           e = usar(e, comprarEquipamento(e, eq.id, tc));
@@ -530,7 +539,8 @@ function cadeiaCompleta(dias: number) {
       marcos.push({ dia: dia + 1, nivel: p().nivel, rank: RANKS[p().guilda.rank]!, ouro: p().ouro, mortes: p().mortes, metas });
     }
   }
-  return { marcos, diasNivel, diasRank };
+  const obtidos = p().obtidos;
+  return { marcos, diasNivel, diasRank, fragmentos: obtidos[FRAGMENTO] ?? 0, reliquias: RELIQUIAS.filter((r) => (obtidos[r.id] ?? 0) > 0).map((r) => r.nome), pocoes: 0 };
 }
 
 linha("### Cadeia completa (F7)");
@@ -546,6 +556,80 @@ linha();
   linha(`Dias até o nível: ${[10, 20, 30, 40, 50].map((l) => `${l}: ${r.diasNivel.has(l) ? num(r.diasNivel.get(l)!) : "—"}`).join(" · ")}.`);
   linha();
   linha(`Dias até o rank: ${[...r.diasRank.entries()].map(([rk, d]) => `${RANKS[rk]}: ${num(d)}`).join(" · ")}.`);
+  linha();
+  linha(`Em 60 dias (F8): ${r.fragmentos} fragmentos de chefe; relíquias: ${r.reliquias.length ? r.reliquias.join(", ") : "nenhuma"}.`);
+  linha();
+}
+
+// ---------------------------------------------------------------- Produção e fusão (F8)
+
+linha("### Produção e fusão (F8)");
+linha();
+linha("Cada receita por 1 h no nível mínimo do ofício (Humano no piso, sem bônus), com material de sobra. Valor agregado = gold da saída − gold das entradas vendidas cruas; Saída ÷ entradas = quanto o produto vale a mais que os materiais (o gargalo real é coletar/caçar os materiais).");
+linha();
+linha("| Receita | Ciclo | Saídas/h | Valor agregado/h | Saída ÷ entradas | XP de ofício/h |");
+linha("| --- | ---: | ---: | ---: | ---: | ---: |");
+for (const r of RECEITAS) {
+  const base = personagem("humano", comum);
+  const mochila: Record<string, number> = {};
+  for (const x of r.entradas) mochila[x.itemId] = x.quantidade * 200;
+  const ofs = { ...base.oficiosProducao, [r.oficio]: { nivel: r.nivelMinimo, xp: 0 } };
+  const pc: Personagem = { ...base, localId: r.localId, subareaId: r.subareaId, oficiosProducao: ofs, mochila, espacosExtras: 1_000, atividade: { id: r.id, progressoMs: 0 } };
+  const res = avancarPersonagem(pc, HORA, Rng.daSemente(`prod-${r.id}`));
+  const saidas = res.itens[r.saida.itemId] ?? 0;
+  const ciclos = saidas / r.saida.quantidade;
+  const preco = (id: string) => CAT.itens.get(id)!.preco;
+  const entrada = r.entradas.reduce((s, x) => s + x.quantidade * preco(x.itemId), 0);
+  const agregado = saidas * preco(r.saida.itemId) - ciclos * entrada;
+  const razao = (r.saida.quantidade * preco(r.saida.itemId)) / entrada;
+  linha(`| ${r.nome} | ${num(r.cicloBaseMs / 1000, 0)} s | ${saidas} | ${num(agregado, 0)} | ${num(razao, 2)}× | ${num(ciclos * r.xpOficio, 0)} |`);
+}
+linha();
+{
+  const n = 2_000;
+  const alvo = "espada-de-ferro";
+  const pBase = personagem("humano", comum);
+  const custos = [1, 2, 3].map((nivelAlvo) => {
+    let itens = 0;
+    let fusoes = 0;
+    let ouro = 0;
+    for (let i = 0; i < n; i++) {
+      const rng = Rng.daSemente(`fusao-${nivelAlvo}-${i}`);
+      const pity: Record<string, number> = {};
+      // Produz 1 unidade de `alvo+nivel` (pirâmide de fusões), contando base, fusões e gold.
+      const fazer = (nivel: number): void => {
+        if (nivel === 0) {
+          itens++;
+          return;
+        }
+        const id = nivel === 1 ? alvo : `${alvo}+${nivel - 1}`;
+        let pilha = 0;
+        for (;;) {
+          while (pilha < 3) {
+            fazer(nivel - 1);
+            pilha++;
+          }
+          const info = infoFusao({ ...pBase, pityFusao: pity[id] ? { [id]: pity[id]! } : {} }, id)!;
+          fusoes++;
+          ouro += info.ouro;
+          if (info.garantida || rng.flutuante() < info.chance) {
+            delete pity[id];
+            return;
+          }
+          pilha--;
+          pity[id] = (pity[id] ?? 0) + 1;
+        }
+      };
+      fazer(nivelAlvo);
+    }
+    return { itens: itens / n, fusoes: fusoes / n, ouro: ouro / n };
+  });
+  linha("Fusão da Espada de ferro (Humano sem Sorte; média de 2.000 simulações para cada alvo, montando a pirâmide desde a espada comum):");
+  linha();
+  linha("| Até | Espadas de ferro gastas | Fusões | Gold |");
+  linha("| --- | ---: | ---: | ---: |");
+  const nomes = ["+1", "+2", "+3"];
+  for (let k = 0; k < 3; k++) linha(`| ${nomes[k]} | ${num(custos[k]!.itens)} | ${num(custos[k]!.fusoes)} | ${num(custos[k]!.ouro, 0)} |`);
   linha();
 }
 console.log(out.join("\n"));

@@ -133,3 +133,14 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 50. **NPCs e textos** (Iolanda, Brom, Tico, Pescador Mudo) são do agente.
 51. **Meta "Ida e volta"** pede voltar do Limiar: quem nunca morre fica parado na 8ª meta.
 
+### Da F8 (forja, produção e nomeados), para o autor conferir
+
+52. **Ofícios de produção**: Ferreiro (forja), Alquimista e Cozinheiro, com a curva de XP da coleta. Carpintaria e costura ficam para depois.
+53. **Fusão por "+N" em vez de raridade nova por item**: cada equipamento comum ganhou versões +1 a +3 (raridade sobe um degrau por nível). Assim "3 iguais → 1 da raridade seguinte" vale sem criar 4 vezes o catálogo à mão.
+54. **Falha parcial** perde 1 dos 3; o material e o gold da tentativa são gastos sempre. *Pity* em 3 falhas seguidas no mesmo item.
+55. **Poções automáticas** com vida abaixo de 40% (a mais forte primeiro, uma a cada 10 s). Não há botão de usar: é um jogo idle.
+56. **Relíquias são nomeadas** (uma de cada, não se vendem nem se fundem) e caem de chefes de área e do Limiar.
+57. **Nomeados de origem** chegam na mochila ao criar o personagem (e na migração v8 → v9 para quem já tinha a origem).
+58. **"Vender tudo"** deixa de fora poções e nomeados, para não perder o que o combate usa nem o que é único.
+59. **Receitas** (materiais e números) são do agente e foram recalibradas pelo bot (ver `CALIBRACAO.md`).
+

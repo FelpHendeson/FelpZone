@@ -11,8 +11,11 @@ import {
   statusDeCombate,
   type StatusDeCombate,
   xpDoCiclo,
+  type AtividadeProducao,
   type Personagem,
   type ResumoAvanco,
+  type Slot,
+  type SlotItem,
 } from "@idle-pu/motor";
 
 export interface Estimativa {
@@ -50,6 +53,17 @@ export function estimarAtividade(p: Personagem, atividadeId: string): Estimativa
       xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora,
       itensPorHora: 0,
       xpOficioPorHora: 0,
+      chanceRaro: 0,
+      viagemMs,
+    };
+  }
+  if (a.tipo === "producao") {
+    return {
+      duracaoMs,
+      ganhoPorHora: 0,
+      xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora,
+      itensPorHora: a.saida.quantidade * ciclosPorHora,
+      xpOficioPorHora: a.xpOficio * ciclosPorHora,
       chanceRaro: 0,
       viagemMs,
     };
@@ -101,4 +115,15 @@ export function nomeSubarea(localId: string, subareaId: string): string {
 
 export function combateDe(p: Personagem): StatusDeCombate {
   return statusDeCombate(p.status, modificadoresDoPersonagem(p, p.nivel));
+}
+
+/** Quantos ciclos de produção os materiais na mochila pagam. */
+export function ciclosPossiveis(p: Personagem, a: AtividadeProducao): number {
+  return Math.min(...a.entradas.map((x) => Math.floor((p.mochila[x.itemId] ?? 0) / x.quantidade)));
+}
+
+/** Slot onde um item entra (acessórios: o primeiro livre). */
+export function slotDoItem(p: Personagem, slot: SlotItem): Slot {
+  if (slot !== "acessorio") return slot;
+  return !p.equipados.acessorio1 ? "acessorio1" : !p.equipados.acessorio2 ? "acessorio2" : "acessorio1";
 }

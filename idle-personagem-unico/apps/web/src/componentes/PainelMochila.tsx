@@ -1,4 +1,4 @@
-import { CATALOGO, LIVROS, LOCAL_CIDADE, NOME_OFICIO, OFICIOS, comprarLivro, precoDeCompra, precoDeVenda, vender, venderTudo, type Personagem } from "@idle-pu/motor";
+import { CATALOGO, LIVROS, LOCAL_CIDADE, NOME_OFICIO, OFICIOS, ampliarMochila, comprarLivro, precoAmpliacao, precoDeCompra, precoDeVenda, vendivel, vender, venderTudo, type Personagem } from "@idle-pu/motor";
 import { formatarNumero, nomeLocal, situacaoMochila } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 
@@ -11,8 +11,9 @@ interface Props {
 /** Mercado: venda por item e em lote (GDD §9.3, §9.5). Usado em Mapa e em Mochila. */
 export function PainelMercado({ personagem: p, ocupado, agir }: Props) {
   const naCidade = p.localId === LOCAL_CIDADE && !p.viagem;
-  const itens = Object.entries(p.mochila);
-  const total = itens.reduce((s, [id, q]) => s + precoDeVenda(p, id, q), 0);
+  const itens = Object.entries(p.mochila).filter(([id]) => vendivel(id));
+  const total = itens.filter(([id]) => CATALOGO.itens.get(id)?.consumivel?.tipo !== "pocao").reduce((s, [id, q]) => s + precoDeVenda(p, id, q), 0);
+  const ampliacao = precoAmpliacao(p);
   return (
     <article className="cartao">
       <div className="nivel-linha">
@@ -47,7 +48,22 @@ export function PainelMercado({ personagem: p, ocupado, agir }: Props) {
               Vender tudo ({formatarNumero(total, 0)} g)
             </button>
           </div>
+          <p className="suave nota">“Vender tudo” não leva poções nem itens nomeados.</p>
         </>
+      )}
+      <h4 className="subtitulo">Ampliar a mochila</h4>
+      {ampliacao === null ? (
+        <p className="suave">A mochila já está no tamanho máximo (+{p.espacosExtras} espaços).</p>
+      ) : (
+        <div className="recurso">
+          <div>
+            <strong>+5 espaços</strong> <span className="suave">(já comprados: +{p.espacosExtras})</span>
+            <p className="suave">{formatarNumero(ampliacao, 0)} g</p>
+          </div>
+          <button type="button" className="botao botao-principal" disabled={ocupado || !naCidade || p.ouro < ampliacao} onClick={() => agir(ampliarMochila)}>
+            Ampliar
+          </button>
+        </div>
       )}
     </article>
   );

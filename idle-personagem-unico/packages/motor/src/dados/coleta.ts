@@ -15,23 +15,44 @@ export const NOME_OFICIO: Readonly<Record<OficioId, string>> = {
   agricultura: "Fazendeiro",
 };
 
-export type CategoriaItem = "material" | "raro" | "equipamento" | "livro";
+export type CategoriaItem = "material" | "raro" | "equipamento" | "livro" | "consumivel";
 
-/** Slots de combate da F4 (manoplas, mão secundária, acessórios e relíquia vêm depois). */
-export const SLOTS = ["arma", "elmo", "peitoral", "calcas", "botas"] as const;
+/** Slots de combate: F4 (5) + F8 (2 acessórios e 1 relíquia). Manoplas e mão secundária vêm depois. */
+export const SLOTS = ["arma", "elmo", "peitoral", "calcas", "botas", "acessorio1", "acessorio2", "reliquia"] as const;
 export type Slot = (typeof SLOTS)[number];
+/** Slot que o item ocupa: acessórios cabem em qualquer um dos dois slots de acessório. */
+export type SlotItem = Exclude<Slot, "acessorio1" | "acessorio2"> | "acessorio";
 
-export const NOME_SLOT: Readonly<Record<Slot, string>> = { arma: "Arma", elmo: "Elmo", peitoral: "Peitoral", calcas: "Calças", botas: "Botas" };
+export const NOME_SLOT: Readonly<Record<Slot | SlotItem, string>> = {
+  acessorio: "Acessório",
+  arma: "Arma",
+  elmo: "Elmo",
+  peitoral: "Peitoral",
+  calcas: "Calças",
+  botas: "Botas",
+  acessorio1: "Acessório",
+  acessorio2: "Acessório",
+  reliquia: "Relíquia",
+};
+
+/** O slot do item serve neste slot do personagem? */
+export function cabeNoSlot(slotItem: SlotItem, slot: Slot): boolean {
+  return slotItem === "acessorio" ? slot === "acessorio1" || slot === "acessorio2" : slotItem === slot;
+}
 
 export interface DadosEquipamento {
-  readonly slot: Slot;
+  readonly slot: SlotItem;
   /** 0 = kit inicial; 1–3 = tiers das áreas. */
   readonly tier: 0 | 1 | 2 | 3;
+  /** Fusão (F8): 0 = base; +1 a +3 = aprimorado. */
+  readonly aprimoramento?: number;
+  /** Item base de uma variante aprimorada. */
+  readonly baseId?: string;
   /** Preço no Ferreiro; `null` = só por drop (ou kit). */
   readonly precoCompra: number | null;
   readonly modificadores: readonly Modificador[];
   /** Item nomeado (GDD §9.1): fora da escala de raridade, uma unidade por personagem. */
-  readonly nomeado?: { readonly conjunto: string };
+  readonly nomeado?: { readonly conjunto?: string; readonly evoluiComNivel?: { readonly alvo: string; readonly base: number; readonly porNivel: number } };
 }
 
 export interface Item {
@@ -47,6 +68,8 @@ export interface Item {
   readonly equipamento?: DadosEquipamento;
   /** Livro: ensina a habilidade ao ser lido (F5). `precoCompra` é o preço no Mercado. */
   readonly livro?: { readonly habilidadeId: string; readonly precoCompra: number };
+  /** Consumível (F8): poção usada sozinha no combate ou comida. */
+  readonly consumivel?: { readonly tipo: "pocao" | "comida"; readonly cura?: number };
 }
 
 export interface Ferramenta {

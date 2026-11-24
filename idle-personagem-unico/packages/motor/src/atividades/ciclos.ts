@@ -10,10 +10,11 @@
 import { CATALOGO, obter, STATUS, type StatusId } from "../dados";
 import type { AtividadeCiclica } from "../dados";
 import type { AtividadeColeta, OficioId } from "../dados/coleta";
+import { CONFIG_PRODUCAO, type OficioProducaoId } from "../dados/producao";
 import type { AtividadeCombate } from "../dados/combate";
 import type { Modificador } from "../modificadores";
 import type { Personagem, ProgressoOficio } from "../personagem/conta";
-import { adicionarItens, capacidadeMochila } from "../personagem/mochila";
+import { adicionarItens, capacidadeMochila, removerItens } from "../personagem/mochila";
 import {
   aplicarXp,
   CONFIG_OFICIOS,
@@ -41,9 +42,10 @@ export const BONUS_AGILIDADE_POR_PONTO = 0.01;
 /** Percepção e Sorte aumentam achados raros [Calibrar]. */
 export const BONUS_RARO_POR_PONTO = 0.01;
 
-/** Nível efetivo do ofício: nível + bônus somados (`oficio.<id>.nivel`). */
-export function nivelEfetivoOficio(p: Pick<Personagem, "oficios">, oficio: OficioId, mods: readonly Modificador[]): number {
-  return p.oficios[oficio].nivel + resumirModificadores(mods, `oficio.${oficio}.nivel`).somar;
+/** Nível efetivo do ofício (coleta ou produção): nível + bônus somados (`oficio.<id>.nivel`). */
+export function nivelEfetivoOficio(p: Pick<Personagem, "oficios" | "oficiosProducao">, oficio: OficioId | OficioProducaoId, mods: readonly Modificador[]): number {
+  const prog = (p.oficios as Record<string, ProgressoOficio>)[oficio] ?? (p.oficiosProducao as Record<string, ProgressoOficio>)[oficio];
+  return (prog?.nivel ?? 1) + resumirModificadores(mods, `oficio.${oficio}.nivel`).somar;
 }
 
 /** Fator de velocidade do ciclo: modificadores × ferramenta × Agilidade (só coleta). */
@@ -53,6 +55,10 @@ function fatorVelocidade(p: Personagem, atividade: AtividadeCiclica, mods: reado
     f *= fator(mods, "coleta.velocidade");
     f *= obter(CATALOGO.ferramentas, p.ferramentas[atividade.oficio]).velocidade;
     f *= 1 + BONUS_AGILIDADE_POR_PONTO * valorEfetivo(p.status.agilidade, "agilidade", mods);
+  } else if (atividade.tipo === "producao") {
+    // Intelecto acelera a produção (GDD §5.1).
+    f *= fator(mods, "producao.velocidade");
+    f *= 1 + CONFIG_PRODUCAO.bonusIntelectoPorPonto * valorEfetivo(p.status.intelecto, "intelecto", mods);
   }
   return f;
 }
@@ -263,6 +269,8 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
   // 2b. Treino e coleta, em ciclos (a vida se recupera junto).
   atual = curar(atual, restante);
   const oficios = { ...atual.oficios } as Record<OficioId, ProgressoOficio>;
+  const oficiosProducao = { ...atual.oficiosProducao } as Record<OficioProducaoId, ProgressoOficio>;
+  let parouSemMaterial = false;
   let mochila = atual.mochila;
   let nivel = atual.nivel;
   let xp = atual.xp;
@@ -275,7 +283,7 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
   let chance = 0;
   const hab: Record<string, ProgressoHabilidade> = { ...atual.habilidades };
   const base = { ...atual, habilidades: hab };
-  const escopos = atividade.tipo === "coleta" ? ["coleta", "geral"] : ["geral"];
+  const escopos = atividade.tipo === "coleta" ? ["coleta", "geral"] : atividade.tipo === "producao" ? ["producao", "geral"] : ["geral"];
   const praticada = atual.atividade!.habilidadeId;
   const recalcular = () => {
     mods = modificadoresDoPersonagem(base, nivel);
@@ -306,6 +314,43 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
           acc.maestria[praticada] = (acc.maestria[praticada] ?? 0) + n;
           maestriaSubiu = true;
         }
+      }
+    } else if (atividade.tipo === "producao") {
+      // Produção: consome as entradas e guarda a saída; sem material (ou sem espaço), para.
+      // Nomeado produzido é único: com um já em mãos, a produção para.
+      const saidaId = atividade.saida.itemId;
+      const repetido = !!CATALOGO.itens.get(saidaId)?.equipamento?.nomeado && ((mochila[saidaId] ?? 0) > 0 || Object.values(base.equipados).includes(saidaId));
+      const falta = repetido || atividade.entradas.some((x) => (mochila[x.itemId] ?? 0) < x.quantidade);
+      let semEspaco = false;
+      if (!falta) {
+        let teste = mochila;
+        for (const x of atividade.entradas) teste = removerItens(teste, x.itemId, x.quantidade);
+        const r = adicionarItens(teste, atividade.saida.itemId, atividade.saida.quantidade, capacidade);
+        if (r.perdidos > 0) semEspaco = true;
+        else {
+          mochila = r.mochila;
+          acc.itens[atividade.saida.itemId] = (acc.itens[atividade.saida.itemId] ?? 0) + atividade.saida.quantidade;
+        }
+      }
+      if (falta || semEspaco) {
+        parouSemMaterial = true;
+        ciclos--;
+        break;
+      }
+      const o = atividade.oficio;
+      const of = oficiosProducao[o];
+      if (of.nivel < CONFIG_OFICIOS.nivelMaximo) {
+        const ganhoXp = atividade.xpOficio * fator(mods, `oficio.${o}.xp`);
+        let nivelO = of.nivel;
+        let xpO = of.xp + ganhoXp;
+        (xpOficios as Record<string, number>)[o] = ((xpOficios as Record<string, number>)[o] ?? 0) + ganhoXp;
+        while (nivelO < CONFIG_OFICIOS.nivelMaximo && xpO >= xpParaProximoNivelOficio(nivelO)) {
+          xpO -= xpParaProximoNivelOficio(nivelO);
+          nivelO++;
+          (niveisOficio as Record<string, number>)[o] = ((niveisOficio as Record<string, number>)[o] ?? 0) + 1;
+        }
+        if (nivelO >= CONFIG_OFICIOS.nivelMaximo) xpO = 0;
+        oficiosProducao[o] = { nivel: nivelO, xp: xpO };
       }
     } else {
       // Quantidade: parte inteira garantida + fração sorteada; depois o achado raro.
@@ -345,8 +390,14 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
     if (r.subiu || maestriaSubiu) recalcular();
   }
 
-  const atividadeFinal = praticada ? { id: atividade.id, progressoMs: progresso, habilidadeId: praticada } : { id: atividade.id, progressoMs: progresso };
-  return resultado({ ...atual, nivel, xp, status, oficios, mochila, habilidades: hab, atividade: atividadeFinal });
+  const atividadeFinal = parouSemMaterial
+    ? null
+    : praticada
+      ? { id: atividade.id, progressoMs: progresso, habilidadeId: praticada }
+      : { id: atividade.id, progressoMs: progresso };
+  const fim = { ...atual, nivel, xp, status, oficios, oficiosProducao, mochila, habilidades: hab, atividade: atividadeFinal };
+  // Parou por falta de material: o resto do tempo é ocioso (a vida já se recuperou acima).
+  return resultado(fim);
 }
 
 /** O que aconteceu num avanço de tempo (para "Enquanto você estava fora"). */

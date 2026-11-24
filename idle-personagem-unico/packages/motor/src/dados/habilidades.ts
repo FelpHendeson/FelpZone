@@ -106,7 +106,7 @@ const TECNICAS_CORE: readonly Habilidade[] = [
   // Portador da Chama.
   ativa({ id: "punho-em-brasa", nome: "Punho em Brasa", descricao: "Golpe em brasa: 180% do ataque.", natureza: "magica", subtipo: "elemental", escopo: "combate" }, core("portador-da-chama"), 8_000, [{ tipo: "golpe", multiplicador: 1.8 }]),
   passiva({ id: "sangue-quente", nome: "Sangue Quente", descricao: "Ataques 8% mais rápidos.", natureza: "fisica", escopo: "combate" }, core("portador-da-chama"), [pct("velocidade-ataque", 0.08)]),
-  passiva({ id: "fornalha-interior", nome: "Fornalha Interior", descricao: "Forja e culinária mais rápidas.", natureza: "magica", subtipo: "elemental", escopo: "producao", pendente: "Produção (F8)." }, core("portador-da-chama"), [pct("producao.velocidade", 0.1)]),
+  passiva({ id: "fornalha-interior", nome: "Fornalha Interior", descricao: "Forja e culinária mais rápidas.", natureza: "magica", subtipo: "elemental", escopo: "producao" }, core("portador-da-chama"), [pct("producao.velocidade", 0.1)]),
   // Filho da Tempestade.
   ativa({ id: "lanca-de-raio", nome: "Lança de Raio", descricao: "Raio de 200% do ataque.", natureza: "magica", subtipo: "elemental", escopo: "combate" }, core("filho-da-tempestade"), 10_000, [{ tipo: "golpe", multiplicador: 2 }]),
   passiva({ id: "passo-do-trovao", nome: "Passo do Trovão", descricao: "+4% de esquiva.", natureza: "fisica", escopo: "combate" }, core("filho-da-tempestade"), [soma("esquiva", 0.04)]),
@@ -129,7 +129,7 @@ const TECNICAS_CORE: readonly Habilidade[] = [
   ativa({ id: "eco-dos-antigos", nome: "Eco dos Antigos", descricao: "Um eco repete o golpe: 160% do ataque.", natureza: "magica", subtipo: "espiritual", escopo: "combate" }, core("alma-antiga"), 12_000, [{ tipo: "golpe", multiplicador: 1.6 }]),
   passiva({ id: "memoria-de-sangue", nome: "Memória de Sangue", descricao: "+20% de XP de maestria.", natureza: "magica", subtipo: "espiritual", escopo: "geral" }, core("alma-antiga"), [pct("xp-maestria", 0.2)]),
   // Artífice Nato.
-  passiva({ id: "mao-certeira", nome: "Mão Certeira", descricao: "Menos falhas na produção.", natureza: "fisica", escopo: "producao", pendente: "Produção (F8)." }, core("artifice-nato"), [pct("producao.sucesso", 0.1)]),
+  passiva({ id: "mao-certeira", nome: "Mão Certeira", descricao: "Mais chance de sucesso na fusão.", natureza: "fisica", escopo: "producao" }, core("artifice-nato"), [pct("producao.sucesso", 0.1)]),
   ativa({ id: "improviso", nome: "Improviso", descricao: "Ajusta a arma no meio da luta: +20% de ataque por 10 s.", natureza: "fisica", escopo: "combate" }, core("artifice-nato"), 30_000, [{ tipo: "reforco", alvo: "ataque", valor: 0.2, duracaoMs: 10_000 }]),
   passiva({ id: "olho-de-oficio", nome: "Olho de Ofício", descricao: "Vende 5% mais caro.", natureza: "fisica", escopo: "geral" }, core("artifice-nato"), [pct("preco-venda", 0.05)]),
   // Andarilho.

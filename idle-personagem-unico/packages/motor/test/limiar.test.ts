@@ -12,6 +12,7 @@ import {
   camposIniciaisF5,
   camposIniciaisF6,
   camposIniciaisF7,
+  camposIniciaisF8,
   cargasEco,
   carregarSave,
   criarEstadoInicial,
@@ -59,6 +60,7 @@ function personagem(extra: Partial<Personagem> = {}, coreId = "andarilho"): Pers
     passivasEquipadas: [],
     ...camposIniciaisF6(),
     ...camposIniciaisF7(),
+    ...camposIniciaisF8(),
     ...extra,
   };
 }
@@ -112,7 +114,7 @@ describe("duração e Eco da Morte", () => {
     expect(duracaoDoLimiar(aldeia, 0, 0)).toBe(Math.round(10 * MIN * 0.95));
     expect(duracaoDoLimiar(personagem({ racaId: "sangue-palido" }), 0, 0)).toBe(Math.round(10 * MIN * 0.8));
     expect(duracaoDoLimiar(personagem({}, "ser-das-trevas"), 0, 0)).toBe(Math.round(10 * MIN * 0.8));
-    const set = personagem({ equipados: { arma: null, elmo: "capuz-do-retornado", peitoral: "mortalha-do-retornado", calcas: "ceroulas-do-retornado", botas: "passos-do-retornado" } });
+    const set = personagem({ equipados: { arma: null, elmo: "capuz-do-retornado", peitoral: "mortalha-do-retornado", calcas: "ceroulas-do-retornado", botas: "passos-do-retornado", acessorio1: null, acessorio2: null, reliquia: null } });
     expect(duracaoDoLimiar(set, 0, 0)).toBe(Math.round(10 * MIN * 0.8));
   });
 
@@ -206,7 +208,7 @@ describe("Barqueiro", () => {
 describe("O Retornado", () => {
   it("chefes do Limiar largam peças que faltam; nunca uma segunda cópia", () => {
     // Um veterano bem equipado no Limiar por muito tempo, com Eco alto (mais chefes).
-    const ferro = { arma: "espada-de-ferro", elmo: "elmo-de-ferro", peitoral: "cota-de-malha", calcas: "grevas-de-ferro", botas: "botas-ferradas" };
+    const ferro = { arma: "espada-de-ferro", elmo: "elmo-de-ferro", peitoral: "cota-de-malha", calcas: "grevas-de-ferro", botas: "botas-ferradas", acessorio1: null, acessorio2: null, reliquia: null };
     let e = estadoCom(entrarNoLimiar(personagem({ equipados: ferro, mortesRecentes: [T0 - 1, T0 - 2, T0 - 3, T0 - 4, T0 - 5], mortes: 5 }), 50, T0));
     let pecas = 0;
     for (let h = 1; h <= 12 && pecas < 2; h++) {
@@ -219,7 +221,7 @@ describe("O Retornado", () => {
   });
 
   it("bônus do set cresce com as mortes (com teto)", () => {
-    const dois = { arma: null, elmo: "capuz-do-retornado", peitoral: "mortalha-do-retornado", calcas: null, botas: null };
+    const dois = { arma: null, elmo: "capuz-do-retornado", peitoral: "mortalha-do-retornado", calcas: null, botas: null, acessorio1: null, acessorio2: null, reliquia: null };
     const bonus = (mortes: number) =>
       modificadoresDoPersonagem(personagem({ equipados: dois, mortes }), 1).find((m) => m.origem.id === "o-retornado" && m.alvo === "ataque")?.valor;
     expect(bonus(10)).toBeCloseTo(0.1, 9);

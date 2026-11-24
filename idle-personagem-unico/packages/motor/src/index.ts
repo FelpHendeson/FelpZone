@@ -36,6 +36,7 @@ export {
   migrarV5ParaV6,
   migrarV6ParaV7,
   migrarV7ParaV8,
+  migrarV8ParaV9,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -104,7 +105,7 @@ export {
 } from "./personagem/progressao";
 export { adicionarItens, cabeNaMochila, capacidadeMochila, espacosUsados, removerItens } from "./personagem/mochila";
 export type { Mochila } from "./personagem/mochila";
-export { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7 } from "./personagem/conta";
+export { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem } from "./personagem/conta";
 export type { BaseModificadores, ConfigProgressao, FaixaStatus, ValoresStatus } from "./personagem/progressao";
 export {
   avancar,
@@ -126,15 +127,21 @@ export {
   comprarEquipamento,
   comprarFerramenta,
   definirRecuo,
+  ampliarMochila,
+  capacidadeDe,
   desequipar,
   equipar,
+  fundir,
+  infoFusao,
   iniciarAtividade,
   irPara,
   LOCAL_CIDADE,
   pararAtividade,
+  precoAmpliacao,
   precoDeCompra,
   precoDeVenda,
   vender,
+  vendivel,
   venderTudo,
 } from "./atividades/acoes";
 export type { CodigoErroAtividade, ErroAtividade, ResultadoAtividade } from "./atividades/acoes";

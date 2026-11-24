@@ -49,6 +49,8 @@ export interface BaseModificadores {
   readonly mortes?: number;
   /** Rank na guilda (F7): descontos e coleta. */
   readonly guilda?: { readonly rank: number };
+  /** Espaços de mochila comprados (F8). */
+  readonly espacosExtras?: number;
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -71,8 +73,15 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
   const efeitoOrigem = p.origem.tipo === "especial" ? obter(CATALOGO.origensEspeciais, p.origem.id).efeito : obter(CATALOGO.bercos, p.origem.id).efeito;
   lista.push(...doEfeito(efeitoOrigem, nivel));
   for (const itemId of Object.values(p.equipados ?? {})) {
-    if (itemId) lista.push(...(obter(CATALOGO.itens, itemId).equipamento?.modificadores ?? []));
+    if (!itemId) continue;
+    const d = obter(CATALOGO.itens, itemId).equipamento;
+    if (!d) continue;
+    lista.push(...d.modificadores);
+    // Nomeados que crescem com o personagem (Lâmina Desperta).
+    const ev = d.nomeado?.evoluiComNivel;
+    if (ev) lista.push({ alvo: ev.alvo, operacao: "somar", valor: ev.base + ev.porNivel * nivel, origem: { tipo: "equipamento", id: itemId } });
   }
+  if (p.espacosExtras) lista.push({ alvo: "espacos-mochila", operacao: "somar", valor: p.espacosExtras, origem: { tipo: "titulo", id: "mochila-ampliada" } });
   // Passivas equipadas (auras ficam de fora: dependem da vida e são tratadas no combate).
   lista.push(...modificadoresDeHabilidades(p));
   // O Retornado (F6): 2 peças dão ataque, 4 dão defesa e Limiar mais curto; crescem com as mortes.

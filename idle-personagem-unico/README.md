@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F7 (Missões e Guilda) concluída.** O personagem treina, coleta, vende, equipa, caça, usa habilidades e volta do Limiar (F1 a F6), e agora tem **missões**: metas próprias que ensinam o jogo, NPCs com pequenas histórias e a Guilda de Aventureiros, com contratos, Mérito, provas de promoção e ranks de F a S. As missões avançam sozinhas enquanto o personagem trabalha. Ainda não há produção, conta online nem pets (F8 em diante).
+**F8 (Forja, produção e nomeados) concluída.** O personagem treina, coleta, vende, equipa, caça, usa habilidades, volta do Limiar e cumpre missões da guilda (F1 a F7), e agora **produz**: forja equipamentos e anéis, prepara poções e amuletos, cozinha, **funde** 3 itens iguais numa versão melhor (+1 a +3), usa **2 acessórios e 1 relíquia**, bebe poções sozinho no combate e guarda **itens nomeados** únicos. Ainda não há conta online nem pets (F9 em diante).
 
 O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
 
@@ -124,6 +124,19 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F7:** Soldado de uma Guerra Perdida (rank inicial E). **A curva de XP mudou** para 150 × L² (ver `docs/CALIBRACAO.md`).
 
+### O que a F8 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/producao.ts` | Ofícios de produção, 19 receitas, acessórios, relíquias, nomeados, consumíveis, fragmento de chefe, variantes +1 a +3 e os números da fusão e da ampliação. |
+| `packages/motor/src/atividades/ciclos.ts` | Produção em ciclos (consome, produz, dá XP de ofício e para sem material). |
+| `packages/motor/src/atividades/acoes.ts` | `fundir` (RNG do save, falha parcial, Sorte, *pity*), `ampliarMochila`, acessórios nos 2 slots, nomeados únicos e fora da venda. |
+| `packages/motor/src/atividades/combate.ts` | Poções automáticas, fragmentos e relíquias dos chefes. |
+| `packages/motor/src/save.ts` | **Save v9** com migração v8 → v9 (nomeado da origem na mochila). |
+| `apps/web` | Atividades → Produção; Ferreiro com Fusão; Mercado com ampliação; Mochila → Consumíveis e Nomeados; slots de acessório e relíquia. |
+
+**Efeitos que passaram a valer na F8:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito (Martelo do Pai e +2 de forja), Náufrago das Estrelas (Bússola Quebrada), berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior, Mão Certeira e Intelecto na produção.
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -175,4 +188,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F8 (Forja, produção e nomeados)**.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F9 (Conta e sincronização)**.

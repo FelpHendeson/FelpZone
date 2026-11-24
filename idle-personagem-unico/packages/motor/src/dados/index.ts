@@ -16,6 +16,7 @@ import { HABILIDADES, HABILIDADES_LIVRO, idLivro, PRECO_LIVRO, RAMOS_CORE, type 
 import { ATIVIDADE_APRENDIZADO, type AtividadeAprendizado } from "./aprendizado";
 import { ITENS_LIMIAR, MONSTROS_LIMIAR, PECAS_RETORNADO } from "./limiar";
 import { MISSOES, NPCS, type Missao, type Npc } from "./missoes";
+import { ITENS_F8, RECEITAS, type AtividadeProducao } from "./producao";
 
 /** Livros (F5): um por habilidade de livro, vendidos no Mercado. */
 export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
@@ -33,13 +34,13 @@ export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
 });
 
 /** Itens de todas as fontes (coleta, combate e equipamentos). */
-const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO];
+const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO, ...ITENS_F8];
 
 /** Toda atividade do personagem (uma por vez). Combate também é atividade [Autor]. */
-export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado;
+export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado | AtividadeProducao;
 /** Atividades por ciclos (treino, coleta e aprendizado). */
-export type AtividadeCiclica = AtividadeTreino | AtividadeColeta | AtividadeAprendizado;
-const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO];
+export type AtividadeCiclica = AtividadeTreino | AtividadeColeta | AtividadeAprendizado | AtividadeProducao;
+const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO, ...RECEITAS];
 import type {
   Berco,
   BestaVinculada,
@@ -168,3 +169,24 @@ export { criarMonstro } from "./combate";
 export type { PerfilMonstro } from "./combate";
 export { CONFIG_GUILDA, MISSOES, NPCS, PRIMEIRA_META, RANK_MAXIMO_ATO_I, RANKS } from "./missoes";
 export type { Missao, Npc, Objetivo, Recompensa, TipoMissao } from "./missoes";
+export {
+  ACESSORIOS,
+  CHANCE_FRAGMENTO,
+  CONFIG_FUSAO,
+  CONFIG_MOCHILA_EXTRA,
+  CONFIG_PRODUCAO,
+  CONSUMIVEIS,
+  DROPS_RELIQUIA,
+  FRAGMENTO,
+  NOME_OFICIO_PRODUCAO,
+  NOMEADOS,
+  NOMEADOS_DE_ORIGEM,
+  OFICIOS_PRODUCAO,
+  RECEITAS,
+  RELIQUIAS,
+  VARIANTES,
+  proximoAprimoramento,
+} from "./producao";
+export type { AtividadeProducao, OficioProducaoId } from "./producao";
+export { cabeNoSlot } from "./coleta";
+export type { SlotItem } from "./coleta";

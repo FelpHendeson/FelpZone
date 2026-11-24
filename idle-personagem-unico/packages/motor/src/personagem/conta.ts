@@ -2,8 +2,9 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
-import { CATALOGO, CONFIG_GUILDA, monstroDoLimiar, OFICIOS, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
+import { cabeNoSlot, CATALOGO, CONFIG_GUILDA, CONFIG_MOCHILA_EXTRA, monstroDoLimiar, NOMEADOS_DE_ORIGEM, OFICIOS, OFICIOS_PRODUCAO, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
+import type { OficioProducaoId } from "../dados/producao";
 import { KIT_COMBATE } from "../dados/combate";
 import {
   CONFIG_HABILIDADES,
@@ -177,6 +178,12 @@ export interface Personagem {
   readonly missoes: EstadoMissoes;
   /** F7: rank (0 = F) e Mérito na Guilda de Aventureiros. */
   readonly guilda: { readonly rank: number; readonly merito: number };
+  /** F8: ofícios de produção (forja, alquimia, culinária). */
+  readonly oficiosProducao: Readonly<Record<OficioProducaoId, ProgressoOficio>>;
+  /** F8: espaços de mochila comprados no Mercado. */
+  readonly espacosExtras: number;
+  /** F8: falhas seguidas de fusão por item (garantia). */
+  readonly pityFusao: Readonly<Record<string, number>>;
 }
 
 export interface MissaoAtiva {
@@ -282,11 +289,13 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f6) return null;
   const f7 = validarCamposF7(v);
   if (!f7) return null;
+  const f8 = validarCamposF8(v);
+  if (!f8) return null;
   // Itens nomeados: uma unidade de cada por personagem (mochila + equipados).
   for (const item of CATALOGO.itens.values()) {
     if (!item.equipamento?.nomeado) continue;
     const naMochila = f3.mochila[item.id] ?? 0;
-    const equipado = Object.values(f4.equipados).includes(item.id) ? 1 : 0;
+    const equipado = Object.values(f4.equipados).filter((x) => x === item.id).length;
     if (naMochila + equipado > 1) return null;
   }
   // No Limiar não há atividade nem viagem (a atividade fica guardada em `retorno`).
@@ -367,6 +376,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     ...f5,
     ...f6,
     ...f7,
+    ...f8,
   };
 }
 
@@ -380,7 +390,7 @@ function validarCombate(v: unknown, monstrosDaArea: readonly string[], nivelLimi
   if (!ehObjeto(recargas) || !Array.isArray(efeitos) || efeitos.length > 32) return null;
   const recargasLimpas: Record<string, number> = {};
   for (const [id, ms] of Object.entries(recargas)) {
-    if (!CATALOGO.habilidades.get(id)?.ativa || !ehNumero(ms, -1_000, 600_000)) return null;
+    if ((id !== "pocao" && !CATALOGO.habilidades.get(id)?.ativa) || !ehNumero(ms, -1_000, 600_000)) return null;
     recargasLimpas[id] = ms;
   }
   const efeitosLimpos: EfeitoEmCurso[] = [];
@@ -422,7 +432,7 @@ function validarCamposF4(v: Record<string, unknown>): CamposF4 | null {
   for (const s of SLOTS) {
     const id = equipados[s];
     if (id === null) eq[s] = null;
-    else if (typeof id === "string" && CATALOGO.itens.get(id)?.equipamento?.slot === s) eq[s] = id;
+    else if (typeof id === "string" && CATALOGO.itens.get(id)?.equipamento && cabeNoSlot(CATALOGO.itens.get(id)!.equipamento!.slot, s)) eq[s] = id;
     else return null;
   }
   if (!ehNumero(vida, 0, 1) || vida === 0) return null;
@@ -658,4 +668,37 @@ function validarCamposF7(v: Record<string, unknown>): CamposF7 | null {
 export function camposIniciaisF7(origemId?: string): CamposF7 {
   const rank = origemId ? (CATALOGO.origensEspeciais.get(origemId)?.rankInicial ?? 0) : 0;
   return { obtidos: {}, treinos: {}, missoes: { ativas: [{ id: PRIMEIRA_META, base: 0 }], concluidas: {}, disponivelEm: {} }, guilda: { rank, merito: 0 } };
+}
+
+type CamposF8 = Pick<Personagem, "oficiosProducao" | "espacosExtras" | "pityFusao">;
+
+/** Valida ofícios de produção, espaços comprados e garantia de fusão (F8). */
+function validarCamposF8(v: Record<string, unknown>): CamposF8 | null {
+  const { oficiosProducao, espacosExtras, pityFusao } = v;
+  if (!ehObjeto(oficiosProducao)) return null;
+  const of = {} as Record<OficioProducaoId, ProgressoOficio>;
+  for (const o of OFICIOS_PRODUCAO) {
+    const p = oficiosProducao[o];
+    if (!ehObjeto(p) || !ehInteiro(p.nivel, 1, CONFIG_OFICIOS.nivelMaximo)) return null;
+    const limite = xpParaProximoNivelOficio(p.nivel);
+    if (typeof p.xp !== "number" || !Number.isFinite(p.xp) || p.xp < 0 || (limite > 0 ? p.xp >= limite : p.xp !== 0)) return null;
+    of[o] = { nivel: p.nivel, xp: p.xp };
+  }
+  const max = CONFIG_MOCHILA_EXTRA.espacosPorCompra * CONFIG_MOCHILA_EXTRA.maximoCompras;
+  if (!ehInteiro(espacosExtras, 0, max) || espacosExtras % CONFIG_MOCHILA_EXTRA.espacosPorCompra !== 0) return null;
+  const pity = contadorLimpo(pityFusao, (k) => CATALOGO.itens.get(k)?.equipamento !== undefined);
+  if (!pity) return null;
+  return { oficiosProducao: of, espacosExtras, pityFusao: pity };
+}
+
+/** Campos iniciais da F8: ofícios de produção no nível 1, sem espaços extras. */
+export function camposIniciaisF8(): CamposF8 {
+  const of = {} as Record<OficioProducaoId, ProgressoOficio>;
+  for (const o of OFICIOS_PRODUCAO) of[o] = { nivel: 1, xp: 0 };
+  return { oficiosProducao: of, espacosExtras: 0, pityFusao: {} };
+}
+
+/** Nomeado que a origem dá de saída (vai para a mochila). */
+export function nomeadoDaOrigem(origemId?: string): string | null {
+  return origemId ? (NOMEADOS_DE_ORIGEM[origemId] ?? null) : null;
 }

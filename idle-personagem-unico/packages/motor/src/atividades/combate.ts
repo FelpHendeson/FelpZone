@@ -4,7 +4,23 @@
  * esquiva, drops) usam o RNG do save, sempre na mesma ordem, então dividir o
  * tempo em partes dá o mesmo resultado.
  */
-import { CATALOGO, CHEFES_LIMIAR, COMUNS_LIMIAR, CONFIG_LIMIAR, CURA_ABAIXO_DE, EQUIPAMENTOS, LIVROS, monstroDoLimiar, obter, PECAS_POR_CHEFE, type StatusId } from "../dados";
+import {
+  CATALOGO,
+  CHANCE_FRAGMENTO,
+  CHEFES_LIMIAR,
+  COMUNS_LIMIAR,
+  CONFIG_LIMIAR,
+  CONSUMIVEIS,
+  CURA_ABAIXO_DE,
+  DROPS_RELIQUIA,
+  EQUIPAMENTOS,
+  FRAGMENTO,
+  LIVROS,
+  monstroDoLimiar,
+  obter,
+  PECAS_POR_CHEFE,
+  type StatusId,
+} from "../dados";
 import type { AtividadeCombate, Monstro } from "../dados/combate";
 import type { Modificador } from "../modificadores";
 import { resumirModificadores } from "../modificadores";
@@ -39,7 +55,15 @@ export const CONFIG_COMBATE = Object.freeze({
   /** Ao desmaiar, acorda em Pedravau com esta fração da vida. */
   vidaAoAcordar: 0.5,
   localDeDesmaio: { localId: "pedravau", subareaId: "praca" },
+  /** F8: poção automática. */
+  pocaoAbaixoDe: 0.4,
+  recargaPocaoMs: 10_000,
 });
+
+/** Chave da recarga de poções no estado de combate. */
+export const CHAVE_POCAO = "pocao";
+/** Poções, da mais forte para a mais fraca. */
+const POCOES = [...CONSUMIVEIS].filter((x) => x.consumivel?.tipo === "pocao").sort((a, b) => (b.consumivel!.cura ?? 0) - (a.consumivel!.cura ?? 0));
 
 export interface StatusDeCombate {
   readonly vidaMax: number;
@@ -305,7 +329,12 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
     } else {
       if (rng.flutuante() < m.chanceEquipamento) guardar(equipamentosDoTier[rng.inteiro(0, equipamentosDoTier.length - 1)]!.id, 1);
       if (rng.flutuante() < m.chanceLivro) guardar(LIVROS[rng.inteiro(0, LIVROS.length - 1)]!.id, 1);
+      // F8: chefes de área deixam fragmentos (receitas de nomeados).
+      if (m.tipo === "chefe" && rng.flutuante() < CHANCE_FRAGMENTO) guardar(FRAGMENTO, 1);
     }
+    // F8: relíquias (nomeadas, uma de cada).
+    const reliquia = DROPS_RELIQUIA[m.id];
+    if (reliquia && rng.flutuante() < reliquia.chance && !tem(reliquia.itemId)) guardar(reliquia.itemId, 1);
     estado = { ...estado, fase: "procurando", restanteMs: c.buscaMs, monstroId: null, vidaMonstro: 0 };
     monstro = null;
     semEfeitosNoMonstro();
@@ -419,6 +448,16 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
       if (estado.vidaMonstro <= 0) {
         abater(m);
         continue;
+      }
+    }
+    // F8: poção automática com a vida abaixo de 40% (a melhor que houver na mochila; recarga de 10 s).
+    if (vida < CONFIG_COMBATE.pocaoAbaixoDe && (recargas[CHAVE_POCAO] ?? 0) <= 0) {
+      const pocao = POCOES.find((x) => (mochila[x.id] ?? 0) > 0);
+      if (pocao) {
+        mochila = { ...mochila, [pocao.id]: mochila[pocao.id]! - 1 };
+        if (mochila[pocao.id] === 0) delete (mochila as Record<string, number>)[pocao.id];
+        vida = Math.min(1, vida + pocao.consumivel!.cura!);
+        recargas[CHAVE_POCAO] = CONFIG_COMBATE.recargaPocaoMs;
       }
     }
     estado.recargaMonstroMs -= c.passoMs;

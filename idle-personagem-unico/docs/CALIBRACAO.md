@@ -533,6 +533,66 @@ O XP não depende da raça; o Humano representa todas (exceto origens com bônus
 3. **Gold explode** (5 milhões no 60º dia), porque ainda não há onde gastar. A F8 (forja e fusão) é o ralo previsto.
 4. Ninguém morreu no bot: com o recuo em 30% e a regra "não caçar no vermelho", a morte só vem por escolha.
 
+## Produção, fusão e nomeados (F8)
+
+Fonte dos números: `packages/motor/src/dados/producao.ts` (`CONFIG_PRODUCAO`, `CONFIG_FUSAO`, `CONFIG_MOCHILA_EXTRA`, receitas, drops) e `atividades/combate.ts` (poções). Reproduza com `npm run ritmo`.
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Ofícios de produção | Ferreiro (forja), Alquimista, Cozinheiro; mesma curva de XP da coleta | [Proposta] |
+| Receitas | 19 (11 de forja, 4 de alquimia, 4 de culinária); ciclo 20 s a 5 min; saída vale 1,6× a 2,5× os materiais crus | [Calibrar] |
+| Intelecto na produção | +1% de velocidade por ponto efetivo | [Calibrar] |
+| Fusão | 3 iguais → 1 aprimorado (+1 a +3); chance 70% / 55% / 40%; Sorte +0,3 p.p. por ponto (até +20 p.p.); *pity* depois de 3 falhas seguidas; falha perde 1 dos 3 | [Calibrar] |
+| Custo da fusão | gold = preço do item × 4 / 10 / 25; material 10 minério de ferro / 10 minério de prata / 10 cinza de alma | [Calibrar] |
+| Bônus por aprimoramento | +20% nos bônus do item por nível | [Calibrar] |
+| Ampliação de mochila | +5 espaços por compra, até 6 compras; 500 g × 3ⁿ | [Calibrar] |
+| Poções | usadas sozinhas com vida < 40%, recarga 10 s; menor cura 30%, normal 60% | [Calibrar] |
+| Fragmento de chefe | 1% por chefe de área abatido | [Calibrar] |
+| Relíquias | 5% (Rato-rei) e 10% (demais chefes; Moeda do Barqueiro nos chefes do Limiar), uma de cada | [Calibrar] |
+
+### Resultado do bot (produção e fusão)
+
+Cada receita por 1 h no nível mínimo do ofício (Humano no piso, sem bônus), com material de sobra. Valor agregado = gold da saída − gold das entradas vendidas cruas; Saída ÷ entradas = quanto o produto vale a mais que os materiais (o gargalo real é coletar/caçar os materiais).
+
+| Receita | Ciclo | Saídas/h | Valor agregado/h | Saída ÷ entradas | XP de ofício/h |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Forjar: Espada de ferro | 60 s | 64 | 6080 | 1,61× | 1280 |
+| Forjar: Elmo de ferro | 60 s | 64 | 4032 | 1,72× | 1280 |
+| Forjar: Cota de malha | 60 s | 64 | 8448 | 1,79× | 1600 |
+| Forjar: Grevas de ferro | 60 s | 64 | 5440 | 1,74× | 1600 |
+| Forjar: Botas ferradas | 60 s | 64 | 4160 | 1,76× | 1280 |
+| Forjar: Espada de aço escuro | 120 s | 31 | 24180 | 2,08× | 1860 |
+| Forjar: Couraça de aço | 120 s | 31 | 29295 | 2,11× | 1860 |
+| Forjar: Anel de cobre | 45 s | 85 | 1700 | 2,00× | 1275 |
+| Forjar: Anel de prata | 60 s | 64 | 5120 | 1,67× | 2240 |
+| Forjar: Presa da Matriarca | 300 s | 1 | -1290 | 0,00× | 200 |
+| Forjar: Coroa do Afogado | 300 s | 1 | -1070 | 0,00× | 200 |
+| Preparar: Poção de vida menor (×2) | 30 s | 256 | 2304 | 2,50× | 1024 |
+| Preparar: Poção de vida (×2) | 45 s | 170 | 3570 | 1,88× | 1700 |
+| Preparar: Amuleto de âmbar | 90 s | 42 | 3696 | 1,67× | 1680 |
+| Preparar: Amuleto de pérola | 90 s | 42 | 3696 | 1,67× | 1680 |
+| Cozinhar: Pão de trigo (×2) | 20 s | 384 | 1536 | 2,00× | 960 |
+| Cozinhar: Ensopado de peixe | 40 s | 96 | 1440 | 1,60× | 1152 |
+| Cozinhar: Torta de abóbora | 60 s | 64 | 3200 | 2,25× | 1600 |
+| Cozinhar: Ração de viagem (×3) | 20 s | 576 | 1920 | 2,25× | 960 |
+
+Fusão da Espada de ferro (Humano sem Sorte; média de 2.000 simulações para cada alvo, montando a pirâmide desde a espada comum):
+
+| Até | Espadas de ferro gastas | Fusões | Gold |
+| --- | ---: | ---: | ---: |
+| +1 | 3,4 | 1,4 | 1362 |
+
+Na cadeia completa (60 dias, mesmo bot da F7): **21 fragmentos de chefe** e 3 relíquias (Olho do Rato-Rei, Escama do Afogador, Coração de Casca).
+
+### Leitura e proposta (F8)
+
+1. **Receitas rendem 1,6× a 2,5× o valor dos materiais.** A primeira versão rendia até 7× na forja de aço (o gargalo é coletar, não forjar); dobrei/tripliquei os materiais das receitas de equipamento.
+2. **Fragmento de chefe** com 40% dava 1.895 fragmentos em 60 dias; com 1%, 21 (os dois nomeados forjáveis pedem 3 e 4).
+3. **Fusão até +3** custa ~51 itens base e ~51 mil gold (Espada de ferro). É o ralo de gold de longo prazo; o bot ainda não funde, então o gold dele continua alto (4,5 milhões no 60º dia).
+4. Ninguém morreu no bot; as poções servem a quem caça no amarelo/vermelho.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -550,3 +610,6 @@ O XP não depende da raça; o Humano representa todas (exceto origens com bônus
 | 24/11/2026 | F6: números do Limiar, Eco, pedágio e O Retornado definidos (não existiam). | — |
 | 24/11/2026 | F7: curva de XP do personagem (o nível 50 saía em 8,8 dias jogando a cadeia completa). | 200 × L^1,5 → 150 × L² |
 | 24/11/2026 | F7: Mérito, contratos e bônus de rank definidos (não existiam). | — |
+| 24/11/2026 | F8: materiais das receitas de equipamento (a forja de aço rendia 7× os materiais crus). | espada de aço 10 prata + 5 carvalho escuro + 5 lodo → 30 + 15 + 10; couraça 14 prata + 5 pedra → 40 + 15; ferro ~2× |
+| 24/11/2026 | F8: fragmento de chefe (1.895 em 60 dias). | 40% → 1% por chefe |
+| 24/11/2026 | F8: números de produção, fusão, ampliação, poções e relíquias definidos (não existiam). | — |
