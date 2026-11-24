@@ -2,6 +2,7 @@
 
 import { CATALOGO, CONQUISTAS, MAX_PERSONAGENS, serializarSave, type EstadoJogo } from "@idle-pu/motor";
 import { useEffect, useState } from "react";
+import { definirSons, sonsLigados, tocar } from "@/lib/sons";
 import { chamarApi, estadoDaResposta, type Sessao } from "@/lib/sync";
 import type { Agir } from "./acoes";
 
@@ -71,6 +72,7 @@ export function PainelConta({ estado, sessao, ocupado, agir, aoConectar }: Props
         </p>
       </article>
 
+      <Preferencias />
       <Sincronizacao estado={estado} sessao={sessao} aoConectar={aoConectar} />
     </section>
   );
@@ -210,6 +212,33 @@ function Sincronizacao({ estado, sessao, aoConectar }: Pick<Props, "estado" | "s
           {mensagem}
         </p>
       )}
+    </article>
+  );
+}
+
+/** Preferências deste aparelho (F13). */
+function Preferencias() {
+  // Só renderiza no aparelho (depois de carregar o save), então pode ler a preferência já.
+  const [sons, setSons] = useState(sonsLigados);
+  return (
+    <article className="cartao" aria-label="Preferências">
+      <h3>Preferências</h3>
+      <div className="nivel-linha">
+        <span>Sons (nível, eventos, Arena)</span>
+        <button
+          type="button"
+          className="botao"
+          aria-pressed={sons}
+          onClick={() => {
+            definirSons(!sons);
+            setSons(!sons);
+            if (!sons) tocar("nivel");
+          }}
+        >
+          {sons ? "Ligados" : "Desligados"}
+        </button>
+      </div>
+      <p className="suave nota">Os sons são gerados pelo navegador, sem arquivos. A preferência fica só neste aparelho.</p>
     </article>
   );
 }

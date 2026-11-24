@@ -19,7 +19,7 @@ export function CartoesResultado({ resultado, lore }: { resultado: Omit<Resultad
           <span className="cartao-tipo">Raça</span>
           <span className={`selo raridade-${raca.raridade}`}>{rotuloRaridade(raca.raridade)}</span>
         </header>
-        <h3>{raca.nome}</h3>
+        <h2 className="cartao-titulo">{raca.nome}</h2>
         <p className="suave">{raca.perfil}</p>
         <p>
           <strong>{raca.habilidadeComum.nome}:</strong> {raca.habilidadeComum.descricao}
@@ -31,7 +31,7 @@ export function CartoesResultado({ resultado, lore }: { resultado: Omit<Resultad
           <span className="cartao-tipo">Core</span>
           <span className={`selo compat-${resultado.compatibilidade}`}>{ROTULO_COMPATIBILIDADE[resultado.compatibilidade]}</span>
         </header>
-        <h3>{core.nome}</h3>
+        <h2 className="cartao-titulo">{core.nome}</h2>
         <p className="suave">
           <em>{core.descricao}</em>
         </p>
@@ -53,7 +53,7 @@ export function CartoesResultado({ resultado, lore }: { resultado: Omit<Resultad
           <span className="cartao-tipo">Dom de raça</span>
           <span className={`selo raridade-${dom.raridade}`}>{rotuloRaridade(dom.raridade)}</span>
         </header>
-        <h3>{dom.nome}</h3>
+        <h2 className="cartao-titulo">{dom.nome}</h2>
         <p>{dom.descricao}</p>
       </article>
 
@@ -62,7 +62,7 @@ export function CartoesResultado({ resultado, lore }: { resultado: Omit<Resultad
           <span className="cartao-tipo">Origem</span>
           <span className={`selo ${especial ? "raridade-epico" : "raridade-comum"}`}>{especial ? "Especial" : "Comum"}</span>
         </header>
-        <h3>{especial ? especial.nome : berco?.nome}</h3>
+        <h2 className="cartao-titulo">{especial ? especial.nome : berco?.nome}</h2>
         <p className="lore">{lore}</p>
         {especial && <p className="suave">{especial.efeitoTexto}</p>}
         {berco && <p className="suave">Bônus de berço: {berco.bonusTexto}.</p>}
@@ -83,7 +83,7 @@ export function CartoesResultado({ resultado, lore }: { resultado: Omit<Resultad
           <header className="cartao-topo">
             <span className="cartao-tipo">Marca da Anomalia</span>
           </header>
-          <h3>{marca.nome}</h3>
+          <h2 className="cartao-titulo">{marca.nome}</h2>
           <p>{marca.descricao}</p>
         </article>
       )}

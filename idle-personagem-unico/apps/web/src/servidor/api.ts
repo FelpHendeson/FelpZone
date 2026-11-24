@@ -5,7 +5,7 @@
  */
 import { randomBytes, scrypt as scryptCb, createHash, timingSafeEqual, randomUUID } from "node:crypto";
 import { promisify } from "node:util";
-import { aplicarAcao, avancar, carregarSave, serializarSave, validarRetrato, VERSAO_SAVE_ATUAL, type EstadoJogo, type Retrato } from "@idle-pu/motor";
+import { aplicarAcao, avancar, carregarSave, personagemAtivo, retratoDe, serializarSave, VERSAO_SAVE_ATUAL, type EstadoJogo, type Retrato } from "@idle-pu/motor";
 import type { Armazem } from "./armazem";
 
 const scrypt = promisify(scryptCb) as (senha: string, sal: Buffer, tamanho: number) => Promise<Buffer>;
@@ -194,8 +194,11 @@ const MAX_BUILDS = 100;
 /** Registra o build (retrato) do personagem para outros jogadores testarem no Campo de Provas. */
 export function enviarBuild(a: Armazem | null, p: Pedido): Promise<Resposta> {
   return comConta(a, p, async (contaId) => {
-    const retrato = validarRetrato(obj(p.corpo)?.retrato);
-    if (!retrato || retrato.arquetipoId) return erro(400, "retrato_invalido", "Build inválido.");
+    // O build sai do save do servidor (não do que o aparelho manda).
+    const estado = await lerSave(a!, contaId);
+    const ativo = estado ? personagemAtivo(estado) : null;
+    if (!ativo) return erro(404, "sem_save", "A conta ainda não tem personagem.");
+    const retrato = retratoDe(ativo);
     if (!(await a!.gravarSeNovo("trava:arena", "1", LIMITES.travaSegundos))) return erro(409, "ocupado", "Tente de novo em instantes.");
     try {
       const atual = JSON.parse((await a!.obter("arena:builds")) ?? "[]") as BuildRegistrada[];

@@ -666,6 +666,21 @@ Fonte: `packages/motor/src/dados/competicao.ts` (`CONFIG_COMPETICAO`, arquétipo
 2. Personagem novo perdia todas (bots treinados e com couro contra o kit básico): bots do nível 1 a 4 usam o kit básico, e a Arena e as Provas pareiam pelo treino.
 3. O tema pesa (+20% de ataque): na temporada de Pedra e Vento, o Tanque Draconato é o rival mais duro.
 
+## Auditoria final de ritmo (F13)
+
+Nenhum número mudou na F13. O bot da cadeia completa passou a usar os ralos de gold (guarda o equipamento do tier atual para fundir, funde quando junta 3, amplia a mochila) e a responder eventos.
+
+| Marco | Antes (F12) | Depois (F13) | Alvo |
+| --- | ---: | ---: | --- |
+| Nível 10 / 20 / 30 | 1,3 / 4,8 / 12,5 dias | 1,3 / 4,8 / 12,5 dias | primeiro dia / primeira semana / 2 semanas |
+| Nível 50 | 33,8 dias | 33,5 dias | 5 a 8 semanas |
+| Rank S | 44,5 dias | 44,5 dias | ~6 semanas |
+| Gold no 60º dia | 4,6 milhões | **0,5 milhão** | gasto em fusão e mochila |
+| Insígnia da temporada (jogador médio) | ~5 semanas | ~5 semanas | dentro das 8 semanas |
+| Mortes do bot | 0 | 0 | morte só por escolha (recuo de 30%) |
+
+Leitura: o ritmo do Ato I fecha com nível 50 e rank S entre 5 e 7 semanas; os sistemas novos (pets, mundo, competição) dão bônus de 5% a 20% sem atropelar a curva. O bot ainda equipa poucas peças aprimoradas (as fusões acontecem, mas ele sobe de tier antes de juntar 3 do mesmo item); para quem fica no tier, a fusão é o caminho.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -694,3 +709,4 @@ Fonte: `packages/motor/src/dados/competicao.ts` (`CONFIG_COMPETICAO`, arquétipo
 | 24/11/2026 | F12: pontos para a insígnia (saía em 1,5 semana). | 600 → 2.500 |
 | 24/11/2026 | F12: bots do começo (novato perdia todas). | couro e 30–80% de treino → kit básico até o nível 4, 20–60% e pareamento pelo treino |
 | 24/11/2026 | F12: números de duelo, Arena, torneio e temporada definidos (não existiam). | — |
+| 24/11/2026 | F13: auditoria final de ritmo (bot usando fusão e mochila); nenhum número mudou. | — |

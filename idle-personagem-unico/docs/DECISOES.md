@@ -188,3 +188,12 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 90. **Builds de outros jogadores** (com banco): registro e lista na API; só servem ao Campo de Provas por enquanto.
 91. **Histórico de temporadas** guardado no personagem (o GDD põe no cofre da conta; fica para quando houver cosméticos).
 
+### Da F13 (acabamento web), para o autor conferir
+
+92. **Service worker** guarda só a interface (páginas e arquivos estáticos); a API nunca entra em cache. O jogo já salva no aparelho, então abre e joga sem rede.
+93. **Sons** sintetizados no navegador (sem arquivos), **desligados por padrão**; liga em Personagem → Conta.
+94. **Arte**: ícone do app desenhado em SVG pelo agente (figura sob a lua, no anel dourado). Ilustrações de monstros e personagens ficam para um artista.
+95. **CSP** com `'unsafe-inline'` nos scripts por causa da hidratação do Next; *nonce* fica para quando houver tráfego (ver `docs/SEGURANCA.md`).
+96. **Build da Arena** registrado na API passa a ser gerado do save do servidor (o aparelho não escolhe o próprio build).
+97. **Balanceamento final**: nenhum número do jogo mudou na F13; o bot passou a usar fusão e ampliação de mochila, e o gold do 60º dia caiu de 4,6 milhões para 0,5 milhão. Os ralos funcionam; quem não os usa acumula.
+

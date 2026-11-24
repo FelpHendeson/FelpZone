@@ -17,6 +17,7 @@ import { resumoRelevante } from "@/lib/atividade";
 import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
 import { prepararCriacao } from "@/lib/criacao";
 import { CHAVE_SAVE, iniciarJogo, type ResultadoInicio } from "@/lib/persistencia";
+import { tocar } from "@/lib/sons";
 import { chamarApi, enviarAcao, estadoDaResposta, gravarSessao, lerSessao, type Sessao } from "@/lib/sync";
 import { BarraAtividade } from "./BarraAtividade";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
@@ -92,6 +93,12 @@ export function Shell() {
       const atual = estadoRef.current;
       if (!atual) return;
       const r = avancar(atual, relogioDoSistema.agora());
+      const pa = personagemAtivo(atual);
+      const pn = personagemAtivo(r.estado);
+      if (pa && pn && pa.id === pn.id) {
+        if (pn.nivel > pa.nivel) tocar("nivel");
+        else if (pn.eventos.pendentes.length > pa.eventos.pendentes.length) tocar("evento");
+      }
       if (r.estado !== atual) definirEstado(r.estado);
       if (mostrarResumo && resumoRelevante(r.resumo)) setResumo(r.resumo);
     },
@@ -180,6 +187,15 @@ export function Shell() {
     const antes = estadoRef.current;
     const tinhaPersonagem = antes ? personagemAtivo(antes) !== null && !antes.conta.sorteio : false;
     definirEstado(novo);
+    // Sons (F13): nível, eventos novos e o resultado da Arena; senão, um clique.
+    const pa = antes ? personagemAtivo(antes) : null;
+    const pn = personagemAtivo(novo);
+    if (pa && pn && pa.id === pn.id) {
+      const luta = pn.competicao.totalLutas > pa.competicao.totalLutas ? pn.competicao.replays.at(-1) : undefined;
+      if (pn.nivel > pa.nivel) tocar("nivel");
+      else if (luta) tocar(luta.vencedor === "a" ? "vitoria" : "derrota");
+      else tocar("clique");
+    }
     if (!tinhaPersonagem && personagemAtivo(novo) && !novo.conta.sorteio) {
       setAbaAtiva("personagem");
       setSubAbaPorAba((a) => ({ ...a, personagem: 0 }));
@@ -238,7 +254,7 @@ export function Shell() {
   if (!personagem || tela.estado.conta.sorteio) {
     return (
       <div className="shell">
-        <main className="conteudo">
+        <main className="conteudo" id="conteudo">
           <CriacaoPersonagem estado={tela.estado} aoAgir={executar} />
         </main>
       </div>
@@ -360,7 +376,9 @@ export function Shell() {
         </nav>
       </header>
 
-      <main className="conteudo conteudo-coluna" role="tabpanel" aria-label={subAba}>
+      <main className="conteudo conteudo-coluna" id="conteudo">
+        <div role="tabpanel" aria-label={subAba} className="painel-aba">
+        <h2 className="visualmente-oculto">{subAba}</h2>
         {aviso && (
           <p className="erro aviso-acao" role="alert">
             {aviso}{" "}
@@ -371,6 +389,7 @@ export function Shell() {
         )}
         <EventosPendentes personagem={personagem} ocupado={ocupado} agir={agir} />
         {conteudo}
+        </div>
       </main>
 
       <p className="status-save" role="status" aria-live="polite">

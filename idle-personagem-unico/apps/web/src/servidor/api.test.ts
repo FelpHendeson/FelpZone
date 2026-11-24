@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aplicarAcao, botDeArena, carregarSave, CORES_CABELO, CORES_ROUPA, criarEstadoInicial, retratoDe, serializarSave, type EstadoJogo } from "@idle-pu/motor";
+import { aplicarAcao, carregarSave, CORES_CABELO, CORES_ROUPA, criarEstadoInicial, retratoDe, serializarSave, type EstadoJogo } from "@idle-pu/motor";
 import { ArmazemMemoria, armazemDoAmbiente } from "./armazem";
 import { acao, entrar, enviarBuild, importar, LIMITES, listarBuilds, obterJogo, registrar, sair, saude, SEM_BANCO, type Pedido } from "./api";
 
@@ -114,17 +114,19 @@ describe("jogo", () => {
 });
 
 describe("Arena (builds)", () => {
-  it("registra um build por conta e lista sem dizer de quem é", async () => {
+  it("registra o build gerado do save do servidor (não do aparelho) e lista sem dizer de quem é", async () => {
     const a = new ArmazemMemoria(() => T0);
     const token = await contaComJogo(a);
-    const retrato = retratoDe(jogoNovo().conta.personagens[0]!);
-    expect((await enviarBuild(a, pedido({ retrato }, token))).status).toBe(200);
-    expect((await enviarBuild(a, pedido({ retrato: { ...retrato, nivel: 2 } }, token))).status).toBe(200);
+    const esperado = retratoDe(jogoNovo().conta.personagens[0]!);
+    // O que o aparelho manda é ignorado.
+    expect((await enviarBuild(a, pedido({ retrato: { ...esperado, nivel: 50 } }, token))).status).toBe(200);
+    expect((await enviarBuild(a, pedido({}, token))).status).toBe(200);
     const l = await listarBuilds(a, pedido(null));
-    expect(l.corpo.builds).toEqual([{ ...retrato, nivel: 2 }]);
+    expect(l.corpo.builds).toEqual([esperado]);
     expect(JSON.stringify(l.corpo)).not.toContain("contaId");
-    expect((await enviarBuild(a, pedido({ retrato: { ...retrato, sc: { ...retrato.sc, esquiva: 5 } } }, token))).status).toBe(400);
-    expect((await enviarBuild(a, pedido({ retrato: botDeArena("x", 5) }, token))).status).toBe(400);
-    expect((await enviarBuild(a, pedido({ retrato }, null))).status).toBe(401);
+    expect((await enviarBuild(a, pedido({}, null))).status).toBe(401);
+    const semJogo = await registrar(a, pedido({ nome: "vazia", senha: "senha-forte" }));
+    expect((await enviarBuild(a, pedido({}, semJogo.corpo.token as string))).status).toBe(404);
   });
+
 });

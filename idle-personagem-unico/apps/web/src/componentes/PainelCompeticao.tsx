@@ -86,7 +86,7 @@ export function PainelArena({ personagem: p, ocupado, agir, sessao }: Props & { 
               className="botao"
               disabled={ocupado}
               onClick={async () => {
-                const r = await chamarApi("arena/build", { metodo: "POST", corpo: { retrato: retratoDe(p) }, token: sessao.token });
+                const r = await chamarApi("arena/build", { metodo: "POST", corpo: {}, token: sessao.token });
                 setBuild(r.ok ? "Build registrado: outros jogadores podem testar contra você no Campo de Provas." : r.mensagem);
               }}
             >

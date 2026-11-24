@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**F13 (Acabamento web) concluída: o jogo web está completo (F1 a F13).** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). **Pendente do autor:** ativar o banco da sincronização (veja `docs/DECISOES.md`, item 60) e decidir o port mobile (F14).
+
 **F12 (Competição) concluída.** Arena assíncrona contra bots por arquétipo (10 lutas por dia, rating e replays), Campo de Provas, torneio semanal em chave e temporadas de 8 semanas com tema, ranking e uma insígnia nomeada. Tudo reproduzível pela semente.
 
 **F11 (Mundo vivo) concluída.** O mundo tem relógio (1 h real = 1 dia, noite das 19h às 5h) e clima, que mudam o poder de raças e cores, os monstros raros e a coleta; **eventos** com escolhas aparecem enquanto o personagem trabalha; a **Crônica** conta a história; títulos e Bestiário dão bônus; e cada origem especial tem seu **arco** de 3 capítulos.
@@ -145,6 +147,17 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F8:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito (Martelo do Pai e +2 de forja), Náufrago das Estrelas (Bússola Quebrada), berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior, Mão Certeira e Intelecto na produção.
 
+### O que a F13 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `apps/web/src/app/manifest.ts`, `public/sw.js`, `public/icones` | PWA: manifesto, service worker e ícones (normal, maskable, Apple). |
+| `apps/web/src/lib/sons.ts` | Sons sintetizados (nível, eventos, Arena), desligados por padrão. |
+| `apps/web/next.config.ts` | Cabeçalhos de segurança (CSP, nosniff, referrer, frame, permissões). |
+| `apps/web/src` | Acessibilidade: hierarquia de títulos, `main` único, contraste, "pular para o conteúdo", foco visível, movimento reduzido. |
+| `docs/SEGURANCA.md` | Auditoria de segurança. |
+| `packages/motor/scripts/ritmo.ts` | Bot da cadeia completa usando fusão e ampliação (auditoria de ritmo). |
+
 ### O que a F12 entregou
 
 | Onde | O quê |
@@ -241,4 +254,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F13 (Acabamento web)**.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F14 (Port mobile)**, quando o autor decidir.

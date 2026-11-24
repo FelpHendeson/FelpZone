@@ -26,8 +26,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F9 | Conta e sincronização | ✅ Concluída em 24/11/2026 (banco a ativar pelo autor) | `332069a` | 319 |
 | F10 | Pets | ✅ Concluída em 24/11/2026 | `18a667c` | 337 |
 | F11 | Mundo vivo | ✅ Concluída em 24/11/2026 | `b74e221` | 355 |
-| F12 | Competição | ✅ Concluída em 24/11/2026 | (ver seção) | 374 |
-| F13 | Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
+| F12 | Competição | ✅ Concluída em 24/11/2026 | `a87880f` | 374 |
+| F13 | Acabamento web | ✅ Concluída em 24/11/2026 | (ver seção) | 374 |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -932,6 +932,7 @@ Costura; recursos e monstros exclusivos de um clima ou horário; escolhas ramifi
   - inscrição no torneio, virada da semana, chave e resgate (gold, pontos e Crônica).
 
   Também a **migração real** de um save v12 criado no site publicado (que rodava a F11). Console limpo, sem rolagem lateral.
+- **CI e Vercel**: job do projeto verde no commit `a87880f` e deploy em `READY` (verificado antes de publicar a F13).
 
 ### Números principais
 
@@ -956,6 +957,74 @@ Arena contra builds de outros jogadores com ranking global; lote de torneios no 
 
 ---
 
+## F13 — Acabamento web
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Prompt em `prompts/idle-personagem-unico/13-fatia-F13-acabamento-web.md`.
+
+### O que foi executado
+
+- [x] **PWA:**
+  - manifesto (nome, cores, modo "standalone");
+  - ícones de 192 e 512 px, *maskable* e da Apple, gerados de um SVG desenhado para o jogo;
+  - **service worker**: guarda a interface e os arquivos estáticos (nunca a API). Instala no celular e **abre sem rede**.
+- [x] **Sons** sintetizados (nível, eventos novos, vitória e derrota na Arena, clique), desligados por padrão; liga em Personagem → Conta → Preferências.
+- [x] **Acessibilidade** (axe-core em 32 telas, WCAG 2.1 AA + boas práticas):
+  - hierarquia de títulos; um único `main` com o painel de abas dentro;
+  - contraste dos itens bloqueados;
+  - link "pular para o conteúdo"; foco visível; respeito a "reduzir movimento".
+- [x] **Segurança:**
+  - cabeçalhos (CSP, `nosniff`, `Referrer-Policy`, `X-Frame-Options`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`);
+  - o build da Arena registrado na API passa a sair do save do servidor;
+  - auditoria em `docs/SEGURANCA.md` (o que está protegido e os riscos que ficam).
+- [x] **Balanceamento e auditoria de ritmo:** o bot da cadeia completa usa fusão e ampliação de mochila; leitura final em `docs/CALIBRACAO.md`. Nenhum número do jogo precisou mudar.
+- [x] **Documentação** (GDD com as sub-abas finais, ROADMAP, README, DECISOES) e esta seção.
+
+### Como foi validado
+
+- **Verificações locais:** `npm audit --audit-level=high` (0), `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **374 testes** (355 no motor, 19 na web; o teste de builds da API foi reescrito para o build gerado no servidor).
+- **Acessibilidade:** axe-core em todas as 32 telas (sorteio, nome e cada sub-aba das 6 abas): **zero violações** depois das correções. Antes: ordem de títulos, `main` ausente, conteúdo fora de região e contraste de 3,46:1 nos itens bloqueados.
+- **Navegador**, em 360 px e desktop:
+  - cabeçalhos de segurança presentes;
+  - manifesto com os 3 ícones; service worker ativo;
+  - **sem rede, a página recarrega e o jogo abre**;
+  - o primeiro Tab leva a "Pular para o conteúdo";
+  - ligar os sons grava a preferência.
+
+  Também a regressão das telas da F10 (pets e União) e da F12 (Arena, Provas, Torneio) com a CSP ligada: console limpo, sem rolagem lateral.
+
+### Números principais (auditoria de ritmo)
+
+- Nível 10 em 1,3 dia; 20 em 4,8; 30 em 12,5; **50 em 33,5 dias**; **rank S em 44,5 dias**.
+- **Gold no 60º dia: 0,5 milhão** usando fusão e mochila (antes, 4,6 milhões sem gastar).
+- Insígnia de temporada em ~5 de 8 semanas; nenhuma morte com recuo de 30%.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | "Arte" sem artista. | Ícone do app em SVG (figura sob a lua, no anel dourado); a miniatura do personagem já vinha do motor. Ilustrações ficam para um artista. | Aguarda o autor |
+| 2 | Sons sem arquivos de áudio. | Sintetizados com Web Audio; desligados por padrão para não surpreender ninguém. | Aguarda o autor |
+| 3 | CSP rígida quebra o Next. | `'unsafe-inline'` só nos scripts (hidratação) e `'unsafe-eval'` só em desenvolvimento; o resto travado em `'self'`. *Nonce* é a melhoria seguinte. | Aguarda o autor |
+| 4 | "Balanceamento final" mudaria números? | Não precisou: o gold sobrando era do bot não gastar. Com fusão e mochila, cai 10×. | Resolvido |
+| 5 | O build da Arena vinha do aparelho. | Agora o servidor gera o build do save dele e ignora o que o aparelho manda. | Resolvido |
+
+### O que ficou de fora
+
+Ilustrações de monstros e personagens; trilha sonora; notificações push; *nonce* na CSP; port mobile (F14).
+
+---
+
+## Fechamento (F1 a F13)
+
+O jogo web está completo: sorteio, treino, coleta, combate, habilidades, Limiar, missões e guilda, forja e produção, conta e sincronização, pets, mundo vivo, competição e acabamento. São **374 testes**, save na **versão 13** com migração desde a v1, e cada fatia foi publicada com CI verde e deploy em `READY`.
+
+**O que depende do autor:**
+
+1. **Ativar o banco** da sincronização (F9): Vercel → projeto → Storage → Upstash (Redis) → ligar ao projeto → novo deploy. Sem isso, o jogo é 100% local (e funciona).
+2. **Conferir as decisões** marcadas "Aguarda o autor" em cada fatia (lista completa em `docs/DECISOES.md`, itens 1 a 97).
+3. **Textos próprios** para os 22 arcos de origem (hoje gerados a partir do gancho de cada origem) e **arte** desenhada.
+4. **Port mobile (F14)**: o motor e a API já estão prontos para ele.
+
 ## Próximo passo
 
-**F13 — Acabamento web** (já autorizada): PWA, sons, arte, acessibilidade, balanceamento final e auditoria de ritmo e de segurança. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1).
+**F14 — Port mobile**, quando o autor decidir. Antes, vale ativar o banco (item 1 acima) e conferir as decisões.

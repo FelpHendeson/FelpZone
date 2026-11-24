@@ -30,6 +30,11 @@ import {
   camposIniciaisF10,
   camposIniciaisF11,
   camposIniciaisF12,
+  ampliarMochila,
+  fundir,
+  infoFusao,
+  precoAmpliacao,
+  vender,
   botDeArena,
   CONFIG_COMPETICAO,
   duelo,
@@ -47,7 +52,6 @@ import {
   PRECO_LACO,
   xpParaProximoNivelPet,
   FRAGMENTO,
-  infoFusao,
   RECEITAS,
   RELIQUIAS,
   CATALOGO as CAT,
@@ -506,6 +510,7 @@ function cadeiaCompleta(dias: number) {
   const diasNivel = new Map<number, number>();
   const diasRank = new Map<number, number>();
   let eventos = 0;
+  let fusoes = 0;
   for (let dia = 0; dia < dias; dia++) {
     for (const h of [8, 13, 20]) {
       const t = T0 + dia * DIA + h * HORA;
@@ -526,7 +531,35 @@ function cadeiaCompleta(dias: number) {
           if (it.equipamento.tier > tierAtual) e = usar(e, equipar(e, id, tc));
         }
       }
-      e = usar(e, venderTudo(e, tc));
+      // F13: ralos de gold — funde o que der (3 iguais) e guarda o equipamento do tier atual para fundir depois.
+      for (const [id, q] of Object.entries(p().mochila)) {
+        if (q >= 3 && infoFusao(p(), id)) {
+          let n = 0;
+          while ((p().mochila[id] ?? 0) >= 3 && n++ < 5) {
+            const r = fundir(e, id, tc);
+            if (!r.ok) break;
+            e = r.estado;
+            fusoes++;
+          }
+        }
+      }
+      for (const [id, q] of Object.entries(p().mochila)) {
+        const eq = CAT.itens.get(id)?.equipamento;
+        const atual = eq ? p().equipados[eq.slot === "acessorio" ? "acessorio1" : eq.slot] : null;
+        const tierAtual = atual ? CAT.itens.get(atual)!.equipamento!.tier : -1;
+        const guardar = eq && !eq.nomeado && eq.tier >= tierAtual && eq.tier > 0 && infoFusao(p(), id) !== null;
+        if (!guardar && !CAT.itens.get(id)?.equipamento?.nomeado && CAT.itens.get(id)?.consumivel?.tipo !== "pocao") e = usar(e, vender(e, id, q, tc));
+      }
+      // Equipa versões aprimoradas melhores que as atuais.
+      for (const [id] of Object.entries(p().mochila)) {
+        const eq = CAT.itens.get(id)?.equipamento;
+        if (!eq || eq.nomeado) continue;
+        const atual = p().equipados[eq.slot === "acessorio" ? "acessorio1" : eq.slot];
+        const da = atual ? CAT.itens.get(atual)!.equipamento! : null;
+        if (!da || eq.tier > da.tier || (eq.tier === da.tier && (eq.aprimoramento ?? 0) > (da.aprimoramento ?? 0))) e = usar(e, equipar(e, id, tc));
+      }
+      const amp = precoAmpliacao(p());
+      if (amp !== null && p().ouro > amp * 5) e = usar(e, ampliarMochila(e, tc));
       for (const eq of [...EQUIPAMENTOS].filter((x) => x.equipamento?.precoCompra).sort((a, b) => b.equipamento!.tier - a.equipamento!.tier)) {
         const atual = p().equipados[eq.equipamento!.slot === "acessorio" ? "acessorio1" : eq.equipamento!.slot];
         const tierAtual = atual ? CAT.itens.get(atual)!.equipamento!.tier : -1;
@@ -570,7 +603,7 @@ function cadeiaCompleta(dias: number) {
     }
   }
   const obtidos = p().obtidos;
-  return { marcos, diasNivel, diasRank, fragmentos: obtidos[FRAGMENTO] ?? 0, reliquias: RELIQUIAS.filter((r) => (obtidos[r.id] ?? 0) > 0).map((r) => r.nome), pocoes: 0, eventos, marcosCronica: p().cronica.marcos.length };
+  return { marcos, diasNivel, diasRank, fragmentos: obtidos[FRAGMENTO] ?? 0, reliquias: RELIQUIAS.filter((r) => (obtidos[r.id] ?? 0) > 0).map((r) => r.nome), pocoes: 0, eventos, marcosCronica: p().cronica.marcos.length, fusoes, aprimorados: Object.values(p().equipados).filter((x) => x && /\+\d$/.test(x)).length };
 }
 
 linha("### Cadeia completa (F7)");
@@ -588,6 +621,8 @@ linha();
   linha(`Dias até o rank: ${[...r.diasRank.entries()].map(([rk, d]) => `${RANKS[rk]}: ${num(d)}`).join(" · ")}.`);
   linha();
   linha(`Em 60 dias (F8): ${r.fragmentos} fragmentos de chefe; relíquias: ${r.reliquias.length ? r.reliquias.join(", ") : "nenhuma"}.`);
+  linha();
+  linha(`Em 60 dias (F13): ${r.fusoes} fusões tentadas; ${r.aprimorados} peças aprimoradas equipadas no fim.`);
   linha();
   linha(`Em 60 dias (F11): ${r.eventos} eventos respondidos (~${num(r.eventos / 60)} por dia) e ${r.marcosCronica} marcos na Crônica.`);
   linha();

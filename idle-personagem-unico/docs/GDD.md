@@ -500,13 +500,15 @@ O jogo não termina, então a **competição** dá objetivo de longo prazo.
 | Aba | Sub-abas |
 | --- | --- |
 | **Atividades** | Treino · Coleta · Produção (inclui Forja) · Aprendizado · Pets (cuidados) |
-| **Combate** | Áreas · Bestiário · O Limiar |
+| **Combate** | Áreas · Bestiário · O Limiar · Arena · Provas · Torneio (F12) |
 | **Mapa** | Região · Local atual · Estabelecimentos |
 | **Mochila** | Equipados · Equipáveis · Ferramentas · Materiais · Consumíveis · Nomeados |
-| **Missões** | NPC · Metas · Guilda |
-| **Personagem** | Status · Habilidades · Pets · Títulos · Crônica |
+| **Missões** | NPC · Metas · Guilda · História (F11) |
+| **Personagem** | Status · Habilidades · Pets · Títulos · Crônica · Conta (F9) |
 
 Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, progresso do ciclo, ganho por hora). Avisos claros de **risco de morte**, **mochila cheia** e **tempo offline restante**.
+
+**Implementado na F13:** PWA instalável que abre sem rede (o save já é local); sons sintetizados, desligados por padrão; ícone do app; acessibilidade auditada com axe-core (sem violações em todas as telas), "pular para o conteúdo", foco visível e movimento reduzido. A barra mostra hora e clima (F11) e eventos aparecem no topo de qualquer aba.
 
 ## 17. Fora do escopo por enquanto
 
