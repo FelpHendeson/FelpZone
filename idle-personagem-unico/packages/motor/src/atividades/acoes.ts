@@ -32,7 +32,19 @@ export type CodigoErroAtividade =
   | "slot_inexistente"
   | "slot_vazio"
   | "mochila_cheia"
-  | "recuo_invalido";
+  | "recuo_invalido"
+  | "habilidade_inexistente"
+  | "habilidade_desconhecida"
+  | "habilidade_ja_conhecida"
+  | "habilidade_obrigatoria"
+  | "slots_cheios"
+  | "nao_equipada"
+  | "ja_equipada"
+  | "ramo_inexistente"
+  | "ramo_ja_escolhido"
+  | "nivel_insuficiente"
+  | "nao_e_livro"
+  | "maestria_maxima";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;
@@ -43,12 +55,12 @@ export type ResultadoAtividade =
   | { readonly ok: true; readonly estado: EstadoJogo; readonly resumo: ResumoAvanco }
   | { readonly ok: false; readonly erro: ErroAtividade };
 
-function falha(codigo: CodigoErroAtividade, mensagem: string): ResultadoAtividade {
+export function falha(codigo: CodigoErroAtividade, mensagem: string): ResultadoAtividade {
   return { ok: false, erro: { codigo, mensagem } };
 }
 
 /** Avança até agora e aplica `mudar` no personagem ativo (ou devolve o erro dele). */
-function comAtivo(
+export function comAtivo(
   estado: EstadoJogo,
   agora: number,
   mudar: (p: Personagem) => Personagem | ErroAtividade,
@@ -68,7 +80,7 @@ function comAtivo(
   };
 }
 
-const erro = (codigo: CodigoErroAtividade, mensagem: string): ErroAtividade => ({ codigo, mensagem });
+export const erro = (codigo: CodigoErroAtividade, mensagem: string): ErroAtividade => ({ codigo, mensagem });
 
 /**
  * Leva o personagem a (local, subárea). Dentro do mesmo local é instantâneo;
@@ -76,7 +88,7 @@ const erro = (codigo: CodigoErroAtividade, mensagem: string): ErroAtividade => (
  * viagem, ele ainda está na origem: mudar o destino recomeça a viagem dali, e
  * voltar à origem cancela a viagem).
  */
-function moverPara(p: Personagem, localId: string, subareaId: string): Pick<Personagem, "localId" | "subareaId" | "viagem"> {
+export function moverPara(p: Personagem, localId: string, subareaId: string): Pick<Personagem, "localId" | "subareaId" | "viagem"> {
   if (localId === p.localId) return { localId, subareaId, viagem: null };
   const mods = modificadoresDoPersonagem(p, p.nivel);
   const total = duracaoViagemMs(p.localId, localId, mods);
@@ -93,6 +105,7 @@ export function iniciarAtividade(estado: EstadoJogo, atividadeId: string, agora:
   const a = CATALOGO.atividades.get(atividadeId);
   if (!a) return falha("atividade_inexistente", "Atividade desconhecida.");
   return comAtivo(estado, agora, (p) => {
+    if (a.tipo === "aprendizado") return erro("habilidade_obrigatoria", "Escolha a habilidade para praticar.");
     if (p.atividade?.id === atividadeId) return erro("ja_na_atividade", "O personagem já está nessa atividade.");
     if (a.tipo === "coleta") {
       const mods = modificadoresDoPersonagem(p, p.nivel);
@@ -121,7 +134,7 @@ export function irPara(estado: EstadoJogo, localId: string, agora: number): Resu
   });
 }
 
-function naCidade(p: Personagem): boolean {
+export function naCidade(p: Personagem): boolean {
   return p.localId === LOCAL_CIDADE && p.viagem === null;
 }
 

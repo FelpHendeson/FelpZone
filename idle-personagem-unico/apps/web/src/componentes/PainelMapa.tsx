@@ -21,7 +21,7 @@ import {
 import { formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 import { bonusDe } from "./PainelEquipamento";
-import { PainelMercado } from "./PainelMochila";
+import { PainelLivreiro, PainelMercado } from "./PainelMochila";
 
 interface Props {
   readonly personagem: Personagem;
@@ -130,6 +130,7 @@ export function PainelEstabelecimentos({ personagem: p, ocupado, agir }: Props) 
   return (
     <section className="painel" aria-label="Estabelecimentos">
       <PainelMercado personagem={p} ocupado={ocupado} agir={agir} />
+      <PainelLivreiro personagem={p} ocupado={ocupado} agir={agir} />
       <article className="cartao">
         <h3>Ferreiro</h3>
         <p className="suave">Ferramentas melhores rendem mais e trabalham mais rápido. A antiga fica com o Ferreiro.</p>

@@ -14,7 +14,7 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
         <p className="suave">
           {formatarDuracao(resumo.decorridoMs)} fora{atividade ? ` · ${atividade.nome}` : ""}
         </p>
-        {resumo.limitado && (
+        {resumo.limitado && resumo.decorridoMs - resumo.simuladoMs >= 1_000 && (
           <p className="aviso">O limite é de 12 h: {formatarDuracao(resumo.decorridoMs - resumo.simuladoMs)} não contaram.</p>
         )}
         <ul className="lista-resumo">
@@ -37,6 +37,13 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
                 .join(", ")}
             </li>
           )}
+          {Object.entries(resumo.maestria).map(([id, n]) => (
+            <li key={id}>
+              <strong>
+                {CATALOGO.habilidades.get(id)?.nome}: +{n} de maestria
+              </strong>
+            </li>
+          ))}
           {resumo.recuos > 0 && <li>Recuou {resumo.recuos} {resumo.recuos === 1 ? "vez" : "vezes"} para descansar.</li>}
           {resumo.desmaios > 0 && <li className="erro">Desmaiou e acordou em {nomeLocal("pedravau")}. Nada foi perdido.</li>}
           {Object.entries(resumo.itens).map(([id, q]) => (

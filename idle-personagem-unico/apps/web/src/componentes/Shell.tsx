@@ -24,6 +24,7 @@ import type { AcaoJogo } from "./acoes";
 import { PainelColeta } from "./PainelColeta";
 import { PainelAreas, PainelBestiario } from "./PainelCombate";
 import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
+import { PainelAprendizado, PainelHabilidades } from "./PainelHabilidades";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelStatus } from "./PainelStatus";
@@ -217,6 +218,10 @@ export function Shell() {
   } else if (aba.id === "mapa") {
     const props = { personagem, ocupado, agir };
     conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <PainelLocalAtual personagem={personagem} /> : <PainelEstabelecimentos {...props} />;
+  } else if (aba.id === "personagem" && indiceSub === 1) {
+    conteudo = <PainelHabilidades personagem={personagem} ocupado={ocupado} agir={agir} />;
+  } else if (aba.id === "atividades" && indiceSub === 3) {
+    conteudo = <PainelAprendizado personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "combate" && indiceSub === 0) {
     conteudo = (
       <PainelAreas

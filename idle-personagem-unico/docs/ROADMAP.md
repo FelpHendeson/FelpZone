@@ -11,7 +11,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F2** ✅ | Loop de atividade + treino | Uma atividade por vez, ciclos, treino dos 8 status com piso/teto, nível/XP, offline de até 12 h, resumo "enquanto você estava fora". | Fechar o jogo, reabrir e receber o ganho correto; bot mede ritmo. |
 | **F3** ✅ | Mapa e coleta | Regiões, locais, subáreas, viagem curta, coleta (madeira, minério, pesca, agricultura), ferramentas básicas, mochila e venda. | Trocar de atividade em outro local mostra "Movendo-se até…"; recursos por local e por tier. |
 | **F4** ✅ | Combate por área | Áreas, monstros com taxa de aparição, drops, ataque básico, equipamento de combate, recuo automático. **Primeiro marco jogável completo.** | Cadeia treinar → coletar → vender → equipar → caçar funciona. |
-| **F5** | Habilidades e core | Eixos, slots, ativas automáticas, passivas, técnicas do core, maestria e evolução. | Habilidades de coleta afetam coleta; core abre ramos. |
+| **F5** ✅ | Habilidades e core | Eixos, slots, ativas automáticas, passivas, técnicas do core, maestria e evolução. | Habilidades de coleta afetam coleta; core abre ramos. |
 | **F6** | O Limiar | Morte, reino da morte, Barqueiro, Eco da Morte, drops exclusivos, set *O Retornado*. | Morrer não perde progresso; tempo offline no Limiar correto. |
 | **F7** | Missões e Guilda | Missões de NPC, metas, quadro da guilda, ranks F→Divino, Mérito, provas de promoção, subáreas de NPC. | Missão avança sozinha enquanto se faz atividade. |
 | **F8** | Forja, produção e nomeados | Produção, fusão por raridade, receitas, itens nomeados, acessórios e relíquias. | Fusão respeita falha parcial e *pity*; nomeado único por personagem. |
@@ -22,7 +22,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F13** | Acabamento web | PWA, sons, arte, acessibilidade, balanceamento final. | Auditoria de ritmo e de segurança. |
 | **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Paridade com a web. |
 
-**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2, F3 e **F4 concluídas em 24/11/2026** (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). A F5 só começa com autorização do autor.
+**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2, F3, F4 e **F5 concluídas em 24/11/2026** (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). A F6 só começa com autorização do autor.
 
 ## Regras de ordem
 

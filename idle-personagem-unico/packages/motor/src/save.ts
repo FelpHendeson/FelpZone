@@ -4,12 +4,12 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
-import { camposIniciaisF3, camposIniciaisF4, validarConta, type Conta } from "./personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, validarConta, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 5;
+export const VERSAO_SAVE_ATUAL = 6;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -19,6 +19,7 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * personagens, o ativo e o sorteio em andamento. v3 (F2): status e atividade
  * de cada personagem. v4 (F3): lugar, viagem, gold, mochila, ofícios e
  * ferramentas. v5 (F4): equipamento de combate, vida, recuo e bestiário.
+ * v6 (F5): habilidades, slots, ramo e o estado das ativas no combate.
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -95,12 +96,35 @@ export const migrarV4ParaV5: Migracao = (dados) => {
   };
 };
 
+/**
+ * v5 → v6: o personagem passa a conhecer as técnicas do próprio core (e as da
+ * origem), já equipadas; uma luta em andamento ganha recargas e efeitos vazios.
+ */
+export const migrarV5ParaV6: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return {
+    ...dados,
+    conta: {
+      ...(conta as object),
+      personagens: personagens.map((p: Record<string, unknown>) => {
+        const origem = p.origem as { tipo?: unknown; id?: unknown } | undefined;
+        const f5 = camposIniciaisF5(String(p.coreId), origem?.tipo === "especial" ? String(origem.id) : undefined);
+        const atividade = p.atividade as { combate?: object } | null | undefined;
+        const novaAtividade = atividade?.combate ? { ...atividade, combate: { ...atividade.combate, recargas: {}, efeitos: [] } } : atividade;
+        return { ...p, ...f5, atividade: novaAtividade ?? null };
+      }),
+    },
+  };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
   2: migrarV2ParaV3,
   3: migrarV3ParaV4,
   4: migrarV4ParaV5,
+  5: migrarV5ParaV6,
 });
 
 export type CodigoErroSave =

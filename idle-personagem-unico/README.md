@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F4 (Combate por área) concluída: primeiro marco jogável completo.** O personagem sorteado (F1) treina (F2), coleta e vende (F3) e agora **equipa e caça**: 6 áreas com monstros comuns, raros e chefes, drops de material e de equipamento, recuo automático por % de vida e um bestiário. A luta roda em passos de 0,5 s também com o jogo fechado (até 12 h). Ainda não há habilidades, Limiar, missões nem produção (F5 em diante).
+**F5 (Habilidades e core) concluída.** Além de treinar, coletar, vender, equipar e caçar (F1 a F4), o personagem agora tem **habilidades**: as técnicas do próprio core, ramos que o core abre no nível 10 e livros comprados ou achados. Ativas disparam sozinhas na luta (prioridade + recarga), passivas afetam combate, coleta e viagem, e tudo ganha **maestria** e evolui em estágios. Ainda não há O Limiar, missões nem produção (F6 em diante).
 
 O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
 
@@ -85,6 +85,19 @@ Sem dependências novas.
 | `packages/motor/src/save.ts` | **Save v5** com migração v4 → v5. |
 | `apps/web` | Combate → Áreas (risco, recuo, caçar) e Bestiário; Mochila → Equipados e Equipáveis; Ferreiro com armas e armaduras; vida e status de combate na ficha; barra com a luta ao vivo; resumo do tempo fora com abates, recuos e desmaios. |
 
+### O que a F5 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/habilidades.ts` | 66 habilidades com os 4 eixos do GDD §12: 31 técnicas dos cores, 24 técnicas de ramo (2 ramos por core) e 11 de livro. |
+| `packages/motor/src/dados/aprendizado.ts` | A atividade de Aprendizado (praticar uma habilidade). |
+| `packages/motor/src/habilidades/` | Maestria, estágios, slots, modificadores das passivas e auras; ações `equiparHabilidade`, `desequiparHabilidade`, `moverPrioridade`, `escolherRamo`, `lerLivro`, `comprarLivro` e `iniciarAprendizado`. |
+| `packages/motor/src/atividades/combate.ts` | Ativas no combate (golpe, cura, reforço, enfraquecimento, atordoamento), auras e drops de livros. |
+| `packages/motor/src/save.ts` | **Save v6** com migração v5 → v6. |
+| `apps/web` | Personagem → Habilidades (ramo, slots, prioridade, conhecidas, livros); Atividades → Aprendizado; Livreiro no Mercado; barra e resumo com maestria. |
+
+**Efeitos que passaram a valer na F5:** Adaptável (Humano, +8% de XP de maestria), Mosteiro de aldeia (+5%), O Reencarnado (+10%), Aprendiz do Mago Morto (+15% de maestria e −10% de vida) e Órfão do Templo Cinzento (nasce sabendo Eco dos Antigos).
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -127,7 +140,7 @@ npm run lint       # ESLint (motor com regras de pureza; web com eslint-config-n
 npm run typecheck  # tsc no motor (código e testes) e na web
 npm run build      # build de produção do Next
 npm run simular    # simulação de 200 mil sorteios (Markdown para docs/CALIBRACAO.md)
-npm run ritmo      # bot de ritmo do treino, da coleta e do combate (Markdown para docs/CALIBRACAO.md)
+npm run ritmo      # bot de ritmo do treino, da coleta, do combate e das habilidades (Markdown para docs/CALIBRACAO.md)
 ```
 
 `npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
@@ -136,4 +149,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F5 (Habilidades e core)** só começa com autorização do autor. Antes, vale conferir as decisões da F4 em [`docs/DECISOES.md`](docs/DECISOES.md) (25 a 31), em especial o desmaio provisório e os recuos frequentes.
+A **F6 (O Limiar)** só começa com autorização do autor. Antes, vale conferir as decisões da F5 em [`docs/DECISOES.md`](docs/DECISOES.md) (32 a 37), em especial os ramos do core e o equilíbrio entre cores.

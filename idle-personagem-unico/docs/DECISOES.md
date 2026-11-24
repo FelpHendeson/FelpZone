@@ -104,3 +104,12 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 30. **Nomes e textos** das 6 áreas, 24 monstros e 17 equipamentos, escritos pelo agente.
 31. **Bestiário** só conta abates; os bônus por marcos (100/1.000/5.000) ficam para a F11.
 
+### Da F5 (habilidades), para o autor conferir
+
+32. **Ramos do core**: 2 por core, no nível 10, escolha permanente, cada um com uma técnica nova (nomes e efeitos do agente).
+33. **Técnicas reinterpretadas** quando o texto da F1 dependia de sistemas que não existem: Improviso virou reforço de ataque; Ordem de Ataque é um golpe (fica mais forte com pets na F10); Voto de Aurora dá +6% de ataque (não há tipos de criatura ainda); Folha em Branco dá +1 slot de passiva só por ser conhecida.
+34. **Equilíbrio entre cores**: cores de combate (Chama, Tempestade, Domador) ajudam muito mais na caça que os de coleta (Andarilho, Sem Chama). Intencional, mas vale conferir.
+35. **Maestria**: estágio II em 1,5 h de prática, III em 15 h, por habilidade.
+36. **Livros** custam 300 g (comuns) e 900 g (incomuns); são o primeiro gasto de gold além das ferramentas e armas.
+37. **Órfão do Templo Cinzento** passou a nascer sabendo Eco dos Antigos (a "técnica espiritual" do texto).
+

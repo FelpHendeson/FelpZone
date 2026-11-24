@@ -4,11 +4,12 @@
  * esquiva, drops) usam o RNG do save, sempre na mesma ordem, então dividir o
  * tempo em partes dá o mesmo resultado.
  */
-import { CATALOGO, EQUIPAMENTOS, obter, type StatusId } from "../dados";
+import { CATALOGO, CURA_ABAIXO_DE, EQUIPAMENTOS, LIVROS, obter, type StatusId } from "../dados";
 import type { AtividadeCombate, Monstro } from "../dados/combate";
 import type { Modificador } from "../modificadores";
 import { resumirModificadores } from "../modificadores";
-import type { EstadoCombate, Personagem } from "../personagem/conta";
+import type { EfeitoEmCurso, EstadoCombate, Personagem } from "../personagem/conta";
+import { CONFIG_HABILIDADES, fatorMaestria, ganharMaestria, modificadoresDaPassiva, praticarPassivas, type ProgressoHabilidade } from "../habilidades/maestria";
 import { adicionarItens, capacidadeMochila, type Mochila } from "../personagem/mochila";
 import { aplicarXp, CONFIG_PROGRESSAO, fator, modificadoresDoPersonagem, valorEfetivo, type ConfigProgressao } from "../personagem/progressao";
 import type { Rng } from "../rng";
@@ -63,8 +64,8 @@ export function statusDeCombate(status: Readonly<Record<StatusId, number>>, mods
     ataque: Math.max(1, (c.ataqueBase + c.ataquePorForca * ef("forca") + somaAlvo(mods, "ataque")) * fator(mods, "ataque")),
     defesa: Math.max(0, (c.defesaPorResistencia * ef("resistencia") + somaAlvo(mods, "defesa")) * fator(mods, "defesa")),
     intervaloMs: c.intervaloBaseMs / ((1 + c.velocidadePorAgilidade * ef("agilidade")) * fator(mods, "velocidade-ataque")),
-    esquiva: Math.min(c.esquivaMaxima, c.esquivaPorAgilidade * ef("agilidade")),
-    critico: Math.min(c.criticoMaximo, c.criticoPorPercepcao * ef("percepcao")),
+    esquiva: Math.min(c.esquivaMaxima, c.esquivaPorAgilidade * ef("agilidade") + somaAlvo(mods, "esquiva")),
+    critico: Math.min(c.criticoMaximo, c.criticoPorPercepcao * ef("percepcao") + somaAlvo(mods, "critico")),
   };
 }
 
@@ -97,7 +98,17 @@ export function riscoDaArea(sc: StatusDeCombate, area: AtividadeCombate): { risc
 
 /** Estado de combate ao chegar numa área. */
 export function combateInicial(): EstadoCombate {
-  return { fase: "procurando", restanteMs: CONFIG_COMBATE.buscaMs, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0 };
+  return {
+    fase: "procurando",
+    restanteMs: CONFIG_COMBATE.buscaMs,
+    monstroId: null,
+    vidaMonstro: 0,
+    recargaPersonagemMs: 0,
+    recargaMonstroMs: 0,
+    abatesNaArea: 0,
+    recargas: {},
+    efeitos: [],
+  };
 }
 
 /** O que o combate acumula durante um avanço. */
@@ -108,6 +119,8 @@ export interface AcumuladoCombate {
   xp: number;
   desmaios: number;
   recuos: number;
+  /** Níveis de maestria ganhos por habilidade. */
+  maestria: Record<string, number>;
 }
 
 export interface EntradaCombate {
@@ -121,10 +134,35 @@ export interface EntradaCombate {
   readonly config?: ConfigProgressao;
 }
 
+/** Aplica reforços (personagem) aos status de combate. */
+function comReforcos(sc: StatusDeCombate, efeitos: readonly EfeitoEmCurso[]): StatusDeCombate {
+  if (efeitos.length === 0) return sc;
+  const soma = (alvo: string) => efeitos.reduce((t, e) => (e.sobre === "personagem" && e.alvo === alvo ? t + e.valor : t), 0);
+  const c = CONFIG_COMBATE;
+  return {
+    vidaMax: sc.vidaMax,
+    ataque: sc.ataque * (1 + soma("ataque")),
+    defesa: sc.defesa * (1 + soma("defesa")),
+    intervaloMs: sc.intervaloMs / (1 + soma("velocidade")),
+    esquiva: Math.min(c.esquivaMaxima, sc.esquiva + soma("esquiva")),
+    critico: Math.min(c.criticoMaximo, sc.critico + soma("critico")),
+  };
+}
+
+/** Status do monstro com os enfraquecimentos em curso. */
+function monstroEnfraquecido(m: Monstro, efeitos: readonly EfeitoEmCurso[]): { ataque: number; defesa: number } {
+  const soma = (alvo: string) => Math.min(0.9, efeitos.reduce((t, e) => (e.sobre === "monstro" && e.alvo === alvo ? t + e.valor : t), 0));
+  return { ataque: m.ataque * (1 - soma("ataque")), defesa: m.defesa * (1 - soma("defesa")) };
+}
+
 /**
  * Simula `ms` de combate a partir do estado salvo. Devolve o personagem novo
  * e quantos ms sobraram depois de um desmaio (para o chamador tratar como
  * tempo ocioso), ou 0.
+ *
+ * A cada passo: recargas e efeitos andam; na luta, a primeira ativa pronta
+ * (na ordem de prioridade) dispara, depois o ataque básico e o do monstro.
+ * Curas só disparam com a vida abaixo de 50%.
  */
 export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sobraMs: number } {
   const config = e.config ?? CONFIG_PROGRESSAO;
@@ -133,8 +171,13 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
   const atividade = p0.atividade!;
   const area = e.area;
   const { status, ganhos, rng, acumulado } = e;
+  const inicial = atividade.combate ?? combateInicial();
   // Cópia mutável durante a simulação; vira `EstadoCombate` (somente leitura) ao sair.
-  let estado: { -readonly [K in keyof EstadoCombate]: EstadoCombate[K] } = { ...(atividade.combate ?? combateInicial()) };
+  let estado: { -readonly [K in keyof EstadoCombate]: EstadoCombate[K] } = { ...inicial };
+  const recargas: Record<string, number> = { ...inicial.recargas };
+  let efeitos: EfeitoEmCurso[] = [...inicial.efeitos];
+  const hab: Record<string, ProgressoHabilidade> = { ...p0.habilidades };
+  const base = { ...p0, habilidades: hab };
   let vida = p0.vida;
   let nivel = p0.nivel;
   let xp = p0.xp;
@@ -145,13 +188,36 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
   const resto = total % c.passoMs;
 
   let mods: Modificador[] = [];
-  let sc!: StatusDeCombate;
+  let scBase!: StatusDeCombate;
   let capacidade = 0;
+  let regen = 1;
+  let xpMaestria = 1;
+  // Auras (passivas que só valem com pouca vida): status de combate por combinação ativa.
+  const auras = p0.passivasEquipadas
+    .map((id) => ({ id, limite: CATALOGO.habilidades.get(id)?.passiva?.auraVidaAbaixo }))
+    .filter((a): a is { id: string; limite: number } => a.limite !== undefined);
+  let cacheAura = new Map<string, StatusDeCombate>();
+  const statusComAura = (): StatusDeCombate => {
+    if (auras.length === 0) return scBase;
+    const ativas = auras.filter((a) => vida < a.limite);
+    if (ativas.length === 0) return scBase;
+    const chave = ativas.map((a) => a.id).join("|");
+    let sc = cacheAura.get(chave);
+    if (!sc) {
+      const extra = ativas.flatMap((a) => modificadoresDaPassiva(obter(CATALOGO.habilidades, a.id), hab[a.id]?.maestria ?? 1));
+      sc = statusDeCombate(status, [...mods, ...extra]);
+      cacheAura.set(chave, sc);
+    }
+    return sc;
+  };
   let monstro: Monstro | null = estado.monstroId ? obter(CATALOGO.monstros, estado.monstroId) : null;
   const recalcular = () => {
-    mods = modificadoresDoPersonagem(p0, nivel);
-    sc = statusDeCombate(status, mods);
+    mods = modificadoresDoPersonagem(base, nivel);
+    scBase = statusDeCombate(status, mods);
     capacidade = capacidadeMochila(status.forca, mods);
+    regen = fator(mods, "regeneracao");
+    xpMaestria = fator(mods, "xp-maestria");
+    cacheAura = new Map();
   };
   recalcular();
   const viagemCidade = duracaoViagemMs(area.localId, c.localDeDesmaio.localId, mods);
@@ -164,19 +230,84 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
     acumulado.itensPerdidos += r.perdidos;
     if (r.aceitos > 0) acumulado.itens[itemId] = (acumulado.itens[itemId] ?? 0) + r.aceitos;
   };
+  const semEfeitosNoMonstro = () => {
+    efeitos = efeitos.filter((x) => x.sobre !== "monstro");
+  };
   const recuar = () => {
     acumulado.recuos++;
     // Fugir do chefe faz ele ir embora: só volta depois de mais N abates.
     if (monstro?.tipo === "chefe") estado.abatesNaArea++;
-    const curaMs = Math.ceil(((1 - vida) / c.regenForaPorSegundo) * 1000);
+    const curaMs = Math.ceil(((1 - vida) / (c.regenForaPorSegundo * regen)) * 1000);
     estado = { ...estado, fase: "recuando", restanteMs: 2 * viagemCidade + curaMs, monstroId: null, vidaMonstro: 0 };
     monstro = null;
+    semEfeitosNoMonstro();
   };
   const deveRecuar = () => recuoFracao > 0 && vida <= recuoFracao;
+  const abater = (m: Monstro) => {
+    estado.abatesNaArea++;
+    acumulado.abates[m.id] = (acumulado.abates[m.id] ?? 0) + 1;
+    bestiario[m.id] = (bestiario[m.id] ?? 0) + 1;
+    const ganhoXp = m.xp * fator(mods, "xp-personagem");
+    if (nivel < config.nivelMaximo) acumulado.xp += ganhoXp;
+    const r = aplicarXp(base, nivel, xp, ganhoXp, status, ganhos, config);
+    nivel = r.nivel;
+    xp = r.xp;
+    const maestriaSubiu = praticarPassivas(hab, p0.passivasEquipadas, ["combate", "geral"], xpMaestria, acumulado.maestria);
+    if (r.subiu || maestriaSubiu) recalcular();
+    for (const d of m.drops) if (rng.flutuante() < d.chance) guardar(d.itemId, d.quantidade);
+    if (rng.flutuante() < m.chanceEquipamento) guardar(equipamentosDoTier[rng.inteiro(0, equipamentosDoTier.length - 1)]!.id, 1);
+    if (rng.flutuante() < m.chanceLivro) guardar(LIVROS[rng.inteiro(0, LIVROS.length - 1)]!.id, 1);
+    estado = { ...estado, fase: "procurando", restanteMs: c.buscaMs, monstroId: null, vidaMonstro: 0 };
+    monstro = null;
+    semEfeitosNoMonstro();
+    if (deveRecuar()) recuar();
+  };
+  /** Tenta disparar a primeira ativa pronta. Devolve `true` se o monstro morreu. */
+  const usarAtiva = (m: Monstro): boolean => {
+    for (const id of p0.ativasEquipadas) {
+      if ((recargas[id] ?? 0) > 0) continue;
+      const h = obter(CATALOGO.habilidades, id);
+      const def = h.ativa!;
+      const soCura = def.efeitos.every((x) => x.tipo === "cura");
+      if (soCura && vida >= CURA_ABAIXO_DE) continue;
+      const f = fatorMaestria(hab[id]?.maestria ?? 1);
+      const sc = comReforcos(statusComAura(), efeitos);
+      for (const ef of def.efeitos) {
+        if (ef.tipo === "golpe") {
+          const critico = rng.flutuante() < sc.critico;
+          estado.vidaMonstro -= dano(sc.ataque * ef.multiplicador * f, monstroEnfraquecido(m, efeitos).defesa) * (critico ? c.multiplicadorCritico : 1);
+        } else if (ef.tipo === "cura") {
+          vida = Math.min(1, vida + ef.fracao * f);
+        } else if (ef.tipo === "reforco") {
+          efeitos.push({ habilidadeId: id, sobre: "personagem", alvo: ef.alvo, valor: ef.valor * f, restanteMs: ef.duracaoMs });
+        } else if (ef.tipo === "enfraquecer") {
+          efeitos.push({ habilidadeId: id, sobre: "monstro", alvo: ef.alvo, valor: ef.valor * f, restanteMs: ef.duracaoMs });
+        } else {
+          estado.recargaMonstroMs += ef.ms * f;
+        }
+      }
+      recargas[id] = def.recargaMs;
+      const n = ganharMaestria(hab, id, CONFIG_HABILIDADES.xpPorUsoAtiva * xpMaestria);
+      if (n > 0) {
+        acumulado.maestria[id] = (acumulado.maestria[id] ?? 0) + n;
+        recalcular();
+      }
+      return estado.vidaMonstro <= 0;
+    }
+    return false;
+  };
 
   for (let i = 0; i < passos; i++) {
+    // Recargas e efeitos andam sempre.
+    for (const id of Object.keys(recargas)) {
+      const r = recargas[id]! - c.passoMs;
+      if (r <= 0) delete recargas[id];
+      else recargas[id] = r;
+    }
+    if (efeitos.length > 0) efeitos = efeitos.map((x) => ({ ...x, restanteMs: x.restanteMs - c.passoMs })).filter((x) => x.restanteMs > 0);
+
     if (estado.fase === "procurando") {
-      vida = Math.min(1, vida + (c.regenProcurandoPorSegundo * c.passoMs) / 1000);
+      vida = Math.min(1, vida + (c.regenProcurandoPorSegundo * regen * c.passoMs) / 1000);
       estado.restanteMs -= c.passoMs;
       if (estado.restanteMs <= 0) {
         const chefe = (estado.abatesNaArea + 1) % area.abatesParaChefe === 0;
@@ -194,36 +325,27 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
       }
       continue;
     }
-    // Lutando.
+    // Lutando: ativas, ataque básico, ataque do monstro.
     const m = monstro!;
+    if (usarAtiva(m)) {
+      abater(m);
+      continue;
+    }
+    const sc = comReforcos(statusComAura(), efeitos);
     estado.recargaPersonagemMs -= c.passoMs;
     if (estado.recargaPersonagemMs <= 0) {
       estado.recargaPersonagemMs += sc.intervaloMs;
       const critico = rng.flutuante() < sc.critico;
-      estado.vidaMonstro -= dano(sc.ataque, m.defesa) * (critico ? c.multiplicadorCritico : 1);
+      estado.vidaMonstro -= dano(sc.ataque, monstroEnfraquecido(m, efeitos).defesa) * (critico ? c.multiplicadorCritico : 1);
       if (estado.vidaMonstro <= 0) {
-        // Abate: XP, drops e bestiário.
-        estado.abatesNaArea++;
-        acumulado.abates[m.id] = (acumulado.abates[m.id] ?? 0) + 1;
-        bestiario[m.id] = (bestiario[m.id] ?? 0) + 1;
-        const ganhoXp = m.xp * fator(mods, "xp-personagem");
-        if (nivel < config.nivelMaximo) acumulado.xp += ganhoXp;
-        const r = aplicarXp(p0, nivel, xp, ganhoXp, status, ganhos, config);
-        nivel = r.nivel;
-        xp = r.xp;
-        if (r.subiu) recalcular();
-        for (const d of m.drops) if (rng.flutuante() < d.chance) guardar(d.itemId, d.quantidade);
-        if (rng.flutuante() < m.chanceEquipamento) guardar(equipamentosDoTier[rng.inteiro(0, equipamentosDoTier.length - 1)]!.id, 1);
-        estado = { ...estado, fase: "procurando", restanteMs: c.buscaMs, monstroId: null, vidaMonstro: 0 };
-        monstro = null;
-        if (deveRecuar()) recuar();
+        abater(m);
         continue;
       }
     }
     estado.recargaMonstroMs -= c.passoMs;
     if (estado.recargaMonstroMs <= 0) {
       estado.recargaMonstroMs += m.intervaloMs;
-      if (rng.flutuante() >= sc.esquiva) vida -= dano(m.ataque, sc.defesa) / sc.vidaMax;
+      if (rng.flutuante() >= sc.esquiva) vida -= dano(monstroEnfraquecido(m, efeitos).ataque, sc.defesa) / sc.vidaMax;
       if (vida <= 0) {
         // Desmaio (o Limiar chega na F6): acorda em Pedravau, ocioso, sem perder nada.
         acumulado.desmaios++;
@@ -236,6 +358,7 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
             status,
             mochila,
             bestiario,
+            habilidades: hab,
             vida: c.vidaAoAcordar,
             atividade: null,
             localId: c.localDeDesmaio.localId,
@@ -250,7 +373,17 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
   }
 
   return {
-    personagem: { ...p0, nivel, xp, status, mochila, bestiario, vida, atividade: { ...atividade, progressoMs: resto, combate: estado } },
+    personagem: {
+      ...p0,
+      nivel,
+      xp,
+      status,
+      mochila,
+      bestiario,
+      habilidades: hab,
+      vida,
+      atividade: { ...atividade, progressoMs: resto, combate: { ...estado, recargas, efeitos } },
+    },
     sobraMs: 0,
   };
 }

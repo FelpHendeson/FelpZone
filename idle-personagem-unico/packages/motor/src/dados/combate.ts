@@ -100,6 +100,8 @@ export interface Monstro {
   readonly drops: readonly Drop[];
   /** Chance de largar um equipamento do tier da área. */
   readonly chanceEquipamento: number;
+  /** Chance de largar um livro de habilidade (F5). */
+  readonly chanceLivro: number;
 }
 
 type Perfil = "agil" | "tanque" | "raro" | "chefe";
@@ -113,10 +115,10 @@ function monstro(id: string, nome: string, descricao: string, nivel: number, per
   const g = 1 + 0.15 * (nivel - 1);
   const base = { vida: 45 * g, ataque: 7 * g, defesa: 2 * g, xp: 5 + 0.5 * nivel };
   const p = {
-    agil: { tipo: "comum", vida: 0.85, ataque: 0.85, defesa: 0.9, intervalo: 1_900, xp: 1, drop: [0.7, 1], equip: 0.015 },
-    tanque: { tipo: "comum", vida: 1.3, ataque: 1, defesa: 1.15, intervalo: 2_800, xp: 1.1, drop: [0.7, 1], equip: 0.015 },
-    raro: { tipo: "raro", vida: 2, ataque: 1.3, defesa: 1.2, intervalo: 2_200, xp: 4, drop: [1, 3], equip: 0.15 },
-    chefe: { tipo: "chefe", vida: 6, ataque: 1.5, defesa: 1.5, intervalo: 2_400, xp: 15, drop: [1, 10], equip: 0.6 },
+    agil: { tipo: "comum", vida: 0.85, ataque: 0.85, defesa: 0.9, intervalo: 1_900, xp: 1, drop: [0.7, 1], equip: 0.015, livro: 0 },
+    tanque: { tipo: "comum", vida: 1.3, ataque: 1, defesa: 1.15, intervalo: 2_800, xp: 1.1, drop: [0.7, 1], equip: 0.015, livro: 0 },
+    raro: { tipo: "raro", vida: 2, ataque: 1.3, defesa: 1.2, intervalo: 2_200, xp: 4, drop: [1, 3], equip: 0.15, livro: 0.03 },
+    chefe: { tipo: "chefe", vida: 6, ataque: 1.5, defesa: 1.5, intervalo: 2_400, xp: 15, drop: [1, 10], equip: 0.6, livro: 0.15 },
   }[perfil];
   return {
     id,
@@ -131,6 +133,7 @@ function monstro(id: string, nome: string, descricao: string, nivel: number, per
     xp: Math.round(base.xp * p.xp),
     drops: [{ itemId: materialId, chance: p.drop[0]!, quantidade: p.drop[1]! }],
     chanceEquipamento: p.equip,
+    chanceLivro: p.livro,
   };
 }
 

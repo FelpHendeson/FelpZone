@@ -14,7 +14,9 @@ export function espacosUsados(mochila: Mochila): number {
 
 /** Capacidade em espaços, pela Força efetiva. */
 export function capacidadeMochila(forcaTreinada: number, mods: readonly Modificador[]): number {
-  return CONFIG_MOCHILA.espacosBase + Math.floor(valorEfetivo(forcaTreinada, "forca", mods) * CONFIG_MOCHILA.espacosPorForca);
+  let extra = 0;
+  for (const m of mods) if (m.alvo === "espacos-mochila" && m.operacao === "somar") extra += m.valor;
+  return CONFIG_MOCHILA.espacosBase + Math.floor(valorEfetivo(forcaTreinada, "forca", mods) * CONFIG_MOCHILA.espacosPorForca + extra);
 }
 
 /** Quantas unidades do item ainda cabem. */

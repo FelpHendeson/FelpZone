@@ -1,6 +1,6 @@
 # Calibração
 
-Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3, combate da F4): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
+Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3, combate da F4, habilidades da F5): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
 
 ## Sorteio do personagem (F1)
 
@@ -385,6 +385,52 @@ Referência: treino dá 1200 XP/h; coleta tier 1, 640 XP/h.
 4. **Gold de drops de equipamento domina nas áreas de aço** (~9 mil/h, quase todo de peças tier 3 vendidas). Gold continua sem destino até a F8.
 5. **XP:** o combate passa a ser a principal fonte de XP depois do nível 10 (até 3,5× o treino). O ritmo de nível da F2 (só treino) fica como piso; o ritmo real com combate deve ser medido de novo quando houver missões (F7).
 
+## Habilidades (F5)
+
+Fonte dos números: `packages/motor/src/dados/habilidades.ts` (efeitos no nível 1 de maestria), `dados/aprendizado.ts` e `habilidades/maestria.ts` (`CONFIG_HABILIDADES`). Reproduza com `npm run ritmo`.
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Slots | 5 ativas; passivas: 3 + 1 a cada 10 níveis (Folha em Branco +1) | GDD §12 [Proposta] |
+| Maestria | 1 a 30; XP de M a M+1 = round(20 × M^1,4) | [Calibrar] |
+| Efeito por maestria | +2% por nível acima do 1; estágio II (maestria 10) ×1,25 e III (25) ×1,5 | [Calibrar] |
+| Aprendizado | ciclo de 30 s no Campo de Treino, 10 de maestria e 5 de XP do personagem por ciclo | [Calibrar] |
+| Maestria por uso | ativa disparada +2; passiva em ação (abate, ciclo de coleta ou qualquer ciclo para as gerais) +1 | [Calibrar] |
+| Curas | só disparam com a vida abaixo de 50% | GDD §7 [Autor: "como no LionHearth"] |
+| Ramo do core | a partir do nível 10, uma vez, ensina uma técnica | [Proposta] |
+| Livros | comum 300 g, incomum 900 g no Livreiro; drop de raros 3% e chefes 15% | [Calibrar] |
+
+### Resultado do bot (habilidades)
+
+Maestria pela atividade de Aprendizado (1200 XP de maestria/h, sem bônus): estágio II (maestria 10) em **1,5 h**, estágio III (25) em **15,0 h**, máximo (30) em **23,4 h**. Efeito: ×1,47 na maestria 10, ×2,22 na 25 e ×2,37 na 30.
+
+Combate com as técnicas de cada core (Humano preparado no Juncal Escuro, nível 10, 4 h, recuo 30%): sem habilidades equipadas × técnicas do core na maestria 1 × na maestria 25.
+
+| Core | Abates/h sem | Abates/h (M1) | Abates/h (M25) | Recuos/h sem | Recuos/h (M1) | Recuos/h (M25) |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| Ser das Trevas | 229 | 276 | 328 | 19,3 | 12,8 | 7,5 |
+| Portador da Chama | 229 | 377 | 399 | 19,3 | 9,8 | 8,0 |
+| Filho da Tempestade | 229 | 350 | 403 | 19,3 | 10,8 | 8,0 |
+| Guardião da Terra | 229 | 244 | 258 | 19,3 | 15,8 | 13,3 |
+| Alma da Luz | 229 | 297 | 341 | 19,3 | 8,8 | 2,0 |
+| Predador Nato | 229 | 329 | 377 | 19,3 | 13,8 | 10,3 |
+| Mente Lúcida | 229 | 264 | 284 | 19,3 | 12,0 | 7,3 |
+| Alma Antiga | 229 | 313 | 344 | 19,3 | 13,3 | 12,5 |
+| Artífice Nato | 229 | 261 | 273 | 19,3 | 16,3 | 15,5 |
+| Andarilho | 229 | 232 | 234 | 19,3 | 19,5 | 19,8 |
+| Domador | 229 | 360 | 370 | 19,3 | 10,0 | 11,0 |
+| Sem Chama | 229 | 229 | 229 | 19,3 | 19,3 | 19,3 |
+
+### Leitura e proposta (F5)
+
+1. **Cores de combate pesam bastante**: as técnicas iniciais aumentam os abates em 7% a 65% (Guardião da Terra a Portador da Chama) e cortam os recuos em até metade; com maestria 25, até +76%. **Portador da Chama, Filho da Tempestade e Domador** ficam no topo (golpes frequentes); **Guardião da Terra** e **Artífice Nato** ajudam pouco no combate.
+2. **Cores de coleta e viagem** (Andarilho, Sem Chama) não ajudam no combate, de propósito: o ganho deles está na coleta, na viagem e no treino. Livros de combate equilibram (Golpe Firme e Primeiros Socorros custam 300 g).
+3. **Maestria rápida no começo**: o estágio II sai em 1,5 h de prática e o III em 15 h por habilidade. Com 6 a 10 habilidades por personagem, maximizar tudo leva semanas. **Proposta:** manter e rever quando as missões (F7) mudarem o ritmo.
+4. **O combate acelera a subida de nível** além do medido na F2 (só treino): no teste do navegador, 12 h caçando levaram do nível 4 ao 13. Os alvos de ritmo da F2 precisam ser medidos de novo com o ciclo completo (bot da cadeia, pendente).
+5. As tabelas da F4 mudaram ±2% porque agora cada abate também sorteia um livro (o RNG é consumido em outra ordem). Nenhum número da F4 foi alterado.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -397,3 +443,4 @@ Referência: treino dá 1200 XP/h; coleta tier 1, 640 XP/h.
 | 24/11/2026 | F4: escala dos monstros (as áreas 2–6 ficavam vermelhas até para quem estava preparado). | vida 25 + 15L, ataque 4 + 2,2L, defesa 1 + 0,8L, XP 4 + 1,2L → (45, 7, 2) × (1 + 0,15(L − 1)), XP 5 + 0,5L |
 | 24/11/2026 | F4: cura procurando monstro. | 0,5%/s → 1%/s |
 | 24/11/2026 | F4: números de combate, equipamentos, drops, recuo e desmaio definidos (não existiam). | — |
+| 24/11/2026 | F5: números de maestria, slots, livros e efeitos das habilidades definidos (não existiam). | — |

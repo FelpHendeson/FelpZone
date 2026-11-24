@@ -1,4 +1,4 @@
-import { CATALOGO, LOCAL_CIDADE, NOME_OFICIO, OFICIOS, precoDeVenda, vender, venderTudo, type Personagem } from "@idle-pu/motor";
+import { CATALOGO, LIVROS, LOCAL_CIDADE, NOME_OFICIO, OFICIOS, comprarLivro, precoDeCompra, precoDeVenda, vender, venderTudo, type Personagem } from "@idle-pu/motor";
 import { formatarNumero, nomeLocal, situacaoMochila } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 
@@ -97,5 +97,35 @@ export function PainelFerramentas({ personagem: p }: { personagem: Personagem })
       </ul>
       <p className="suave nota">Ferramentas melhores ficam à venda no Ferreiro (Mapa → Estabelecimentos).</p>
     </section>
+  );
+}
+
+/** Livreiro (no Mercado): livros de habilidades gerais. */
+export function PainelLivreiro({ personagem: p, ocupado, agir }: Props) {
+  const naCidade = p.localId === LOCAL_CIDADE && !p.viagem;
+  return (
+    <article className="cartao">
+      <h3>Livreiro</h3>
+      <p className="suave">Livros ensinam habilidades. Leia em Personagem → Habilidades.</p>
+      <ul className="lista-recursos">
+        {LIVROS.map((l) => {
+          const preco = precoDeCompra(p, l.livro!.precoCompra);
+          const sabe = Boolean(p.habilidades[l.livro!.habilidadeId]);
+          const bloqueado = !naCidade || p.ouro < preco;
+          return (
+            <li key={l.id} className={`recurso${bloqueado || sabe ? " bloqueado" : ""}`}>
+              <div>
+                <strong>{l.nome.replace("Livro: ", "")}</strong> <span className={`selo raridade-${l.raridade}`}>{formatarNumero(preco, 0)} g</span>
+                <p className="suave">{CATALOGO.habilidades.get(l.livro!.habilidadeId)!.descricao}</p>
+                {sabe && <p className="suave">Você já sabe essa habilidade.</p>}
+              </div>
+              <button type="button" className="botao botao-principal" disabled={ocupado || bloqueado || sabe} onClick={() => agir((e, agora) => comprarLivro(e, l.id, agora))}>
+                Comprar
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+    </article>
   );
 }

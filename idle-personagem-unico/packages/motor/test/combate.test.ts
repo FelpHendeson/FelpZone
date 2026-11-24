@@ -12,6 +12,7 @@ import {
   avancar,
   camposIniciaisF3,
   camposIniciaisF4,
+  camposIniciaisF5,
   carregarSave,
   comprarEquipamento,
   criarEstadoInicial,
@@ -52,6 +53,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     atividade: null,
     ...camposIniciaisF3(),
     ...camposIniciaisF4(),
+    ...semHabilidadesEquipadas(),
     ...extra,
   };
 }
@@ -65,7 +67,7 @@ const ativo = (e: EstadoJogo) => e.conta.personagens[0]!;
 /** Personagem já na área, caçando (sem viagem). */
 function cacando(areaId: string, extra: Partial<Personagem> = {}, semente = "combate"): EstadoJogo {
   const a = CATALOGO.atividades.get(areaId)!;
-  return estadoCom(personagem({ localId: a.localId, subareaId: a.subareaId, atividade: { id: areaId, progressoMs: 0, combate: { fase: "procurando", restanteMs: 3_000, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0 } }, ...extra }), semente);
+  return estadoCom(personagem({ localId: a.localId, subareaId: a.subareaId, atividade: { id: areaId, progressoMs: 0, combate: { fase: "procurando", restanteMs: 3_000, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0, recargas: {}, efeitos: [] } }, ...extra }), semente);
 }
 
 describe("catálogo de combate", () => {
@@ -163,7 +165,7 @@ describe("caçar", () => {
       atividade: {
         id: "trilha-dos-lobos",
         progressoMs: 0,
-        combate: { fase: "lutando", restanteMs: 0, monstroId: chefe.id, vidaMonstro: chefe.vida, recargaPersonagemMs: 99_999, recargaMonstroMs: 500, abatesNaArea: 49 },
+        combate: { fase: "lutando", restanteMs: 0, monstroId: chefe.id, vidaMonstro: chefe.vida, recargaPersonagemMs: 99_999, recargaMonstroMs: 500, abatesNaArea: 49, recargas: {}, efeitos: [] },
       },
     });
     const c = ativo(avancar(e, T0 + 500).estado).atividade!.combate!;
@@ -292,3 +294,8 @@ describe("save v5", () => {
     }
   });
 });
+
+/** Técnicas do core conhecidas, nada equipado (para não mexer no que os testes antigos medem). */
+function semHabilidadesEquipadas() {
+  return { ...camposIniciaisF5("andarilho"), ativasEquipadas: [], passivasEquipadas: [] };
+}

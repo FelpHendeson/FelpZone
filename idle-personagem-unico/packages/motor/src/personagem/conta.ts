@@ -5,6 +5,14 @@
 import { CATALOGO, OFICIOS, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import { KIT_COMBATE } from "../dados/combate";
+import {
+  CONFIG_HABILIDADES,
+  slotsPassivas,
+  tecnicasDoCore,
+  xpParaProximaMaestria,
+  type Habilidades,
+  type ProgressoHabilidade,
+} from "../habilidades/maestria";
 import type { StatusId } from "../dados/status";
 import { ehEstadoRng, type EstadoRng } from "../rng";
 import { reproduzirTentativa, type ResultadoTentativa } from "../sorteio/cascata";
@@ -51,6 +59,18 @@ export interface EstadoCombate {
   readonly recargaMonstroMs: number;
   /** Contador do chefe: abates desde que chegou à área, mais 1 a cada fuga do chefe (ele aparece a cada N). */
   readonly abatesNaArea: number;
+  /** F5: recarga restante de cada ativa (ms; ausente = pronta). */
+  readonly recargas: Readonly<Record<string, number>>;
+  /** F5: reforços (no personagem) e enfraquecimentos (no monstro) em curso. */
+  readonly efeitos: readonly EfeitoEmCurso[];
+}
+
+export interface EfeitoEmCurso {
+  readonly habilidadeId: string;
+  readonly sobre: "personagem" | "monstro";
+  readonly alvo: string;
+  readonly valor: number;
+  readonly restanteMs: number;
 }
 
 /**
@@ -61,6 +81,8 @@ export interface AtividadeAtual {
   readonly id: string;
   readonly progressoMs: number;
   readonly combate?: EstadoCombate;
+  /** Aprendizado (F5): habilidade sendo praticada. */
+  readonly habilidadeId?: string;
 }
 
 /** Viagem entre locais (≤ 10 s). Enquanto dura, o personagem segue no local de origem. */
@@ -113,6 +135,14 @@ export interface Personagem {
   readonly recuoPercentual: number;
   /** Abates por monstro. */
   readonly bestiario: Readonly<Record<string, number>>;
+  /** F5: habilidades conhecidas com maestria. */
+  readonly habilidades: Habilidades;
+  /** F5: ativas equipadas, em ordem de prioridade (máx. 5). */
+  readonly ativasEquipadas: readonly string[];
+  /** F5: passivas equipadas (máx. pelos slots do nível). */
+  readonly passivasEquipadas: readonly string[];
+  /** F5: ramo do core escolhido (a partir do nível 10). */
+  readonly ramoId: string | null;
 }
 
 /** Uma tentativa do sorteio: o estado do RNG no início basta para reproduzi-la. */
@@ -198,6 +228,8 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f3) return null;
   const f4 = validarCamposF4(v);
   if (!f4) return null;
+  const f5 = typeof coreId === "string" && typeof nivel === "number" ? validarCamposF5(v, coreId, nivel) : null;
+  if (!f5) return null;
   if (!ehTexto(id, 64)) return null;
   const n = validarNome(nome);
   if (!n.ok || n.nome !== nome) return null;
@@ -223,7 +255,7 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (typeof corRoupa !== "string" || !CATALOGO.coresRoupa.has(corRoupa)) return null;
   // Status: finitos e dentro de piso/teto do nível (com folga de arredondamento).
   if (!ehObjeto(status)) return null;
-  const faixa = faixas(racaId, nivel, modificadoresDoPersonagem({ racaId, dons: dons as string[], origem: origemLimpa, equipados: f4.equipados }, nivel));
+  const faixa = faixas(racaId, nivel, modificadoresDoPersonagem({ racaId, dons: dons as string[], origem: origemLimpa, equipados: f4.equipados, ...f5 }, nivel));
   const statusLimpo = {} as Record<StatusId, number>;
   for (const s of STATUS) {
     const valor = status[s];
@@ -240,10 +272,14 @@ function validarPersonagem(v: unknown): Personagem | null {
     if (a.tipo === "combate") {
       if (!ehInteiro(atividade.progressoMs, 0, 499)) return null;
       const combate = validarCombate(atividade.combate, a.monstros.map((m) => m.monstroId).concat(a.chefeId));
-      if (!combate) return null;
+      if (!combate || atividade.habilidadeId !== undefined) return null;
       atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs, combate };
-    } else {
+    } else if (a.tipo === "aprendizado") {
       if (!ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10) || atividade.combate !== undefined) return null;
+      if (typeof atividade.habilidadeId !== "string" || !f5.habilidades[atividade.habilidadeId]) return null;
+      atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs, habilidadeId: atividade.habilidadeId };
+    } else {
+      if (!ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10) || atividade.combate !== undefined || atividade.habilidadeId !== undefined) return null;
       atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs };
     }
     // A atividade acontece no destino da viagem ou no local atual.
@@ -267,6 +303,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     atividade: atividadeLimpa,
     ...f3,
     ...f4,
+    ...f5,
   };
 }
 
@@ -276,7 +313,20 @@ function ehNumero(v: unknown, min: number, max: number): v is number {
 
 function validarCombate(v: unknown, monstrosDaArea: readonly string[]): EstadoCombate | null {
   if (!ehObjeto(v)) return null;
-  const { fase, restanteMs, monstroId, vidaMonstro, recargaPersonagemMs, recargaMonstroMs, abatesNaArea } = v;
+  const { fase, restanteMs, monstroId, vidaMonstro, recargaPersonagemMs, recargaMonstroMs, abatesNaArea, recargas, efeitos } = v;
+  if (!ehObjeto(recargas) || !Array.isArray(efeitos) || efeitos.length > 32) return null;
+  const recargasLimpas: Record<string, number> = {};
+  for (const [id, ms] of Object.entries(recargas)) {
+    if (!CATALOGO.habilidades.get(id)?.ativa || !ehNumero(ms, -1_000, 600_000)) return null;
+    recargasLimpas[id] = ms;
+  }
+  const efeitosLimpos: EfeitoEmCurso[] = [];
+  for (const e of efeitos) {
+    if (!ehObjeto(e) || typeof e.habilidadeId !== "string" || !CATALOGO.habilidades.get(e.habilidadeId)?.ativa) return null;
+    if ((e.sobre !== "personagem" && e.sobre !== "monstro") || typeof e.alvo !== "string" || e.alvo.length > 32) return null;
+    if (!ehNumero(e.valor, 0, 10) || !ehNumero(e.restanteMs, 1, 600_000)) return null;
+    efeitosLimpos.push({ habilidadeId: e.habilidadeId, sobre: e.sobre, alvo: e.alvo, valor: e.valor, restanteMs: e.restanteMs });
+  }
   if (fase !== "procurando" && fase !== "lutando" && fase !== "recuando") return null;
   if (!ehNumero(restanteMs, -1_000, 1_000_000) || !ehInteiro(abatesNaArea, 0, Number.MAX_SAFE_INTEGER)) return null;
   if (!ehNumero(recargaPersonagemMs, -1_000, 60_000) || !ehNumero(recargaMonstroMs, -1_000, 60_000)) return null;
@@ -292,6 +342,8 @@ function validarCombate(v: unknown, monstrosDaArea: readonly string[]): EstadoCo
     recargaPersonagemMs,
     recargaMonstroMs,
     abatesNaArea,
+    recargas: recargasLimpas,
+    efeitos: efeitosLimpos,
   };
 }
 
@@ -404,4 +456,56 @@ export function validarConta(v: unknown): Conta | null {
     if (!sorteioLimpo || lista.length >= MAX_PERSONAGENS) return null;
   }
   return { personagens: lista, personagemAtivoId: ativo, sorteio: sorteioLimpo };
+}
+
+type CamposF5 = Pick<Personagem, "habilidades" | "ativasEquipadas" | "passivasEquipadas" | "ramoId">;
+
+/** Valida habilidades, slots e ramo (F5). */
+function validarCamposF5(v: Record<string, unknown>, coreId: string, nivel: number): CamposF5 | null {
+  const { habilidades, ativasEquipadas, passivasEquipadas, ramoId } = v;
+  if (!ehObjeto(habilidades) || !Array.isArray(ativasEquipadas) || !Array.isArray(passivasEquipadas)) return null;
+  const hab: Record<string, ProgressoHabilidade> = {};
+  const entradas = Object.entries(habilidades);
+  if (entradas.length > CATALOGO.habilidades.size) return null;
+  for (const [id, p] of entradas) {
+    if (!CATALOGO.habilidades.has(id) || !ehObjeto(p) || !ehInteiro(p.maestria, 1, CONFIG_HABILIDADES.maestriaMaxima)) return null;
+    const limite = xpParaProximaMaestria(p.maestria);
+    if (!ehNumero(p.xp, 0, Number.MAX_SAFE_INTEGER) || (limite > 0 ? p.xp >= limite : p.xp !== 0)) return null;
+    hab[id] = { maestria: p.maestria, xp: p.xp };
+  }
+  // O core sempre ensina as próprias técnicas.
+  for (const t of tecnicasDoCore(coreId)) if (!hab[t.id]) return null;
+  const lista = (arr: unknown[], modo: "ativa" | "passiva", max: number): string[] | null => {
+    if (arr.length > max || new Set(arr).size !== arr.length) return null;
+    for (const id of arr) if (typeof id !== "string" || !hab[id] || CATALOGO.habilidades.get(id)!.modo !== modo) return null;
+    return arr as string[];
+  };
+  const ativas = lista(ativasEquipadas, "ativa", CONFIG_HABILIDADES.slotsAtivas);
+  const passivas = lista(passivasEquipadas, "passiva", slotsPassivas({ nivel, habilidades: hab }));
+  if (!ativas || !passivas) return null;
+  let ramo: string | null = null;
+  if (ramoId !== null) {
+    const r = typeof ramoId === "string" ? CATALOGO.ramos.get(ramoId) : undefined;
+    if (!r || r.coreId !== coreId || nivel < CONFIG_HABILIDADES.nivelRamo || !hab[r.habilidadeId]) return null;
+    ramo = r.id;
+  }
+  return { habilidades: hab, ativasEquipadas: [...ativas], passivasEquipadas: [...passivas], ramoId: ramo };
+}
+
+/**
+ * Campos iniciais da F5: o personagem conhece as técnicas do próprio core
+ * (e as que a origem ensinar), com as ativas e até 3 passivas úteis equipadas.
+ */
+export function camposIniciaisF5(coreId: string, origemId?: string): CamposF5 {
+  const conhecidas = [...tecnicasDoCore(coreId)];
+  const extra = origemId ? (CATALOGO.origensEspeciais.get(origemId)?.habilidadesIniciais ?? []) : [];
+  for (const id of extra) if (!conhecidas.some((h) => h.id === id)) conhecidas.push(CATALOGO.habilidades.get(id)!);
+  const habilidades: Record<string, ProgressoHabilidade> = {};
+  for (const h of conhecidas) habilidades[h.id] = { maestria: 1, xp: 0 };
+  const ativas = conhecidas.filter((h) => h.modo === "ativa").slice(0, CONFIG_HABILIDADES.slotsAtivas).map((h) => h.id);
+  const passivas = conhecidas
+    .filter((h) => h.modo === "passiva" && !h.pendente)
+    .slice(0, CONFIG_HABILIDADES.slotsPassivasBase)
+    .map((h) => h.id);
+  return { habilidades, ativasEquipadas: ativas, passivasEquipadas: passivas, ramoId: null };
 }

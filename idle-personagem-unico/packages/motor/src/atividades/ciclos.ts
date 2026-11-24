@@ -28,6 +28,7 @@ import { resumirModificadores } from "../modificadores";
 import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
 import { LIMITE_OFFLINE_MS } from "../tempo";
+import { ganharMaestria, praticarPassivas, type ProgressoHabilidade } from "../habilidades/maestria";
 import { avancarCombate, CONFIG_COMBATE, type AcumuladoCombate } from "./combate";
 import { duracaoViagemMs } from "./viagem";
 
@@ -47,6 +48,7 @@ export function nivelEfetivoOficio(p: Pick<Personagem, "oficios">, oficio: Ofici
 function fatorVelocidade(p: Personagem, atividade: AtividadeCiclica, mods: readonly Modificador[]): number {
   let f = fator(mods, "velocidade-atividade");
   if (atividade.tipo === "coleta") {
+    f *= fator(mods, "coleta.velocidade");
     f *= obter(CATALOGO.ferramentas, p.ferramentas[atividade.oficio]).velocidade;
     f *= 1 + BONUS_AGILIDADE_POR_PONTO * valorEfetivo(p.status.agilidade, "agilidade", mods);
   }
@@ -65,7 +67,7 @@ export function xpDoCiclo(atividade: AtividadeCiclica, mods: readonly Modificado
 
 /** Quantidade média de itens por ciclo de coleta. */
 export function rendimentoMedio(p: Personagem, a: AtividadeColeta, mods: readonly Modificador[]): number {
-  return a.rendimentoBase * obter(CATALOGO.ferramentas, p.ferramentas[a.oficio]).eficiencia * fator(mods, `oficio.${a.oficio}.rendimento`);
+  return a.rendimentoBase * obter(CATALOGO.ferramentas, p.ferramentas[a.oficio]).eficiencia * fator(mods, `oficio.${a.oficio}.rendimento`, "coleta.rendimento");
 }
 
 /** Chance de achado raro por ciclo de coleta. */
@@ -95,6 +97,8 @@ export interface ResultadoCiclos {
   readonly abates: Readonly<Record<string, number>>;
   readonly desmaios: number;
   readonly recuos: number;
+  /** Níveis de maestria ganhos por habilidade. */
+  readonly maestria: Readonly<Record<string, number>>;
 }
 
 /** Recupera vida fora do combate (linear e limitada a 1: dividir o tempo não muda o resultado). */
@@ -108,7 +112,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
   const ganhos = ganhosZerados();
   const xpOficios: Partial<Record<OficioId, number>> = {};
   const niveisOficio: Partial<Record<OficioId, number>> = {};
-  const acc: AcumuladoCombate = { abates: {}, itens: {}, itensPerdidos: 0, xp: 0, desmaios: 0, recuos: 0 };
+  const acc: AcumuladoCombate = { abates: {}, itens: {}, itensPerdidos: 0, xp: 0, desmaios: 0, recuos: 0, maestria: {} };
   let ciclos = 0;
   let restante = Math.max(0, Math.floor(ms));
   let atual = p;
@@ -127,6 +131,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     abates: acc.abates,
     desmaios: acc.desmaios,
     recuos: acc.recuos,
+    maestria: acc.maestria,
   });
 
   // 1. Viagem (fora do combate a vida se recupera).
@@ -165,7 +170,10 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
   let capacidade = 0;
   let rendimento = 0;
   let chance = 0;
-  const base = atual;
+  const hab: Record<string, ProgressoHabilidade> = { ...atual.habilidades };
+  const base = { ...atual, habilidades: hab };
+  const escopos = atividade.tipo === "coleta" ? ["coleta", "geral"] : ["geral"];
+  const praticada = atual.atividade!.habilidadeId;
   const recalcular = () => {
     mods = modificadoresDoPersonagem(base, nivel);
     const comStatus = { ...base, status };
@@ -181,11 +189,20 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
   while (progresso >= duracao) {
     progresso -= duracao;
     ciclos++;
+    let maestriaSubiu = false;
     if (atividade.tipo === "treino") {
       const s = atividade.status;
       const g = ganhoDeTreino(base.racaId, s, status[s], nivel, mods, config);
       status[s] += g;
       ganhos[s] += g;
+    } else if (atividade.tipo === "aprendizado") {
+      if (praticada) {
+        const n = ganharMaestria(hab, praticada, atividade.maestriaPorCiclo * fator(mods, "xp-maestria"));
+        if (n > 0) {
+          acc.maestria[praticada] = (acc.maestria[praticada] ?? 0) + n;
+          maestriaSubiu = true;
+        }
+      }
     } else {
       // Quantidade: parte inteira garantida + fração sorteada; depois o achado raro.
       const inteiro = Math.floor(rendimento);
@@ -213,16 +230,19 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
         oficios[o] = { nivel: nivelO, xp: xpO };
       }
     }
+    // Passivas equipadas em uso ganham maestria.
+    if (praticarPassivas(hab, base.passivasEquipadas, escopos, fator(mods, "xp-maestria"), acc.maestria)) maestriaSubiu = true;
     // XP do personagem.
     const ganhoXp = xpDoCiclo(atividade, mods);
     if (nivel < config.nivelMaximo) acc.xp += ganhoXp;
     const r = aplicarXp(base, nivel, xp, ganhoXp, status, ganhos, config);
     nivel = r.nivel;
     xp = r.xp;
-    if (r.subiu) recalcular();
+    if (r.subiu || maestriaSubiu) recalcular();
   }
 
-  return resultado({ ...atual, nivel, xp, status, oficios, mochila, atividade: { id: atividade.id, progressoMs: progresso } });
+  const atividadeFinal = praticada ? { id: atividade.id, progressoMs: progresso, habilidadeId: praticada } : { id: atividade.id, progressoMs: progresso };
+  return resultado({ ...atual, nivel, xp, status, oficios, mochila, habilidades: hab, atividade: atividadeFinal });
 }
 
 /** O que aconteceu num avanço de tempo (para "Enquanto você estava fora"). */
@@ -246,6 +266,7 @@ export interface ResumoAvanco {
   readonly abates: Readonly<Record<string, number>>;
   readonly desmaios: number;
   readonly recuos: number;
+  readonly maestria: Readonly<Record<string, number>>;
 }
 
 /** Resumo sem nada acontecido (útil para a interface e testes). */
@@ -268,6 +289,7 @@ export function resumoVazio(atividadeId: string | null = null, nivel = 0): Resum
     abates: {},
     desmaios: 0,
     recuos: 0,
+    maestria: {},
   };
 }
 
@@ -312,6 +334,7 @@ export function avancar(estado: EstadoJogo, agora: number, config: ConfigProgres
       abates: r.abates,
       desmaios: r.desmaios,
       recuos: r.recuos,
+      maestria: r.maestria,
     },
   };
 }

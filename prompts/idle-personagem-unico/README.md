@@ -24,7 +24,8 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 | 2 | `02-fatia-F2-atividade-treino.md` | **Concluída** em 24/11/2026; mantida como histórico. Decisões para o autor conferir em `docs/DECISOES.md` (13 a 18). |
 | 3 | `03-fatia-F3-mapa-coleta.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (19 a 24). |
 | 4 | `04-fatia-F4-combate.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (25 a 31). |
-| 5 a 14 | F5 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
+| 5 | `05-fatia-F5-habilidades.md` | **Concluída** em 24/11/2026. Decisões para o autor conferir em `docs/DECISOES.md` (32 a 37). |
+| 6 a 14 | F6 a F14 de `docs/ROADMAP.md` | Ainda não escritos. Cada prompt é escrito quando a fatia anterior estiver consolidada. |
 
 O relatório de todas as fatias executadas fica em `idle-personagem-unico/RELATORIO-idle-personagem-unico.md`.
 

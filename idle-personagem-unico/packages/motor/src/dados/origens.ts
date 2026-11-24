@@ -75,10 +75,8 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "Órfão do Templo Cinzento",
     lore: "Criado por monges de um culto já morto, que lhe ensinaram rezas para um deus sem nome.",
     efeitoTexto: "+Espírito; começa com uma técnica espiritual.",
-    efeito: {
-      modificadores: [mod("status.espirito", "somar", 2, "orfao-do-templo-cinzento")],
-      efeitoPendente: "Uma técnica espiritual inicial (F5).",
-    },
+    efeito: { modificadores: [mod("status.espirito", "somar", 2, "orfao-do-templo-cinzento")] },
+    habilidadesIniciais: ["eco-dos-antigos"],
     gancho: "O que o templo guardava.",
   },
   {
@@ -110,8 +108,8 @@ const ESPECIAIS: readonly Especial[] = [
     lore: "Lembra de uma vida anterior, em outro mundo, e age como quem sabe demais para a própria idade.",
     efeitoTexto: "Memória Estranha: um ofício um nível acima; +XP de maestria. Fraqueza: -5% Vigor inicial.",
     efeito: {
-      modificadores: [mod("status.vigor", "percentual", -0.05, "o-reencarnado")],
-      efeitoPendente: "Um ofício escolhido +1 nível (F3) e +XP de maestria (valor a calibrar, F5).",
+      modificadores: [mod("status.vigor", "percentual", -0.05, "o-reencarnado"), mod("xp-maestria", "percentual", 0.1, "o-reencarnado")],
+      efeitoPendente: "Um ofício escolhido +1 nível (escolha de ofício ainda não existe).",
     },
     gancho: "Quem foi na outra vida e por que voltou.",
   },
@@ -244,7 +242,10 @@ const ESPECIAIS: readonly Especial[] = [
     nome: "Aprendiz do Mago Morto",
     lore: "O mestre morreu no meio de uma aula, deixando uma torre cheia de feitiços inacabados.",
     efeitoTexto: "Começa com uma habilidade Rara parcial; maestria +; fraqueza: pouca vida.",
-    efeito: { efeitoPendente: "Habilidade Rara parcial e +maestria (F5); menos vida (F2)." },
+    efeito: {
+      modificadores: [mod("xp-maestria", "percentual", 0.15, "aprendiz-do-mago-morto"), mod("vida", "percentual", -0.1, "aprendiz-do-mago-morto")],
+      efeitoPendente: "Habilidade Rara parcial (livros raros chegam depois).",
+    },
     gancho: "A torre e o último feitiço do mestre.",
     racasPermitidas: ["humano", "elfo", "sangue-palido"],
   },

@@ -5,6 +5,7 @@
  */
 import { CATALOGO, obter, PERFIS_RACA, STATUS, type StatusId } from "../dados";
 import type { Efeito } from "../dados/tipos";
+import { modificadoresDeHabilidades, type Habilidades } from "../habilidades/maestria";
 import { resumirModificadores, type Modificador } from "../modificadores";
 
 export interface ConfigProgressao {
@@ -41,6 +42,9 @@ export interface BaseModificadores {
   readonly origem: { readonly tipo: "comum" | "especial"; readonly id: string };
   /** Equipamento de combate (F4): slot → id do item. */
   readonly equipados?: Readonly<Record<string, string | null>>;
+  /** Habilidades conhecidas e passivas equipadas (F5). */
+  readonly habilidades?: Habilidades;
+  readonly passivasEquipadas?: readonly string[];
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -65,6 +69,8 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
   for (const itemId of Object.values(p.equipados ?? {})) {
     if (itemId) lista.push(...(obter(CATALOGO.itens, itemId).equipamento?.modificadores ?? []));
   }
+  // Passivas equipadas (auras ficam de fora: dependem da vida e são tratadas no combate).
+  lista.push(...modificadoresDeHabilidades(p));
   return lista;
 }
 

@@ -15,7 +15,7 @@ export const NOME_OFICIO: Readonly<Record<OficioId, string>> = {
   agricultura: "Fazendeiro",
 };
 
-export type CategoriaItem = "material" | "raro" | "equipamento";
+export type CategoriaItem = "material" | "raro" | "equipamento" | "livro";
 
 /** Slots de combate da F4 (manoplas, mão secundária, acessórios e relíquia vêm depois). */
 export const SLOTS = ["arma", "elmo", "peitoral", "calcas", "botas"] as const;
@@ -43,6 +43,8 @@ export interface Item {
   /** Quantos cabem num espaço da mochila. */
   readonly pilha: number;
   readonly equipamento?: DadosEquipamento;
+  /** Livro: ensina a habilidade ao ser lido (F5). `precoCompra` é o preço no Mercado. */
+  readonly livro?: { readonly habilidadeId: string; readonly precoCompra: number };
 }
 
 export interface Ferramenta {

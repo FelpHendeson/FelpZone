@@ -399,6 +399,16 @@ Quatro eixos independentes:
 - **Maestria**: nível de domínio que fortalece a habilidade e permite **evoluir** (§6.4).
 - **Habilidades de raça e core** não ocupam slot: são inerentes. **Técnicas** vindas do core, sim.
 
+**Implementado na F5** [Proposta; números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]:
+
+- As **31 técnicas** escritas na F1 viraram habilidades com efeito (o texto do Ser das Trevas segue o do autor). O personagem nasce conhecendo as técnicas do próprio core, com as ativas e até 3 passivas úteis já equipadas.
+- **Ramos do core** (GDD §3.2, "direções"): 2 por core, escolhidos uma vez a partir do nível 10; cada um ensina uma técnica nova (24 no total).
+- **Livros** de habilidades gerais (11: combate, coleta e viagem), vendidos no Livreiro do Mercado e deixados por monstros raros e chefes.
+- **Ativas** disparam sozinhas na luta, na ordem de prioridade dos slots, com recarga: golpe, cura (só abaixo de 50% de vida), reforço, enfraquecimento e atordoamento. O estado (recargas e efeitos) fica no save, igual online e offline.
+- **Passivas** viram modificadores; **auras** valem só com a vida abaixo de um limite. Passivas de coleta afetam a coleta, as de viagem a viagem.
+- **Maestria** de 1 a 30, por uso e pela atividade de **Aprendizado** (praticar no Campo de Treino); **evolução** em estágios II (maestria 10) e III (25), com o nome da habilidade ganhando o numeral.
+- Ainda sem efeito: habilidades de **produção** (F8) e de **pets** (F10).
+
 ## 13. Pets [Autor, estrutura: Proposta]
 
 Dois grandes grupos:

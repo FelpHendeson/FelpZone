@@ -40,6 +40,9 @@ export function estimarAtividade(p: Personagem, atividadeId: string): Estimativa
   const ciclosPorHora = 3_600_000 / duracaoMs;
   const origem = p.localId;
   const viagemMs = origem === a.localId ? 0 : duracaoViagemMs(origem, a.localId, mods);
+  if (a.tipo === "aprendizado") {
+    return { duracaoMs, ganhoPorHora: 0, xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora, itensPorHora: 0, xpOficioPorHora: 0, chanceRaro: 0, viagemMs };
+  }
   if (a.tipo === "treino") {
     return {
       duracaoMs,

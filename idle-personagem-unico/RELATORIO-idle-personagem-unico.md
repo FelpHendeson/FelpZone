@@ -19,7 +19,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F2 | Loop de atividade e treino | ✅ Concluída em 24/11/2026 | `907153d` | 171 |
 | F3 | Mapa e coleta | ✅ Concluída em 24/11/2026 | `a400963` | 196 |
 | F4 | Combate por área | ✅ Concluída em 24/11/2026 | `84edc9b` | 218 |
-| F5 | Habilidades e core | ⏳ Aguardando autorização | — | — |
+| F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F5`) | 242 |
+| F6 | O Limiar | ⏳ Aguardando autorização | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -342,6 +343,92 @@ Habilidades, técnicas e elementos (F5). O Limiar, Barqueiro e Eco da Morte (F6)
 
 ---
 
+## F5 — Habilidades e core
+
+**Pedido do autor (24/11/2026):** "Pode seguir". Escrevi o prompt (`prompts/idle-personagem-unico/05-fatia-F5-habilidades.md`) e executei.
+
+### O que foi executado
+
+- [x] **66 habilidades** com os quatro eixos do GDD §12 (natureza, modo, duração, escopo):
+  - as **31 técnicas** que a F1 tinha só como texto ganharam efeito; o Ser das Trevas mantém o texto do autor;
+  - **24 técnicas de ramo**, 2 ramos por core: o "core abre ramos" do roadmap;
+  - **11 habilidades de livro**: combate, coleta e viagem.
+- [x] **Slots:** 5 ativas; passivas começam com 3 e ganham +1 a cada 10 níveis.
+- [x] **Ações:** equipar, desequipar e mudar a ordem de prioridade.
+- [x] **Ativas automáticas no combate**, como no LionHearth:
+  - prioridade pela ordem dos slots e recarga;
+  - golpe, cura (só abaixo de 50% de vida), reforço, enfraquecimento e atordoamento;
+  - recargas e efeitos em curso ficam no save, e dividir o tempo continua dando o mesmo resultado.
+- [x] **Passivas** como modificadores e **auras** que valem só com pouca vida. As passivas de coleta afetam a coleta e as de viagem afetam a viagem.
+- [x] **Maestria** de 1 a 30:
+  - sobe por uso (ativa disparada, passiva em ação) e pela atividade de **Aprendizado**;
+  - **evolução** em estágios II (maestria 10) e III (maestria 25), com o numeral no nome.
+- [x] **Ramo do core:** escolha única a partir do nível 10, que ensina a técnica do ramo.
+- [x] **Livros:** à venda no Livreiro (Mercado) e deixados por monstros raros (3%) e chefes (15%). Ler um livro ensina a habilidade.
+- [x] **Efeitos que passaram a valer:** Adaptável (Humano), Mosteiro de aldeia, O Reencarnado, Aprendiz do Mago Morto e Órfão do Templo Cinzento.
+- [x] **Save v6** com migração v5 → v6.
+- [x] **Web:**
+  - Personagem → Habilidades (ramo, slots, prioridade, conhecidas, livros);
+  - Atividades → Aprendizado;
+  - Livreiro;
+  - barra de "Praticando…";
+  - resumo do tempo fora com a maestria ganha.
+- [x] **Bot de ritmo** das habilidades, **documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais**, a partir de instalação limpa: `npm ci`, `npm audit --audit-level=high` (0 vulnerabilidades), `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **242 testes** (233 no motor, 9 na web).
+- **Testes novos:**
+  - catálogo (técnicas da F1 com o mesmo nome e modo, 2 ramos por core, livros);
+  - curva e estágios de maestria; slots;
+  - personagem novo já equipado; auras;
+  - equipar, prioridade, ramo, comprar e ler livro;
+  - Aprendizado; Adaptável (+8% medido);
+  - **habilidade de coleta aumentando a coleta**;
+  - **ativas disparando sozinhas** (mais abates que sem ativas); cura só quando precisa;
+  - save v6: ida e volta no meio de uma luta com efeitos, migração e 9 adulterações recusadas.
+- **Teste de propriedade:** 12 sementes, 4 combinações de habilidades (reforços, enfraquecimentos, atordoamento, curas, auras), partições aleatórias do tempo, todas com o mesmo resultado.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - habilidades do core equipadas;
+  - praticar 1 h (Leitura Fria +8 de maestria);
+  - colher e vender, comprar e ler o livro Golpe Firme, equipar;
+  - caçar 12 h (nível 4 → 13, as ativas ganhando maestria) e mais 12 h na Galeria dos Ratos;
+  - **escolher o ramo do core** no nível 10+;
+  - recarregar.
+
+  Também a **migração real** de um save v5 criado no site publicado (que ainda rodava a F4) com **uma luta em andamento**: a luta continuou e as técnicas do core foram equipadas. Console limpo, sem rolagem lateral.
+- **CI e Vercel**: conferidos depois do push (registro abaixo).
+
+### Números principais
+
+- Maestria pela prática: estágio II em **1,5 h**, estágio III em **15 h** e máximo em **23 h**, por habilidade.
+- Ganho de abates com as técnicas do core no Juncal Escuro: de **+7%** (Guardião da Terra) a **+65%** (Portador da Chama). Andarilho e Sem Chama ~0% (são cores de coleta e treino).
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | O que é "core abre ramos" (GDD §3.2: "o core tem ramos de técnicas; o personagem escolhe por onde seguir")? | **2 ramos por core**, escolha **única** a partir do nível 10; cada ramo ensina uma técnica nova. Os 24 ramos e técnicas são meus. | Aguarda o autor |
+| 2 | As técnicas da F1 eram só texto; algumas dependem de sistemas que não existem. | Viraram habilidades com números. As que dependiam de durabilidade, pets ou tipos de criatura foram reinterpretadas (Improviso, Ordem de Ataque, Voto de Aurora). As de produção e de pets ficaram **sem efeito**, marcadas como pendentes e fora do equipamento automático. | Aguarda o autor |
+| 3 | Folha em Branco ("aceita qualquer técnica") como passiva que dá +1 slot ocuparia o próprio slot que dá. | Ela dá **+1 slot só por ser conhecida**, sem precisar ser equipada. | Aguarda o autor |
+| 4 | Ativas: quando disparam? | A cada passo de 0,5 s, a **primeira ativa pronta na ordem dos slots** dispara (uma por passo), antes do ataque básico. Curas só com vida abaixo de 50% (GDD §7). | Aprovado na prática |
+| 5 | Recolocar uma ativa zera a recarga (abuso)? | Não: a recarga continua correndo mesmo fora do slot. | Resolvido |
+| 6 | Como a maestria sobe? | Pela atividade de **Aprendizado** (10 por ciclo de 30 s) e por uso: ativa +2 por disparo; passiva +1 quando está em ação (abate, ciclo de coleta ou qualquer ciclo para as "gerais"). | Aguarda o autor |
+| 7 | Evolução "em marcos" (GDD §6.4). | Estágios **II** na maestria 10 (×1,25) e **III** na 25 (×1,5), mais +2% por nível. O nome ganha o numeral ("Bote III"). Versões com nome e efeito próprios por habilidade ficam para quando houver conteúdo. | Aguarda o autor |
+| 8 | De onde vêm habilidades novas além do core? | **Livros**: Livreiro no Mercado e drops de raros e chefes. Mestres NPC e guilda ficam para a F7. | Aguarda o autor |
+| 9 | Personagem novo e saves antigos começam com o quê? | Conhecendo as técnicas do próprio core, com as ativas e até 3 passivas úteis **já equipadas**, para quem não mexer nas habilidades não ficar sem nada. | Aprovado na prática |
+| 10 | O equilíbrio entre cores no combate ficou desigual. | Medido pelo bot (+7% a +65%). Mantive: Andarilho e Sem Chama ganham na coleta, na viagem e no treino, e os livros de combate custam 300 g. Registrado para o autor. | Aguarda o autor |
+| 11 | No teste no navegador, os títulos "Ativas"/"Passivas" quebravam no meio da palavra em 360 px. | Corrigi o CSS: a linha do título quebra inteira e o texto ao lado desce. | Resolvido |
+| 12 | O resumo dizia "O limite é de 12 h: 0 s não contaram" quando a diferença era de milissegundos. | Só aparece com diferença de 1 s ou mais. | Resolvido |
+| 13 | As tabelas de combate da F4 mudaram um pouco. | Cada abate agora também sorteia um livro, o que muda a ordem do RNG (±2% nos números). Nenhum número da F4 foi alterado. | Resolvido |
+| 14 | O combate acelera a subida de nível além do ritmo medido na F2 (só treino). | Registrado: os alvos de ritmo precisam ser medidos de novo com a cadeia completa (bot pendente desde a F4). | Pendente |
+
+### O que ficou de fora
+
+Elementos e resistências. Habilidades de produção (F8) e de pets (F10) funcionando. Mestres NPC e habilidades da guilda (F7). Versões evoluídas com nome próprio. Bot da cadeia completa.
+
+---
+
 ## Próximo passo
 
-**F5 — Habilidades e core**: eixos, slots, ativas automáticas (prioridade + recarga, como no LionHearth), passivas, técnicas do core, maestria e evolução. Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.
+**F6 — O Limiar**: morte de verdade (o reino da morte onde só se combate), Barqueiro, Eco da Morte, drops exclusivos e o set *O Retornado*, substituindo o desmaio provisório da F4. Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.

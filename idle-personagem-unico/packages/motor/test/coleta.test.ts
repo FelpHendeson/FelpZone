@@ -15,6 +15,7 @@ import {
   cabeNaMochila,
   camposIniciaisF3,
   camposIniciaisF4,
+  camposIniciaisF5,
   capacidadeMochila,
   carregarSave,
   chanceRaro,
@@ -62,6 +63,7 @@ function personagem(base: Partial<Base> & Partial<Personagem> = {}): Personagem 
     atividade: null,
     ...camposIniciaisF3(),
     ...camposIniciaisF4(),
+    ...semHabilidadesEquipadas(),
     ...base,
     ...b,
   };
@@ -336,3 +338,8 @@ describe("save v4", () => {
     }
   });
 });
+
+/** Técnicas do core conhecidas, nada equipado (para não mexer no que os testes antigos medem). */
+function semHabilidadesEquipadas() {
+  return { ...camposIniciaisF5("andarilho"), ativasEquipadas: [], passivasEquipadas: [] };
+}

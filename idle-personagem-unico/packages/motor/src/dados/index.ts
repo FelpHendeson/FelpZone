@@ -12,15 +12,32 @@ import { ATIVIDADES_TREINO, type AtividadeTreino } from "./status";
 import { ATIVIDADES_COLETA, FERRAMENTAS, ITENS, type AtividadeColeta, type Ferramenta, type Item } from "./coleta";
 import { LOCAIS, REGIOES, type Local, type Regiao } from "./mapa";
 import { AREAS_COMBATE, EQUIPAMENTOS, MATERIAIS_COMBATE, MONSTROS, type AtividadeCombate, type Monstro } from "./combate";
+import { HABILIDADES, HABILIDADES_LIVRO, idLivro, PRECO_LIVRO, RAMOS_CORE, type Habilidade, type RamoCore } from "./habilidades";
+import { ATIVIDADE_APRENDIZADO, type AtividadeAprendizado } from "./aprendizado";
+
+/** Livros (F5): um por habilidade de livro, vendidos no Mercado. */
+export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
+  const precoCompra = PRECO_LIVRO[h.raridade] ?? 1_500;
+  return {
+    id: idLivro(h.id),
+    nome: `Livro: ${h.nome}`,
+    categoria: "livro" as const,
+    raridade: h.raridade,
+    descricao: `Ensina ${h.nome}. ${h.descricao}`,
+    preco: Math.round(precoCompra / 4),
+    pilha: 10,
+    livro: { habilidadeId: h.id, precoCompra },
+  };
+});
 
 /** Itens de todas as fontes (coleta, combate e equipamentos). */
 const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS];
 
 /** Toda atividade do personagem (uma por vez). Combate também é atividade [Autor]. */
-export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate;
-/** Atividades por ciclos (treino e coleta). */
-export type AtividadeCiclica = AtividadeTreino | AtividadeColeta;
-const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE];
+export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado;
+/** Atividades por ciclos (treino, coleta e aprendizado). */
+export type AtividadeCiclica = AtividadeTreino | AtividadeColeta | AtividadeAprendizado;
+const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO];
 import type {
   Berco,
   BestaVinculada,
@@ -82,7 +99,9 @@ export const CATALOGO = {
   coresCabelo: indice<CorPaleta>(CORES_CABELO),
   coresRoupa: indice<CorPaleta>(CORES_ROUPA),
   atividades: indice<Atividade>(ATIVIDADES),
-  itens: indice<Item>(TODOS_ITENS),
+  itens: indice<Item>([...TODOS_ITENS, ...LIVROS]),
+  habilidades: indice<Habilidade>(HABILIDADES),
+  ramos: indice<RamoCore>(RAMOS_CORE),
   monstros: indice<Monstro>(MONSTROS),
   ferramentas: indice<Ferramenta>(FERRAMENTAS),
   locais: indice<Local>(LOCAIS),
@@ -113,3 +132,18 @@ export { AREAS_COMBATE, EQUIPAMENTOS, KIT_COMBATE, MATERIAIS_COMBATE, MONSTROS }
 export type { AtividadeCombate, Drop, Monstro, TipoMonstro } from "./combate";
 export { NOME_SLOT, SLOTS } from "./coleta";
 export type { DadosEquipamento, Slot } from "./coleta";
+export { CURA_ABAIXO_DE, HABILIDADES, HABILIDADES_LIVRO, idLivro, PRECO_LIVRO, RAMOS_CORE } from "./habilidades";
+export type {
+  AlvoReforco,
+  DuracaoHabilidade,
+  EfeitoAtivo,
+  EscopoHabilidade,
+  Habilidade,
+  ModificadorBase,
+  ModoHabilidade,
+  NaturezaHabilidade,
+  OrigemHabilidade,
+  RamoCore,
+} from "./habilidades";
+export { ATIVIDADE_APRENDIZADO } from "./aprendizado";
+export type { AtividadeAprendizado } from "./aprendizado";

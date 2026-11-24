@@ -70,6 +70,23 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
     );
   }
   const e = estimarAtividade(p, atual.id);
+  if (a.tipo === "aprendizado") {
+    const h = atual.habilidadeId ? CATALOGO.habilidades.get(atual.habilidadeId) : undefined;
+    const prog = atual.habilidadeId ? p.habilidades[atual.habilidadeId] : undefined;
+    return (
+      <div className="barra-atividade" role="status" aria-label={`Praticando ${h?.nome ?? ""}`}>
+        <div className="barra-linha">
+          <span className="barra-titulo">Praticando: {h?.nome}</span>
+          {extras}
+        </div>
+        <div className="barra-linha suave">
+          <span>Campo de Treino · maestria {prog?.maestria}</span>
+          <span>{formatarNumero(e.xpPorHora, 0)} XP/h</span>
+        </div>
+        <Progresso valor={atual.progressoMs / e.duracaoMs} rotulo="Progresso do ciclo" />
+      </div>
+    );
+  }
   const ganho =
     a.tipo === "treino"
       ? `+${formatarNumero(e.ganhoPorHora, 2)} ${NOME_STATUS[a.status]}/h agora`

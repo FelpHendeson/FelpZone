@@ -22,6 +22,12 @@ import {
   OFICIOS,
   camposIniciaisF3,
   camposIniciaisF4,
+  camposIniciaisF5,
+  CONFIG_HABILIDADES,
+  CORES,
+  ATIVIDADE_APRENDIZADO,
+  fatorMaestria,
+  xpParaProximaMaestria,
   AREAS_COMBATE,
   EQUIPAMENTOS,
   SLOTS,
@@ -70,6 +76,10 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     atividade: null,
     ...camposIniciaisF3(),
     ...camposIniciaisF4(),
+    // As seções da F2 a F4 medem sem habilidades equipadas (comparáveis entre fatias).
+    ...camposIniciaisF5("andarilho"),
+    ativasEquipadas: [],
+    passivasEquipadas: [],
   };
 }
 
@@ -323,7 +333,7 @@ function cacar(p: Personagem, areaId: string, horas: number) {
     ...p,
     localId: area.localId,
     subareaId: area.subareaId,
-    atividade: { id: area.id, progressoMs: 0, combate: { fase: "procurando", restanteMs: 3_000, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0 } },
+    atividade: { id: area.id, progressoMs: 0, combate: { fase: "procurando", restanteMs: 3_000, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0, recargas: {}, efeitos: [] } },
   };
   const r = avancarPersonagem(pc, horas * HORA, Rng.daSemente(`caca-${areaId}-${p.nivel}`), { ...CONFIG_PROGRESSAO, nivelMaximo: p.nivel });
   let abates = 0;
@@ -357,5 +367,33 @@ for (const a of AREAS_COMBATE) {
 }
 linha();
 linha(`Referência: treino dá ${(3_600_000 / 30_000) * 10} XP/h; coleta tier 1, 640 XP/h.`);
+linha();
+// ---------------------------------------------------------------- Habilidades (F5)
+
+linha("### Habilidades (F5)");
+linha();
+{
+  const porHora = (3_600_000 / ATIVIDADE_APRENDIZADO.cicloBaseMs) * ATIVIDADE_APRENDIZADO.maestriaPorCiclo;
+  const horasAte = (m: number) => {
+    let total = 0;
+    for (let k = 1; k < m; k++) total += xpParaProximaMaestria(k);
+    return total / porHora;
+  };
+  linha(`Maestria pela atividade de Aprendizado (${porHora} XP de maestria/h, sem bônus): estágio II (maestria 10) em **${num(horasAte(10))} h**, estágio III (25) em **${num(horasAte(25))} h**, máximo (${CONFIG_HABILIDADES.maestriaMaxima}) em **${num(horasAte(CONFIG_HABILIDADES.maestriaMaxima))} h**. Efeito: ×${num(fatorMaestria(10), 2)} na maestria 10, ×${num(fatorMaestria(25), 2)} na 25 e ×${num(fatorMaestria(30), 2)} na 30.`);
+  linha();
+}
+linha("Combate com as técnicas de cada core (Humano preparado no Juncal Escuro, nível 10, 4 h, recuo 30%): sem habilidades equipadas × técnicas do core na maestria 1 × na maestria 25.");
+linha();
+linha("| Core | Abates/h sem | Abates/h (M1) | Abates/h (M25) | Recuos/h sem | Recuos/h (M1) | Recuos/h (M25) |");
+linha("| --- | ---: | ---: | ---: | ---: | ---: | ---: |");
+for (const c of CORES) {
+  const g = guerreiro(10, 0.5, 2);
+  const f5 = camposIniciaisF5(c.id);
+  const comM = (m: number): Personagem => ({ ...g, coreId: c.id, ...f5, habilidades: Object.fromEntries(Object.keys(f5.habilidades).map((k) => [k, { maestria: m, xp: 0 }])) });
+  const sem = cacar({ ...g, coreId: c.id, ...f5, ativasEquipadas: [], passivasEquipadas: [] }, "juncal-escuro", 4);
+  const m1 = cacar(comM(1), "juncal-escuro", 4);
+  const m25 = cacar(comM(25), "juncal-escuro", 4);
+  linha(`| ${c.nome} | ${num(sem.abates, 0)} | ${num(m1.abates, 0)} | ${num(m25.abates, 0)} | ${num(sem.recuos, 1)} | ${num(m1.recuos, 1)} | ${num(m25.recuos, 1)} |`);
+}
 linha();
 console.log(out.join("\n"));

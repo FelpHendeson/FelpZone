@@ -23,6 +23,7 @@ import {
   CATALOGO,
   camposIniciaisF3,
   camposIniciaisF4,
+  camposIniciaisF5,
   type AtividadeCiclica,
   type EstadoJogo,
   type Personagem,
@@ -56,6 +57,7 @@ function personagem(base: Partial<Base> & { id?: string } = {}): Personagem {
     atividade: null,
     ...camposIniciaisF3(),
     ...camposIniciaisF4(),
+    ...semHabilidadesEquipadas(),
   };
 }
 function estadoCom(...ps: Personagem[]): EstadoJogo {
@@ -345,3 +347,8 @@ describe("save v3", () => {
     }
   });
 });
+
+/** Técnicas do core conhecidas, nada equipado (para não mexer no que os testes antigos medem). */
+function semHabilidadesEquipadas() {
+  return { ...camposIniciaisF5("andarilho"), ativasEquipadas: [], passivasEquipadas: [] };
+}

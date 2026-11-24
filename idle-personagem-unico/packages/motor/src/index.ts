@@ -33,6 +33,7 @@ export {
   migrarV2ParaV3,
   migrarV3ParaV4,
   migrarV4ParaV5,
+  migrarV5ParaV6,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -77,7 +78,7 @@ export {
 } from "./sorteio/acoes";
 export type { CodigoErroSorteio, ErroSorteio, EscolhasFinais, ResultadoAcao } from "./sorteio/acoes";
 export { CONTA_VAZIA, MAX_PERSONAGENS, resumoTentativa, validarConta } from "./personagem/conta";
-export type { AtividadeAtual, Aparencia, EstadoCombate, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
+export type { AtividadeAtual, Aparencia, EfeitoEmCurso, EstadoCombate, ProgressoOficio, Viagem, Conta, EstadoSorteio, OrigemPersonagem, Personagem, RegistroTentativa } from "./personagem/conta";
 export { NOME_MAX, NOME_MIN, validarNome } from "./personagem/nome";
 export type { CodigoErroNome, ErroNome } from "./personagem/nome";
 export { gerarLoreOrigem } from "./personagem/lore";
@@ -101,7 +102,7 @@ export {
 } from "./personagem/progressao";
 export { adicionarItens, cabeNaMochila, capacidadeMochila, espacosUsados, removerItens } from "./personagem/mochila";
 export type { Mochila } from "./personagem/mochila";
-export { camposIniciaisF3, camposIniciaisF4 } from "./personagem/conta";
+export { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5 } from "./personagem/conta";
 export type { BaseModificadores, ConfigProgressao, FaixaStatus, ValoresStatus } from "./personagem/progressao";
 export {
   avancar,
@@ -137,3 +138,27 @@ export type { CodigoErroAtividade, ErroAtividade, ResultadoAtividade } from "./a
 export { combateInicial, CONFIG_COMBATE, dano, riscoDaArea, statusDeCombate } from "./atividades/combate";
 export type { Risco, StatusDeCombate } from "./atividades/combate";
 export { aplicarXp } from "./personagem/progressao";
+
+// F5: habilidades.
+export {
+  CONFIG_HABILIDADES,
+  estagio,
+  fatorMaestria,
+  ganharMaestria,
+  modificadoresDaPassiva,
+  modificadoresDeHabilidades,
+  nomeComEstagio,
+  slotsPassivas,
+  tecnicasDoCore,
+  xpParaProximaMaestria,
+} from "./habilidades/maestria";
+export type { BaseHabilidades, Habilidades, ProgressoHabilidade } from "./habilidades/maestria";
+export {
+  comprarLivro,
+  desequiparHabilidade,
+  equiparHabilidade,
+  escolherRamo,
+  iniciarAprendizado,
+  lerLivro,
+  moverPrioridade,
+} from "./habilidades/acoes";

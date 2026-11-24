@@ -134,7 +134,7 @@ export const CORES: readonly Core[] = [
     tags: ["oficio", "forja", "mental"],
     tecnicas: [
       { id: "mao-certeira", nome: "Mão Certeira", natureza: "oficio", modo: "passiva", descricao: "Menos chance de falha na produção." },
-      { id: "improviso", nome: "Improviso", natureza: "oficio", modo: "ativa", descricao: "Conserta a arma no meio do combate e recupera durabilidade." },
+      { id: "improviso", nome: "Improviso", natureza: "oficio", modo: "ativa", descricao: "Ajusta a arma no meio da luta e bate mais forte por um tempo." },
       { id: "olho-de-oficio", nome: "Olho de Ofício", natureza: "oficio", modo: "passiva", descricao: "Vê a qualidade de itens antes de comprar." },
     ],
     visual: { cor: "#5a4630", simbolo: "martelo" },
