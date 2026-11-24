@@ -21,7 +21,7 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F4 | Combate por área | ✅ Concluída em 24/11/2026 | `84edc9b` | 218 |
 | F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | `3759090` | 242 |
 | F6 | O Limiar | ✅ Concluída em 24/11/2026 | `7275030` | 263 |
-| F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F7`) | 277 |
+| F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | `646316d` | 277 |
 | F8 a F13 | Forja · Conta · Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
@@ -552,7 +552,7 @@ Bônus dos títulos e a Crônica (F11). Livro ou habilidade específica para enc
   - NPCs aparecendo no Mapa.
 
   Também a **migração real** de um save v7 criado no site publicado (que ainda rodava a F6). Console limpo, sem rolagem lateral.
-- **CI e Vercel**: conferidos depois do push (registro abaixo).
+- **CI e Vercel**: job do projeto verde no commit `646316d` e deploy em `READY`. O fluxo de metas, NPC e guilda foi repetido no site publicado em 360 px, com console limpo.
 
 ### Números principais (bot da cadeia completa, 3 sessões por dia)
 
