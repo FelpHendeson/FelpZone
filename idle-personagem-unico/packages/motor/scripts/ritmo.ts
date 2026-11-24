@@ -23,6 +23,12 @@ import {
   camposIniciaisF3,
   camposIniciaisF4,
   camposIniciaisF5,
+  camposIniciaisF6,
+  CONFIG_LIMIAR,
+  PECAS_RETORNADO,
+  custoDoPedagio,
+  duracaoDoLimiar,
+  entrarNoLimiar,
   CONFIG_HABILIDADES,
   CORES,
   ATIVIDADE_APRENDIZADO,
@@ -80,6 +86,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     ...camposIniciaisF5("andarilho"),
     ativasEquipadas: [],
     passivasEquipadas: [],
+    ...camposIniciaisF6(),
   };
 }
 
@@ -344,15 +351,15 @@ function cacar(p: Personagem, areaId: string, horas: number) {
   }
   const gold = Object.entries(r.itens).reduce((g, [id, q]) => g + CATALOGO.itens.get(id)!.preco * q, 0);
   const sc = statusDeCombate(p.status, modificadoresDoPersonagem(p, p.nivel));
-  const horasReais = r.desmaios > 0 ? Number.NaN : horas;
-  return { abates: abates / horas, xp: xp / horas, gold: gold / horas, recuos: r.recuos / horas, desmaios: r.desmaios, risco: riscoDaArea(sc, area), horasReais };
+  const horasReais = r.mortes > 0 ? Number.NaN : horas;
+  return { abates: abates / horas, xp: xp / horas, gold: gold / horas, recuos: r.recuos / horas, mortes: r.mortes, risco: riscoDaArea(sc, area), horasReais };
 }
 
 linha("### Combate (F4)");
 linha();
 linha("Humano caçando por 4 h no nível de entrada da área (sem subir de nível no meio), recuo em 30%. \"Preparado\" = status em 50% da faixa e equipamento do tier indicado; \"despreparado\" = status no piso e só o kit básico.");
 linha();
-linha("| Área | Nível | Perfil | Risco (perda por luta) | Abates/h | XP/h | Gold/h (drops) | Recuos/h | Desmaios em 4 h |");
+linha("| Área | Nível | Perfil | Risco (perda por luta) | Abates/h | XP/h | Gold/h (drops) | Recuos/h | Mortes em 4 h |");
 linha("| --- | ---: | --- | --- | ---: | ---: | ---: | ---: | ---: |");
 const tierDe = (n: number): 0 | 1 | 2 | 3 => (n < 10 ? 1 : n < 20 ? 2 : 3);
 for (const a of AREAS_COMBATE) {
@@ -362,7 +369,7 @@ for (const a of AREAS_COMBATE) {
   ];
   for (const [nome, p] of perfis) {
     const r = cacar(p, a.id, 4);
-    linha(`| ${a.nome} | ${a.nivelRecomendado} | ${nome} | ${r.risco.risco} (${num(r.risco.perdaPorLuta * 100, 0)}%) | ${num(r.abates, 0)} | ${num(r.xp, 0)} | ${num(r.gold, 0)} | ${num(r.recuos, 1)} | ${r.desmaios} |`);
+    linha(`| ${a.nome} | ${a.nivelRecomendado} | ${nome} | ${r.risco.risco} (${num(r.risco.perdaPorLuta * 100, 0)}%) | ${num(r.abates, 0)} | ${num(r.xp, 0)} | ${num(r.gold, 0)} | ${num(r.recuos, 1)} | ${r.mortes} |`);
   }
 }
 linha();
@@ -396,4 +403,44 @@ for (const c of CORES) {
   linha(`| ${c.nome} | ${num(sem.abates, 0)} | ${num(m1.abates, 0)} | ${num(m25.abates, 0)} | ${num(sem.recuos, 1)} | ${num(m1.recuos, 1)} | ${num(m25.recuos, 1)} |`);
 }
 linha();
+// ---------------------------------------------------------------- O Limiar (F6)
+
+linha("### O Limiar (F6)");
+linha();
+linha("Humano preparado (status em 50% da faixa, equipamento do tier) que morre na área do seu nível: duração da estadia, o que rende lá dentro e o pedágio para sair logo na entrada.");
+linha();
+linha("| Nível / área | Eco | Duração | Abates no Limiar | Essência ganha | Pedágio na entrada | XP ganho |");
+linha("| --- | ---: | ---: | ---: | ---: | ---: | ---: |");
+for (const [nivel, areaNivel] of [
+  [5, 5],
+  [15, 15],
+  [25, 25],
+] as const) {
+  for (const cargas of [0, 3]) {
+    const g = guerreiro(nivel, 0.5, tierDe(nivel));
+    const recentes = Array.from({ length: cargas }, (_, k) => T0 - (k + 1) * 60_000);
+    const p = entrarNoLimiar({ ...g, mortes: cargas, mortesRecentes: recentes }, areaNivel, T0);
+    const l = p.limiar!;
+    const r = avancarPersonagem(p, l.totalMs - 1, Rng.daSemente(`limiar-${nivel}-${cargas}`), { ...CONFIG_PROGRESSAO, nivelMaximo: 50 }, T0);
+    const abates = Object.values(r.abates).reduce((a, b) => a + b, 0);
+    linha(`| ${nivel} / ${areaNivel} | ${cargas} | ${num(l.totalMs / 60_000)} min | ${abates} | ${r.essencia} | ${custoDoPedagio(p)} | ${num(r.xp, 0)} |`);
+  }
+}
+linha();
+{
+  // Quanto tempo de Limiar até completar O Retornado (re-entrando sempre, Eco 3).
+  const g = guerreiro(25, 0.5, 3);
+  let p = entrarNoLimiar({ ...g, mortes: 3, mortesRecentes: [T0 - 60_000, T0 - 120_000, T0 - 180_000] }, 25, T0);
+  const rng = Rng.daSemente("retornado");
+  let horas = 0;
+  const tem = (x: Personagem) => PECAS_RETORNADO.filter((i) => (x.mochila[i.id] ?? 0) > 0).length;
+  while (tem(p) < 4 && horas < 200) {
+    p = avancarPersonagem(p, 3_600_000, rng, CONFIG_PROGRESSAO, T0 + horas * 3_600_000).personagem;
+    horas++;
+    if (!p.limiar) p = entrarNoLimiar({ ...p, atividade: null, mortesRecentes: [T0 + horas * 3_600_000 - 60_000, T0 + horas * 3_600_000 - 120_000, T0 + horas * 3_600_000 - 180_000] }, 25, T0 + horas * 3_600_000);
+  }
+  linha(`Tempo de Limiar até as 4 peças de O Retornado (nível 25, Eco 3, sempre voltando ao Limiar): **${horas} h** (chefes a ${num(CONFIG_LIMIAR.chanceChefe * 100, 1)}% por busca × (1 + 0,5 por carga), peça em ${num(CONFIG_LIMIAR.chancePecaRetornado * 100, 0)}% das vitórias).`);
+  linha();
+  void duracaoDoLimiar;
+}
 console.log(out.join("\n"));

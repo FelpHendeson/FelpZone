@@ -30,6 +30,8 @@ export interface DadosEquipamento {
   /** Preço no Ferreiro; `null` = só por drop (ou kit). */
   readonly precoCompra: number | null;
   readonly modificadores: readonly Modificador[];
+  /** Item nomeado (GDD §9.1): fora da escala de raridade, uma unidade por personagem. */
+  readonly nomeado?: { readonly conjunto: string };
 }
 
 export interface Item {

@@ -343,7 +343,7 @@ Capacidade em espaços (aumenta com Força, ampliações e baú na cidade). Filt
 
 ## 10. Morte e O Limiar [Autor: ideia; detalhes: Proposta]
 
-> **Provisório até a F6** [Proposta]: sem o Limiar, a vida chegar a zero é um **desmaio**: o personagem acorda em Pedravau com metade da vida, ocioso, sem perder nada.
+> **Implementado na F6** [Proposta; números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]. O desmaio provisório da F4 deixou de existir. Escolhas de implementação: no Limiar o **personagem** luta com 75% do ataque e da defesa, contra monstros do nível em que entrou; a vida chegar a zero lá dentro não é uma segunda morte (ele se recompõe em 3 s e volta a lutar contra o mesmo monstro); ao sair, acorda em Pedravau e a **atividade anterior volta sozinha** (com viagem, se for longe); com o jogo fechado, tudo isso é simulado em sequência. Ações fora do combate ficam bloqueadas no Limiar (equipar, habilidades, recuo e pedágio continuam valendo). Os títulos por mortes existem, mas os bônus de títulos ficam para a F11.
 
 
 Sem *permadeath*. Quando a vida chega a zero e o recuo não foi acionado, o personagem **atravessa para o Limiar**: um reino entre a vida e a morte onde só pode **combater sem parar** por um tempo.

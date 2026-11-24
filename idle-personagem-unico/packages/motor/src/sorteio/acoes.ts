@@ -4,7 +4,7 @@
  * não devolve chances.
  */
 import { CATALOGO } from "../dados";
-import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, MAX_PERSONAGENS, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, MAX_PERSONAGENS, resumoTentativa, type EstadoSorteio, type Personagem } from "../personagem/conta";
 import { gerarLoreOrigem } from "../personagem/lore";
 import { statusIniciais } from "../personagem/progressao";
 import { validarNome, type CodigoErroNome } from "../personagem/nome";
@@ -116,7 +116,12 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
   const loreGerada = gerarLoreOrigem(r.origem, r.racaId, nome.nome);
   const identidade: Omit<
     Personagem,
-    "status" | "atividade" | keyof ReturnType<typeof camposIniciaisF3> | keyof ReturnType<typeof camposIniciaisF4> | keyof ReturnType<typeof camposIniciaisF5>
+    | "status"
+    | "atividade"
+    | keyof ReturnType<typeof camposIniciaisF3>
+    | keyof ReturnType<typeof camposIniciaisF4>
+    | keyof ReturnType<typeof camposIniciaisF5>
+    | keyof ReturnType<typeof camposIniciaisF6>
   > = {
     id: `personagem-${estado.conta.personagens.length + 1}`,
     nome: nome.nome,
@@ -151,6 +156,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     ...camposIniciaisF3(),
     ...f4,
     ...f5,
+    ...camposIniciaisF6(),
   };
   return {
     ok: true,

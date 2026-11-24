@@ -20,7 +20,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F3 | Mapa e coleta | ✅ Concluída em 24/11/2026 | `a400963` | 196 |
 | F4 | Combate por área | ✅ Concluída em 24/11/2026 | `84edc9b` | 218 |
 | F5 | Habilidades e core | ✅ Concluída em 24/11/2026 | `3759090` | 242 |
-| F6 | O Limiar | ⏳ Aguardando autorização | — | — |
+| F6 | O Limiar | ✅ Concluída em 24/11/2026 | ver o histórico da `main` (`feat(idle-personagem-unico): fatia F6`) | 263 |
+| F7 | Missões e Guilda | ⏳ Aguardando autorização | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -429,6 +430,86 @@ Elementos e resistências. Habilidades de produção (F8) e de pets (F10) funcio
 
 ---
 
+## F6 — O Limiar
+
+**Pedido do autor (24/11/2026):** "Pode seguir". Escrevi o prompt (`prompts/idle-personagem-unico/06-fatia-F6-limiar.md`) e executei. O desmaio provisório da F4 deixou de existir.
+
+### O que foi executado
+
+- [x] **Morte sem permadeath** (decisão do autor): com a vida a zero, o personagem atravessa para **O Limiar**. A atividade fica guardada e **volta sozinha** ao sair, com viagem se for longe.
+- [x] **Duração:** 10 min + perigo da área, × Eco da Morte, × reduções de origem, raça, core e set.
+- [x] **Dentro do Limiar:**
+  - combate contínuo contra Almas Penadas, Ceifeiros Menores e o raro Eco Faminto, que acompanham o nível do personagem;
+  - o personagem luta com 75% do ataque e da defesa;
+  - não há segunda morte: ele se recompõe e volta à luta contra o mesmo monstro.
+- [x] **Drops exclusivos:**
+  - **Essência do Limiar** (moeda);
+  - Cinza de alma (vendável);
+  - chefes raros (O Cobrador, A Rainha Pálida) deixam as **4 peças nomeadas de O Retornado**, uma de cada por personagem, com bônus que crescem com as mortes.
+- [x] **O Barqueiro Sem Rosto:** pedágio em Essência para sair antes; o Devedor do Barqueiro sai de graça na primeira vez.
+- [x] **Eco da Morte:** mortes recentes alongam a estadia e melhoram os drops; as cargas expiram em 2 h (1 h para o Devedor).
+- [x] **Sinergias:** Sangue-Pálido e Ser das Trevas (Limiar mais curto e mais ataque lá dentro). **Títulos** por mortes.
+- [x] **Ações de fora bloqueadas no Limiar**, exceto equipar, habilidades e recuo.
+- [x] **Efeitos que passaram a valer:** Sobrevivente do Vazio, Aldeia à beira do Limiar e Devedor do Barqueiro.
+- [x] **Save v7** com migração v6 → v7.
+- [x] **Web:**
+  - Combate → O Limiar (estadia, Barqueiro, Eco, set);
+  - Personagem → Títulos;
+  - barra "No Limiar · volta em…";
+  - resumo do tempo fora com mortes, saídas e Essência.
+- [x] **Bot de ritmo** do Limiar (um bug e uma calibração), **documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais**, a partir de instalação limpa: `npm ci`, `npm audit --audit-level=high` (0 vulnerabilidades), `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **263 testes** (254 no motor, 9 na web).
+- **Testes novos:**
+  - catálogo; duração com cada redução; cargas do Eco (e o Devedor);
+  - entrar; lutar lá dentro sem segunda morte; ações bloqueadas; sair retomando a atividade com viagem;
+  - **morrer, passar pelo Limiar e voltar a caçar no mesmo avanço offline**;
+  - Eco alongando a estadia; pedágio; Devedor; peças de O Retornado sem cópia dupla; bônus do set;
+  - save v7: ida e volta dentro do Limiar, migração e 8 adulterações recusadas.
+- **Teste de propriedade:** 10 sementes com mortes, Limiar e retorno, partições aleatórias do tempo, todas com o mesmo resultado.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - caçar no Poço sem Fundo sem recuo e morrer de verdade;
+  - "No Limiar · volta em 14 min 40 s" (Ser das Trevas, −20%);
+  - o Barqueiro com o pedágio indisponível sem Essência;
+  - "No Limiar só se combate" ao tentar treinar;
+  - 30 min fora: saiu do Limiar, voltou ao Poço, morreu de novo e a segunda estadia ficou mais longa pelo Eco;
+  - títulos e recarregar.
+
+  Também a **migração real** de um save v6 criado no site publicado (que ainda rodava a F5). Console limpo, sem rolagem lateral.
+- **CI e Vercel**: conferidos depois do push (registro abaixo).
+
+### Números principais
+
+- Uma morte na área do próprio nível custa **12 a 18 min** (20 a 32 min com Eco 3).
+- A estadia rende Essência um pouco acima do pedágio.
+- O Retornado completo leva **~20 h de Limiar**.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | "Combate contra Almas Penadas e Ceifeiros Menores, **com atributos reduzidos**, mas drops exclusivos": reduzidos de quem? | Do **personagem** (75% de ataque e defesa), compensados pelos drops exclusivos. Os monstros acompanham o nível em que ele entrou. | Aguarda o autor |
+| 2 | O GDD diz que a atividade "volta sozinha" e também que o resto do offline "vira espera na cidade". | Segui "volta sozinha": ao sair, acorda em Pedravau e retoma (com viagem). O custo continua sendo o tempo no Limiar. | Aguarda o autor |
+| 3 | Morrer de novo dentro do Limiar? | Não existe segunda morte: com a vida a zero ele se **recompõe em 3 s** e volta a lutar contra o mesmo monstro, que continua ferido. | Aguarda o autor |
+| 4 | O bot mostrou 0 chefes vencidos em 10 h de Limiar. | **Bug**: ao se recompor, o monstro era descartado; com 6× mais vida, o chefe sempre escapava e O Retornado era impossível. Correção: a luta continua contra o mesmo monstro. | Resolvido |
+| 5 | Depois da correção, o set completava em 2 h de Limiar. | Chefe de 1% → 0,5% por busca e peça de 50% → 20%: ~20 h de Limiar. Registrado com o antes e o depois. | Aguarda o autor |
+| 6 | Como guardar o Eco da Morte sem quebrar a regra de que dividir o tempo não muda o resultado? | Em vez de um contador que decai, guardo o **instante de cada morte recente**; as cargas são as mortes dentro da janela (2 h). O instante vem do relógio do save, igual com o jogo aberto ou fechado. | Resolvido |
+| 7 | O fim do Limiar acontecia meio passo (500 ms) antes. | Erro de um passo: eu descontava o tempo antes de rodar o passo. Corrigi e o teste de retorno com viagem confere o tempo exato. | Resolvido |
+| 8 | Essência é item ou moeda? | **Moeda** do personagem (GDD §9.5), fora da mochila. Por enquanto só paga o pedágio. | Aguarda o autor |
+| 9 | O que dá para fazer dentro do Limiar? | Só lutar. Equipar, mexer nas habilidades, mudar o recuo e pagar o Barqueiro continuam valendo; o resto devolve "No Limiar só se combate". | Aguarda o autor |
+| 10 | Bônus do set O Retornado "mais fortes quanto mais mortes". | 2 peças: +1% de ataque por morte; 4 peças: também +1% de defesa por morte e Limiar 20% mais curto; teto de 25%. | Aguarda o autor |
+| 11 | Sinergias "Ser das Trevas e Sangue-Pálido têm bônus no Limiar". | Limiar 20% mais curto e +20% de ataque lá dentro, para cada um (somam). | Aguarda o autor |
+| 12 | Títulos. | Calculados pelas mortes (5, 25, 100) e mostrados em Personagem → Títulos; o bônus dos títulos fica para a F11. | Aguarda o autor |
+| 13 | Saves antigos com "desmaios". | A migração zera mortes e Essência: desmaios antigos não contam como mortes. | Aguarda o autor |
+
+### O que ficou de fora
+
+Bônus dos títulos e a Crônica (F11). Livro ou habilidade específica para encurtar o Limiar (as reduções vêm de origens, raça, core e set). Bot da cadeia completa (pendente desde a F4).
+
+---
+
 ## Próximo passo
 
-**F6 — O Limiar**: morte de verdade (o reino da morte onde só se combate), Barqueiro, Eco da Morte, drops exclusivos e o set *O Retornado*, substituindo o desmaio provisório da F4. Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.
+**F7 — Missões e Guilda**: missões de NPC, metas, quadro da Guilda de Aventureiros, ranks F → Divino, Mérito, provas de promoção e subáreas de NPC. Só começa com autorização do autor. Antes, vale conferir as dúvidas marcadas como "Aguarda o autor" acima.

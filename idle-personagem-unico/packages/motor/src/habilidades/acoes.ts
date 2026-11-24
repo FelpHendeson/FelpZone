@@ -24,7 +24,7 @@ export function equiparHabilidade(estado: EstadoJogo, habilidadeId: string, agor
     const slots = slotsPassivas(p);
     if (p.passivasEquipadas.length >= slots) return erro("slots_cheios", `São ${slots} slots de passiva neste nível.`);
     return { ...p, passivasEquipadas: [...p.passivasEquipadas, habilidadeId] };
-  });
+  }, true);
 }
 
 /** Tira a habilidade do slot. A recarga dela continua correndo. */
@@ -33,7 +33,7 @@ export function desequiparHabilidade(estado: EstadoJogo, habilidadeId: string, a
     if (p.ativasEquipadas.includes(habilidadeId)) return { ...p, ativasEquipadas: p.ativasEquipadas.filter((x) => x !== habilidadeId) };
     if (p.passivasEquipadas.includes(habilidadeId)) return { ...p, passivasEquipadas: p.passivasEquipadas.filter((x) => x !== habilidadeId) };
     return erro("nao_equipada", "Essa habilidade não está equipada.");
-  });
+  }, true);
 }
 
 /** Sobe (−1) ou desce (+1) uma ativa na ordem de prioridade. */
@@ -46,7 +46,7 @@ export function moverPrioridade(estado: EstadoJogo, habilidadeId: string, direca
     const lista = [...p.ativasEquipadas];
     [lista[i], lista[j]] = [lista[j]!, lista[i]!];
     return { ...p, ativasEquipadas: lista };
-  });
+  }, true);
 }
 
 /** Escolhe o ramo do core (uma vez, a partir do nível 10) e aprende a técnica dele. */
@@ -69,7 +69,7 @@ export function lerLivro(estado: EstadoJogo, itemId: string, agora: number): Res
     if ((p.mochila[itemId] ?? 0) < 1) return erro("quantidade_invalida", "O livro não está na mochila.");
     if (p.habilidades[livro.habilidadeId]) return erro("habilidade_ja_conhecida", "O personagem já sabe essa habilidade.");
     return { ...p, mochila: removerItens(p.mochila, itemId, 1), habilidades: { ...p.habilidades, [livro.habilidadeId]: { maestria: 1, xp: 0 } } };
-  });
+  }, true);
 }
 
 /** Compra um livro no Mercado (vai para a mochila). */

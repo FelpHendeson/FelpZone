@@ -10,7 +10,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F5 (Habilidades e core) concluída.** Além de treinar, coletar, vender, equipar e caçar (F1 a F4), o personagem agora tem **habilidades**: as técnicas do próprio core, ramos que o core abre no nível 10 e livros comprados ou achados. Ativas disparam sozinhas na luta (prioridade + recarga), passivas afetam combate, coleta e viagem, e tudo ganha **maestria** e evolui em estágios. Ainda não há O Limiar, missões nem produção (F6 em diante).
+**F6 (O Limiar) concluída.** O personagem treina, coleta, vende, equipa, caça e usa habilidades (F1 a F5) e agora **pode morrer sem perder nada além de tempo**: atravessa para O Limiar, luta lá contra Almas Penadas e Ceifeiros Menores, junta Essência, pode pagar o Barqueiro para sair antes e volta à atividade de antes. Mortes em sequência acumulam o Eco da Morte, e os chefes raros deixam o set nomeado *O Retornado*. Ainda não há missões, guilda nem produção (F7 em diante).
 
 O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
 
@@ -98,6 +98,19 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F5:** Adaptável (Humano, +8% de XP de maestria), Mosteiro de aldeia (+5%), O Reencarnado (+10%), Aprendiz do Mago Morto (+15% de maestria e −10% de vida) e Órfão do Templo Cinzento (nasce sabendo Eco dos Antigos).
 
+### O que a F6 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/limiar.ts` | `CONFIG_LIMIAR`, monstros do Limiar (acompanham o nível), Cinza de alma, as 4 peças de O Retornado, sinergias, títulos e falas do Barqueiro. |
+| `packages/motor/src/atividades/limiar.ts` | Entrar ao morrer, duração, Eco da Morte, sair (com retorno da atividade), pedágio e títulos. |
+| `packages/motor/src/atividades/combate.ts` | O combate dentro do Limiar (atributos reduzidos, recompor-se, Essência, chefes raros e peças nomeadas). |
+| `packages/motor/src/atividades/acoes.ts` | `pagarPedagio`; ações bloqueadas no Limiar (exceto equipar, habilidades e recuo). |
+| `packages/motor/src/save.ts` | **Save v7** com migração v6 → v7. |
+| `apps/web` | Combate → O Limiar (estadia, Barqueiro, Eco, O Retornado); Personagem → Títulos; barra e resumo do tempo fora com mortes e saídas do Limiar. |
+
+**Efeitos que passaram a valer na F6:** Sobrevivente do Vazio (Limiar −25%), Aldeia à beira do Limiar (−5%), Devedor do Barqueiro (primeira saída de graça e Eco que decai em 1 h), e as sinergias de Sangue-Pálido e Ser das Trevas.
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -140,7 +153,7 @@ npm run lint       # ESLint (motor com regras de pureza; web com eslint-config-n
 npm run typecheck  # tsc no motor (código e testes) e na web
 npm run build      # build de produção do Next
 npm run simular    # simulação de 200 mil sorteios (Markdown para docs/CALIBRACAO.md)
-npm run ritmo      # bot de ritmo do treino, da coleta, do combate e das habilidades (Markdown para docs/CALIBRACAO.md)
+npm run ritmo      # bot de ritmo do treino, da coleta, do combate, das habilidades e do Limiar (Markdown para docs/CALIBRACAO.md)
 ```
 
 `npm run simular -- 50000 70` aceita o número de sorteios e um saldo de orçamento alternativo (só para estudo). O script roda TypeScript direto no Node (remoção de tipos nativa, Node ≥ 22.18) com um resolvedor de imports em `packages/motor/scripts/resolver-ts.mjs`.
@@ -149,4 +162,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-A **F6 (O Limiar)** só começa com autorização do autor. Antes, vale conferir as decisões da F5 em [`docs/DECISOES.md`](docs/DECISOES.md) (32 a 37), em especial os ramos do core e o equilíbrio entre cores.
+A **F7 (Missões e Guilda)** só começa com autorização do autor. Antes, vale conferir as decisões da F6 em [`docs/DECISOES.md`](docs/DECISOES.md) (38 a 44), em especial a leitura de "atributos reduzidos" e o retorno automático da atividade.

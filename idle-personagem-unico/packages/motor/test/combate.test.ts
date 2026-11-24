@@ -13,6 +13,7 @@ import {
   camposIniciaisF3,
   camposIniciaisF4,
   camposIniciaisF5,
+  camposIniciaisF6,
   carregarSave,
   comprarEquipamento,
   criarEstadoInicial,
@@ -53,6 +54,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     atividade: null,
     ...camposIniciaisF3(),
     ...camposIniciaisF4(),
+    ...camposIniciaisF6(),
     ...semHabilidadesEquipadas(),
     ...extra,
   };
@@ -142,7 +144,7 @@ describe("caçar", () => {
     expect(resumo.xp).toBeGreaterThan(0);
     expect(p.mochila["couro-de-lobo"]).toBeGreaterThan(0);
     expect(p.bestiario).toEqual(resumo.abates);
-    expect(resumo.desmaios).toBe(0);
+    expect(resumo.mortes).toBe(0);
   });
 
   it("o chefe aparece a cada 50 abates na área", () => {
@@ -180,18 +182,18 @@ describe("caçar", () => {
   it("recuo automático: com 90%, recua, se cura e volta", () => {
     const { estado, resumo } = avancar(cacando("galeria-dos-ratos", { recuoPercentual: 90 }), T0 + HORA);
     expect(resumo.recuos).toBeGreaterThan(0);
-    expect(resumo.desmaios).toBe(0);
+    expect(resumo.mortes).toBe(0);
     expect(ativo(estado).atividade?.id).toBe("galeria-dos-ratos");
   });
 
-  it("desmaio sem recuo: acorda em Pedravau, ocioso, sem perder nada", () => {
+  it("morte sem recuo (F6): atravessa para o Limiar, sem perder nada, com a caça guardada", () => {
     const e = cacando("poco-sem-fundo", { recuoPercentual: 0, mochila: { trigo: 10 }, ouro: 50 });
-    const { estado, resumo } = avancar(e, T0 + HORA);
+    const { estado, resumo } = avancar(e, T0 + 5 * 60_000);
     const p = ativo(estado);
-    expect(resumo.desmaios).toBe(1);
-    expect(p).toMatchObject({ atividade: null, localId: "pedravau", subareaId: "praca", ouro: 50 });
+    expect(resumo.mortes).toBe(1);
+    expect(p).toMatchObject({ atividade: null, ouro: 50, mortes: 1 });
+    expect(p.limiar?.retorno).toEqual({ id: "poco-sem-fundo" });
     expect(p.mochila.trigo).toBe(10);
-    expect(p.vida).toBe(1); // acordou com 50% e se recuperou no resto da hora
   });
 
   it("vida se recupera fora do combate", () => {
@@ -200,7 +202,7 @@ describe("caçar", () => {
     expect(ativo(avancar(e, T0 + HORA).estado).vida).toBe(1);
   });
 
-  it("dividir o tempo dá o mesmo resultado (propriedade, com recuo e desmaio)", () => {
+  it("dividir o tempo dá o mesmo resultado (propriedade, com recuo, morte e Limiar)", () => {
     for (let s = 0; s < 18; s++) {
       const area = AREAS_COMBATE[s % AREAS_COMBATE.length]!;
       const rng = Rng.daSemente(`part-${s}`);

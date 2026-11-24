@@ -14,6 +14,7 @@ import { LOCAIS, REGIOES, type Local, type Regiao } from "./mapa";
 import { AREAS_COMBATE, EQUIPAMENTOS, MATERIAIS_COMBATE, MONSTROS, type AtividadeCombate, type Monstro } from "./combate";
 import { HABILIDADES, HABILIDADES_LIVRO, idLivro, PRECO_LIVRO, RAMOS_CORE, type Habilidade, type RamoCore } from "./habilidades";
 import { ATIVIDADE_APRENDIZADO, type AtividadeAprendizado } from "./aprendizado";
+import { ITENS_LIMIAR, MONSTROS_LIMIAR, PECAS_RETORNADO } from "./limiar";
 
 /** Livros (F5): um por habilidade de livro, vendidos no Mercado. */
 export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
@@ -31,7 +32,7 @@ export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
 });
 
 /** Itens de todas as fontes (coleta, combate e equipamentos). */
-const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS];
+const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO];
 
 /** Toda atividade do personagem (uma por vez). Combate também é atividade [Autor]. */
 export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado;
@@ -102,7 +103,7 @@ export const CATALOGO = {
   itens: indice<Item>([...TODOS_ITENS, ...LIVROS]),
   habilidades: indice<Habilidade>(HABILIDADES),
   ramos: indice<RamoCore>(RAMOS_CORE),
-  monstros: indice<Monstro>(MONSTROS),
+  monstros: indice<Monstro>([...MONSTROS, ...MONSTROS_LIMIAR]),
   ferramentas: indice<Ferramenta>(FERRAMENTAS),
   locais: indice<Local>(LOCAIS),
   regioes: indice<Regiao>(REGIOES),
@@ -147,3 +148,18 @@ export type {
 } from "./habilidades";
 export { ATIVIDADE_APRENDIZADO } from "./aprendizado";
 export type { AtividadeAprendizado } from "./aprendizado";
+export {
+  CHEFES_LIMIAR,
+  COMUNS_LIMIAR,
+  CONFIG_LIMIAR,
+  FALAS_BARQUEIRO,
+  ITENS_LIMIAR,
+  MATERIAL_LIMIAR,
+  MONSTROS_LIMIAR,
+  PECAS_POR_CHEFE,
+  PECAS_RETORNADO,
+  SINERGIAS_LIMIAR,
+  monstroDoLimiar,
+} from "./limiar";
+export { criarMonstro } from "./combate";
+export type { PerfilMonstro } from "./combate";

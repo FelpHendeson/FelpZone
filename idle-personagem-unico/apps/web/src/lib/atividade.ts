@@ -73,7 +73,7 @@ export function situacaoMochila(p: Personagem): { usados: number; capacidade: nu
 
 /** Mostra o resumo "Enquanto você estava fora" só se algo relevante aconteceu. */
 export function resumoRelevante(r: ResumoAvanco): boolean {
-  const algo = r.ciclos > 0 || Object.keys(r.abates).length > 0 || r.desmaios > 0 || r.recuos > 0;
+  const algo = r.ciclos > 0 || Object.keys(r.abates).length > 0 || r.mortes > 0 || r.recuos > 0 || r.saidasDoLimiar > 0;
   return algo && r.simuladoMs >= 60_000;
 }
 

@@ -12,6 +12,7 @@ import {
   camposIniciaisF3,
   camposIniciaisF4,
   camposIniciaisF5,
+  camposIniciaisF6,
   carregarSave,
   comprarLivro,
   criarEstadoInicial,
@@ -59,6 +60,7 @@ function personagem(coreId = "ser-das-trevas", extra: Partial<Personagem> = {}):
     atividade: null,
     ...camposIniciaisF3(),
     ...camposIniciaisF4(),
+    ...camposIniciaisF6(),
     ...camposIniciaisF5(coreId),
     ...extra,
   };

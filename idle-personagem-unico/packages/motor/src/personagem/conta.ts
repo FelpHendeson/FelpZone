@@ -2,7 +2,7 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
-import { CATALOGO, OFICIOS, SLOTS, STATUS } from "../dados";
+import { CATALOGO, monstroDoLimiar, OFICIOS, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import { KIT_COMBATE } from "../dados/combate";
 import {
@@ -50,7 +50,8 @@ export interface Aparencia {
 
 /** Estado de uma luta em andamento (F4). Recargas e vida do monstro podem ter casas decimais. */
 export interface EstadoCombate {
-  readonly fase: "procurando" | "lutando" | "recuando";
+  /** "recompondo": só no Limiar, depois de a vida chegar a zero; volta a lutar contra o mesmo monstro. */
+  readonly fase: "procurando" | "lutando" | "recuando" | "recompondo";
   /** Procurando ou recuando: quanto falta. */
   readonly restanteMs: number;
   readonly monstroId: string | null;
@@ -63,6 +64,21 @@ export interface EstadoCombate {
   readonly recargas: Readonly<Record<string, number>>;
   /** F5: reforços (no personagem) e enfraquecimentos (no monstro) em curso. */
   readonly efeitos: readonly EfeitoEmCurso[];
+}
+
+/** Estadia no Limiar (F6): o personagem só combate até o tempo acabar ou pagar o Barqueiro. */
+export interface EstadoLimiar {
+  readonly restanteMs: number;
+  readonly totalMs: number;
+  /** Nível em que entrou: os monstros do Limiar acompanham. */
+  readonly nivelEntrada: number;
+  /** Cargas do Eco da Morte na entrada (0 a 5). */
+  readonly cargasEco: number;
+  /** Atividade a retomar ao sair. */
+  readonly retorno: { readonly id: string; readonly habilidadeId?: string } | null;
+  readonly combate: EstadoCombate;
+  /** O que sobra de um passo de 0,5 s. */
+  readonly progressoMs: number;
 }
 
 export interface EfeitoEmCurso {
@@ -143,6 +159,16 @@ export interface Personagem {
   readonly passivasEquipadas: readonly string[];
   /** F5: ramo do core escolhido (a partir do nível 10). */
   readonly ramoId: string | null;
+  /** F6: estadia no Limiar, ou `null`. */
+  readonly limiar: EstadoLimiar | null;
+  /** F6: mortes no total (O Retornado e títulos). */
+  readonly mortes: number;
+  /** F6: instantes das mortes recentes (Eco da Morte). */
+  readonly mortesRecentes: readonly number[];
+  /** F6: Essência do Limiar (moeda do pedágio). */
+  readonly essencia: number;
+  /** F6: Devedor do Barqueiro já usou a saída de graça. */
+  readonly pedagioGratisUsado: boolean;
 }
 
 /** Uma tentativa do sorteio: o estado do RNG no início basta para reproduzi-la. */
@@ -230,6 +256,17 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f4) return null;
   const f5 = typeof coreId === "string" && typeof nivel === "number" ? validarCamposF5(v, coreId, nivel) : null;
   if (!f5) return null;
+  const f6 = validarCamposF6(v, f5.habilidades);
+  if (!f6) return null;
+  // Itens nomeados: uma unidade de cada por personagem (mochila + equipados).
+  for (const item of CATALOGO.itens.values()) {
+    if (!item.equipamento?.nomeado) continue;
+    const naMochila = f3.mochila[item.id] ?? 0;
+    const equipado = Object.values(f4.equipados).includes(item.id) ? 1 : 0;
+    if (naMochila + equipado > 1) return null;
+  }
+  // No Limiar não há atividade nem viagem (a atividade fica guardada em `retorno`).
+  if (f6.limiar && (atividade !== null || f3.viagem !== null)) return null;
   if (!ehTexto(id, 64)) return null;
   const n = validarNome(nome);
   if (!n.ok || n.nome !== nome) return null;
@@ -304,6 +341,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     ...f3,
     ...f4,
     ...f5,
+    ...f6,
   };
 }
 
@@ -311,7 +349,7 @@ function ehNumero(v: unknown, min: number, max: number): v is number {
   return typeof v === "number" && Number.isFinite(v) && v >= min && v <= max;
 }
 
-function validarCombate(v: unknown, monstrosDaArea: readonly string[]): EstadoCombate | null {
+function validarCombate(v: unknown, monstrosDaArea: readonly string[], nivelLimiar?: number): EstadoCombate | null {
   if (!ehObjeto(v)) return null;
   const { fase, restanteMs, monstroId, vidaMonstro, recargaPersonagemMs, recargaMonstroMs, abatesNaArea, recargas, efeitos } = v;
   if (!ehObjeto(recargas) || !Array.isArray(efeitos) || efeitos.length > 32) return null;
@@ -327,18 +365,20 @@ function validarCombate(v: unknown, monstrosDaArea: readonly string[]): EstadoCo
     if (!ehNumero(e.valor, 0, 10) || !ehNumero(e.restanteMs, 1, 600_000)) return null;
     efeitosLimpos.push({ habilidadeId: e.habilidadeId, sobre: e.sobre, alvo: e.alvo, valor: e.valor, restanteMs: e.restanteMs });
   }
-  if (fase !== "procurando" && fase !== "lutando" && fase !== "recuando") return null;
+  if (fase !== "procurando" && fase !== "lutando" && fase !== "recuando" && fase !== "recompondo") return null;
+  if (fase === "recompondo" && nivelLimiar === undefined) return null;
   if (!ehNumero(restanteMs, -1_000, 1_000_000) || !ehInteiro(abatesNaArea, 0, Number.MAX_SAFE_INTEGER)) return null;
   if (!ehNumero(recargaPersonagemMs, -1_000, 60_000) || !ehNumero(recargaMonstroMs, -1_000, 60_000)) return null;
-  if (fase === "lutando") {
+  if (fase === "lutando" || fase === "recompondo") {
     if (typeof monstroId !== "string" || !monstrosDaArea.includes(monstroId)) return null;
-    if (!ehNumero(vidaMonstro, 0, CATALOGO.monstros.get(monstroId)!.vida) || vidaMonstro === 0) return null;
+    const vidaMax = nivelLimiar !== undefined ? monstroDoLimiar(monstroId, nivelLimiar).vida : CATALOGO.monstros.get(monstroId)!.vida;
+    if (!ehNumero(vidaMonstro, 0, vidaMax) || vidaMonstro === 0) return null;
   } else if (monstroId !== null) return null;
   return {
     fase,
     restanteMs,
-    monstroId: fase === "lutando" ? (monstroId as string) : null,
-    vidaMonstro: fase === "lutando" ? (vidaMonstro as number) : 0,
+    monstroId: fase === "lutando" || fase === "recompondo" ? (monstroId as string) : null,
+    vidaMonstro: fase === "lutando" || fase === "recompondo" ? (vidaMonstro as number) : 0,
     recargaPersonagemMs,
     recargaMonstroMs,
     abatesNaArea,
@@ -508,4 +548,43 @@ export function camposIniciaisF5(coreId: string, origemId?: string): CamposF5 {
     .slice(0, CONFIG_HABILIDADES.slotsPassivasBase)
     .map((h) => h.id);
   return { habilidades, ativasEquipadas: ativas, passivasEquipadas: passivas, ramoId: null };
+}
+
+type CamposF6 = Pick<Personagem, "limiar" | "mortes" | "mortesRecentes" | "essencia" | "pedagioGratisUsado">;
+
+/** Valida o Limiar, mortes, Eco e Essência (F6). */
+function validarCamposF6(v: Record<string, unknown>, habilidades: Habilidades): CamposF6 | null {
+  const { limiar, mortes, mortesRecentes, essencia, pedagioGratisUsado } = v;
+  if (!ehInteiro(mortes, 0, Number.MAX_SAFE_INTEGER) || !ehInteiro(essencia, 0, Number.MAX_SAFE_INTEGER) || typeof pedagioGratisUsado !== "boolean") return null;
+  if (!Array.isArray(mortesRecentes) || mortesRecentes.length > 10 || mortesRecentes.length > mortes) return null;
+  for (const t of mortesRecentes) if (!ehInteiro(t, 0, Number.MAX_SAFE_INTEGER)) return null;
+  let limiarLimpo: EstadoLimiar | null = null;
+  if (limiar !== null) {
+    if (!ehObjeto(limiar)) return null;
+    const { restanteMs, totalMs, nivelEntrada, cargasEco, retorno, combate, progressoMs } = limiar;
+    if (!ehInteiro(totalMs, 1, 24 * 3_600_000) || !ehNumero(restanteMs, 1, totalMs)) return null;
+    if (!ehInteiro(nivelEntrada, 1, CONFIG_PROGRESSAO.nivelMaximo) || !ehInteiro(cargasEco, 0, 5) || !ehInteiro(progressoMs, 0, 499)) return null;
+    let retornoLimpo: EstadoLimiar["retorno"] = null;
+    if (retorno !== null) {
+      if (!ehObjeto(retorno) || typeof retorno.id !== "string") return null;
+      const a = CATALOGO.atividades.get(retorno.id);
+      if (!a) return null;
+      if (a.tipo === "aprendizado") {
+        if (typeof retorno.habilidadeId !== "string" || !habilidades[retorno.habilidadeId]) return null;
+        retornoLimpo = { id: retorno.id, habilidadeId: retorno.habilidadeId };
+      } else {
+        if (retorno.habilidadeId !== undefined) return null;
+        retornoLimpo = { id: retorno.id };
+      }
+    }
+    const combateLimpo = validarCombate(combate, ["alma-penada", "ceifeiro-menor", "eco-faminto", "o-cobrador", "a-rainha-palida"], nivelEntrada);
+    if (!combateLimpo) return null;
+    limiarLimpo = { restanteMs, totalMs, nivelEntrada, cargasEco, retorno: retornoLimpo, combate: combateLimpo, progressoMs };
+  }
+  return { limiar: limiarLimpo, mortes, mortesRecentes: [...(mortesRecentes as number[])], essencia, pedagioGratisUsado };
+}
+
+/** Campos iniciais da F6: nunca morreu, sem Essência, fora do Limiar. */
+export function camposIniciaisF6(): CamposF6 {
+  return { limiar: null, mortes: 0, mortesRecentes: [], essencia: 0, pedagioGratisUsado: false };
 }

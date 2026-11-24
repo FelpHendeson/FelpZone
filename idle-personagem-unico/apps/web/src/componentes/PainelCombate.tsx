@@ -35,7 +35,7 @@ export function PainelAreas({ personagem: p, ocupado, agir, aoIniciar, aoParar }
             ))}
           </select>
         </label>
-        <p className="suave nota">Ao recuar, o personagem volta a {nomeLocal("pedravau")}, descansa e retoma a caça. Sem recuo, ele pode desmaiar (acorda na cidade, sem perder nada, por enquanto).</p>
+        <p className="suave nota">Ao recuar, o personagem volta a {nomeLocal("pedravau")}, descansa e retoma a caça. Sem recuo, ele pode morrer e passar um tempo no Limiar (Combate → O Limiar).</p>
       </article>
       <ul className="lista-treinos">
         {AREAS_COMBATE.map((a) => {

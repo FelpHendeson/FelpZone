@@ -104,14 +104,15 @@ export interface Monstro {
   readonly chanceLivro: number;
 }
 
-type Perfil = "agil" | "tanque" | "raro" | "chefe";
+export type PerfilMonstro = "agil" | "tanque" | "raro" | "chefe";
+type Perfil = PerfilMonstro;
 
 /**
  * Monstro a partir do nível e de um perfil [Calibrar]. Os status crescem no
  * mesmo ritmo do personagem preparado (status + equipamento do tier):
  * × (1 + 0,15 × (nível − 1)).
  */
-function monstro(id: string, nome: string, descricao: string, nivel: number, perfil: Perfil, materialId: string): Monstro {
+export function criarMonstro(id: string, nome: string, descricao: string, nivel: number, perfil: Perfil, materialId: string): Monstro {
   const g = 1 + 0.15 * (nivel - 1);
   const base = { vida: 45 * g, ataque: 7 * g, defesa: 2 * g, xp: 5 + 0.5 * nivel };
   const p = {
@@ -265,7 +266,7 @@ function montar() {
   const areas: AtividadeCombate[] = [];
   for (const a of AREAS_DEF) {
     const perfis: Perfil[] = ["agil", "tanque", "raro", "chefe"];
-    const ms = a.monstros.map(([id, nome, desc], i) => monstro(id, nome, desc, a.nivel, perfis[i]!, a.material));
+    const ms = a.monstros.map(([id, nome, desc], i) => criarMonstro(id, nome, desc, a.nivel, perfis[i]!, a.material));
     monstros.push(...ms);
     areas.push({
       tipo: "combate",

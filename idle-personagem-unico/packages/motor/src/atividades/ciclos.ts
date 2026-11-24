@@ -10,6 +10,7 @@
 import { CATALOGO, obter, STATUS, type StatusId } from "../dados";
 import type { AtividadeCiclica } from "../dados";
 import type { AtividadeColeta, OficioId } from "../dados/coleta";
+import type { AtividadeCombate } from "../dados/combate";
 import type { Modificador } from "../modificadores";
 import type { Personagem, ProgressoOficio } from "../personagem/conta";
 import { adicionarItens, capacidadeMochila } from "../personagem/mochila";
@@ -29,7 +30,8 @@ import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
 import { LIMITE_OFFLINE_MS } from "../tempo";
 import { ganharMaestria, praticarPassivas, type ProgressoHabilidade } from "../habilidades/maestria";
-import { avancarCombate, CONFIG_COMBATE, type AcumuladoCombate } from "./combate";
+import { avancarCombate, combateInicial, CONFIG_COMBATE, type AcumuladoCombate } from "./combate";
+import { entrarNoLimiar, opcoesDoLimiar, sairDoLimiar } from "./limiar";
 import { duracaoViagemMs } from "./viagem";
 
 export { duracaoViagemMs };
@@ -95,10 +97,15 @@ export interface ResultadoCiclos {
   /** Local onde uma viagem terminou neste avanço. */
   readonly chegouEm: string | null;
   readonly abates: Readonly<Record<string, number>>;
-  readonly desmaios: number;
+  /** Mortes (cada uma leva ao Limiar). */
+  readonly mortes: number;
   readonly recuos: number;
   /** Níveis de maestria ganhos por habilidade. */
   readonly maestria: Readonly<Record<string, number>>;
+  /** Essência do Limiar ganha. */
+  readonly essencia: number;
+  /** Saídas do Limiar (tempo acabou) neste avanço. */
+  readonly saidasDoLimiar: number;
 }
 
 /** Recupera vida fora do combate (linear e limitada a 1: dividir o tempo não muda o resultado). */
@@ -107,32 +114,99 @@ function curar(p: Personagem, ms: number): Personagem {
   return { ...p, vida: Math.min(1, p.vida + (CONFIG_COMBATE.regenForaPorSegundo * ms) / 1000) };
 }
 
-/** Avança `ms` de um personagem (sem limite: quem chama limita). Usa e avança o `rng`. */
-export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: ConfigProgressao = CONFIG_PROGRESSAO): ResultadoCiclos {
-  const ganhos = ganhosZerados();
-  const xpOficios: Partial<Record<OficioId, number>> = {};
-  const niveisOficio: Partial<Record<OficioId, number>> = {};
-  const acc: AcumuladoCombate = { abates: {}, itens: {}, itensPerdidos: 0, xp: 0, desmaios: 0, recuos: 0, maestria: {} };
-  let ciclos = 0;
-  let restante = Math.max(0, Math.floor(ms));
-  let atual = p;
-  let chegouEm: string | null = null;
-  const resultado = (personagem: Personagem): ResultadoCiclos => ({
-    personagem,
-    ciclos,
-    ganhos,
+/** Acumulado de um avanço inteiro (somado entre trechos: viagem, combate, Limiar, ciclos). */
+interface Acumulado extends AcumuladoCombate {
+  ganhos: Record<StatusId, number>;
+  xpOficios: Partial<Record<OficioId, number>>;
+  niveisOficio: Partial<Record<OficioId, number>>;
+  ciclos: number;
+  chegouEm: string | null;
+  saidasDoLimiar: number;
+}
+
+/**
+ * Avança `ms` de um personagem (sem limite: quem chama limita). Usa e avança
+ * o `rng`. `tempoInicio` é o instante em que o trecho começa (para o Eco).
+ */
+export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: ConfigProgressao = CONFIG_PROGRESSAO, tempoInicio = 0): ResultadoCiclos {
+  const acc: Acumulado = {
+    abates: {},
+    itens: {},
+    itensPerdidos: 0,
+    xp: 0,
+    mortes: 0,
+    recuos: 0,
+    maestria: {},
+    essencia: 0,
+    ganhos: ganhosZerados(),
+    xpOficios: {},
+    niveisOficio: {},
+    ciclos: 0,
+    chegouEm: null,
+    saidasDoLimiar: 0,
+  };
+  const final = avancarTrecho(p, Math.max(0, Math.floor(ms)), rng, config, tempoInicio, acc);
+  return {
+    personagem: final,
+    ciclos: acc.ciclos,
+    ganhos: acc.ganhos,
     xp: acc.xp,
-    niveisGanhos: personagem.nivel - p.nivel,
+    niveisGanhos: final.nivel - p.nivel,
     itens: acc.itens,
     itensPerdidos: acc.itensPerdidos,
-    xpOficios,
-    niveisOficio,
-    chegouEm,
+    xpOficios: acc.xpOficios,
+    niveisOficio: acc.niveisOficio,
+    chegouEm: acc.chegouEm,
     abates: acc.abates,
-    desmaios: acc.desmaios,
+    mortes: acc.mortes,
     recuos: acc.recuos,
     maestria: acc.maestria,
-  });
+    essencia: acc.essencia,
+    saidasDoLimiar: acc.saidasDoLimiar,
+  };
+}
+
+/**
+ * Um trecho de tempo: Limiar → viagem → atividade. Uma morte (entrada no
+ * Limiar) ou o fim do Limiar continuam no próximo trecho com o tempo que sobrou.
+ */
+function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgressao, tempoInicio: number, acc: Acumulado): Personagem {
+  const ganhos = acc.ganhos;
+  const xpOficios = acc.xpOficios;
+  const niveisOficio = acc.niveisOficio;
+  if (ms <= 0) return p;
+
+  // 0. Limiar: só combate, até o tempo acabar.
+  if (p.limiar) {
+    const status = { ...p.status } as Record<StatusId, number>;
+    const r = avancarCombate({
+      personagem: { ...p, status },
+      // Área só de referência: no Limiar não há recuo nem drops das áreas.
+      area: obter(CATALOGO.atividades, "trilha-dos-lobos") as AtividadeCombate,
+      combate: p.limiar.combate,
+      progressoMs: p.limiar.progressoMs,
+      tempoInicio,
+      limiar: opcoesDoLimiar(p),
+      status,
+      ganhos,
+      ms,
+      rng,
+      acumulado: acc,
+      config,
+    });
+    if (r.restanteLimiarMs > 0) {
+      return { ...r.personagem, limiar: { ...p.limiar, restanteMs: r.restanteLimiarMs, combate: r.combate, progressoMs: r.progressoMs } };
+    }
+    acc.saidasDoLimiar++;
+    return avancarTrecho(sairDoLimiar(r.personagem), r.sobraMs, rng, config, tempoInicio + ms - r.sobraMs, acc);
+  }
+  let ciclos = 0;
+  let restante = ms;
+  let atual = p;
+  const resultado = (personagem: Personagem): Personagem => {
+    acc.ciclos += ciclos;
+    return personagem;
+  };
 
   // 1. Viagem (fora do combate a vida se recupera).
   if (atual.viagem && restante > 0) {
@@ -140,7 +214,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     restante -= usado;
     atual = curar(atual, usado);
     if (usado === atual.viagem!.restanteMs) {
-      chegouEm = atual.viagem!.destinoLocalId;
+      acc.chegouEm = atual.viagem!.destinoLocalId;
       atual = { ...atual, localId: atual.viagem!.destinoLocalId, subareaId: atual.viagem!.destinoSubareaId, viagem: null };
     } else {
       atual = { ...atual, viagem: { ...atual.viagem!, restanteMs: atual.viagem!.restanteMs - usado } };
@@ -153,8 +227,26 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
 
   // 2a. Combate, em passos de 0,5 s.
   if (atividade.tipo === "combate") {
-    const r = avancarCombate({ personagem: { ...atual, status }, area: atividade, status, ganhos, ms: restante, rng, acumulado: acc, config });
-    return resultado(curar(r.personagem, r.sobraMs));
+    const inicio = tempoInicio + (ms - restante);
+    const r = avancarCombate({
+      personagem: { ...atual, status },
+      area: atividade,
+      combate: atual.atividade!.combate ?? combateInicial(),
+      progressoMs: atual.atividade!.progressoMs,
+      tempoInicio: inicio,
+      status,
+      ganhos,
+      ms: restante,
+      rng,
+      acumulado: acc,
+      config,
+    });
+    if (r.morteEm !== null) {
+      // Morte: atravessa para o Limiar e o tempo que sobrou corre lá.
+      const morto = entrarNoLimiar({ ...r.personagem, atividade: atual.atividade }, atividade.nivelRecomendado, r.morteEm);
+      return resultado(avancarTrecho(morto, r.sobraMs, rng, config, r.morteEm, acc));
+    }
+    return resultado({ ...r.personagem, atividade: { ...atual.atividade!, progressoMs: r.progressoMs, combate: r.combate } });
   }
 
   // 2b. Treino e coleta, em ciclos (a vida se recupera junto).
@@ -264,9 +356,11 @@ export interface ResumoAvanco {
   readonly niveisOficio: Readonly<Partial<Record<OficioId, number>>>;
   readonly chegouEm: string | null;
   readonly abates: Readonly<Record<string, number>>;
-  readonly desmaios: number;
+  readonly mortes: number;
   readonly recuos: number;
   readonly maestria: Readonly<Record<string, number>>;
+  readonly essencia: number;
+  readonly saidasDoLimiar: number;
 }
 
 /** Resumo sem nada acontecido (útil para a interface e testes). */
@@ -287,9 +381,11 @@ export function resumoVazio(atividadeId: string | null = null, nivel = 0): Resum
     niveisOficio: {},
     chegouEm: null,
     abates: {},
-    desmaios: 0,
+    mortes: 0,
     recuos: 0,
     maestria: {},
+    essencia: 0,
+    saidasDoLimiar: 0,
   };
 }
 
@@ -312,7 +408,7 @@ export function avancar(estado: EstadoJogo, agora: number, config: ConfigProgres
   const novoTick = estado.ultimoTick + decorrido;
   if (!ativo) return { estado: { ...estado, ultimoTick: novoTick }, resumo: base };
   const rng = Rng.deEstado(estado.rng);
-  const r = avancarPersonagem(ativo, simulado, rng, config);
+  const r = avancarPersonagem(ativo, simulado, rng, config, estado.ultimoTick);
   return {
     estado: {
       ...estado,
@@ -332,9 +428,11 @@ export function avancar(estado: EstadoJogo, agora: number, config: ConfigProgres
       niveisOficio: r.niveisOficio,
       chegouEm: r.chegouEm,
       abates: r.abates,
-      desmaios: r.desmaios,
+      mortes: r.mortes,
       recuos: r.recuos,
       maestria: r.maestria,
+      essencia: r.essencia,
+      saidasDoLimiar: r.saidasDoLimiar,
     },
   };
 }

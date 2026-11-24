@@ -25,6 +25,7 @@ import { PainelColeta } from "./PainelColeta";
 import { PainelAreas, PainelBestiario } from "./PainelCombate";
 import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
 import { PainelAprendizado, PainelHabilidades } from "./PainelHabilidades";
+import { PainelLimiar, PainelTitulos } from "./PainelLimiar";
 import { PainelEstabelecimentos, PainelLocalAtual, PainelRegiao } from "./PainelMapa";
 import { PainelFerramentas, PainelMateriais } from "./PainelMochila";
 import { PainelStatus } from "./PainelStatus";
@@ -232,6 +233,10 @@ export function Shell() {
         aoParar={() => agir(pararAtividade)}
       />
     );
+  } else if (aba.id === "combate" && indiceSub === 2) {
+    conteudo = <PainelLimiar personagem={personagem} ocupado={ocupado} agir={agir} />;
+  } else if (aba.id === "personagem" && indiceSub === 3) {
+    conteudo = <PainelTitulos personagem={personagem} />;
   } else if (aba.id === "combate" && indiceSub === 1) {
     conteudo = <PainelBestiario personagem={personagem} />;
   } else if (aba.id === "mochila" && indiceSub === 0) {

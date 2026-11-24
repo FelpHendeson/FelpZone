@@ -1,6 +1,6 @@
 # Calibração
 
-Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3, combate da F4, habilidades da F5): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
+Registro dos números **[Calibrar]** do jogo (sorteio da F1, treino da F2, mapa e coleta da F3, combate da F4, habilidades da F5, Limiar da F6): valor nominal, o que a simulação observou e propostas de ajuste. Regra: **nenhum número muda sem registrar aqui o antes e o depois** (e no GDD).
 
 ## Sorteio do personagem (F1)
 
@@ -431,6 +431,46 @@ Combate com as técnicas de cada core (Humano preparado no Juncal Escuro, nível
 4. **O combate acelera a subida de nível** além do medido na F2 (só treino): no teste do navegador, 12 h caçando levaram do nível 4 ao 13. Os alvos de ritmo da F2 precisam ser medidos de novo com o ciclo completo (bot da cadeia, pendente).
 5. As tabelas da F4 mudaram ±2% porque agora cada abate também sorteia um livro (o RNG é consumido em outra ordem). Nenhum número da F4 foi alterado.
 
+## O Limiar (F6)
+
+Fonte dos números: `packages/motor/src/dados/limiar.ts` (`CONFIG_LIMIAR`, sinergias, monstros e O Retornado) e `atividades/limiar.ts`. Reproduza com `npm run ritmo`.
+
+### Números em vigor
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Duração | 10 min + 20 s × nível da área, × (1 + 25% por carga de Eco), × reduções; mínimo 1 min | GDD §10 (10 min) + [Calibrar] |
+| Eco da Morte | cada outra morte nas últimas 2 h (1 h para o Devedor do Barqueiro) = 1 carga, até 5; drops +25% por carga | [Calibrar] |
+| Dentro do Limiar | 75% do ataque e da defesa; monstros no nível de entrada; vida a zero = recompor-se em 3 s contra o mesmo monstro | [Proposta] |
+| Chefes raros | 0,5% por busca × (1 + 0,5 por carga); peça de O Retornado em 20% das vitórias, só se faltar | **mudou** no bot |
+| Essência | 1 / 3 / 10 por abate (comum / raro / chefe), × Eco | [Calibrar] |
+| Pedágio do Barqueiro | 3 de Essência por minuto restante; Devedor sai de graça na primeira vez | [Calibrar] |
+| Reduções | Sobrevivente do Vazio −25%; Aldeia à beira do Limiar −5%; Sangue-Pálido e Ser das Trevas −20% (e +20% de ataque lá dentro); O Retornado (4 peças) −20% | ORIGENS.md + [Proposta] |
+| O Retornado | 2 peças: +1% de ataque por morte; 4 peças: também +1% de defesa por morte; teto 25% | [Calibrar] |
+| Títulos | Visitante Frequente (5 mortes), O Que Voltou (25), Sem Medo da Morte (100) | GDD §10 |
+
+### Resultado do bot (Limiar)
+
+Humano preparado (status em 50% da faixa, equipamento do tier) que morre na área do seu nível: duração da estadia, o que rende lá dentro e o pedágio para sair logo na entrada.
+
+| Nível / área | Eco | Duração | Abates no Limiar | Essência ganha | Pedágio na entrada | XP ganho |
+| --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| 5 / 5 | 0 | 11,7 min | 41 | 49 | 36 | 416 |
+| 5 / 5 | 3 | 20,4 min | 70 | 145 | 63 | 692 |
+| 15 / 15 | 0 | 15,0 min | 53 | 64 | 45 | 928 |
+| 15 / 15 | 3 | 26,3 min | 93 | 210 | 81 | 1780 |
+| 25 / 25 | 0 | 18,3 min | 72 | 80 | 57 | 1543 |
+| 25 / 25 | 3 | 32,1 min | 123 | 261 | 99 | 3019 |
+
+Tempo de Limiar até as 4 peças de O Retornado (nível 25, Eco 3, sempre voltando ao Limiar): **20 h** (chefes a 0,5% por busca × (1 + 0,5 por carga), peça em 20% das vitórias).
+
+### Leitura e proposta (F6)
+
+1. **Bug corrigido pelo bot**: na primeira versão, cair no Limiar descartava o monstro; como os chefes têm 6× mais vida, eles nunca eram vencidos e O Retornado era impossível. Agora o personagem se recompõe e volta a lutar contra o mesmo monstro, ferido.
+2. **O Retornado ficou fácil demais** depois da correção (2 h de Limiar com Eco 3). Baixei a chance de chefe de 1% para 0,5% por busca e a de peça de 50% para 20%: agora são **~20 h de Limiar** (umas 40 mortes com Eco alto) até o set completo. É o prêmio de quem aceita morrer.
+3. **Morrer custa tempo, não itens**: uma morte na área do próprio nível custa de 12 a 18 min (20 a 32 min com Eco 3), rende Essência suficiente para pagar o pedágio da próxima vez e algum XP. O recuo continua sendo a escolha segura.
+4. **O pedágio na entrada** custa um pouco menos do que a Essência que a estadia rende: pagar é trocar o ganho do Limiar por tempo.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -444,3 +484,5 @@ Combate com as técnicas de cada core (Humano preparado no Juncal Escuro, nível
 | 24/11/2026 | F4: cura procurando monstro. | 0,5%/s → 1%/s |
 | 24/11/2026 | F4: números de combate, equipamentos, drops, recuo e desmaio definidos (não existiam). | — |
 | 24/11/2026 | F5: números de maestria, slots, livros e efeitos das habilidades definidos (não existiam). | — |
+| 24/11/2026 | F6: chefes do Limiar e peças de O Retornado (o set completava em 2 h de Limiar). | chefe 1% → 0,5% por busca; peça 50% → 20% |
+| 24/11/2026 | F6: números do Limiar, Eco, pedágio e O Retornado definidos (não existiam). | — |

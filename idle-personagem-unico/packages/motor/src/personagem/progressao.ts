@@ -3,7 +3,7 @@
  * modificadores vindos de raça, dons e origem. Números em `CONFIG_PROGRESSAO`
  * são [Calibrar] (ver `docs/CALIBRACAO.md`).
  */
-import { CATALOGO, obter, PERFIS_RACA, STATUS, type StatusId } from "../dados";
+import { CATALOGO, CONFIG_LIMIAR, obter, PERFIS_RACA, STATUS, type StatusId } from "../dados";
 import type { Efeito } from "../dados/tipos";
 import { modificadoresDeHabilidades, type Habilidades } from "../habilidades/maestria";
 import { resumirModificadores, type Modificador } from "../modificadores";
@@ -45,6 +45,8 @@ export interface BaseModificadores {
   /** Habilidades conhecidas e passivas equipadas (F5). */
   readonly habilidades?: Habilidades;
   readonly passivasEquipadas?: readonly string[];
+  /** Mortes acumuladas (F6: o set O Retornado cresce com elas). */
+  readonly mortes?: number;
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -71,6 +73,20 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
   }
   // Passivas equipadas (auras ficam de fora: dependem da vida e são tratadas no combate).
   lista.push(...modificadoresDeHabilidades(p));
+  // O Retornado (F6): 2 peças dão ataque, 4 dão defesa e Limiar mais curto; crescem com as mortes.
+  let pecas = 0;
+  for (const itemId of Object.values(p.equipados ?? {})) {
+    if (itemId && CATALOGO.itens.get(itemId)?.equipamento?.nomeado?.conjunto === "o-retornado") pecas++;
+  }
+  if (pecas >= 2) {
+    const origem = { tipo: "equipamento" as const, id: "o-retornado" };
+    const bonus = Math.min(CONFIG_LIMIAR.retornadoBonusMaximo, CONFIG_LIMIAR.retornadoBonusPorMorte * (p.mortes ?? 0));
+    lista.push({ alvo: "ataque", operacao: "percentual", valor: bonus, origem });
+    if (pecas >= 4) {
+      lista.push({ alvo: "defesa", operacao: "percentual", valor: bonus, origem });
+      lista.push({ alvo: "duracao-limiar", operacao: "percentual", valor: -0.2, origem });
+    }
+  }
   return lista;
 }
 

@@ -113,3 +113,13 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 36. **Livros** custam 300 g (comuns) e 900 g (incomuns); são o primeiro gasto de gold além das ferramentas e armas.
 37. **Órfão do Templo Cinzento** passou a nascer sabendo Eco dos Antigos (a "técnica espiritual" do texto).
 
+### Da F6 (O Limiar), para o autor conferir
+
+38. **"Atributos reduzidos"** no Limiar foi lido como **do personagem** (75% de ataque e defesa), compensado pelos drops exclusivos.
+39. **Sem segunda morte no Limiar**: com a vida a zero, o personagem se recompõe em 3 s e volta a lutar contra o mesmo monstro (sem isso, os chefes eram impossíveis).
+40. **"Volta sozinha" × "espera na cidade"**: o GDD diz as duas coisas. Implementei a atividade anterior voltando sozinha (com viagem), o que dá o custo de tempo sem desperdiçar o resto do período offline.
+41. **Eco da Morte** conta as outras mortes das últimas 2 h (1 h para o Devedor); morrer em sequência alonga cada estadia e melhora os drops.
+42. **O Retornado** leva ~20 h de Limiar para completar; bônus de 1% por morte, até 25%.
+43. **Essência do Limiar** é uma moeda do personagem (não ocupa a mochila) e por enquanto só serve para o pedágio.
+44. **Títulos** por mortes aparecem em Personagem → Títulos, ainda sem bônus.
+

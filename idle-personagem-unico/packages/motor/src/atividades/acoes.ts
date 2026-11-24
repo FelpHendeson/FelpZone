@@ -9,6 +9,7 @@ import { fator, modificadoresDoPersonagem } from "../personagem/progressao";
 import type { EstadoJogo } from "../save";
 import { avancar, duracaoViagemMs, nivelEfetivoOficio, type ResumoAvanco } from "./ciclos";
 import { combateInicial, CONFIG_COMBATE } from "./combate";
+import { custoDoPedagio, ehDevedor, sairDoLimiar } from "./limiar";
 
 /** Local onde ficam o Mercado e o Ferreiro. */
 export const LOCAL_CIDADE = "pedravau";
@@ -44,7 +45,10 @@ export type CodigoErroAtividade =
   | "ramo_ja_escolhido"
   | "nivel_insuficiente"
   | "nao_e_livro"
-  | "maestria_maxima";
+  | "maestria_maxima"
+  | "no_limiar"
+  | "fora_do_limiar"
+  | "essencia_insuficiente";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;
@@ -64,6 +68,8 @@ export function comAtivo(
   estado: EstadoJogo,
   agora: number,
   mudar: (p: Personagem) => Personagem | ErroAtividade,
+  /** Ações que valem também no Limiar (equipar, habilidades, recuo, pedágio). */
+  permitidaNoLimiar = false,
 ): ResultadoAtividade {
   if (!estado.conta.personagens.some((p) => p.id === estado.conta.personagemAtivoId)) {
     return falha("sem_personagem", "Não há personagem ativo.");
@@ -71,6 +77,7 @@ export function comAtivo(
   const { estado: avancado, resumo } = avancar(estado, agora);
   const id = avancado.conta.personagemAtivoId;
   const ativo = avancado.conta.personagens.find((p) => p.id === id)!;
+  if (ativo.limiar && !permitidaNoLimiar) return falha("no_limiar", "No Limiar só se combate. Espere o tempo acabar ou pague o Barqueiro.");
   const novo = mudar(ativo);
   if ("codigo" in novo) return { ok: false, erro: novo };
   return {
@@ -211,7 +218,7 @@ export function equipar(estado: EstadoJogo, itemId: string, agora: number): Resu
       mochila = r.mochila;
     }
     return { ...p, mochila, equipados: { ...p.equipados, [dados.slot]: itemId } };
-  });
+  }, true);
 }
 
 /** Tira o item de um slot e o guarda na mochila. */
@@ -223,7 +230,7 @@ export function desequipar(estado: EstadoJogo, slot: Slot, agora: number): Resul
     const r = adicionarItens(p.mochila, atual, 1, capacidadeDe(p));
     if (r.aceitos === 0) return erro("mochila_cheia", "A mochila está cheia.");
     return { ...p, mochila: r.mochila, equipados: { ...p.equipados, [slot]: null } };
-  });
+  }, true);
 }
 
 /** Compra um equipamento no Ferreiro; ele vai para a mochila. */
@@ -246,5 +253,23 @@ export function definirRecuo(estado: EstadoJogo, percentual: number, agora: numb
   if (!Number.isSafeInteger(percentual) || percentual < 0 || percentual > CONFIG_COMBATE.recuoMaximo) {
     return falha("recuo_invalido", `O recuo vai de 0 a ${CONFIG_COMBATE.recuoMaximo}%.`);
   }
-  return comAtivo(estado, agora, (p) => ({ ...p, recuoPercentual: percentual }));
+  return comAtivo(estado, agora, (p) => ({ ...p, recuoPercentual: percentual }), true);
+}
+
+// ------------------------------------------------------------ O Limiar (F6)
+
+/** Paga o Barqueiro para sair do Limiar antes do tempo (Essência por minuto restante). */
+export function pagarPedagio(estado: EstadoJogo, agora: number): ResultadoAtividade {
+  return comAtivo(
+    estado,
+    agora,
+    (p) => {
+      if (!p.limiar) return erro("fora_do_limiar", "O personagem não está no Limiar.");
+      const custo = custoDoPedagio(p);
+      if (p.essencia < custo) return erro("essencia_insuficiente", `O Barqueiro quer ${custo} de Essência.`);
+      const gratis = custo === 0 && ehDevedor(p);
+      return sairDoLimiar({ ...p, essencia: p.essencia - custo, pedagioGratisUsado: p.pedagioGratisUsado || gratis });
+    },
+    true,
+  );
 }

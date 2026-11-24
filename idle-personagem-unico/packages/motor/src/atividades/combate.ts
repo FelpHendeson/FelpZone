@@ -4,7 +4,7 @@
  * esquiva, drops) usam o RNG do save, sempre na mesma ordem, então dividir o
  * tempo em partes dá o mesmo resultado.
  */
-import { CATALOGO, CURA_ABAIXO_DE, EQUIPAMENTOS, LIVROS, obter, type StatusId } from "../dados";
+import { CATALOGO, CHEFES_LIMIAR, COMUNS_LIMIAR, CONFIG_LIMIAR, CURA_ABAIXO_DE, EQUIPAMENTOS, LIVROS, monstroDoLimiar, obter, PECAS_POR_CHEFE, type StatusId } from "../dados";
 import type { AtividadeCombate, Monstro } from "../dados/combate";
 import type { Modificador } from "../modificadores";
 import { resumirModificadores } from "../modificadores";
@@ -117,15 +117,45 @@ export interface AcumuladoCombate {
   itens: Record<string, number>;
   itensPerdidos: number;
   xp: number;
-  desmaios: number;
+  /** Mortes (cada uma leva ao Limiar). */
+  mortes: number;
   recuos: number;
+  /** Essência do Limiar ganha. */
+  essencia: number;
   /** Níveis de maestria ganhos por habilidade. */
   maestria: Record<string, number>;
+}
+
+/** Opções do combate dentro do Limiar (F6). */
+export interface OpcoesLimiar {
+  readonly nivel: number;
+  readonly cargas: number;
+  readonly fatorAtaque: number;
+  readonly fatorDefesa: number;
+  readonly multiplicadorDrops: number;
+  readonly restanteMs: number;
+}
+
+export interface SaidaCombate {
+  readonly personagem: Personagem;
+  readonly combate: EstadoCombate;
+  readonly progressoMs: number;
+  /** Tempo que sobrou depois de uma morte ou do fim do Limiar (o chamador trata). */
+  readonly sobraMs: number;
+  /** Instante da morte (fora do Limiar), ou `null`. */
+  readonly morteEm: number | null;
+  /** No Limiar: quanto falta (0 = acabou). */
+  readonly restanteLimiarMs: number;
 }
 
 export interface EntradaCombate {
   readonly personagem: Personagem;
   readonly area: AtividadeCombate;
+  readonly combate: EstadoCombate;
+  readonly progressoMs: number;
+  /** Instante (ms) em que este trecho de combate começa. */
+  readonly tempoInicio: number;
+  readonly limiar?: OpcoesLimiar;
   readonly status: Record<StatusId, number>;
   readonly ganhos: Record<StatusId, number>;
   readonly ms: number;
@@ -164,14 +194,14 @@ function monstroEnfraquecido(m: Monstro, efeitos: readonly EfeitoEmCurso[]): { a
  * (na ordem de prioridade) dispara, depois o ataque básico e o do monstro.
  * Curas só disparam com a vida abaixo de 50%.
  */
-export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sobraMs: number } {
+export function avancarCombate(e: EntradaCombate): SaidaCombate {
   const config = e.config ?? CONFIG_PROGRESSAO;
   const c = CONFIG_COMBATE;
   const p0 = e.personagem;
-  const atividade = p0.atividade!;
   const area = e.area;
+  const limiar = e.limiar;
   const { status, ganhos, rng, acumulado } = e;
-  const inicial = atividade.combate ?? combateInicial();
+  const inicial = e.combate;
   // Cópia mutável durante a simulação; vira `EstadoCombate` (somente leitura) ao sair.
   let estado: { -readonly [K in keyof EstadoCombate]: EstadoCombate[K] } = { ...inicial };
   const recargas: Record<string, number> = { ...inicial.recargas };
@@ -181,11 +211,16 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
   let vida = p0.vida;
   let nivel = p0.nivel;
   let xp = p0.xp;
+  let essencia = p0.essencia;
   let mochila: Mochila = p0.mochila;
   const bestiario: Record<string, number> = { ...p0.bestiario };
-  const total = atividade.progressoMs + Math.floor(e.ms);
+  const total = e.progressoMs + Math.floor(e.ms);
   const passos = Math.floor(total / c.passoMs);
   const resto = total % c.passoMs;
+  let restanteLimiar = limiar?.restanteMs ?? 0;
+  const monstroPorId = (id: string): Monstro => (limiar ? monstroDoLimiar(id, limiar.nivel) : obter(CATALOGO.monstros, id));
+  /** No Limiar o personagem luta enfraquecido (com as sinergias de raça e core). */
+  const ajustar = (sc: StatusDeCombate): StatusDeCombate => (limiar ? { ...sc, ataque: sc.ataque * limiar.fatorAtaque, defesa: sc.defesa * limiar.fatorDefesa } : sc);
 
   let mods: Modificador[] = [];
   let scBase!: StatusDeCombate;
@@ -210,7 +245,7 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
     }
     return sc;
   };
-  let monstro: Monstro | null = estado.monstroId ? obter(CATALOGO.monstros, estado.monstroId) : null;
+  let monstro: Monstro | null = estado.monstroId ? monstroPorId(estado.monstroId) : null;
   const recalcular = () => {
     mods = modificadoresDoPersonagem(base, nivel);
     scBase = statusDeCombate(status, mods);
@@ -242,7 +277,8 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
     monstro = null;
     semEfeitosNoMonstro();
   };
-  const deveRecuar = () => recuoFracao > 0 && vida <= recuoFracao;
+  const deveRecuar = () => !limiar && recuoFracao > 0 && vida <= recuoFracao;
+  const tem = (id: string) => (mochila[id] ?? 0) > 0 || Object.values(p0.equipados).includes(id);
   const abater = (m: Monstro) => {
     estado.abatesNaArea++;
     acumulado.abates[m.id] = (acumulado.abates[m.id] ?? 0) + 1;
@@ -255,8 +291,21 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
     const maestriaSubiu = praticarPassivas(hab, p0.passivasEquipadas, ["combate", "geral"], xpMaestria, acumulado.maestria);
     if (r.subiu || maestriaSubiu) recalcular();
     for (const d of m.drops) if (rng.flutuante() < d.chance) guardar(d.itemId, d.quantidade);
-    if (rng.flutuante() < m.chanceEquipamento) guardar(equipamentosDoTier[rng.inteiro(0, equipamentosDoTier.length - 1)]!.id, 1);
-    if (rng.flutuante() < m.chanceLivro) guardar(LIVROS[rng.inteiro(0, LIVROS.length - 1)]!.id, 1);
+    if (limiar) {
+      // Essência (× Eco) e, dos chefes, uma peça de O Retornado que ainda falte.
+      const q = CONFIG_LIMIAR.essencia[m.tipo] * limiar.multiplicadorDrops;
+      const inteiro = Math.floor(q);
+      const ganho = inteiro + (rng.flutuante() < q - inteiro ? 1 : 0);
+      essencia += ganho;
+      acumulado.essencia += ganho;
+      if (m.tipo === "chefe") {
+        const faltam = (PECAS_POR_CHEFE[m.id] ?? []).filter((id) => !tem(id));
+        if (rng.flutuante() < CONFIG_LIMIAR.chancePecaRetornado && faltam.length > 0) guardar(faltam[rng.inteiro(0, faltam.length - 1)]!, 1);
+      }
+    } else {
+      if (rng.flutuante() < m.chanceEquipamento) guardar(equipamentosDoTier[rng.inteiro(0, equipamentosDoTier.length - 1)]!.id, 1);
+      if (rng.flutuante() < m.chanceLivro) guardar(LIVROS[rng.inteiro(0, LIVROS.length - 1)]!.id, 1);
+    }
     estado = { ...estado, fase: "procurando", restanteMs: c.buscaMs, monstroId: null, vidaMonstro: 0 };
     monstro = null;
     semEfeitosNoMonstro();
@@ -271,7 +320,7 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
       const soCura = def.efeitos.every((x) => x.tipo === "cura");
       if (soCura && vida >= CURA_ABAIXO_DE) continue;
       const f = fatorMaestria(hab[id]?.maestria ?? 1);
-      const sc = comReforcos(statusComAura(), efeitos);
+      const sc = comReforcos(ajustar(statusComAura()), efeitos);
       for (const ef of def.efeitos) {
         if (ef.tipo === "golpe") {
           const critico = rng.flutuante() < sc.critico;
@@ -297,7 +346,22 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
     return false;
   };
 
+  const fim = (i: number) => (passos - i - 1) * c.passoMs + resto;
+  const saida = (sobraMs: number, morteEm: number | null): SaidaCombate => ({
+    personagem: { ...p0, nivel, xp, status, mochila, bestiario, habilidades: hab, vida, essencia },
+    combate: { ...estado, recargas, efeitos },
+    progressoMs: sobraMs > 0 ? 0 : resto,
+    sobraMs,
+    morteEm,
+    restanteLimiarMs: Math.max(0, restanteLimiar),
+  });
+
   for (let i = 0; i < passos; i++) {
+    // O tempo do Limiar corre a cada passo; acabou, sai (o passo i não acontece).
+    if (limiar) {
+      if (restanteLimiar <= 0) return saida(fim(i) + c.passoMs, null);
+      restanteLimiar -= c.passoMs;
+    }
     // Recargas e efeitos andam sempre.
     for (const id of Object.keys(recargas)) {
       const r = recargas[id]! - c.passoMs;
@@ -310,10 +374,25 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
       vida = Math.min(1, vida + (c.regenProcurandoPorSegundo * regen * c.passoMs) / 1000);
       estado.restanteMs -= c.passoMs;
       if (estado.restanteMs <= 0) {
-        const chefe = (estado.abatesNaArea + 1) % area.abatesParaChefe === 0;
-        const id = chefe ? area.chefeId : rng.escolhaPonderada(area.monstros.map((m) => ({ valor: m.monstroId, peso: m.peso })));
-        monstro = obter(CATALOGO.monstros, id);
+        let id: string;
+        if (limiar) {
+          // No Limiar os chefes são raros e aleatórios (mais prováveis com o Eco).
+          const chefe = rng.flutuante() < CONFIG_LIMIAR.chanceChefe * (1 + 0.5 * limiar.cargas);
+          id = chefe ? CHEFES_LIMIAR[rng.inteiro(0, CHEFES_LIMIAR.length - 1)]! : rng.escolhaPonderada(COMUNS_LIMIAR.map((m) => ({ valor: m.monstroId, peso: m.peso })));
+        } else {
+          const chefe = (estado.abatesNaArea + 1) % area.abatesParaChefe === 0;
+          id = chefe ? area.chefeId : rng.escolhaPonderada(area.monstros.map((m) => ({ valor: m.monstroId, peso: m.peso })));
+        }
+        monstro = monstroPorId(id);
         estado = { ...estado, fase: "lutando", restanteMs: 0, monstroId: id, vidaMonstro: monstro.vida, recargaPersonagemMs: c.passoMs, recargaMonstroMs: monstro.intervaloMs };
+      }
+      continue;
+    }
+    if (estado.fase === "recompondo") {
+      estado.restanteMs -= c.passoMs;
+      if (estado.restanteMs <= 0) {
+        vida = 1;
+        estado = { ...estado, fase: "lutando", restanteMs: 0, recargaPersonagemMs: c.passoMs, recargaMonstroMs: monstro!.intervaloMs };
       }
       continue;
     }
@@ -331,7 +410,7 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
       abater(m);
       continue;
     }
-    const sc = comReforcos(statusComAura(), efeitos);
+    const sc = comReforcos(ajustar(statusComAura()), efeitos);
     estado.recargaPersonagemMs -= c.passoMs;
     if (estado.recargaPersonagemMs <= 0) {
       estado.recargaPersonagemMs += sc.intervaloMs;
@@ -347,43 +426,21 @@ export function avancarCombate(e: EntradaCombate): { personagem: Personagem; sob
       estado.recargaMonstroMs += m.intervaloMs;
       if (rng.flutuante() >= sc.esquiva) vida -= dano(monstroEnfraquecido(m, efeitos).ataque, sc.defesa) / sc.vidaMax;
       if (vida <= 0) {
-        // Desmaio (o Limiar chega na F6): acorda em Pedravau, ocioso, sem perder nada.
-        acumulado.desmaios++;
-        const sobra = (passos - i - 1) * c.passoMs + resto;
-        return {
-          personagem: {
-            ...p0,
-            nivel,
-            xp,
-            status,
-            mochila,
-            bestiario,
-            habilidades: hab,
-            vida: c.vidaAoAcordar,
-            atividade: null,
-            localId: c.localDeDesmaio.localId,
-            subareaId: c.localDeDesmaio.subareaId,
-            viagem: null,
-          },
-          sobraMs: sobra,
-        };
+        if (limiar) {
+          // No Limiar não há segunda morte: o personagem se recompõe e volta a lutar
+          // contra o mesmo monstro, que continua ferido.
+          estado = { ...estado, fase: "recompondo", restanteMs: CONFIG_LIMIAR.recomporMs };
+          vida = 0.01;
+          continue;
+        }
+        // Morte: o chamador leva o personagem ao Limiar.
+        acumulado.mortes++;
+        return saida(fim(i), e.tempoInicio - e.progressoMs + (i + 1) * c.passoMs);
       }
       if (deveRecuar()) recuar();
     }
   }
 
-  return {
-    personagem: {
-      ...p0,
-      nivel,
-      xp,
-      status,
-      mochila,
-      bestiario,
-      habilidades: hab,
-      vida,
-      atividade: { ...atividade, progressoMs: resto, combate: { ...estado, recargas, efeitos } },
-    },
-    sobraMs: 0,
-  };
+  if (limiar && restanteLimiar <= 0) return saida(resto, null);
+  return saida(0, null);
 }

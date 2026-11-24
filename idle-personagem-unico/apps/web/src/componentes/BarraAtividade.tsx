@@ -1,5 +1,5 @@
 import { CATALOGO, NOME_STATUS, type Personagem } from "@idle-pu/motor";
-import { combateDe, estimarAtividade, formatarNumero, nomeLocal, nomeSubarea, situacaoMochila } from "@/lib/atividade";
+import { combateDe, estimarAtividade, formatarDuracao, formatarNumero, nomeLocal, nomeSubarea, situacaoMochila } from "@/lib/atividade";
 import { BarraVida } from "./BarraVida";
 
 function Progresso({ valor, rotulo }: { valor: number; rotulo: string }) {
@@ -21,6 +21,26 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
       </span>
     </span>
   );
+
+  if (p.limiar) {
+    const l = p.limiar;
+    const sc = combateDe(p);
+    const c = l.combate;
+    const m = c.monstroId ? CATALOGO.monstros.get(c.monstroId) : undefined;
+    return (
+      <div className="barra-atividade barra-limiar" role="status" aria-label="No Limiar">
+        <div className="barra-linha">
+          <span className="barra-titulo">No Limiar · volta em {formatarDuracao(l.restanteMs)}</span>
+          {extras}
+        </div>
+        <div className="barra-linha suave">
+          <span>{c.fase === "lutando" && m ? `Lutando com ${m.nome}` : c.fase === "recompondo" && m ? `Se recompondo diante de ${m.nome}…` : "Vagando entre os mortos…"}</span>
+          <span>{formatarNumero(p.essencia, 0)} de Essência</span>
+        </div>
+        <BarraVida atual={p.vida * sc.vidaMax} maxima={sc.vidaMax} rotulo="Vida" />
+      </div>
+    );
+  }
 
   if (p.viagem) {
     const v = p.viagem;

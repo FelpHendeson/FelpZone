@@ -45,7 +45,13 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
             </li>
           ))}
           {resumo.recuos > 0 && <li>Recuou {resumo.recuos} {resumo.recuos === 1 ? "vez" : "vezes"} para descansar.</li>}
-          {resumo.desmaios > 0 && <li className="erro">Desmaiou e acordou em {nomeLocal("pedravau")}. Nada foi perdido.</li>}
+          {resumo.mortes > 0 && (
+            <li className="erro">
+              Morreu {resumo.mortes === 1 ? "uma vez" : `${resumo.mortes} vezes`} e atravessou para o Limiar. Nada foi perdido, só tempo.
+            </li>
+          )}
+          {resumo.saidasDoLimiar > 0 && <li>Voltou do Limiar {resumo.saidasDoLimiar === 1 ? "" : `${resumo.saidasDoLimiar} vezes `}e retomou o que fazia.</li>}
+          {resumo.essencia > 0 && <li>Essência do Limiar +{formatarNumero(resumo.essencia, 0)}</li>}
           {Object.entries(resumo.itens).map(([id, q]) => (
             <li key={id}>
               {CATALOGO.itens.get(id)?.nome} ×{formatarNumero(q, 0)}

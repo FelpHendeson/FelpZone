@@ -9,9 +9,10 @@ describe("atividade na web", () => {
     expect(resumoRelevante(resumo(0, 3_600_000))).toBe(false);
     expect(resumoRelevante(resumo(2, 59_000))).toBe(false);
     expect(resumoRelevante(resumo(2, 120_000))).toBe(true);
-    // Combate não tem ciclos: abates, recuos ou desmaio bastam.
+    // Combate não tem ciclos: abates, recuos, morte ou saída do Limiar bastam.
     expect(resumoRelevante({ ...resumo(0, 120_000), abates: { "lobo-cinzento": 3 } })).toBe(true);
-    expect(resumoRelevante({ ...resumo(0, 120_000), desmaios: 1 })).toBe(true);
+    expect(resumoRelevante({ ...resumo(0, 120_000), mortes: 1 })).toBe(true);
+    expect(resumoRelevante({ ...resumo(0, 120_000), saidasDoLimiar: 1 })).toBe(true);
   });
 
   it("formata durações e nomes de lugar", () => {
