@@ -50,6 +50,7 @@ export function ResumoOffline({ resumo, aoFechar }: { resumo: ResumoAvanco; aoFe
               Morreu {resumo.mortes === 1 ? "uma vez" : `${resumo.mortes} vezes`} e atravessou para o Limiar. Nada foi perdido, só tempo.
             </li>
           )}
+          {resumo.domados.length > 0 && <li>Domou {resumo.domados.length === 1 ? "um pet" : `${resumo.domados.length} pets`}! Veja em Personagem → Pets.</li>}
           {resumo.saidasDoLimiar > 0 && <li>Voltou do Limiar {resumo.saidasDoLimiar === 1 ? "" : `${resumo.saidasDoLimiar} vezes `}e retomou o que fazia.</li>}
           {resumo.essencia > 0 && <li>Essência do Limiar +{formatarNumero(resumo.essencia, 0)}</li>}
           {Object.entries(resumo.itens).map(([id, q]) => (

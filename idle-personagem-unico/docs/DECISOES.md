@@ -155,3 +155,14 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 66. **Conquistas sem instante**: o cofre guarda só quais foram obtidas (assim dividir o tempo não muda nada). Todas olham para o que nunca diminui (nível, mortes, rank, bestiário).
 67. **Só o ativo avança**: os outros personagens ficam parados (o relógio é da conta). Trocar credita o tempo ao que estava ativo.
 
+### Da F10 (pets), para o autor conferir
+
+68. **Vaga por categoria**, não por atividade exata: Treino (com aprendizado), Coleta, Produção e Combate, mais a vaga de Cuidados. Assim "1 pet por atividade" fica simples de configurar.
+69. **Energia e Fome em tempo de trabalho** (8 h e 12 h): o pet só gasta quando o personagem trabalha onde ele está; viagem, Limiar e cuidados não gastam.
+70. **Pets ajudam com bônus**, não lutam como personagens. Cada espécie tem 1 ou 2 bônus (ataque, coleta, produção, achados, mochila, treino).
+71. **Espirituais** = as bestas vinculadas das origens: sem fome, não se soltam, crescem com o Espírito. A União dobra o bônus por 10 min.
+72. **Doma** por abate com Laço de doma (0,07%, ~1 pet a cada 5 h de caça na Trilha dos Lobos); o laço só se gasta quando doma.
+73. **Laço Firme** (Domador) mudou: "cuidar dos pets leva menos tempo" (era "cansam mais devagar", que exigiria frações de tempo e quebraria a divisão exata do avanço).
+74. **Fruto do Vínculo**: "+Sincronia" virou "União 50% mais longa" (efeito simples e verificável).
+75. **Estábulo** em Pedravau (subárea nova), com 4 espécies à venda e o Laço de doma.
+

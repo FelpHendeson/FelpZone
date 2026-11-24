@@ -187,11 +187,11 @@ function Sincronizacao({ estado, sessao, aoConectar }: Pick<Props, "estado" | "s
           }}
         >
           <p className="suave">Crie uma conta para jogar o mesmo personagem em outro aparelho. Sem e-mail: só um nome e uma senha.</p>
-          <label>
+          <label className="campo">
             Nome da conta
             <input value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="username" maxLength={20} />
           </label>
-          <label>
+          <label className="campo">
             Senha
             <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="current-password" maxLength={128} />
           </label>

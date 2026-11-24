@@ -54,6 +54,7 @@ export const LOCAIS: readonly Local[] = [
       { id: "alquimista", nome: "Alquimista", tipo: "estabelecimento", descricao: "Cheiro de enxofre e promessas." },
       { id: "guilda", nome: "Guilda de Aventureiros", tipo: "estabelecimento", descricao: "Contratos, Mérito e gente que se acha importante." },
       { id: "taverna", nome: "Taverna do Corvo Torto", tipo: "estabelecimento", descricao: "Cerveja morna e boatos quentes." },
+      { id: "estabulo", nome: "Estábulo", tipo: "estabelecimento", descricao: "Cheiro de feno, latidos e um homem que conversa com mulas." },
     ],
   },
   {

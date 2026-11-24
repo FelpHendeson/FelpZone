@@ -25,6 +25,8 @@ import { comprarLivro, desequiparHabilidade, equiparHabilidade, escolherRamo, in
 import { abandonarMissao, aceitarMissao, entregarMissao, promover } from "./missoes/missoes";
 import { atualizarCofre } from "./personagem/cofre";
 import type { EstadoJogo } from "./save";
+import { ativarUniao, atribuirPet, comprarLaco, comprarPet, nomearPet, soltarPet } from "./pets/acoes";
+import { SLOTS_PET, type SlotPet } from "./pets/pets";
 import { aceitarSorteio, definirNomeEAparencia, iniciarSorteio, rerolar, type ResultadoAcao } from "./sorteio/acoes";
 
 export type Acao =
@@ -56,7 +58,13 @@ export type Acao =
   | { readonly tipo: "iniciarSorteio" }
   | { readonly tipo: "rerolar" }
   | { readonly tipo: "aceitarSorteio" }
-  | { readonly tipo: "definirNomeEAparencia"; readonly nome: string; readonly corCabelo: string; readonly corRoupa: string };
+  | { readonly tipo: "definirNomeEAparencia"; readonly nome: string; readonly corCabelo: string; readonly corRoupa: string }
+  | { readonly tipo: "comprarPet"; readonly especieId: string }
+  | { readonly tipo: "comprarLaco" }
+  | { readonly tipo: "nomearPet"; readonly petId: string; readonly nome: string }
+  | { readonly tipo: "atribuirPet"; readonly slot: SlotPet; readonly petId: string | null }
+  | { readonly tipo: "soltarPet"; readonly petId: string }
+  | { readonly tipo: "ativarUniao" };
 
 export type TipoAcao = Acao["tipo"];
 
@@ -93,7 +101,17 @@ export function validarAcao(v: unknown): Acao | null {
     case "iniciarSorteio":
     case "rerolar":
     case "aceitarSorteio":
+    case "comprarLaco":
+    case "ativarUniao":
       return { tipo: a.tipo };
+    case "comprarPet":
+      return texto(a.especieId) ? { tipo: a.tipo, especieId: a.especieId } : null;
+    case "nomearPet":
+      return texto(a.petId) && typeof a.nome === "string" && a.nome.length <= 60 ? { tipo: a.tipo, petId: a.petId, nome: a.nome } : null;
+    case "atribuirPet":
+      return typeof a.slot === "string" && (SLOTS_PET as readonly string[]).includes(a.slot) && (a.petId === null || texto(a.petId)) ? { tipo: a.tipo, slot: a.slot as SlotPet, petId: a.petId as string | null } : null;
+    case "soltarPet":
+      return texto(a.petId) ? { tipo: a.tipo, petId: a.petId } : null;
     case "iniciarAtividade":
       return texto(a.atividadeId) ? { tipo: a.tipo, atividadeId: a.atividadeId } : null;
     case "iniciarAprendizado":
@@ -193,6 +211,18 @@ function despachar(estado: EstadoJogo, a: Acao, agora: number): ResultadoAplicar
       return doSorteio(rerolar(estado));
     case "aceitarSorteio":
       return doSorteio(aceitarSorteio(estado));
+    case "comprarPet":
+      return comprarPet(estado, a.especieId, agora);
+    case "comprarLaco":
+      return comprarLaco(estado, agora);
+    case "nomearPet":
+      return nomearPet(estado, a.petId, a.nome, agora);
+    case "atribuirPet":
+      return atribuirPet(estado, a.slot, a.petId, agora);
+    case "soltarPet":
+      return soltarPet(estado, a.petId, agora);
+    case "ativarUniao":
+      return ativarUniao(estado, agora);
     case "definirNomeEAparencia":
       return doSorteio(definirNomeEAparencia(estado, { nome: a.nome, corCabelo: a.corCabelo, corRoupa: a.corRoupa }, agora));
   }

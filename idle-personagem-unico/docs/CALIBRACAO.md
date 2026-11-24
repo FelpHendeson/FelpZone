@@ -593,6 +593,32 @@ Na cadeia completa (60 dias, mesmo bot da F7): **21 fragmentos de chefe** e 3 re
 3. **Fusão até +3** custa ~51 itens base e ~51 mil gold (Espada de ferro). É o ralo de gold de longo prazo; o bot ainda não funde, então o gold dele continua alto (4,5 milhões no 60º dia).
 4. Ninguém morreu no bot; as poções servem a quem caça no amarelo/vermelho.
 
+## Pets (F10)
+
+Fonte: `packages/motor/src/dados/pets.ts` (`CONFIG_PETS`, `CONFIG_CUIDADOS`, espécies, comidas). Reproduza com `npm run ritmo`.
+
+| Item | Valor | Rótulo |
+| --- | --- | --- |
+| Energia / Fome | 8 h / 12 h de trabalho | [Calibrar] |
+| Bônus por nível | +10% do bônus base por nível, até o 20 | [Calibrar] |
+| Espirituais | +1% do bônus por ponto de Espírito acima de 10 | [Calibrar] |
+| União | Sincronia com 1 h de trabalho; 10 min; bônus ×2 | [Calibrar] |
+| Doma | 0,07% por abate domável, com Laço de doma (120 g) | [Calibrar] |
+| Cuidados | descansar 30 min de Energia / 5 min; treinar 5 XP e 5 min de Energia / 1 min; XP por nível = 60 × nível | [Calibrar] |
+| Estábulo | até 5 pets reais; cão 300 g, mula 400 g, gato 250 g, coruja 600 g | [Calibrar] |
+
+### Resultado do bot (pets)
+
+- Colher trigo por 8 h: 1.038 sem pet, 1.156 com o Javali no nível 10 (+11%). A Energia (8 h) acaba junto com o turno.
+- Doma na Trilha dos Lobos (nível 1): 306 lobos e javalis por hora; **um pet a cada ~4,7 h** de caça.
+- 1 h de descanso devolve 6 h de Energia; treinar do nível 1 ao 10 leva 9 h de Estábulo.
+
+### Leitura e proposta (F10)
+
+1. **Doma** começou em 3% e dava um pet a cada poucos minutos (o combate do nível 1 é muito rápido); com 0,07%, ~5 h.
+2. **Descanso** começou em 1 h de Energia a cada 5 min (12 h por hora, trivial); com 30 min, cuidar custa ~15% do tempo de trabalho.
+3. Bônus de pet ficam entre 5% e 11% (até 20% no nível 20), abaixo de um item bom: ajudam sem decidir.
+
 ## Histórico
 
 | Data | Mudança | Antes → depois |
@@ -614,3 +640,6 @@ Na cadeia completa (60 dias, mesmo bot da F7): **21 fragmentos de chefe** e 3 re
 | 24/11/2026 | F8: fragmento de chefe (1.895 em 60 dias). | 40% → 1% por chefe |
 | 24/11/2026 | F8: números de produção, fusão, ampliação, poções e relíquias definidos (não existiam). | — |
 | 24/11/2026 | F9: Pergaminho do Novo Destino nos ranks C e A de cada personagem (máximo 9); limites da API (120 pedidos/min, 10 entradas/min, sessão de 30 dias). | — |
+| 24/11/2026 | F10: chance de domar (um pet a cada poucos minutos). | 3% → 0,07% por abate |
+| 24/11/2026 | F10: descanso do pet (12 h de Energia por hora de descanso). | 1 h → 30 min por ciclo de 5 min |
+| 24/11/2026 | F10: números de pets, cuidados, União e Estábulo definidos (não existiam). | — |

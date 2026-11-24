@@ -3,6 +3,7 @@
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
 import { COFRE_VAZIO, validarCofre, type Cofre } from "./cofre";
+import { validarCamposF10, type Pet, type SlotPet } from "../pets/pets";
 import { cabeNoSlot, CATALOGO, CONFIG_GUILDA, CONFIG_MOCHILA_EXTRA, monstroDoLimiar, NOMEADOS_DE_ORIGEM, OFICIOS, OFICIOS_PRODUCAO, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import type { OficioProducaoId } from "../dados/producao";
@@ -185,6 +186,14 @@ export interface Personagem {
   readonly espacosExtras: number;
   /** F8: falhas seguidas de fusão por item (garantia). */
   readonly pityFusao: Readonly<Record<string, number>>;
+  /** F10: pets do personagem (reais no Estábulo e a besta vinculada). */
+  readonly pets: readonly Pet[];
+  /** F10: pet atribuído a cada categoria de atividade (e o que recebe os cuidados). */
+  readonly petsPorSlot: Readonly<Partial<Record<SlotPet, string>>>;
+  /** F10: contador para os ids dos pets. */
+  readonly petsCriados: number;
+  /** F10: tempo que resta do modo União (0 = desligado). */
+  readonly uniaoRestanteMs: number;
 }
 
 export interface MissaoAtiva {
@@ -294,6 +303,8 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f7) return null;
   const f8 = validarCamposF8(v);
   if (!f8) return null;
+  const f10 = validarCamposF10(v, typeof bestaVinculadaId === "string" ? bestaVinculadaId : undefined);
+  if (!f10) return null;
   // Itens nomeados: uma unidade de cada por personagem (mochila + equipados).
   for (const item of CATALOGO.itens.values()) {
     if (!item.equipamento?.nomeado) continue;
@@ -380,6 +391,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     ...f6,
     ...f7,
     ...f8,
+    ...f10,
   };
 }
 

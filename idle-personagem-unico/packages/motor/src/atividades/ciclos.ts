@@ -31,6 +31,8 @@ import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
 import { LIMITE_OFFLINE_MS } from "../tempo";
 import { atualizarCofre } from "../personagem/cofre";
+import { COMIDA_PET, CONFIG_CUIDADOS, CONFIG_PETS } from "../dados/pets";
+import { especieDe, gastarPet, limiteDoTrecho, petTrabalhando, xpParaProximoNivelPet, type Pet } from "../pets/pets";
 import { ganharMaestria, praticarPassivas, type ProgressoHabilidade } from "../habilidades/maestria";
 import { avancarCombate, combateInicial, CONFIG_COMBATE, type AcumuladoCombate } from "./combate";
 import { entrarNoLimiar, opcoesDoLimiar, sairDoLimiar } from "./limiar";
@@ -56,6 +58,8 @@ function fatorVelocidade(p: Personagem, atividade: AtividadeCiclica, mods: reado
     f *= fator(mods, "coleta.velocidade");
     f *= obter(CATALOGO.ferramentas, p.ferramentas[atividade.oficio]).velocidade;
     f *= 1 + BONUS_AGILIDADE_POR_PONTO * valorEfetivo(p.status.agilidade, "agilidade", mods);
+  } else if (atividade.tipo === "cuidado") {
+    f *= fator(mods, "pets.cuidado");
   } else if (atividade.tipo === "producao") {
     // Intelecto acelera a produção (GDD §5.1).
     f *= fator(mods, "producao.velocidade");
@@ -113,6 +117,8 @@ export interface ResultadoCiclos {
   readonly essencia: number;
   /** Saídas do Limiar (tempo acabou) neste avanço. */
   readonly saidasDoLimiar: number;
+  /** F10: espécies domadas. */
+  readonly domados: readonly string[];
   /** Ciclos de treino por status. */
   readonly treinos: Readonly<Record<string, number>>;
 }
@@ -132,6 +138,8 @@ interface Acumulado extends AcumuladoCombate {
   chegouEm: string | null;
   saidasDoLimiar: number;
   treinos: Record<string, number>;
+  /** F10: ms trabalhados na atividade (para o gasto do pet). */
+  trabalhoMs: number;
 }
 
 /**
@@ -155,8 +163,21 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     chegouEm: null,
     saidasDoLimiar: 0,
     treinos: {},
+    trabalhoMs: 0,
+    domados: [],
   };
-  const trecho = avancarTrecho(p, Math.max(0, Math.floor(ms)), rng, config, tempoInicio, acc);
+  // F10: o tempo é dividido onde o bônus do pet muda (Energia/Fome acabam, União termina).
+  let trecho = p;
+  let restante = Math.max(0, Math.floor(ms));
+  let inicio = tempoInicio;
+  while (restante > 0) {
+    const seg = Math.min(restante, limiteDoTrecho(trecho));
+    const pet = petTrabalhando(trecho);
+    acc.trabalhoMs = 0;
+    trecho = gastarPet(avancarTrecho(trecho, seg, rng, config, inicio, acc), pet?.id ?? null, acc.trabalhoMs, seg);
+    restante -= seg;
+    inicio += seg;
+  }
   // Contadores para as missões (F7): somas, então dividir o tempo não muda nada.
   const obtidos = { ...trecho.obtidos };
   for (const [id, n] of Object.entries(acc.itens)) obtidos[id] = (obtidos[id] ?? 0) + n;
@@ -180,6 +201,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     maestria: acc.maestria,
     essencia: acc.essencia,
     saidasDoLimiar: acc.saidasDoLimiar,
+    domados: acc.domados,
     treinos: acc.treinos,
   };
 }
@@ -259,6 +281,7 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
       acumulado: acc,
       config,
     });
+    acc.trabalhoMs += r.morteEm !== null ? r.morteEm - inicio : restante;
     if (r.morteEm !== null) {
       // Morte: atravessa para o Limiar e o tempo que sobrou corre lá.
       const morto = entrarNoLimiar({ ...r.personagem, atividade: atual.atividade }, atividade.nivelRecomendado, r.morteEm);
@@ -273,6 +296,7 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
   const oficiosProducao = { ...atual.oficiosProducao } as Record<OficioProducaoId, ProgressoOficio>;
   let parouSemMaterial = false;
   let mochila = atual.mochila;
+  let pets = atual.pets;
   let nivel = atual.nivel;
   let xp = atual.xp;
   let progresso = atual.atividade!.progressoMs + restante;
@@ -353,6 +377,35 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
         if (nivelO >= CONFIG_OFICIOS.nivelMaximo) xpO = 0;
         oficiosProducao[o] = { nivel: nivelO, xp: xpO };
       }
+    } else if (atividade.tipo === "cuidado") {
+      // Cuidados do pet (F10): o pet do slot "cuidado" recebe; sem o que fazer, para.
+      const idx = pets.findIndex((x) => x.id === atual.petsPorSlot.cuidado);
+      const pet = idx >= 0 ? pets[idx]! : null;
+      let novo: Pet | null = null;
+      if (pet && atividade.cuidado === "alimentar" && especieDe(pet).tipo === "real" && pet.saciedadeMs < CONFIG_PETS.saciedadeMaximaMs) {
+        const comida = Object.keys(COMIDA_PET).find((id) => (mochila[id] ?? 0) > 0);
+        if (comida) {
+          mochila = removerItens(mochila, comida, 1);
+          novo = { ...pet, saciedadeMs: Math.min(CONFIG_PETS.saciedadeMaximaMs, pet.saciedadeMs + COMIDA_PET[comida]!) };
+        }
+      } else if (pet && atividade.cuidado === "descansar" && pet.energiaMs < CONFIG_PETS.energiaMaximaMs) {
+        novo = { ...pet, energiaMs: Math.min(CONFIG_PETS.energiaMaximaMs, pet.energiaMs + CONFIG_CUIDADOS.descansoPorCicloMs) };
+      } else if (pet && atividade.cuidado === "treinar" && pet.nivel < CONFIG_PETS.nivelMaximo && pet.energiaMs >= CONFIG_CUIDADOS.energiaPorTreinoMs) {
+        let nivelP = pet.nivel;
+        let xpP = pet.xp + CONFIG_CUIDADOS.xpPetPorTreino;
+        while (nivelP < CONFIG_PETS.nivelMaximo && xpP >= xpParaProximoNivelPet(nivelP)) {
+          xpP -= xpParaProximoNivelPet(nivelP);
+          nivelP++;
+        }
+        if (nivelP >= CONFIG_PETS.nivelMaximo) xpP = 0;
+        novo = { ...pet, nivel: nivelP, xp: xpP, energiaMs: pet.energiaMs - CONFIG_CUIDADOS.energiaPorTreinoMs };
+      }
+      if (!novo) {
+        parouSemMaterial = true;
+        ciclos--;
+        break;
+      }
+      pets = pets.map((x, i) => (i === idx ? novo! : x));
     } else {
       // Quantidade: parte inteira garantida + fração sorteada; depois o achado raro.
       const inteiro = Math.floor(rendimento);
@@ -396,7 +449,9 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
     : praticada
       ? { id: atividade.id, progressoMs: progresso, habilidadeId: praticada }
       : { id: atividade.id, progressoMs: progresso };
-  const fim = { ...atual, nivel, xp, status, oficios, oficiosProducao, mochila, habilidades: hab, atividade: atividadeFinal };
+  const fim = { ...atual, nivel, xp, status, oficios, oficiosProducao, mochila, pets, habilidades: hab, atividade: atividadeFinal };
+  // F10: tempo de trabalho (o pet só cansa trabalhando; cuidados não contam).
+  if (atividade.tipo !== "cuidado") acc.trabalhoMs += parouSemMaterial ? Math.max(0, restante - progresso) : restante;
   // Parou por falta de material: o resto do tempo é ocioso (a vida já se recuperou acima).
   return resultado(fim);
 }
@@ -425,6 +480,8 @@ export interface ResumoAvanco {
   readonly maestria: Readonly<Record<string, number>>;
   readonly essencia: number;
   readonly saidasDoLimiar: number;
+  /** F10: espécies domadas. */
+  readonly domados: readonly string[];
 }
 
 /** Resumo sem nada acontecido (útil para a interface e testes). */
@@ -450,6 +507,7 @@ export function resumoVazio(atividadeId: string | null = null, nivel = 0): Resum
     maestria: {},
     essencia: 0,
     saidasDoLimiar: 0,
+    domados: [],
   };
 }
 
@@ -505,6 +563,7 @@ function avancarAtivo(estado: EstadoJogo, ativo: Personagem, simulado: number, n
       maestria: r.maestria,
       essencia: r.essencia,
       saidasDoLimiar: r.saidasDoLimiar,
+      domados: r.domados,
     },
   };
 }

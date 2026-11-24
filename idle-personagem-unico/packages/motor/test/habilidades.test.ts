@@ -16,6 +16,7 @@ import {
   camposIniciaisF6,
   camposIniciaisF7,
   camposIniciaisF8,
+  camposIniciaisF10,
   carregarSave,
   comprarLivro,
   criarEstadoInicial,
@@ -66,6 +67,7 @@ function personagem(coreId = "ser-das-trevas", extra: Partial<Personagem> = {}):
     ...camposIniciaisF6(),
     ...camposIniciaisF7(),
     ...camposIniciaisF8(),
+    ...camposIniciaisF10(),
     ...camposIniciaisF5(coreId),
     ...extra,
   };
@@ -134,8 +136,8 @@ describe("maestria e slots", () => {
     expect(Object.keys(p.habilidades).sort()).toEqual(["abraco-das-sombras", "invocacao-do-manto-das-trevas", "sentido-das-sombras"]);
     expect(p.ativasEquipadas).toEqual(["invocacao-do-manto-das-trevas"]);
     expect(p.passivasEquipadas).toEqual(["sentido-das-sombras", "abraco-das-sombras"]);
-    // Passivas que dependem de sistemas futuros não são equipadas de saída.
-    expect(personagem("domador").passivasEquipadas).toEqual([]);
+    // As passivas de pet do Domador passaram a valer na F10.
+    expect(personagem("domador").passivasEquipadas).toEqual(["voz-mansa", "laco-firme"]);
   });
 
   it("auras só valem com pouca vida", () => {

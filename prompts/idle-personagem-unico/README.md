@@ -29,6 +29,7 @@ Em caso de divergência, a documentação do projeto e a solicitação mais rece
 | 7 | `07-fatia-F7-missoes-guilda.md` | **Concluída** em 24/11/2026 (F7 a F13 autorizadas juntas). Decisões em `docs/DECISOES.md` (45 a 51). |
 | 8 | `08-fatia-F8-forja-producao.md` | **Concluída** em 24/11/2026. Decisões em `docs/DECISOES.md` (52 a 59). |
 | 9 | `09-fatia-F9-conta-sincronizacao.md` | **Concluída** em 24/11/2026 (banco a ativar pelo autor). Decisões em `docs/DECISOES.md` (60 a 67). |
+| 10 | `10-fatia-F10-pets.md` | **Concluída** em 24/11/2026. Decisões em `docs/DECISOES.md` (68 a 75). |
 | 8 a 14 | F8 a F14 de `docs/ROADMAP.md` | F8 a F13 autorizadas; prompts escritos uma a uma. A F14 (mobile) ainda não. |
 
 O relatório de todas as fatias executadas fica em `idle-personagem-unico/RELATORIO-idle-personagem-unico.md`.

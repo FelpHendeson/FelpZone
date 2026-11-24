@@ -38,6 +38,7 @@ export {
   migrarV7ParaV8,
   migrarV8ParaV9,
   migrarV9ParaV10,
+  migrarV10ParaV11,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -198,3 +199,19 @@ export { aplicarAcao, trocarPersonagem, validarAcao } from "./acoes";
 export type { Acao, ResultadoAplicar, TipoAcao } from "./acoes";
 export { atualizarCofre, COFRE_VAZIO, CONQUISTAS, MAX_PERGAMINHOS, RANKS_COM_PERGAMINHO, validarCofre } from "./personagem/cofre";
 export type { Cofre, Conquista, Descobertas } from "./personagem/cofre";
+
+// F10: pets.
+export {
+  bonusDoPet,
+  camposIniciaisF10,
+  categoriaAtual,
+  especieDe,
+  modificadoresDePets,
+  novoPet,
+  petTrabalhando,
+  petUtil,
+  SLOTS_PET,
+  xpParaProximoNivelPet,
+} from "./pets/pets";
+export type { Pet, SlotPet } from "./pets/pets";
+export { ativarUniao, atribuirPet, comprarLaco, comprarPet, nomearPet, soltarPet } from "./pets/acoes";

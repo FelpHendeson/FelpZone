@@ -7,6 +7,8 @@ import { CATALOGO, CONFIG_GUILDA, CONFIG_LIMIAR, obter, PERFIS_RACA, STATUS, typ
 import type { Efeito } from "../dados/tipos";
 import { modificadoresDeHabilidades, type Habilidades } from "../habilidades/maestria";
 import { resumirModificadores, type Modificador } from "../modificadores";
+import { modificadoresDePets } from "../pets/pets";
+import type { Personagem } from "./conta";
 
 export interface ConfigProgressao {
   readonly nivelMaximo: number;
@@ -51,6 +53,14 @@ export interface BaseModificadores {
   readonly guilda?: { readonly rank: number };
   /** Espaços de mochila comprados (F8). */
   readonly espacosExtras?: number;
+  /** Pets (F10): o que trabalha na atividade atual dá bônus. */
+  readonly atividade?: Personagem["atividade"];
+  readonly viagem?: Personagem["viagem"];
+  readonly limiar?: Personagem["limiar"];
+  readonly pets?: Personagem["pets"];
+  readonly petsPorSlot?: Personagem["petsPorSlot"];
+  readonly uniaoRestanteMs?: number;
+  readonly status?: Personagem["status"];
 }
 
 /** XP necessário para subir do nível `nivel` para o seguinte (0 no nível máximo). */
@@ -105,6 +115,8 @@ export function modificadoresDoPersonagem(p: BaseModificadores, nivel: number): 
     lista.push({ alvo: "preco-compra", operacao: "percentual", valor: -CONFIG_GUILDA.descontoPorRank * rank, origem });
     lista.push({ alvo: "coleta.rendimento", operacao: "percentual", valor: CONFIG_GUILDA.coletaPorRank * rank, origem });
   }
+  // Pet que trabalha na atividade atual (F10).
+  lista.push(...modificadoresDePets(p));
   return lista;
 }
 

@@ -27,6 +27,12 @@ import {
   camposIniciaisF6,
   camposIniciaisF7,
   camposIniciaisF8,
+  camposIniciaisF10,
+  CONFIG_CUIDADOS,
+  CONFIG_PETS,
+  novoPet,
+  PRECO_LACO,
+  xpParaProximoNivelPet,
   FRAGMENTO,
   infoFusao,
   RECEITAS,
@@ -108,6 +114,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     ...camposIniciaisF6(),
     ...camposIniciaisF7(),
     ...camposIniciaisF8(),
+    ...camposIniciaisF10(),
   };
 }
 
@@ -631,6 +638,40 @@ linha();
   linha("| --- | ---: | ---: | ---: |");
   const nomes = ["+1", "+2", "+3"];
   for (let k = 0; k < 3; k++) linha(`| ${nomes[k]} | ${num(custos[k]!.itens)} | ${num(custos[k]!.fusoes)} | ${num(custos[k]!.ouro, 0)} |`);
+  linha();
+}
+// ---------------------------------------------------------------- Pets (F10)
+
+linha("### Pets (F10)");
+linha();
+{
+  // Coleta de trigo por 8 h, com e sem o javali (pet de coleta), no nível 1.
+  const colher = (comPet: boolean) => {
+    const base = personagem("humano", comum);
+    const pet = { ...novoPet("pet-1", "javali", "Javali"), nivel: 10 };
+    const pc: Personagem = { ...base, localId: "pedravau", subareaId: "hortas", espacosExtras: 1_000, atividade: { id: "colher-trigo", progressoMs: 0 }, ...(comPet ? { pets: [pet], petsPorSlot: { coleta: "pet-1" }, petsCriados: 1 } : {}) };
+    return avancarPersonagem(pc, 8 * HORA, Rng.daSemente("pets-coleta"));
+  };
+  const sem = colher(false).itens["trigo"] ?? 0;
+  const comR = colher(true);
+  const com = comR.itens["trigo"] ?? 0;
+  linha(`Colher trigo por 8 h: ${sem} sem pet, ${com} com o Javali no nível 10 (+${num((com / sem - 1) * 100)}%). Energia do pet ao fim: ${num(comR.personagem.pets[0]!.energiaMs / HORA)} h; saciedade: ${num(comR.personagem.pets[0]!.saciedadeMs / HORA)} h.`);
+  linha();
+  // Doma na Trilha dos Lobos: abates de monstros domáveis por hora no nível de entrada.
+  const g = guerreiro(1, 0.5, 1);
+  const area = AREAS_COMBATE.find((a) => a.id === "trilha-dos-lobos")!;
+  const pc: Personagem = {
+    ...g,
+    localId: area.localId,
+    subareaId: area.subareaId,
+    atividade: { id: area.id, progressoMs: 0, combate: { fase: "procurando", restanteMs: 3_000, monstroId: null, vidaMonstro: 0, recargaPersonagemMs: 0, recargaMonstroMs: 0, abatesNaArea: 0, recargas: {}, efeitos: [] } },
+  };
+  const r = avancarPersonagem(pc, 8 * HORA, Rng.daSemente("doma"), { ...CONFIG_PROGRESSAO, nivelMaximo: g.nivel });
+  const domaveis = ((r.abates["lobo-cinzento"] ?? 0) + (r.abates["javali-magro"] ?? 0)) / 8;
+  const horasPorPet = 1 / (domaveis * CONFIG_PETS.chanceDomar);
+  linha(`Doma na Trilha dos Lobos (nível 1, equipamento de couro): ${num(domaveis, 0)} lobos e javalis por hora; com chance de ${num(CONFIG_PETS.chanceDomar * 100, 2)}% por abate, um pet a cada ~${num(horasPorPet)} h (1 laço de ${PRECO_LACO} g por pet).`);
+  linha();
+  linha(`Cuidados: 1 h de descanso devolve ${num((60 / 5) * (CONFIG_CUIDADOS.descansoPorCicloMs / HORA))} h de energia; treinar do nível 1 ao 10 leva ${num((Array.from({ length: 9 }, (_, i) => xpParaProximoNivelPet(i + 1)).reduce((a, b) => a + b, 0) / 5) / 60)} h de Estábulo.`);
   linha();
 }
 console.log(out.join("\n"));

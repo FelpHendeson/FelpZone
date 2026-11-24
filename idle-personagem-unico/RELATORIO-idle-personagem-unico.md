@@ -23,8 +23,9 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F6 | O Limiar | ✅ Concluída em 24/11/2026 | `7275030` | 263 |
 | F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | `646316d` | 277 |
 | F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | `ed3359e` | 297 |
-| F9 | Conta e sincronização | ✅ Concluída em 24/11/2026 (banco a ativar pelo autor) | (ver seção) | 319 |
-| F10 a F13 | Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
+| F9 | Conta e sincronização | ✅ Concluída em 24/11/2026 (banco a ativar pelo autor) | `332069a` | 319 |
+| F10 | Pets | ✅ Concluída em 24/11/2026 | (ver seção) | 337 |
+| F11 a F13 | Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -713,6 +714,7 @@ Afixos aleatórios; carpintaria e costura; manoplas e mão secundária; troca en
   1. o aparelho 1 cria conta e começa a colher trigo pelo servidor;
   2. o aparelho 2 recusa senha errada, entra e escolhe "Usar o jogo da conta" (aparece o mesmo personagem colhendo);
   3. o aparelho 2 para a atividade e o aparelho 1, ao recarregar, vê a atividade parada.
+- **CI e Vercel**: job do projeto verde no commit `332069a` e deploy em `READY`. No site publicado, `GET /api/v1/saude` responde `banco: false` e `POST /api/v1/auth/entrar` responde 503 (sem banco, como esperado).
 
 ### Números principais
 
@@ -740,6 +742,81 @@ Cosméticos e histórico de temporadas no cofre; recuperação de senha; apagar 
 
 ---
 
+## F10 — Pets
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Prompt em `prompts/idle-personagem-unico/10-fatia-F10-pets.md`.
+
+### O que foi executado
+
+- [x] **Pets reais:**
+  - 6 domáveis em combate (lobo, javali, morcego-de-veio, sapo-cão, aranha de casca, enguia-navalha);
+  - 4 à venda no **Estábulo** de Pedravau (cão de caça, mula, gato de celeiro, coruja);
+  - até 5 por personagem; nível 1 a 20; bônus +10% por nível.
+- [x] **Pets espirituais:** as 3 bestas vinculadas das origens especiais. Não sentem fome, não podem ser soltas e crescem com o Espírito.
+- [x] **1 pet por atividade** (Treino, Coleta, Produção, Combate) e uma vaga de **Cuidados**. O mesmo pet pode estar em todas. Ele só ajuda e só cansa quando o personagem trabalha ali.
+- [x] **Energia e Fome** contadas em tempo de trabalho (8 h e 12 h). Sem elas, o bônus some. O avanço do tempo é **dividido exatamente onde o bônus muda**, então fechar e abrir o jogo continua dando o mesmo resultado.
+- [x] **Cuidados** como atividades do personagem, no Estábulo:
+  - alimentar (gasta comida da mochila);
+  - descansar (recupera Energia);
+  - treinar (XP e nível do pet).
+- [x] **Doma:** com Laço de doma na mochila, chance por abate de monstro domável, sorteada com o RNG do save; o laço só se gasta quando doma.
+- [x] **Modo União** das bestas: Sincronia cheia (1 h de trabalho) libera 10 min de bônus dobrado.
+- [x] **Efeitos que passaram a valer:** bestas vinculadas, Fruto do Vínculo (União 50% mais longa), Voz Mansa (+10% de doma) e Laço Firme (cuidados mais rápidos).
+- [x] **Ações serializadas novas:** comprar pet, comprar laço, nomear, atribuir, soltar e União. Valem também pelo servidor da F9.
+- [x] **Save v11** com migração v10 → v11 (quem tinha besta vinculada a recebe como pet).
+- [x] **Web:**
+  - Personagem → Pets: vagas, cartões com Energia, Saciedade, XP ou Sincronia, renomear, soltar, União;
+  - Atividades → Pets: cuidados e Estábulo;
+  - domas no resumo do tempo fora; nomes dos bônus em português.
+- [x] **Bot, calibração, documentação** e esta seção.
+
+### Como foi validado
+
+- **Verificações locais:** `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **337 testes** (319 no motor, 18 na web).
+- **Testes novos (15):**
+  - catálogo de espécies, comidas, cuidados e Estábulo;
+  - besta vinculada de saída;
+  - pet só ajuda e só cansa na sua atividade;
+  - sem Energia ou com fome, sem bônus; bônus cresce com o nível;
+  - **dividir o tempo dá o mesmo resultado** com a Energia acabando no meio (4 sementes);
+  - alimentar, descansar, treinar; sem pet, o cuidado para;
+  - doma com e sem laço;
+  - ações (comprar, nomear, atribuir, limite do Estábulo, soltar, laço);
+  - União (sincronia, bônus dobrado, fim);
+  - save v11: ida e volta, 8 adulterações recusadas e migração.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - comprar mula e laço; pôr a mula na Coleta e nos Cuidados; renomear para "Teimosa";
+  - colher 2 h (Energia 8 h → 6 h, Fome 12 h → 10 h);
+  - descansar 15 min (Energia → 7,5 h);
+  - besta com Sincronia cheia ativa a União (10 min).
+
+  Também a **migração real** de um save v10 criado no site publicado (que rodava a F9). Console limpo, sem rolagem lateral.
+
+### Números principais
+
+- **Javali nível 10 na coleta:** +11% de trigo (1.038 → 1.156 em 8 h).
+- **Doma:** um pet a cada ~4,7 h de caça na Trilha dos Lobos.
+- **Cuidados:** 1 h de descanso = 6 h de Energia; nível 1 → 10 em 9 h de treino.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | Como gastar Energia/Fome sem quebrar "dividir o tempo dá o mesmo resultado"? | Reservas em **ms inteiros de trabalho**. O avanço é cortado exatamente onde a reserva acaba (ou a União termina), e cada trecho mede o tempo realmente trabalhado (para na morte, na falta de material, na viagem). Teste de propriedade cobre. | Resolvido |
+| 2 | "Cada atividade tem 1 slot": por atividade exata ou por tipo? | Por tipo (Treino, Coleta, Produção, Combate) + Cuidados. | Aguarda o autor |
+| 3 | O pet sobe de nível trabalhando? | Não: só treinando (cuidado). Subir no meio do trabalho mudaria o bônus no meio do trecho. | Aguarda o autor |
+| 4 | Doma começou em 3% e dava pets a cada poucos minutos. | 0,07% por abate (~5 h por pet). | Resolvido (Calibrar) |
+| 5 | Descanso devolvia 12 h de Energia por hora. | 30 min por ciclo de 5 min (6 h por hora). | Resolvido (Calibrar) |
+| 6 | Laço Firme ("cansam mais devagar") exigiria frações de tempo. | Virou "cuidados mais rápidos". | Aguarda o autor |
+| 7 | "+Sincronia" do Fruto do Vínculo. | União 50% mais longa (15 min). | Aguarda o autor |
+| 8 | Pets lutam? | Não: dão bônus. Habilidades próprias de pet ficam para depois. | Aguarda o autor |
+
+### O que ficou de fora
+
+Habilidades próprias dos pets; mais de 1 vaga por atividade; pets lutando como personagens; o pet espiritual "de marcos" (rituais e eventos) além das bestas.
+
+---
+
 ## Próximo passo
 
-**F10 — Pets** (já autorizada): pets reais e espirituais, 1 pet por atividade, Fome/Energia, cuidados como atividades, besta vinculada, domar e União. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1).
+**F11 — Mundo vivo** (já autorizada): dia/noite, clima, eventos aleatórios, Crônica, títulos, bestiário completo e arcos das origens especiais. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1).

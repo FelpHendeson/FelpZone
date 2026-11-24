@@ -66,7 +66,15 @@ export type CodigoErroAtividade =
   | "fusao_maxima"
   | "itens_insuficientes"
   | "material_insuficiente"
-  | "limite_de_compras";
+  | "limite_de_compras"
+  | "pet_inexistente"
+  | "estabulo_cheio"
+  | "nome_invalido"
+  | "pet_espiritual"
+  | "sincronia_incompleta"
+  | "uniao_ativa"
+  | "nao_vende_pet"
+  | "slot_invalido";
 
 export interface ErroAtividade {
   readonly codigo: CodigoErroAtividade;

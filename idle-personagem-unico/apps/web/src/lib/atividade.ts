@@ -57,6 +57,9 @@ export function estimarAtividade(p: Personagem, atividadeId: string): Estimativa
       viagemMs,
     };
   }
+  if (a.tipo === "cuidado") {
+    return { duracaoMs, ganhoPorHora: 0, xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora, itensPorHora: 0, xpOficioPorHora: 0, chanceRaro: 0, viagemMs };
+  }
   if (a.tipo === "producao") {
     return {
       duracaoMs,
@@ -87,7 +90,7 @@ export function situacaoMochila(p: Personagem): { usados: number; capacidade: nu
 
 /** Mostra o resumo "Enquanto você estava fora" só se algo relevante aconteceu. */
 export function resumoRelevante(r: ResumoAvanco): boolean {
-  const algo = r.ciclos > 0 || Object.keys(r.abates).length > 0 || r.mortes > 0 || r.recuos > 0 || r.saidasDoLimiar > 0;
+  const algo = r.ciclos > 0 || Object.keys(r.abates).length > 0 || r.mortes > 0 || r.recuos > 0 || r.saidasDoLimiar > 0 || r.domados.length > 0;
   return algo && r.simuladoMs >= 60_000;
 }
 

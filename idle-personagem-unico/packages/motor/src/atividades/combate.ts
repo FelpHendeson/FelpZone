@@ -4,6 +4,8 @@
  * esquiva, drops) usam o RNG do save, sempre na mesma ordem, então dividir o
  * tempo em partes dá o mesmo resultado.
  */
+import { CONFIG_PETS, ESPECIES_PET, LACO_DE_DOMA } from "../dados/pets";
+import { especieDe, novoPet } from "../pets/pets";
 import {
   CATALOGO,
   CHANCE_FRAGMENTO,
@@ -59,6 +61,9 @@ export const CONFIG_COMBATE = Object.freeze({
   pocaoAbaixoDe: 0.4,
   recargaPocaoMs: 10_000,
 });
+
+/** Monstro → espécie de pet que ele vira ao ser domado. */
+const DOMAVEIS = new Map(ESPECIES_PET.filter((e) => e.domadoDe).map((e) => [e.domadoDe!, e]));
 
 /** Chave da recarga de poções no estado de combate. */
 export const CHAVE_POCAO = "pocao";
@@ -148,6 +153,8 @@ export interface AcumuladoCombate {
   essencia: number;
   /** Níveis de maestria ganhos por habilidade. */
   maestria: Record<string, number>;
+  /** F10: espécies domadas (na ordem). */
+  domados: string[];
 }
 
 /** Opções do combate dentro do Limiar (F6). */
@@ -237,6 +244,8 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
   let xp = p0.xp;
   let essencia = p0.essencia;
   let mochila: Mochila = p0.mochila;
+  let pets = p0.pets;
+  let petsCriados = p0.petsCriados;
   const bestiario: Record<string, number> = { ...p0.bestiario };
   const total = e.progressoMs + Math.floor(e.ms);
   const passos = Math.floor(total / c.passoMs);
@@ -332,6 +341,17 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
       // F8: chefes de área deixam fragmentos (receitas de nomeados).
       if (m.tipo === "chefe" && rng.flutuante() < CHANCE_FRAGMENTO) guardar(FRAGMENTO, 1);
     }
+    // F10: domar (com Laço de doma na mochila e vaga no Estábulo).
+    const domavel = DOMAVEIS.get(m.id);
+    if (domavel && !limiar && (mochila[LACO_DE_DOMA] ?? 0) > 0 && pets.filter((x) => especieDe(x).tipo === "real").length < CONFIG_PETS.maximo) {
+      if (rng.flutuante() < CONFIG_PETS.chanceDomar * fator(mods, "pets.domar")) {
+        mochila = { ...mochila, [LACO_DE_DOMA]: mochila[LACO_DE_DOMA]! - 1 };
+        if (mochila[LACO_DE_DOMA] === 0) delete (mochila as Record<string, number>)[LACO_DE_DOMA];
+        petsCriados++;
+        pets = [...pets, novoPet(`pet-${petsCriados}`, domavel.id, domavel.nome)];
+        acumulado.domados.push(domavel.id);
+      }
+    }
     // F8: relíquias (nomeadas, uma de cada).
     const reliquia = DROPS_RELIQUIA[m.id];
     if (reliquia && rng.flutuante() < reliquia.chance && !tem(reliquia.itemId)) guardar(reliquia.itemId, 1);
@@ -377,7 +397,7 @@ export function avancarCombate(e: EntradaCombate): SaidaCombate {
 
   const fim = (i: number) => (passos - i - 1) * c.passoMs + resto;
   const saida = (sobraMs: number, morteEm: number | null): SaidaCombate => ({
-    personagem: { ...p0, nivel, xp, status, mochila, bestiario, habilidades: hab, vida, essencia },
+    personagem: { ...p0, nivel, xp, status, mochila, bestiario, habilidades: hab, vida, essencia, pets, petsCriados },
     combate: { ...estado, recargas, efeitos },
     progressoMs: sobraMs > 0 ? 0 : resto,
     sobraMs,

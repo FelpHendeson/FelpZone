@@ -846,3 +846,35 @@ ol.lista-recursos {
 .missao .progresso {
   margin-top: 0.5rem;
 }
+
+/* F9/F10 */
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.destaque {
+  color: var(--destaque);
+  font-weight: 600;
+}
+
+.pet-barras {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.5rem;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.campo-linha input {
+  min-height: 2.75rem;
+  padding: 0 0.75rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--borda);
+  background: var(--fundo);
+  color: var(--texto);
+  font: inherit;
+  min-width: 0;
+  flex: 1 1 8rem;
+}

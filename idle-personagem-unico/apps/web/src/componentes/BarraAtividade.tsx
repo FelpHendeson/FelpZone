@@ -108,7 +108,9 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
     );
   }
   const ganho =
-    a.tipo === "treino"
+    a.tipo === "cuidado"
+      ? `cuidando de ${p.pets.find((x) => x.id === p.petsPorSlot.cuidado)?.nome ?? "ninguém"}`
+      : a.tipo === "treino"
       ? `+${formatarNumero(e.ganhoPorHora, 2)} ${NOME_STATUS[a.status]}/h agora`
       : `~${formatarNumero(e.itensPorHora, 0)} ${CATALOGO.itens.get(a.tipo === "producao" ? a.saida.itemId : a.itemId)!.nome.toLowerCase()}/h`;
   return (

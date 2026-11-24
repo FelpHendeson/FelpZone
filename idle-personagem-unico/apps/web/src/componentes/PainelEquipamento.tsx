@@ -19,6 +19,12 @@ const NOMES_ALVO: Record<string, string> = {
   "duracao-limiar": "tempo no Limiar",
   "producao.sucesso": "sucesso na fusão",
   "espacos-mochila": "espaços na mochila",
+  "coleta.velocidade": "velocidade de coleta",
+  "coleta.rendimento": "rendimento de coleta",
+  "producao.velocidade": "velocidade de produção",
+  "ganho-treino": "ganho de treino",
+  "xp-maestria": "XP de maestria",
+  "xp-personagem": "XP do personagem",
 };
 
 /** Bônus de um equipamento em texto (ataque, defesa, vida…). */

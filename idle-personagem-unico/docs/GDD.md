@@ -443,6 +443,14 @@ Dois grandes grupos:
 - **Modo União** (só espirituais): o pet se funde ao personagem por um tempo, libera **habilidades de união** e fortalece outras. Tem barra de **Sincronia** que enche com o uso e esfria depois. [Proposta]
 - **Domar:** chance de domar ao final de certos combates, com item de laço; aumenta com Domador/Percepção. [Proposta]
 
+**Implementado na F10** [Proposta, números Calibrar em [`CALIBRACAO.md`](CALIBRACAO.md)]:
+
+- **Reais:** 6 domáveis (lobo, javali, morcego-de-veio, sapo-cão, aranha de casca, enguia-navalha) e 4 do **Estábulo** de Pedravau (cão de caça, mula, gato de celeiro, coruja). Até 5 por personagem. Bônus de 10% a mais por nível (até o 20).
+- **Espirituais:** as 3 bestas vinculadas das origens; não sentem fome, não se soltam, o bônus cresce com o Espírito e têm o **modo União** (Sincronia cheia com 1 h de trabalho; 10 min de bônus dobrado; o Fruto do Vínculo tem 50% a mais).
+- **Vagas:** Treino (inclui aprendizado), Coleta, Produção, Combate e Cuidados. O pet só cansa (Energia: 8 h; Fome: 12 h de trabalho) quando o personagem trabalha na atividade onde ele está.
+- **Cuidados** no Estábulo: alimentar (ração 3 h, pão 1 h, ensopado 4 h, torta 6 h, lambari 30 min), descansar (30 min de Energia a cada 5 min) e treinar (XP do pet, gasta Energia).
+- **Doma:** com Laço de doma na mochila, 0,07% por abate de monstro domável (Voz Mansa aumenta); gasta o laço. Habilidades próprias dos pets ficam para depois.
+
 ## 14. Sistemas extras [Proposta]
 
 - **Crônica do personagem:** diário automático (raça, core, traço de personalidade, mortes, marcos, encontros). Ótimo para o lado narrativo.

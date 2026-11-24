@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**F10 (Pets) concluída.** Pets reais (domados com Laço de doma ou comprados no Estábulo) e as bestas vinculadas das origens especiais, com nome, nível, Energia e Fome; 1 pet por atividade, que só cansa quando o personagem trabalha ali; cuidados (alimentar, descansar, treinar) como atividades; e o modo União das bestas.
+
 **F9 (Conta e sincronização) concluída** (o banco ainda precisa ser ativado na Vercel: veja `docs/DECISOES.md`, item 60). Agora há **até 3 personagens** por conta (o 2º e o 3º com o Pergaminho do Novo Destino, ganho na guilda), o **Cofre da Conta** (conquistas e Álbum de Descobertas) e uma **conta opcional** que sincroniza o jogo entre aparelhos, com o servidor aplicando as ações. Sem conta, tudo continua local.
 
 **F8 (Forja, produção e nomeados) concluída.** O personagem treina, coleta, vende, equipa, caça, usa habilidades, volta do Limiar e cumpre missões da guilda (F1 a F7), e agora **produz**: forja equipamentos e anéis, prepara poções e amuletos, cozinha, **funde** 3 itens iguais numa versão melhor (+1 a +3), usa **2 acessórios e 1 relíquia**, bebe poções sozinho no combate e guarda **itens nomeados** únicos. Ainda não há conta online nem pets (F9 em diante).
@@ -139,6 +141,18 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F8:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito (Martelo do Pai e +2 de forja), Náufrago das Estrelas (Bússola Quebrada), berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior, Mão Certeira e Intelecto na produção.
 
+### O que a F10 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/dados/pets.ts` | Espécies, Laço de doma, comidas, cuidados e os números dos pets. |
+| `packages/motor/src/pets` | Estado e validação dos pets, bônus, gasto exato de Energia/Fome e as ações (Estábulo, nomes, vagas, soltar, União). |
+| `packages/motor/src/atividades` | Avanço dividido onde o bônus do pet muda; cuidados nos ciclos; doma no combate. |
+| `packages/motor/src/save.ts` | **Save v11** com migração v10 → v11 (a besta vinculada vira pet). |
+| `apps/web` | Personagem → Pets e Atividades → Pets (cuidados e Estábulo); domas no resumo. |
+
+**Efeitos que passaram a valer na F10:** bestas vinculadas (Besta do Estudo, Filhote do Altar, Espírito do Rio), Fruto do Vínculo (União mais longa), Voz Mansa e Laço Firme.
+
 ### O que a F9 entregou
 
 | Onde | O quê |
@@ -203,4 +217,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F10 (Pets)**.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F11 (Mundo vivo)**.

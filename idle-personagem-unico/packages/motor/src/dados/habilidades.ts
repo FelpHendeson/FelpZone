@@ -136,9 +136,9 @@ const TECNICAS_CORE: readonly Habilidade[] = [
   passiva({ id: "passo-leve", nome: "Passo Leve", descricao: "Viagens 20% mais curtas.", natureza: "fisica", escopo: "viagem" }, core("andarilho"), [pct("duracao-viagem", -0.2)]),
   passiva({ id: "olho-de-coletor", nome: "Olho de Coletor", descricao: "Coleta rende 10% mais.", natureza: "fisica", escopo: "coleta" }, core("andarilho"), [pct("coleta.rendimento", 0.1)]),
   // Domador.
-  passiva({ id: "voz-mansa", nome: "Voz Mansa", descricao: "Mais chance de domar criaturas.", natureza: "magica", subtipo: "espiritual", escopo: "pets", pendente: "Pets (F10)." }, core("domador"), [pct("pets.domar", 0.1)]),
+  passiva({ id: "voz-mansa", nome: "Voz Mansa", descricao: "Mais chance de domar criaturas.", natureza: "magica", subtipo: "espiritual", escopo: "pets" }, core("domador"), [pct("pets.domar", 0.1)]),
   ativa({ id: "ordem-de-ataque", nome: "Ordem de Ataque", descricao: "Ataque coordenado: 140% do ataque (com pet, mais forte na F10).", natureza: "fisica", escopo: "combate" }, core("domador"), 8_000, [{ tipo: "golpe", multiplicador: 1.4 }]),
-  passiva({ id: "laco-firme", nome: "Laço Firme", descricao: "Pets cansam e sentem fome mais devagar.", natureza: "magica", subtipo: "espiritual", escopo: "pets", pendente: "Pets (F10)." }, core("domador"), [pct("pets.cansaco", -0.1)]),
+  passiva({ id: "laco-firme", nome: "Laço Firme", descricao: "Cuidar dos pets (alimentar, descansar, treinar) leva menos tempo.", natureza: "magica", subtipo: "espiritual", escopo: "pets" }, core("domador"), [pct("pets.cuidado", 0.1)]),
   // Sem Chama.
   passiva({ id: "folha-em-branco", nome: "Folha em Branco", descricao: "Sem afinidade, cabe tudo: +1 slot de passiva.", natureza: "magica", subtipo: "espiritual", escopo: "geral" }, core("sem-chama"), [soma("slots-passivas", 1)]),
   passiva({ id: "teimosia", nome: "Teimosia", descricao: "Ganha 10% mais em todo treino.", natureza: "fisica", escopo: "geral" }, core("sem-chama"), [pct("ganho-treino", 0.1)]),

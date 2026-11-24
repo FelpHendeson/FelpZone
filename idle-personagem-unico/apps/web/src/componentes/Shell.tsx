@@ -22,6 +22,7 @@ import { BarraAtividade } from "./BarraAtividade";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
 import { PainelConta } from "./PainelConta";
+import { PainelCuidados, PainelPets } from "./PainelPets";
 import { PainelColeta } from "./PainelColeta";
 import { PainelAreas, PainelBestiario } from "./PainelCombate";
 import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
@@ -259,6 +260,10 @@ export function Shell() {
         <FichaPersonagem personagem={personagem} />
       </>
     );
+  } else if (aba.id === "personagem" && indiceSub === 2) {
+    conteudo = <PainelPets personagem={personagem} ocupado={ocupado} agir={agir} />;
+  } else if (aba.id === "atividades" && indiceSub === 4) {
+    conteudo = <PainelCuidados personagem={personagem} ocupado={ocupado} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 2) {
     conteudo = (
       <PainelProducao personagem={personagem} ocupado={ocupado} aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })} aoParar={() => agir({ tipo: "pararAtividade" })} />

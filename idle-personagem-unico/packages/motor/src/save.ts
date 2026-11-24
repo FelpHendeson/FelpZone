@@ -4,13 +4,14 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
+import { camposIniciaisF10 } from "./pets/pets";
 import { COFRE_VAZIO } from "./personagem/cofre";
 import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem, validarConta, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 10;
+export const VERSAO_SAVE_ATUAL = 11;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -25,6 +26,7 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * v8 (F7): missões, contadores e guilda.
  * v9 (F8): produção, acessórios, relíquia, nomeados e fusão.
  * v10 (F9): cofre da conta (conquistas, pergaminhos, descobertas).
+ * v11 (F10): pets (a besta vinculada de quem já tinha vira pet).
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -187,6 +189,19 @@ export const migrarV9ParaV10: Migracao = (dados) => {
   return { ...dados, conta: { ...conta, cofre: COFRE_VAZIO } };
 };
 
+/** v10 → v11: pets vazios; quem tem besta vinculada a recebe como pet espiritual. */
+export const migrarV10ParaV11: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return {
+    ...dados,
+    conta: {
+      ...(conta as object),
+      personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, ...camposIniciaisF10(typeof p.bestaVinculadaId === "string" ? p.bestaVinculadaId : undefined) })),
+    },
+  };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -198,6 +213,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   7: migrarV7ParaV8,
   8: migrarV8ParaV9,
   9: migrarV9ParaV10,
+  10: migrarV10ParaV11,
 });
 
 export type CodigoErroSave =

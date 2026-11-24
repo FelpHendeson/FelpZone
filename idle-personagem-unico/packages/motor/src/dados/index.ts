@@ -17,6 +17,7 @@ import { ATIVIDADE_APRENDIZADO, type AtividadeAprendizado } from "./aprendizado"
 import { ITENS_LIMIAR, MONSTROS_LIMIAR, PECAS_RETORNADO } from "./limiar";
 import { MISSOES, NPCS, type Missao, type Npc } from "./missoes";
 import { ITENS_F8, RECEITAS, type AtividadeProducao } from "./producao";
+import { CUIDADOS, ITENS_PETS, type AtividadeCuidado } from "./pets";
 
 /** Livros (F5): um por habilidade de livro, vendidos no Mercado. */
 export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
@@ -34,13 +35,13 @@ export const LIVROS: readonly Item[] = HABILIDADES_LIVRO.map((h) => {
 });
 
 /** Itens de todas as fontes (coleta, combate e equipamentos). */
-const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO, ...ITENS_F8];
+const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAMENTOS, ...ITENS_LIMIAR, ...PECAS_RETORNADO, ...ITENS_F8, ...ITENS_PETS];
 
 /** Toda atividade do personagem (uma por vez). Combate também é atividade [Autor]. */
-export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado | AtividadeProducao;
+export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado | AtividadeProducao | AtividadeCuidado;
 /** Atividades por ciclos (treino, coleta e aprendizado). */
-export type AtividadeCiclica = AtividadeTreino | AtividadeColeta | AtividadeAprendizado | AtividadeProducao;
-const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO, ...RECEITAS];
+export type AtividadeCiclica = AtividadeTreino | AtividadeColeta | AtividadeAprendizado | AtividadeProducao | AtividadeCuidado;
+const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO, ...RECEITAS, ...CUIDADOS];
 import type {
   Berco,
   BestaVinculada,
@@ -190,3 +191,16 @@ export {
 export type { AtividadeProducao, OficioProducaoId } from "./producao";
 export { cabeNoSlot } from "./coleta";
 export type { SlotItem } from "./coleta";
+export {
+  CATEGORIAS_PET,
+  COMIDA_PET,
+  CONFIG_CUIDADOS,
+  CONFIG_PETS,
+  CUIDADOS,
+  ESPECIES_PET,
+  LACO_DE_DOMA,
+  NOME_CATEGORIA_PET,
+  PRECO_LACO,
+  fatorNivelPet,
+} from "./pets";
+export type { AtividadeCuidado, CategoriaPet, Cuidado, EspeciePet, TipoPet } from "./pets";
