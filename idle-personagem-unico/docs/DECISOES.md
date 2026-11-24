@@ -67,6 +67,8 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 
 ### Da F1 (sorteio), para o autor conferir
 
+**24/11/2026:** o autor aprovou a F1 "por ora". Os itens abaixo valem como estão até ele pedir mudança.
+
 7. **Primordiais das raças raras**: com os custos do prompt da F1 (raça Rara 25, Primordial 80, saldo 100), Draconato e Silfo **nunca** tiram dom Primordial. Manter assim ou baixar o custo da raça Rara para 20? Ver `CALIBRACAO.md`.
 8. **"5 chances"** foi lido como **5 tentativas no total** (a 1ª + 4 rerolagens), como no prompt ("a 5ª tentativa é obrigatória"). O GDD dizia "5 chances de rerolar"; se a intenção for 6 tentativas, é só mudar `CONFIG_SORTEIO.tentativas`.
 9. **Tags de afinidade** de raças e cores (vocabulário de 30 tags em `dados/tipos.ts`) e, por consequência, quais pares são excêntricos. **Sem Chama** ficou **sem tags**: é excêntrico para todas as raças e sempre traz uma Marca da Anomalia. Lobisomem + Ser das Trevas ficou excêntrico, como no exemplo do GDD.
