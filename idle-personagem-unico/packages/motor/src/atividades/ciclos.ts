@@ -30,6 +30,7 @@ import { resumirModificadores } from "../modificadores";
 import { Rng } from "../rng";
 import type { EstadoJogo } from "../save";
 import { LIMITE_OFFLINE_MS } from "../tempo";
+import { atualizarCofre } from "../personagem/cofre";
 import { ganharMaestria, praticarPassivas, type ProgressoHabilidade } from "../habilidades/maestria";
 import { avancarCombate, combateInicial, CONFIG_COMBATE, type AcumuladoCombate } from "./combate";
 import { entrarNoLimiar, opcoesDoLimiar, sairDoLimiar } from "./limiar";
@@ -470,6 +471,14 @@ export function avancar(estado: EstadoJogo, agora: number, config: ConfigProgres
   if (decorrido === 0) return { estado, resumo: base };
   const novoTick = estado.ultimoTick + decorrido;
   if (!ativo) return { estado: { ...estado, ultimoTick: novoTick }, resumo: base };
+  const final = avancarAtivo(estado, ativo, simulado, novoTick, config, base);
+  // F9: conquistas, pergaminhos e descobertas da conta.
+  const personagens = final.estado.conta.personagens;
+  const cofre = atualizarCofre(final.estado.conta.cofre, personagens);
+  return cofre === final.estado.conta.cofre ? final : { ...final, estado: { ...final.estado, conta: { ...final.estado.conta, cofre } } };
+}
+
+function avancarAtivo(estado: EstadoJogo, ativo: Personagem, simulado: number, novoTick: number, config: ConfigProgressao, base: ResumoAvanco): { estado: EstadoJogo; resumo: ResumoAvanco } {
   const rng = Rng.deEstado(estado.rng);
   const r = avancarPersonagem(ativo, simulado, rng, config, estado.ultimoTick);
   return {

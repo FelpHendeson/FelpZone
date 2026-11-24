@@ -1,5 +1,5 @@
-import type { EstadoJogo, ResultadoAtividade } from "@idle-pu/motor";
+import type { Acao } from "@idle-pu/motor";
 
-/** Ação do motor que a interface dispara (o Shell avança, grava e mostra erros). */
-export type AcaoJogo = (estado: EstadoJogo, agora: number) => ResultadoAtividade;
-export type Agir = (acao: AcaoJogo) => void;
+/** Ação que a interface dispara: serializável, a mesma no modo local e no servidor. */
+export type AcaoJogo = Acao;
+export type Agir = (acao: Acao) => void;

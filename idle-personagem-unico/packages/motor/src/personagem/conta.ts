@@ -2,6 +2,7 @@
  * Conta (save v2): até 3 personagens independentes, o ativo e o sorteio em
  * andamento. Inclui a validação de dados vindos do save (entrada não confiável).
  */
+import { COFRE_VAZIO, validarCofre, type Cofre } from "./cofre";
 import { cabeNoSlot, CATALOGO, CONFIG_GUILDA, CONFIG_MOCHILA_EXTRA, monstroDoLimiar, NOMEADOS_DE_ORIGEM, OFICIOS, OFICIOS_PRODUCAO, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import type { OficioProducaoId } from "../dados/producao";
@@ -219,9 +220,11 @@ export interface Conta {
   readonly personagens: readonly Personagem[];
   readonly personagemAtivoId: string | null;
   readonly sorteio: EstadoSorteio | null;
+  /** F9: o que é da conta (conquistas, pergaminhos, descobertas). */
+  readonly cofre: Cofre;
 }
 
-export const CONTA_VAZIA: Conta = Object.freeze({ personagens: Object.freeze([]), personagemAtivoId: null, sorteio: null });
+export const CONTA_VAZIA: Conta = Object.freeze({ personagens: Object.freeze([]), personagemAtivoId: null, sorteio: null, cofre: COFRE_VAZIO });
 
 function ehObjeto(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -511,6 +514,8 @@ export function camposIniciaisF3(): CamposF3 {
 export function validarConta(v: unknown): Conta | null {
   if (!ehObjeto(v)) return null;
   const { personagens, personagemAtivoId, sorteio } = v;
+  const cofre = validarCofre(v.cofre);
+  if (!cofre) return null;
   if (!Array.isArray(personagens) || personagens.length > MAX_PERSONAGENS) return null;
   const lista: Personagem[] = [];
   for (const p of personagens) {
@@ -530,7 +535,7 @@ export function validarConta(v: unknown): Conta | null {
     sorteioLimpo = validarSorteio(sorteio);
     if (!sorteioLimpo || lista.length >= MAX_PERSONAGENS) return null;
   }
-  return { personagens: lista, personagemAtivoId: ativo, sorteio: sorteioLimpo };
+  return { personagens: lista, personagemAtivoId: ativo, sorteio: sorteioLimpo, cofre };
 }
 
 type CamposF5 = Pick<Personagem, "habilidades" | "ativasEquipadas" | "passivasEquipadas" | "ramoId">;

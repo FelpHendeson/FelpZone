@@ -1,4 +1,4 @@
-import { CATALOGO, LIVROS, LOCAL_CIDADE, NOME_OFICIO, OFICIOS, ampliarMochila, comprarLivro, precoAmpliacao, precoDeCompra, precoDeVenda, vendivel, vender, venderTudo, type Personagem } from "@idle-pu/motor";
+import { CATALOGO, LIVROS, LOCAL_CIDADE, NOME_OFICIO, OFICIOS, precoAmpliacao, precoDeCompra, precoDeVenda, vendivel, type Personagem } from "@idle-pu/motor";
 import { formatarNumero, nomeLocal, situacaoMochila } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 
@@ -36,7 +36,7 @@ export function PainelMercado({ personagem: p, ocupado, agir }: Props) {
                       {formatarNumero(item.preco, 0)} g cada · {formatarNumero(precoDeVenda(p, id, q), 0)} g tudo
                     </p>
                   </div>
-                  <button type="button" className="botao" disabled={ocupado || !naCidade} onClick={() => agir((e, agora) => vender(e, id, q, agora))}>
+                  <button type="button" className="botao" disabled={ocupado || !naCidade} onClick={() => agir({ tipo: "vender", itemId: id, quantidade: q })}>
                     Vender
                   </button>
                 </li>
@@ -44,7 +44,7 @@ export function PainelMercado({ personagem: p, ocupado, agir }: Props) {
             })}
           </ul>
           <div className="acoes">
-            <button type="button" className="botao botao-principal" disabled={ocupado || !naCidade} onClick={() => agir(venderTudo)}>
+            <button type="button" className="botao botao-principal" disabled={ocupado || !naCidade} onClick={() => agir({ tipo: "venderTudo" })}>
               Vender tudo ({formatarNumero(total, 0)} g)
             </button>
           </div>
@@ -60,7 +60,7 @@ export function PainelMercado({ personagem: p, ocupado, agir }: Props) {
             <strong>+5 espaços</strong> <span className="suave">(já comprados: +{p.espacosExtras})</span>
             <p className="suave">{formatarNumero(ampliacao, 0)} g</p>
           </div>
-          <button type="button" className="botao botao-principal" disabled={ocupado || !naCidade || p.ouro < ampliacao} onClick={() => agir(ampliarMochila)}>
+          <button type="button" className="botao botao-principal" disabled={ocupado || !naCidade || p.ouro < ampliacao} onClick={() => agir({ tipo: "ampliarMochila" })}>
             Ampliar
           </button>
         </div>
@@ -135,7 +135,7 @@ export function PainelLivreiro({ personagem: p, ocupado, agir }: Props) {
                 <p className="suave">{CATALOGO.habilidades.get(l.livro!.habilidadeId)!.descricao}</p>
                 {sabe && <p className="suave">Você já sabe essa habilidade.</p>}
               </div>
-              <button type="button" className="botao botao-principal" disabled={ocupado || bloqueado || sabe} onClick={() => agir((e, agora) => comprarLivro(e, l.id, agora))}>
+              <button type="button" className="botao botao-principal" disabled={ocupado || bloqueado || sabe} onClick={() => agir({ tipo: "comprarLivro", itemId: l.id })}>
                 Comprar
               </button>
             </li>

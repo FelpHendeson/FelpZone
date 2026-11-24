@@ -6,7 +6,6 @@ import {
   NOME_OFICIO_PRODUCAO,
   OFICIOS_PRODUCAO,
   RECEITAS,
-  fundir,
   infoFusao,
   modificadoresDoPersonagem,
   nivelEfetivoOficio,
@@ -161,7 +160,7 @@ export function PainelFusao({ personagem: p, ocupado, agir }: Props) {
                   disabled={ocupado || motivo !== null}
                   onClick={() => {
                     setTentativa({ id, proximo: i.proximo, antes: p.mochila[i.proximo] ?? 0, pity: p.pityFusao[id] ?? 0 });
-                    agir((e, agora) => fundir(e, id, agora));
+                    agir({ tipo: "fundir", itemId: id });
                   }}
                 >
                   Fundir

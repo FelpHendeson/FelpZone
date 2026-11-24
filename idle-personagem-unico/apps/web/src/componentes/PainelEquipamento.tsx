@@ -1,4 +1,4 @@
-import { CATALOGO, NOME_SLOT, SLOTS, desequipar, equipar, type Item, type Personagem } from "@idle-pu/motor";
+import { CATALOGO, NOME_SLOT, SLOTS, type Item, type Personagem } from "@idle-pu/motor";
 import { formatarNumero, slotDoItem } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 
@@ -55,7 +55,7 @@ export function PainelEquipados({ personagem: p, ocupado, agir }: Props) {
                 {item && <p className="suave">{bonusDe(item, p.nivel)}</p>}
               </div>
               {item && (
-                <button type="button" className="botao" disabled={ocupado} onClick={() => agir((e, agora) => desequipar(e, s, agora))}>
+                <button type="button" className="botao" disabled={ocupado} onClick={() => agir({ tipo: "desequipar", slot: s })}>
                   Tirar
                 </button>
               )}
@@ -93,7 +93,7 @@ export function PainelEquipaveis({ personagem: p, ocupado, agir }: Props) {
                   <p className="suave">{bonusDe(item)}</p>
                   <p className="suave">Equipado: {atual ? `${atual.nome} (${bonusDe(atual)})` : "nada"}</p>
                 </div>
-                <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => agir((e, agora) => equipar(e, item.id, agora))}>
+                <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => agir({ tipo: "equipar", itemId: item.id })}>
                   Equipar
                 </button>
               </li>

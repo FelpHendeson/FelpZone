@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COFRE_VAZIO,
   CATALOGO,
   CORES_CABELO,
   CORES_ROUPA,
@@ -142,7 +143,7 @@ describe("save v2", () => {
     if (!r.ok) return;
     expect(r.migradoDe).toBe(1);
     expect(r.estado).toEqual(criarEstadoInicial("antiga", T0));
-    expect(r.estado.conta).toEqual({ personagens: [], personagemAtivoId: null, sorteio: null });
+    expect(r.estado.conta).toEqual({ personagens: [], personagemAtivoId: null, sorteio: null, cofre: COFRE_VAZIO });
     expect(MIGRACOES[1]!(Object.freeze(v1))).not.toBe(v1);
   });
 

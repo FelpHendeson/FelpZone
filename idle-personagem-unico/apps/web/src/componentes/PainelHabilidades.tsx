@@ -2,16 +2,9 @@ import {
   CATALOGO,
   CONFIG_HABILIDADES,
   RAMOS_CORE,
-  desequiparHabilidade,
-  equiparHabilidade,
-  escolherRamo,
   estagio,
   fatorMaestria,
-  iniciarAprendizado,
-  lerLivro,
-  moverPrioridade,
   nomeComEstagio,
-  pararAtividade,
   slotsPassivas,
   xpParaProximaMaestria,
   type Habilidade,
@@ -109,7 +102,7 @@ export function PainelHabilidades({ personagem: p, ocupado, agir }: Props) {
                       Ensina <strong>{h.nome}</strong>: {h.descricao}
                     </p>
                   </div>
-                  {botao("Escolher", (e, agora) => escolherRamo(e, r.id, agora), true)}
+                  {botao("Escolher", { tipo: "escolherRamo", ramoId: r.id }, true)}
                 </li>
               );
             })}
@@ -128,9 +121,9 @@ export function PainelHabilidades({ personagem: p, ocupado, agir }: Props) {
         <ol className="lista-recursos">
           {p.ativasEquipadas.map((id, i) => (
             <Linha key={id} p={p} h={CATALOGO.habilidades.get(id)!}>
-              {botao("↑ Subir", (e, agora) => moverPrioridade(e, id, -1, agora), false, i === 0)}
-              {botao("↓ Descer", (e, agora) => moverPrioridade(e, id, 1, agora), false, i === p.ativasEquipadas.length - 1)}
-              {botao("Tirar", (e, agora) => desequiparHabilidade(e, id, agora))}
+              {botao("↑ Subir", { tipo: "moverPrioridade", habilidadeId: id, direcao: -1 }, false, i === 0)}
+              {botao("↓ Descer", { tipo: "moverPrioridade", habilidadeId: id, direcao: 1 }, false, i === p.ativasEquipadas.length - 1)}
+              {botao("Tirar", { tipo: "desequiparHabilidade", habilidadeId: id })}
             </Linha>
           ))}
         </ol>
@@ -147,7 +140,7 @@ export function PainelHabilidades({ personagem: p, ocupado, agir }: Props) {
         <ul className="lista-recursos">
           {p.passivasEquipadas.map((id) => (
             <Linha key={id} p={p} h={CATALOGO.habilidades.get(id)!}>
-              {botao("Tirar", (e, agora) => desequiparHabilidade(e, id, agora))}
+              {botao("Tirar", { tipo: "desequiparHabilidade", habilidadeId: id })}
             </Linha>
           ))}
         </ul>
@@ -162,7 +155,7 @@ export function PainelHabilidades({ personagem: p, ocupado, agir }: Props) {
             const cheio = h.modo === "ativa" ? p.ativasEquipadas.length >= CONFIG_HABILIDADES.slotsAtivas : p.passivasEquipadas.length >= slots;
             return (
               <Linha key={h.id} p={p} h={h}>
-                {botao(cheio ? "Slots cheios" : "Equipar", (e, agora) => equiparHabilidade(e, h.id, agora), true, cheio)}
+                {botao(cheio ? "Slots cheios" : "Equipar", { tipo: "equiparHabilidade", habilidadeId: h.id }, true, cheio)}
               </Linha>
             );
           })}
@@ -182,7 +175,7 @@ export function PainelHabilidades({ personagem: p, ocupado, agir }: Props) {
                     <strong>{item.nome}</strong>
                     <p className="suave">{item.descricao}</p>
                   </div>
-                  {botao(sabe ? "Já sabe" : "Ler", (e, agora) => lerLivro(e, id, agora), true, sabe)}
+                  {botao(sabe ? "Já sabe" : "Ler", { tipo: "lerLivro", itemId: id }, true, sabe)}
                 </li>
               );
             })}
@@ -210,11 +203,11 @@ export function PainelAprendizado({ personagem: p, ocupado, agir }: Props) {
                 <Maestria p={p} id={id} />
               </div>
               {praticando === id ? (
-                <button type="button" className="botao" disabled={ocupado} onClick={() => agir(pararAtividade)}>
+                <button type="button" className="botao" disabled={ocupado} onClick={() => agir({ tipo: "pararAtividade" })}>
                   Parar
                 </button>
               ) : (
-                <button type="button" className="botao botao-principal" disabled={ocupado || maxima} onClick={() => agir((e, agora) => iniciarAprendizado(e, id, agora))}>
+                <button type="button" className="botao botao-principal" disabled={ocupado || maxima} onClick={() => agir({ tipo: "iniciarAprendizado", habilidadeId: id })}>
                   {maxima ? "Máxima" : "Praticar"}
                 </button>
               )}

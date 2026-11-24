@@ -152,6 +152,8 @@ O catálogo completo (22 origens especiais e o gerador de origem comum) está em
 
 Conquistas **não dão poder** aos personagens, para respeitar "cada um é uma existência diferente".
 
+**Implementado na F9** [Proposta, Calibrar]: o **Pergaminho do Novo Destino** vem da guilda: cada personagem ganha um ao chegar aos ranks **C** e **A** (máximo de 9 guardados). Criar o 2º ou o 3º personagem gasta um pergaminho no início do sorteio. **Conquistas** (10, sem poder) e o **Álbum de Descobertas** (raças, cores, origens e monstros vistos) são calculados a partir dos personagens. Cosméticos e histórico de temporadas ficam para a competição e o acabamento. A conta online é **opcional**: sem ela o jogo continua 100% local.
+
 **Personagens são independentes** [Autor, 23/11]: cada um tem ficha, mochila, gold, missões, rank de guilda e pets próprios. Só **um personagem joga por vez** (o ativo); os outros ficam parados até serem escolhidos. Troca livre entre eles. [Proposta, aprovada na regra geral]
 
 ### 4.2 Cascata ponto a ponto [Autor, mecânica: Proposta]

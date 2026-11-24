@@ -96,13 +96,17 @@ API em TypeScript, **versionada** em `/api/v1`, consumível pelo app mobile no f
 - Cookie `httpOnly` para web **e** token para mobile.
 - Sem banco configurado: API devolve 503 e o jogo segue em modo local.
 
-## 6. Banco de dados [Em discussão]
+**Implementado na F9:** as rotas ficaram `GET /saude`, `POST /auth/registrar`, `POST /auth/entrar`, `POST /auth/sair`, `GET /jogo`, `POST /jogo/acao` e `POST /jogo/importar` (primeira sincronização com o save do aparelho). A ação é um objeto serializável (`{ tipo: "equipar", itemId }`…) validado pelo motor (`validarAcao`/`aplicarAcao`); o mesmo formato roda no cliente sem conta. O sorteio também passa por `/jogo/acao`. Autenticação só por *bearer token* (serve à web e ao mobile; o cookie ficou de fora). Senha com `scrypt` + sal; o token é guardado só como hash SHA-256, com validade de 30 dias. Limite de 120 pedidos/min por IP e 10 tentativas de entrada/min. Uma ação por vez por conta (trava de 10 s). O relógio de um save importado é limitado ao do servidor.
+
+## 6. Banco de dados [Decidido na F9: Upstash; Postgres adiado]
 
 **Proposta:** **Postgres (Neon, pela Vercel Marketplace)** para contas, personagens (estado em **JSONB versionado**), builds de arena, temporadas e rankings; **Redis (Upstash)** só para rate limit e caches.
 
 Por que Postgres e não só Redis: temporadas, torneios e rankings pedem consultas e histórico que ficam simples em SQL. Para o MVP local-first dá para **adiar o banco** até a fatia de conta (`ROADMAP.md`, F9).
 
 Alternativa mais barata e conhecida: **reusar o Upstash** que o LionHearth já usa (com prefixo de chaves próprio, por exemplo `idle-pu:`). Serve para conta+save, mas é ruim para ranking histórico e arena. Decidir na F9.
+
+**Decisão da F9:** **Redis da Upstash** (pela integração da Vercel), com prefixo `idle-pu:` e chaves `conta:<nome>`, `sessao:<hash do token>`, `save:<id da conta>`, `trava:<id>` e `rl:<chave>:<janela>`. Basta para conta e save; Postgres fica para quando a competição (F12) pedir ranking histórico. **O banco não foi criado** (o autor não autorizou custo): sem as variáveis `KV_REST_API_URL`/`KV_REST_API_TOKEN` (ou `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN`), a API responde 503 e o jogo segue local. Ver `apps/web/.env.example`.
 
 Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atualizado_em)`, `acoes_log` (opcional), `temporadas`, `builds_arena`, `partidas`, `ranking`.
 

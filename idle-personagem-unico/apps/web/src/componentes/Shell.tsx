@@ -1,12 +1,12 @@
 "use client";
 
 import {
+  aplicarAcao,
   avancar,
-  iniciarAtividade,
-  pararAtividade,
   personagemAtivo,
   relogioDoSistema,
   salvarJogo,
+  type Acao,
   type Armazenamento,
   type EstadoJogo,
   type ResumoAvanco,
@@ -15,12 +15,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ABAS } from "@/lib/abas";
 import { resumoRelevante } from "@/lib/atividade";
 import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
-import { aplicarESalvar, prepararCriacao, type ResultadoComEstado } from "@/lib/criacao";
+import { prepararCriacao } from "@/lib/criacao";
 import { CHAVE_SAVE, iniciarJogo, type ResultadoInicio } from "@/lib/persistencia";
+import { chamarApi, enviarAcao, estadoDaResposta, gravarSessao, lerSessao, type Sessao } from "@/lib/sync";
 import { BarraAtividade } from "./BarraAtividade";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
-import type { AcaoJogo } from "./acoes";
+import { PainelConta } from "./PainelConta";
 import { PainelColeta } from "./PainelColeta";
 import { PainelAreas, PainelBestiario } from "./PainelCombate";
 import { PainelEquipados, PainelEquipaveis } from "./PainelEquipamento";
@@ -60,6 +61,14 @@ export function Shell() {
   const armazenamento = useRef<Armazenamento | null>(null);
   const estadoRef = useRef<EstadoJogo | null>(null);
   const ultimaGravacao = useRef(0);
+  const [sessao, setSessao] = useState<Sessao | null>(null);
+  const sessaoRef = useRef<Sessao | null>(null);
+
+  const definirSessao = useCallback((s: Sessao | null) => {
+    sessaoRef.current = s;
+    setSessao(s);
+    gravarSessao(window.localStorage, s);
+  }, []);
 
   const definirEstado = useCallback((estado: EstadoJogo) => {
     estadoRef.current = estado;
@@ -102,6 +111,27 @@ export function Shell() {
         if (resumoRelevante(fora)) setResumo(fora);
         setAbaAtiva(personagemAtivo(estado)?.atividade ? "atividades" : "personagem");
       }
+      // Com conta, o estado do servidor manda (ele avança o tempo com o relógio dele).
+      const s = lerSessao(window.localStorage);
+      if (s && !cancelado) {
+        sessaoRef.current = s;
+        setSessao(s);
+        const r = await chamarApi("jogo", { token: s.token });
+        const doServidor = r.ok ? estadoDaResposta(r.corpo) : null;
+        if (cancelado) return;
+        if (doServidor) {
+          estadoRef.current = doServidor;
+          await salvarJogo(arm, CHAVE_SAVE, doServidor);
+          setTela((t) => (t.fase === "pronto" ? { ...t, estado: doServidor } : t));
+        } else if (!r.ok && r.status === 401) {
+          sessaoRef.current = null;
+          setSessao(null);
+          gravarSessao(window.localStorage, null);
+          setAviso("A sessão da conta expirou. Entre de novo em Personagem → Conta.");
+        } else if (!r.ok) {
+          setAviso(`${r.mensagem} Jogando com o save deste aparelho.`);
+        }
+      }
     })().catch(() => {
       if (!cancelado) setTela({ fase: "erro", mensagem: "Não foi possível acessar o armazenamento do navegador." });
     });
@@ -139,33 +169,52 @@ export function Shell() {
     };
   }, [pronto, avancarAteAgora, gravar]);
 
-  async function aoAgir(resultado: ResultadoComEstado): Promise<string | null> {
+  /** Troca o estado (já gravado) e ajusta as abas quando um personagem nasce. */
+  async function adotar(novo: EstadoJogo) {
     const arm = armazenamento.current;
-    if (!arm) return "Armazenamento indisponível.";
+    if (arm) await salvarJogo(arm, CHAVE_SAVE, novo);
+    ultimaGravacao.current = Date.now();
+    const antes = estadoRef.current;
+    const tinhaPersonagem = antes ? personagemAtivo(antes) !== null && !antes.conta.sorteio : false;
+    definirEstado(novo);
+    if (!tinhaPersonagem && personagemAtivo(novo) && !novo.conta.sorteio) {
+      setAbaAtiva("personagem");
+      setSubAbaPorAba((a) => ({ ...a, personagem: 0 }));
+    }
+  }
+
+  /** Aplica uma ação: no servidor (com conta) ou aqui (modo local). Devolve o erro, se houver. */
+  async function executar(acao: Acao): Promise<string | null> {
+    const estado = estadoRef.current;
+    if (!estado) return null;
     try {
-      const gravado = await aplicarESalvar(arm, resultado);
-      if (!gravado.ok) return gravado.erro.mensagem;
-      ultimaGravacao.current = Date.now();
-      const tinhaPersonagem = estadoRef.current ? personagemAtivo(estadoRef.current) !== null : false;
-      definirEstado(gravado.estado);
-      if (!tinhaPersonagem && personagemAtivo(gravado.estado)) {
-        setAbaAtiva("personagem");
-        setSubAbaPorAba((a) => ({ ...a, personagem: 0 }));
+      const s = sessaoRef.current;
+      if (s) {
+        const r = await enviarAcao(s, acao);
+        if (!r.ok) {
+          if (r.status === 401) definirSessao(null);
+          return r.mensagem;
+        }
+        const novo = estadoDaResposta(r.corpo);
+        if (!novo) return "Resposta inválida do servidor.";
+        await adotar(novo);
+        return null;
       }
+      const r = aplicarAcao(estado, acao, relogioDoSistema.agora());
+      if (!r.ok) return r.erro.mensagem;
+      await adotar(r.estado);
       return null;
     } catch {
       return "Não foi possível salvar. Tente de novo.";
     }
   }
 
-  async function agirNaAtividade(acao: AcaoJogo) {
-    const estado = estadoRef.current;
-    if (!estado) return;
+  async function agirNaAtividade(acao: Acao) {
     setOcupado(true);
-    setAviso(await aoAgir(acao(estado, relogioDoSistema.agora())));
+    setAviso(await executar(acao));
     setOcupado(false);
   }
-  const agir = (acao: AcaoJogo) => void agirNaAtividade(acao);
+  const agir = (acao: Acao) => void agirNaAtividade(acao);
 
   if (tela.fase === "carregando") {
     return (
@@ -183,11 +232,11 @@ export function Shell() {
   }
 
   const personagem = personagemAtivo(tela.estado);
-  if (!personagem) {
+  if (!personagem || tela.estado.conta.sorteio) {
     return (
       <div className="shell">
         <main className="conteudo">
-          <CriacaoPersonagem estado={tela.estado} aoAgir={aoAgir} />
+          <CriacaoPersonagem estado={tela.estado} aoAgir={executar} />
         </main>
       </div>
     );
@@ -212,7 +261,7 @@ export function Shell() {
     );
   } else if (aba.id === "atividades" && indiceSub === 2) {
     conteudo = (
-      <PainelProducao personagem={personagem} ocupado={ocupado} aoIniciar={(id) => agir((e, agora) => iniciarAtividade(e, id, agora))} aoParar={() => agir(pararAtividade)} />
+      <PainelProducao personagem={personagem} ocupado={ocupado} aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })} aoParar={() => agir({ tipo: "pararAtividade" })} />
     );
   } else if (aba.id === "mochila" && indiceSub === 4) {
     conteudo = <PainelConsumiveis personagem={personagem} />;
@@ -222,8 +271,8 @@ export function Shell() {
     const props = {
       personagem,
       ocupado,
-      aoIniciar: (id: string) => agir((e, agora) => iniciarAtividade(e, id, agora)),
-      aoParar: () => agir(pararAtividade),
+      aoIniciar: (id: string) => agir({ tipo: "iniciarAtividade", atividadeId: id }),
+      aoParar: () => agir({ tipo: "pararAtividade" }),
     };
     conteudo = indiceSub === 0 ? <PainelTreino {...props} /> : <PainelColeta {...props} />;
   } else if (aba.id === "mapa") {
@@ -239,8 +288,8 @@ export function Shell() {
         personagem={personagem}
         ocupado={ocupado}
         agir={agir}
-        aoIniciar={(id) => agir((e, agora) => iniciarAtividade(e, id, agora))}
-        aoParar={() => agir(pararAtividade)}
+        aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })}
+        aoParar={() => agir({ tipo: "pararAtividade" })}
       />
     );
   } else if (aba.id === "missoes") {
@@ -248,6 +297,19 @@ export function Shell() {
     conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : <PainelGuilda {...props} />;
   } else if (aba.id === "combate" && indiceSub === 2) {
     conteudo = <PainelLimiar personagem={personagem} ocupado={ocupado} agir={agir} />;
+  } else if (aba.id === "personagem" && indiceSub === 5) {
+    conteudo = (
+      <PainelConta
+        estado={tela.estado}
+        sessao={sessao}
+        ocupado={ocupado}
+        agir={agir}
+        aoConectar={async (s, novo) => {
+          definirSessao(s);
+          if (novo) await adotar(novo);
+        }}
+      />
+    );
   } else if (aba.id === "personagem" && indiceSub === 3) {
     conteudo = <PainelTitulos personagem={personagem} />;
   } else if (aba.id === "combate" && indiceSub === 1) {

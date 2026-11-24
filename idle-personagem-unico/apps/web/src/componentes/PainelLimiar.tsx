@@ -5,7 +5,6 @@ import {
   PECAS_RETORNADO,
   cargasEco,
   custoDoPedagio,
-  pagarPedagio,
   relogioDoSistema,
   sinergiaLimiar,
   titulosPorMortes,
@@ -50,7 +49,7 @@ export function PainelLimiar({ personagem: p, ocupado, agir }: Props) {
               Pedágio para sair agora: <strong>{custo === 0 ? "nada (ele lembra do favor)" : `${formatarNumero(custo, 0)} de Essência`}</strong>. Você tem {formatarNumero(p.essencia, 0)}.
             </p>
             <div className="acoes">
-              <button type="button" className="botao botao-principal" disabled={ocupado || p.essencia < custo} onClick={() => agir(pagarPedagio)}>
+              <button type="button" className="botao botao-principal" disabled={ocupado || p.essencia < custo} onClick={() => agir({ tipo: "pagarPedagio" })}>
                 Pagar e sair
               </button>
             </div>

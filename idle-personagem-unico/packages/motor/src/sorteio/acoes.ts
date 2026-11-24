@@ -54,10 +54,14 @@ export function iniciarSorteio(estado: EstadoJogo): ResultadoAcao {
   if (estado.conta.personagens.length >= MAX_PERSONAGENS) {
     return falha("limite_personagens", `A conta já tem ${MAX_PERSONAGENS} personagens.`);
   }
+  // O 2º e o 3º personagem gastam um Pergaminho do Novo Destino (do cofre da conta).
+  let base = estado;
   if (estado.conta.personagens.length > 0) {
-    return falha("requer_pergaminho", "Um novo personagem exige o Pergaminho do Novo Destino (ainda não disponível).");
+    const cofre = estado.conta.cofre;
+    if (cofre.pergaminhos < 1) return falha("requer_pergaminho", "Um novo personagem exige um Pergaminho do Novo Destino.");
+    base = { ...estado, conta: { ...estado.conta, cofre: { ...cofre, pergaminhos: cofre.pergaminhos - 1 } } };
   }
-  return { ok: true, estado: novaTentativa(estado, { maxTentativas: CONFIG_SORTEIO.tentativas, historico: [], aceito: false }) };
+  return { ok: true, estado: novaTentativa(base, { maxTentativas: CONFIG_SORTEIO.tentativas, historico: [], aceito: false }) };
 }
 
 /** Tentativa atual (número a partir de 1), restantes e se só resta aceitar. */
@@ -169,7 +173,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     estado: {
       ...estado,
       ultimoTick: Math.max(estado.ultimoTick, agora),
-      conta: { personagens: [...estado.conta.personagens, personagem], personagemAtivoId: personagem.id, sorteio: null },
+      conta: { ...estado.conta, personagens: [...estado.conta.personagens, personagem], personagemAtivoId: personagem.id, sorteio: null },
     },
   };
 }

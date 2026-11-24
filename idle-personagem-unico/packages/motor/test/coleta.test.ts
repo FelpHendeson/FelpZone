@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COFRE_VAZIO,
   ATIVIDADES_COLETA,
   ATIVIDADES_TREINO,
   CATALOGO,
@@ -75,7 +76,7 @@ function personagem(base: Partial<Base> & Partial<Personagem> = {}): Personagem 
   };
 }
 function estadoCom(p: Personagem): EstadoJogo {
-  return { ...criarEstadoInicial("coleta", T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null } };
+  return { ...criarEstadoInicial("coleta", T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null, cofre: COFRE_VAZIO } };
 }
 function ok(r: ResultadoAtividade): EstadoJogo {
   if (!r.ok) throw new Error(r.erro.codigo);

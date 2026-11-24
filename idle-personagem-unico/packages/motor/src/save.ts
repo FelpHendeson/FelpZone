@@ -4,12 +4,13 @@
  * O texto do save é entrada não confiável (pode vir editado à mão, corrompido
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
+import { COFRE_VAZIO } from "./personagem/cofre";
 import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem, validarConta, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 9;
+export const VERSAO_SAVE_ATUAL = 10;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -23,6 +24,7 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * v7 (F6): Limiar, mortes, Eco da Morte e Essência.
  * v8 (F7): missões, contadores e guilda.
  * v9 (F8): produção, acessórios, relíquia, nomeados e fusão.
+ * v10 (F9): cofre da conta (conquistas, pergaminhos, descobertas).
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -179,6 +181,12 @@ export const migrarV8ParaV9: Migracao = (dados) => {
   };
 };
 
+/** v9 → v10: cofre da conta vazio (o próximo avanço preenche conquistas e descobertas). */
+export const migrarV9ParaV10: Migracao = (dados) => {
+  const conta = (dados.conta as object | undefined) ?? {};
+  return { ...dados, conta: { ...conta, cofre: COFRE_VAZIO } };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -189,6 +197,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   6: migrarV6ParaV7,
   7: migrarV7ParaV8,
   8: migrarV8ParaV9,
+  9: migrarV9ParaV10,
 });
 
 export type CodigoErroSave =
@@ -228,7 +237,7 @@ export function criarEstadoInicial(semente: string, agora: number): EstadoJogo {
     rng: estadoDaSemente(semente),
     criadoEm: agora,
     ultimoTick: agora,
-    conta: { personagens: [], personagemAtivoId: null, sorteio: null },
+    conta: { personagens: [], personagemAtivoId: null, sorteio: null, cofre: COFRE_VAZIO },
   };
 }
 

@@ -2,14 +2,10 @@ import {
   CATALOGO,
   NPCS,
   RANKS,
-  abandonarMissao,
-  aceitarMissao,
-  entregarMissao,
   estaNoLugar,
   meritoParaSubir,
   missoesVisiveis,
   progressoDaMissao,
-  promover,
   relogioDoSistema,
   type Missao,
   type Personagem,
@@ -63,11 +59,11 @@ function LinhaMissao({ personagem: p, m, ocupado, agir }: Props & { m: Missao })
       <div className="botoes-coluna">
         {ativa ? (
           <>
-            <button type="button" className="botao botao-principal" disabled={ocupado || !prog?.completa || !lugar} onClick={() => agir((e, t) => entregarMissao(e, m.id, t))}>
+            <button type="button" className="botao botao-principal" disabled={ocupado || !prog?.completa || !lugar} onClick={() => agir({ tipo: "entregarMissao", missaoId: m.id })}>
               Entregar
             </button>
             {m.tipo !== "meta" && (
-              <button type="button" className="botao" disabled={ocupado} onClick={() => agir((e, t) => abandonarMissao(e, m.id, t))}>
+              <button type="button" className="botao" disabled={ocupado} onClick={() => agir({ tipo: "abandonarMissao", missaoId: m.id })}>
                 Desistir
               </button>
             )}
@@ -75,7 +71,7 @@ function LinhaMissao({ personagem: p, m, ocupado, agir }: Props & { m: Missao })
         ) : (
           m.tipo !== "meta" &&
           pode?.ok && (
-            <button type="button" className="botao botao-principal" disabled={ocupado || !lugar} onClick={() => agir((e, t) => aceitarMissao(e, m.id, t))}>
+            <button type="button" className="botao botao-principal" disabled={ocupado || !lugar} onClick={() => agir({ tipo: "aceitarMissao", missaoId: m.id })}>
               {lugar ? "Aceitar" : "Longe"}
             </button>
           )
@@ -152,7 +148,7 @@ export function PainelGuilda(props: Props) {
               Para chegar a {RANKS[p.guilda.rank + 1]}: Mérito e a prova de promoção ({p.missoes.concluidas[prova] ? "feita" : "pendente"}).
             </p>
             <div className="acoes">
-              <button type="button" className="botao botao-principal" disabled={ocupado || p.guilda.merito < custo || !p.missoes.concluidas[prova]} onClick={() => agir(promover)}>
+              <button type="button" className="botao botao-principal" disabled={ocupado || p.guilda.merito < custo || !p.missoes.concluidas[prova]} onClick={() => agir({ tipo: "promover" })}>
                 Pedir promoção
               </button>
             </div>

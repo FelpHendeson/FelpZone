@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COFRE_VAZIO,
   CONFIG_PROGRESSAO,
   LIMITE_OFFLINE_MS,
   PERFIS_RACA,
@@ -68,7 +69,7 @@ function personagem(base: Partial<Base> & { id?: string } = {}): Personagem {
 }
 function estadoCom(...ps: Personagem[]): EstadoJogo {
   const e = criarEstadoInicial("progressao", T0);
-  return { ...e, conta: { personagens: ps, personagemAtivoId: ps[0]?.id ?? null, sorteio: null } };
+  return { ...e, conta: { personagens: ps, personagemAtivoId: ps[0]?.id ?? null, sorteio: null, cofre: COFRE_VAZIO } };
 }
 function ok(r: ResultadoAtividade): EstadoJogo {
   if (!r.ok) throw new Error(r.erro.codigo);

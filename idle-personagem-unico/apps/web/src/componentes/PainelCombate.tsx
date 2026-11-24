@@ -1,4 +1,4 @@
-import { AREAS_COMBATE, CATALOGO, CONFIG_COMBATE, NOME_RARIDADE, definirRecuo, riscoDaArea, type Personagem } from "@idle-pu/motor";
+import { AREAS_COMBATE, CATALOGO, CONFIG_COMBATE, NOME_RARIDADE, riscoDaArea, type Personagem } from "@idle-pu/motor";
 import { combateDe, estimarAtividade, formatarDuracao, formatarNumero, nomeLocal } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 import { BarraVida } from "./BarraVida";
@@ -27,7 +27,7 @@ export function PainelAreas({ personagem: p, ocupado, agir, aoIniciar, aoParar }
         </p>
         <label className="campo-linha">
           <span>Recuar com vida em</span>
-          <select value={p.recuoPercentual} disabled={ocupado} onChange={(ev) => agir((e, agora) => definirRecuo(e, Number(ev.target.value), agora))}>
+          <select value={p.recuoPercentual} disabled={ocupado} onChange={(ev) => agir({ tipo: "definirRecuo", percentual: Number(ev.target.value) })}>
             {opcoes.map((v) => (
               <option key={v} value={v}>
                 {v === 0 ? "nunca" : `${v}%`}

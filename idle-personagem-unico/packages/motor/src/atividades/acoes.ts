@@ -59,6 +59,8 @@ export type CodigoErroAtividade =
   | "merito_insuficiente"
   | "prova_pendente"
   | "nao_funde"
+  | "personagem_inexistente"
+  | "ja_ativo"
   | "ja_tem_nomeado"
   | "nao_vende"
   | "fusao_maxima"

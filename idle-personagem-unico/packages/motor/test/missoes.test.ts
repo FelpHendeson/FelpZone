@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COFRE_VAZIO,
   CATALOGO,
   CONFIG_GUILDA,
   MISSOES,
@@ -61,7 +62,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...extra,
   };
 }
-const estadoCom = (p: Personagem): EstadoJogo => ({ ...criarEstadoInicial("missoes", T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null } });
+const estadoCom = (p: Personagem): EstadoJogo => ({ ...criarEstadoInicial("missoes", T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null, cofre: COFRE_VAZIO } });
 function ok(r: ResultadoAtividade): EstadoJogo {
   if (!r.ok) throw new Error(r.erro.codigo + ": " + r.erro.mensagem);
   return r.estado;

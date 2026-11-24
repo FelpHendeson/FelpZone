@@ -4,17 +4,13 @@ import {
   CORES_CABELO,
   CORES_ROUPA,
   NOME_MAX,
-  aceitarSorteio,
-  definirNomeEAparencia,
   gerarLoreOrigem,
-  relogioDoSistema,
-  rerolar,
   situacaoSorteio,
   tentativaAtual,
   validarNome,
   type CorPaleta,
   type EstadoJogo,
-  type ResultadoAcao,
+  type Acao,
 } from "@idle-pu/motor";
 import { useState } from "react";
 import { CartoesResultado } from "./CartoesResultado";
@@ -23,7 +19,7 @@ import { Miniatura } from "./Miniatura";
 interface Props {
   readonly estado: EstadoJogo;
   /** Aplica e grava a ação; devolve a mensagem de erro, se houver. */
-  readonly aoAgir: (resultado: ResultadoAcao) => Promise<string | null>;
+  readonly aoAgir: (acao: Acao) => Promise<string | null>;
 }
 
 export function CriacaoPersonagem({ estado, aoAgir }: Props) {
@@ -39,9 +35,9 @@ function EtapaSorteio({ estado, aoAgir }: Props) {
   const [ocupado, setOcupado] = useState(false);
   const [erro, setErro] = useState<string | null>(null);
 
-  async function agir(resultadoAcao: ResultadoAcao) {
+  async function agir(acao: Acao) {
     setOcupado(true);
-    setErro(await aoAgir(resultadoAcao));
+    setErro(await aoAgir(acao));
     setOcupado(false);
   }
 
@@ -65,11 +61,11 @@ function EtapaSorteio({ estado, aoAgir }: Props) {
         </p>
       )}
       <div className="acoes">
-        <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => agir(aceitarSorteio(estado))}>
+        <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => agir({ tipo: "aceitarSorteio" })}>
           Aceitar
         </button>
         {!ultima && (
-          <button type="button" className="botao" disabled={ocupado} onClick={() => agir(rerolar(estado))}>
+          <button type="button" className="botao" disabled={ocupado} onClick={() => agir({ tipo: "rerolar" })}>
             Rerolar ({situacao.restantes} {situacao.restantes === 1 ? "restante" : "restantes"})
           </button>
         )}
@@ -119,7 +115,7 @@ function EtapaNome({ estado, aoAgir }: Props) {
     setTocado(true);
     if (!validacao.ok) return;
     setOcupado(true);
-    setErro(await aoAgir(definirNomeEAparencia(estado, { nome, corCabelo, corRoupa }, relogioDoSistema.agora())));
+    setErro(await aoAgir({ tipo: "definirNomeEAparencia", nome, corCabelo, corRoupa }));
     setOcupado(false);
   }
 

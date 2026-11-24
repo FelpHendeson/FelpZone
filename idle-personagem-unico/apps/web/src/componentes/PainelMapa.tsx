@@ -6,14 +6,11 @@ import {
   EQUIPAMENTOS,
   NOME_SLOT,
   NPCS,
-  comprarEquipamento,
   FERRAMENTAS,
   LOCAL_CIDADE,
   LOCAIS,
   NOME_OFICIO,
-  comprarFerramenta,
   duracaoViagemMs,
-  irPara,
   modificadoresDoPersonagem,
   nivelEfetivoOficio,
   precoDeCompra,
@@ -66,7 +63,7 @@ export function PainelRegiao({ personagem: p, ocupado, agir }: Props) {
                 {!aqui && <p className="suave">Viagem: {formatarDuracao(viagem || 0)}</p>}
               </div>
               {!aqui && (
-                <button type="button" className="botao" disabled={ocupado || indo} onClick={() => agir((e, agora) => irPara(e, l.id, agora))}>
+                <button type="button" className="botao" disabled={ocupado || indo} onClick={() => agir({ tipo: "irPara", localId: l.id })}>
                   {indo ? "A caminho…" : `Ir para ${l.nome}`}
                 </button>
               )}
@@ -124,7 +121,7 @@ export function PainelEstabelecimentos({ personagem: p, ocupado, agir }: Props) 
               type="button"
               className="botao botao-principal"
               disabled={ocupado || p.viagem?.destinoLocalId === LOCAL_CIDADE}
-              onClick={() => agir((e, agora) => irPara(e, LOCAL_CIDADE, agora))}
+              onClick={() => agir({ tipo: "irPara", localId: LOCAL_CIDADE })}
             >
               {p.viagem?.destinoLocalId === LOCAL_CIDADE ? "A caminho…" : `Ir para ${nomeLocal(LOCAL_CIDADE)}`}
             </button>
@@ -157,7 +154,7 @@ export function PainelEstabelecimentos({ personagem: p, ocupado, agir }: Props) 
                   </p>
                   {motivo && <p className="suave">{motivo}.</p>}
                 </div>
-                <button type="button" className="botao botao-principal" disabled={ocupado || motivo !== null} onClick={() => agir((e, agora) => comprarFerramenta(e, f.id, agora))}>
+                <button type="button" className="botao botao-principal" disabled={ocupado || motivo !== null} onClick={() => agir({ tipo: "comprarFerramenta", ferramentaId: f.id })}>
                   Comprar
                 </button>
               </li>
@@ -177,7 +174,7 @@ export function PainelEstabelecimentos({ personagem: p, ocupado, agir }: Props) 
                     {bonusDe(i)} · {formatarNumero(preco, 0)} g
                   </p>
                 </div>
-                <button type="button" className="botao botao-principal" disabled={ocupado || semOuro} onClick={() => agir((e, agora) => comprarEquipamento(e, i.id, agora))}>
+                <button type="button" className="botao botao-principal" disabled={ocupado || semOuro} onClick={() => agir({ tipo: "comprarEquipamento", itemId: i.id })}>
                   Comprar
                 </button>
               </li>

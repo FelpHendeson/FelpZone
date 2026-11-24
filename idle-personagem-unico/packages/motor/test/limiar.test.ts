@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COFRE_VAZIO,
   CATALOGO,
   CONFIG_LIMIAR,
   MONSTROS_LIMIAR,
@@ -64,7 +65,7 @@ function personagem(extra: Partial<Personagem> = {}, coreId = "andarilho"): Pers
     ...extra,
   };
 }
-const estadoCom = (p: Personagem, semente = "limiar"): EstadoJogo => ({ ...criarEstadoInicial(semente, T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null } });
+const estadoCom = (p: Personagem, semente = "limiar"): EstadoJogo => ({ ...criarEstadoInicial(semente, T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null, cofre: COFRE_VAZIO } });
 function ok(r: ResultadoAtividade): EstadoJogo {
   if (!r.ok) throw new Error(r.erro.codigo);
   return r.estado;

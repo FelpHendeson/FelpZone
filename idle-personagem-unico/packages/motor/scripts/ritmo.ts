@@ -8,6 +8,7 @@
  */
 import { readFileSync } from "node:fs";
 import {
+  COFRE_VAZIO,
   ATIVIDADES_TREINO,
   CONFIG_PROGRESSAO,
   LIMITE_OFFLINE_MS,
@@ -146,7 +147,7 @@ interface Resultado {
 
 function jogar(perfil: Perfil, racaId: string, origem: Personagem["origem"], diasMax = 365): Resultado {
   let estado: EstadoJogo = criarEstadoInicial("bot-de-ritmo", T0);
-  estado = { ...estado, conta: { personagens: [personagem(racaId, origem)], personagemAtivoId: "personagem-1", sorteio: null } };
+  estado = { ...estado, conta: { personagens: [personagem(racaId, origem)], personagemAtivoId: "personagem-1", sorteio: null, cofre: COFRE_VAZIO } };
   const diasAteNivel = new Map<number, number>();
   const horasAtivasAteNivel = new Map<number, number>();
   const ocupacaoTeto = new Map<number, number>();
@@ -270,7 +271,7 @@ interface ResultadoColeta {
  */
 function jogarColeta(oficio: OficioId, dias = 30): ResultadoColeta {
   let estado: EstadoJogo = criarEstadoInicial("bot-de-coleta", T0);
-  estado = { ...estado, conta: { personagens: [personagem("humano", comum)], personagemAtivoId: "personagem-1", sorteio: null } };
+  estado = { ...estado, conta: { personagens: [personagem("humano", comum)], personagemAtivoId: "personagem-1", sorteio: null, cofre: COFRE_VAZIO } };
   const diasAteNivelOficio = new Map<number, number>();
   const diaCompra = new Map<number, number>();
   let ouroNoDia7 = 0;
@@ -477,7 +478,7 @@ linha();
 function cadeiaCompleta(dias: number) {
   const usar = (e: EstadoJogo, r: ResultadoAtividade) => (r.ok ? r.estado : e);
   const base = { ...personagem("humano", comum), ...camposIniciaisF5("predador-nato"), coreId: "predador-nato" };
-  let e: EstadoJogo = { ...criarEstadoInicial("cadeia", T0), conta: { personagens: [base], personagemAtivoId: "personagem-1", sorteio: null } };
+  let e: EstadoJogo = { ...criarEstadoInicial("cadeia", T0), conta: { personagens: [base], personagemAtivoId: "personagem-1", sorteio: null, cofre: COFRE_VAZIO } };
   const p = () => e.conta.personagens[0]!;
   const marcos: { dia: number; nivel: number; rank: string; ouro: number; mortes: number; metas: number }[] = [];
   const diasNivel = new Map<number, number>();

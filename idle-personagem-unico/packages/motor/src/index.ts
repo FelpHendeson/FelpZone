@@ -37,6 +37,7 @@ export {
   migrarV6ParaV7,
   migrarV7ParaV8,
   migrarV8ParaV9,
+  migrarV9ParaV10,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -191,3 +192,9 @@ export {
   promover,
   valorDoObjetivo,
 } from "./missoes/missoes";
+
+// F9: ações serializáveis (cliente e servidor) e cofre da conta.
+export { aplicarAcao, trocarPersonagem, validarAcao } from "./acoes";
+export type { Acao, ResultadoAplicar, TipoAcao } from "./acoes";
+export { atualizarCofre, COFRE_VAZIO, CONQUISTAS, MAX_PERGAMINHOS, RANKS_COM_PERGAMINHO, validarCofre } from "./personagem/cofre";
+export type { Cofre, Conquista, Descobertas } from "./personagem/cofre";

@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**F9 (Conta e sincronização) concluída** (o banco ainda precisa ser ativado na Vercel: veja `docs/DECISOES.md`, item 60). Agora há **até 3 personagens** por conta (o 2º e o 3º com o Pergaminho do Novo Destino, ganho na guilda), o **Cofre da Conta** (conquistas e Álbum de Descobertas) e uma **conta opcional** que sincroniza o jogo entre aparelhos, com o servidor aplicando as ações. Sem conta, tudo continua local.
+
 **F8 (Forja, produção e nomeados) concluída.** O personagem treina, coleta, vende, equipa, caça, usa habilidades, volta do Limiar e cumpre missões da guilda (F1 a F7), e agora **produz**: forja equipamentos e anéis, prepara poções e amuletos, cozinha, **funde** 3 itens iguais numa versão melhor (+1 a +3), usa **2 acessórios e 1 relíquia**, bebe poções sozinho no combate e guarda **itens nomeados** únicos. Ainda não há conta online nem pets (F9 em diante).
 
 O relatório de cada fatia (o que foi feito, validado, dúvidas e soluções) está em **[`RELATORIO-idle-personagem-unico.md`](RELATORIO-idle-personagem-unico.md)**. O design completo e o plano de construção estão em:
@@ -137,6 +139,19 @@ Sem dependências novas.
 
 **Efeitos que passaram a valer na F8:** Portador da Lâmina Desperta, Filho do Ferreiro Maldito (Martelo do Pai e +2 de forja), Náufrago das Estrelas (Bússola Quebrada), berços Oficina de ferreiro e Taverna de estrada, Fornalha Interior, Mão Certeira e Intelecto na produção.
 
+### O que a F9 entregou
+
+| Onde | O quê |
+| --- | --- |
+| `packages/motor/src/acoes.ts` | Ações serializáveis: `validarAcao`, `aplicarAcao` (a mesma porta para cliente e servidor) e `trocarPersonagem`. |
+| `packages/motor/src/personagem/cofre.ts` | Cofre da Conta: conquistas, Pergaminhos do Novo Destino e Álbum de Descobertas. |
+| `packages/motor/src/save.ts` | **Save v10** com migração v9 → v10. |
+| `apps/web/src/servidor` | Regras da API (conta, sessão, jogo, ação, importação), armazém Upstash/memória, limites. |
+| `apps/web/src/app/api/v1` | Rotas `saude`, `auth/*`, `jogo`, `jogo/acao`, `jogo/importar`. |
+| `apps/web` | Personagem → Conta (personagens, cofre, sincronização); todas as ações da interface no formato serializado. |
+
+**Para ativar a sincronização:** Vercel → projeto → Storage → Upstash (Redis) → ligar ao projeto (cria `KV_REST_API_URL` e `KV_REST_API_TOKEN`) → novo deploy. Sem isso, `GET /api/v1/saude` responde `banco: false` e o resto, 503.
+
 ### Versões escolhidas (23/11/2026)
 
 | Pacote | Versão | Observação |
@@ -188,4 +203,4 @@ Não há variáveis de ambiente nem `.env` nesta fatia.
 
 ## Próximo passo
 
-O autor autorizou seguir até a **F13** sem parar. Próxima: **F9 (Conta e sincronização)**.
+O autor autorizou seguir até a **F13** sem parar. Próxima: **F10 (Pets)**.

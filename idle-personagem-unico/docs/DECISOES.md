@@ -144,3 +144,14 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 58. **"Vender tudo"** deixa de fora poções e nomeados, para não perder o que o combate usa nem o que é único.
 59. **Receitas** (materiais e números) são do agente e foram recalibradas pelo bot (ver `CALIBRACAO.md`).
 
+### Da F9 (conta e sincronização), para o autor conferir
+
+60. **Banco não criado**: o autor não autorizou custo. A API está pronta e testada (inclusive no navegador, com um Redis local de mentira); sem as variáveis da Upstash, responde 503 e o jogo segue local. **Para ativar:** na Vercel, projeto `idle-personagem-unico` → Storage/Marketplace → Upstash (Redis), ligar ao projeto (cria `KV_REST_API_URL` e `KV_REST_API_TOKEN`) e fazer um novo deploy. O plano gratuito da Upstash basta para começar.
+61. **Upstash (Redis) em vez de Postgres** na F9: conta e save cabem em chave-valor; Postgres fica para ranking/temporadas (F12), se precisar.
+62. **Conta sem e-mail**: nome (3 a 20 caracteres) e senha (8 a 128). Sem recuperação de senha por enquanto (não guardamos dado pessoal).
+63. **Token bearer** em vez de cookie `httpOnly`: o mesmo serve à web e ao app mobile. Fica no `localStorage`; sair apaga a sessão no servidor.
+64. **Primeira sincronização**: o save do aparelho sobe para a conta (o relógio dele é limitado ao do servidor). Se a conta já tem jogo, a pessoa escolhe qual fica.
+65. **Pergaminho do Novo Destino** nos ranks C e A de cada personagem (até 9 guardados); o 2º e o 3º personagem gastam um no início do sorteio, sem devolução.
+66. **Conquistas sem instante**: o cofre guarda só quais foram obtidas (assim dividir o tempo não muda nada). Todas olham para o que nunca diminui (nível, mortes, rank, bestiário).
+67. **Só o ativo avança**: os outros personagens ficam parados (o relógio é da conta). Trocar credita o tempo ao que estava ativo.
+

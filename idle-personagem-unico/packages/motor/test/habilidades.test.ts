@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  COFRE_VAZIO,
   ATIVIDADE_APRENDIZADO,
   CATALOGO,
   CONFIG_HABILIDADES,
@@ -69,7 +70,7 @@ function personagem(coreId = "ser-das-trevas", extra: Partial<Personagem> = {}):
     ...extra,
   };
 }
-const estadoCom = (p: Personagem, semente = "hab"): EstadoJogo => ({ ...criarEstadoInicial(semente, T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null } });
+const estadoCom = (p: Personagem, semente = "hab"): EstadoJogo => ({ ...criarEstadoInicial(semente, T0), conta: { personagens: [p], personagemAtivoId: p.id, sorteio: null, cofre: COFRE_VAZIO } });
 function ok(r: ResultadoAtividade): EstadoJogo {
   if (!r.ok) throw new Error(r.erro.codigo);
   return r.estado;

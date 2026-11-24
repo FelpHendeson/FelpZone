@@ -23,7 +23,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 | F6 | O Limiar | ✅ Concluída em 24/11/2026 | `7275030` | 263 |
 | F7 | Missões e Guilda | ✅ Concluída em 24/11/2026 | `646316d` | 277 |
 | F8 | Forja, produção e nomeados | ✅ Concluída em 24/11/2026 | `ed3359e` | 297 |
-| F9 a F13 | Conta · Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
+| F9 | Conta e sincronização | ✅ Concluída em 24/11/2026 (banco a ativar pelo autor) | (ver seção) | 319 |
+| F10 a F13 | Pets · Mundo vivo · Competição · Acabamento | ⏳ Autorizadas ("seguir até o F13 sem parar"), em execução | — | — |
 
 Legenda das dúvidas: **Aprovada por ora** = o autor aceitou o conjunto da fatia sem pedir mudança; **Aguarda o autor** = decisão minha que ainda vale conferir (também listada em `docs/DECISOES.md`).
 
@@ -659,6 +660,86 @@ Afixos aleatórios; carpintaria e costura; manoplas e mão secundária; troca en
 
 ---
 
+## F9 — Conta e sincronização
+
+**Pedido do autor (24/11/2026):** "Pode seguir até o F13 sem parar". Prompt em `prompts/idle-personagem-unico/09-fatia-F9-conta-sincronizacao.md`. Como avisado, **não criei banco nem recurso pago**: a API está pronta e testada, e a ativação fica com o autor.
+
+### O que foi executado
+
+- [x] **Ações serializáveis** no motor (`aplicarAcao`): cada botão do jogo vira um objeto como `{ tipo: "equipar", itemId }`, validado como entrada não confiável. O mesmo código roda no aparelho (sem conta) e no servidor (com conta).
+- [x] **Até 3 personagens** por conta. O 2º e o 3º gastam um **Pergaminho do Novo Destino**, ganho quando um personagem chega aos ranks C e A da guilda. Só o ativo joga; **trocar** credita o tempo ao que estava ativo e os outros ficam parados.
+- [x] **Cofre da Conta:** 10 **conquistas** (sem poder), pergaminhos e **Álbum de Descobertas** (raças, cores, origens, monstros), calculados a partir dos personagens.
+- [x] **Save v10** com migração v9 → v10.
+- [x] **API `/api/v1`:**
+  - `saude`, `auth/registrar`, `auth/entrar`, `auth/sair`, `jogo` (estado avançado pelo relógio do servidor), `jogo/acao` e `jogo/importar` (primeira sincronização);
+  - senha com `scrypt` + sal; token guardado só como hash, válido por 30 dias;
+  - limite de pedidos por IP e de tentativas de entrada; uma ação por vez por conta;
+  - o relógio de um save enviado não passa do relógio do servidor;
+  - **sem banco: 503** e o jogo segue local.
+- [x] **Armazém** com duas versões: Upstash (Redis por REST, sem dependência nova) e memória (testes).
+- [x] **Web:**
+  - todas as ações da interface no formato serializado;
+  - com conta, as ações vão para o servidor e o estado volta dele;
+  - **Personagem → Conta**: personagens (trocar, criar novo), conquistas, álbum e sincronização (criar conta, entrar, sair, escolher entre o jogo da conta e o deste aparelho);
+  - `apps/web/.env.example` com valores fictícios.
+- [x] **Documentação** (ARQUITETURA, GDD, DECISOES, ROADMAP, README) e esta seção.
+
+### Como foi validado
+
+- **Verificações locais:** `npm audit --audit-level=high`, `npm test`, `npm run lint`, `npm run typecheck` e `npm run build` passando. São **319 testes** (301 no motor, 18 na web).
+- **Testes novos (motor, 11):**
+  - conquistas e descobertas;
+  - pergaminhos uma vez por personagem, com teto;
+  - 2º personagem exige e gasta pergaminho; o 4º não existe;
+  - só o ativo avança;
+  - ações inválidas recusadas; ação = função do motor;
+  - save v10: ida e volta, 6 adulterações do cofre e migração.
+- **Testes novos (API, 9):**
+  - sem banco: 503 em tudo;
+  - variáveis de ambiente (só https, ou http no próprio computador);
+  - registrar, nome repetido, nome e senha inválidos, entrar e sair;
+  - a senha e o token não ficam em texto;
+  - limite de tentativas por IP;
+  - importar sem sobrescrever; relógio no futuro recusado;
+  - ação no servidor com o relógio dele; trava de uma ação por vez.
+- **Navegador**, em 360 px, 390 px e desktop:
+  - sem banco, a aba Conta avisa que a sincronização não está ativa;
+  - o botão de novo personagem fica bloqueado sem pergaminho;
+  - com 1 pergaminho, o 2º personagem é sorteado e criado; trocar volta ao 1º;
+  - **migração real** de um save v9 criado no site publicado (que rodava a F8).
+
+  Console limpo, sem rolagem lateral.
+- **Sincronização de verdade** com um Redis falso local (mesmo protocolo REST da Upstash), dois navegadores como dois aparelhos:
+  1. o aparelho 1 cria conta e começa a colher trigo pelo servidor;
+  2. o aparelho 2 recusa senha errada, entra e escolhe "Usar o jogo da conta" (aparece o mesmo personagem colhendo);
+  3. o aparelho 2 para a atividade e o aparelho 1, ao recarregar, vê a atividade parada.
+
+### Números principais
+
+- **Pergaminhos:** pelo bot da cadeia completa, o rank C sai no dia ~11 e o A no ~29. O 2º personagem fica possível na segunda semana; o 3º, perto do fim do primeiro mês.
+- **Limites da API:** 120 pedidos/min por IP, 10 entradas/min, sessão de 30 dias, save de até 512 KiB.
+
+### Dúvidas e soluções adotadas
+
+| # | Dúvida | Solução adotada | Situação |
+| --- | --- | --- | --- |
+| 1 | A F9 pede banco, que tem custo. | Não criei. A API responde 503 sem as variáveis da Upstash, e o jogo segue local. **Para ativar:** Vercel → projeto → Storage → Upstash (Redis) → ligar ao projeto → novo deploy. | **Pendente (autor)** |
+| 2 | Postgres ou Redis? | Redis da Upstash (o ARQUITETURA já citava), com prefixo `idle-pu:`. Postgres só se a competição pedir. | Aguarda o autor |
+| 3 | Como testar a sincronização sem banco? | Um Redis falso local que fala o mesmo protocolo REST. Para isso, o armazém aceita `http://` **só** em localhost/127.0.0.1 (teste confere que `localhost.evil.com` é recusado). | Resolvido |
+| 4 | Como o servidor ser autoridade sem duplicar regras? | Toda ação virou um objeto serializável e passa por `aplicarAcao` do motor, no aparelho e no servidor. | Resolvido |
+| 5 | Conquista com instante quebrava "dividir o tempo dá o mesmo resultado". | O cofre guarda só quais conquistas foram obtidas, e todas olham para o que nunca diminui. | Resolvido |
+| 6 | De onde vem o Pergaminho do Novo Destino ("obtido no jogo")? | Ranks C e A da guilda, um por personagem por rank, até 9 guardados. | Aguarda o autor |
+| 7 | Conta com e-mail? | Não: nome e senha, sem dado pessoal. Sem recuperação de senha por enquanto. | Aguarda o autor |
+| 8 | Cookie `httpOnly` ou token? | Token *bearer* (web e mobile usam o mesmo); sair apaga a sessão no servidor. | Aguarda o autor |
+| 9 | Conta já tem jogo e o aparelho tem outro. | A pessoa escolhe: "Usar o jogo da conta" ou "Enviar o deste aparelho (substitui)". | Resolvido |
+| 10 | Personagens parados também avançam? | Não: só o ativo (GDD: "os outros ficam parados até serem escolhidos"). | Aprovado na regra geral |
+
+### O que ficou de fora
+
+Cosméticos e histórico de temporadas no cofre; recuperação de senha; apagar a conta pela interface; cookie `httpOnly`.
+
+---
+
 ## Próximo passo
 
-**F9 — Conta e sincronização** (já autorizada): conta, `/api/v1`, sincronização e até 3 personagens. Precisa de um banco na nuvem: **não vou criar recurso pago**; a API e a sincronização ficam prontas com modo local e resposta 503 sem banco, e a ativação fica registrada como pendente para o autor.
+**F10 — Pets** (já autorizada): pets reais e espirituais, 1 pet por atividade, Fome/Energia, cuidados como atividades, besta vinculada, domar e União. **Pendente do autor:** ativar o banco da sincronização (F9, dúvida 1).

@@ -613,3 +613,4 @@ Na cadeia completa (60 dias, mesmo bot da F7): **21 fragmentos de chefe** e 3 re
 | 24/11/2026 | F8: materiais das receitas de equipamento (a forja de aço rendia 7× os materiais crus). | espada de aço 10 prata + 5 carvalho escuro + 5 lodo → 30 + 15 + 10; couraça 14 prata + 5 pedra → 40 + 15; ferro ~2× |
 | 24/11/2026 | F8: fragmento de chefe (1.895 em 60 dias). | 40% → 1% por chefe |
 | 24/11/2026 | F8: números de produção, fusão, ampliação, poções e relíquias definidos (não existiam). | — |
+| 24/11/2026 | F9: Pergaminho do Novo Destino nos ranks C e A de cada personagem (máximo 9); limites da API (120 pedidos/min, 10 entradas/min, sessão de 30 dias). | — |
