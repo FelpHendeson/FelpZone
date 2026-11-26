@@ -1,3 +1,4 @@
+import { tutorialInicial } from "../src/index";
 import { describe, expect, it } from "vitest";
 import {
   COFRE_VAZIO,
@@ -66,6 +67,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
     ...camposIniciaisF12(),
+    tutorial: tutorialInicial(),
     ...semHabilidadesEquipadas(),
     ...extra,
   };

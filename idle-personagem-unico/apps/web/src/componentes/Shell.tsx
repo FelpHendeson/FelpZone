@@ -24,6 +24,7 @@ import { tocar } from "@/lib/sons";
 import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, restaurarSessao, sairDaConta, type Sessao } from "@/lib/sync";
 import { ClienteConta, type SituacaoConta } from "@/lib/clienteConta";
 import { CabecalhoJornada } from "./CabecalhoJornada";
+import { GuiaJornada, TutorialContextual } from "./GuiaJornada";
 import { NavegacaoPrincipal, SubAbas } from "./NavegacaoJogo";
 import type { DestinoJogo } from "@/lib/navegacao";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
@@ -506,6 +507,8 @@ export function Shell() {
     conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : indiceSub === 2 ? <PainelGuilda {...props} /> : <PainelHistoria {...props} />;
   } else if (aba.id === "combate" && indiceSub === 2) {
     conteudo = <PainelLimiar personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
+  } else if (aba.id === "personagem" && indiceSub === 6) {
+    conteudo = <GuiaJornada key={personagem.id} personagem={personagem} ocupado={bloquearAcoes} aoDestino={navegar} aoAgir={executar} />;
   } else if (aba.id === "personagem" && indiceSub === 5) {
     conteudo = (
       <PainelConta
@@ -553,6 +556,7 @@ export function Shell() {
         <EventosPendentes personagem={personagem} ocupado={bloquearAcoes} agir={agir} />
         {situacaoConta?.conexao === "expirado" && <p className="aviso" role="status">Entre novamente na conta para continuar. Seu último progresso está preservado.</p>}
         {situacaoConta?.conexao === "desconectado" && <p className="aviso" role="status">Conta em leitura até reconectar. O progresso online está pausado neste aparelho.{situacaoConta.mensagem && ` ${situacaoConta.mensagem}`}</p>}
+        {!(aba.id === "personagem" && indiceSub === 6) && <TutorialContextual key={personagem.id} personagem={personagem} ocupado={bloquearAcoes} aoDestino={navegar} aoAgir={executar} />}
         {conteudo}
         </div>
       </main>

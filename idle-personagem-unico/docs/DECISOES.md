@@ -233,3 +233,9 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 114. **[Implementação]** Preservar os seis sistemas e suas 30 sub-abas. Usar barra inferior no celular e lateral a partir de 960 px, mantendo personagem/atividade no cabeçalho e adaptação por sua altura real. Sub-abas têm setas/Home/End, foco e vínculo ao painel.
 115. **[Implementação]** Atalhos são navegação pura; Limiar prevalece sobre viagem, que prevalece sobre atividade. Mochila cheia encaminha a Materiais sem vender ou descartar itens. Sem mudanças no motor.
 116. **[Implementação]** Estado de conexão compacto com reconexão/reauth; ações online exigem conexão confirmada, enquanto pendências continuam reconciliadas pelo cliente da F13.1/F13.2. Avisos de erro recebem foco e a barra deixa de anunciar cada tick para leitores de tela. [Evidências](INTERFACE-F13-4.md).
+
+### F13.5 — tutorial (26/11/2026)
+
+117. **[Implementação]** Tutorial por personagem no save v14, migração v13 preservando jogo e guia pausado para personagens antigos. Novos personagens começam ativos.
+118. **[Implementação]** Sete passos por ações confirmadas em qualquer ordem; venda exige aumento de gold. Sem payload de autoconclusão, recompensa ou mudança de regras.
+119. **[Implementação]** Pular/retomar só muda modo, sem RNG/tempo, preservando passos. Ações continuam sendo reconhecidas quando pausado; guia permanece consultável após concluir. [Evidências](TUTORIAL-F13-5.md).

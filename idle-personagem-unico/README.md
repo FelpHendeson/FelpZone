@@ -10,7 +10,9 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F13.4 — interface e navegação (26/11/2026).** Personagem e atividade presentes durante a jornada, navegação lateral no desktop/inferior no celular, sub-abas por teclado, atalhos contextuais e conexão compacta com leitura offline. [Contrato e verificações](docs/INTERFACE-F13-4.md).
+**F13.5 — tutorial por ações reais (26/11/2026).** Guia contextual por personagem, pulável e revisável, com progresso no save/conta. Ensina sorteio, treino, coleta, venda, equipamento, combate e Guilda; sem recompensas ou alterações de balanceamento. Save v14 migra personagens antigos com guia pausado. [Contrato e validações](docs/TUTORIAL-F13-5.md).
+
+**F13.4 — interface e navegação publicada (26/11/2026), commit `01bff1a`.** Personagem e atividade presentes durante a jornada, navegação lateral no desktop/inferior no celular, sub-abas por teclado, atalhos contextuais e conexão compacta com leitura offline. [Contrato e verificações](docs/INTERFACE-F13-4.md).
 
 **F13.3 — apresentação e entrada publicada (26/11/2026), commit `2734b51`.** Apresentação antes do sorteio, acesso à conta sem personagem local, seleção de jornadas e retomada de criação. Conta online e jogo deste aparelho ficam explícitos. [Contrato e validações](docs/ENTRADA-F13-3.md).
 
@@ -18,7 +20,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 **F13.1 — estabilização técnica implementada em 26/11/2026**, na branch `codex/idle-f13-1`: jogos online criados pelo servidor, importação casual sem sobrescrita, ações com revisão e recibo, gravações atômicas, cache por conta e reconexão segura. [Contrato, migração e validações](docs/ESTABILIZACAO-F13-1.md). Contas e persistência foram tratadas na F13.2; F13.3–F13.8 consolidam entrada, UX e aceite antes do mobile.
 
-**F13 (Acabamento web) entregue: escopo inicial implementado (F1 a F13), em consolidação antes do port mobile.** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). A configuração do banco existente foi confirmada na F13.2. Apresentação e navegação foram consolidadas; tutorial, arte, auditoria em execução e aceite da web antecedem o port mobile (F14).
+**F13 (Acabamento web) entregue: escopo inicial implementado (F1 a F13), em consolidação antes do port mobile.** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). A configuração do banco existente foi confirmada na F13.2. Apresentação e navegação foram consolidadas; arte, auditoria em execução e aceite da web antecedem o port mobile (F14).
 
 **F12 (Competição) concluída.** Arena assíncrona contra bots por arquétipo (10 lutas por dia, rating e replays), Campo de Provas, torneio semanal em chave e temporadas de 8 semanas com tema, ranking e uma insígnia nomeada. Tudo reproduzível pela semente.
 

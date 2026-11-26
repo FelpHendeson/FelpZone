@@ -17,5 +17,5 @@ export const ABAS: readonly Aba[] = [
     subAbas: ["Equipados", "Equipáveis", "Ferramentas", "Materiais", "Consumíveis", "Nomeados"],
   },
   { id: "missoes", rotulo: "Missões", icone: "📜", subAbas: ["NPC", "Metas", "Guilda", "História"] },
-  { id: "personagem", rotulo: "Personagem", icone: "👤", subAbas: ["Status", "Habilidades", "Pets", "Títulos", "Crônica", "Conta"] },
+  { id: "personagem", rotulo: "Personagem", icone: "👤", subAbas: ["Status", "Habilidades", "Pets", "Títulos", "Crônica", "Conta", "Guia"] },
 ];

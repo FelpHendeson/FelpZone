@@ -1,3 +1,4 @@
+import { tutorialInicial } from "../src/index";
 /**
  * Bot de ritmo (ARQUITETURA §9): joga o loop de treino como uma pessoa
  * razoável e mede o tempo até os níveis-marco. Saída em Markdown para
@@ -134,6 +135,7 @@ function personagem(racaId: string, origem: Personagem["origem"]): Personagem {
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
     ...camposIniciaisF12(),
+    tutorial: tutorialInicial(),
   };
 }
 

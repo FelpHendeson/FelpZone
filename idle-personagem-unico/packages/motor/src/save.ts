@@ -5,6 +5,7 @@
  * ou de outra versão). `carregarSave` nunca lança: devolve o estado ou um erro.
  */
 import { camposIniciaisF12 } from "./competicao/competicao";
+import { tutorialInicial } from "./personagem/tutorial";
 import { camposIniciaisF11 } from "./mundo/mundo";
 import { camposIniciaisF10 } from "./pets/pets";
 import { COFRE_VAZIO } from "./personagem/cofre";
@@ -13,7 +14,7 @@ import { statusIniciais, type BaseModificadores } from "./personagem/progressao"
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 13;
+export const VERSAO_SAVE_ATUAL = 14;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -222,6 +223,13 @@ export const migrarV12ParaV13: Migracao = (dados) => {
   return { ...dados, conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, ...camposIniciaisF12(instante) })) } };
 };
 
+/** v13 → v14: guia pausado para personagens existentes, preservando todo o jogo. */
+export const migrarV13ParaV14: Migracao = (dados) => {
+  const conta = dados.conta as { personagens?: unknown } | undefined;
+  const personagens = Array.isArray(conta?.personagens) ? conta.personagens : [];
+  return { ...dados, conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, tutorial: tutorialInicial("pulado") })) } };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -236,6 +244,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   10: migrarV10ParaV11,
   11: migrarV11ParaV12,
   12: migrarV12ParaV13,
+  13: migrarV13ParaV14,
 });
 
 export type CodigoErroSave =

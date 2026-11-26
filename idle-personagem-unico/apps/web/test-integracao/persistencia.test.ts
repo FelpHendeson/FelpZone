@@ -3,6 +3,7 @@ import { ArmazemUpstash } from "../src/servidor/armazem";
 import { entrar, recuperar, registrar } from "../src/servidor/autenticacao";
 import { acao, iniciarJogoOnline, obterJogo, prontidao } from "../src/servidor/api";
 import { abrirRedisLocal } from "./redisLocal";
+import { ATIVIDADES_TREINO, CORES_CABELO, CORES_ROUPA, carregarSave, personagemAtivo } from "@idle-pu/motor";
 
 let redis: Awaited<ReturnType<typeof abrirRedisLocal>>;
 let banco: ArmazemUpstash;
@@ -11,6 +12,24 @@ beforeAll(async () => { redis = await abrirRedisLocal(); banco = new ArmazemUpst
 afterAll(async () => { await redis?.fechar(); }, 20000);
 
 describe("persistência com Redis real e Lua", () => {
+  it("sincroniza tutorial entre sessões, preserva após reinício e isola outra conta", async () => {
+    const reg = await registrar(banco, pedido(null, { nome: "guia", senha: "senha-forte" }));
+    const token = reg.corpo.token as string;
+    let jogo = await iniciarJogoOnline(banco, pedido(token));
+    let n = 0;
+    for (const a of [{ tipo: "aceitarSorteio" }, { tipo: "definirNomeEAparencia", nome: "Guia", corCabelo: CORES_CABELO[0]!.id, corRoupa: CORES_ROUPA[0]!.id }, { tipo: "iniciarAtividade", atividadeId: ATIVIDADES_TREINO[0]!.id }, { tipo: "pularTutorial" }]) {
+      jogo = await acao(banco, pedido(token, { idAcao: `tutorial-integracao-acao-${n++}`, revisao: jogo.corpo.revisao, acao: a }));
+      expect(jogo.status).toBe(200);
+    }
+    const save = jogo.corpo.save as string;
+    const lido = carregarSave(save);
+    expect(lido.ok && personagemAtivo(lido.estado)?.tutorial).toEqual({ modo: "pulado", concluidos: ["sorteio", "treino"] });
+    await redis.reiniciar(); banco = new ArmazemUpstash(redis.url, redis.token);
+    const outraSessao = await entrar(banco, pedido(null, { nome: "guia", senha: "senha-forte" }));
+    expect((await obterJogo(banco, pedido(outraSessao.corpo.token as string))).corpo.save).toBe(save);
+    const outraConta = await registrar(banco, pedido(null, { nome: "guia_outra", senha: "senha-forte" }));
+    expect((await obterJogo(banco, pedido(outraConta.corpo.token as string))).status).toBe(404);
+  }, 20000);
   it("preserva conta, save e recibo após reinício, isolando identidades e revogando sessões", async () => {
     expect((await prontidao(banco)).status).toBe(200);
     const reg = await registrar(banco, pedido(null, { nome: "ana", senha: "senha-forte" }));

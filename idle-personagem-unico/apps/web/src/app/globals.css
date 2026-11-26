@@ -1047,7 +1047,7 @@ ol.lista-recursos {
 .jornada-conexao[data-conexao="desconectado"] > .link:first-child,
 .jornada-conexao[data-conexao="expirado"] > .link:first-child { color: var(--destaque); }
 .jornada-atividade .barra-atividade { margin: 0; border: 0; border-radius: 0; background: none; padding: .5rem 0 .25rem; }
-.jornada-atalhos { display: flex; justify-content: space-between; gap: 1rem; font-size: .8rem; }
+.jornada-atalhos { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .25rem 1rem; font-size: .8rem; }
 .jornada-conteudo { min-width: 0; }
 .jornada-secao .titulo { font: 1.8rem Georgia, serif; margin-bottom: .8rem; scroll-margin-top: calc(var(--altura-topo, 17rem) + 1rem); }
 .jornada-secao .titulo:focus { outline: none; }
@@ -1060,6 +1060,19 @@ ol.lista-recursos {
 .shell-jogo .aba-rotulo { font-size: .6875rem; }
 .shell-jogo .aba[aria-current="page"] { background: #2b2413; box-shadow: inset 0 2px var(--destaque); }
 .shell-jogo .status-save { min-height: calc(2.5rem + var(--altura-abas)); }
+.tutorial-contextual { padding: 1rem 1.25rem; border-left: 3px solid var(--destaque); background: var(--superficie); scroll-margin-top: calc(var(--altura-topo, 17rem) + 1rem); }
+.tutorial-contextual:focus { outline: none; }
+.tutorial-contextual h2, .guia-jornada h2 { font: 1.4rem Georgia, serif; margin: .6rem 0; }
+.tutorial-contextual p, .guia-jornada p { line-height: 1.65; max-width: 72ch; color: var(--texto-suave); }
+.tutorial-progresso { color: var(--destaque); font-size: .8rem; }
+.tutorial-acoes { display: flex; flex-wrap: wrap; align-items: center; gap: .25rem 1.25rem; }
+.tutorial-acoes > .botao { flex: 0 1 auto; min-width: 10rem; }
+.tutorial-acoes .link, .guia-jornada .link { min-height: 2.75rem; }
+.guia-etapas { padding-left: 1.5rem; }
+.guia-etapas li { padding: 1rem 0; border-bottom: 1px solid var(--borda); }
+.guia-etapas li::marker { color: var(--destaque); }
+.guia-etapas h3 { font-size: 1.1rem; line-height: 1.6; margin: 0; }
+.guia-etapas .link + .link { margin-left: 1rem; }
 @media (max-width: 380px) {
   .jornada-topo { padding-left: .75rem; padding-right: .75rem; }
   .jornada-identidade { gap: .5rem; }

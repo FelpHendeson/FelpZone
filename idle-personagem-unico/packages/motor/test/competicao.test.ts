@@ -1,3 +1,4 @@
+import { tutorialInicial } from "../src/index";
 import { describe, expect, it } from "vitest";
 import {
   ARQUETIPOS,
@@ -63,6 +64,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
     ...camposIniciaisF12(),
+    tutorial: tutorialInicial(),
     ...extra,
   };
 }

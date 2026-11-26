@@ -24,6 +24,7 @@ import { avancar, resumoVazio, type ResumoAvanco } from "./atividades/ciclos";
 import { comprarLivro, desequiparHabilidade, equiparHabilidade, escolherRamo, iniciarAprendizado, lerLivro, moverPrioridade } from "./habilidades/acoes";
 import { abandonarMissao, aceitarMissao, entregarMissao, promover } from "./missoes/missoes";
 import { atualizarCofre } from "./personagem/cofre";
+import { registrarTutorial } from "./personagem/tutorial";
 import type { EstadoJogo } from "./save";
 import { inscreverTorneio, lutarArena, resgatarTorneio } from "./competicao/acoes";
 import { resolverEvento } from "./mundo/acoes";
@@ -33,6 +34,8 @@ import { SLOTS_PET, type SlotPet } from "./pets/pets";
 import { aceitarSorteio, definirNomeEAparencia, iniciarSorteio, rerolar, type ResultadoAcao } from "./sorteio/acoes";
 
 export type Acao =
+  | { readonly tipo: "pularTutorial" }
+  | { readonly tipo: "retomarTutorial" }
   | { readonly tipo: "iniciarAtividade"; readonly atividadeId: string }
   | { readonly tipo: "iniciarAprendizado"; readonly habilidadeId: string }
   | { readonly tipo: "pararAtividade" }
@@ -100,6 +103,8 @@ export function validarAcao(v: unknown): Acao | null {
   if (typeof v !== "object" || v === null || Array.isArray(v)) return null;
   const a = v as Record<string, unknown>;
   switch (a.tipo) {
+    case "pularTutorial":
+    case "retomarTutorial":
     case "pararAtividade":
     case "venderTudo":
     case "pagarPedagio":
@@ -163,7 +168,7 @@ export function validarAcao(v: unknown): Acao | null {
   }
 }
 
-function despachar(estado: EstadoJogo, a: Acao, agora: number): ResultadoAplicar {
+function despachar(estado: EstadoJogo, a: Exclude<Acao, { tipo: "pularTutorial" | "retomarTutorial" }>, agora: number): ResultadoAplicar {
   switch (a.tipo) {
     case "iniciarAtividade":
       return iniciarAtividade(estado, a.atividadeId, agora);
@@ -260,12 +265,18 @@ export function aplicarAcao(estado: EstadoJogo, acao: unknown, agora: number): R
   const a = validarAcao(acao);
   if (!a) return invalida();
   if (!Number.isSafeInteger(agora) || agora < 0) return invalida("Instante inválido.");
+  if (a.tipo === "pularTutorial" || a.tipo === "retomarTutorial") {
+    const ativo = estado.conta.personagens.find((p) => p.id === estado.conta.personagemAtivoId);
+    if (!ativo) return invalida("Crie um personagem antes de usar o guia.");
+    const modo = a.tipo === "pularTutorial" ? "pulado" : "ativo";
+    return { ok: true, resumo: resumoVazio(), estado: { ...estado, conta: { ...estado.conta, personagens: estado.conta.personagens.map((p) => p.id === ativo.id ? { ...p, tutorial: { ...p.tutorial, modo } } : p) } } };
+  }
   // Ações de sorteio não avançam o tempo sozinhas: avança antes, para o relógio ficar coerente.
   const base = a.tipo === "iniciarSorteio" || a.tipo === "rerolar" || a.tipo === "aceitarSorteio" ? avancar(estado, agora).estado : estado;
   const r = despachar(base, a, agora);
   if (!r.ok) return r;
   // F11: marcos da Crônica de quem está ativo (promoções contam na hora).
-  const personagens = r.estado.conta.personagens.map((p) => (p.id === r.estado.conta.personagemAtivoId ? atualizarCronica(p) : p));
+  const personagens = r.estado.conta.personagens.map((p) => (p.id === r.estado.conta.personagemAtivoId ? atualizarCronica(registrarTutorial(estado.conta.personagens.find((antes) => antes.id === p.id), p, a)) : p));
   const cofre = atualizarCofre(r.estado.conta.cofre, personagens);
   return { ...r, estado: { ...r.estado, conta: { ...r.estado.conta, personagens, cofre } } };
 }

@@ -1063,3 +1063,11 @@ Validação: 355 testes do motor, 57 web e 2 Redis real; lint, tipos e build. Pl
 A F13.3 foi publicada no commit `2734b51`, deployment READY com alias de produção; apresentação/login/recuperação e readiness foram conferidos no site público. Após nova autorização de continuação, a F13.4 preserva os seis sistemas e 30 sub-abas, acrescentando personagem/atividade persistentes, navegação lateral desktop, teclado, atalhos contextuais e estado compacto da conta. Sem conexão, ações ficam bloqueadas até reconectar; o modo local continua independente.
 
 Validação da F13.4: 61 testes web, 2 de Redis real, tipos, lint e build. Playwright/Chromium percorreu as 30 sub-abas, teclado e ações de treino/coleta/viagem/venda/compra/equipar/caça, Guilda, mochila cheia e conta offline/reconexão. Revisão visual em mobile/desktop e responsividade em 320/390/768/1440 px. Motor, regras e versão de save não mudaram. [Contrato, evidências e limites](docs/INTERFACE-F13-4.md). Próxima fatia planejada: F13.5, tutorial.
+
+## 26/11/2026 — F13.5: tutorial por ações reais
+
+F13.4 publicada em `01bff1a`, READY, com jornada mobile/desktop, teclado e readiness conferidos em produção. Após continuação autorizada, a F13.5 acrescenta guia contextual individual, pulável e revisável, por sete ações reais confirmadas. Personagem → Guia e atalho no cabeçalho permitem consulta; ações em qualquer ordem continuam registradas quando pausado. Não há prêmios, bloqueio de sistemas ou mudanças de balanceamento.
+
+Save v14 com migração v13 mantém progresso/RNG/sorteio e deixa guia pausado para personagens antigos. Novos começam ativos com sorteio reconhecido. Pular/retomar afetam só o modo, usando revisão/recibos e isolamento da API existente. Cache PWA atualizado; clientes antigos devem recarregar para v14.
+
+Validação: 364 testes motor, 61 web e 3 Redis real (428), lint/tipos/build. Navegador com API real/Redis isolado verificou sete tarefas, migração, reload, pausa/retomada entre aparelhos, conflito de revisão e offline, com responsividade em quatro larguras. Revisão visual ajustou foco/rolagem do passo seguinte para não ficar coberto pelo cabeçalho. [Evidências e migração](docs/TUTORIAL-F13-5.md). Próxima fatia planejada: F13.6, direção artística.

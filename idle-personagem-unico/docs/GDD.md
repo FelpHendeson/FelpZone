@@ -520,6 +520,10 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 
 ## Complemento de experiência do jogador — 24/11/2026
 
+### Tutorial F13.5 — 26/11/2026
+
+**[Implementação]** Tutorial por personagem, consultável no cabeçalho e Personagem → Guia. Novos personagens começam com sorteio reconhecido; os passos orientam iniciar treino/coleta, vender, equipar, iniciar caça e aceitar missão da Guilda. São reconhecidos por ações confirmadas em qualquer ordem, inclusive quando pausado. Pular/retomar não altera tentativas, RNG, tempo, itens ou gold. Não há recompensa nem bloqueio de sistemas. Os textos distinguem iniciar uma atividade de aguardar seu rendimento. Saves antigos recebem guia pausado, sem inventar histórico de ações; podem retomá-lo quando quiserem. O progresso sincroniza pela conta.
+
 ### Navegação F13.4 — 26/11/2026
 
 **[Implementação]** Retrato, nome, nível, raça/core e atividade acompanham a jornada. Os seis sistemas mantêm os mesmos nomes/sub-abas, com navegação inferior no celular e lateral no desktop. Atalhos abrem a atividade atual, viagem, Limiar ou materiais quando a mochila enche, sem executar ações. O estado da conta fica no cabeçalho; sem confirmação do servidor, a conta permanece em leitura até reconectar ou entrar novamente. Ações, desbloqueios, fórmulas e saves não mudam. Tutorial permanece na F13.5.

@@ -43,6 +43,7 @@ export function CabecalhoJornada({ personagem: p, sessao, situacao, aoPersonagen
       <div className="jornada-atalhos">
         <button type="button" className="link" onClick={() => aoDestino(destinoDaAtividade(p))}>{p.limiar ? "Abrir O Limiar" : p.viagem ? "Acompanhar viagem" : p.atividade ? "Ver atividade" : "Escolher atividade"}</button>
         {mochila.cheia && <button type="button" className="link" onClick={() => aoDestino({ aba: "mochila", sub: 3 })}>Abrir materiais</button>}
+        <button type="button" className="link" id="atalho-guia" onClick={() => aoDestino({ aba: "personagem", sub: 6 })}>Guia</button>
       </div>
     </div>
   </header>;

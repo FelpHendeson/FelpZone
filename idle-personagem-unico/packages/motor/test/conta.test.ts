@@ -1,3 +1,4 @@
+import { tutorialInicial } from "../src/index";
 import { describe, expect, it } from "vitest";
 import {
   COFRE_VAZIO,
@@ -58,6 +59,7 @@ function personagem(extra: Partial<Personagem> = {}): Personagem {
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
     ...camposIniciaisF12(),
+    tutorial: tutorialInicial(),
     ...extra,
   };
 }
@@ -145,7 +147,10 @@ describe("ações serializadas", () => {
     const e = estadoCom(personagem());
     const direto = iniciarAtividade(e, "colher-trigo", T0 + 1_000);
     const r = aplicarAcao(e, { tipo: "iniciarAtividade", atividadeId: "colher-trigo", extra: "ignorado" }, T0 + 1_000);
-    expect(r.ok && direto.ok && r.estado).toEqual(direto.ok && direto.estado);
+    expect(r.ok && direto.ok && r.estado).toEqual(direto.ok && {
+      ...direto.estado,
+      conta: { ...direto.estado.conta, personagens: direto.estado.conta.personagens.map((p) => ({ ...p, tutorial: { ...p.tutorial, concluidos: ["sorteio", "coleta"] } })) },
+    });
   });
 
   it("a fusão informa se deu certo", () => {

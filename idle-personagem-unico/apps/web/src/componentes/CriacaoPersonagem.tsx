@@ -53,6 +53,7 @@ function EtapaSorteio({ estado, aoAgir }: Props) {
       </header>
 
       <CartoesResultado resultado={resultado} lore={gerarLoreOrigem(resultado.origem, resultado.racaId, null)} />
+      <p className="suave nota">São cinco tentativas nesta criação. Rerolar troca o resultado; aceitar abre nome e aparência. Voltar ou recarregar mantém a tentativa atual.</p>
 
       {ultima && <p className="aviso">Última tentativa: agora só resta aceitar.</p>}
       {erro && (

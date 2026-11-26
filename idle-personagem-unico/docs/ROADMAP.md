@@ -23,8 +23,8 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F13.1** publicada (26/11) | Estabilização técnica e segurança | Procedência do save, concorrência, idempotência, sincronização e cache; testes de regressão. | [Implementação e resultados](ESTABILIZACAO-F13-1.md); incluída no deploy da F13.2. |
 | **F13.2** publicada (26/11) | Contas e persistência | Cookie HttpOnly, recuperação, cache por ID e migração; Redis existente conferido. | [Resultados](CONTAS-F13-2.md): commit `76cf3e4` READY, readiness com banco conectado. |
 | **F13.3** publicada (26/11) | Apresentação e entrada | Tela inicial, login/cadastro, seleção/criação de personagem. | [Contrato e validações](ENTRADA-F13-3.md): commit `2734b51` READY, entrada e readiness conferidas em produção. |
-| **F13.4** implementada (26/11) | Interface e navegação | Personagem e atividade persistentes, navegação responsiva, teclado, atalhos e feedback de conexão. | [Verificações](INTERFACE-F13-4.md): 30 sub-abas e jornadas principais, preservando funcionalidades existentes. |
-| **F13.5** | Tutorial | Onboarding interativo e contextual, pulável e revisável, com progresso salvo por conta/personagem conforme escopo. | Jogador aprende sorteio, treino, coleta, venda, equipamento, combate e guilda por ações reais. |
+| **F13.4** publicada (26/11) | Interface e navegação | Personagem e atividade persistentes, navegação responsiva, teclado, atalhos e feedback de conexão. | [Verificações](INTERFACE-F13-4.md): 30 sub-abas e jornadas principais, preservando funcionalidades existentes. |
+| **F13.5** implementada (26/11) | Tutorial | Onboarding interativo e contextual, pulável e revisável, com progresso salvo por conta/personagem conforme escopo. | [Contrato e verificação](TUTORIAL-F13-5.md): sete passos por ações reais; save v14 e migração. |
 | **F13.6** | Direção artística | Identidade visual, sprites modulares, ícones e animações; prompts para o autor quando necessários. | Assets validados e integrados; placeholders não bloqueiam desenvolvimento. |
 | **F13.7** | Auditoria em execução | Playwright/E2E, playtest, desempenho mobile, acessibilidade e calibração. | Jornadas críticas verificadas; testes, lint, typecheck e build verdes; resultados documentados. |
 | **F13.8** | Consolidação web/PWA | Revisão de release, regressões, deploy e validação offline/online. | Web aprovada pelo autor, sem bloqueios críticos, antes de F14. |
@@ -35,7 +35,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 
 ## Consolidação pós-auditoria (24/11/2026)
 
-As subfatias foram propostas no planejamento de 24/11. F13.1–F13.3 foram publicadas em 26/11; a F13.4 foi autorizada na continuação e implementada. As seguintes permanecem planejadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
+As subfatias foram propostas no planejamento de 24/11. F13.1–F13.4 foram publicadas em 26/11; a F13.5 foi autorizada na continuação e implementada. As seguintes permanecem planejadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
 
 ## Regras de ordem
 

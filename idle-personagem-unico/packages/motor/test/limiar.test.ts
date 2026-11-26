@@ -1,3 +1,4 @@
+import { tutorialInicial } from "../src/index";
 import { describe, expect, it } from "vitest";
 import {
   COFRE_VAZIO,
@@ -68,6 +69,7 @@ function personagem(extra: Partial<Personagem> = {}, coreId = "andarilho"): Pers
     ...camposIniciaisF10(),
     ...camposIniciaisF11(),
     ...camposIniciaisF12(),
+    tutorial: tutorialInicial(),
     ...extra,
   };
 }

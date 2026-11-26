@@ -41,6 +41,7 @@ export {
   migrarV10ParaV11,
   migrarV11ParaV12,
   migrarV12ParaV13,
+  migrarV13ParaV14,
   validarEstado,
   tamanhoUtf8,
 } from "./save";
@@ -259,3 +260,6 @@ export {
 } from "./competicao/competicao";
 export type { EstadoCompeticao, LanceDuelo, PartidaTorneio, ReplayArena, ResultadoDuelo, Retrato } from "./competicao/competicao";
 export { inscreverTorneio, lutarArena, resgatarTorneio } from "./competicao/acoes";
+
+export { PASSOS_TUTORIAL, tutorialInicial, validarTutorial } from "./personagem/tutorial";
+export type { EstadoTutorial, PassoTutorial } from "./personagem/tutorial";

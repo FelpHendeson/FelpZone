@@ -6,6 +6,7 @@ import { COFRE_VAZIO, validarCofre, type Cofre } from "./cofre";
 import { validarCamposF10, type Pet, type SlotPet } from "../pets/pets";
 import { validarCamposF11, type Cronica, type EstadoEventos, type EstadoMundo } from "../mundo/mundo";
 import { validarCompeticao, type EstadoCompeticao } from "../competicao/competicao";
+import { validarTutorial, type EstadoTutorial } from "./tutorial";
 import { cabeNoSlot, CATALOGO, CONFIG_GUILDA, CONFIG_MOCHILA_EXTRA, monstroDoLimiar, NOMEADOS_DE_ORIGEM, OFICIOS, OFICIOS_PRODUCAO, PRIMEIRA_META, RANK_MAXIMO_ATO_I, SLOTS, STATUS } from "../dados";
 import type { OficioId, Slot } from "../dados/coleta";
 import type { OficioProducaoId } from "../dados/producao";
@@ -204,6 +205,7 @@ export interface Personagem {
   readonly cronica: Cronica;
   /** F12: Arena, torneio e temporada. */
   readonly competicao: EstadoCompeticao;
+  readonly tutorial: EstadoTutorial;
 }
 
 export interface MissaoAtiva {
@@ -319,6 +321,8 @@ function validarPersonagem(v: unknown): Personagem | null {
   if (!f11) return null;
   const competicao = validarCompeticao(v.competicao);
   if (!competicao) return null;
+  const tutorial = validarTutorial(v.tutorial);
+  if (!tutorial) return null;
   // Itens nomeados: uma unidade de cada por personagem (mochila + equipados).
   for (const item of CATALOGO.itens.values()) {
     if (!item.equipamento?.nomeado) continue;
@@ -408,6 +412,7 @@ function validarPersonagem(v: unknown): Personagem | null {
     ...f10,
     ...f11,
     competicao,
+    tutorial,
   };
 }
 

@@ -4,6 +4,7 @@
  * não devolve chances.
  */
 import { camposIniciaisF12 } from "../competicao/competicao";
+import { tutorialInicial } from "../personagem/tutorial";
 import { camposIniciaisF11 } from "../mundo/mundo";
 import { camposIniciaisF10 } from "../pets/pets";
 import { CATALOGO } from "../dados";
@@ -134,6 +135,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     | keyof ReturnType<typeof camposIniciaisF10>
     | keyof ReturnType<typeof camposIniciaisF11>
     | keyof ReturnType<typeof camposIniciaisF12>
+    | "tutorial"
   > = {
     id: `personagem-${estado.conta.personagens.length + 1}`,
     nome: nome.nome,
@@ -174,6 +176,7 @@ export function definirNomeEAparencia(estado: EstadoJogo, escolhas: EscolhasFina
     ...camposIniciaisF10(r.bestaVinculadaId ?? undefined),
     ...camposIniciaisF11(agora),
     ...camposIniciaisF12(agora),
+    tutorial: tutorialInicial(),
   };
   const nomeadoInicial = nomeadoDaOrigem(r.origem.tipo === "especial" ? r.origem.id : undefined);
   if (nomeadoInicial) personagem = { ...personagem, mochila: { ...personagem.mochila, [nomeadoInicial]: 1 } };
