@@ -520,6 +520,10 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 
 ## Complemento de experiência do jogador — 24/11/2026
 
+### Entrada F13.3 — 26/11/2026
+
+**[Implementação]** Apresentação antecede a criação. O jogador pode entrar, cadastrar ou recuperar conta sem sortear personagem neste aparelho. A seleção permite continuar suas jornadas ou retomar criação pendente, mantendo as tentativas existentes. Novo personagem continua sujeito aos slots/pergaminhos originais. Sair da conta volta à apresentação; modo local é uma escolha explícita. Nenhuma regra de sorteio ou progressão foi alterada.
+
 ### Contas F13.2 — 26/11/2026
 
 **[Implementação]** A conta é continuada entre aparelhos por nome e senha. Cadastro mostra uma vez o código para recuperar acesso sem e-mail; o jogador o guarda fora do jogo. Recuperação preserva o personagem, troca a senha, encerra sessões anteriores e fornece outro código. Gerar código novo estando conectado exige a senha atual. Logout em um aparelho não desconecta outro; logout sem conexão não reconecta sozinho depois. Os detalhes de cookie e armazenamento ficam na arquitetura, sem alterar o balanceamento.

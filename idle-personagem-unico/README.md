@@ -10,7 +10,9 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F13.2 — contas e persistência implementadas em 26/11/2026, na main.** Sessão web com cookie HttpOnly, recuperação por código de uso único, cache por ID da conta, migração de sessões antigas e logout seguro mesmo sem rede. Testes incluem Redis real com reinício e navegadores isolados. A Vercel já tem integração Redis configurada; nenhuma infraestrutura foi criada. A nova versão ainda não foi publicada. [Detalhes e validações](docs/CONTAS-F13-2.md).
+**F13.3 — apresentação e entrada (26/11/2026).** Apresentação antes do sorteio, acesso à conta sem personagem local, seleção de jornadas e retomada de criação. Conta online e jogo deste aparelho ficam explícitos. [Contrato e validações](docs/ENTRADA-F13-3.md).
+
+**F13.2 — contas e persistência publicada em 26/11/2026, commit `76cf3e4`.** Sessão web com cookie HttpOnly, recuperação por código de uso único, cache por ID da conta, migração de sessões antigas e logout seguro mesmo sem rede. Testes incluem Redis real com reinício e navegadores isolados. Readiness em produção confirmou banco conectado; nenhuma infraestrutura foi criada. [Detalhes e validações](docs/CONTAS-F13-2.md).
 
 **F13.1 — estabilização técnica implementada em 26/11/2026**, na branch `codex/idle-f13-1`: jogos online criados pelo servidor, importação casual sem sobrescrita, ações com revisão e recibo, gravações atômicas, cache por conta e reconexão segura. [Contrato, migração e validações](docs/ESTABILIZACAO-F13-1.md). Contas e persistência foram tratadas na F13.2; F13.3–F13.8 consolidam entrada, UX e aceite antes do mobile.
 

@@ -9,6 +9,64 @@
   color-scheme: dark;
 }
 
+.entrada { min-height: 100dvh; max-width: 76rem; margin: auto; padding: 0 2.5rem; display: flex; flex-direction: column; }
+.entrada-cabecalho { min-height: 6rem; display: flex; align-items: center; justify-content: space-between; gap: 1rem; border-bottom: 1px solid var(--borda); }
+.entrada-marca { display: flex; align-items: center; gap: .75rem; border: 0; padding: .5rem 0; background: none; font-family: Georgia, serif; font-size: 1.2rem; cursor: pointer; text-align: left; }
+.entrada-marca:disabled { opacity: 1; cursor: default; }
+.entrada-identidade { color: var(--texto-suave); font-size: .85rem; overflow-wrap: anywhere; text-align: right; }
+.entrada-conteudo { flex: 1; padding: 3rem 0; min-width: 0; }
+.entrada-hero { display: grid; grid-template-columns: 1.4fr 1fr; gap: 4rem; align-items: center; padding: 1.5rem 0 4rem; }
+.entrada h1 { font: 400 clamp(2.4rem, 5vw, 4.4rem)/1.08 Georgia, serif; max-width: 12ch; margin: 0 0 1.5rem; letter-spacing: -.035em; }
+.entrada h1:focus { outline: none; }
+.entrada-lead { font-size: 1.25rem; line-height: 1.6; max-width: 37ch; }
+.entrada-descricao, .entrada-local p, .entrada-pilares p, .entrada-titulo p, .entrada-novo p { color: var(--texto-suave); line-height: 1.7; }
+.entrada-descricao { max-width: 48ch; }
+.entrada-acoes { display: flex; flex-wrap: wrap; gap: .75rem; margin: 2rem 0 1.25rem; }
+.entrada-local { max-width: 49ch; }
+.entrada-local p { font-size: .85rem; }
+.entrada-retrato { text-align: center; }
+.entrada-arco { border: 1px solid #74603e; border-radius: 12rem 12rem 1rem 1rem; min-height: 22rem; max-width: 19rem; margin: auto; display: grid; place-items: center; background: var(--superficie); box-shadow: inset 0 0 0 10px var(--fundo), inset 0 0 0 11px var(--borda); }
+.entrada-arco img { max-width: 75%; height: auto; image-rendering: pixelated; }
+.entrada-retrato > p { font: 1.6rem Georgia, serif; margin-bottom: .5rem; color: var(--destaque); }
+.entrada-retrato > span { display: block; color: var(--texto-suave); font-size: .85rem; line-height: 1.6; }
+.entrada-pilares { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; padding-top: 2rem; border-top: 1px solid var(--borda); }
+.entrada-pilares h2 { font: 1.25rem Georgia, serif; margin: 0; }
+.entrada-pilares p { font-size: .9rem; }
+.entrada-rodape { padding: 1.5rem 0; color: var(--texto-suave); font-size: .8rem; border-top: 1px solid var(--borda); }
+.entrada-titulo { margin-bottom: 2rem; }
+.entrada-titulo h1 { font-size: clamp(2.2rem, 4vw, 3.2rem); max-width: 22ch; }
+.entrada-acesso { max-width: 38rem; }
+.entrada-acesso .cartao { padding: 1.5rem; }
+.entrada-retorno { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-top: 2rem; }
+.entrada-jornadas { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr)); gap: 1.25rem; }
+.entrada-personagem, .entrada-novo { border: 1px solid var(--borda); background: var(--superficie); padding: 1.5rem; border-radius: .5rem; }
+.entrada-personagem { display: grid; grid-template-columns: 80px 1fr; gap: 1rem; align-items: center; }
+.entrada-personagem h2, .entrada-novo h2, .entrada-pendente h2 { font: 1.5rem Georgia, serif; margin: 0 0 .75rem; overflow-wrap: anywhere; }
+.entrada-personagem p { margin: .3rem 0; }
+.entrada-personagem > button { grid-column: 1 / -1; }
+.entrada-pendente { display: flex; align-items: center; justify-content: space-between; gap: 1.5rem; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--destaque); border-radius: .5rem; }
+.entrada-pendente p { color: var(--texto-suave); line-height: 1.6; }
+.entrada-importar { border-top: 1px solid var(--borda); margin-top: 1.5rem; padding-top: .5rem; font-size: .9rem; }
+.entrada-voltar { margin-bottom: 1.5rem; }
+.jogo-cabecalho { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+@media (max-width: 700px) {
+  .entrada { padding: 0 1.25rem; }
+  .entrada-cabecalho { min-height: 5rem; }
+  .entrada-marca { font-size: 1rem; gap: .5rem; }
+  .entrada-conteudo { padding: 2rem 0; }
+  .entrada-hero { grid-template-columns: 1fr; gap: 2rem; padding: .5rem 0 2.5rem; }
+  .entrada h1 { max-width: 13ch; }
+  .entrada-lead { font-size: 1.1rem; }
+  .entrada-arco { min-height: 14rem; max-width: 15rem; }
+  .entrada-arco img { max-width: 8rem; }
+  .entrada-pilares { grid-template-columns: 1fr; gap: 1.25rem; }
+  .entrada-pilares p { margin-bottom: 0; }
+  .entrada-acoes { flex-direction: column; }
+  .entrada-acoes > .botao, .entrada-pendente > .botao { flex: 0 0 auto; }
+  .entrada-pendente { flex-direction: column; align-items: stretch; }
+  .entrada-acesso .cartao { padding: 1rem; }
+}
+
 *,
 *::before,
 *::after {

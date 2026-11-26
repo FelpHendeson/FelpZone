@@ -5,14 +5,15 @@ import { useEffect, useRef, useState } from "react";
 import { chamarApi, concluirSaida, gravarSessao, sessaoDaResposta, type Sessao } from "@/lib/sync";
 
 interface Props {
-  readonly estado: EstadoJogo;
+  readonly estado?: EstadoJogo | undefined;
   readonly sessao: Sessao | null;
+  readonly modoInicial?: "entrar" | "registrar" | "recuperar";
   readonly aoConectar: (sessao: Sessao | null, corpo: Record<string, unknown> | null) => Promise<void>;
 }
 
-export function AcessoConta({ estado, sessao, aoConectar }: Props) {
+export function AcessoConta({ estado, sessao, aoConectar, modoInicial = "entrar" }: Props) {
   const [banco, setBanco] = useState<boolean | null>(null);
-  const [modo, setModo] = useState<"entrar" | "registrar" | "recuperar">("entrar");
+  const [modo, setModo] = useState<"entrar" | "registrar" | "recuperar">(modoInicial);
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
   const [codigo, setCodigo] = useState("");
@@ -64,9 +65,10 @@ export function AcessoConta({ estado, sessao, aoConectar }: Props) {
   }
   async function iniciar(importarLocal: boolean) {
     if (!contaVazia || ocupado) return;
+    if (importarLocal && !estado) return;
     setOcupado(true);
     try {
-      const r = await chamarApi(importarLocal ? "jogo/importar" : "jogo/iniciar", { metodo: "POST", corpo: importarLocal ? { save: serializarSave(estado) } : {}, token: contaVazia.token, contaId: contaVazia.id });
+      const r = await chamarApi(importarLocal ? "jogo/importar" : "jogo/iniciar", { metodo: "POST", corpo: importarLocal && estado ? { save: serializarSave(estado) } : {}, token: contaVazia.token, contaId: contaVazia.id });
       if (!vivo.current) return;
       if (r.ok) await aoConectar(contaVazia, r.corpo);
       else if (r.codigo === "ja_tem_save") await abrir(contaVazia);
@@ -98,7 +100,7 @@ export function AcessoConta({ estado, sessao, aoConectar }: Props) {
       <p>Esta conta ainda não tem jogo. Um novo jogo online pode publicar builds. A importação é única e mantém o jogo casual, sem publicar builds competitivos.</p>
       <div className="acoes">
         <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => void iniciar(false)}>Iniciar novo jogo online</button>
-        <button type="button" className="botao" disabled={ocupado} onClick={() => void iniciar(true)}>Importar jogo local (casual)</button>
+        {estado && (estado.conta.personagens.length > 0 || estado.conta.sorteio) && <button type="button" className="botao" disabled={ocupado} onClick={() => void iniciar(true)}>Importar jogo local (casual)</button>}
       </div>
     </> : banco === false ? <p role="status">A sincronização está indisponível. O jogo local continua salvo neste aparelho. Tente novamente mais tarde.</p> : <form className="formulario" onSubmit={enviar}>
       <p className="suave">{modo === "recuperar" ? "Use seu código de recuperação para definir outra senha." : "Entre na conta para continuar em outro aparelho. Sem e-mail: nome, senha e código de recuperação."}</p>

@@ -6,6 +6,7 @@ import {
   personagemAtivo,
   relogioDoSistema,
   salvarJogo,
+  serializarSave,
   type Acao,
   type Armazenamento,
   type EstadoJogo,
@@ -15,7 +16,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ABAS } from "@/lib/abas";
 import { resumoRelevante } from "@/lib/atividade";
 import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
-import { prepararCriacao } from "@/lib/criacao";
+import { lerJornadaLocal } from "@/lib/entrada";
+import { AcessoConta } from "./AcessoConta";
+import { Apresentacao, MolduraEntrada, SelecaoPersonagens } from "./PortalEntrada";
 import { CHAVE_SAVE, iniciarJogo, isolarSaveLegado, type ResultadoInicio } from "@/lib/persistencia";
 import { tocar } from "@/lib/sons";
 import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, restaurarSessao, sairDaConta, type Sessao } from "@/lib/sync";
@@ -43,6 +46,7 @@ import { ResumoOffline } from "./ResumoOffline";
 type EstadoTela =
   | { readonly fase: "carregando" }
   | { readonly fase: "conta" }
+  | { readonly fase: "inicio" }
   | { readonly fase: "pronto"; readonly estado: EstadoJogo; readonly origem: ResultadoInicio["origem"] }
   | { readonly fase: "erro"; readonly mensagem: string };
 
@@ -61,6 +65,9 @@ export function Shell() {
   const [abaAtiva, setAbaAtiva] = useState(ABAS[0]!.id);
   const [subAbaPorAba, setSubAbaPorAba] = useState<Record<string, number>>({});
   const [tela, setTela] = useState<EstadoTela>({ fase: "carregando" });
+  const [fluxo, setFluxo] = useState<"inicio" | "acesso" | "personagens" | "jogo">("inicio");
+  const [modoAcesso, setModoAcesso] = useState<"entrar" | "registrar">("entrar");
+  const [estadoLocal, setEstadoLocal] = useState<EstadoJogo | null>(null);
   const [resumo, setResumo] = useState<ResumoAvanco | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
@@ -78,6 +85,7 @@ export function Shell() {
 
   const definirEstado = useCallback((estado: EstadoJogo) => {
     estadoRef.current = estado;
+    if (!sessaoRef.current) setEstadoLocal(estado);
     setTela((atual) => (atual.fase === "pronto" ? { ...atual, estado } : atual));
   }, []);
 
@@ -113,10 +121,11 @@ export function Shell() {
     const geracao = identidade.current;
     const inicio = await iniciarJogo(arm, relogioDoSistema.agora());
     if (geracao !== identidade.current) return;
-    const { estado, resumo: fora } = avancar(prepararCriacao(inicio.estado), relogioDoSistema.agora());
+    const { estado, resumo: fora } = avancar(inicio.estado, relogioDoSistema.agora());
     await salvarJogo(arm, CHAVE_SAVE, estado);
     if (geracao !== identidade.current) return;
     estadoRef.current = estado;
+    setEstadoLocal(estado);
     ultimaGravacao.current = Date.now();
     setTela({ fase: "pronto", estado, origem: inicio.origem });
     if (resumoRelevante(fora)) setResumo(fora);
@@ -155,6 +164,9 @@ export function Shell() {
       const geracao = identidade.current;
       const anterior = lerSessao(window.localStorage);
       await isolarSaveLegado(arm, !!anterior && !anterior.cacheSeparado);
+      const local = await lerJornadaLocal(arm);
+      if (cancelado || geracao !== identidade.current) return;
+      setEstadoLocal(local);
       const s = await restaurarSessao(window.localStorage);
       if (cancelado || geracao !== identidade.current) return;
       if (s) {
@@ -162,12 +174,15 @@ export function Shell() {
         sessaoRef.current = separada;
         gravarSessao(window.localStorage, separada);
         await online.conectar(separada);
+        if (!cancelado && geracao === identidade.current) setFluxo(online.atual?.conexao === "expirado" ? "acesso" : "personagens");
       } else {
         online.encerrar();
         sessaoRef.current = null;
         setSessao(null);
         setSituacaoConta(null);
-        await carregarLocal();
+        estadoRef.current = null;
+        setTela({ fase: "inicio" });
+        setFluxo("inicio");
       }
     };
     const falhou = () => { if (!cancelado) setTela({ fase: "erro", mensagem: "Não foi possível carregar o jogo. Seu save foi preservado. Recarregue a página para tentar novamente." }); };
@@ -183,10 +198,11 @@ export function Shell() {
     window.addEventListener("storage", outraAba);
     void restaurar().catch(falhou);
     return () => { cancelado = true; online.encerrar(); invalidarIdentidade(); window.removeEventListener("storage", outraAba); };
-  }, [carregarLocal, invalidarIdentidade]);
+  }, [invalidarIdentidade]);
 
   async function conectarConta(s: Sessao | null, corpo: Record<string, unknown> | null) {
     identidade.current++;
+    const geracao = identidade.current;
     setResumo(null);
     setAviso(null);
     if (s) {
@@ -194,6 +210,8 @@ export function Shell() {
       sessaoRef.current = separada;
       gravarSessao(window.localStorage, separada);
       await cliente.current?.conectar(separada, corpo ?? undefined);
+      if (geracao !== identidade.current) return;
+      setFluxo(corpo && cliente.current?.atual?.jogo?.estado.conta.sorteio ? "jogo" : "personagens");
     } else {
       const anterior = sessaoRef.current;
       cliente.current?.encerrar();
@@ -204,30 +222,55 @@ export function Shell() {
       const saida = sairDaConta(window.localStorage, anterior);
       estadoRef.current = null;
       setTela({ fase: "carregando" });
-      await carregarLocal();
+      const local = armazenamento.current ? await lerJornadaLocal(armazenamento.current) : null;
+      if (geracao !== identidade.current) return;
+      setEstadoLocal(local);
+      setTela({ fase: "inicio" });
+      setFluxo("inicio");
       if (!await saida) setAviso("Você saiu neste aparelho. O encerramento no servidor será confirmado quando a conexão voltar.");
     }
   }
+
+  async function entrarLocal() {
+    setAviso(null);
+    setTela({ fase: "carregando" });
+    try { await carregarLocal(); setFluxo("personagens"); }
+    catch { setTela({ fase: "erro", mensagem: "Não foi possível carregar a jornada deste aparelho. O save foi preservado." }); }
+  }
+  async function iniciarContaVazia(importar = false) {
+    const s = sessaoRef.current;
+    if (!s || (importar && !estadoLocal)) return;
+    const geracao = identidade.current;
+    setOcupado(true);
+    try {
+      const r = await chamarApi(importar ? "jogo/importar" : "jogo/iniciar", { metodo: "POST", corpo: importar && estadoLocal ? { save: serializarSave(estadoLocal) } : {}, token: s.token, contaId: s.id });
+      if (geracao !== identidade.current) return;
+      if (!r.ok) { setAviso(r.mensagem); return; }
+      await cliente.current?.conectar(s, r.corpo);
+      if (geracao !== identidade.current) return;
+      setFluxo(cliente.current?.atual?.jogo?.estado.conta.sorteio ? "jogo" : "personagens");
+    } catch { if (geracao === identidade.current) setAviso("Não foi possível confirmar o início da jornada. Sincronize antes de tentar novamente."); }
+    finally { if (geracao === identidade.current) setOcupado(false); }
+  }
+  const avisoEntrada = aviso && <p role="alert" className="erro aviso-acao">{aviso}</p>;
+  const abrirAcesso = (modo: "entrar" | "registrar" = "entrar") => { setModoAcesso(modo); setFluxo("acesso"); };
 
   const controlesConta = situacaoConta && (
     <section className="cartao" aria-label="Conexão da conta">
       <p role="status">{situacaoConta.conexao === "online" ? "Conta sincronizada." : situacaoConta.conexao === "expirado" ? "Sessão expirada. Seu progresso continua na conta." : situacaoConta.conexao === "sincronizando" ? "Sincronizando conta…" : "Sem confirmação do servidor. O progresso online está pausado neste aparelho."}</p>
       {situacaoConta.mensagem && <p className="erro" role="alert">{situacaoConta.mensagem}</p>}
-      {situacaoConta.codigo === "sem_save" && <button className="botao botao-principal" type="button" disabled={situacaoConta.ocupado} onClick={async () => {
-        const s = situacaoConta.sessao;
-        const geracao = identidade.current;
-        const r = await chamarApi("jogo/iniciar", { metodo: "POST", corpo: {}, token: s.token, contaId: s.id });
-        if (geracao !== identidade.current) return;
-        if (r.ok) await cliente.current?.conectar(s, r.corpo);
-        else setAviso(r.mensagem);
-      }}>Iniciar novo jogo online</button>}
       {situacaoConta.jogo?.procedencia === "importado" && <p className="suave">Jogo importado: pode jogar contra bots, mas não publicar builds competitivos.</p>}
       <div className="acoes">
         <button className="botao" type="button" disabled={situacaoConta.ocupado || situacaoConta.conexao === "expirado"} onClick={() => void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."))}>Sincronizar</button>
-        <button className="botao" type="button" onClick={() => void conectarConta(null, null).catch(() => setAviso("Não foi possível abrir o jogo local."))}>Sair e voltar ao jogo local</button>
+        <button className="botao" type="button" onClick={() => void conectarConta(null, null).catch(() => setAviso("Não foi possível concluir a saída."))}>Sair da conta</button>
       </div>
     </section>
   );
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    document.querySelector<HTMLHeadingElement>("h1")?.focus({ preventScroll: true });
+  }, [fluxo]);
 
   const pronto = tela.fase === "pronto";
   useEffect(() => {
@@ -333,14 +376,33 @@ export function Shell() {
     );
   }
 
-  if (tela.fase === "conta") return <main className="conteudo" id="conteudo">{controlesConta}</main>;
+  const atual = tela.fase === "pronto" ? tela.estado : null;
+  const inicio = <Apresentacao estado={sessao ? atual : estadoLocal} sessao={sessao} aoAcesso={abrirAcesso} aoLocal={() => void entrarLocal()} aoConta={() => setFluxo("personagens")} aviso={avisoEntrada} />;
+  if (fluxo === "inicio") return inicio;
+  if (fluxo === "acesso") return <MolduraEntrada sessao={sessao} aoInicio={() => setFluxo("inicio")}>
+    <header className="entrada-titulo"><h1 tabIndex={-1}>{sessao && situacaoConta?.conexao !== "expirado" ? "Sua conta" : modoAcesso === "registrar" ? "Uma conta para sua jornada" : "Bom ter você de volta"}</h1><p>Continue sua história em qualquer aparelho. O personagem vem depois.</p></header>
+    {avisoEntrada}{controlesConta}
+    <div className="entrada-acesso"><AcessoConta key={`${sessao?.id ?? "convidado"}:${situacaoConta?.conexao === "expirado"}:${modoAcesso}`} estado={estadoLocal ?? undefined} sessao={situacaoConta?.conexao === "expirado" ? null : sessao} modoInicial={modoAcesso} aoConectar={conectarConta} /></div>
+    <div className="entrada-retorno"><button type="button" className="link" onClick={() => setFluxo("inicio")}>Voltar à apresentação</button>{!sessao && <button type="button" className="link" onClick={() => void entrarLocal()}>Jogar neste aparelho</button>}</div>
+  </MolduraEntrada>;
+  if (fluxo === "personagens" || tela.fase === "conta") return <SelecaoPersonagens
+    estado={atual} sessao={sessao} ocupado={ocupado} aviso={avisoEntrada} controles={controlesConta}
+    podeIniciar={!sessao || situacaoConta?.conexao === "online" || situacaoConta?.codigo === "sem_save"}
+    aoInicio={() => setFluxo("inicio")} aoAcesso={() => abrirAcesso()}
+    aoJogar={(id) => { void (async () => { if (atual?.conta.personagemAtivoId !== id) { const erro = await executar({ tipo: "trocarPersonagem", personagemId: id }); if (erro) { setAviso(erro); return; } } setFluxo("jogo"); })(); }}
+    aoCriar={() => { if (!atual && sessao) { void iniciarContaVazia(); return; } void (async () => { const erro = await executar({ tipo: "iniciarSorteio" }); if (erro) setAviso(erro); else setFluxo("jogo"); })(); }}
+    aoContinuarCriacao={() => setFluxo("jogo")}
+    aoImportar={!atual && sessao && estadoLocal && (estadoLocal.conta.personagens.length > 0 || estadoLocal.conta.sorteio) ? () => void iniciarContaVazia(true) : undefined}
+  />;
+  if (tela.fase !== "pronto") return inicio;
 
   const personagem = personagemAtivo(tela.estado);
   if (!personagem || tela.estado.conta.sorteio) {
     return (
       <div className="shell">
         <main className="conteudo" id="conteudo">
-          {controlesConta}
+          <button className="link entrada-voltar" type="button" onClick={() => setFluxo("personagens")}>Voltar aos personagens</button>
+          {avisoEntrada}{controlesConta}
           <CriacaoPersonagem estado={tela.estado} aoAgir={executar} />
         </main>
       </div>
@@ -442,7 +504,7 @@ export function Shell() {
     <div className="shell">
       <header className="topo">
         <BarraAtividade personagem={personagem} />
-        <h1 className="titulo">{aba.rotulo}</h1>
+        <div className="jogo-cabecalho"><h1 className="titulo" tabIndex={-1}>{aba.rotulo}</h1><button type="button" className="link" onClick={() => setFluxo("personagens")}>Personagens</button></div>
         <nav className="subabas" role="tablist" aria-label={`Seções de ${aba.rotulo}`}>
           {aba.subAbas.map((nome, i) => (
             <button

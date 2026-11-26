@@ -220,3 +220,10 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 108. **[Implementação]** Recuperação sem e-mail por código de alta entropia, de uso único. Cadastro mostra o código uma vez; gerar outro exige a senha atual. Recuperar troca senha/código atomicamente, preserva o save e revoga sessões anteriores, inclusive legadas.
 109. **[Constatação]** O banco já está configurado na Vercel. A sonda do fluxo publicado de autenticação consultou o banco e retornou 401 esperado, sem criar conta/save. Nenhum recurso novo foi contratado. A nova implementação acrescenta readiness real e foi validada com Redis local isolado, incluindo reinício.
 110. **[Implementação]** Logout sem rede guarda marcador sem segredo para impedir reconexão automática pelo cookie restante. O encerramento é confirmado antes de restaurar sessão ou fazer outro login. [Detalhes e limitações](CONTAS-F13-2.md).
+
+111. **[Autor, 26/11/2026]** Push e deploy também autorizados para o trabalho neste projeto, além dos commits diretamente na main. Manter verificações e acompanhar o deployment correspondente ao commit enviado.
+
+### F13.3 — apresentação e entrada (26/11/2026)
+
+112. **[Implementação]** A apresentação consulta o save sem criar uma jornada ou iniciar sorteio. Login, cadastro e recuperação não exigem personagem local. Conta restaurada abre seleção; sorteio pendente só continua por ação explícita, preservando tentativas.
+113. **[Implementação]** Seleção mostra as existências reais e respeita os três slots/pergaminhos do motor. Logout retorna à apresentação; entrar no modo local é explícito. O motor, os saves e o balanceamento não mudam.

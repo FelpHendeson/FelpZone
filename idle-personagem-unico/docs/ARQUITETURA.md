@@ -139,6 +139,10 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
 
+### Implementação F13.3 (26/11/2026)
+
+`PortalEntrada` apresenta o jogo, a identidade atual e a seleção de personagens. `Shell` controla apresentação/acesso/seleção/jogo sem mudar as ações do motor. `lerJornadaLocal` consulta o save sem inicializar estado, consumir RNG ou sobrescrever dados inválidos; somente a escolha explícita de jogar local cria/carrega a jornada. O componente de conta aceita ausência de save. Criações pendentes são retomadas do estado persistido; trocar de tela não rerrola. [Contrato e verificações](ENTRADA-F13-3.md).
+
 ### Implementação F13.2 (26/11/2026)
 
 A autenticação foi extraída para `servidor/autenticacao.ts`. Na web, cookie HttpOnly/Secure/SameSite=Strict e proteção de origem substituem bearer em localStorage; bearer continua disponível para clientes nativos. A sessão referencia a credencial atual, e recuperar senha revoga sessões anteriores. Recuperação sem e-mail usa código aleatório de uso único armazenado como hash. O cache usa ID imutável, com migração do cache por nome. `GET /prontidao` testa PING; `/saude` continua liveness. A integração Redis existente na Vercel foi identificada e o fluxo publicado de consulta ao banco respondeu à sonda esperada; não foi contratado outro recurso. [Migração, testes reais e estado de publicação](CONTAS-F13-2.md).

@@ -1049,3 +1049,11 @@ O autor autorizou continuar e comitar permanentemente direto na main. A F13.1 fo
 A Vercel já contém integração Redis. O fluxo publicado anterior consultou o banco e devolveu o 401 esperado em sonda aleatória, sem criar contas/saves; não foi contratado outro serviço. A versão nova permanece local, sem push/deploy.
 
 Validação: 355 testes do motor (um worker), 54 web e 2 de Redis real aprovados; lint, tipos, build e diff check aprovados. Playwright com três navegadores e API real/Redis local validou sincronização entre dispositivos, isolamento, recuperação e logout offline. [Contrato, migração e evidências](docs/CONTAS-F13-2.md). Próxima fatia: F13.3, apresentação e entrada.
+
+## 26/11/2026 — Publicação autorizada e F13.3
+
+O autor autorizou push e deploy. Os commits `dac7f70` e `76cf3e4` foram enviados à main; a Vercel publicou `76cf3e4` com estado READY. Readiness confirmou banco conectado e a sonda de login inexistente retornou 401 esperado, sem criar contas/saves.
+
+A F13.3 acrescenta apresentação antes do sorteio, autenticação sem personagem local, seleção de jornadas, retomada de criação e escolha explícita do modo local. Mantém regras de slots/pergaminhos, procedência e isolamento; não altera motor ou balanceamento.
+
+Validação: 355 testes do motor, 57 web e 2 Redis real; lint, tipos e build. Playwright com API real/Redis isolado cobre cadastro antes do personagem, retomada online/local sem devolver tentativa, seleção/slot bloqueado, logout e login em outro navegador. Revisão visual mobile/desktop corrigiu botões altos no celular. [Evidências e limitações](docs/ENTRADA-F13-3.md). Próxima fatia planejada: F13.4, interface e navegação.

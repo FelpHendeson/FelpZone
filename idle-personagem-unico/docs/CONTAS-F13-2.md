@@ -47,7 +47,7 @@ Resultados em 26/11/2026:
 
 O comando de regressão usa `--maxWorkers=1` devido aos timeouts/performance documentados na F13.1 nesta máquina. Nenhum teste foi excluído nem teve assert/timeout relaxado. Um teste novo de proxy revelou que alterar `URL.host` sem limpar a porta interna conservava a porta antiga; a implementação foi corrigida e a regressão passou.
 
-Esta entrega é local, na main. A conectividade do fluxo publicado anterior foi conferida, mas **a F13.2 não foi publicada nem declarada validada em produção**. A prova de persistência e os navegadores desta entrega usam o Redis real isolado local.
+Publicada após autorização do autor em 26/11/2026: commit `76cf3e4`, deployment `dpl_DQ9UdrX6T8nhQWXkffdaiuzeKzFq` READY, com alias de produção atribuído. `GET /api/v1/prontidao` retornou 200 com banco conectado; login com nome aleatório inexistente retornou 401 esperado, sem criar contas/saves. A prova completa de persistência e os navegadores desta entrega usam o Redis real isolado local; não houve criação de contas de teste em produção.
 
 Os testes de integração usam Redis real isolado com AOF e ponte REST no formato da Upstash: as operações e os scripts Lua são executados pelo Redis, não simulados. O teste reinicia o processo e confere conta, save, recibo, duas sessões, isolamento de outra conta e revogação após recuperação.
 
