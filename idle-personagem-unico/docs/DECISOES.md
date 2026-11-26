@@ -205,3 +205,11 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 100. **[Autor]** Criar tutorial para orientar o jogador.
 101. **[Autor]** Solicitar spritesheets ao autor via prompts técnicos quando necessário (Gemini/ChatGPT); agente valida e integra.
 102. **[Proposta]** Consolidar web em F13.1–F13.8 antes da F14; avaliar PostgreSQL e recuperação de conta, sem autorização de custo ou migração automática. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md).
+
+### F13.1 — estabilização (26/11/2026)
+
+103. **[Implementação]** Importação única como jogo casual; não substitui jogo existente. Saves anteriores sem procedência preservam progresso, mas não podem publicar builds. Novos jogos com procedência confiável nascem no servidor. É a separação proposta na auditoria, aplicada após autorização para trabalhar nas correções.
+104. **[Implementação]** Revisão otimista e UUID por ação; recibo de 24 h gravado atomicamente com o save. A revisão impede replay mesmo após expirar o recibo. Travas com proprietário e commit condicionado à sessão válida.
+105. **[Implementação]** Cache por conta e convidado separados; cópia legada preservada em `idle-pu:save-legado`. Offline online é leitura do cache até reconectar; a simulação usa o relógio do servidor. Logout retorna ao convidado, sem copiar o personagem da conta. [Detalhes](ESTABILIZACAO-F13-1.md).
+
+106. **[Autor, 26/11/2026]** Autorização permanente para comitar as alterações deste projeto diretamente na `main`, sem pedir confirmação a cada commit. As próximas fatias de consolidação podem prosseguir; manter testes, revisão e documentação a cada entrega.

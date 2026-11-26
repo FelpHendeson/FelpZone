@@ -9,6 +9,8 @@ export const CHAVE_SESSAO = "idle-pu:sessao";
 export interface Sessao {
   readonly token: string;
   readonly nome: string;
+  /** Marca sessões que já usam caches separados; antigas ficam em quarentena na migração. */
+  readonly cacheSeparado?: true;
 }
 
 export type RespostaApi =
@@ -20,7 +22,7 @@ const SEM_REDE: RespostaApi = { ok: false, status: 0, codigo: "sem_rede", mensag
 export function lerSessao(armazenamento: Pick<Storage, "getItem">): Sessao | null {
   try {
     const v = JSON.parse(armazenamento.getItem(CHAVE_SESSAO) ?? "null") as Partial<Sessao> | null;
-    return v && typeof v.token === "string" && typeof v.nome === "string" ? { token: v.token, nome: v.nome } : null;
+    return v && typeof v.token === "string" && typeof v.nome === "string" ? { token: v.token, nome: v.nome, ...(v.cacheSeparado === true ? { cacheSeparado: true } : {}) } : null;
   } catch {
     return null;
   }
@@ -36,6 +38,7 @@ export async function chamarApi(caminho: string, opcoes: { metodo?: "GET" | "POS
   try {
     r = await buscar(`/api/v1/${caminho}`, {
       method: opcoes.metodo ?? "GET",
+      signal: AbortSignal.timeout(15_000),
       headers: { ...(opcoes.corpo !== undefined ? { "content-type": "application/json" } : {}), ...(opcoes.token ? { authorization: `Bearer ${opcoes.token}` } : {}) },
       ...(opcoes.corpo !== undefined ? { body: JSON.stringify(opcoes.corpo) } : {}),
     });
@@ -44,7 +47,8 @@ export async function chamarApi(caminho: string, opcoes: { metodo?: "GET" | "POS
   }
   let corpo: Record<string, unknown> = {};
   try {
-    corpo = (await r.json()) as Record<string, unknown>;
+    const lido: unknown = await r.json();
+    if (typeof lido === "object" && lido !== null && !Array.isArray(lido)) corpo = lido as Record<string, unknown>;
   } catch {
     /* corpo vazio */
   }
@@ -60,6 +64,8 @@ export function estadoDaResposta(corpo: Record<string, unknown>): EstadoJogo | n
   return r.ok ? r.estado : null;
 }
 
-export function enviarAcao(sessao: Sessao, acao: Acao, buscar?: typeof fetch): Promise<RespostaApi> {
-  return chamarApi("jogo/acao", { metodo: "POST", corpo: { acao }, token: sessao.token }, buscar);
+export interface PedidoAcao { readonly idAcao: string; readonly revisao: number; readonly acao: Acao }
+
+export function enviarAcao(sessao: Sessao, pedido: PedidoAcao, buscar?: typeof fetch): Promise<RespostaApi> {
+  return chamarApi("jogo/acao", { metodo: "POST", corpo: pedido, token: sessao.token }, buscar);
 }

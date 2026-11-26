@@ -139,4 +139,8 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
 
+### Implementação F13.1 (26/11/2026)
+
+As regras desta seção atualizam a implementação histórica da F9: a importação é única e casual, e não substitui estado existente. O envelope de armazenamento (separado do save v13) registra procedência e revisão. Jogos competitivamente confiáveis começam em `POST /jogo/iniciar` com semente do servidor. `POST /jogo/acao` exige `idAcao` e `revisao`; save e recibo são gravados juntos por comparação atômica, verificando sessão e proprietário da trava. A web separa convidado/contas, persiste pedidos sem confirmação e não avança o cache online com relógio local. [Detalhes e migração](ESTABILIZACAO-F13-1.md).
+
 [Autor] Identidade persistente por conta e sincronização entre dispositivos são requisitos, não apenas sessão local. Tela de apresentação, autenticação e seleção de personagem antecedem a jornada online. Isolar cache por conta e impedir vazamento entre sessões. [Proposta] Avaliar PostgreSQL para persistência principal, sem descartar Redis antes da análise de custo e requisitos; manter motor e API. Revisar autoridade de saves importados, concorrência, idempotência, reconciliação e recuperação de acesso. F14 depende de aceite da consolidação web. Ver [auditoria](AUDITORIA-CONSOLIDACAO.md).

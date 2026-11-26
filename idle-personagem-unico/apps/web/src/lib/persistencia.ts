@@ -3,6 +3,17 @@ import { criarEstadoInicial, lerJogo, salvarJogo, type Armazenamento, type Estad
 export const CHAVE_SAVE = "idle-pu:save";
 /** Cópia de um save que não pôde ser lido, para não perder o original. */
 export const CHAVE_SAVE_INVALIDO = "idle-pu:save-invalido";
+export const CHAVE_LEGADO = "idle-pu:save-legado";
+export const chaveDaConta = (nome: string) => `idle-pu:conta:${encodeURIComponent(nome.toLowerCase())}`;
+
+/** O cache compartilhado antigo pode pertencer à sessão online. Nunca vira convidado. */
+export async function isolarSaveLegado(armazenamento: Armazenamento, tinhaSessao: boolean): Promise<void> {
+  if (!tinhaSessao) return;
+  const antigo = await armazenamento.ler(CHAVE_SAVE);
+  if (antigo === null) return;
+  if (await armazenamento.ler(CHAVE_LEGADO) === null) await armazenamento.gravar(CHAVE_LEGADO, antigo);
+  await armazenamento.remover(CHAVE_SAVE);
+}
 
 export type OrigemDoEstado = "carregado" | "migrado" | "novo" | "recuperado";
 

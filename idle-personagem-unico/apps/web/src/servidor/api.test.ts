@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { aplicarAcao, carregarSave, CORES_CABELO, CORES_ROUPA, criarEstadoInicial, retratoDe, serializarSave, type EstadoJogo } from "@idle-pu/motor";
 import { ArmazemMemoria, armazemDoAmbiente } from "./armazem";
-import { acao, entrar, enviarBuild, importar, LIMITES, listarBuilds, obterJogo, registrar, sair, saude, SEM_BANCO, type Pedido } from "./api";
+import { acao, entrar, enviarBuild, importar, iniciarJogoOnline, LIMITES, listarBuilds, obterJogo, registrar, sair, saude, SEM_BANCO, type Pedido } from "./api";
 
 const T0 = 1_800_000_000_000;
 const pedido = (corpo: unknown, token: string | null = null, agora = T0, ip = "1.2.3.4"): Pedido => ({ corpo, token, ip, agora });
@@ -80,7 +80,7 @@ describe("jogo", () => {
     const token = await contaComJogo(a);
     const outro = serializarSave(jogoNovo());
     expect((await importar(a, pedido({ save: outro }, token))).status).toBe(409);
-    expect((await importar(a, pedido({ save: outro, substituir: true }, token))).status).toBe(200);
+    expect((await importar(a, pedido({ save: outro, substituir: true }, token))).status).toBe(409);
     expect((await importar(a, pedido({ save: "{}" }, token))).status).toBe(400);
   });
 
@@ -96,7 +96,7 @@ describe("jogo", () => {
   it("o servidor aplica as ações com o relógio dele e avança o tempo", async () => {
     const a = new ArmazemMemoria(() => T0);
     const token = await contaComJogo(a);
-    const r = await acao(a, pedido({ acao: { tipo: "iniciarAtividade", atividadeId: "colher-trigo" } }, token, T0 + 1_000));
+    const r = await acao(a, pedido({ idAcao: "acao-coleta-0000001", revisao: 0, acao: { tipo: "iniciarAtividade", atividadeId: "colher-trigo" } }, token, T0 + 1_000));
     expect(r.status).toBe(200);
     expect((await acao(a, pedido({ acao: { tipo: "inventada" } }, token))).status).toBe(422);
     const j = await obterJogo(a, pedido(null, token, T0 + 3_600_000));
@@ -116,8 +116,14 @@ describe("jogo", () => {
 describe("Arena (builds)", () => {
   it("registra o build gerado do save do servidor (não do aparelho) e lista sem dizer de quem é", async () => {
     const a = new ArmazemMemoria(() => T0);
-    const token = await contaComJogo(a);
-    const esperado = retratoDe(jogoNovo().conta.personagens[0]!);
+    const registro = await registrar(a, pedido({ nome: "ana", senha: "senha-forte" }));
+    const token = registro.corpo.token as string;
+    await iniciarJogoOnline(a, pedido({}, token));
+    await acao(a, pedido({ idAcao: "aceitar-0000000001", revisao: 0, acao: { tipo: "aceitarSorteio" } }, token));
+    const nomeado = await acao(a, pedido({ idAcao: "nomear-00000000001", revisao: 1, acao: { tipo: "definirNomeEAparencia", nome: "Ana", corCabelo: CORES_CABELO[0]!.id, corRoupa: CORES_ROUPA[0]!.id } }, token));
+    const jogo = carregarSave(nomeado.corpo.save as string);
+    if (!jogo.ok) throw new Error("save inválido");
+    const esperado = retratoDe(jogo.estado.conta.personagens[0]!);
     // O que o aparelho manda é ignorado.
     expect((await enviarBuild(a, pedido({ retrato: { ...esperado, nivel: 50 } }, token))).status).toBe(200);
     expect((await enviarBuild(a, pedido({}, token))).status).toBe(200);

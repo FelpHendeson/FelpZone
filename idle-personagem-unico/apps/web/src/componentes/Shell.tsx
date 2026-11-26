@@ -16,9 +16,10 @@ import { ABAS } from "@/lib/abas";
 import { resumoRelevante } from "@/lib/atividade";
 import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
 import { prepararCriacao } from "@/lib/criacao";
-import { CHAVE_SAVE, iniciarJogo, type ResultadoInicio } from "@/lib/persistencia";
+import { CHAVE_SAVE, iniciarJogo, isolarSaveLegado, type ResultadoInicio } from "@/lib/persistencia";
 import { tocar } from "@/lib/sons";
-import { chamarApi, enviarAcao, estadoDaResposta, gravarSessao, lerSessao, type Sessao } from "@/lib/sync";
+import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, type Sessao } from "@/lib/sync";
+import { ClienteConta, type SituacaoConta } from "@/lib/clienteConta";
 import { BarraAtividade } from "./BarraAtividade";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
@@ -41,6 +42,7 @@ import { ResumoOffline } from "./ResumoOffline";
 
 type EstadoTela =
   | { readonly fase: "carregando" }
+  | { readonly fase: "conta" }
   | { readonly fase: "pronto"; readonly estado: EstadoJogo; readonly origem: ResultadoInicio["origem"] }
   | { readonly fase: "erro"; readonly mensagem: string };
 
@@ -68,11 +70,11 @@ export function Shell() {
   const [sessao, setSessao] = useState<Sessao | null>(null);
   const sessaoRef = useRef<Sessao | null>(null);
 
-  const definirSessao = useCallback((s: Sessao | null) => {
-    sessaoRef.current = s;
-    setSessao(s);
-    gravarSessao(window.localStorage, s);
-  }, []);
+  const cliente = useRef<ClienteConta | null>(null);
+  const [situacaoConta, setSituacaoConta] = useState<SituacaoConta | null>(null);
+  const acaoLocalEmCurso = useRef(false);
+  const identidade = useRef(0);
+  const invalidarIdentidade = useCallback(() => { identidade.current++; }, []);
 
   const definirEstado = useCallback((estado: EstadoJogo) => {
     estadoRef.current = estado;
@@ -82,7 +84,7 @@ export function Shell() {
   const gravar = useCallback(async () => {
     const arm = armazenamento.current;
     const estado = estadoRef.current;
-    if (!arm || !estado) return;
+    if (!arm || !estado || sessaoRef.current || acaoLocalEmCurso.current) return;
     ultimaGravacao.current = Date.now();
     await salvarJogo(arm, CHAVE_SAVE, estado);
   }, []);
@@ -91,7 +93,7 @@ export function Shell() {
   const avancarAteAgora = useCallback(
     (mostrarResumo: boolean) => {
       const atual = estadoRef.current;
-      if (!atual) return;
+      if (!atual || sessaoRef.current || acaoLocalEmCurso.current) return;
       const r = avancar(atual, relogioDoSistema.agora());
       const pa = personagemAtivo(atual);
       const pn = personagemAtivo(r.estado);
@@ -105,55 +107,130 @@ export function Shell() {
     [definirEstado],
   );
 
+  const carregarLocal = useCallback(async () => {
+    const arm = armazenamento.current;
+    if (!arm) return;
+    const geracao = identidade.current;
+    const inicio = await iniciarJogo(arm, relogioDoSistema.agora());
+    if (geracao !== identidade.current) return;
+    const { estado, resumo: fora } = avancar(prepararCriacao(inicio.estado), relogioDoSistema.agora());
+    await salvarJogo(arm, CHAVE_SAVE, estado);
+    if (geracao !== identidade.current) return;
+    estadoRef.current = estado;
+    ultimaGravacao.current = Date.now();
+    setTela({ fase: "pronto", estado, origem: inicio.origem });
+    if (resumoRelevante(fora)) setResumo(fora);
+    setAbaAtiva(personagemAtivo(estado)?.atividade ? "atividades" : "personagem");
+  }, []);
+
   useEffect(() => {
     let cancelado = false;
-    (async () => {
-      const arm = criarArmazenamentoLocal(window.localStorage);
-      armazenamento.current = arm;
-      const inicio = await iniciarJogo(arm, relogioDoSistema.agora());
-      // Sem personagem, já começa o sorteio; com personagem, aplica o tempo fora.
-      const { estado, resumo: fora } = avancar(prepararCriacao(inicio.estado), relogioDoSistema.agora());
-      estadoRef.current = estado;
-      await salvarJogo(arm, CHAVE_SAVE, estado);
-      ultimaGravacao.current = Date.now();
-      if (!cancelado) {
-        setTela({ fase: "pronto", estado, origem: inicio.origem });
-        if (resumoRelevante(fora)) setResumo(fora);
-        setAbaAtiva(personagemAtivo(estado)?.atividade ? "atividades" : "personagem");
-      }
-      // Com conta, o estado do servidor manda (ele avança o tempo com o relógio dele).
-      const s = lerSessao(window.localStorage);
-      if (s && !cancelado) {
-        sessaoRef.current = s;
-        setSessao(s);
-        const r = await chamarApi("jogo", { token: s.token });
-        const doServidor = r.ok ? estadoDaResposta(r.corpo) : null;
-        if (cancelado) return;
-        if (doServidor) {
-          estadoRef.current = doServidor;
-          await salvarJogo(arm, CHAVE_SAVE, doServidor);
-          setTela((t) => (t.fase === "pronto" ? { ...t, estado: doServidor } : t));
-        } else if (!r.ok && r.status === 401) {
-          sessaoRef.current = null;
-          setSessao(null);
-          gravarSessao(window.localStorage, null);
-          setAviso("A sessão da conta expirou. Entre de novo em Personagem → Conta.");
-        } else if (!r.ok) {
-          setAviso(`${r.mensagem} Jogando com o save deste aparelho.`);
+    const arm = criarArmazenamentoLocal(window.localStorage);
+    armazenamento.current = arm;
+    const online = new ClienteConta(arm, (situacao) => {
+      if (cancelado) return;
+      sessaoRef.current = situacao.sessao;
+      setSessao(situacao.sessao);
+      setSituacaoConta(situacao);
+      setOcupado(situacao.ocupado);
+      if (situacao.jogo) {
+        const antes = estadoRef.current;
+        const pa = antes ? personagemAtivo(antes) : null;
+        const pn = personagemAtivo(situacao.jogo.estado);
+        if (pa && pn && pa.id === pn.id) {
+          if (pn.nivel > pa.nivel) tocar("nivel");
+          else if (pn.competicao.totalLutas > pa.competicao.totalLutas) tocar(pn.competicao.replays.at(-1)?.vencedor === "a" ? "vitoria" : "derrota");
+          else if (pn.eventos.pendentes.length > pa.eventos.pendentes.length) tocar("evento");
         }
-      }
-    })().catch(() => {
-      if (!cancelado) setTela({ fase: "erro", mensagem: "Não foi possível acessar o armazenamento do navegador." });
+        if ((!pa || antes?.conta.sorteio) && pn && !situacao.jogo.estado.conta.sorteio) {
+          setAbaAtiva("personagem");
+          setSubAbaPorAba((atual) => ({ ...atual, personagem: 0 }));
+        }
+        estadoRef.current = situacao.jogo.estado;
+        setTela({ fase: "pronto", estado: situacao.jogo.estado, origem: "carregado" });
+      } else setTela({ fase: "conta" });
     });
-    return () => {
-      cancelado = true;
+    cliente.current = online;
+    const restaurar = async () => {
+      const geracao = identidade.current;
+      const s = lerSessao(window.localStorage);
+      await isolarSaveLegado(arm, !!s && !s.cacheSeparado);
+      if (cancelado || geracao !== identidade.current) return;
+      if (s) {
+        const separada: Sessao = { ...s, cacheSeparado: true };
+        sessaoRef.current = separada;
+        gravarSessao(window.localStorage, separada);
+        await online.conectar(separada);
+      } else {
+        online.encerrar();
+        sessaoRef.current = null;
+        setSessao(null);
+        setSituacaoConta(null);
+        await carregarLocal();
+      }
     };
-  }, []);
+    const falhou = () => { if (!cancelado) setTela({ fase: "erro", mensagem: "Não foi possível carregar o jogo. Seu save foi preservado. Recarregue a página para tentar novamente." }); };
+    const outraAba = (e: StorageEvent) => {
+      if (e.storageArea !== window.localStorage || (e.key !== CHAVE_SESSAO && e.key !== null)) return;
+      identidade.current++;
+      online.encerrar();
+      estadoRef.current = null;
+      setResumo(null);
+      setTela({ fase: "carregando" });
+      void restaurar().catch(falhou);
+    };
+    window.addEventListener("storage", outraAba);
+    void restaurar().catch(falhou);
+    return () => { cancelado = true; online.encerrar(); invalidarIdentidade(); window.removeEventListener("storage", outraAba); };
+  }, [carregarLocal, invalidarIdentidade]);
+
+  async function conectarConta(s: Sessao | null, corpo: Record<string, unknown> | null) {
+    identidade.current++;
+    setResumo(null);
+    setAviso(null);
+    if (s) {
+      const separada: Sessao = { ...s, cacheSeparado: true };
+      sessaoRef.current = separada;
+      gravarSessao(window.localStorage, separada);
+      await cliente.current?.conectar(separada, corpo ?? undefined);
+    } else {
+      const anterior = sessaoRef.current;
+      cliente.current?.encerrar();
+      sessaoRef.current = null;
+      setSessao(null);
+      setSituacaoConta(null);
+      setOcupado(false);
+      gravarSessao(window.localStorage, null);
+      estadoRef.current = null;
+      setTela({ fase: "carregando" });
+      if (anterior) void chamarApi("auth/sair", { metodo: "POST", token: anterior.token });
+      await carregarLocal();
+    }
+  }
+
+  const controlesConta = situacaoConta && (
+    <section className="cartao" aria-label="Conexão da conta">
+      <p role="status">{situacaoConta.conexao === "online" ? "Conta sincronizada." : situacaoConta.conexao === "expirado" ? "Sessão expirada. Seu progresso continua na conta." : situacaoConta.conexao === "sincronizando" ? "Sincronizando conta…" : "Sem confirmação do servidor. O progresso online está pausado neste aparelho."}</p>
+      {situacaoConta.mensagem && <p className="erro" role="alert">{situacaoConta.mensagem}</p>}
+      {situacaoConta.jogo?.procedencia === "importado" && <p className="suave">Jogo importado: pode jogar contra bots, mas não publicar builds competitivos.</p>}
+      <div className="acoes">
+        <button className="botao" type="button" disabled={situacaoConta.ocupado || situacaoConta.conexao === "expirado"} onClick={() => void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."))}>Sincronizar</button>
+        <button className="botao" type="button" onClick={() => void conectarConta(null, null).catch(() => setAviso("Não foi possível abrir o jogo local."))}>Sair e voltar ao jogo local</button>
+      </div>
+    </section>
+  );
 
   const pronto = tela.fase === "pronto";
   useEffect(() => {
     if (!pronto) return;
     const intervalo = window.setInterval(() => {
+      if (sessaoRef.current) {
+        if (Date.now() - ultimaGravacao.current >= GRAVAR_A_CADA_MS) {
+          ultimaGravacao.current = Date.now();
+          void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."));
+        }
+        return;
+      }
       avancarAteAgora(false);
       if (Date.now() - ultimaGravacao.current >= GRAVAR_A_CADA_MS) void gravar();
     }, TICK_MS);
@@ -163,7 +240,8 @@ export function Shell() {
         void gravar();
       } else {
         // Aba em segundo plano pode ter ficado parada: mostra o que rendeu.
-        avancarAteAgora(true);
+        if (sessaoRef.current) void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."));
+        else avancarAteAgora(true);
       }
     };
     const aoSair = () => {
@@ -182,7 +260,10 @@ export function Shell() {
   /** Troca o estado (já gravado) e ajusta as abas quando um personagem nasce. */
   async function adotar(novo: EstadoJogo) {
     const arm = armazenamento.current;
+    const geracao = identidade.current;
+    if (sessaoRef.current) return;
     if (arm) await salvarJogo(arm, CHAVE_SAVE, novo);
+    if (geracao !== identidade.current || sessaoRef.current) return;
     ultimaGravacao.current = Date.now();
     const antes = estadoRef.current;
     const tinhaPersonagem = antes ? personagemAtivo(antes) !== null && !antes.conta.sorteio : false;
@@ -204,28 +285,21 @@ export function Shell() {
 
   /** Aplica uma ação: no servidor (com conta) ou aqui (modo local). Devolve o erro, se houver. */
   async function executar(acao: Acao): Promise<string | null> {
+    if (sessaoRef.current) {
+      try { return await cliente.current!.enviar(acao); }
+      catch { return "Não foi possível confirmar a ação. Use Sincronizar para conferir o resultado."; }
+    }
     const estado = estadoRef.current;
     if (!estado) return null;
+    if (acaoLocalEmCurso.current) return "Aguarde a operação em andamento.";
+    acaoLocalEmCurso.current = true;
     try {
-      const s = sessaoRef.current;
-      if (s) {
-        const r = await enviarAcao(s, acao);
-        if (!r.ok) {
-          if (r.status === 401) definirSessao(null);
-          return r.mensagem;
-        }
-        const novo = estadoDaResposta(r.corpo);
-        if (!novo) return "Resposta inválida do servidor.";
-        await adotar(novo);
-        return null;
-      }
       const r = aplicarAcao(estado, acao, relogioDoSistema.agora());
       if (!r.ok) return r.erro.mensagem;
       await adotar(r.estado);
       return null;
-    } catch {
-      return "Não foi possível salvar. Tente de novo.";
-    }
+    } catch { return "Não foi possível salvar. Tente de novo."; }
+    finally { acaoLocalEmCurso.current = false; }
   }
 
   async function agirNaAtividade(acao: Acao) {
@@ -250,11 +324,14 @@ export function Shell() {
     );
   }
 
+  if (tela.fase === "conta") return <main className="conteudo" id="conteudo">{controlesConta}</main>;
+
   const personagem = personagemAtivo(tela.estado);
   if (!personagem || tela.estado.conta.sorteio) {
     return (
       <div className="shell">
         <main className="conteudo" id="conteudo">
+          {controlesConta}
           <CriacaoPersonagem estado={tela.estado} aoAgir={executar} />
         </main>
       </div>
@@ -335,10 +412,7 @@ export function Shell() {
         sessao={sessao}
         ocupado={ocupado}
         agir={agir}
-        aoConectar={async (s, novo) => {
-          definirSessao(s);
-          if (novo) await adotar(novo);
-        }}
+        aoConectar={conectarConta}
       />
     );
   } else if (aba.id === "personagem" && indiceSub === 3) {
@@ -388,6 +462,7 @@ export function Shell() {
           </p>
         )}
         <EventosPendentes personagem={personagem} ocupado={ocupado} agir={agir} />
+        {controlesConta}
         {conteudo}
         </div>
       </main>

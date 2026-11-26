@@ -3,7 +3,8 @@
  * - Páginas: rede primeiro, cópia em cache se cair a conexão.
  * - Arquivos estáticos do Next (com hash no nome): cache primeiro.
  * - API: nunca em cache. */
-const VERSAO = "idle-pu-v1";
+const PREFIXO = "idle-pu-";
+const VERSAO = "idle-pu-f13-1-v2";
 const ESSENCIAIS = ["/", "/manifest.webmanifest", "/icones/icone-192.png", "/icones/icone-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -14,7 +15,7 @@ self.addEventListener("activate", (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((chaves) => Promise.all(chaves.filter((k) => k !== VERSAO).map((k) => caches.delete(k))))
+      .then((chaves) => Promise.all(chaves.filter((k) => k.startsWith(PREFIXO) && k !== VERSAO).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -44,8 +45,10 @@ self.addEventListener("fetch", (e) => {
     e.respondWith(
       fetch(req)
         .then((res) => {
-          const copia = res.clone();
-          caches.open(VERSAO).then((c) => c.put("/", copia));
+          if (res.ok && res.headers.get("content-type")?.includes("text/html")) {
+            const copia = res.clone();
+            e.waitUntil(caches.open(VERSAO).then((c) => c.put("/", copia)));
+          }
           return res;
         })
         .catch(() => caches.match("/").then((r) => r || Response.error())),

@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**F13.1 — estabilização técnica implementada em 26/11/2026**, na branch `codex/idle-f13-1`: jogos online criados pelo servidor, importação casual sem sobrescrita, ações com revisão e recibo, gravações atômicas, cache por conta e reconexão segura. [Contrato, migração e validações](docs/ESTABILIZACAO-F13-1.md). A ativação e validação do banco real continuam pendentes; F13.2–F13.8 consolidam contas, entrada, UX e aceite antes do mobile.
+
 **F13 (Acabamento web) entregue: escopo inicial implementado (F1 a F13), em consolidação antes do port mobile.** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). **Pendente do autor:** ativar o banco da sincronização (veja `docs/DECISOES.md`, item 60) e decidir o port mobile (F14).
 
 **F12 (Competição) concluída.** Arena assíncrona contra bots por arquétipo (10 lutas por dia, rating e replays), Campo de Provas, torneio semanal em chave e temporadas de 8 semanas com tema, ranking e uma insígnia nomeada. Tudo reproduzível pela semente.

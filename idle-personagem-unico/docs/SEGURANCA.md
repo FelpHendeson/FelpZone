@@ -32,3 +32,9 @@ Escopo: `apps/web` (páginas e API `/api/v1`) e `packages/motor` (regras e valid
 ## Complemento pós-auditoria (24/11/2026)
 
 A validação estrutural e o relógio do servidor não provam a procedência de um save importado. A rota de importação admite substituição explícita; builds derivadas desse estado não devem ser consideradas competitivamente confiáveis. Separar progresso importado/casual e autoritativo. Corrigir locks com TTL e remoção incondicional (token + liberação atômica + versão), idempotência, isolamento de cache por conta, reconciliação online/offline, recuperação de acesso, limite real de bytes, readiness e cache PWA. São achados estáticos, não exploração prática. Detalhes e critérios em [AUDITORIA-CONSOLIDACAO.md](AUDITORIA-CONSOLIDACAO.md).
+
+## Correções F13.1 (26/11/2026)
+
+O complemento acima é histórico. A implementação agora recusa sobrescrita na importação, registra a procedência fora do save enviado e impede builds públicas de jogos importados/legados. Travas usam proprietário e liberação condicional; commits comparam sessão, trava e valor anterior. Ações exigem revisão e identificação, com recibo atômico de 24 h. Caches de conta e convidado ficam separados, com invalidação de respostas tardias e sem fallback local automático. Corpos HTTP são limitados em bytes durante leitura; o PWA preserva caches alheios e não guarda respostas de erro. Timeouts de rede: 15 s no cliente e 8 s por comando ao banco. [Migração, testes e limitações](ESTABILIZACAO-F13-1.md).
+
+Cookie HttpOnly/CSP, recuperação de acesso, readiness e validação do banco real permanecem pendentes. A F13.1 não declara a implantação de produção validada.

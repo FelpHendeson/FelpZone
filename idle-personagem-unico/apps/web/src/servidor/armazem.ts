@@ -5,6 +5,9 @@
  * API responde 503: o jogo segue em modo local.
  */
 
+export interface Condicao { readonly chave: string; readonly valor: string | null }
+export interface Escrita { readonly chave: string; readonly valor: string; readonly ttlSegundos?: number }
+
 export interface Armazem {
   obter(chave: string): Promise<string | null>;
   gravar(chave: string, valor: string, ttlSegundos?: number): Promise<void>;
@@ -13,6 +16,9 @@ export interface Armazem {
   apagar(chave: string): Promise<void>;
   /** Incrementa um contador (criado com TTL); devolve o novo valor. */
   incrementar(chave: string, ttlSegundos: number): Promise<number>;
+  /** Compara todas as condições e grava tudo em uma operação atômica. */
+  compararEGravar(condicoes: readonly Condicao[], escritas: readonly Escrita[]): Promise<boolean>;
+  apagarSeIgual(chave: string, valor: string): Promise<void>;
 }
 
 /** Prefixo próprio, para poder dividir um banco com outros projetos. */
@@ -49,7 +55,32 @@ export class ArmazemMemoria implements Armazem {
     this.dados.set(chave, { valor: String(n), expiraEm: x?.expiraEm ?? this.relogio() + ttl * 1000 });
     return n;
   }
+  async compararEGravar(condicoes: readonly Condicao[], escritas: readonly Escrita[]) {
+    if (!condicoes.every((c) => (this.vivo(c.chave)?.valor ?? null) === c.valor)) return false;
+    for (const e of escritas) this.dados.set(e.chave, { valor: e.valor, expiraEm: e.ttlSegundos ? this.relogio() + e.ttlSegundos * 1000 : null });
+    return true;
+  }
+  async apagarSeIgual(chave: string, valor: string) {
+    if (this.vivo(chave)?.valor === valor) this.dados.delete(chave);
+  }
 }
+
+// KEYS explícitas para o Redis; nenhuma chave é montada pelo script.
+const COMPARAR_E_GRAVAR = `
+local condicoes = cjson.decode(ARGV[1])
+local escritas = cjson.decode(ARGV[2])
+for i, c in ipairs(condicoes) do
+  local atual = redis.call('GET', KEYS[i])
+  if c.valor == cjson.null then
+    if atual then return 0 end
+  elseif atual ~= c.valor then return 0 end
+end
+for i, e in ipairs(escritas) do
+  local chave = KEYS[#condicoes + i]
+  if e.ttlSegundos then redis.call('SET', chave, e.valor, 'EX', e.ttlSegundos)
+  else redis.call('SET', chave, e.valor) end
+end
+return 1`;
 
 /** Redis da Upstash pela API REST (`POST /` com o comando em JSON). */
 export class ArmazemUpstash implements Armazem {
@@ -60,6 +91,7 @@ export class ArmazemUpstash implements Armazem {
   private async comando(args: (string | number)[]): Promise<unknown> {
     const r = await fetch(this.url, {
       method: "POST",
+      signal: AbortSignal.timeout(8_000),
       headers: { authorization: `Bearer ${this.token}`, "content-type": "application/json" },
       body: JSON.stringify(args),
       cache: "no-store",
@@ -84,9 +116,14 @@ export class ArmazemUpstash implements Armazem {
     await this.comando(["DEL", PREFIXO + chave]);
   }
   async incrementar(chave: string, ttl: number) {
-    const n = Number(await this.comando(["INCR", PREFIXO + chave]));
-    if (n === 1) await this.comando(["EXPIRE", PREFIXO + chave, ttl]);
-    return n;
+    return Number(await this.comando(["EVAL", "local n = redis.call('INCR', KEYS[1]); if n == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end; return n", 1, PREFIXO + chave, ttl]));
+  }
+  async compararEGravar(condicoes: readonly Condicao[], escritas: readonly Escrita[]) {
+    const chaves = [...condicoes, ...escritas].map((c) => PREFIXO + c.chave);
+    return Number(await this.comando(["EVAL", COMPARAR_E_GRAVAR, chaves.length, ...chaves, JSON.stringify(condicoes), JSON.stringify(escritas)])) === 1;
+  }
+  async apagarSeIgual(chave: string, valor: string) {
+    await this.comando(["EVAL", "if redis.call('GET', KEYS[1]) == ARGV[1] then return redis.call('DEL', KEYS[1]) end; return 0", 1, PREFIXO + chave, valor]);
   }
 }
 

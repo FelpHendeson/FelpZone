@@ -1,9 +1,9 @@
 "use client";
 
 import { CATALOGO, CONQUISTAS, MAX_PERSONAGENS, serializarSave, type EstadoJogo } from "@idle-pu/motor";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { definirSons, sonsLigados, tocar } from "@/lib/sons";
-import { chamarApi, estadoDaResposta, type Sessao } from "@/lib/sync";
+import { chamarApi, type Sessao } from "@/lib/sync";
 import type { Agir } from "./acoes";
 
 interface Props {
@@ -12,7 +12,7 @@ interface Props {
   readonly ocupado: boolean;
   readonly agir: Agir;
   /** Conectou (ou desconectou, com `null`) a conta; `novo` é o estado que passa a valer. */
-  readonly aoConectar: (sessao: Sessao | null, novo: EstadoJogo | null) => Promise<void>;
+  readonly aoConectar: (sessao: Sessao | null, novo: Record<string, unknown> | null) => Promise<void>;
 }
 
 /** Personagem → Conta: personagens, Cofre da Conta e sincronização (F9). */
@@ -73,7 +73,7 @@ export function PainelConta({ estado, sessao, ocupado, agir, aoConectar }: Props
       </article>
 
       <Preferencias />
-      <Sincronizacao estado={estado} sessao={sessao} aoConectar={aoConectar} />
+      <Sincronizacao key={sessao?.token ?? "convidado"} estado={estado} sessao={sessao} aoConectar={aoConectar} />
     </section>
   );
 }
@@ -84,15 +84,16 @@ function Sincronizacao({ estado, sessao, aoConectar }: Pick<Props, "estado" | "s
   const [senha, setSenha] = useState("");
   const [ocupado, setOcupado] = useState(false);
   const [mensagem, setMensagem] = useState<string | null>(null);
-  const [conflito, setConflito] = useState<{ sessao: Sessao; doServidor: EstadoJogo } | null>(null);
+  const [contaVazia, setContaVazia] = useState<Sessao | null>(null);
+  const vivo = useRef(true);
 
   useEffect(() => {
-    let vivo = true;
+    vivo.current = true;
     void chamarApi("saude").then((r) => {
-      if (vivo) setBanco(r.ok ? r.corpo.banco === true : false);
+      if (vivo.current) setBanco(r.ok ? r.corpo.banco === true : false);
     });
     return () => {
-      vivo = false;
+      vivo.current = false;
     };
   }, []);
 
@@ -101,53 +102,51 @@ function Sincronizacao({ estado, sessao, aoConectar }: Pick<Props, "estado" | "s
     setMensagem(null);
     try {
       const r = await chamarApi(rota, { metodo: "POST", corpo: { nome, senha } });
+      if (!vivo.current) return;
       if (!r.ok) return setMensagem(r.mensagem);
       const s: Sessao = { token: r.corpo.token as string, nome: (r.corpo.conta as { nome: string }).nome };
       const jogo = await chamarApi("jogo", { token: s.token });
+      if (!vivo.current) return;
       if (jogo.ok) {
-        const doServidor = estadoDaResposta(jogo.corpo);
-        if (!doServidor) return setMensagem("Resposta inválida do servidor.");
-        // A conta já tem jogo: a pessoa escolhe qual fica.
-        setConflito({ sessao: s, doServidor });
+        await aoConectar(s, jogo.corpo);
+        setSenha("");
         return;
       }
       if (jogo.codigo !== "sem_save") return setMensagem(jogo.mensagem);
-      const imp = await chamarApi("jogo/importar", { metodo: "POST", corpo: { save: serializarSave(estado) }, token: s.token });
-      if (!imp.ok) return setMensagem(imp.mensagem);
-      await aoConectar(s, estadoDaResposta(imp.corpo));
-      setSenha("");
-      setMensagem("Conta conectada. O jogo deste aparelho agora fica salvo na conta.");
+      setContaVazia(s);
     } finally {
       setOcupado(false);
     }
   }
 
-  async function resolver(usarDaConta: boolean) {
-    if (!conflito) return;
+  async function iniciar(importarLocal: boolean) {
+    if (!contaVazia) return;
     setOcupado(true);
     try {
-      if (usarDaConta) {
-        await aoConectar(conflito.sessao, conflito.doServidor);
-      } else {
-        const imp = await chamarApi("jogo/importar", { metodo: "POST", corpo: { save: serializarSave(estado), substituir: true }, token: conflito.sessao.token });
-        if (!imp.ok) return setMensagem(imp.mensagem);
-        await aoConectar(conflito.sessao, estadoDaResposta(imp.corpo));
+      const r = await chamarApi(importarLocal ? "jogo/importar" : "jogo/iniciar", { metodo: "POST", corpo: importarLocal ? { save: serializarSave(estado) } : {}, token: contaVazia.token });
+      if (!vivo.current) return;
+      if (!r.ok) {
+        // Outra sessão pode ter iniciado a conta enquanto a escolha estava aberta.
+        if (r.codigo === "ja_tem_save") {
+          const atual = await chamarApi("jogo", { token: contaVazia.token });
+          if (!vivo.current) return;
+          if (atual.ok) { await aoConectar(contaVazia, atual.corpo); return; }
+        }
+        return setMensagem(r.mensagem);
       }
-      setConflito(null);
+      await aoConectar(contaVazia, r.corpo);
+      setContaVazia(null);
       setSenha("");
       setMensagem("Conta conectada.");
-    } finally {
-      setOcupado(false);
-    }
+    } finally { setOcupado(false); }
   }
 
   async function desconectar() {
     if (!sessao) return;
     setOcupado(true);
-    await chamarApi("auth/sair", { metodo: "POST", token: sessao.token });
     await aoConectar(null, null);
     setOcupado(false);
-    setMensagem("Desconectado. O jogo continua salvo neste aparelho.");
+    setMensagem("Desconectado. O jogo da conta fica separado do jogo local.");
   }
 
   return (
@@ -168,15 +167,15 @@ function Sincronizacao({ estado, sessao, aoConectar }: Pick<Props, "estado" | "s
         <p className="suave" role="status">
           A sincronização ainda não está ativa neste servidor. O jogo fica salvo neste aparelho.
         </p>
-      ) : conflito ? (
+      ) : contaVazia ? (
         <>
-          <p>A conta já tem um jogo salvo. Qual fica?</p>
+          <p>Esta conta ainda não tem jogo. Um novo jogo online pode publicar builds competitivos. A importação é única e mantém o jogo casual, sem publicar builds.</p>
           <div className="acoes">
-            <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => void resolver(true)}>
-              Usar o jogo da conta
+            <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => void iniciar(false)}>
+              Iniciar novo jogo online
             </button>
-            <button type="button" className="botao" disabled={ocupado} onClick={() => void resolver(false)}>
-              Enviar o deste aparelho (substitui)
+            <button type="button" className="botao" disabled={ocupado} onClick={() => void iniciar(true)}>
+              Importar jogo local (casual)
             </button>
           </div>
         </>

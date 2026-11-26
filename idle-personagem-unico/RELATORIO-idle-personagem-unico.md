@@ -1033,3 +1033,11 @@ O jogo web está completo: sorteio, treino, coleta, combate, habilidades, Limiar
 ## 24/11/2026 — Auditoria e replanejamento pós-F13
 
 Registrada auditoria estática técnica e funcional com as quatro novas diretrizes do autor (conta real e apresentação; autonomia de UX; tutorial; prompts de spritesheets). A F13 histórica foi preservada; foram propostas subfatias F13.1–F13.8 de consolidação antes da F14. Ver [documento consolidado](docs/AUDITORIA-CONSOLIDACAO.md). Esta entrada é documental, sem implementação, execução de testes ou ativação de infraestrutura.
+
+## 26/11/2026 — F13.1: estabilização técnica e segurança
+
+Implementadas proteções de procedência/importação, criação online no servidor, revisão e recibo por ação, commit atômico, travas com proprietário, isolamento de cache e identidade, reconexão, limite HTTP e PWA. Corrigida também a URL do botão de publicar build. Nenhuma fórmula ou dado de balanceamento foi alterado.
+
+Validação: 355 testes do motor com um worker e 38 testes web passando; lint, tipos e build aprovados. O `npm test` padrão apresentou timeouts no motor nesta máquina; todos passaram ao limitar o worker sem mudar asserts ou limites. Smoke Playwright com as regras reais e banco em memória confirmou criação, conta, reload e logout em mobile/desktop; Upstash real não foi validado. [Contrato, migração e evidências completas](docs/ESTABILIZACAO-F13-1.md).
+
+Implementação local na branch `codex/idle-f13-1`, sem commit, push, deploy ou ativação de infraestrutura. Próxima fatia planejada: F13.2 (contas e persistência real); F14 continua posterior ao aceite da web.
