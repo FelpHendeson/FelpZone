@@ -1057,3 +1057,9 @@ O autor autorizou push e deploy. Os commits `dac7f70` e `76cf3e4` foram enviados
 A F13.3 acrescenta apresentação antes do sorteio, autenticação sem personagem local, seleção de jornadas, retomada de criação e escolha explícita do modo local. Mantém regras de slots/pergaminhos, procedência e isolamento; não altera motor ou balanceamento.
 
 Validação: 355 testes do motor, 57 web e 2 Redis real; lint, tipos e build. Playwright com API real/Redis isolado cobre cadastro antes do personagem, retomada online/local sem devolver tentativa, seleção/slot bloqueado, logout e login em outro navegador. Revisão visual mobile/desktop corrigiu botões altos no celular. [Evidências e limitações](docs/ENTRADA-F13-3.md). Próxima fatia planejada: F13.4, interface e navegação.
+
+## 26/11/2026 — F13.4: interface e navegação
+
+A F13.3 foi publicada no commit `2734b51`, deployment READY com alias de produção; apresentação/login/recuperação e readiness foram conferidos no site público. Após nova autorização de continuação, a F13.4 preserva os seis sistemas e 30 sub-abas, acrescentando personagem/atividade persistentes, navegação lateral desktop, teclado, atalhos contextuais e estado compacto da conta. Sem conexão, ações ficam bloqueadas até reconectar; o modo local continua independente.
+
+Validação da F13.4: 61 testes web, 2 de Redis real, tipos, lint e build. Playwright/Chromium percorreu as 30 sub-abas, teclado e ações de treino/coleta/viagem/venda/compra/equipar/caça, Guilda, mochila cheia e conta offline/reconexão. Revisão visual em mobile/desktop e responsividade em 320/390/768/1440 px. Motor, regras e versão de save não mudaram. [Contrato, evidências e limites](docs/INTERFACE-F13-4.md). Próxima fatia planejada: F13.5, tutorial.

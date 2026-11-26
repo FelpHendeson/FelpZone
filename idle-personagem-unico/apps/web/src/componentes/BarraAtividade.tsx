@@ -32,7 +32,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
     const c = l.combate;
     const m = c.monstroId ? CATALOGO.monstros.get(c.monstroId) : undefined;
     return (
-      <div className="barra-atividade barra-limiar" role="status" aria-label="No Limiar">
+      <div className="barra-atividade barra-limiar" role="group" aria-label="No Limiar">
         <div className="barra-linha">
           <span className="barra-titulo">No Limiar · volta em {formatarDuracao(l.restanteMs)}</span>
           {extras}
@@ -49,7 +49,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
   if (p.viagem) {
     const v = p.viagem;
     return (
-      <div className="barra-atividade" role="status">
+      <div className="barra-atividade" role="group">
         <div className="barra-linha">
           <span className="barra-titulo">Movendo-se até {nomeLocal(v.destinoLocalId)}…</span>
           {extras}
@@ -62,7 +62,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
   const atual = p.atividade;
   if (!atual) {
     return (
-      <div className="barra-atividade" role="status">
+      <div className="barra-atividade" role="group">
         <div className="barra-linha">
           <span>
             <span className="barra-titulo">Ocioso</span> <span className="suave">em {nomeLocal(p.localId)}</span>
@@ -80,7 +80,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
     const fase =
       c?.fase === "lutando" && m ? `Lutando com ${m.nome}${m.tipo === "chefe" ? " (chefe)" : m.tipo === "raro" ? " (raro)" : ""}` : c?.fase === "recuando" ? `Recuando para ${nomeLocal("pedravau")} e descansando…` : "Procurando…";
     return (
-      <div className="barra-atividade" role="status" aria-label={`Caçando em ${a.nome}`}>
+      <div className="barra-atividade" role="group" aria-label={`Caçando em ${a.nome}`}>
         <div className="barra-linha">
           <span className="barra-titulo">Caçando: {a.nome}</span>
           {extras}
@@ -98,7 +98,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
     const h = atual.habilidadeId ? CATALOGO.habilidades.get(atual.habilidadeId) : undefined;
     const prog = atual.habilidadeId ? p.habilidades[atual.habilidadeId] : undefined;
     return (
-      <div className="barra-atividade" role="status" aria-label={`Praticando ${h?.nome ?? ""}`}>
+      <div className="barra-atividade" role="group" aria-label={`Praticando ${h?.nome ?? ""}`}>
         <div className="barra-linha">
           <span className="barra-titulo">Praticando: {h?.nome}</span>
           {extras}
@@ -118,7 +118,7 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
       ? `+${formatarNumero(e.ganhoPorHora, 2)} ${NOME_STATUS[a.status]}/h agora`
       : `~${formatarNumero(e.itensPorHora, 0)} ${CATALOGO.itens.get(a.tipo === "producao" ? a.saida.itemId : a.itemId)!.nome.toLowerCase()}/h`;
   return (
-    <div className="barra-atividade" role="status" aria-label={`Atividade atual: ${a.nome}`}>
+    <div className="barra-atividade" role="group" aria-label={`Atividade atual: ${a.nome}`}>
       <div className="barra-linha">
         <span className="barra-titulo">{a.nome}</span>
         {extras}

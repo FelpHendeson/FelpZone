@@ -22,8 +22,8 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F13** ✅ | Acabamento web | PWA, sons, arte, acessibilidade, balanceamento final. | Auditoria de ritmo e de segurança. |
 | **F13.1** publicada (26/11) | Estabilização técnica e segurança | Procedência do save, concorrência, idempotência, sincronização e cache; testes de regressão. | [Implementação e resultados](ESTABILIZACAO-F13-1.md); incluída no deploy da F13.2. |
 | **F13.2** publicada (26/11) | Contas e persistência | Cookie HttpOnly, recuperação, cache por ID e migração; Redis existente conferido. | [Resultados](CONTAS-F13-2.md): commit `76cf3e4` READY, readiness com banco conectado. |
-| **F13.3** implementada (26/11) | Apresentação e entrada | Tela inicial, login/cadastro, seleção/criação de personagem. | [Contrato e validações](ENTRADA-F13-3.md): entrada sem personagem obrigatório, retomada preservando tentativas. |
-| **F13.4** | Interface e navegação | Revisar arquitetura de informação, responsividade, feedback e protagonismo do personagem. | Jornadas principais claras em mobile e desktop; funcionalidades existentes preservadas. |
+| **F13.3** publicada (26/11) | Apresentação e entrada | Tela inicial, login/cadastro, seleção/criação de personagem. | [Contrato e validações](ENTRADA-F13-3.md): commit `2734b51` READY, entrada e readiness conferidas em produção. |
+| **F13.4** implementada (26/11) | Interface e navegação | Personagem e atividade persistentes, navegação responsiva, teclado, atalhos e feedback de conexão. | [Verificações](INTERFACE-F13-4.md): 30 sub-abas e jornadas principais, preservando funcionalidades existentes. |
 | **F13.5** | Tutorial | Onboarding interativo e contextual, pulável e revisável, com progresso salvo por conta/personagem conforme escopo. | Jogador aprende sorteio, treino, coleta, venda, equipamento, combate e guilda por ações reais. |
 | **F13.6** | Direção artística | Identidade visual, sprites modulares, ícones e animações; prompts para o autor quando necessários. | Assets validados e integrados; placeholders não bloqueiam desenvolvimento. |
 | **F13.7** | Auditoria em execução | Playwright/E2E, playtest, desempenho mobile, acessibilidade e calibração. | Jornadas críticas verificadas; testes, lint, typecheck e build verdes; resultados documentados. |
@@ -31,11 +31,11 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Aceite de F13.8 e paridade com a web. |
 | **F15** [Proposta] | Expansão | Ato II e competição online autoritativa. | Escopo futuro a aprovar. |
 
-**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F13 concluídas em 24/11/2026** (escopo inicial entregue; após auditoria, consolidação F13.1–F13.8 proposta antes de F14) (na F9, o banco da sincronização ainda precisa ser ativado pelo autor) (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
+**Situação:** F0 concluída (commit `293c932`); F1 concluída em 23/11/2026; F2 a **F13 concluídas em 24/11/2026** (escopo inicial entregue; após auditoria, consolidação F13.1–F13.8 proposta antes de F14) (simulação e bot de ritmo em [`CALIBRACAO.md`](CALIBRACAO.md); relatório de cada fatia em [`../RELATORIO-idle-personagem-unico.md`](../RELATORIO-idle-personagem-unico.md)). O autor autorizou seguir até a F13 sem parar (24/11/2026).
 
 ## Consolidação pós-auditoria (24/11/2026)
 
-As subfatias foram propostas no planejamento de 24/11. F13.1 e F13.2 foram autorizadas e implementadas localmente em 26/11; as seguintes ainda não foram executadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
+As subfatias foram propostas no planejamento de 24/11. F13.1–F13.3 foram publicadas em 26/11; a F13.4 foi autorizada na continuação e implementada. As seguintes permanecem planejadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
 
 ## Regras de ordem
 

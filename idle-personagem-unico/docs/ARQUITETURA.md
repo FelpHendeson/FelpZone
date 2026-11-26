@@ -74,7 +74,7 @@ src/
 
 - Next, App Router, **mobile-first**; validar também em tablet/desktop.
 - A interface é só exibição: lê o estado do motor e dispara ações. Navegação por **abas inferiores** e **sub-abas no topo** (GDD §16).
-- **PWA** instalável; o service worker guarda o save e a UI para abrir offline.
+- **PWA** instalável; o service worker guarda a interface para abrir offline; o save local usa o armazenamento do navegador e a API não entra no cache.
 - Estado no cliente: **Zustand** ou contexto simples. Evitar bibliotecas pesadas. [Proposta]
 - Textos de jogo em português, com *i18n* só se um dia houver outro idioma.
 
@@ -138,6 +138,10 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 - Só começa quando a web estiver 100% (decisão do autor).
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
+
+### Implementação F13.4 (26/11/2026)
+
+`CabecalhoJornada` associa personagem, atividade e conexão, com altura observada para a navegação fixa não cobrir o conteúdo. `NavegacaoJogo` preserva os seis destinos e as 30 sub-abas, com navegação por teclado e relações ARIA tab/painel. O CSS adapta barra inferior mobile para lateral desktop a partir de 960 px. `destinoDaAtividade` é uma consulta pura que encaminha viagem/Limiar/atividade para a tela adequada; nenhum atalho executa ações do motor. Conta sem confirmação bloqueia ações na interface e no ponto de envio, mantendo reconexão e pedidos pendentes no cliente existente. A barra de ciclo deixa de ser uma região live a cada tick; erros e confirmações continuam anunciáveis. [Verificações](INTERFACE-F13-4.md).
 
 ### Implementação F13.3 (26/11/2026)
 

@@ -1,4 +1,4 @@
-/** Navegação do GDD §16: abas inferiores e sub-abas no topo. Sem conteúdo ainda. */
+/** Os seis destinos do GDD §16: barra inferior mobile, lateral desktop e sub-abas. */
 export interface Aba {
   readonly id: string;
   readonly rotulo: string;

@@ -23,7 +23,9 @@ import { CHAVE_SAVE, iniciarJogo, isolarSaveLegado, type ResultadoInicio } from 
 import { tocar } from "@/lib/sons";
 import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, restaurarSessao, sairDaConta, type Sessao } from "@/lib/sync";
 import { ClienteConta, type SituacaoConta } from "@/lib/clienteConta";
-import { BarraAtividade } from "./BarraAtividade";
+import { CabecalhoJornada } from "./CabecalhoJornada";
+import { NavegacaoPrincipal, SubAbas } from "./NavegacaoJogo";
+import type { DestinoJogo } from "@/lib/navegacao";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
 import { PainelConta } from "./PainelConta";
@@ -71,6 +73,7 @@ export function Shell() {
   const [resumo, setResumo] = useState<ResumoAvanco | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState<string | null>(null);
+  const [confirmacao, setConfirmacao] = useState("");
   const armazenamento = useRef<Armazenamento | null>(null);
   const estadoRef = useRef<EstadoJogo | null>(null);
   const ultimaGravacao = useRef(0);
@@ -205,6 +208,7 @@ export function Shell() {
     const geracao = identidade.current;
     setResumo(null);
     setAviso(null);
+    setConfirmacao("");
     if (s) {
       const separada: Sessao = { ...s, cacheSeparado: true };
       sessaoRef.current = separada;
@@ -272,6 +276,19 @@ export function Shell() {
     document.querySelector<HTMLHeadingElement>("h1")?.focus({ preventScroll: true });
   }, [fluxo]);
 
+  useEffect(() => {
+    if (fluxo !== "jogo") return;
+    window.scrollTo(0, 0);
+    document.querySelector<HTMLHeadingElement>("#titulo-secao")?.focus({ preventScroll: true });
+  }, [abaAtiva, fluxo]);
+
+  useEffect(() => {
+    if (!aviso || fluxo !== "jogo") return;
+    const mensagem = document.querySelector<HTMLElement>(".aviso-acao");
+    mensagem?.focus({ preventScroll: true });
+    mensagem?.scrollIntoView({ block: "nearest" });
+  }, [aviso, fluxo]);
+
   const pronto = tela.fase === "pronto";
   useEffect(() => {
     if (!pronto) return;
@@ -337,8 +354,15 @@ export function Shell() {
 
   /** Aplica uma ação: no servidor (com conta) ou aqui (modo local). Devolve o erro, se houver. */
   async function executar(acao: Acao): Promise<string | null> {
+    const geracao = identidade.current;
+    setConfirmacao("");
     if (sessaoRef.current) {
-      try { return await cliente.current!.enviar(acao); }
+      if (cliente.current?.atual?.conexao !== "online") return "A conta está em leitura. Reconecte ou entre novamente para confirmar ações.";
+      try {
+        const erro = await cliente.current!.enviar(acao);
+        if (!erro && geracao === identidade.current) setConfirmacao("Alteração confirmada na conta.");
+        return erro;
+      }
       catch { return "Não foi possível confirmar a ação. Use Sincronizar para conferir o resultado."; }
     }
     const estado = estadoRef.current;
@@ -349,6 +373,7 @@ export function Shell() {
       const r = aplicarAcao(estado, acao, relogioDoSistema.agora());
       if (!r.ok) return r.erro.mensagem;
       await adotar(r.estado);
+      if (geracao === identidade.current) setConfirmacao("Alteração salva neste aparelho.");
       return null;
     } catch { return "Não foi possível salvar. Tente de novo."; }
     finally { acaoLocalEmCurso.current = false; }
@@ -380,10 +405,10 @@ export function Shell() {
   const inicio = <Apresentacao estado={sessao ? atual : estadoLocal} sessao={sessao} aoAcesso={abrirAcesso} aoLocal={() => void entrarLocal()} aoConta={() => setFluxo("personagens")} aviso={avisoEntrada} />;
   if (fluxo === "inicio") return inicio;
   if (fluxo === "acesso") return <MolduraEntrada sessao={sessao} aoInicio={() => setFluxo("inicio")}>
-    <header className="entrada-titulo"><h1 tabIndex={-1}>{sessao && situacaoConta?.conexao !== "expirado" ? "Sua conta" : modoAcesso === "registrar" ? "Uma conta para sua jornada" : "Bom ter você de volta"}</h1><p>Continue sua história em qualquer aparelho. O personagem vem depois.</p></header>
+    <header className="entrada-titulo"><h1 tabIndex={-1}>{sessao && situacaoConta?.conexao !== "expirado" ? "Sua conta" : modoAcesso === "registrar" ? "Uma conta para sua jornada" : "Bom ter você de volta"}</h1><p>{atual ? "Sua jornada continua salva enquanto você cuida do acesso à conta." : "Continue sua história em qualquer aparelho. O personagem vem depois."}</p></header>
     {avisoEntrada}{controlesConta}
     <div className="entrada-acesso"><AcessoConta key={`${sessao?.id ?? "convidado"}:${situacaoConta?.conexao === "expirado"}:${modoAcesso}`} estado={estadoLocal ?? undefined} sessao={situacaoConta?.conexao === "expirado" ? null : sessao} modoInicial={modoAcesso} aoConectar={conectarConta} /></div>
-    <div className="entrada-retorno"><button type="button" className="link" onClick={() => setFluxo("inicio")}>Voltar à apresentação</button>{!sessao && <button type="button" className="link" onClick={() => void entrarLocal()}>Jogar neste aparelho</button>}</div>
+    <div className="entrada-retorno">{atual && personagemAtivo(atual) && !atual.conta.sorteio && <button type="button" className="link" onClick={() => setFluxo("jogo")}>Voltar à jornada</button>}<button type="button" className="link" onClick={() => setFluxo("inicio")}>Voltar à apresentação</button>{!sessao && !atual && <button type="button" className="link" onClick={() => void entrarLocal()}>Jogar neste aparelho</button>}</div>
   </MolduraEntrada>;
   if (fluxo === "personagens" || tela.fase === "conta") return <SelecaoPersonagens
     estado={atual} sessao={sessao} ocupado={ocupado} aviso={avisoEntrada} controles={controlesConta}
@@ -412,6 +437,11 @@ export function Shell() {
   const aba = ABAS.find((a) => a.id === abaAtiva) ?? ABAS[0]!;
   const indiceSub = subAbaPorAba[aba.id] ?? 0;
   const subAba = aba.subAbas[indiceSub] ?? aba.subAbas[0];
+  const bloquearAcoes = ocupado || (!!sessao && situacaoConta?.conexao !== "online");
+  const navegar = ({ aba: id, sub }: DestinoJogo) => {
+    setAbaAtiva(id);
+    setSubAbaPorAba((atual) => ({ ...atual, [id]: sub }));
+  };
 
   let conteudo: React.ReactNode = (
     <section className="vazio">
@@ -427,20 +457,20 @@ export function Shell() {
       </>
     );
   } else if (aba.id === "combate" && indiceSub === 3) {
-    conteudo = <PainelArena personagem={personagem} ocupado={ocupado} agir={agir} sessao={sessao} />;
+    conteudo = <PainelArena personagem={personagem} ocupado={bloquearAcoes} agir={agir} sessao={sessao} />;
   } else if (aba.id === "combate" && indiceSub === 4) {
     conteudo = <PainelCampoDeProvas personagem={personagem} />;
   } else if (aba.id === "combate" && indiceSub === 5) {
-    conteudo = <PainelTorneio personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelTorneio personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "personagem" && indiceSub === 4) {
     conteudo = <PainelCronica personagem={personagem} />;
   } else if (aba.id === "personagem" && indiceSub === 2) {
-    conteudo = <PainelPets personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelPets personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 4) {
-    conteudo = <PainelCuidados personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelCuidados personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 2) {
     conteudo = (
-      <PainelProducao personagem={personagem} ocupado={ocupado} aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })} aoParar={() => agir({ tipo: "pararAtividade" })} />
+      <PainelProducao personagem={personagem} ocupado={bloquearAcoes} aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })} aoParar={() => agir({ tipo: "pararAtividade" })} />
     );
   } else if (aba.id === "mochila" && indiceSub === 4) {
     conteudo = <PainelConsumiveis personagem={personagem} />;
@@ -449,39 +479,39 @@ export function Shell() {
   } else if (aba.id === "atividades" && (indiceSub === 0 || indiceSub === 1)) {
     const props = {
       personagem,
-      ocupado,
+      ocupado: bloquearAcoes,
       aoIniciar: (id: string) => agir({ tipo: "iniciarAtividade", atividadeId: id }),
       aoParar: () => agir({ tipo: "pararAtividade" }),
     };
     conteudo = indiceSub === 0 ? <PainelTreino {...props} /> : <PainelColeta {...props} />;
   } else if (aba.id === "mapa") {
-    const props = { personagem, ocupado, agir };
+    const props = { personagem, ocupado: bloquearAcoes, agir };
     conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <PainelLocalAtual personagem={personagem} /> : <PainelEstabelecimentos {...props} />;
   } else if (aba.id === "personagem" && indiceSub === 1) {
-    conteudo = <PainelHabilidades personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelHabilidades personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 3) {
-    conteudo = <PainelAprendizado personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelAprendizado personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "combate" && indiceSub === 0) {
     conteudo = (
       <PainelAreas
         personagem={personagem}
-        ocupado={ocupado}
+        ocupado={bloquearAcoes}
         agir={agir}
         aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })}
         aoParar={() => agir({ tipo: "pararAtividade" })}
       />
     );
   } else if (aba.id === "missoes") {
-    const props = { personagem, ocupado, agir };
+    const props = { personagem, ocupado: bloquearAcoes, agir };
     conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : indiceSub === 2 ? <PainelGuilda {...props} /> : <PainelHistoria {...props} />;
   } else if (aba.id === "combate" && indiceSub === 2) {
-    conteudo = <PainelLimiar personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelLimiar personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "personagem" && indiceSub === 5) {
     conteudo = (
       <PainelConta
         estado={tela.estado}
         sessao={sessao}
-        ocupado={ocupado}
+        ocupado={bloquearAcoes}
         agir={agir}
         aoConectar={conectarConta}
       />
@@ -491,78 +521,46 @@ export function Shell() {
   } else if (aba.id === "combate" && indiceSub === 1) {
     conteudo = <PainelBestiario personagem={personagem} />;
   } else if (aba.id === "mochila" && indiceSub === 0) {
-    conteudo = <PainelEquipados personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelEquipados personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "mochila" && indiceSub === 1) {
-    conteudo = <PainelEquipaveis personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelEquipaveis personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "mochila" && indiceSub === 2) {
     conteudo = <PainelFerramentas personagem={personagem} />;
   } else if (aba.id === "mochila" && indiceSub === 3) {
-    conteudo = <PainelMateriais personagem={personagem} ocupado={ocupado} agir={agir} />;
+    conteudo = <PainelMateriais personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   }
 
   return (
-    <div className="shell">
-      <header className="topo">
-        <BarraAtividade personagem={personagem} />
-        <div className="jogo-cabecalho"><h1 className="titulo" tabIndex={-1}>{aba.rotulo}</h1><button type="button" className="link" onClick={() => setFluxo("personagens")}>Personagens</button></div>
-        <nav className="subabas" role="tablist" aria-label={`Seções de ${aba.rotulo}`}>
-          {aba.subAbas.map((nome, i) => (
-            <button
-              key={nome}
-              type="button"
-              role="tab"
-              aria-selected={i === indiceSub}
-              className="subaba"
-              onClick={() => setSubAbaPorAba((atual) => ({ ...atual, [aba.id]: i }))}
-            >
-              {nome}
-            </button>
-          ))}
-        </nav>
-      </header>
-
-      <main className="conteudo conteudo-coluna" id="conteudo">
-        <div role="tabpanel" aria-label={subAba} className="painel-aba">
+    <div className="shell shell-jogo">
+      <CabecalhoJornada personagem={personagem} sessao={sessao} situacao={situacaoConta}
+        aoPersonagens={() => setFluxo("personagens")} aoConta={() => abrirAcesso()}
+        aoDestino={navegar} aoSincronizar={() => void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."))} />
+      <NavegacaoPrincipal ativa={aba.id} prontas={missoesProntas(personagem)} aoEscolher={setAbaAtiva} />
+      <main className="conteudo conteudo-coluna jornada-conteudo" id="conteudo" aria-busy={ocupado}>
+        <div className="jornada-secao"><h1 className="titulo" id="titulo-secao" tabIndex={-1}>{aba.rotulo}</h1>
+          <SubAbas aba={aba} indice={indiceSub} aoEscolher={(i) => setSubAbaPorAba((atual) => ({ ...atual, [aba.id]: i }))} />
+        </div>
+        <div id="painel-jogo" role="tabpanel" aria-labelledby={`secao-${aba.id}-${indiceSub}`} tabIndex={0} className="painel-aba">
         <h2 className="visualmente-oculto">{subAba}</h2>
         {aviso && (
-          <p className="erro aviso-acao" role="alert">
+          <p className="erro aviso-acao" role="alert" tabIndex={-1}>
             {aviso}{" "}
             <button type="button" className="link" onClick={() => setAviso(null)}>
               Fechar
             </button>
           </p>
         )}
-        <EventosPendentes personagem={personagem} ocupado={ocupado} agir={agir} />
-        {controlesConta}
+        <EventosPendentes personagem={personagem} ocupado={bloquearAcoes} agir={agir} />
+        {situacaoConta?.conexao === "expirado" && <p className="aviso" role="status">Entre novamente na conta para continuar. Seu último progresso está preservado.</p>}
+        {situacaoConta?.conexao === "desconectado" && <p className="aviso" role="status">Conta em leitura até reconectar. O progresso online está pausado neste aparelho.{situacaoConta.mensagem && ` ${situacaoConta.mensagem}`}</p>}
         {conteudo}
         </div>
       </main>
 
       <p className="status-save" role="status" aria-live="polite">
-        {TEXTO_ORIGEM[tela.origem]}
+        {ocupado ? situacaoConta?.conexao === "sincronizando" ? "Sincronizando conta…" : "Confirmando ação…" : confirmacao || (sessao ? "Progresso vinculado à conta." : TEXTO_ORIGEM[tela.origem])}
+        {situacaoConta?.jogo?.procedencia === "importado" && " Jornada importada (casual)."}
       </p>
-
-      <nav className="abas" aria-label="Navegação principal">
-        {ABAS.map((a) => (
-          <button
-            key={a.id}
-            type="button"
-            className="aba"
-            aria-current={a.id === abaAtiva ? "page" : undefined}
-            onClick={() => setAbaAtiva(a.id)}
-          >
-            <span className="aba-icone" aria-hidden="true">
-              {a.icone}
-            </span>
-            <span className="aba-rotulo">{a.rotulo}</span>
-            {a.id === "missoes" && missoesProntas(personagem) > 0 && (
-              <span className="aba-selo" aria-label={`${missoesProntas(personagem)} missões prontas para entregar`}>
-                {missoesProntas(personagem)}
-              </span>
-            )}
-          </button>
-        ))}
-      </nav>
 
       {resumo && <ResumoOffline resumo={resumo} aoFechar={() => setResumo(null)} />}
     </div>

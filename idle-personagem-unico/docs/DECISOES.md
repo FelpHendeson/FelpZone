@@ -227,3 +227,9 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 
 112. **[Implementação]** A apresentação consulta o save sem criar uma jornada ou iniciar sorteio. Login, cadastro e recuperação não exigem personagem local. Conta restaurada abre seleção; sorteio pendente só continua por ação explícita, preservando tentativas.
 113. **[Implementação]** Seleção mostra as existências reais e respeita os três slots/pergaminhos do motor. Logout retorna à apresentação; entrar no modo local é explícito. O motor, os saves e o balanceamento não mudam.
+
+### F13.4 — interface e navegação (26/11/2026)
+
+114. **[Implementação]** Preservar os seis sistemas e suas 30 sub-abas. Usar barra inferior no celular e lateral a partir de 960 px, mantendo personagem/atividade no cabeçalho e adaptação por sua altura real. Sub-abas têm setas/Home/End, foco e vínculo ao painel.
+115. **[Implementação]** Atalhos são navegação pura; Limiar prevalece sobre viagem, que prevalece sobre atividade. Mochila cheia encaminha a Materiais sem vender ou descartar itens. Sem mudanças no motor.
+116. **[Implementação]** Estado de conexão compacto com reconexão/reauth; ações online exigem conexão confirmada, enquanto pendências continuam reconciliadas pelo cliente da F13.1/F13.2. Avisos de erro recebem foco e a barra deixa de anunciar cada tick para leitores de tela. [Evidências](INTERFACE-F13-4.md).

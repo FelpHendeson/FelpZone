@@ -520,6 +520,10 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 
 ## Complemento de experiência do jogador — 24/11/2026
 
+### Navegação F13.4 — 26/11/2026
+
+**[Implementação]** Retrato, nome, nível, raça/core e atividade acompanham a jornada. Os seis sistemas mantêm os mesmos nomes/sub-abas, com navegação inferior no celular e lateral no desktop. Atalhos abrem a atividade atual, viagem, Limiar ou materiais quando a mochila enche, sem executar ações. O estado da conta fica no cabeçalho; sem confirmação do servidor, a conta permanece em leitura até reconectar ou entrar novamente. Ações, desbloqueios, fórmulas e saves não mudam. Tutorial permanece na F13.5.
+
 ### Entrada F13.3 — 26/11/2026
 
 **[Implementação]** Apresentação antecede a criação. O jogador pode entrar, cadastrar ou recuperar conta sem sortear personagem neste aparelho. A seleção permite continuar suas jornadas ou retomar criação pendente, mantendo as tentativas existentes. Novo personagem continua sujeito aos slots/pergaminhos originais. Sair da conta volta à apresentação; modo local é uma escolha explícita. Nenhuma regra de sorteio ou progressão foi alterada.
