@@ -4,6 +4,7 @@ import { CATALOGO, MAX_PERSONAGENS, personagemAtivo, type EstadoJogo } from "@id
 import type { ReactNode } from "react";
 import type { Sessao } from "@/lib/sync";
 import { Miniatura } from "./Miniatura";
+import { IlustracaoRaca } from "./ArtePersonagem";
 
 export function MolduraEntrada({ children, aoInicio, sessao }: { children: ReactNode; aoInicio?: () => void; sessao: Sessao | null }) {
   return <div className="entrada">
@@ -46,8 +47,7 @@ export function Apresentacao({ estado, sessao, aoAcesso, aoLocal, aoConta, aviso
       <aside className="entrada-retrato" aria-label={p ? "Sua última jornada" : "O destino ainda não foi revelado"}>
         <div className="entrada-arco">
           {p ? <Miniatura tamanho={160} rotulo={`Retrato de ${p.nome}`} parametros={{ racaId: p.racaId, coreId: p.coreId, corCabeloId: p.aparencia.corCabelo, corRoupaId: p.aparencia.corRoupa }} /> :
-            /* eslint-disable-next-line @next/next/no-img-element -- emblema local do jogo */
-            <img src="/icones/icone.svg" width={180} height={180} alt="Uma figura sob a lua, no círculo do destino" />}
+            <IlustracaoRaca racaId="humano" />}
         </div>
         <p>{p ? p.nome : "Quem você será?"}</p>
         <span>{p ? `Nível ${p.nivel} · ${CATALOGO.racas.get(p.racaId)?.nome}` : "Raça, core e origem dão início à sua história."}</span>

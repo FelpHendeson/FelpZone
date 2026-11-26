@@ -2,11 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import { ABAS, type Aba } from "@/lib/abas";
+import { IconePixel } from "./IconePixel";
 
 export function NavegacaoPrincipal({ ativa, prontas, aoEscolher }: { ativa: string; prontas: number; aoEscolher: (id: string) => void }) {
   return <nav className="abas" aria-label="Navegação principal">
     {ABAS.map((a) => <button key={a.id} type="button" className="aba" aria-current={a.id === ativa ? "page" : undefined} onClick={() => aoEscolher(a.id)}>
-      <span className="aba-icone" aria-hidden="true">{a.icone}</span>
+      <span className="aba-icone" aria-hidden="true"><IconePixel id={a.id} /></span>
       <span className="aba-rotulo">{a.rotulo}</span>
       {a.id === "missoes" && prontas > 0 && <span className="aba-selo"><span aria-hidden="true">{prontas}</span><span className="visualmente-oculto">{prontas} missões prontas para entregar</span></span>}
     </button>)}

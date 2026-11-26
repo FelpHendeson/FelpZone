@@ -1,5 +1,6 @@
 import { CATALOGO, type ResultadoTentativa } from "@idle-pu/motor";
 import { ROTULO_COMPATIBILIDADE, ROTULO_MODO, ROTULO_NATUREZA, rotuloRaridade } from "@/lib/textos";
+import { IlustracaoRaca } from "./ArtePersonagem";
 
 /** Cartões de raça, core, dom, origem e marca. Usados no sorteio e na ficha. */
 export function CartoesResultado({ resultado, lore }: { resultado: Omit<ResultadoTentativa, "orcamento">; lore: string }) {
@@ -19,6 +20,7 @@ export function CartoesResultado({ resultado, lore }: { resultado: Omit<Resultad
           <span className="cartao-tipo">Raça</span>
           <span className={`selo raridade-${raca.raridade}`}>{rotuloRaridade(raca.raridade)}</span>
         </header>
+        <IlustracaoRaca racaId={raca.id} />
         <h2 className="cartao-titulo">{raca.nome}</h2>
         <p className="suave">{raca.perfil}</p>
         <p>

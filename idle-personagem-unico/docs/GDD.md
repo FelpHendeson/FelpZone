@@ -520,6 +520,10 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 
 ## Complemento de experiência do jogador — 24/11/2026
 
+### Pixel art F13.6 — 26/11/2026
+
+**[Autor]** Pixel art 2D, com criação e integração pelo agente. **[Implementação]** Ilustrações representativas das oito raças nas cartas, cenários de Pedravau/Bosque/Mina/Lago/Limiar e sprite pessoal modular na ficha e no local atual. Raça, core, cabelo e roupa continuam ligados ao save. Animação de dois quadros representa atividade/viagem/Limiar e respeita movimento reduzido; conta em leitura fica estática. Ícones dos seis sistemas usam grade de pixels. Não há movimento manual, ataques controlados ou equipamento visual inventado. Monstros/pets e animações completas precisam de pacotes próprios; regras e save v14 não mudam.
+
 ### Tutorial F13.5 — 26/11/2026
 
 **[Implementação]** Tutorial por personagem, consultável no cabeçalho e Personagem → Guia. Novos personagens começam com sorteio reconhecido; os passos orientam iniciar treino/coleta, vender, equipar, iniciar caça e aceitar missão da Guilda. São reconhecidos por ações confirmadas em qualquer ordem, inclusive quando pausado. Pular/retomar não altera tentativas, RNG, tempo, itens ou gold. Não há recompensa nem bloqueio de sistemas. Os textos distinguem iniciar uma atividade de aguardar seu rendimento. Saves antigos recebem guia pausado, sem inventar histórico de ações; podem retomá-lo quando quiserem. O progresso sincroniza pela conta.

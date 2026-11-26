@@ -4,7 +4,7 @@
  * - Arquivos estáticos do Next (com hash no nome): cache primeiro.
  * - API: nunca em cache. */
 const PREFIXO = "idle-pu-";
-const VERSAO = "idle-pu-f13-5-v1";
+const VERSAO = "idle-pu-f13-6-v1";
 const ESSENCIAIS = ["/", "/manifest.webmanifest", "/icones/icone-192.png", "/icones/icone-512.png"];
 
 self.addEventListener("install", (e) => {
@@ -25,7 +25,7 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin || url.pathname.startsWith("/api/")) return;
-  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icones/")) {
+  if (url.pathname.startsWith("/_next/static/") || url.pathname.startsWith("/icones/") || url.pathname.startsWith("/arte/")) {
     e.respondWith(
       caches.match(req).then(
         (r) =>

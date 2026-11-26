@@ -24,6 +24,7 @@ import { tocar } from "@/lib/sons";
 import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, restaurarSessao, sairDaConta, type Sessao } from "@/lib/sync";
 import { ClienteConta, type SituacaoConta } from "@/lib/clienteConta";
 import { CabecalhoJornada } from "./CabecalhoJornada";
+import { CenaPersonagem } from "./ArtePersonagem";
 import { GuiaJornada, TutorialContextual } from "./GuiaJornada";
 import { NavegacaoPrincipal, SubAbas } from "./NavegacaoJogo";
 import type { DestinoJogo } from "@/lib/navegacao";
@@ -453,6 +454,7 @@ export function Shell() {
   if (aba.id === "personagem" && indiceSub === 0) {
     conteudo = (
       <>
+        <CenaPersonagem personagem={personagem} leitura={!!sessao && situacaoConta?.conexao !== "online"} />
         <PainelStatus personagem={personagem} />
         <FichaPersonagem personagem={personagem} />
       </>
@@ -487,7 +489,7 @@ export function Shell() {
     conteudo = indiceSub === 0 ? <PainelTreino {...props} /> : <PainelColeta {...props} />;
   } else if (aba.id === "mapa") {
     const props = { personagem, ocupado: bloquearAcoes, agir };
-    conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <PainelLocalAtual personagem={personagem} /> : <PainelEstabelecimentos {...props} />;
+    conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <><CenaPersonagem personagem={personagem} leitura={!!sessao && situacaoConta?.conexao !== "online"} /><PainelLocalAtual personagem={personagem} /></> : <PainelEstabelecimentos {...props} />;
   } else if (aba.id === "personagem" && indiceSub === 1) {
     conteudo = <PainelHabilidades personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 3) {

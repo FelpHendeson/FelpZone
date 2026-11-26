@@ -1073,6 +1073,39 @@ ol.lista-recursos {
 .guia-etapas li::marker { color: var(--destaque); }
 .guia-etapas h3 { font-size: 1.1rem; line-height: 1.6; margin: 0; }
 .guia-etapas .link + .link { margin-left: 1rem; }
+
+/* F13.6: raster para cenários/raças; grade inteira para a aparência pessoal. */
+.miniatura { image-rendering: pixelated; border-radius: 0; }
+.ilustracao-raca { display: block; position: relative; overflow: hidden; width: 8rem; aspect-ratio: 1; margin: .5rem auto; image-rendering: pixelated; }
+.ilustracao-raca img { position: absolute; width: 400%; height: 200%; max-width: none; image-rendering: pixelated; }
+.entrada-arco .ilustracao-raca img { max-width: none; max-height: none; }
+.entrada-arco .ilustracao-raca { width: 15rem; max-width: 100%; margin: 0; }
+.cena-personagem { margin: 0; border: 1px solid var(--borda); background: var(--superficie); overflow: hidden; }
+.cena-palco { position: relative; width: 100%; aspect-ratio: 2; overflow: hidden; background: #292336; }
+.cena-terreno { position: absolute; inset: 0; background-repeat: no-repeat; image-rendering: pixelated; }
+.cena-ator { position: absolute; bottom: 13%; left: 50%; transform: translateX(-50%); }
+.cena-sombra { position: absolute; bottom: 12%; left: 50%; width: 4rem; height: .5rem; transform: translateX(-50%); background: #14121a88; }
+.sprite-personagem { display: block; position: relative; width: 96px; height: 128px; overflow: hidden; image-rendering: pixelated; }
+.sprite-folha { display: block; width: 200%; height: 100%; max-width: none; image-rendering: pixelated; }
+.sprite-animado .sprite-folha { animation: quadro-sprite 900ms steps(1, end) infinite; }
+@keyframes quadro-sprite { 0%, 49.99% { transform: translateX(0); } 50%, 100% { transform: translateX(-50%); } }
+.cena-personagem figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: 1rem; }
+.cena-personagem h2 { font: 1.5rem Georgia, serif; margin: 0 0 .4rem; }
+.cena-personagem p { margin: 0; color: var(--texto-suave); font-size: .8rem; line-height: 1.6; }
+.cena-situacao { display: flex; flex-direction: column; gap: .4rem; font-size: .85rem; }
+.cena-situacao strong { color: var(--destaque); font-weight: 500; }
+.cena-situacao span { color: var(--texto-suave); }
+@media (min-width: 600px) {
+  .sprite-personagem { width: 144px; height: 192px; }
+  .cena-sombra { width: 6rem; }
+}
+@media (min-width: 1100px) {
+  .sprite-personagem { width: 192px; height: 256px; }
+  .cena-sombra { width: 8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sprite-animado .sprite-folha { animation: none; transform: none; }
+}
 @media (max-width: 380px) {
   .jornada-topo { padding-left: .75rem; padding-right: .75rem; }
   .jornada-identidade { gap: .5rem; }

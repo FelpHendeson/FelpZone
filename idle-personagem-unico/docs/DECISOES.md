@@ -239,3 +239,9 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 117. **[Implementação]** Tutorial por personagem no save v14, migração v13 preservando jogo e guia pausado para personagens antigos. Novos personagens começam ativos.
 118. **[Implementação]** Sete passos por ações confirmadas em qualquer ordem; venda exige aumento de gold. Sem payload de autoconclusão, recompensa ou mudança de regras.
 119. **[Implementação]** Pular/retomar só muda modo, sem RNG/tempo, preservando passos. Ações continuam sendo reconhecidas quando pausado; guia permanece consultável após concluir. [Evidências](TUTORIAL-F13-5.md).
+
+### F13.6 — pixel art 2D (26/11/2026)
+
+120. **[Autor]** Pixel art 2D, com criação de sprites e integração pelo agente.
+121. **[Implementação]** Separar ilustrações representativas da raça dos sprites pessoais modulares, preservando cabelo/roupa/core do save. Cenários e ícones locais; animação de dois quadros com movimento reduzido e leitura offline respeitados. Sem alterar regras ou save v14.
+122. **[Implementação]** PNGs gerados preservados, WebP lossless no runtime e folhas PNG/SVG nativas exportáveis. Arte cacheada sob demanda, sem downloads completos na instalação. Monstros/pets/armaduras visíveis continuam como pacotes futuros. [Prompts e evidências](ARTE-F13-6.md).

@@ -1071,3 +1071,11 @@ F13.4 publicada em `01bff1a`, READY, com jornada mobile/desktop, teclado e readi
 Save v14 com migração v13 mantém progresso/RNG/sorteio e deixa guia pausado para personagens antigos. Novos começam ativos com sorteio reconhecido. Pular/retomar afetam só o modo, usando revisão/recibos e isolamento da API existente. Cache PWA atualizado; clientes antigos devem recarregar para v14.
 
 Validação: 364 testes motor, 61 web e 3 Redis real (428), lint/tipos/build. Navegador com API real/Redis isolado verificou sete tarefas, migração, reload, pausa/retomada entre aparelhos, conflito de revisão e offline, com responsividade em quatro larguras. Revisão visual ajustou foco/rolagem do passo seguinte para não ficar coberto pelo cabeçalho. [Evidências e migração](docs/TUTORIAL-F13-5.md). Próxima fatia planejada: F13.6, direção artística.
+
+## 26/11/2026 — F13.6: pixel art 2D criada e integrada
+
+A F13.5 foi publicada em `4ed2778` (READY); tutorial local, treino real, pular/guia, save v14 e readiness conferidos em produção. O autor escolheu pixel art 2D e pediu criação/integração pelo agente.
+
+Criados com imagegen embutido: atlas transparente das oito raças, atlas de quatro locais e cenário do Limiar. PNGs originais preservados e WebP lossless no runtime. O renderer SVG editável existente evoluiu para sprites pessoais modulares de dois quadros e retratos, mantendo cores/traços/core do save. Foram exportadas oito folhas PNG/SVG e oito retratos PNG. Cena na ficha e no local atual; seis ícones de navegação em grade de pixels. Animação respeita movimento reduzido e leitura offline. Regras/save v14 não mudam.
+
+Validação: 369 testes motor, 66 web e 3 Redis real (438), lint/tipos/build. Chromium verificou oito raças, cinco cenários, cores, viagem/chegada, movimento reduzido, cache offline e leitura online, em quatro larguras. Revisão visual refinou o sprite; todos os assets ficam no projeto. [Prompts exatos, arquivos, limites e evidências](docs/ARTE-F13-6.md). Monstros/pets e animações completas permanecem em pacotes próprios; próxima fatia planejada: F13.7, auditoria em execução.

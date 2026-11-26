@@ -263,3 +263,5 @@ export { inscreverTorneio, lutarArena, resgatarTorneio } from "./competicao/acoe
 
 export { PASSOS_TUTORIAL, tutorialInicial, validarTutorial } from "./personagem/tutorial";
 export type { EstadoTutorial, PassoTutorial } from "./personagem/tutorial";
+
+export { gerarSpritePersonagemSvg } from "./personagem/pixel";

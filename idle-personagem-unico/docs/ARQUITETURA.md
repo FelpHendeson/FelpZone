@@ -139,6 +139,10 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
 
+### Implementação F13.6 (26/11/2026)
+
+`personagem/pixel.ts` evolui a miniatura SVG editável para grade inteira, sem DOM/RNG, e fornece uma folha de dois quadros de 48×64. `ArtePersonagem` compõe o sprite com cenários locais, usando `cenaDoPersonagem` como consulta pura do estado confirmado; viagem mantém o cenário de origem até chegar, Limiar prevalece, leitura offline suspende animação. Ilustrações de raça são separadas da aparência pessoal para não sobrescrever paletas do save. Assets PNG gerados ficam preservados; WebP lossless verificado pixel a pixel é servido no runtime, com atlas de raças lazy. `scripts/exportar-sprites.mjs` reproduz as folhas PNG/SVG e empacotamento. PWA cacheia `/arte/` sob demanda, versão `idle-pu-f13-6-v1`, sem API e sem download de toda a galeria na instalação. [Prompts, assets e evidências](ARTE-F13-6.md).
+
 ### Implementação F13.5 (26/11/2026)
 
 Save v14 adiciona `Personagem.tutorial {modo, concluidos}` com lista fechada de sete passos e validação estrita. Migração v13→v14 preserva estado/RNG/sorteio e deixa guia pausado para personagens existentes. Novos personagens começam ativos com sorteio reconhecido. `aplicarAcao` registra passos após sucesso do domínio; clientes não enviam conclusão de passos. `pularTutorial`/`retomarTutorial` só mudam o modo, sem avanço de tempo/RNG, usando revisão/idempotência/identidade existentes. A interface mostra um passo contextual e guia de consulta com atalhos. Conta sem conexão não altera tutorial. Cache PWA atualizado para `idle-pu-f13-5-v1`, mantendo API fora do cache. [Migração e evidências](TUTORIAL-F13-5.md).
