@@ -47,6 +47,8 @@ implementar → testar → revisar → corrigir → consolidar → autorizar pr�
 
 Consolidação iniciada em 26/11/2026: [F13.1 — estabilização](13-1-estabilizacao.md), autorizada após a análise. Implementação e validações em `idle-personagem-unico/docs/ESTABILIZACAO-F13-1.md`. A autorização desta fatia não executa automaticamente as seguintes.
 
+Continuação autorizada em 26/11: [F13.2 — contas e persistência](13-2-contas-persistencia.md), com commits diretamente na main conforme nova orientação do autor. Implementação e validações em `idle-personagem-unico/docs/CONTAS-F13-2.md`.
+
 1. Confirme que a fatia anterior está commitada, revisada e sem pendências críticas.
 2. Copie integralmente o conteúdo do arquivo da próxima fatia para o agente codificador.
 3. Peça revisão e quality gates antes de autorizar a seguinte.

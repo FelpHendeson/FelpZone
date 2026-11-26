@@ -1,5 +1,5 @@
 import { validarAcao, type Acao, type Armazenamento, type EstadoJogo } from "@idle-pu/motor";
-import { chaveDaConta } from "./persistencia";
+import { chaveDaConta, migrarCacheDaConta } from "./persistencia";
 import { chamarApi, enviarAcao, estadoDaResposta, type PedidoAcao, type RespostaApi, type Sessao } from "./sync";
 
 export interface JogoOnline {
@@ -14,6 +14,7 @@ export interface SituacaoConta {
   readonly conexao: Conexao;
   readonly ocupado: boolean;
   readonly mensagem: string | null;
+  readonly codigo: string | null;
 }
 export function jogoDaResposta(corpo: Record<string, unknown>): JogoOnline | null {
   const estado = estadoDaResposta(corpo);
@@ -38,17 +39,18 @@ export class ClienteConta {
     if (geracao !== this.geracao || !this.situacao) return false;
     const jogo = jogoDaResposta(corpo);
     if (!jogo) { this.emitir({ conexao: "desconectado", mensagem: "Resposta inválida do servidor." }); return false; }
-    await this.armazenamento.gravar(chaveDaConta(this.situacao.sessao.nome), JSON.stringify(corpo));
+    await this.armazenamento.gravar(chaveDaConta(this.situacao.sessao.id ?? this.situacao.sessao.nome), JSON.stringify(corpo));
     if (geracao !== this.geracao) return false;
-    this.emitir({ jogo, conexao: "online", mensagem: null });
+    this.emitir({ jogo, conexao: "online", mensagem: null, codigo: null });
     return true;
   }
   async conectar(sessao: Sessao, corpo?: Record<string, unknown>) {
     this.encerrar();
     const geracao = this.geracao;
-    this.situacao = { sessao, jogo: null, conexao: "sincronizando", ocupado: false, mensagem: null };
+    this.situacao = { sessao, jogo: null, conexao: "sincronizando", ocupado: false, mensagem: null, codigo: null };
     this.emitir({});
-    const bruto = await this.armazenamento.ler(`${chaveDaConta(sessao.nome)}:pendente`);
+    if (sessao.id) await migrarCacheDaConta(this.armazenamento, sessao.nome, sessao.id);
+    const bruto = await this.armazenamento.ler(`${chaveDaConta(sessao.id ?? sessao.nome)}:pendente`);
     if (geracao !== this.geracao) return;
     if (bruto) {
       try {
@@ -57,7 +59,7 @@ export class ClienteConta {
       } catch { /* Pedido corrompido não é executado. */ }
     }
     if (corpo && await this.adotar(corpo, geracao)) return;
-    const cache = await this.armazenamento.ler(chaveDaConta(sessao.nome));
+    const cache = await this.armazenamento.ler(chaveDaConta(sessao.id ?? sessao.nome));
     if (geracao !== this.geracao) return;
     try {
       const jogo = cache ? jogoDaResposta(JSON.parse(cache)) : null;
@@ -66,12 +68,12 @@ export class ClienteConta {
     await this.sincronizar();
   }
   private falha(r: Exclude<RespostaApi, { ok: true }>) {
-    this.emitir({ conexao: r.status === 401 ? "expirado" : "desconectado", mensagem: r.mensagem });
+    this.emitir({ conexao: r.status === 401 ? "expirado" : "desconectado", mensagem: r.mensagem, codigo: r.codigo });
   }
   private async carregar(geracao: number) {
     const sessao = this.situacao?.sessao;
     if (!sessao) return;
-    const r = await chamarApi("jogo", { token: sessao.token }, this.buscar);
+    const r = await chamarApi("jogo", { token: sessao.token, contaId: sessao.id }, this.buscar);
     if (geracao !== this.geracao) return;
     if (r.ok) await this.adotar(r.corpo, geracao);
     else this.falha(r);
@@ -96,7 +98,7 @@ export class ClienteConta {
     if (this.pendente && JSON.stringify(this.pendente.acao) !== JSON.stringify(acao)) return "Há uma ação sem confirmação. Use Sincronizar para conferir o resultado antes de outra ação.";
     const geracao = this.geracao;
     const { sessao } = this.situacao;
-    const chave = `${chaveDaConta(sessao.nome)}:pendente`;
+    const chave = `${chaveDaConta(sessao.id ?? sessao.nome)}:pendente`;
     const pedido = this.pendente ?? { idAcao: crypto.randomUUID(), revisao: this.situacao.jogo!.revisao, acao };
     this.pendente = pedido;
     this.emitir({ ocupado: true, conexao: "sincronizando", mensagem: null });

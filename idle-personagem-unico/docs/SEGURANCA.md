@@ -38,3 +38,9 @@ A validação estrutural e o relógio do servidor não provam a procedência de 
 O complemento acima é histórico. A implementação agora recusa sobrescrita na importação, registra a procedência fora do save enviado e impede builds públicas de jogos importados/legados. Travas usam proprietário e liberação condicional; commits comparam sessão, trava e valor anterior. Ações exigem revisão e identificação, com recibo atômico de 24 h. Caches de conta e convidado ficam separados, com invalidação de respostas tardias e sem fallback local automático. Corpos HTTP são limitados em bytes durante leitura; o PWA preserva caches alheios e não guarda respostas de erro. Timeouts de rede: 15 s no cliente e 8 s por comando ao banco. [Migração, testes e limitações](ESTABILIZACAO-F13-1.md).
 
 Cookie HttpOnly/CSP, recuperação de acesso, readiness e validação do banco real permanecem pendentes. A F13.1 não declara a implantação de produção validada.
+
+## Correções F13.2 (26/11/2026)
+
+O parágrafo anterior registra o fim da F13.1. A F13.2 implementa cookie HttpOnly/Secure/SameSite=Strict na web, proteção CSRF por origem e cabeçalho, confirmação do ID em requisições de conta, recuperação por código aleatório de uso único e revogação de sessões ao trocar senha. A origem considera Host/protocolo público, não a porta interna do Next. Tokens novos e códigos não são persistidos no armazenamento do navegador. Logout offline usa marcador pendente para não reconectar silenciosamente.
+
+Redis real isolado validou os scripts Lua, persistência após reinício e revogação. O banco configurado na Vercel respondeu à sonda do fluxo publicado existente, sem criação de contas/saves; a F13.2 ainda não foi implantada lá. Readiness por PING foi adicionada. O CSP com scripts inline e a auditoria completa da F13.7 continuam pendentes. [Protocolo, evidências e escopo](CONTAS-F13-2.md).

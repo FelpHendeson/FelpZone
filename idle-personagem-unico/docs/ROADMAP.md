@@ -21,7 +21,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F12** ✅ | Competição | Campo de Provas, Arena assíncrona, bots, torneios, temporadas. | Torneio simulado reproduzível pela semente. |
 | **F13** ✅ | Acabamento web | PWA, sons, arte, acessibilidade, balanceamento final. | Auditoria de ritmo e de segurança. |
 | **F13.1** implementada localmente (26/11) | Estabilização técnica e segurança | Procedência do save, concorrência, idempotência, sincronização e cache; testes de regressão. | [Implementação e resultados](ESTABILIZACAO-F13-1.md); banco de produção ainda não validado. |
-| **F13.2** | Contas e persistência | Autenticação real, banco ativo, isolamento por conta, recuperação e migração de save local. | Mesma conta em dois dispositivos; contas distintas isoladas; logout seguro; persistência comprovada. |
+| **F13.2** implementada localmente (26/11) | Contas e persistência | Cookie HttpOnly, recuperação, cache por ID e migração; Redis existente conferido. | [Resultados](CONTAS-F13-2.md): Redis real/reinício e três navegadores isolados; versão nova ainda não publicada. |
 | **F13.3** | Apresentação e entrada | Tela inicial, login/cadastro, seleção/criação de personagem. | Fluxo completo de usuário novo e recorrente, sem personagem obrigatório antes do login. |
 | **F13.4** | Interface e navegação | Revisar arquitetura de informação, responsividade, feedback e protagonismo do personagem. | Jornadas principais claras em mobile e desktop; funcionalidades existentes preservadas. |
 | **F13.5** | Tutorial | Onboarding interativo e contextual, pulável e revisável, com progresso salvo por conta/personagem conforme escopo. | Jogador aprende sorteio, treino, coleta, venda, equipamento, combate e guilda por ações reais. |
@@ -35,7 +35,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 
 ## Consolidação pós-auditoria (24/11/2026)
 
-As subfatias foram propostas no planejamento de 24/11. A F13.1 foi autorizada e implementada localmente em 26/11; as seguintes ainda não foram executadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
+As subfatias foram propostas no planejamento de 24/11. F13.1 e F13.2 foram autorizadas e implementadas localmente em 26/11; as seguintes ainda não foram executadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
 
 ## Regras de ordem
 

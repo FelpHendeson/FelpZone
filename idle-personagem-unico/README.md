@@ -10,9 +10,11 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
-**F13.1 — estabilização técnica implementada em 26/11/2026**, na branch `codex/idle-f13-1`: jogos online criados pelo servidor, importação casual sem sobrescrita, ações com revisão e recibo, gravações atômicas, cache por conta e reconexão segura. [Contrato, migração e validações](docs/ESTABILIZACAO-F13-1.md). A ativação e validação do banco real continuam pendentes; F13.2–F13.8 consolidam contas, entrada, UX e aceite antes do mobile.
+**F13.2 — contas e persistência implementadas em 26/11/2026, na main.** Sessão web com cookie HttpOnly, recuperação por código de uso único, cache por ID da conta, migração de sessões antigas e logout seguro mesmo sem rede. Testes incluem Redis real com reinício e navegadores isolados. A Vercel já tem integração Redis configurada; nenhuma infraestrutura foi criada. A nova versão ainda não foi publicada. [Detalhes e validações](docs/CONTAS-F13-2.md).
 
-**F13 (Acabamento web) entregue: escopo inicial implementado (F1 a F13), em consolidação antes do port mobile.** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). **Pendente do autor:** ativar o banco da sincronização (veja `docs/DECISOES.md`, item 60) e decidir o port mobile (F14).
+**F13.1 — estabilização técnica implementada em 26/11/2026**, na branch `codex/idle-f13-1`: jogos online criados pelo servidor, importação casual sem sobrescrita, ações com revisão e recibo, gravações atômicas, cache por conta e reconexão segura. [Contrato, migração e validações](docs/ESTABILIZACAO-F13-1.md). Contas e persistência foram tratadas na F13.2; F13.3–F13.8 consolidam entrada, UX e aceite antes do mobile.
+
+**F13 (Acabamento web) entregue: escopo inicial implementado (F1 a F13), em consolidação antes do port mobile.** É um PWA instalável que abre sem rede, com sons opcionais, ícone próprio, acessibilidade auditada e cabeçalhos de segurança (auditoria em `docs/SEGURANCA.md`). A configuração do banco existente foi confirmada na F13.2. Faltam as etapas seguintes de apresentação, UX, tutorial e aceite da web antes do port mobile (F14).
 
 **F12 (Competição) concluída.** Arena assíncrona contra bots por arquétipo (10 lutas por dia, rating e replays), Campo de Provas, torneio semanal em chave e temporadas de 8 semanas com tema, ranking e uma insígnia nomeada. Tudo reproduzível pela semente.
 
@@ -20,7 +22,7 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 **F10 (Pets) concluída.** Pets reais (domados com Laço de doma ou comprados no Estábulo) e as bestas vinculadas das origens especiais, com nome, nível, Energia e Fome; 1 pet por atividade, que só cansa quando o personagem trabalha ali; cuidados (alimentar, descansar, treinar) como atividades; e o modo União das bestas.
 
-**F9 (Conta e sincronização) concluída** (o banco ainda precisa ser ativado na Vercel: veja `docs/DECISOES.md`, item 60). Agora há **até 3 personagens** por conta (o 2º e o 3º com o Pergaminho do Novo Destino, ganho na guilda), o **Cofre da Conta** (conquistas e Álbum de Descobertas) e uma **conta opcional** que sincroniza o jogo entre aparelhos, com o servidor aplicando as ações. Sem conta, tudo continua local.
+**F9 (Conta e sincronização) concluída** (a configuração do banco, pendente na F9, foi identificada na Vercel e conferida na F13.2). Agora há **até 3 personagens** por conta (o 2º e o 3º com o Pergaminho do Novo Destino, ganho na guilda), o **Cofre da Conta** (conquistas e Álbum de Descobertas) e uma **conta opcional** que sincroniza o jogo entre aparelhos, com o servidor aplicando as ações. Sem conta, tudo continua local.
 
 **F8 (Forja, produção e nomeados) concluída.** O personagem treina, coleta, vende, equipa, caça, usa habilidades, volta do Limiar e cumpre missões da guilda (F1 a F7), e agora **produz**: forja equipamentos e anéis, prepara poções e amuletos, cozinha, **funde** 3 itens iguais numa versão melhor (+1 a +3), usa **2 acessórios e 1 relíquia**, bebe poções sozinho no combate e guarda **itens nomeados** únicos. Ainda não há conta online nem pets (F9 em diante).
 

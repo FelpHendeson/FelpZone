@@ -19,12 +19,14 @@ export interface Armazem {
   /** Compara todas as condições e grava tudo em uma operação atômica. */
   compararEGravar(condicoes: readonly Condicao[], escritas: readonly Escrita[]): Promise<boolean>;
   apagarSeIgual(chave: string, valor: string): Promise<void>;
+  testarConexao(): Promise<boolean>;
 }
 
 /** Prefixo próprio, para poder dividir um banco com outros projetos. */
 export const PREFIXO = "idle-pu:";
 
 export class ArmazemMemoria implements Armazem {
+  async testarConexao() { return true; }
   private readonly dados = new Map<string, { valor: string; expiraEm: number | null }>();
   constructor(private readonly relogio: () => number = () => Date.now()) {}
   private vivo(chave: string) {
@@ -84,6 +86,7 @@ return 1`;
 
 /** Redis da Upstash pela API REST (`POST /` com o comando em JSON). */
 export class ArmazemUpstash implements Armazem {
+  async testarConexao() { return await this.comando(["PING"]) === "PONG"; }
   constructor(
     private readonly url: string,
     private readonly token: string,

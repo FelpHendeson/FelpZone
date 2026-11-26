@@ -6,6 +6,19 @@ export const CHAVE_SAVE_INVALIDO = "idle-pu:save-invalido";
 export const CHAVE_LEGADO = "idle-pu:save-legado";
 export const chaveDaConta = (nome: string) => `idle-pu:conta:${encodeURIComponent(nome.toLowerCase())}`;
 
+/** Migração de cache por nome para identidade imutável, sem promover dados locais ao servidor. */
+export async function migrarCacheDaConta(armazenamento: Armazenamento, nome: string, id: string): Promise<void> {
+  const antiga = chaveDaConta(nome);
+  const nova = chaveDaConta(id);
+  if (antiga === nova) return;
+  for (const sufixo of ["", ":pendente"]) {
+    const valor = await armazenamento.ler(antiga + sufixo);
+    if (valor !== null && await armazenamento.ler(nova + sufixo) === null) await armazenamento.gravar(nova + sufixo, valor);
+    // Não reintroduzir um pedido já confirmado a cada login. Só o cache antigo é preservado.
+    if (sufixo === ":pendente" && valor !== null) await armazenamento.remover(antiga + sufixo);
+  }
+}
+
 /** O cache compartilhado antigo pode pertencer à sessão online. Nunca vira convidado. */
 export async function isolarSaveLegado(armazenamento: Armazenamento, tinhaSessao: boolean): Promise<void> {
   if (!tinhaSessao) return;

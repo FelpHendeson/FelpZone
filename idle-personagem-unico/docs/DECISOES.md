@@ -213,3 +213,10 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 105. **[Implementação]** Cache por conta e convidado separados; cópia legada preservada em `idle-pu:save-legado`. Offline online é leitura do cache até reconectar; a simulação usa o relógio do servidor. Logout retorna ao convidado, sem copiar o personagem da conta. [Detalhes](ESTABILIZACAO-F13-1.md).
 
 106. **[Autor, 26/11/2026]** Autorização permanente para comitar as alterações deste projeto diretamente na `main`, sem pedir confirmação a cada commit. As próximas fatias de consolidação podem prosseguir; manter testes, revisão e documentação a cada entrega.
+
+### F13.2 — contas e persistência (26/11/2026)
+
+107. **[Implementação]** Cookie HttpOnly na web, com CSRF por origem/cabeçalho e vínculo ao ID esperado da conta. Bearer permanece para clientes nativos; migração de sessões antigas e cache para ID imutável, sem salvar novos tokens em JavaScript.
+108. **[Implementação]** Recuperação sem e-mail por código de alta entropia, de uso único. Cadastro mostra o código uma vez; gerar outro exige a senha atual. Recuperar troca senha/código atomicamente, preserva o save e revoga sessões anteriores, inclusive legadas.
+109. **[Constatação]** O banco já está configurado na Vercel. A sonda do fluxo publicado de autenticação consultou o banco e retornou 401 esperado, sem criar conta/save. Nenhum recurso novo foi contratado. A nova implementação acrescenta readiness real e foi validada com Redis local isolado, incluindo reinício.
+110. **[Implementação]** Logout sem rede guarda marcador sem segredo para impedir reconexão automática pelo cookie restante. O encerramento é confirmado antes de restaurar sessão ou fazer outro login. [Detalhes e limitações](CONTAS-F13-2.md).

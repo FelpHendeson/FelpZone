@@ -1,9 +1,10 @@
 "use client";
 
-import { CATALOGO, CONQUISTAS, MAX_PERSONAGENS, serializarSave, type EstadoJogo } from "@idle-pu/motor";
-import { useEffect, useRef, useState } from "react";
+import { CATALOGO, CONQUISTAS, MAX_PERSONAGENS, type EstadoJogo } from "@idle-pu/motor";
+import { useState } from "react";
 import { definirSons, sonsLigados, tocar } from "@/lib/sons";
-import { chamarApi, type Sessao } from "@/lib/sync";
+import { type Sessao } from "@/lib/sync";
+import { AcessoConta } from "./AcessoConta";
 import type { Agir } from "./acoes";
 
 interface Props {
@@ -73,145 +74,8 @@ export function PainelConta({ estado, sessao, ocupado, agir, aoConectar }: Props
       </article>
 
       <Preferencias />
-      <Sincronizacao key={sessao?.token ?? "convidado"} estado={estado} sessao={sessao} aoConectar={aoConectar} />
+      <AcessoConta key={sessao?.id ?? sessao?.token ?? "convidado"} estado={estado} sessao={sessao} aoConectar={aoConectar} />
     </section>
-  );
-}
-
-function Sincronizacao({ estado, sessao, aoConectar }: Pick<Props, "estado" | "sessao" | "aoConectar">) {
-  const [banco, setBanco] = useState<boolean | null>(null);
-  const [nome, setNome] = useState("");
-  const [senha, setSenha] = useState("");
-  const [ocupado, setOcupado] = useState(false);
-  const [mensagem, setMensagem] = useState<string | null>(null);
-  const [contaVazia, setContaVazia] = useState<Sessao | null>(null);
-  const vivo = useRef(true);
-
-  useEffect(() => {
-    vivo.current = true;
-    void chamarApi("saude").then((r) => {
-      if (vivo.current) setBanco(r.ok ? r.corpo.banco === true : false);
-    });
-    return () => {
-      vivo.current = false;
-    };
-  }, []);
-
-  async function conectar(rota: "auth/registrar" | "auth/entrar") {
-    setOcupado(true);
-    setMensagem(null);
-    try {
-      const r = await chamarApi(rota, { metodo: "POST", corpo: { nome, senha } });
-      if (!vivo.current) return;
-      if (!r.ok) return setMensagem(r.mensagem);
-      const s: Sessao = { token: r.corpo.token as string, nome: (r.corpo.conta as { nome: string }).nome };
-      const jogo = await chamarApi("jogo", { token: s.token });
-      if (!vivo.current) return;
-      if (jogo.ok) {
-        await aoConectar(s, jogo.corpo);
-        setSenha("");
-        return;
-      }
-      if (jogo.codigo !== "sem_save") return setMensagem(jogo.mensagem);
-      setContaVazia(s);
-    } finally {
-      setOcupado(false);
-    }
-  }
-
-  async function iniciar(importarLocal: boolean) {
-    if (!contaVazia) return;
-    setOcupado(true);
-    try {
-      const r = await chamarApi(importarLocal ? "jogo/importar" : "jogo/iniciar", { metodo: "POST", corpo: importarLocal ? { save: serializarSave(estado) } : {}, token: contaVazia.token });
-      if (!vivo.current) return;
-      if (!r.ok) {
-        // Outra sessão pode ter iniciado a conta enquanto a escolha estava aberta.
-        if (r.codigo === "ja_tem_save") {
-          const atual = await chamarApi("jogo", { token: contaVazia.token });
-          if (!vivo.current) return;
-          if (atual.ok) { await aoConectar(contaVazia, atual.corpo); return; }
-        }
-        return setMensagem(r.mensagem);
-      }
-      await aoConectar(contaVazia, r.corpo);
-      setContaVazia(null);
-      setSenha("");
-      setMensagem("Conta conectada.");
-    } finally { setOcupado(false); }
-  }
-
-  async function desconectar() {
-    if (!sessao) return;
-    setOcupado(true);
-    await aoConectar(null, null);
-    setOcupado(false);
-    setMensagem("Desconectado. O jogo da conta fica separado do jogo local.");
-  }
-
-  return (
-    <article className="cartao" aria-label="Sincronização">
-      <h3>Sincronização</h3>
-      {sessao ? (
-        <>
-          <p>
-            Conectado como <strong>{sessao.nome}</strong>. O servidor guarda o jogo e aplica as ações; outro aparelho com a mesma conta vê o mesmo personagem.
-          </p>
-          <div className="acoes">
-            <button type="button" className="botao" disabled={ocupado} onClick={() => void desconectar()}>
-              Sair da conta
-            </button>
-          </div>
-        </>
-      ) : banco === false ? (
-        <p className="suave" role="status">
-          A sincronização ainda não está ativa neste servidor. O jogo fica salvo neste aparelho.
-        </p>
-      ) : contaVazia ? (
-        <>
-          <p>Esta conta ainda não tem jogo. Um novo jogo online pode publicar builds competitivos. A importação é única e mantém o jogo casual, sem publicar builds.</p>
-          <div className="acoes">
-            <button type="button" className="botao botao-principal" disabled={ocupado} onClick={() => void iniciar(false)}>
-              Iniciar novo jogo online
-            </button>
-            <button type="button" className="botao" disabled={ocupado} onClick={() => void iniciar(true)}>
-              Importar jogo local (casual)
-            </button>
-          </div>
-        </>
-      ) : (
-        <form
-          className="formulario"
-          onSubmit={(ev) => {
-            ev.preventDefault();
-            void conectar("auth/entrar");
-          }}
-        >
-          <p className="suave">Crie uma conta para jogar o mesmo personagem em outro aparelho. Sem e-mail: só um nome e uma senha.</p>
-          <label className="campo">
-            Nome da conta
-            <input value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="username" maxLength={20} />
-          </label>
-          <label className="campo">
-            Senha
-            <input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete="current-password" maxLength={128} />
-          </label>
-          <div className="acoes">
-            <button type="submit" className="botao botao-principal" disabled={ocupado || banco === null}>
-              Entrar
-            </button>
-            <button type="button" className="botao" disabled={ocupado || banco === null} onClick={() => void conectar("auth/registrar")}>
-              Criar conta
-            </button>
-          </div>
-        </form>
-      )}
-      {mensagem && (
-        <p className="suave" role="status">
-          {mensagem}
-        </p>
-      )}
-    </article>
   );
 }
 

@@ -1041,3 +1041,11 @@ Implementadas proteções de procedência/importação, criação online no serv
 Validação: 355 testes do motor com um worker e 38 testes web passando; lint, tipos e build aprovados. O `npm test` padrão apresentou timeouts no motor nesta máquina; todos passaram ao limitar o worker sem mudar asserts ou limites. Smoke Playwright com as regras reais e banco em memória confirmou criação, conta, reload e logout em mobile/desktop; Upstash real não foi validado. [Contrato, migração e evidências completas](docs/ESTABILIZACAO-F13-1.md).
 
 Implementação local na branch `codex/idle-f13-1`, sem commit, push, deploy ou ativação de infraestrutura. Próxima fatia planejada: F13.2 (contas e persistência real); F14 continua posterior ao aceite da web.
+
+## 26/11/2026 — Continuação autorizada e F13.2
+
+O autor autorizou continuar e comitar permanentemente direto na main. A F13.1 foi consolidada no commit `dac7f70`. A F13.2 implementa cookie HttpOnly com CSRF/vínculo de identidade, código de recuperação de uso único, revogação de sessões, cache por ID, migração de bearer/cache antigos, logout offline e readiness por PING.
+
+A Vercel já contém integração Redis. O fluxo publicado anterior consultou o banco e devolveu o 401 esperado em sonda aleatória, sem criar contas/saves; não foi contratado outro serviço. A versão nova permanece local, sem push/deploy.
+
+Validação: 355 testes do motor (um worker), 54 web e 2 de Redis real aprovados; lint, tipos, build e diff check aprovados. Playwright com três navegadores e API real/Redis local validou sincronização entre dispositivos, isolamento, recuperação e logout offline. [Contrato, migração e evidências](docs/CONTAS-F13-2.md). Próxima fatia: F13.3, apresentação e entrada.

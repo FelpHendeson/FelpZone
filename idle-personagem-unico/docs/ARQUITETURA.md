@@ -139,6 +139,10 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
 
+### Implementação F13.2 (26/11/2026)
+
+A autenticação foi extraída para `servidor/autenticacao.ts`. Na web, cookie HttpOnly/Secure/SameSite=Strict e proteção de origem substituem bearer em localStorage; bearer continua disponível para clientes nativos. A sessão referencia a credencial atual, e recuperar senha revoga sessões anteriores. Recuperação sem e-mail usa código aleatório de uso único armazenado como hash. O cache usa ID imutável, com migração do cache por nome. `GET /prontidao` testa PING; `/saude` continua liveness. A integração Redis existente na Vercel foi identificada e o fluxo publicado de consulta ao banco respondeu à sonda esperada; não foi contratado outro recurso. [Migração, testes reais e estado de publicação](CONTAS-F13-2.md).
+
 ### Implementação F13.1 (26/11/2026)
 
 As regras desta seção atualizam a implementação histórica da F9: a importação é única e casual, e não substitui estado existente. O envelope de armazenamento (separado do save v13) registra procedência e revisão. Jogos competitivamente confiáveis começam em `POST /jogo/iniciar` com semente do servidor. `POST /jogo/acao` exige `idAcao` e `revisao`; save e recibo são gravados juntos por comparação atômica, verificando sessão e proprietário da trava. A web separa convidado/contas, persiste pedidos sem confirmação e não avança o cache online com relógio local. [Detalhes e migração](ESTABILIZACAO-F13-1.md).

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { aplicarAcao, CORES_CABELO, CORES_ROUPA, criarEstadoInicial, serializarSave } from "@idle-pu/motor";
 import { acao, enviarBuild, importar, iniciarJogoOnline, listarBuilds, obterJogo, registrar, sair, type Pedido } from "./api";
 import { ArmazemMemoria, type Condicao, type Escrita } from "./armazem";
+import { recuperar } from "./autenticacao";
 
 const T0 = 1_800_000_000_000;
 const pedido = (token: string, corpo: unknown = {}, agora = T0): Pedido => ({ token, corpo, agora, ip: "teste" });
@@ -10,8 +11,8 @@ const aceitar = { idAcao: "aceitar-sorteio-0001", revisao: 0, acao: { tipo: "ace
 async function conta(a: ArmazemMemoria) {
   const r = await registrar(a, pedido("", { nome: "ana", senha: "senha-forte" }));
   const token = r.corpo.token as string;
-  const id = (await a.obter(`sessao:${createHash("sha256").update(token).digest("hex")}`))!;
-  return { token, id };
+  const id = JSON.parse((await a.obter(`sessao:${createHash("sha256").update(token).digest("hex")}`))!).id as string;
+  return { token, id, codigo: r.corpo.codigoRecuperacao as string };
 }
 
 describe("integridade do jogo online", () => {
@@ -121,6 +122,21 @@ describe("commit atômico e expiração de trava", () => {
     a.liberar!();
     expect((await pendente).status).toBe(409);
     expect(await a.obter(`save:${id}`)).toBe(salvo);
+  });
+  it("recuperação de senha também impede o commit de uma sessão antiga em andamento", async () => {
+    const a = new ArmazemAdiado(() => T0);
+    const { token, id, codigo } = await conta(a);
+    await iniciarJogoOnline(a, pedido(token));
+    const salvo = await a.obter(`save:${id}`);
+    a.suspender = true;
+    const chegou = new Promise<void>((resolve) => { a.chegou = resolve; });
+    const pendente = acao(a, pedido(token, aceitar));
+    await chegou;
+    expect((await recuperar(a, pedido("", { nome: "ana", codigo, senhaNova: "senha-nova" }))).status).toBe(200);
+    a.liberar!();
+    expect((await pendente).status).toBe(409);
+    expect(await a.obter(`save:${id}`)).toBe(salvo);
+    expect((await obterJogo(a, pedido(token))).status).toBe(401);
   });
   it("um CAS recusado não grava nem parte do estado nem o recibo", async () => {
     const a = new ArmazemMemoria(() => T0);

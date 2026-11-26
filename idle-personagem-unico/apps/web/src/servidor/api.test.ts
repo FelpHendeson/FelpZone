@@ -26,7 +26,7 @@ async function contaComJogo(a: ArmazemMemoria) {
 describe("API sem banco", () => {
   it("saúde diz que não há banco e o resto responde 503", async () => {
     expect(saude(null).corpo).toMatchObject({ ok: true, banco: false });
-    for (const f of [registrar, entrar, sair, obterJogo, acao, importar, enviarBuild, listarBuilds]) expect(await f(null, pedido({}))).toEqual(SEM_BANCO);
+    for (const f of [registrar, entrar, sair, obterJogo, acao, importar, enviarBuild, listarBuilds]) expect(await f(null, pedido({}))).toMatchObject(SEM_BANCO);
   });
 
   it("só usa banco com URL https e token", () => {
@@ -43,7 +43,7 @@ describe("conta", () => {
     const a = new ArmazemMemoria(() => T0);
     const r = await registrar(a, pedido({ nome: "  Ana_01 ", senha: "senha-forte" }));
     expect(r.status).toBe(201);
-    expect(r.corpo.conta).toEqual({ nome: "ana_01" });
+    expect(r.corpo.conta).toMatchObject({ nome: "ana_01" });
     expect((await registrar(a, pedido({ nome: "ana_01", senha: "outra-senha" }))).status).toBe(409);
     expect((await registrar(a, pedido({ nome: "a", senha: "senha-forte" }))).status).toBe(400);
     expect((await registrar(a, pedido({ nome: "bia", senha: "curta" }))).status).toBe(400);
@@ -107,7 +107,7 @@ describe("jogo", () => {
   it("uma ação por vez por conta", async () => {
     const a = new ArmazemMemoria(() => T0);
     const token = await contaComJogo(a);
-    const contaId = (await a.obter(`sessao:${(await import("node:crypto")).createHash("sha256").update(token).digest("hex")}`))!;
+    const contaId = JSON.parse((await a.obter(`sessao:${(await import("node:crypto")).createHash("sha256").update(token).digest("hex")}`))!).id as string;
     await a.gravar(`trava:${contaId}`, "1", 10);
     expect((await acao(a, pedido({ acao: { tipo: "pararAtividade" } }, token))).status).toBe(409);
   });

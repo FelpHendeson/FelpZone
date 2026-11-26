@@ -18,7 +18,7 @@ import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
 import { prepararCriacao } from "@/lib/criacao";
 import { CHAVE_SAVE, iniciarJogo, isolarSaveLegado, type ResultadoInicio } from "@/lib/persistencia";
 import { tocar } from "@/lib/sons";
-import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, type Sessao } from "@/lib/sync";
+import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, restaurarSessao, sairDaConta, type Sessao } from "@/lib/sync";
 import { ClienteConta, type SituacaoConta } from "@/lib/clienteConta";
 import { BarraAtividade } from "./BarraAtividade";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
@@ -153,8 +153,9 @@ export function Shell() {
     cliente.current = online;
     const restaurar = async () => {
       const geracao = identidade.current;
-      const s = lerSessao(window.localStorage);
-      await isolarSaveLegado(arm, !!s && !s.cacheSeparado);
+      const anterior = lerSessao(window.localStorage);
+      await isolarSaveLegado(arm, !!anterior && !anterior.cacheSeparado);
+      const s = await restaurarSessao(window.localStorage);
       if (cancelado || geracao !== identidade.current) return;
       if (s) {
         const separada: Sessao = { ...s, cacheSeparado: true };
@@ -200,11 +201,11 @@ export function Shell() {
       setSessao(null);
       setSituacaoConta(null);
       setOcupado(false);
-      gravarSessao(window.localStorage, null);
+      const saida = sairDaConta(window.localStorage, anterior);
       estadoRef.current = null;
       setTela({ fase: "carregando" });
-      if (anterior) void chamarApi("auth/sair", { metodo: "POST", token: anterior.token });
       await carregarLocal();
+      if (!await saida) setAviso("Você saiu neste aparelho. O encerramento no servidor será confirmado quando a conexão voltar.");
     }
   }
 
@@ -212,6 +213,14 @@ export function Shell() {
     <section className="cartao" aria-label="Conexão da conta">
       <p role="status">{situacaoConta.conexao === "online" ? "Conta sincronizada." : situacaoConta.conexao === "expirado" ? "Sessão expirada. Seu progresso continua na conta." : situacaoConta.conexao === "sincronizando" ? "Sincronizando conta…" : "Sem confirmação do servidor. O progresso online está pausado neste aparelho."}</p>
       {situacaoConta.mensagem && <p className="erro" role="alert">{situacaoConta.mensagem}</p>}
+      {situacaoConta.codigo === "sem_save" && <button className="botao botao-principal" type="button" disabled={situacaoConta.ocupado} onClick={async () => {
+        const s = situacaoConta.sessao;
+        const geracao = identidade.current;
+        const r = await chamarApi("jogo/iniciar", { metodo: "POST", corpo: {}, token: s.token, contaId: s.id });
+        if (geracao !== identidade.current) return;
+        if (r.ok) await cliente.current?.conectar(s, r.corpo);
+        else setAviso(r.mensagem);
+      }}>Iniciar novo jogo online</button>}
       {situacaoConta.jogo?.procedencia === "importado" && <p className="suave">Jogo importado: pode jogar contra bots, mas não publicar builds competitivos.</p>}
       <div className="acoes">
         <button className="botao" type="button" disabled={situacaoConta.ocupado || situacaoConta.conexao === "expirado"} onClick={() => void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."))}>Sincronizar</button>

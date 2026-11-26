@@ -520,6 +520,10 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 
 ## Complemento de experiência do jogador — 24/11/2026
 
+### Contas F13.2 — 26/11/2026
+
+**[Implementação]** A conta é continuada entre aparelhos por nome e senha. Cadastro mostra uma vez o código para recuperar acesso sem e-mail; o jogador o guarda fora do jogo. Recuperação preserva o personagem, troca a senha, encerra sessões anteriores e fornece outro código. Gerar código novo estando conectado exige a senha atual. Logout em um aparelho não desconecta outro; logout sem conexão não reconecta sozinho depois. Os detalhes de cookie e armazenamento ficam na arquitetura, sem alterar o balanceamento.
+
 ### Estabilização F13.1 — 26/11/2026
 
 **[Implementação]** Conta online e convidado têm saves separados. O convidado continua jogável sem rede; a conta usa o relógio do servidor e, sem conexão, exibe apenas seu último estado confirmado até reconectar. O logout volta ao convidado, sem copiar o progresso online.
