@@ -1,30 +1,29 @@
-/** Exporta a arte vetorial modular nativa para spritesheets SVG/PNG de exemplo. */
+/** Empacota a base imagegen e exporta a aparência raster real, sem redesenhar personagens. */
 import { mkdir, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
-import { CATALOGO, gerarMiniaturaSvg, gerarSpritePersonagemSvg } from "../packages/motor/src/index.ts";
-
-const destino = new URL("../apps/web/public/arte/sprites-v1/", import.meta.url);
-await mkdir(destino, { recursive: true });
-for (const racaId of CATALOGO.racas.keys()) {
-  const parametros = { racaId, coreId: "andarilho", corCabeloId: "castanho", corRoupaId: "linho" };
-  const svg = gerarSpritePersonagemSvg(parametros);
-  await writeFile(new URL(`${racaId}.svg`, destino), svg);
-  await sharp(Buffer.from(svg)).png({ palette: true }).toFile(fileURLToPath(new URL(`${racaId}.png`, destino)));
-  await sharp(Buffer.from(gerarMiniaturaSvg(parametros))).png({ palette: true }).toFile(fileURLToPath(new URL(`${racaId}-retrato.png`, destino)));
+import { aplicarPaleta, RECORTES_RETRATO } from "../apps/web/src/lib/paletaPersonagem.ts";
+import { ORDEM_RACAS_ARTE } from "../apps/web/src/lib/arte.ts";
+const raiz = new URL("../apps/web/public/arte/", import.meta.url);
+const base = fileURLToPath(new URL("personagens-material-v2.png", raiz));
+const webp = fileURLToPath(new URL("personagens-material-v2.webp", raiz));
+await sharp(base).webp({ lossless: true, effort: 6 }).toFile(webp);
+const original = await sharp(base).ensureAlpha().raw().toBuffer();
+const convertido = await sharp(webp).ensureAlpha().raw().toBuffer();
+if (original.length !== convertido.length) throw new Error("Dimensões alteradas.");
+for (let i = 0; i < original.length; i += 4) if (original[i + 3] !== convertido[i + 3] || (original[i + 3] && (original[i] !== convertido[i] || original[i + 1] !== convertido[i + 1] || original[i + 2] !== convertido[i + 2]))) throw new Error("WebP mudou a arte original.");
+const { width, height } = await sharp(base).metadata();
+const destino = new URL("personagens-v2/", raiz); await mkdir(destino, { recursive: true });
+for (let i = 0; i < ORDEM_RACAS_ARTE.length; i++) {
+  const id = ORDEM_RACAS_ARTE[i], col = i % 4, row = Math.floor(i / 4);
+  const left = Math.round(col * width / 4), top = Math.round(row * height / 2);
+  const w = Math.round((col + 1) * width / 4) - left, h = Math.round((row + 1) * height / 2) - top;
+  const rgba = await sharp(base).extract({ left, top, width: w, height: h }).ensureAlpha().raw().toBuffer();
+  const pixels = aplicarPaleta(new Uint8ClampedArray(rgba), w, "#1b1a1f", "#d8cbb0", id);
+  const imagem = sharp(Buffer.from(pixels), { raw: { width: w, height: h, channels: 4 } });
+  await imagem.clone().resize(256, 256, { kernel: "nearest" }).png().toFile(fileURLToPath(new URL(`${id}.png`, destino)));
+  const q = RECORTES_RETRATO[id];
+  await imagem.clone().extract({ left: Math.round(q.x * w), top: Math.round(q.y * h), width: Math.round(q.lado * w), height: Math.round(q.lado * h) }).resize(128, 128, { kernel: "nearest" }).png().toFile(fileURLToPath(new URL(`${id}-retrato.png`, destino)));
 }
-console.log(`Exportadas ${CATALOGO.racas.size} raças: spritesheets 96×64 (2 quadros de 48×64) e retratos 64×64.`);
-
-// Empacotamento lossless da arte gerada: dimensões, alpha e pixels visíveis intactos.
-for (const nome of ["racas", "locais", "limiar"]) {
-  const png = new URL(`../apps/web/public/arte/${nome}-v1.png`, import.meta.url);
-  const webp = new URL(`../apps/web/public/arte/${nome}-v1.webp`, import.meta.url);
-  await sharp(fileURLToPath(png)).webp({ lossless: true, effort: 6 }).toFile(fileURLToPath(webp));
-  const a = await sharp(fileURLToPath(png)).ensureAlpha().raw().toBuffer();
-  const b = await sharp(fileURLToPath(webp)).ensureAlpha().raw().toBuffer();
-  if (a.length !== b.length) throw new Error(`Dimensões alteradas em ${nome}.`);
-  for (let i = 0; i < a.length; i += 4) {
-    if (a[i + 3] !== b[i + 3] || (a[i + 3] > 0 && (a[i] !== b[i] || a[i + 1] !== b[i + 1] || a[i + 2] !== b[i + 2]))) throw new Error(`Pixels visíveis alterados em ${nome}.`);
-  }
-}
-console.log("Arte WebP lossless conferida pixel a pixel; originais PNG preservados.");
+await writeFile(new URL("LEIA-ME.txt", destino), "Exemplos com cabelo preto e roupa linho. O jogo aplica a paleta pessoal do save. Retrato e corpo derivam da mesma base imagegen. Movimento de respiracao, sem spritesheet de caminhada.\n");
+console.log("Exportadas oito raças, corpos/retratos detalhados e WebP lossless conferido.");

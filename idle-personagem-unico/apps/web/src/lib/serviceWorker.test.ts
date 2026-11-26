@@ -5,7 +5,7 @@ import { describe, expect, it, vi } from "vitest";
 function ambiente(status = 200) {
   const eventos: Record<string, (e: Record<string, unknown>) => void> = {};
   const cache = { put: vi.fn(async () => {}), addAll: vi.fn(async () => {}) };
-  const caches = { open: vi.fn(async () => cache), keys: vi.fn(async () => ["outro-app", "idle-pu-v1", "idle-pu-f13-1-v2", "idle-pu-f13-5-v1", "idle-pu-f13-6-v1"]), delete: vi.fn(async () => true), match: vi.fn(async () => undefined) };
+  const caches = { open: vi.fn(async () => cache), keys: vi.fn(async () => ["outro-app", "idle-pu-v1", "idle-pu-f13-1-v2", "idle-pu-f13-5-v1", "idle-pu-f13-6-v1", "idle-pu-personagens-v2"]), delete: vi.fn(async () => true), match: vi.fn(async () => undefined) };
   const fetch = vi.fn(async () => new Response("página", { status, headers: { "content-type": "text/html" } }));
   const self = { addEventListener: (nome: string, cb: (e: Record<string, unknown>) => void) => { eventos[nome] = cb; }, location: { origin: "https://jogo.test" }, clients: { claim: vi.fn(async () => {}) }, skipWaiting: vi.fn(async () => {}) };
   runInNewContext(readFileSync(new URL("../../public/sw.js", import.meta.url), "utf8"), { self, caches, fetch, URL, Response });
@@ -28,7 +28,7 @@ describe("cache PWA", () => {
     let tarefa!: Promise<unknown>;
     a.eventos.activate!({ waitUntil: (p: Promise<unknown>) => { tarefa = p; } });
     await tarefa;
-    expect(a.caches.delete.mock.calls).toEqual([["idle-pu-v1"], ["idle-pu-f13-1-v2"], ["idle-pu-f13-5-v1"]]);
+    expect(a.caches.delete.mock.calls).toEqual([["idle-pu-v1"], ["idle-pu-f13-1-v2"], ["idle-pu-f13-5-v1"], ["idle-pu-f13-6-v1"]]);
   });
   it("não guarda navegação com resposta 500", async () => {
     const a = ambiente(500);

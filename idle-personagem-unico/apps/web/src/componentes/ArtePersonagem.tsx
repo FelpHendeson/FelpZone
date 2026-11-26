@@ -1,7 +1,7 @@
 "use client";
 
-import { CATALOGO, gerarSpritePersonagemSvg, type ParametrosMiniatura, type Personagem } from "@idle-pu/motor";
-import { useMemo } from "react";
+import { CATALOGO, type ParametrosMiniatura, type Personagem } from "@idle-pu/motor";
+import { PersonagemRaster } from "./PersonagemRaster";
 import { cenaDoPersonagem, quadroRaca } from "@/lib/arte";
 import { nomeLocal } from "@/lib/atividade";
 
@@ -15,12 +15,7 @@ export function IlustracaoRaca({ racaId }: { racaId: string }) {
 }
 
 export function SpritePersonagem({ parametros: p, animado = false }: { parametros: ParametrosMiniatura; animado?: boolean }) {
-  const { racaId, coreId, corCabeloId, corRoupaId } = p;
-  const fonte = useMemo(() => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(gerarSpritePersonagemSvg({ racaId, coreId, corCabeloId, corRoupaId }))}`, [racaId, coreId, corCabeloId, corRoupaId]);
-  return <span className={`sprite-personagem${animado ? " sprite-animado" : ""}`} aria-hidden="true">
-    {/* eslint-disable-next-line @next/next/no-img-element -- sprite modular local em SVG, dois quadros exatos */}
-    <img className="sprite-folha" src={fonte} width={96} height={64} alt="" />
-  </span>;
+  return <PersonagemRaster parametros={p} animado={animado} />;
 }
 
 export function CenaPersonagem({ personagem: p, leitura = false }: { personagem: Personagem; leitura?: boolean }) {

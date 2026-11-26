@@ -1,0 +1,1 @@
+Exemplos com cabelo preto e roupa linho. O jogo aplica a paleta pessoal do save. Retrato e corpo derivam da mesma base imagegen. Movimento de respiracao, sem spritesheet de caminhada.

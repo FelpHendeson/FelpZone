@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**Personagens pessoais refeitos — V2 (26/11/2026).** Corpo e retrato usam arte raster detalhada da mesma fonte das raças aprovadas, com paleta do save aplicada por material. Renderer geométrico rejeitado removido; cenários preservados. [Pipeline, prompt e verificação](docs/PERSONAGENS-V2.md).
+
 **F13.6 — pixel art 2D integrada (26/11/2026).** Oito ilustrações de raça, sprites pessoais modulares com cores do save, cenários de quatro locais e Limiar, animação discreta e ícones de navegação em pixels. Pacote com PNGs originais, WebP lossless e spritesheets PNG/SVG exportados. [Arte, prompts e verificação](docs/ARTE-F13-6.md).
 
 **F13.5 — tutorial publicado (26/11/2026), commit `4ed2778`.** Guia contextual por personagem, pulável e revisável, com progresso no save/conta. Ensina sorteio, treino, coleta, venda, equipamento, combate e Guilda; sem recompensas ou alterações de balanceamento. Save v14 migra personagens antigos com guia pausado. [Contrato e validações](docs/TUTORIAL-F13-5.md).

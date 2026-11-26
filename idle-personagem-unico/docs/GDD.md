@@ -520,6 +520,10 @@ Tela fixa de **atividade atual** (barra no topo: o que o personagem faz, onde, p
 
 ## Complemento de experiência do jogador — 24/11/2026
 
+### Personagens V2 — correção artística
+
+**[Autor]** Cenários/ilustrações aprovados; bonecos geométricos pessoais rejeitados. **[Implementação]** Corpo e retrato pessoais usam arte raster detalhada da mesma direção artística das raças, com cores de cabelo/roupa aplicadas aos respectivos materiais e core no retrato. Aparência e progresso existentes preservados. Respiração discreta substitui a simulação de dois quadros do renderer removido; não é animação de caminhada/ataques. Cenários aprovados continuam intactos.
+
 ### Pixel art F13.6 — 26/11/2026
 
 **[Autor]** Pixel art 2D, com criação e integração pelo agente. **[Implementação]** Ilustrações representativas das oito raças nas cartas, cenários de Pedravau/Bosque/Mina/Lago/Limiar e sprite pessoal modular na ficha e no local atual. Raça, core, cabelo e roupa continuam ligados ao save. Animação de dois quadros representa atividade/viagem/Limiar e respeita movimento reduzido; conta em leitura fica estática. Ícones dos seis sistemas usam grade de pixels. Não há movimento manual, ataques controlados ou equipamento visual inventado. Monstros/pets e animações completas precisam de pacotes próprios; regras e save v14 não mudam.

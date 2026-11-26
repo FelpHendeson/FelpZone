@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   COFRE_VAZIO,
   CATALOGO,
-  CORES_CABELO,
-  CORES_ROUPA,
   MIGRACOES,
   Rng,
   aceitarSorteio,
@@ -11,7 +9,6 @@ import {
   criarEstadoInicial,
   definirNomeEAparencia,
   gerarLoreOrigem,
-  gerarMiniaturaSvg,
   iniciarSorteio,
   personagemAtivo,
   rerolar,
@@ -189,30 +186,5 @@ describe("save v2", () => {
     const curto = structuredClone(dados);
     curto.conta.sorteio.maxTentativas = 1;
     expect(invalido(curto)).toBe("formato_invalido");
-  });
-});
-
-describe("miniatura de perfil", () => {
-  const params = { racaId: "lobisomem", coreId: "ser-das-trevas", corCabeloId: "preto", corRoupaId: "carvao" };
-
-  it("é determinística e usa as cores da paleta", () => {
-    const svg = gerarMiniaturaSvg(params);
-    expect(gerarMiniaturaSvg(params)).toBe(svg);
-    expect(svg.startsWith("<svg")).toBe(true);
-    expect(svg).toContain(CORES_CABELO.find((c) => c.id === "preto")!.hex);
-    expect(svg).toContain(CORES_ROUPA.find((c) => c.id === "carvao")!.hex);
-    expect(svg).not.toContain("undefined");
-  });
-
-  it("varia com raça, core e cores", () => {
-    const svg = gerarMiniaturaSvg(params);
-    expect(gerarMiniaturaSvg({ ...params, racaId: "anao" })).not.toBe(svg);
-    expect(gerarMiniaturaSvg({ ...params, coreId: "alma-da-luz" })).not.toBe(svg);
-    expect(gerarMiniaturaSvg({ ...params, corCabeloId: "loiro" })).not.toBe(svg);
-    expect(gerarMiniaturaSvg({ ...params, corRoupaId: "osso" })).not.toBe(svg);
-  });
-
-  it("recusa cor fora da paleta", () => {
-    expect(() => gerarMiniaturaSvg({ ...params, corCabeloId: "#ff0000" })).toThrow();
   });
 });

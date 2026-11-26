@@ -1,5 +1,7 @@
 # F13.6 — Pixel art 2D
 
+**Atualização:** o autor rejeitou o renderer geométrico dos personagens pessoais desta primeira entrega. Ele e os exports `sprites-v1` foram removidos e substituídos pela [arte pessoal raster V2](PERSONAGENS-V2.md). As seções abaixo registram a entrega original; cenários e ilustrações aprovados continuam em uso.
+
 Direção autorizada pelo autor em 26/11/2026. [Contrato](../../prompts/idle-personagem-unico/13-6-pixel-art.md).
 
 ## Assets e intenção

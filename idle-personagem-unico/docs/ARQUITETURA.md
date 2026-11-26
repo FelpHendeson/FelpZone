@@ -139,6 +139,10 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
 
+### Correção dos personagens V2
+
+O renderer geométrico da F13.6 foi rejeitado e retirado. A interface usa `PersonagemRaster`/`renderPersonagem` com Canvas 2D, uma base imagegen com materiais e `aplicarPaleta` puro para preservar iluminação/alpha. Corpo e retrato compartilham a mesma imagem personalizada, com deduplicação e LRU limitado. O motor mantém apenas o contrato de aparência, sem DOM nem código de desenho. Campo de cores/raça, save v14 e API de ações não mudam. APIs SVG de renderização e exports antigos foram removidos. [Fonte, prompt, cache e verificação](PERSONAGENS-V2.md).
+
 ### Implementação F13.6 (26/11/2026)
 
 `personagem/pixel.ts` evolui a miniatura SVG editável para grade inteira, sem DOM/RNG, e fornece uma folha de dois quadros de 48×64. `ArtePersonagem` compõe o sprite com cenários locais, usando `cenaDoPersonagem` como consulta pura do estado confirmado; viagem mantém o cenário de origem até chegar, Limiar prevalece, leitura offline suspende animação. Ilustrações de raça são separadas da aparência pessoal para não sobrescrever paletas do save. Assets PNG gerados ficam preservados; WebP lossless verificado pixel a pixel é servido no runtime, com atlas de raças lazy. `scripts/exportar-sprites.mjs` reproduz as folhas PNG/SVG e empacotamento. PWA cacheia `/arte/` sob demanda, versão `idle-pu-f13-6-v1`, sem API e sem download de toda a galeria na instalação. [Prompts, assets e evidências](ARTE-F13-6.md).

@@ -245,3 +245,8 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 120. **[Autor]** Pixel art 2D, com criação de sprites e integração pelo agente.
 121. **[Implementação]** Separar ilustrações representativas da raça dos sprites pessoais modulares, preservando cabelo/roupa/core do save. Cenários e ícones locais; animação de dois quadros com movimento reduzido e leitura offline respeitados. Sem alterar regras ou save v14.
 122. **[Implementação]** PNGs gerados preservados, WebP lossless no runtime e folhas PNG/SVG nativas exportáveis. Arte cacheada sob demanda, sem downloads completos na instalação. Monstros/pets/armaduras visíveis continuam como pacotes futuros. [Prompts e evidências](ARTE-F13-6.md).
+
+### Correção artística — personagens V2
+
+123. **[Autor]** Cenários e ilustrações das raças aprovados; retratos/corpos geométricos rejeitados. Refazer com a qualidade das ilustrações, com liberdade de ferramentas e bibliotecas.
+124. **[Implementação]** Arte raster com materiais de cabelo/tecido e palette swap na interface; retrato recortado do mesmo corpo personalizado. Remover renderer geométrico e exports antigos. Sem mudanças no save v14, regras ou progresso. [Detalhes](PERSONAGENS-V2.md).

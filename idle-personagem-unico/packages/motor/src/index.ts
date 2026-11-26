@@ -90,7 +90,7 @@ export type { AtividadeAtual, Aparencia, EfeitoEmCurso, EstadoCombate, EstadoLim
 export { NOME_MAX, NOME_MIN, validarNome } from "./personagem/nome";
 export type { CodigoErroNome, ErroNome } from "./personagem/nome";
 export { gerarLoreOrigem } from "./personagem/lore";
-export { gerarMiniaturaSvg } from "./personagem/aparencia";
+
 export type { ParametrosMiniatura } from "./personagem/aparencia";
 
 // F2: progressão, atividades e avanço do tempo.
@@ -263,5 +263,3 @@ export { inscreverTorneio, lutarArena, resgatarTorneio } from "./competicao/acoe
 
 export { PASSOS_TUTORIAL, tutorialInicial, validarTutorial } from "./personagem/tutorial";
 export type { EstadoTutorial, PassoTutorial } from "./personagem/tutorial";
-
-export { gerarSpritePersonagemSvg } from "./personagem/pixel";
