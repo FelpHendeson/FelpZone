@@ -2,6 +2,8 @@
 
 **Atualização:** o autor rejeitou o renderer geométrico dos personagens pessoais desta primeira entrega. Ele e os exports `sprites-v1` foram removidos e substituídos pela [arte pessoal raster V2](PERSONAGENS-V2.md). As seções abaixo registram a entrega original; cenários e ilustrações aprovados continuam em uso.
 
+**Animações atuais (27/11/2026):** [folhas V1 de 16 poses por raça](ANIMACOES-V1.md), publicadas em `b271466`, substituem os dois quadros históricos abaixo. Os exports SVG e comandos que dependiam do renderer antigo são registro histórico, não o pipeline atual.
+
 Direção autorizada pelo autor em 26/11/2026. [Contrato](../../prompts/idle-personagem-unico/13-6-pixel-art.md).
 
 ## Assets e intenção

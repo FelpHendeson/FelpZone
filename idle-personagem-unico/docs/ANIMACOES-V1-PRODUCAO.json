@@ -1,0 +1,49 @@
+{
+  "origem": "https://idle-personagem-unico.vercel.app",
+  "quadros": [
+    "0",
+    "1",
+    "2",
+    "3"
+  ],
+  "arquivos": [
+    {
+      "id": "humano",
+      "sha256": "6d9069259cd0de9e5fe83dfb0d2dd179bc5f7f96c12beabf5e854c622e465a03"
+    },
+    {
+      "id": "anao",
+      "sha256": "276f2a9491ed1054dce4c929dd0a3b3fed16b4153ed8f86863ba1bf54a015cc0"
+    },
+    {
+      "id": "elfo",
+      "sha256": "fc074492fd264d9c807e98112d58823679863b690c12906e9dc5622a8fc88dfc"
+    },
+    {
+      "id": "orc",
+      "sha256": "2d011960126ba0af824a53d3afc8e7faed10627964e9817ad72776fe06fae22a"
+    },
+    {
+      "id": "lobisomem",
+      "sha256": "d84baf21523ff02e00d68c23b0c038d939a69248aa6303fb9b7b9420a59a3593"
+    },
+    {
+      "id": "sangue-palido",
+      "sha256": "d7bc5cee3179403b24cb1e90bf17abb3103d6751a78eecb3fa4c3ee5f4a8ba4a"
+    },
+    {
+      "id": "draconato",
+      "sha256": "fb48f8ab7e8b94ef95418b2197dc21faf1baaa80de4033e7cc8b822df5e12dbd"
+    },
+    {
+      "id": "silfo",
+      "sha256": "c9e96f0861489fbf22d57e32e8eccd745c1b94c98bb03df53ce90cfa1bcd6f5c"
+    }
+  ],
+  "prontidao": {
+    "ok": true,
+    "banco": "conectado"
+  },
+  "erros": [],
+  "escritas": []
+}

@@ -1,5 +1,11 @@
 # Auditoria técnica e funcional e plano de consolidação — 24/11/2026
 
+## Atualização do plano — 27/11/2026
+
+O diagnóstico abaixo registra a inspeção de 24/11; seus achados não representam automaticamente pendências atuais. F13.1–F13.6 já foram publicadas: contas/persistência, apresentação, navegação, tutorial e arte foram consolidados em suas entregas. O banco existente foi confirmado conectado; o save atual é v14. Ver [roadmap atualizado](ROADMAP.md) e [relatório de execução](../RELATORIO-idle-personagem-unico.md).
+
+A F13.6 atual usa personagens raster V2 e quatro animações por quadros para as oito raças, publicadas em `b271466`. [Validações e limites](ANIMACOES-V1.md) incluem 445 testes e revisão no navegador; elas cobrem a entrega artística, sem encerrar a F13.7. Próxima fatia planejada: auditoria global em execução, depois consolidação/aceite web na F13.8, antes da F14. Ferramentas por profissão, armas visíveis, monstros e pets continuam como pacotes artísticos futuros.
+
 ## Escopo e evidências
 
 Baseline: [`7b59626`](https://github.com/FelpHendeson/FelpZone/commit/7b596262f6807cfb8c2a8e2c7c4fd47c6659e0e7), branch main. Inspeção estática da árvore, documentação, componentes centrais, motor, API, persistência, competição e PWA. Não foram executados testes, build, simulações, inspeção visual renderizada nem verificação de infraestrutura de produção nesta auditoria. Resultados de testes e calibração citados são os registrados pelo projeto, não validação independente. F0–F13 permanecem como entregas históricas; F13 não é aceite final do produto. Maturidade estimada: alpha avançada; avaliação qualitativa preliminar 7,8/10, não métrica objetiva.

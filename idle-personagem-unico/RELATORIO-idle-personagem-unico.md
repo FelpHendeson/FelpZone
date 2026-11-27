@@ -12,6 +12,8 @@ Documentos de referência: [GDD](docs/GDD.md), [Decisões](docs/DECISOES.md), [C
 
 ## Situação geral
 
+**Posição atual — 27/11/2026:** F13.1–F13.6 publicadas; personagens raster V2 e animações por quadros no commit `b271466`, com save v14. Próxima fatia planejada: F13.7, auditoria em execução; F14 depende da consolidação/aceite web na F13.8. Os números e pendências nas entregas históricas abaixo devem ser lidos no contexto da data de cada registro. [Retomada em outro computador](docs/RETOMADA.md).
+
 | Fatia | Nome | Situação | Commit | Testes ao final |
 | --- | --- | --- | --- | ---: |
 | F0 | Fundação | ✅ Concluída (antes deste relatório) | `293c932` | 57 |
@@ -1026,7 +1028,7 @@ O jogo web está completo: sorteio, treino, coleta, combate, habilidades, Limiar
 3. **Textos próprios** para os 22 arcos de origem (hoje gerados a partir do gancho de cada origem) e **arte** desenhada.
 4. **Port mobile (F14)**: o motor e a API já estão prontos para ele.
 
-## Próximo passo
+## Próximo passo registrado no fechamento inicial (histórico)
 
 **F14 — Port mobile**, quando o autor decidir. Antes, vale ativar o banco (item 1 acima) e conferir as decisões.
 
@@ -1085,3 +1087,11 @@ Validação: 369 testes motor, 66 web e 3 Redis real (438), lint/tipos/build. Ch
 O autor aprovou cenários/ilustrações, rejeitou os retratos/corpos geométricos publicados em `c86d256` e autorizou refazer com liberdade de ferramentas. O renderer e os exports antigos foram removidos. Imagegen editou uma base de materiais preservando o acabamento aprovado; a interface aplica a paleta do save sem redesenhar rostos/silhuetas. Retrato recortado do mesmo corpo personalizado, cache limitado, proteção de pedidos tardios e recuperação de carga. Cenários, regras e save v14 preservados.
 
 Validação: 361 testes motor, 72 web, 3 Redis real (436), lint/tipos/build. Navegador cobre oito raças, quatro larguras, movimento reduzido, troca rápida, falha/recuperação de arte e reload offline. Revisão visual dos novos personagens no cenário e cabeçalho e de cada raça exportada. [Prompt e evidências](docs/PERSONAGENS-V2.md). Este registro substitui a aprovação visual indevida do renderer da primeira F13.6; não o reintroduzir como fallback.
+
+## 27/11/2026 — Animações publicadas e documentação para retomada
+
+Commit `b271466` enviado à `main` e publicado na Vercel em READY, deployment `dpl_23b7sQab3aqoWQiaEANW7ZijAHUH`. Oito raças com 16 poses cada: repouso/piscar, caminhada, ataque corporal e gesto comum de trabalho. PNGs fonte, WebP lossless, metadados, script de bake e prompts estão versionados. Cenários/retratos aprovados e regras/save v14 preservados. Ferramentas, equipamentos visíveis e reações de dano ainda precisam de folhas próprias.
+
+Validação registrada: 361 testes do motor (pool de threads, sem mudar limite/asserts), 81 web e três de Redis real (445), lint/tipos/build. Chromium verificou 32 ciclos com quatro quadros distintos, responsividade, fallback, movimento reduzido, visibilidade simulada, offline e conta em leitura. Em produção, confirmados os quatro quadros do humano, hashes SHA-256 das oito folhas iguais aos arquivos locais, service worker atualizado e readiness com banco conectado, sem erros JavaScript ou escritas de API.
+
+[Fontes e validações](docs/ANIMACOES-V1.md), [evidência de produção](docs/ANIMACOES-V1-PRODUCAO.json), [prévia](docs/previas/animacoes-v1.gif) e [retomada no notebook](docs/RETOMADA.md). Roadmap e plano de consolidação atualizados; F13.7/F13.8 seguem pendentes. Esta atualização documental não inicia outra fatia de implementação.

@@ -10,6 +10,10 @@ Playback tem cadência por sequência, pausa em leitura/aba oculta/movimento red
 
 ## Verificação — 27/11/2026
 
+**Publicação confirmada:** commit `b271466` na `main`, deployment `dpl_23b7sQab3aqoWQiaEANW7ZijAHUH` em READY com o alias [idle-personagem-unico.vercel.app](https://idle-personagem-unico.vercel.app/). O navegador público mostrou os quatro quadros do humano; as oito folhas servidas têm SHA-256 igual ao repositório, service worker atualizado e readiness com banco conectado. Sem erros JavaScript ou escritas de API na sonda. [Evidência de produção](ANIMACOES-V1-PRODUCAO.json).
+
+[Prévia animada versionada](previas/animacoes-v1.gif) · [Retomar em outro computador](RETOMADA.md).
+
 - Motor: 361 testes passaram com `--maxWorkers=1 --pool=threads`. O pool padrão de processos excedeu cinco segundos no teste de 20 mil sementes nesta máquina; não houve alteração de teste, código do motor ou limite. A mesma suíte completa passou no pool de threads.
 - Web: 81 testes passaram; integração com Redis real: três testes passaram. Lint, tipos e build de produção passaram.
 - Navegador Chromium: oito raças × quatro sequências, com quatro hashes de imagem distintos em cada ciclo, sem erros JavaScript. Conferidos cenário, mãos/caudas/asas, paletas e retratos. Layout sem overflow em 320, 390, 768 e 1440px.

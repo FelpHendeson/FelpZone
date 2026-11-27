@@ -25,7 +25,7 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 | **F13.3** publicada (26/11) | Apresentação e entrada | Tela inicial, login/cadastro, seleção/criação de personagem. | [Contrato e validações](ENTRADA-F13-3.md): commit `2734b51` READY, entrada e readiness conferidas em produção. |
 | **F13.4** publicada (26/11) | Interface e navegação | Personagem e atividade persistentes, navegação responsiva, teclado, atalhos e feedback de conexão. | [Verificações](INTERFACE-F13-4.md): 30 sub-abas e jornadas principais, preservando funcionalidades existentes. |
 | **F13.5** publicada (26/11) | Tutorial | Onboarding interativo e contextual, pulável e revisável, com progresso salvo por conta/personagem conforme escopo. | [Contrato e verificação](TUTORIAL-F13-5.md): sete passos por ações reais; save v14 e migração. |
-| **F13.6** implementada (26/11) | Pixel art 2D | Identidade visual, sprites modulares, ícones e animações; prompts para o autor quando necessários. | [Pacote inicial integrado](ARTE-F13-6.md): oito raças, sprites pessoais, cinco cenários e ícones; monstros/pets seguem em pacotes próprios. |
+| **F13.6** publicada (27/11) | Pixel art 2D e animações | Cenários e raças aprovados, personagens raster V2 personalizados e 16 poses por raça em quatro sequências. | [Animações e validação](ANIMACOES-V1.md): commit `b271466` READY; oito folhas conferidas em produção. O renderer geométrico inicial foi removido. |
 | **F13.7** | Auditoria em execução | Playwright/E2E, playtest, desempenho mobile, acessibilidade e calibração. | Jornadas críticas verificadas; testes, lint, typecheck e build verdes; resultados documentados. |
 | **F13.8** | Consolidação web/PWA | Revisão de release, regressões, deploy e validação offline/online. | Web aprovada pelo autor, sem bloqueios críticos, antes de F14. |
 | **F14** | Port mobile | Expo/RN usando o mesmo motor e a mesma API. | Aceite de F13.8 e paridade com a web. |
@@ -35,7 +35,15 @@ Alvo declarado: **web 100% primeiro**, port mobile depois. Rótulos e números c
 
 ## Consolidação pós-auditoria (24/11/2026)
 
-As subfatias foram propostas no planejamento de 24/11. F13.1–F13.5 foram publicadas em 26/11; a F13.6 foi autorizada com pixel art 2D e implementada como primeiro pacote artístico. As seguintes permanecem planejadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
+As subfatias foram propostas no planejamento de 24/11. F13.1–F13.5 foram publicadas em 26/11. A F13.6 recebeu correção artística em `bc774e8` e animações por quadros em `b271466`, publicadas e conferidas até 27/11. As seguintes permanecem planejadas. As quatro diretrizes do autor são requisitos: apresentação/login e conta entre dispositivos; autonomia de UX; tutorial; prompts de spritesheets sob demanda. Ver [auditoria consolidada](AUDITORIA-CONSOLIDACAO.md). F13 histórica permanece concluída; o aceite final da web depende de F13.8 e aprovação do autor.
+
+## Próximos trabalhos — posição em 27/11/2026
+
+1. **F13.7 — auditoria em execução:** consolidar jornadas de entrada/conta entre dispositivos, treino/coleta/viagem/equipamento/combate, acessibilidade, desempenho em aparelhos modestos e playtest. Os testes das animações são evidência desta entrega, não conclusão da auditoria global.
+2. **Evoluções artísticas pendentes:** gestos com ferramentas por profissão, armas/equipamentos visíveis, reações de dano, monstros e pets. O pacote atual tem repouso, caminhada, ataque corporal e gesto comum de trabalho; definir o próximo pacote com o autor.
+3. **F13.8 — consolidação web/PWA:** fechar regressões e revisão de release/online/offline, com aceite do autor. **F14 mobile vem depois desse aceite.**
+
+Para continuar em outro computador, seguir [retomada e ambiente local](RETOMADA.md). Fontes PNG, WebP, metadados, scripts e prompts das animações estão versionados; os segredos de ambiente não fazem parte do repositório.
 
 ## Regras de ordem
 

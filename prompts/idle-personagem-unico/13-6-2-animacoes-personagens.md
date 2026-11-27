@@ -9,3 +9,7 @@ Autorizado pelo autor: seguir com animações e sprites. Commits/main, push/depl
 - Transições sem quadro de outra raça/paleta. Cadências próprias por estado, repouso e Limiar mais lentos, pausar em leitura, aba oculta e movimento reduzido. Retratos mantêm a arte estática aprovada.
 - Carregamento sob demanda por raça, cache limitado, fallback estático detalhado durante carga/falha, PWA offline após visitar.
 - Testar mapeamento, quadros/alpha, paletas, cancelamento, oito raças, responsividade, leitura/visibilidade/reduced-motion, falha e offline. Revisão visual com animações rodando, lint/tipos/testes/build e release autorizado.
+
+## Entrega consolidada — 27/11/2026
+
+Implementação publicada na `main`, commit `b271466`, Vercel READY e conferida no endereço público. Oito folhas de 16 poses, pipeline reproduzível e fontes versionadas. Registrados 445 testes e revisão dos 32 ciclos no navegador, com limites documentados. [Fontes e validação](../../idle-personagem-unico/docs/ANIMACOES-V1.md), [roadmap](../../idle-personagem-unico/docs/ROADMAP.md) e [retomada em outro computador](../../idle-personagem-unico/docs/RETOMADA.md). F13.7/F13.8 continuam planejadas; ferramentas por profissão, armas visíveis e outros atores requerem pacotes próprios.

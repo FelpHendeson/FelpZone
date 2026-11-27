@@ -1,5 +1,7 @@
 # Personagens pessoais V2 — correção artística
 
+**Atualização em 27/11/2026:** os retratos e o fallback continuam usando esta base V2. No cenário, a respiração por deslocamento descrita neste registro foi substituída pelas [animações por quadros V1](ANIMACOES-V1.md), com quatro sequências por raça. O cache PWA atual é `idle-pu-animacoes-v1`.
+
 O autor rejeitou os bonecos geométricos e autorizou refazer com liberdade de ferramentas. Os cenários e as ilustrações de raça aprovados foram preservados.
 
 ## Fonte única de arte
