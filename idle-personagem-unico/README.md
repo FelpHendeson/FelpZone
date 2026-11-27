@@ -10,6 +10,8 @@ O jogo **não tem fim**: o conteúdo cresce por atualizações, e bots, torneios
 
 ## Estado atual
 
+**Animações por quadros — V1 (27/11/2026).** Oito raças com 16 poses cada: repouso com piscar, caminhada, ataque corporal e gesto de trabalho. Paleta pessoal preservada; sequências seguem o estado confirmado, com pausa em leitura, aba oculta e movimento reduzido. Retratos e cenários aprovados preservados. [Fontes, prompts e validação](docs/ANIMACOES-V1.md).
+
 **Personagens pessoais refeitos — V2 (26/11/2026).** Corpo e retrato usam arte raster detalhada da mesma fonte das raças aprovadas, com paleta do save aplicada por material. Renderer geométrico rejeitado removido; cenários preservados. [Pipeline, prompt e verificação](docs/PERSONAGENS-V2.md).
 
 **F13.6 — pixel art 2D integrada (26/11/2026).** Oito ilustrações de raça, sprites pessoais modulares com cores do save, cenários de quatro locais e Limiar, animação discreta e ícones de navegação em pixels. Pacote com PNGs originais, WebP lossless e spritesheets PNG/SVG exportados. [Arte, prompts e verificação](docs/ARTE-F13-6.md).

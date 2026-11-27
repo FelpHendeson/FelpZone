@@ -4,8 +4,8 @@ import { CATALOGO, type ParametrosMiniatura } from "@idle-pu/motor";
 import { useEffect, useRef, useState } from "react";
 import { obterArtePersonagem } from "@/lib/renderPersonagem";
 
-export function PersonagemRaster({ parametros: p, retrato = false, rotulo, tamanho, animado = false }: {
-  parametros: ParametrosMiniatura; retrato?: boolean; rotulo?: string; tamanho?: number; animado?: boolean;
+export function PersonagemRaster({ parametros: p, retrato = false, rotulo, tamanho }: {
+  parametros: ParametrosMiniatura; retrato?: boolean; rotulo?: string; tamanho?: number;
 }) {
   const { racaId, coreId, corCabeloId, corRoupaId } = p;
   const chave = `${racaId}:${corCabeloId}:${corRoupaId}:${retrato}`;
@@ -29,7 +29,7 @@ export function PersonagemRaster({ parametros: p, retrato = false, rotulo, taman
   }, []);
   const pronto = status.chave === chave && !status.erro;
   const core = CATALOGO.cores.get(coreId);
-  return <span className={`${retrato ? "miniatura miniatura-raster" : "sprite-personagem"}${animado ? " sprite-animado" : ""}`} role={retrato ? "img" : undefined} aria-label={retrato ? rotulo : undefined} aria-hidden={!retrato || undefined} aria-busy={!pronto && !status.erro}
+  return <span className={retrato ? "miniatura miniatura-raster" : "sprite-personagem"} role={retrato ? "img" : undefined} aria-label={retrato ? rotulo : undefined} aria-hidden={!retrato || undefined} aria-busy={!pronto && !status.erro}
     data-carregado={pronto} data-raca={racaId} data-cabelo={corCabeloId} data-roupa={corRoupaId}
     style={retrato ? { width: tamanho ?? 96, height: tamanho ?? 96, backgroundColor: core?.visual.cor } : undefined}>
     <canvas ref={tela} className="personagem-raster" width={retrato ? 128 : 256} height={retrato ? 128 : 256} style={{ visibility: pronto ? "visible" : "hidden" }} />

@@ -1,0 +1,109 @@
+{
+  "versao": 1,
+  "celula": 256,
+  "colunas": 4,
+  "linhas": [
+    "repouso",
+    "caminhada",
+    "ataque",
+    "trabalho"
+  ],
+  "quadros": [
+    {
+      "x": 55,
+      "y": 22,
+      "largura": 142,
+      "altura": 222
+    },
+    {
+      "x": 56,
+      "y": 22,
+      "largura": 137,
+      "altura": 222
+    },
+    {
+      "x": 56,
+      "y": 22,
+      "largura": 137,
+      "altura": 222
+    },
+    {
+      "x": 54,
+      "y": 22,
+      "largura": 140,
+      "altura": 222
+    },
+    {
+      "x": 51,
+      "y": 20,
+      "largura": 146,
+      "altura": 224
+    },
+    {
+      "x": 70,
+      "y": 20,
+      "largura": 119,
+      "altura": 224
+    },
+    {
+      "x": 47,
+      "y": 22,
+      "largura": 153,
+      "altura": 222
+    },
+    {
+      "x": 77,
+      "y": 22,
+      "largura": 116,
+      "altura": 222
+    },
+    {
+      "x": 49,
+      "y": 25,
+      "largura": 147,
+      "altura": 219
+    },
+    {
+      "x": 56,
+      "y": 25,
+      "largura": 137,
+      "altura": 219
+    },
+    {
+      "x": 51,
+      "y": 25,
+      "largura": 180,
+      "altura": 219
+    },
+    {
+      "x": 52,
+      "y": 25,
+      "largura": 140,
+      "altura": 219
+    },
+    {
+      "x": 55,
+      "y": 24,
+      "largura": 136,
+      "altura": 220
+    },
+    {
+      "x": 49,
+      "y": 24,
+      "largura": 169,
+      "altura": 220
+    },
+    {
+      "x": 49,
+      "y": 24,
+      "largura": 142,
+      "altura": 220
+    },
+    {
+      "x": 55,
+      "y": 24,
+      "largura": 135,
+      "altura": 220
+    }
+  ]
+}

@@ -1087,8 +1087,7 @@ ol.lista-recursos {
 .cena-sombra { position: absolute; bottom: 9%; left: 50%; width: 4rem; height: .5rem; transform: translateX(-50%); background: #14121a88; }
 .sprite-personagem { display: block; position: relative; width: 128px; height: 128px; image-rendering: pixelated; }
 .personagem-raster { display: block; width: 100%; height: 100%; image-rendering: pixelated; }
-.sprite-animado .personagem-raster { animation: respirar-personagem 1400ms steps(2, end) infinite; }
-@keyframes respirar-personagem { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-2px); } }
+.personagem-animado { display: block; }
 .cena-personagem figcaption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .75rem; padding: 1rem; }
 .cena-personagem h2 { font: 1.5rem Georgia, serif; margin: 0 0 .4rem; }
 .cena-personagem p { margin: 0; color: var(--texto-suave); font-size: .8rem; line-height: 1.6; }
@@ -1102,9 +1101,6 @@ ol.lista-recursos {
 @media (min-width: 1100px) {
   .sprite-personagem { width: 256px; height: 256px; }
   .cena-sombra { width: 8rem; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .sprite-animado .personagem-raster { animation: none; transform: none; }
 }
 @media (max-width: 380px) {
   .jornada-topo { padding-left: .75rem; padding-right: .75rem; }

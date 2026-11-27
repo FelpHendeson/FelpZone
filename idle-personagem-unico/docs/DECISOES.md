@@ -250,3 +250,9 @@ Mantém separado o que o **autor decidiu** do que é **proposta**. Em divergênc
 
 123. **[Autor]** Cenários e ilustrações das raças aprovados; retratos/corpos geométricos rejeitados. Refazer com a qualidade das ilustrações, com liberdade de ferramentas e bibliotecas.
 124. **[Implementação]** Arte raster com materiais de cabelo/tecido e palette swap na interface; retrato recortado do mesmo corpo personalizado. Remover renderer geométrico e exports antigos. Sem mudanças no save v14, regras ou progresso. [Detalhes](PERSONAGENS-V2.md).
+
+### Animações por quadros — V1 (27/11/2026)
+
+125. **[Autor]** Melhorar e variar as animações, com autorização para seguir com sprites e integração.
+126. **[Implementação]** Folha de 16 poses por raça: repouso, caminhada, ataque corporal e gesto comum de trabalho. PNGs fonte preservados; bake técnico para WebP lossless com escala uniforme e apoio dos pés. Paleta por material e retratos V2 preservados. Não há ferramentas por profissão ou armas equipadas neste pacote.
+127. **[Implementação]** Seleção pelo estado confirmado; ataque só durante luta, atividades tranquilas em repouso, leitura/aba oculta/movimento reduzido pausam. Carregamento por raça, caches limitados, fallback detalhado e cache offline dos assets visitados. Sem mudanças no motor ou save v14. [Prompts e evidências](ANIMACOES-V1.md).

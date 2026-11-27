@@ -1,9 +1,10 @@
 "use client";
 
-import { CATALOGO, type ParametrosMiniatura, type Personagem } from "@idle-pu/motor";
-import { PersonagemRaster } from "./PersonagemRaster";
+import { CATALOGO, type Personagem } from "@idle-pu/motor";
 import { cenaDoPersonagem, quadroRaca } from "@/lib/arte";
 import { nomeLocal } from "@/lib/atividade";
+import { animacaoDoPersonagem } from "@/lib/animacaoPersonagem";
+import { PersonagemAnimado } from "./PersonagemAnimado";
 
 export function IlustracaoRaca({ racaId }: { racaId: string }) {
   const q = quadroRaca(racaId);
@@ -14,10 +15,6 @@ export function IlustracaoRaca({ racaId }: { racaId: string }) {
   </span>;
 }
 
-export function SpritePersonagem({ parametros: p, animado = false }: { parametros: ParametrosMiniatura; animado?: boolean }) {
-  return <PersonagemRaster parametros={p} animado={animado} />;
-}
-
 export function CenaPersonagem({ personagem: p, leitura = false }: { personagem: Personagem; leitura?: boolean }) {
   const cena = cenaDoPersonagem(p);
   const atividade = p.atividade ? CATALOGO.atividades.get(p.atividade.id)?.nome : undefined;
@@ -26,7 +23,7 @@ export function CenaPersonagem({ personagem: p, leitura = false }: { personagem:
     <div className="cena-palco">
       <div className="cena-terreno" aria-hidden="true" style={{ backgroundImage: `url("${cena.arquivo}")`, backgroundPosition: cena.posicao, backgroundSize: cena.tamanho }} />
       <span className="cena-sombra" aria-hidden="true" />
-      <div className="cena-ator"><SpritePersonagem parametros={{ racaId: p.racaId, coreId: p.coreId, corCabeloId: p.aparencia.corCabelo, corRoupaId: p.aparencia.corRoupa }} animado={!leitura && cena.estado !== "repouso"} /></div>
+      <div className="cena-ator"><PersonagemAnimado parametros={{ racaId: p.racaId, coreId: p.coreId, corCabeloId: p.aparencia.corCabelo, corRoupaId: p.aparencia.corRoupa }} sequencia={animacaoDoPersonagem(p)} pausado={leitura} lento={!!p.limiar} /></div>
     </div>
     <figcaption><div><h2>{p.nome}</h2><p>Nível {p.nivel} · {CATALOGO.racas.get(p.racaId)?.nome} · {CATALOGO.cores.get(p.coreId)?.nome}</p></div>
       <div className="cena-situacao"><strong>{leitura ? "Último estado confirmado" : situacao}</strong><span>{p.limiar ? "O Limiar" : nomeLocal(p.localId)}</span></div>

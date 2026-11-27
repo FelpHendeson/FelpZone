@@ -15,7 +15,7 @@ describe("cache PWA", () => {
   it("guarda arte local após carregar e não exige download de toda a galeria ao instalar", async () => {
     const a = ambiente();
     let resposta!: Promise<Response>;
-    a.eventos.fetch!({ request: { method: "GET", url: "https://jogo.test/arte/racas-v1.png" }, respondWith: (p: Promise<Response>) => { resposta = p; } });
+    a.eventos.fetch!({ request: { method: "GET", url: "https://jogo.test/arte/animacoes-v1/humano.webp" }, respondWith: (p: Promise<Response>) => { resposta = p; } });
     expect((await resposta).status).toBe(200);
     expect(a.cache.put).toHaveBeenCalledOnce();
     let instalacao!: Promise<unknown>;
@@ -28,7 +28,7 @@ describe("cache PWA", () => {
     let tarefa!: Promise<unknown>;
     a.eventos.activate!({ waitUntil: (p: Promise<unknown>) => { tarefa = p; } });
     await tarefa;
-    expect(a.caches.delete.mock.calls).toEqual([["idle-pu-v1"], ["idle-pu-f13-1-v2"], ["idle-pu-f13-5-v1"], ["idle-pu-f13-6-v1"]]);
+    expect(a.caches.delete.mock.calls).toEqual([["idle-pu-v1"], ["idle-pu-f13-1-v2"], ["idle-pu-f13-5-v1"], ["idle-pu-f13-6-v1"], ["idle-pu-personagens-v2"]]);
   });
   it("não guarda navegação com resposta 500", async () => {
     const a = ambiente(500);
