@@ -96,6 +96,6 @@ export async function abrirRedisLocal() {
     await new Promise<void>((ok) => ponte!.listen(0, "127.0.0.1", ok));
     const endereco = ponte.address();
     if (!endereco || typeof endereco === "string") throw new Error("Ponte REST indisponível.");
-    return { url: `http://127.0.0.1:${endereco.port}`, token: "integracao-local", reiniciar: async () => { await parar(); await iniciar(); }, fechar };
+    return { url: `http://127.0.0.1:${endereco.port}`, token: "integracao-local", porta, reiniciar: async () => { await parar(); await iniciar(); }, fechar };
   } catch (e) { await fechar(); throw e; }
 }

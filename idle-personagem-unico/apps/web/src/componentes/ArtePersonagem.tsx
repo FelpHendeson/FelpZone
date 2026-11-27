@@ -3,8 +3,9 @@
 import { CATALOGO, type Personagem } from "@idle-pu/motor";
 import { cenaDoPersonagem, quadroRaca } from "@/lib/arte";
 import { nomeLocal } from "@/lib/atividade";
-import { animacaoDoPersonagem } from "@/lib/animacaoPersonagem";
+import { visualDaAtividade } from "@/lib/animacaoAtividade";
 import { PersonagemAnimado } from "./PersonagemAnimado";
+import { PersonagemRaster } from "./PersonagemRaster";
 
 export function IlustracaoRaca({ racaId }: { racaId: string }) {
   const q = quadroRaca(racaId);
@@ -15,18 +16,23 @@ export function IlustracaoRaca({ racaId }: { racaId: string }) {
   </span>;
 }
 
-export function CenaPersonagem({ personagem: p, leitura = false }: { personagem: Personagem; leitura?: boolean }) {
+export function CenaPersonagem({ personagem: p, leitura = false, animar = false }: { personagem: Personagem; leitura?: boolean; animar?: boolean }) {
   const cena = cenaDoPersonagem(p);
   const atividade = p.atividade ? CATALOGO.atividades.get(p.atividade.id)?.nome : undefined;
   const situacao = p.limiar ? "No Limiar" : p.viagem ? `A caminho de ${nomeLocal(p.viagem.destinoLocalId)}` : atividade ?? "Descansando";
+  const local = p.limiar ? "O Limiar" : nomeLocal(p.localId);
+  const parametros = { racaId: p.racaId, coreId: p.coreId, corCabeloId: p.aparencia.corCabelo, corRoupaId: p.aparencia.corRoupa };
   return <figure className="cena-personagem" aria-label={`Cena de ${p.nome}`} data-raca={p.racaId} data-cena={cena.id} data-estado={leitura ? "leitura" : cena.estado}>
     <div className="cena-palco">
       <div className="cena-terreno" aria-hidden="true" style={{ backgroundImage: `url("${cena.arquivo}")`, backgroundPosition: cena.posicao, backgroundSize: cena.tamanho }} />
       <span className="cena-sombra" aria-hidden="true" />
-      <div className="cena-ator"><PersonagemAnimado parametros={{ racaId: p.racaId, coreId: p.coreId, corCabeloId: p.aparencia.corCabelo, corRoupaId: p.aparencia.corRoupa }} sequencia={animacaoDoPersonagem(p)} pausado={leitura} lento={!!p.limiar} /></div>
+      <div className="cena-ator">{animar
+        ? <PersonagemAnimado parametros={parametros} {...visualDaAtividade(p)} pausado={leitura} lento={!!p.limiar} />
+        : <PersonagemRaster parametros={parametros} />}
+      </div>
     </div>
     <figcaption><div><h2>{p.nome}</h2><p>Nível {p.nivel} · {CATALOGO.racas.get(p.racaId)?.nome} · {CATALOGO.cores.get(p.coreId)?.nome}</p></div>
-      <div className="cena-situacao"><strong>{leitura ? "Último estado confirmado" : situacao}</strong><span>{p.limiar ? "O Limiar" : nomeLocal(p.localId)}</span></div>
+      <div className="cena-situacao">{animar && <strong>{leitura ? "Último estado confirmado" : situacao}</strong>}<span>{local}</span></div>
     </figcaption>
   </figure>;
 }

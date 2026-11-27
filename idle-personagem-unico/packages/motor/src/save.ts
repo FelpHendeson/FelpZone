@@ -6,15 +6,18 @@
  */
 import { camposIniciaisF12 } from "./competicao/competicao";
 import { tutorialInicial } from "./personagem/tutorial";
+import { expandirLoreComum } from "./personagem/lore";
+import { CATALOGO } from "./dados";
+import { ATIVIDADES_TREINO, CICLO_TREINO_INICIAL_MS } from "./dados/status";
 import { camposIniciaisF11 } from "./mundo/mundo";
 import { camposIniciaisF10 } from "./pets/pets";
 import { COFRE_VAZIO } from "./personagem/cofre";
-import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem, validarConta, type Conta } from "./personagem/conta";
+import { camposIniciaisF3, camposIniciaisF4, camposIniciaisF5, camposIniciaisF6, camposIniciaisF7, camposIniciaisF8, nomeadoDaOrigem, validarConta, validarOrigem, type Conta } from "./personagem/conta";
 import { statusIniciais, type BaseModificadores } from "./personagem/progressao";
 import { ehEstadoRng, estadoDaSemente, TAMANHO_MAXIMO_SEMENTE, type EstadoRng } from "./rng";
 
 /** Versão atual do formato do save. Suba junto com uma migração nova. */
-export const VERSAO_SAVE_ATUAL = 14;
+export const VERSAO_SAVE_ATUAL = 15;
 
 /** Tamanho máximo do save serializado, em bytes UTF-8 (512 KiB). */
 export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
@@ -32,6 +35,8 @@ export const TAMANHO_MAXIMO_SAVE_BYTES = 512 * 1024;
  * v11 (F10): pets (a besta vinculada de quem já tinha vira pet).
  * v12 (F11): mundo vivo (dia/noite, clima, eventos e Crônica).
  * v13 (F12): competição (Arena, torneio e temporada).
+ * v14 (F13.5): guia da jornada por personagem.
+ * v15: treino por níveis, ciclos iniciais mais curtos e lore comum expandida.
  * Próximas fatias acrescentam campos com migração.
  */
 export interface EstadoJogo {
@@ -230,6 +235,23 @@ export const migrarV13ParaV14: Migracao = (dados) => {
   return { ...dados, conta: { ...(conta as object), personagens: personagens.map((p: Record<string, unknown>) => ({ ...p, tutorial: tutorialInicial("pulado") })) } };
 };
 
+/** Preserva a fração do ciclo em curso e expande histórias comuns sem consumir RNG do save. */
+export const migrarV14ParaV15: Migracao = (dados) => {
+  if (!ehObjeto(dados.conta) || !Array.isArray(dados.conta.personagens)) return dados;
+  const personagens = dados.conta.personagens.map((p: unknown) => {
+    if (!ehObjeto(p)) return p;
+    const { atividade, racaId, nome } = p;
+    const origem = typeof racaId === "string" ? validarOrigem(p.origem, racaId) : null;
+    const lore = origem?.tipo === "comum" && typeof racaId === "string" && CATALOGO.racas.has(racaId) && typeof nome === "string"
+      ? expandirLoreComum(origem, racaId, nome) : p.origem;
+    const treino = ehObjeto(atividade) && ATIVIDADES_TREINO.some((a) => a.id === atividade.id);
+    const progresso = treino && typeof atividade.progressoMs === "number" && Number.isSafeInteger(atividade.progressoMs)
+      ? { ...atividade, progressoMs: Math.floor(atividade.progressoMs * CICLO_TREINO_INICIAL_MS / 30_000) } : atividade;
+    return { ...p, origem: lore, atividade: progresso };
+  });
+  return { ...dados, conta: { ...dados.conta, personagens } };
+};
+
 /** Tabela de migrações, indexada pela versão de origem. */
 export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   1: migrarV1ParaV2,
@@ -245,6 +267,7 @@ export const MIGRACOES: Readonly<Record<number, Migracao>> = Object.freeze({
   11: migrarV11ParaV12,
   12: migrarV12ParaV13,
   13: migrarV13ParaV14,
+  14: migrarV14ParaV15,
 });
 
 export type CodigoErroSave =

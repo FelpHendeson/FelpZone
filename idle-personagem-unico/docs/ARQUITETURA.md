@@ -139,6 +139,14 @@ Esboço de tabelas: `contas`, `sessoes`, `personagens(estado jsonb, versao, atua
 
 ## 11. Consolidação pós-auditoria (24/11/2026)
 
+### Atividades e perfil de conta
+
+As atividades de treino abrem uma tela com cenário e níveis. Coleta e produção abrem a tela do ofício. Aprendizado, cuidados de pets, combate e viagem mostram a cena no painel em que são acompanhados. O renderer compõe os quadros raster de cada raça com gestos e adereços do domínio. Na ficha, o personagem permanece parado no cenário do local atual. Movimento reduzido e leitura offline congelam a cena. A barra do treino online estima visualmente o ciclo entre confirmações e o motor do servidor continua calculando o progresso que entra no save.
+
+O save v15 migra a fração do treino em andamento e expande as histórias das origens comuns com uma semente própria. Os fatos sorteados e a sequência do RNG do jogo são preservados.
+
+`GET/POST /api/v1/auth/perfil` consulta ou altera o e-mail opcional da conta autenticada. O endereço não aparece na sessão pública e é removido ao deixar o campo vazio. A recuperação de senha continua com o código de uso único. `POST /api/v1/auth/excluir` exige senha atual, invalida as sessões e tira a build pública da Arena. A conta e o save ficam com expiração de 30 dias no Redis. `POST /api/v1/auth/reativar` confere nome e senha e restaura a mesma identidade e o mesmo save antes do prazo. O login seguinte cria uma nova sessão.
+
 ### Correção dos personagens V2
 
 O renderer geométrico da F13.6 foi rejeitado e retirado. A interface usa `PersonagemRaster`/`renderPersonagem` com Canvas 2D, uma base imagegen com materiais e `aplicarPaleta` puro para preservar iluminação/alpha. Corpo e retrato compartilham a mesma imagem personalizada, com deduplicação e LRU limitado. O motor mantém apenas o contrato de aparência, sem DOM nem código de desenho. Campo de cores/raça, save v14 e API de ações não mudam. APIs SVG de renderização e exports antigos foram removidos. [Fonte, prompt, cache e verificação](PERSONAGENS-V2.md).

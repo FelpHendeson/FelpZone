@@ -189,6 +189,14 @@ O orçamento já cumpre o papel do GDD ("não tirar tudo raro de uma vez") nas c
 
 ## Treino e progressão (F2)
 
+**Revisão dos treinos.** A tabela abaixo registra os ciclos novos, sem modificadores. O bot repetiu o cenário de três sessões diárias no nível 1 e encontrou o nível de personagem 10 em 1,8 dia (36 h ativas), 20 em 13,3 dias (312 h) e 30 em 45,3 dias (1.080 h). Esses números simulam apenas treino e mantêm a taxa anterior de 1.200 XP/h no primeiro nível. Os resultados históricos da F2 continuam abaixo.
+
+| Nível do treino | Ciclo | XP/ciclo | XP/h | Desbloqueio |
+| --- | ---: | ---: | ---: | --- |
+| 1 | 6 s | 2 | 1.200 | Inicial |
+| 2 | 8 s | 3 | 1.350 | 10 ciclos do nível 1 do mesmo treino |
+| 3 | 10 s | 4 | 1.440 | 25 ciclos do nível 2 do mesmo treino |
+
 > **Atenção (F7):** a curva de XP mudou para 150 × L². Os tempos desta seção são da curva antiga; os novos estão na seção da F7.
 
 Fonte dos números: `packages/motor/src/personagem/progressao.ts` (`CONFIG_PROGRESSAO`) e `packages/motor/src/dados/status.ts` (perfis por raça e atividades). Reproduza com:

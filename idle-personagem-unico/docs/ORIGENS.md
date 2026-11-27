@@ -10,9 +10,9 @@ Todos os efeitos são **pequenos e específicos** [Calibrar]: origem dá sabor e
 
 ## 1. Origem comum (gerada por modelo) [Proposta]
 
-Texto final = **berço + anos de estrada + motivação** (+ uma marca opcional). Exemplo:
+O texto combina **berço, memória da infância, anos de estrada, motivação, gancho de jornada e uma marca opcional**. Cada berço e cada motivação têm duas variações. Raça, berço, motivação, anos e marca determinam a combinação. Inserir o nome escolhido mantém a mesma história vista no sorteio.
 
-> *Brenna, nascida num porto de pescadores, há 9 anos na estrada, em busca de uma dívida que não é dela.*
+> *Brenna vem de um porto de pescadores. Ainda lembra de acender a lanterna do cais nas madrugadas sem lua. Há 9 anos na estrada atrás de pagar uma dívida que não é sua. Perto de Pedravau, soube que o credor trocou de endereço sem avisar.*
 
 ### Berço (e bônus de ofício inicial de +1 nível)
 

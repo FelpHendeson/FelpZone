@@ -19,6 +19,7 @@ export type CodigoErroAtividade =
   | "sem_personagem"
   | "atividade_inexistente"
   | "ja_na_atividade"
+  | "treino_bloqueado"
   | "ja_ocioso"
   | "nivel_oficio_insuficiente"
   | "local_inexistente"
@@ -147,6 +148,9 @@ export function iniciarAtividade(estado: EstadoJogo, atividadeId: string, agora:
   return comAtivo(estado, agora, (p) => {
     if (a.tipo === "aprendizado") return erro("habilidade_obrigatoria", "Escolha a habilidade para praticar.");
     if (p.atividade?.id === atividadeId) return erro("ja_na_atividade", "O personagem já está nessa atividade.");
+    if (a.tipo === "treino" && a.requisito && (p.treinos[a.requisito.contador] ?? 0) < a.requisito.ciclos) {
+      return erro("treino_bloqueado", `Complete ${a.requisito.ciclos} ciclos do nível ${a.nivel - 1} primeiro.`);
+    }
     if (a.tipo === "coleta" || a.tipo === "producao") {
       const mods = modificadoresDoPersonagem(p, p.nivel);
       if (nivelEfetivoOficio(p, a.oficio, mods) < a.nivelMinimo) {

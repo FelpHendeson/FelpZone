@@ -6,6 +6,14 @@ export const CHAVE_SAVE_INVALIDO = "idle-pu:save-invalido";
 export const CHAVE_LEGADO = "idle-pu:save-legado";
 export const chaveDaConta = (nome: string) => `idle-pu:conta:${encodeURIComponent(nome.toLowerCase())}`;
 
+export async function descartarCacheDaConta(armazenamento: Armazenamento, nome: string, id?: string) {
+  const chaves = new Set([chaveDaConta(nome), chaveDaConta(id ?? nome)]);
+  for (const chave of chaves) {
+    await armazenamento.remover(chave);
+    await armazenamento.remover(`${chave}:pendente`);
+  }
+}
+
 /** Migração de cache por nome para identidade imutável, sem promover dados locais ao servidor. */
 export async function migrarCacheDaConta(armazenamento: Armazenamento, nome: string, id: string): Promise<void> {
   const antiga = chaveDaConta(nome);

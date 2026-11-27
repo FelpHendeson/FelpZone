@@ -6,7 +6,7 @@
  */
 import { registrarNaCronica } from "../mundo/mundo";
 import { comAtivo, erro, falha, type ResultadoAtividade } from "../atividades/acoes";
-import { CATALOGO, CONFIG_GUILDA, OFICIOS, RANK_MAXIMO_ATO_I, RANKS, obter, type Missao, type Objetivo } from "../dados";
+import { CATALOGO, CONFIG_GUILDA, OFICIOS, RANK_MAXIMO_ATO_I, RANKS, STATUS, obter, type Missao, type Objetivo } from "../dados";
 import type { Personagem } from "../personagem/conta";
 import { adicionarItens, capacidadeMochila } from "../personagem/mochila";
 import { aplicarXp, fator, modificadoresDoPersonagem } from "../personagem/progressao";
@@ -23,7 +23,7 @@ export function valorDoObjetivo(p: Personagem, o: Objetivo): number {
     case "obter":
       return o.itens.reduce((s, id) => s + (p.obtidos[id] ?? 0), 0);
     case "treinar":
-      return o.status ? (p.treinos[o.status] ?? 0) : Object.values(p.treinos).reduce((s, n) => s + n, 0);
+      return o.status ? (p.treinos[o.status] ?? 0) : STATUS.reduce((s, id) => s + (p.treinos[id] ?? 0), 0);
     case "limiar":
       return p.mortes;
     case "nivel":

@@ -11,15 +11,18 @@ import {
   nivelEfetivoOficio,
   xpParaProximoNivelOficio,
   type Personagem,
+  type OficioProducaoId,
 } from "@idle-pu/motor";
 import { useState } from "react";
 import { ciclosPossiveis, estimarAtividade, formatarDuracao, formatarNumero, nomeSubarea } from "@/lib/atividade";
 import type { Agir } from "./acoes";
 import { bonusDe } from "./PainelEquipamento";
+import { CenaPersonagem } from "./ArtePersonagem";
 
 interface PropsProducao {
   readonly personagem: Personagem;
   readonly ocupado: boolean;
+  readonly leitura: boolean;
   readonly aoIniciar: (atividadeId: string) => void;
   readonly aoParar: () => void;
 }
@@ -27,80 +30,87 @@ interface PropsProducao {
 const nomeItem = (id: string) => CATALOGO.itens.get(id)?.nome ?? id;
 
 /** Atividades → Produção: Ferreiro, Alquimista e Cozinheiro (GDD §6.3). */
-export function PainelProducao({ personagem: p, ocupado, aoIniciar, aoParar }: PropsProducao) {
+export function PainelProducao({ personagem: p, ocupado, leitura, aoIniciar, aoParar }: PropsProducao) {
+  const atividade = RECEITAS.find((a) => a.id === p.atividade?.id);
+  const [oficio, escolher] = useState<OficioProducaoId | null>(atividade?.oficio ?? null);
   const mods = modificadoresDoPersonagem(p, p.nivel);
+  if (oficio === null) return <section className="painel grade-atividades" aria-label="Ofícios de produção">
+    {OFICIOS_PRODUCAO.map((o) => <button key={o} className="cartao escolha-atividade" type="button" onClick={() => escolher(o)}>
+      <span className="escolha-status">Nível {nivelEfetivoOficio(p, o, mods)}{o === atividade?.oficio && (p.viagem ? " · Em viagem" : " · Executando")}</span>
+      <strong>{NOME_OFICIO_PRODUCAO[o]}</strong>
+    </button>)}
+  </section>;
+  const o = oficio;
+  const prog = p.oficiosProducao[o];
+  const efetivo = nivelEfetivoOficio(p, o, mods);
+  const proximo = xpParaProximoNivelOficio(prog.nivel);
   return (
-    <section className="painel" aria-label="Produção">
+    <section className="painel detalhe-atividade" aria-label="Produção">
+      <button type="button" className="link detalhe-retorno" onClick={() => escolher(null)}>← Todos os ofícios de produção</button>
+      <CenaPersonagem personagem={p} animar={atividade?.oficio === oficio} leitura={leitura} />
       <p className="suave nota">A produção é em Pedravau e consome materiais da mochila. Sem material (ou sem espaço), o personagem para.</p>
-      {OFICIOS_PRODUCAO.map((o) => {
-        const prog = p.oficiosProducao[o];
-        const efetivo = nivelEfetivoOficio(p, o, mods);
-        const proximo = xpParaProximoNivelOficio(prog.nivel);
-        return (
-          <article key={o} className="cartao oficio">
-            <header className="nivel-linha">
-              <h3>
-                {NOME_OFICIO_PRODUCAO[o]} {efetivo}
-              </h3>
-              <span className="suave">{proximo > 0 ? `${formatarNumero(Math.floor(prog.xp), 0)} / ${formatarNumero(proximo, 0)} XP` : "Máximo"}</span>
-            </header>
-            {proximo > 0 && (
-              <div
-                className="progresso"
-                role="progressbar"
-                aria-label={`XP de ${NOME_OFICIO_PRODUCAO[o]}`}
-                aria-valuemin={0}
-                aria-valuemax={100}
-                aria-valuenow={Math.round((prog.xp / proximo) * 100)}
-              >
-                <div className="progresso-preenchido progresso-xp" style={{ width: `${(prog.xp / proximo) * 100}%` }} />
-              </div>
-            )}
-            <ul className="lista-recursos">
-              {RECEITAS.filter((r) => r.oficio === o).map((r) => {
-                const bloqueado = efetivo < r.nivelMinimo;
-                const atual = p.atividade?.id === r.id;
-                const possiveis = ciclosPossiveis(p, r);
-                const e = estimarAtividade(p, r.id);
-                return (
-                  <li key={r.id} className={`recurso${atual ? " treino-atual" : ""}${bloqueado ? " bloqueado" : ""}`}>
-                    <div>
-                      <strong>{r.nome}</strong> <span className="suave">· {nomeSubarea(r.localId, r.subareaId)}</span>
-                      <p className="suave">
-                        Pede:{" "}
-                        {r.entradas.map((x, i) => (
-                          <span key={x.itemId} className={(p.mochila[x.itemId] ?? 0) < x.quantidade ? "erro" : undefined}>
-                            {i > 0 && ", "}
-                            {x.quantidade} {nomeItem(x.itemId)} ({formatarNumero(p.mochila[x.itemId] ?? 0, 0)})
-                          </span>
-                        ))}
-                      </p>
-                      {bloqueado ? (
-                        <p className="suave">
-                          Exige {NOME_OFICIO_PRODUCAO[o]} {r.nivelMinimo}.
-                        </p>
-                      ) : (
-                        <p className="suave">
-                          {formatarDuracao(e.duracaoMs)} por ciclo · {formatarNumero(e.xpOficioPorHora, 0)} XP de ofício/h · materiais para {possiveis} ciclo{possiveis === 1 ? "" : "s"}
-                        </p>
-                      )}
-                    </div>
-                    {atual ? (
-                      <button type="button" className="botao" disabled={ocupado} onClick={aoParar}>
-                        Parar
-                      </button>
-                    ) : (
-                      <button type="button" className="botao botao-principal" disabled={ocupado || bloqueado || possiveis === 0} onClick={() => aoIniciar(r.id)}>
-                        {bloqueado ? "Bloqueado" : possiveis === 0 ? "Sem material" : "Produzir"}
-                      </button>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </article>
-        );
-      })}
+      <article className="cartao oficio">
+        <header className="nivel-linha">
+          <h3>
+            {NOME_OFICIO_PRODUCAO[o]} {efetivo}
+          </h3>
+          <span className="suave">{proximo > 0 ? `${formatarNumero(Math.floor(prog.xp), 0)} / ${formatarNumero(proximo, 0)} XP` : "Máximo"}</span>
+        </header>
+        {proximo > 0 && (
+          <div
+            className="progresso"
+            role="progressbar"
+            aria-label={`XP de ${NOME_OFICIO_PRODUCAO[o]}`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round((prog.xp / proximo) * 100)}
+          >
+            <div className="progresso-preenchido progresso-xp" style={{ width: `${(prog.xp / proximo) * 100}%` }} />
+          </div>
+        )}
+        <ul className="lista-recursos">
+          {RECEITAS.filter((r) => r.oficio === o).map((r) => {
+            const bloqueado = efetivo < r.nivelMinimo;
+            const atual = p.atividade?.id === r.id;
+            const possiveis = ciclosPossiveis(p, r);
+            const e = estimarAtividade(p, r.id);
+            return (
+              <li key={r.id} className={`recurso${atual ? " treino-atual" : ""}${bloqueado ? " bloqueado" : ""}`}>
+                <div>
+                  <strong>{r.nome}</strong> <span className="suave">· {nomeSubarea(r.localId, r.subareaId)}{atual && (p.viagem ? " · Em viagem" : " · Executando")}</span>
+                  <p className="suave">
+                    Pede:{" "}
+                    {r.entradas.map((x, i) => (
+                      <span key={x.itemId} className={(p.mochila[x.itemId] ?? 0) < x.quantidade ? "erro" : undefined}>
+                        {i > 0 && ", "}
+                        {x.quantidade} {nomeItem(x.itemId)} ({formatarNumero(p.mochila[x.itemId] ?? 0, 0)})
+                      </span>
+                    ))}
+                  </p>
+                  {bloqueado ? (
+                    <p className="suave">
+                      Exige {NOME_OFICIO_PRODUCAO[o]} {r.nivelMinimo}.
+                    </p>
+                  ) : (
+                    <p className="suave">
+                      {formatarDuracao(e.duracaoMs)} por ciclo · {formatarNumero(e.xpOficioPorHora, 0)} XP de ofício/h · materiais para {possiveis} ciclo{possiveis === 1 ? "" : "s"}
+                    </p>
+                  )}
+                </div>
+                {atual ? (
+                  <button type="button" className="botao" disabled={ocupado} onClick={aoParar}>
+                    Parar
+                  </button>
+                ) : (
+                  <button type="button" className="botao botao-principal" disabled={ocupado || bloqueado || possiveis === 0} onClick={() => aoIniciar(r.id)}>
+                    {bloqueado ? "Bloqueado" : possiveis === 0 ? "Sem material" : "Produzir"}
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </article>
     </section>
   );
 }

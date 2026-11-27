@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ArmazemMemoria } from "./armazem";
-import { entrar, gerarRecuperacao, hashToken, migrarSessao, recuperar, registrar, sessaoAtual, sair } from "./autenticacao";
+import { entrar, excluirConta, gerarRecuperacao, hashToken, migrarSessao, obterPerfil, reativarConta, recuperar, registrar, salvarPerfil, sessaoAtual, sair } from "./autenticacao";
 import { iniciarJogoOnline, obterJogo, prontidao, saude } from "./api";
 import { responder } from "./rota";
 import type { Pedido } from "./contrato";
@@ -13,6 +13,44 @@ async function conta(a: ArmazemMemoria, nome = "ana") {
 }
 const post = (path: string, corpo: unknown, cookie?: string, id?: string, origin = "https://jogo.test") => new Request(`https://jogo.test/api/v1/${path}`, {
   method: "POST", headers: { "content-type": "application/json", "x-idle-web": "1", origin, ...(cookie ? { cookie } : {}), ...(id ? { "x-idle-conta": id } : {}) }, body: JSON.stringify(corpo),
+});
+
+describe("gestão de conta", () => {
+  it("guarda e remove e-mail no perfil privado vinculado à conta", async () => {
+    const a = new ArmazemMemoria(() => T0);
+    const r = await registrar(a, pedido({ nome: "ana", senha: "senha-forte", email: "ana@example.test" }));
+    const token = r.corpo.token as string;
+    expect(r.corpo.conta).not.toHaveProperty("email");
+    expect((await obterPerfil(a, pedido({}, token))).corpo).toEqual({ email: "ana@example.test" });
+    expect((await obterPerfil(a, { ...pedido({}, token), contaEsperada: "outra" })).status).toBe(401);
+    expect((await salvarPerfil(a, pedido({ email: "inválido" }, token))).status).toBe(400);
+    expect((await salvarPerfil(a, pedido({ email: "" }, token))).corpo).toEqual({ email: null });
+  });
+
+  it("revoga sessões e build, reativa o mesmo save e expira a conta excluída definitivamente", async () => {
+    let agora = T0;
+    const a = new ArmazemMemoria(() => agora);
+    const c = await conta(a);
+    const credenciais = { nome: "ana", senha: "senha-forte" };
+    await iniciarJogoOnline(a, pedido({}, c.token));
+    await a.gravar("arena:builds", JSON.stringify([{ contaId: c.id }, { contaId: "outra" }]));
+    const salvo = await a.obter(`save:${c.id}`);
+    expect((await excluirConta(a, pedido({ senha: "errada!" }, c.token))).status).toBe(401);
+    const excluida = await excluirConta(a, pedido(credenciais, c.token));
+    expect(excluida).toMatchObject({ status: 200, encerrarSessao: true });
+    expect(await a.obter("arena:builds")).toBe(JSON.stringify([{ contaId: "outra" }]));
+    expect((await obterJogo(a, pedido({}, c.token))).status).toBe(401);
+    expect((await entrar(a, pedido(credenciais))).status).toBe(403);
+    expect((await reativarConta(a, pedido(credenciais))).status).toBe(200);
+    expect(await a.obter(`save:${c.id}`)).toBe(salvo);
+    expect((await obterJogo(a, pedido({}, c.token))).status).toBe(401);
+    const nova = await entrar(a, pedido(credenciais));
+    expect((await excluirConta(a, pedido(credenciais, nova.corpo.token as string))).status).toBe(200);
+    agora = Number(excluida.corpo.excluidaAte);
+    expect((await reativarConta(a, { ...pedido(credenciais), agora })).status).toBe(401);
+    expect(await a.obter("conta:ana")).toBeNull();
+    expect(await a.obter(`save:${c.id}`)).toBeNull();
+  });
 });
 
 describe("recuperação e identidade persistente", () => {

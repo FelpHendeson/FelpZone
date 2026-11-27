@@ -1094,6 +1094,21 @@ ol.lista-recursos {
 .cena-situacao { display: flex; flex-direction: column; gap: .4rem; font-size: .85rem; }
 .cena-situacao strong { color: var(--destaque); font-weight: 500; }
 .cena-situacao span { color: var(--texto-suave); }
+.grade-atividades { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 15rem), 1fr)); gap: .8rem; }
+.escolha-atividade { display: flex; flex-direction: column; align-items: flex-start; gap: .5rem; padding: 1rem; text-align: left; font: inherit; color: inherit; cursor: pointer; }
+.escolha-atividade:hover, .escolha-atividade:focus-visible { border-color: var(--destaque); }
+.escolha-atividade strong { font: 1.25rem Georgia, serif; }
+.escolha-status { font-size: .75rem; color: var(--destaque); }
+.detalhe-atividade { display: grid; gap: .9rem; }
+.detalhe-atividade-topo { display: grid; justify-items: start; gap: .5rem; scroll-margin-top: calc(var(--altura-topo, 7rem) + 1rem); }
+.detalhe-atividade-topo :is(h2, p) { margin: 0; }
+.detalhe-retorno { justify-self: start; }
+.treino-medida { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; }
+.detalhe-atividade .lista-treinos { margin: 0; }
+@media (prefers-reduced-motion: no-preference) {
+  .progresso-estimado { animation: completar-progresso linear forwards; }
+}
+@keyframes completar-progresso { to { width: 100%; } }
 @media (min-width: 600px) {
   .sprite-personagem { width: 192px; height: 192px; }
   .cena-sombra { width: 6rem; }

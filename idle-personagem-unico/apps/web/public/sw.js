@@ -4,7 +4,7 @@
  * - Arquivos estáticos do Next (com hash no nome): cache primeiro.
  * - API: nunca em cache. */
 const PREFIXO = "idle-pu-";
-const VERSAO = "idle-pu-animacoes-v1";
+const VERSAO = "idle-pu-atividades-v2";
 const ESSENCIAIS = ["/", "/manifest.webmanifest", "/icones/icone-192.png", "/icones/icone-512.png"];
 
 self.addEventListener("install", (e) => {

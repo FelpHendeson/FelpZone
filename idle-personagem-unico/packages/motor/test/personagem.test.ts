@@ -105,9 +105,12 @@ describe("criação do personagem", () => {
 
   it("lore comum usa nome, berço, anos e motivação; especial usa a lore escrita", () => {
     const comum = gerarLoreOrigem({ tipo: "comum", bercoId: "porto-de-pescadores", motivacaoId: "divida", marcaId: null, anosDeEstrada: 9 }, "humano", "Brenna");
-    expect(comum).toBe("Brenna vem de um porto de pescadores. Há 9 anos na estrada atrás de pagar uma dívida que não é sua.");
+    expect(comum).toContain("Brenna vem de um porto de pescadores.");
+    expect(comum).toContain("Há 9 anos na estrada atrás de pagar uma dívida que não é sua.");
+    expect(comum).toContain("lanterna do cais");
     const elfo = gerarLoreOrigem({ tipo: "comum", bercoId: "vila-rural", motivacaoId: "renome", marcaId: "nome-falso", anosDeEstrada: 1 }, "elfo", null);
-    expect(elfo).toBe("Vem de uma vila rural. Há 1 ano na estrada, quase nada para um povo tão longevo, em busca de renome. O nome que usa não é o de nascimento.");
+    expect(elfo).toContain("Há 1 ano na estrada, quase nada para um povo tão longevo, em busca de renome.");
+    expect(elfo).toContain("O nome que usa não é o de nascimento.");
     expect(gerarLoreOrigem({ tipo: "especial", id: "fruto-do-vinculo" }, "elfo", "X")).toBe(CATALOGO.origensEspeciais.get("fruto-do-vinculo")!.lore);
   });
 

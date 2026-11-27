@@ -8,7 +8,7 @@ import { DONS } from "./dons";
 import { montarMarcaAnomalia } from "./marcas";
 import { BERCOS, BESTAS_VINCULADAS, MARCAS_ORIGEM, MOTIVACOES, ORIGENS_ESPECIAIS, TRACOS_PERSONALIDADE } from "./origens";
 import { RACAS } from "./racas";
-import { ATIVIDADES_TREINO, type AtividadeTreino } from "./status";
+import { TODOS_OS_TREINOS, type AtividadeTreino } from "./status";
 import { ATIVIDADES_COLETA, FERRAMENTAS, ITENS, type AtividadeColeta, type Ferramenta, type Item } from "./coleta";
 import { LOCAIS, REGIOES, type Local, type Regiao } from "./mapa";
 import { AREAS_COMBATE, EQUIPAMENTOS, MATERIAIS_COMBATE, MONSTROS, type AtividadeCombate, type Monstro } from "./combate";
@@ -42,7 +42,7 @@ const TODOS_ITENS: readonly Item[] = [...ITENS, ...MATERIAIS_COMBATE, ...EQUIPAM
 export type Atividade = AtividadeTreino | AtividadeColeta | AtividadeCombate | AtividadeAprendizado | AtividadeProducao | AtividadeCuidado;
 /** Atividades por ciclos (treino, coleta e aprendizado). */
 export type AtividadeCiclica = AtividadeTreino | AtividadeColeta | AtividadeAprendizado | AtividadeProducao | AtividadeCuidado;
-const ATIVIDADES: readonly Atividade[] = [...ATIVIDADES_TREINO, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO, ...RECEITAS, ...CUIDADOS];
+const ATIVIDADES: readonly Atividade[] = [...TODOS_OS_TREINOS, ...ATIVIDADES_COLETA, ...AREAS_COMBATE, ATIVIDADE_APRENDIZADO, ...RECEITAS, ...CUIDADOS];
 import type {
   Berco,
   BestaVinculada,
@@ -127,7 +127,7 @@ export function donsDaRaca(racaId: string): readonly DomRaca[] {
   return DONS.filter((d) => d.racaId === racaId);
 }
 
-export { ATIVIDADES_TREINO, NOME_STATUS, PERFIS_RACA, STATUS } from "./status";
+export { ATIVIDADES_TREINO, TODOS_OS_TREINOS, NOME_STATUS, PERFIS_RACA, STATUS } from "./status";
 export type { AtividadeTreino, PerfilRaca, StatusId } from "./status";
 export { ATIVIDADES };
 

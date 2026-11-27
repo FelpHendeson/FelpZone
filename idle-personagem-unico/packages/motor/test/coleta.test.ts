@@ -322,7 +322,7 @@ describe("save v4", () => {
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(r.migradoDe).toBe(3);
-    expect(r.estado.conta.personagens[0]).toMatchObject({ ...camposIniciaisF3(), subareaId: "campo-de-treino", atividade: { id: "meditacao", progressoMs: 10 } });
+    expect(r.estado.conta.personagens[0]).toMatchObject({ ...camposIniciaisF3(), subareaId: "campo-de-treino", atividade: { id: "meditacao", progressoMs: 2 } });
   });
 
   it("rejeita lugar, viagem, mochila, gold, ofício ou ferramenta adulterados", () => {

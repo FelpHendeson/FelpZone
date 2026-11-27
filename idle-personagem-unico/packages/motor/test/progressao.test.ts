@@ -139,12 +139,12 @@ describe("ciclos e atividades", () => {
 
   it("um ciclo só conta inteiro; o resto fica guardado", () => {
     const e = treinando();
-    const quase = avancar(e, T0 + 29_999);
+    const quase = avancar(e, T0 + 5_999);
     expect(quase.resumo.ciclos).toBe(0);
-    expect(ativo(quase.estado).atividade).toEqual({ id: "levantamento-de-pedras", progressoMs: 29_999 });
-    const um = avancar(quase.estado, T0 + 30_001);
+    expect(ativo(quase.estado).atividade).toEqual({ id: "levantamento-de-pedras", progressoMs: 5_999 });
+    const um = avancar(quase.estado, T0 + 6_001);
     expect(um.resumo.ciclos).toBe(1);
-    expect(um.resumo.xp).toBe(10);
+    expect(um.resumo.xp).toBe(2);
     expect(ativo(um.estado).atividade?.progressoMs).toBe(1);
     expect(ativo(um.estado).status.forca).toBeGreaterThan(ativo(e).status.forca);
     // Só o status treinado sobe.
@@ -152,10 +152,10 @@ describe("ciclos e atividades", () => {
   });
 
   it("uma atividade por vez: trocar descarta o ciclo parcial", () => {
-    const e = avancar(treinando(), T0 + 20_000).estado;
-    const trocado = ok(iniciarAtividade(e, "meditacao", T0 + 20_000));
+    const e = avancar(treinando(), T0 + 5_000).estado;
+    const trocado = ok(iniciarAtividade(e, "meditacao", T0 + 5_000));
     expect(ativo(trocado).atividade).toEqual({ id: "meditacao", progressoMs: 0 });
-    const parado = ok(pararAtividade(trocado, T0 + 50_000));
+    const parado = ok(pararAtividade(trocado, T0 + 11_000));
     // O tempo até parar conta para a meditação (1 ciclo).
     expect(ativo(parado).status.espirito).toBeGreaterThan(ativo(e).status.espirito);
     expect(ativo(parado).atividade).toBeNull();
@@ -173,8 +173,8 @@ describe("ciclos e atividades", () => {
   it("velocidade encurta o ciclo (Corpo de Vento do Silfo)", () => {
     const silfo = personagem({ racaId: "silfo" });
     const a = CATALOGO.atividades.get("meditacao") as AtividadeCiclica;
-    expect(duracaoCicloMs(personagem(), a, modificadoresDoPersonagem(personagem(), 1))).toBe(30_000);
-    expect(duracaoCicloMs(silfo, a, modificadoresDoPersonagem(silfo, 1))).toBe(Math.round(30_000 / 1.1));
+    expect(duracaoCicloMs(personagem(), a, modificadoresDoPersonagem(personagem(), 1))).toBe(6_000);
+    expect(duracaoCicloMs(silfo, a, modificadoresDoPersonagem(silfo, 1))).toBe(Math.round(6_000 / 1.1));
   });
 
   it("subir de nível não tira nada e leva quem estava abaixo ao novo piso", () => {
@@ -209,7 +209,10 @@ describe("avanço do tempo e offline", () => {
     for (let semente = 0; semente < 30; semente++) {
       const rng = Rng.daSemente(`particao-${semente}`);
       const raca = RACAS[semente % RACAS.length]!.id;
-      const inicio = ok(iniciarAtividade(estadoCom(personagem({ racaId: raca })), atividades[semente % atividades.length]!, T0));
+      const id = atividades[semente % atividades.length]!;
+      const a = CATALOGO.atividades.get(id);
+      const treinos = a?.tipo === "treino" && a.requisito ? { [a.requisito.contador]: a.requisito.ciclos } : {};
+      const inicio = ok(iniciarAtividade(estadoCom({ ...personagem({ racaId: raca }), treinos }), id, T0));
       const total = rng.inteiro(1, LIMITE_OFFLINE_MS);
       const direto = avancar(inicio, T0 + total).estado;
       let partes = inicio;
@@ -266,7 +269,7 @@ describe("avanço do tempo e offline", () => {
   it("resumo soma os ganhos e os níveis", () => {
     const inicio = treinando();
     const { estado, resumo } = avancar(inicio, T0 + 2 * HORA);
-    expect(resumo.ciclos).toBe(240);
+    expect(resumo.ciclos).toBe(1200);
     expect(resumo.xp).toBe(2400);
     expect(resumo.nivelInicial).toBe(1);
     expect(resumo.nivelFinal).toBe(ativo(estado).nivel);
@@ -280,6 +283,18 @@ describe("avanço do tempo e offline", () => {
     avancar(inicio, T0 + LIMITE_OFFLINE_MS);
     expect(performance.now() - t).toBeLessThan(50);
   });
+});
+
+it("só libera níveis de treino após concluir os ciclos exigidos no nível anterior", () => {
+  const inicial = treinando();
+  const segundo = "levantamento-de-pedras-2";
+  const terceiro = "levantamento-de-pedras-3";
+  expect(iniciarAtividade(inicial, segundo, T0 + 59_999)).toMatchObject({ ok: false, erro: { codigo: "treino_bloqueado" } });
+  const ativoDois = ok(iniciarAtividade(inicial, segundo, T0 + 60_000));
+  expect(iniciarAtividade(ativoDois, terceiro, T0 + 259_999)).toMatchObject({ ok: false, erro: { codigo: "treino_bloqueado" } });
+  const ativoTres = ok(iniciarAtividade(ativoDois, terceiro, T0 + 260_000));
+  expect(ativo(ativoTres).treinos).toMatchObject({ forca: 35, [segundo]: 25 });
+  expect(ativo(ativoTres).atividade?.id).toBe(terceiro);
 });
 
 describe("modificadores de raça, origem e dom aplicados", () => {

@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { ArmazemUpstash } from "../src/servidor/armazem";
-import { entrar, recuperar, registrar } from "../src/servidor/autenticacao";
+import { ArmazemUpstash, PREFIXO } from "../src/servidor/armazem";
+import { entrar, excluirConta, obterPerfil, reativarConta, recuperar, registrar } from "../src/servidor/autenticacao";
 import { acao, iniciarJogoOnline, obterJogo, prontidao } from "../src/servidor/api";
-import { abrirRedisLocal } from "./redisLocal";
+import { abrirRedisLocal, comandoRedis } from "./redisLocal";
 import { ATIVIDADES_TREINO, CORES_CABELO, CORES_ROUPA, carregarSave, personagemAtivo } from "@idle-pu/motor";
 
 let redis: Awaited<ReturnType<typeof abrirRedisLocal>>;
@@ -69,5 +69,29 @@ describe("persistência com Redis real e Lua", () => {
     expect(await banco.obter("teste:recibo")).toBeNull();
     await banco.apagarSeIgual("teste:trava", "dono-anterior");
     expect(await banco.obter("teste:trava")).toBe("dono-atual");
+  });
+
+  it("expira conta e save no Redis e remove ambos os prazos ao recuperar", async () => {
+    const credenciais = { nome: "gestao", senha: "senha-forte", email: "jogador@example.test" };
+    const gestao = (token: string | null, corpo: unknown = credenciais) => ({ ...pedido(token, corpo), ip: "gestao" });
+    const registro = await registrar(banco, gestao(null));
+    expect(registro.status).toBe(201);
+    const token = registro.corpo.token as string;
+    const id = (registro.corpo.conta as { id: string }).id;
+    const original = await iniciarJogoOnline(banco, gestao(token, {}));
+    expect(original.status).toBe(200);
+    expect((await excluirConta(banco, gestao(token))).status).toBe(200);
+    const chaves = ["conta:gestao", `save:${id}`];
+    for (const chave of chaves) {
+      const ttl = await comandoRedis(redis.porta, ["TTL", PREFIXO + chave]);
+      expect(ttl).toBeGreaterThan(30 * 86_400 - 5);
+    }
+    expect((await reativarConta(banco, gestao(null))).status).toBe(200);
+    for (const chave of chaves) expect(await comandoRedis(redis.porta, ["TTL", PREFIXO + chave])).toBe(-1);
+    expect((await obterJogo(banco, gestao(token))).status).toBe(401);
+    const entrada = await entrar(banco, gestao(null));
+    const novoToken = entrada.corpo.token as string;
+    expect((await obterPerfil(banco, gestao(novoToken))).corpo).toEqual({ email: "jogador@example.test" });
+    expect((await obterJogo(banco, gestao(novoToken))).corpo.save).toBe(original.corpo.save);
   });
 });

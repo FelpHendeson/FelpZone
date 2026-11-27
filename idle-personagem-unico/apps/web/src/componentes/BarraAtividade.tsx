@@ -3,16 +3,18 @@ import { CATALOGO, NOME_STATUS, type Personagem, relogioDoSistema } from "@idle-
 import { combateDe, estimarAtividade, formatarDuracao, formatarNumero, nomeLocal, nomeSubarea, situacaoMochila } from "@/lib/atividade";
 import { BarraVida } from "./BarraVida";
 
-function Progresso({ valor, rotulo }: { valor: number; rotulo: string }) {
+function Progresso({ valor, rotulo, animacao }: { valor: number; rotulo: string; animacao?: { confirmadoEm: number; restanteMs: number } }) {
+  const percentual = Math.max(0, Math.min(1, valor)) * 100;
   return (
-    <div className="progresso" role="progressbar" aria-label={rotulo} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(valor * 100)}>
-      <div className="progresso-preenchido" style={{ width: `${Math.min(1, valor) * 100}%` }} />
+    <div className="progresso" role="progressbar" aria-label={rotulo} aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(percentual)}>
+      <div key={animacao?.confirmadoEm ?? "estatico"} className={`progresso-preenchido${animacao ? " progresso-estimado" : ""}`}
+        style={{ width: `${percentual}%`, animationDuration: animacao ? `${animacao.restanteMs}ms` : undefined }} />
     </div>
   );
 }
 
 /** Barra fixa da atividade atual (GDD §16), com viagem, gold e aviso de mochila cheia. */
-export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
+export function BarraAtividade({ personagem: p, tickOnline }: { personagem: Personagem; tickOnline: number | null }) {
   const mochila = situacaoMochila(p);
   const extras = (
     <span className="barra-extras">
@@ -131,7 +133,8 @@ export function BarraAtividade({ personagem: p }: { personagem: Personagem }) {
           {ganho} · {formatarNumero(e.xpPorHora, 0)} XP/h
         </span>
       </div>
-      <Progresso valor={atual.progressoMs / e.duracaoMs} rotulo="Progresso do ciclo" />
+      <Progresso valor={atual.progressoMs / e.duracaoMs} rotulo="Progresso do ciclo"
+        {...(a.tipo === "treino" && tickOnline !== null ? { animacao: { confirmadoEm: tickOnline, restanteMs: Math.max(0, e.duracaoMs - atual.progressoMs) } } : {})} />
     </div>
   );
 }

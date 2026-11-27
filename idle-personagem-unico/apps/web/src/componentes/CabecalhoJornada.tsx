@@ -5,13 +5,15 @@ import { useEffect, useRef } from "react";
 import type { Sessao } from "@/lib/sync";
 import type { SituacaoConta } from "@/lib/clienteConta";
 import { situacaoMochila } from "@/lib/atividade";
-import { destinoDaAtividade, type DestinoJogo } from "@/lib/navegacao";
+import type { DestinoJogo } from "@/lib/navegacao";
 import { Miniatura } from "./Miniatura";
 import { BarraAtividade } from "./BarraAtividade";
 
-export function CabecalhoJornada({ personagem: p, sessao, situacao, aoPersonagens, aoConta, aoDestino, aoSincronizar }: {
+export function CabecalhoJornada({ personagem: p, sessao, situacao, tickOnline, aoPersonagens, aoConta, aoDestino, aoVerAtividade, aoSincronizar }: {
   personagem: Personagem; sessao: Sessao | null; situacao: SituacaoConta | null;
+  tickOnline: number | null;
   aoPersonagens: () => void; aoConta: () => void; aoDestino: (destino: DestinoJogo) => void; aoSincronizar: () => void;
+  aoVerAtividade: () => void;
 }) {
   const topo = useRef<HTMLElement>(null);
   useEffect(() => {
@@ -39,9 +41,9 @@ export function CabecalhoJornada({ personagem: p, sessao, situacao, aoPersonagen
       {conexao === "expirado" && <button type="button" className="link" onClick={aoConta}>Entrar novamente</button>}
     </div>
     <div className="jornada-atividade">
-      <BarraAtividade personagem={p} />
+      <BarraAtividade personagem={p} tickOnline={tickOnline} />
       <div className="jornada-atalhos">
-        <button type="button" className="link" onClick={() => aoDestino(destinoDaAtividade(p))}>{p.limiar ? "Abrir O Limiar" : p.viagem ? "Acompanhar viagem" : p.atividade ? "Ver atividade" : "Escolher atividade"}</button>
+        <button type="button" className="link" onClick={aoVerAtividade}>{p.limiar ? "Abrir O Limiar" : p.viagem ? "Acompanhar viagem" : p.atividade ? "Ver atividade" : "Escolher atividade"}</button>
         {mochila.cheia && <button type="button" className="link" onClick={() => aoDestino({ aba: "mochila", sub: 3 })}>Abrir materiais</button>}
         <button type="button" className="link" id="atalho-guia" onClick={() => aoDestino({ aba: "personagem", sub: 6 })}>Guia</button>
       </div>

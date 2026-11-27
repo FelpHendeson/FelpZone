@@ -1,12 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { CATALOGO, type Personagem } from "@idle-pu/motor";
+import { ATIVIDADES_TREINO, CATALOGO, type Personagem } from "@idle-pu/motor";
 import { animacaoDoPersonagem, quadroNoTempo, SEQUENCIAS } from "./animacaoPersonagem";
+import { visualDaAtividade } from "./animacaoAtividade";
 
 const parado = { limiar: null, viagem: null, atividade: null };
 describe("animação do estado confirmado", () => {
   it("repousa sem atividade e caminha somente em viagem", () => {
     expect(animacaoDoPersonagem(parado)).toBe("repouso");
     expect(animacaoDoPersonagem({ ...parado, viagem: {} as NonNullable<Personagem["viagem"]> })).toBe("caminhada");
+  });
+  it("cada treino tem um gesto próprio e a viagem prevalece até chegar", () => {
+    const visuais = ATIVIDADES_TREINO.map((a) => visualDaAtividade({ ...parado, atividade: { id: a.id, progressoMs: 0 } }));
+    expect(new Set(visuais.map((v) => v.gesto)).size).toBe(ATIVIDADES_TREINO.length);
+    expect(visuais[0]).toMatchObject({ gesto: "corrida", sequencia: "caminhada", cadencia: 1.7 });
+    expect(visuais[1]).toMatchObject({ gesto: "pedras" });
+    expect(visualDaAtividade({ ...parado, atividade: { id: "corrida-de-folego", progressoMs: 0 }, viagem: {} as NonNullable<Personagem["viagem"]> })).toEqual({ sequencia: "caminhada" });
   });
   it("não inventa ataques durante busca, recuo ou recomposição", () => {
     for (const a of CATALOGO.atividades.values()) {

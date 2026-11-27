@@ -177,7 +177,7 @@ export interface Personagem {
   readonly pedagioGratisUsado: boolean;
   /** F7: itens obtidos em atividades (contador para missões). */
   readonly obtidos: Readonly<Record<string, number>>;
-  /** F7: ciclos de treino por status (contador para missões). */
+  /** Ciclos por status para missões e por ID de treino de nível 2 para desbloqueios. */
   readonly treinos: Readonly<Record<string, number>>;
   /** F7: missões ativas (com o contador no momento em que começaram), concluídas e esperas. */
   readonly missoes: EstadoMissoes;
@@ -279,7 +279,7 @@ function validarSorteio(v: unknown): EstadoSorteio | null {
   return { maxTentativas, historico: limpo, aceito };
 }
 
-function validarOrigem(v: unknown, racaId: string): OrigemPersonagem | null {
+export function validarOrigem(v: unknown, racaId: string): OrigemPersonagem | null {
   if (!ehObjeto(v) || !ehTexto(v.loreGerada, TAMANHO_MAXIMO_LORE) || typeof v.id !== "string") return null;
   if (v.tipo === "especial") {
     const o = CATALOGO.origensEspeciais.get(v.id);
@@ -382,6 +382,7 @@ function validarPersonagem(v: unknown): Personagem | null {
       atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs, habilidadeId: atividade.habilidadeId };
     } else {
       if (!ehInteiro(atividade.progressoMs, 0, a.cicloBaseMs * 10) || atividade.combate !== undefined || atividade.habilidadeId !== undefined) return null;
+      if (a.tipo === "treino" && a.requisito && (f7.treinos[a.requisito.contador] ?? 0) < a.requisito.ciclos) return null;
       atividadeLimpa = { id: atividade.id, progressoMs: atividade.progressoMs };
     }
     // A atividade acontece no destino da viagem ou no local atual.
@@ -679,7 +680,10 @@ function contadorLimpo(v: unknown, chaveValida: (k: string) => boolean): Record<
 /** Valida contadores, missões e guilda (F7). */
 function validarCamposF7(v: Record<string, unknown>): CamposF7 | null {
   const obtidos = contadorLimpo(v.obtidos, (k) => CATALOGO.itens.has(k));
-  const treinos = contadorLimpo(v.treinos, (k) => (STATUS as readonly string[]).includes(k));
+  const treinos = contadorLimpo(v.treinos, (k) => {
+    const treino = CATALOGO.atividades.get(k);
+    return (STATUS as readonly string[]).includes(k) || (treino?.tipo === "treino" && treino.nivel === 2);
+  });
   if (!obtidos || !treinos) return null;
   const m = v.missoes;
   if (!ehObjeto(m) || !Array.isArray(m.ativas) || m.ativas.length > CONFIG_GUILDA.maximoAtivas) return null;

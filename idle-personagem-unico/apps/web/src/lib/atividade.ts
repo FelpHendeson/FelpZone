@@ -49,7 +49,7 @@ export function estimarAtividade(p: Personagem, atividadeId: string): Estimativa
   if (a.tipo === "treino") {
     return {
       duracaoMs,
-      ganhoPorHora: ganhoDeTreino(p.racaId, a.status, p.status[a.status], p.nivel, mods) * ciclosPorHora,
+      ganhoPorHora: ganhoDeTreino(p.racaId, a.status, p.status[a.status], p.nivel, mods) * a.fatorDeGanho * ciclosPorHora,
       xpPorHora: xpDoCiclo(a, mods) * ciclosPorHora,
       itensPorHora: 0,
       xpOficioPorHora: 0,

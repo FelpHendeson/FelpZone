@@ -139,6 +139,7 @@ interface Acumulado extends AcumuladoCombate {
   chegouEm: string | null;
   saidasDoLimiar: number;
   treinos: Record<string, number>;
+  treinosNivelDois: Record<string, number>;
   /** F10: ms trabalhados na atividade (para o gasto do pet). */
   trabalhoMs: number;
 }
@@ -170,6 +171,7 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
     chegouEm: null,
     saidasDoLimiar: 0,
     treinos: {},
+    treinosNivelDois: {},
     trabalhoMs: 0,
     domados: [],
   };
@@ -193,7 +195,9 @@ export function avancarPersonagem(p: Personagem, ms: number, rng: Rng, config: C
   const obtidos = { ...trecho.obtidos };
   for (const [id, n] of Object.entries(acc.itens)) obtidos[id] = (obtidos[id] ?? 0) + n;
   const treinos = { ...trecho.treinos };
-  for (const [s, n] of Object.entries(acc.treinos)) treinos[s] = (treinos[s] ?? 0) + n;
+  for (const contagem of [acc.treinos, acc.treinosNivelDois]) {
+    for (const [id, n] of Object.entries(contagem)) treinos[id] = (treinos[id] ?? 0) + n;
+  }
   const final = { ...trecho, obtidos, treinos };
   return {
     personagem: final,
@@ -339,10 +343,11 @@ function avancarTrecho(p: Personagem, ms: number, rng: Rng, config: ConfigProgre
     let maestriaSubiu = false;
     if (atividade.tipo === "treino") {
       const s = atividade.status;
-      const g = ganhoDeTreino(base.racaId, s, status[s], nivel, mods, config);
+      const g = ganhoDeTreino(base.racaId, s, status[s], nivel, mods, config) * atividade.fatorDeGanho;
       status[s] += g;
       ganhos[s] += g;
       acc.treinos[s] = (acc.treinos[s] ?? 0) + 1;
+      if (atividade.nivel === 2) acc.treinosNivelDois[atividade.id] = (acc.treinosNivelDois[atividade.id] ?? 0) + 1;
     } else if (atividade.tipo === "aprendizado") {
       if (praticada) {
         const n = ganharMaestria(hab, praticada, atividade.maestriaPorCiclo * fator(mods, "xp-maestria"));

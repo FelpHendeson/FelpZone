@@ -52,6 +52,9 @@ export interface AtividadeTreino {
   readonly nome: string;
   readonly descricao: string;
   readonly status: StatusId;
+  readonly nivel: 1 | 2 | 3;
+  readonly fatorDeGanho: number;
+  readonly requisito?: { readonly contador: string; readonly ciclos: number };
   /** Duração base de um ciclo, em ms (antes da velocidade). */
   readonly cicloBaseMs: number;
   /** XP do personagem por ciclo completo. */
@@ -61,8 +64,10 @@ export interface AtividadeTreino {
   readonly subareaId: string;
 }
 
+export const CICLO_TREINO_INICIAL_MS = 6_000;
+
 function treino(status: StatusId, id: string, nome: string, descricao: string): AtividadeTreino {
-  return { tipo: "treino", id, nome, descricao, status, cicloBaseMs: 30_000, xpPorCiclo: 10, localId: "pedravau", subareaId: "campo-de-treino" };
+  return { tipo: "treino", id, nome, descricao, status, nivel: 1, fatorDeGanho: CICLO_TREINO_INICIAL_MS / 30_000, cicloBaseMs: CICLO_TREINO_INICIAL_MS, xpPorCiclo: 2, localId: "pedravau", subareaId: "campo-de-treino" };
 }
 
 export const ATIVIDADES_TREINO: readonly AtividadeTreino[] = [
@@ -75,3 +80,16 @@ export const ATIVIDADES_TREINO: readonly AtividadeTreino[] = [
   treino("percepcao", "vigilia-na-torre", "Vigília na torre", "Contar quem entra e sai da cidade, de madrugada."),
   treino("sorte", "jogos-na-taverna", "Jogos na taverna", "Dados viciados, mas não por você."),
 ];
+
+const TREINOS_AVANCADOS: readonly AtividadeTreino[] = ATIVIDADES_TREINO.flatMap((base) => ([
+  { nivel: 2, cicloBaseMs: 8_000, xpPorCiclo: 3, requisito: { contador: base.status, ciclos: 10 } },
+  { nivel: 3, cicloBaseMs: 10_000, xpPorCiclo: 4, requisito: { contador: `${base.id}-2`, ciclos: 25 } },
+] as const).map((nivel) => ({
+  ...base,
+  ...nivel,
+  id: `${base.id}-${nivel.nivel}`,
+  nome: `${base.nome} · Nível ${nivel.nivel}`,
+  fatorDeGanho: nivel.xpPorCiclo / 10,
+})));
+
+export const TODOS_OS_TREINOS = [...ATIVIDADES_TREINO, ...TREINOS_AVANCADOS] as const;

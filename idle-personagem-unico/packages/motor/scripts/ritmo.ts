@@ -11,6 +11,7 @@ import { readFileSync } from "node:fs";
 import {
   COFRE_VAZIO,
   ATIVIDADES_TREINO,
+  TODOS_OS_TREINOS,
   CONFIG_PROGRESSAO,
   LIMITE_OFFLINE_MS,
   STATUS,
@@ -222,15 +223,20 @@ function jogar(perfil: Perfil, racaId: string, origem: Personagem["origem"], dia
 const out: string[] = [];
 const linha = (s = "") => out.push(s);
 const c = CONFIG_PROGRESSAO;
+const treinoInicial = ATIVIDADES_TREINO[0]!;
+const xpHoraTreinoInicial = treinoInicial.xpPorCiclo * HORA / treinoInicial.cicloBaseMs;
 const comum: Personagem["origem"] = { tipo: "comum", id: "vila-rural", motivacaoId: "renome", anosDeEstrada: 5, loreGerada: "Bot." };
 
 linha(`## Bot de ritmo (treino)`);
 linha();
 linha(`- Data: ${new Date().toISOString().slice(0, 10)} · motor ${versao} · limite offline ${LIMITE_OFFLINE_MS / HORA} h`);
-linha(`- Números: ciclo ${ATIVIDADES_TREINO[0]!.cicloBaseMs / 1000} s, ${ATIVIDADES_TREINO[0]!.xpPorCiclo} XP/ciclo, XP(L→L+1) = round(${c.xpBase} × L^${num(c.xpExpoente)}), teto +${c.incrementoTetoPorNivel * 100}%/nível, ganho base ${num(c.fracaoGanhoBase * 100, 2)}% do teto por ciclo, expoente ${num(c.expoenteGanho)}, nível máximo ${c.nivelMaximo}.`);
+linha(`- XP(L→L+1) = round(${c.xpBase} × L^${num(c.xpExpoente)}). Teto +${c.incrementoTetoPorNivel * 100}%/nível. Expoente do ganho: ${num(c.expoenteGanho)}. Nível máximo ${c.nivelMaximo}.`);
+for (const treino of TODOS_OS_TREINOS.filter((a) => a.status === treinoInicial.status)) {
+  linha(`- Treino nível ${treino.nivel}: ${treino.cicloBaseMs / 1000} s, ${treino.xpPorCiclo} XP/ciclo, ${treino.xpPorCiclo * HORA / treino.cicloBaseMs} XP/h e ganho base de ${num(c.fracaoGanhoBase * treino.fatorDeGanho * 100, 2)}% do teto do atributo por ciclo, antes de aplicar a ocupação da faixa.`);
+}
 let xpTotal = 0;
 for (let l = 1; l < c.nivelMaximo; l++) xpTotal += xpParaProximoNivel(l);
-linha(`- XP total até o nível ${c.nivelMaximo}: ${xpTotal.toLocaleString("pt-BR")} (${num(xpTotal / (ATIVIDADES_TREINO[0]!.xpPorCiclo * 120), 0)} h de atividade sem bônus).`);
+linha(`- XP total até o nível ${c.nivelMaximo}: ${xpTotal.toLocaleString("pt-BR")} (${num(xpTotal / xpHoraTreinoInicial, 0)} h de treino de nível 1 sem bônus).`);
 linha();
 linha("Estratégia: em cada sessão, treina o status mais longe do teto; entre sessões, o offline trabalha (até 12 h).");
 linha();
@@ -271,17 +277,17 @@ for (const nivel of [1, 10, 25, 50]) {
   let v = f.piso;
   let ciclos = 0;
   let ate50 = 0;
-  const primeiro = ganhoDeTreino("humano", "forca", v, nivel, []);
+  const primeiro = ganhoDeTreino("humano", "forca", v, nivel, []) * treinoInicial.fatorDeGanho;
   while ((v - f.piso) / (f.teto - f.piso) < 0.9 && ciclos < 1e6) {
-    v += ganhoDeTreino("humano", "forca", v, nivel, []);
+    v += ganhoDeTreino("humano", "forca", v, nivel, []) * treinoInicial.fatorDeGanho;
     ciclos++;
     if (!ate50 && (v - f.piso) / (f.teto - f.piso) >= 0.5) ate50 = ciclos;
   }
-  const horas = (n: number) => `${num((n * ATIVIDADES_TREINO[0]!.cicloBaseMs) / HORA, 2)} h`;
+  const horas = (n: number) => `${num((n * treinoInicial.cicloBaseMs) / HORA, 2)} h`;
   linha(`| ${nivel} | ${num(f.piso, 2)} → ${num(f.teto, 2)} | +${num(primeiro, 3)} | ${horas(ate50)} | ${horas(ciclos)} |`);
 }
 linha();
-linha(`XP por hora de treino: ${(3_600_000 / ATIVIDADES_TREINO[0]!.cicloBaseMs) * ATIVIDADES_TREINO[0]!.xpPorCiclo} (sem bônus).`);
+linha(`XP por hora de treino inicial: ${xpHoraTreinoInicial} (sem bônus).`);
 linha();
 // ---------------------------------------------------------------- Coleta (F3)
 
@@ -425,7 +431,7 @@ for (const a of AREAS_COMBATE) {
   }
 }
 linha();
-linha(`Referência: treino dá ${(3_600_000 / 30_000) * 10} XP/h; coleta tier 1, 640 XP/h.`);
+linha(`Referência: treino inicial dá ${xpHoraTreinoInicial} XP/h. Coleta tier 1, 640 XP/h.`);
 linha();
 // ---------------------------------------------------------------- Habilidades (F5)
 

@@ -3,19 +3,23 @@
 import { serializarSave, type EstadoJogo } from "@idle-pu/motor";
 import { useEffect, useRef, useState } from "react";
 import { chamarApi, concluirSaida, gravarSessao, sessaoDaResposta, type Sessao } from "@/lib/sync";
+import { GestaoConta } from "./GestaoConta";
+
+type ModoAcesso = "entrar" | "registrar" | "recuperar" | "reativar";
 
 interface Props {
   readonly estado?: EstadoJogo | undefined;
   readonly sessao: Sessao | null;
-  readonly modoInicial?: "entrar" | "registrar" | "recuperar";
+  readonly modoInicial?: ModoAcesso;
   readonly aoConectar: (sessao: Sessao | null, corpo: Record<string, unknown> | null) => Promise<void>;
 }
 
 export function AcessoConta({ estado, sessao, aoConectar, modoInicial = "entrar" }: Props) {
   const [banco, setBanco] = useState<boolean | null>(null);
-  const [modo, setModo] = useState<"entrar" | "registrar" | "recuperar">(modoInicial);
+  const [modo, setModo] = useState<ModoAcesso>(modoInicial);
   const [nome, setNome] = useState("");
   const [senha, setSenha] = useState("");
+  const [email, setEmail] = useState("");
   const [codigo, setCodigo] = useState("");
   const [codigoNovo, setCodigoNovo] = useState<string | null>(null);
   const [autenticada, setAutenticada] = useState<Sessao | null>(null);
@@ -44,11 +48,18 @@ export function AcessoConta({ estado, sessao, aoConectar, modoInicial = "entrar"
     try {
       if (!await concluirSaida(window.localStorage)) return setMensagem("Não foi possível encerrar a sessão anterior. Confira a conexão e tente novamente.");
       if (!vivo.current) return;
-      const r = await chamarApi(`auth/${modo === "registrar" ? "registrar" : modo === "recuperar" ? "recuperar" : "entrar"}`, { metodo: "POST", corpo: modo === "recuperar" ? { nome, codigo, senhaNova: senha } : { nome, senha } });
+      const corpo = modo === "recuperar" ? { nome, codigo, senhaNova: senha }
+        : modo === "registrar" ? { nome, senha, email } : { nome, senha };
+      const r = await chamarApi(`auth/${modo}`, { metodo: "POST", corpo });
       if (!vivo.current) return;
       if (!r.ok) return setMensagem(r.mensagem);
       setSenha("");
       setCodigo("");
+      if (modo === "reativar") {
+        setModo("entrar");
+        setMensagem("Conta recuperada. Entre para continuar sua jornada.");
+        return;
+      }
       if (modo === "recuperar") {
         gravarSessao(window.localStorage, null);
         setCodigoNovo(typeof r.corpo.codigoRecuperacao === "string" ? r.corpo.codigoRecuperacao : null);
@@ -90,6 +101,7 @@ export function AcessoConta({ estado, sessao, aoConectar, modoInicial = "entrar"
     {sessao ? <>
       <p>Conectado como <strong>{sessao.nome}</strong>. O progresso pertence à conta e pode ser continuado em outro aparelho.</p>
       <RecuperacaoConta sessao={sessao} />
+      <GestaoConta sessao={sessao} aoExcluir={() => aoConectar(null, { contaExcluida: true, contaExcluidaId: sessao.id })} />
       <button type="button" className="botao" onClick={() => void aoConectar(null, null)}>Sair da conta</button>
     </> : codigoNovo ? <>
       <h4>Guarde seu código de recuperação</h4>
@@ -103,15 +115,19 @@ export function AcessoConta({ estado, sessao, aoConectar, modoInicial = "entrar"
         {estado && (estado.conta.personagens.length > 0 || estado.conta.sorteio) && <button type="button" className="botao" disabled={ocupado} onClick={() => void iniciar(true)}>Importar jogo local (casual)</button>}
       </div>
     </> : banco === false ? <p role="status">A sincronização está indisponível. O jogo local continua salvo neste aparelho. Tente novamente mais tarde.</p> : <form className="formulario" onSubmit={enviar}>
-      <p className="suave">{modo === "recuperar" ? "Use seu código de recuperação para definir outra senha." : "Entre na conta para continuar em outro aparelho. Sem e-mail: nome, senha e código de recuperação."}</p>
+      <p className="suave">{modo === "recuperar" ? "Use seu código de recuperação para definir outra senha."
+        : modo === "reativar" ? "Informe nome e senha da conta excluída nos últimos 30 dias."
+        : "Use seu nome de conta e sua senha para continuar em outro aparelho."}</p>
       <label className="campo">Nome da conta<input value={nome} onChange={(e) => setNome(e.target.value)} autoComplete="username" maxLength={20} required /></label>
       {modo === "recuperar" && <label className="campo">Código de recuperação<input value={codigo} onChange={(e) => setCodigo(e.target.value)} autoComplete="off" maxLength={100} required /></label>}
-      <label className="campo">{modo === "recuperar" ? "Nova senha" : "Senha"}<input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === "entrar" ? "current-password" : "new-password"} minLength={8} maxLength={128} required /></label>
-      <div className="acoes"><button type="submit" className="botao botao-principal" disabled={ocupado || banco !== true}>{modo === "registrar" ? "Criar conta" : modo === "recuperar" ? "Trocar senha" : "Entrar"}</button></div>
+      <label className="campo">{modo === "recuperar" ? "Nova senha" : "Senha"}<input type="password" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === "entrar" || modo === "reativar" ? "current-password" : "new-password"} minLength={8} maxLength={128} required /></label>
+      {modo === "registrar" && <label className="campo">E-mail (opcional)<input type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" maxLength={254} /></label>}
+      <div className="acoes"><button type="submit" className="botao botao-principal" disabled={ocupado || banco !== true}>{modo === "registrar" ? "Criar conta" : modo === "recuperar" ? "Trocar senha" : modo === "reativar" ? "Recuperar conta" : "Entrar"}</button></div>
       <div className="acoes">
         {modo !== "entrar" && <button type="button" className="botao" disabled={ocupado} onClick={() => setModo("entrar")}>Já tenho conta</button>}
         {modo !== "registrar" && <button type="button" className="botao" disabled={ocupado} onClick={() => setModo("registrar")}>Quero criar uma conta</button>}
         {modo !== "recuperar" && <button type="button" className="botao" disabled={ocupado} onClick={() => setModo("recuperar")}>Esqueci minha senha</button>}
+        {modo !== "reativar" && <button type="button" className="botao" disabled={ocupado} onClick={() => setModo("reativar")}>Recuperar conta excluída</button>}
       </div>
     </form>}
     {mensagem && <p role="status" className="suave">{mensagem}</p>}

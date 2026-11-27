@@ -204,8 +204,8 @@ Fórmula inicial: `teto(L) = base_raça × (1 + 0,10 × (L − 1))`, `piso(L) = 
 
 - **Piso por raça:** `piso(L) = fração_da_raça × teto(L)`, para cumprir "Humano piso alto, Draconato piso baixo": Humano 0,65, Silfo 0,50, Draconato 0,45, demais 0,55 (antes: 0,55 para todas).
 - **Perfis:** destaque 13, fraqueza 7, resto 10 (Draconato: 11 e destaques 14), coerentes com a tabela do §3.1.
-- **Ganho:** `ganho_base = 0,6% × teto(L)` por ciclo; o status nunca passa do teto. Ao subir de nível, quem está abaixo do novo piso sobe até ele.
-- **XP:** 10 por ciclo de treino de 30 s; `XP(L → L+1) = 150 × L²` (F7; era `200 × L^1,5`). Com combate e missões, o nível 50 sai em ~5 semanas.
+- **Ganho:** o ganho base por ciclo é 0,12%, 0,18% ou 0,24% do teto, conforme o nível do treino. A ocupação da faixa e os modificadores ajustam esse ganho. Ao subir de nível, quem está abaixo do novo piso sobe até ele.
+- **XP:** os três níveis do treino dão respectivamente 2 XP em 6 s, 3 XP em 8 s e 4 XP em 10 s antes dos modificadores. `XP(L → L+1) = 150 × L²` desde a F7.
 - **Modificadores aplicados:** `status.<id>` (valor efetivo), `teto`, `teto.<id>`, `ganho-treino`, `xp-personagem` e `velocidade-atividade`. Exemplos: Corpo de Vento (+10% de velocidade), Órfão do Templo (+2 Espírito), A Voz do Poço (+2 Percepção), Soldado (+2 Resistência), Cria da Matilha (+2 Agilidade), O Reencarnado (−5% Vigor), O Despertado Tardio (teto −10%; +50% de XP e de treino até o nível 20), Coração de Dragão (teto de Força e Espírito +10%).
 
 ### 5.3 Nível máximo
@@ -220,7 +220,7 @@ Regras da F2 [Proposta]: só ciclos **completos** contam; o que sobra de um cicl
 
 ### 6.1 Treino de status [Autor]
 
-Descrito em §5.2. Atividades da F2 (uma por status, ciclo de 30 s [Calibrar]): Corrida de fôlego (Vigor), Levantamento de pedras (Força), Treino de impacto (Resistência), Circuito de obstáculos (Agilidade), Estudo de tomos (Intelecto), Meditação (Espírito), Vigília na torre (Percepção) e Jogos na taverna (Sorte). Atividades combinadas (ex.: Corrida de resistência) ficaram para depois.
+Há um treino por atributo: Corrida de fôlego (Vigor), Levantamento de pedras (Força), Treino de impacto (Resistência), Circuito de obstáculos (Agilidade), Estudo de tomos (Intelecto), Meditação (Espírito), Vigília na torre (Percepção) e Jogos na taverna (Sorte). O nível 2 abre após 10 ciclos de nível 1 daquele treino. O nível 3 abre após 25 ciclos de nível 2. Cada treino tem uma tela de execução com sua própria coreografia e as opções por nível. Em Personagem, a ficha mostra o personagem parado no local atual.
 
 ### 6.2 Coleta [Autor]
 

@@ -3,6 +3,7 @@
 import {
   aplicarAcao,
   avancar,
+  CATALOGO,
   personagemAtivo,
   relogioDoSistema,
   salvarJogo,
@@ -11,6 +12,7 @@ import {
   type Armazenamento,
   type EstadoJogo,
   type ResumoAvanco,
+  type StatusId,
 } from "@idle-pu/motor";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ABAS } from "@/lib/abas";
@@ -19,7 +21,7 @@ import { criarArmazenamentoLocal } from "@/lib/armazenamentoLocal";
 import { lerJornadaLocal } from "@/lib/entrada";
 import { AcessoConta } from "./AcessoConta";
 import { Apresentacao, MolduraEntrada, SelecaoPersonagens } from "./PortalEntrada";
-import { CHAVE_SAVE, iniciarJogo, isolarSaveLegado, type ResultadoInicio } from "@/lib/persistencia";
+import { CHAVE_SAVE, descartarCacheDaConta, iniciarJogo, isolarSaveLegado, type ResultadoInicio } from "@/lib/persistencia";
 import { tocar } from "@/lib/sons";
 import { chamarApi, CHAVE_SESSAO, gravarSessao, lerSessao, restaurarSessao, sairDaConta, type Sessao } from "@/lib/sync";
 import { ClienteConta, type SituacaoConta } from "@/lib/clienteConta";
@@ -27,7 +29,7 @@ import { CabecalhoJornada } from "./CabecalhoJornada";
 import { CenaPersonagem } from "./ArtePersonagem";
 import { GuiaJornada, TutorialContextual } from "./GuiaJornada";
 import { NavegacaoPrincipal, SubAbas } from "./NavegacaoJogo";
-import type { DestinoJogo } from "@/lib/navegacao";
+import { destinoDaAtividade, type DestinoJogo } from "@/lib/navegacao";
 import { CriacaoPersonagem } from "./CriacaoPersonagem";
 import { FichaPersonagem } from "./FichaPersonagem";
 import { PainelConta } from "./PainelConta";
@@ -64,10 +66,13 @@ const TEXTO_ORIGEM: Record<ResultadoInicio["origem"], string> = {
 /** Intervalo do avanço com a página aberta e da gravação periódica. */
 const TICK_MS = 1_000;
 const GRAVAR_A_CADA_MS = 15_000;
+const SINCRONIZAR_TREINO_MS = 6_000;
 
 export function Shell() {
   const [abaAtiva, setAbaAtiva] = useState(ABAS[0]!.id);
   const [subAbaPorAba, setSubAbaPorAba] = useState<Record<string, number>>({});
+  const [treinoEscolhido, setTreinoEscolhido] = useState<StatusId | null>(null);
+  const [aberturaAtividade, setAberturaAtividade] = useState(0);
   const [tela, setTela] = useState<EstadoTela>({ fase: "carregando" });
   const [fluxo, setFluxo] = useState<"inicio" | "acesso" | "personagens" | "jogo">("inicio");
   const [modoAcesso, setModoAcesso] = useState<"entrar" | "registrar">("entrar");
@@ -206,6 +211,8 @@ export function Shell() {
   }, [invalidarIdentidade]);
 
   async function conectarConta(s: Sessao | null, corpo: Record<string, unknown> | null) {
+    const excluida = !s && corpo?.contaExcluida === true;
+    if (excluida && (!sessaoRef.current || sessaoRef.current.id !== corpo?.contaExcluidaId)) return;
     identidade.current++;
     const geracao = identidade.current;
     setResumo(null);
@@ -225,15 +232,20 @@ export function Shell() {
       setSessao(null);
       setSituacaoConta(null);
       setOcupado(false);
-      const saida = sairDaConta(window.localStorage, anterior);
+      const saida = excluida ? null : sairDaConta(window.localStorage, anterior);
       estadoRef.current = null;
       setTela({ fase: "carregando" });
+      if (excluida) {
+        gravarSessao(window.localStorage, null);
+        if (armazenamento.current && anterior) await descartarCacheDaConta(armazenamento.current, anterior.nome, anterior.id);
+      }
       const local = armazenamento.current ? await lerJornadaLocal(armazenamento.current) : null;
       if (geracao !== identidade.current) return;
       setEstadoLocal(local);
       setTela({ fase: "inicio" });
       setFluxo("inicio");
-      if (!await saida) setAviso("Você saiu neste aparelho. O encerramento no servidor será confirmado quando a conexão voltar.");
+      if (excluida) setAviso("Conta excluída. Para recuperar seus personagens, use Recuperar conta excluída em até 30 dias.");
+      else if (!await saida) setAviso("Você saiu neste aparelho. O encerramento no servidor será confirmado quando a conexão voltar.");
     }
   }
 
@@ -292,11 +304,17 @@ export function Shell() {
   }, [aviso, fluxo]);
 
   const pronto = tela.fase === "pronto";
+  const vendoTreino = fluxo === "jogo" && abaAtiva === "atividades" && (subAbaPorAba.atividades ?? 0) === 0 && treinoEscolhido !== null;
   useEffect(() => {
     if (!pronto) return;
     const intervalo = window.setInterval(() => {
       if (sessaoRef.current) {
-        if (Date.now() - ultimaGravacao.current >= GRAVAR_A_CADA_MS) {
+        if (document.hidden || cliente.current?.atual?.ocupado) return;
+        const estado = estadoRef.current;
+        const p = estado && personagemAtivo(estado);
+        const a = p && !p.viagem && p.atividade && CATALOGO.atividades.get(p.atividade.id);
+        const intervalo = vendoTreino && a && a.tipo === "treino" ? SINCRONIZAR_TREINO_MS : GRAVAR_A_CADA_MS;
+        if (Date.now() - ultimaGravacao.current >= intervalo) {
           ultimaGravacao.current = Date.now();
           void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."));
         }
@@ -326,7 +344,7 @@ export function Shell() {
       document.removeEventListener("visibilitychange", aoMudarVisibilidade);
       window.removeEventListener("pagehide", aoSair);
     };
-  }, [pronto, avancarAteAgora, gravar]);
+  }, [pronto, avancarAteAgora, gravar, vendoTreino]);
 
   /** Troca o estado (já gravado) e ajusta as abas quando um personagem nasce. */
   async function adotar(novo: EstadoJogo) {
@@ -439,11 +457,20 @@ export function Shell() {
   const aba = ABAS.find((a) => a.id === abaAtiva) ?? ABAS[0]!;
   const indiceSub = subAbaPorAba[aba.id] ?? 0;
   const subAba = aba.subAbas[indiceSub] ?? aba.subAbas[0];
+  const leitura = !!sessao && situacaoConta?.conexao !== "online" && situacaoConta?.conexao !== "sincronizando";
   const bloquearAcoes = ocupado || (!!sessao && situacaoConta?.conexao !== "online");
+  const atividade = personagem.atividade && CATALOGO.atividades.get(personagem.atividade.id);
+  const cenaEmExecucao = <CenaPersonagem personagem={personagem} animar leitura={leitura} />;
+  const chaveAtividade = `${personagem.id}:${aberturaAtividade}`;
   const navegar = ({ aba: id, sub }: DestinoJogo) => {
     setAbaAtiva(id);
     setSubAbaPorAba((atual) => ({ ...atual, [id]: sub }));
   };
+  const guiaAposConteudo = (aba.id === "atividades" && (indiceSub !== 0 || treinoEscolhido !== null))
+    || (aba.id === "combate" && (indiceSub === 0 || indiceSub === 2));
+  const tutorial = !(aba.id === "personagem" && indiceSub === 6) && (
+    <TutorialContextual key={personagem.id} personagem={personagem} ocupado={bloquearAcoes} aoDestino={navegar} aoAgir={executar} />
+  );
 
   let conteudo: React.ReactNode = (
     <section className="vazio">
@@ -454,7 +481,7 @@ export function Shell() {
   if (aba.id === "personagem" && indiceSub === 0) {
     conteudo = (
       <>
-        <CenaPersonagem personagem={personagem} leitura={!!sessao && situacaoConta?.conexao !== "online"} />
+        <CenaPersonagem personagem={personagem} />
         <PainelStatus personagem={personagem} />
         <FichaPersonagem personagem={personagem} />
       </>
@@ -470,10 +497,10 @@ export function Shell() {
   } else if (aba.id === "personagem" && indiceSub === 2) {
     conteudo = <PainelPets personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 4) {
-    conteudo = <PainelCuidados personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
+    conteudo = <>{atividade?.tipo === "cuidado" && cenaEmExecucao}<PainelCuidados personagem={personagem} ocupado={bloquearAcoes} agir={agir} /></>;
   } else if (aba.id === "atividades" && indiceSub === 2) {
     conteudo = (
-      <PainelProducao personagem={personagem} ocupado={bloquearAcoes} aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })} aoParar={() => agir({ tipo: "pararAtividade" })} />
+      <PainelProducao key={chaveAtividade} personagem={personagem} ocupado={bloquearAcoes || !!personagem.limiar} leitura={leitura} aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })} aoParar={() => agir({ tipo: "pararAtividade" })} />
     );
   } else if (aba.id === "mochila" && indiceSub === 4) {
     conteudo = <PainelConsumiveis personagem={personagem} />;
@@ -482,33 +509,34 @@ export function Shell() {
   } else if (aba.id === "atividades" && (indiceSub === 0 || indiceSub === 1)) {
     const props = {
       personagem,
-      ocupado: bloquearAcoes,
+      ocupado: bloquearAcoes || !!personagem.limiar,
+      leitura,
       aoIniciar: (id: string) => agir({ tipo: "iniciarAtividade", atividadeId: id }),
       aoParar: () => agir({ tipo: "pararAtividade" }),
     };
-    conteudo = indiceSub === 0 ? <PainelTreino {...props} /> : <PainelColeta {...props} />;
+    conteudo = indiceSub === 0 ? <PainelTreino {...props} escolhido={treinoEscolhido} aoEscolher={setTreinoEscolhido} /> : <PainelColeta key={chaveAtividade} {...props} />;
   } else if (aba.id === "mapa") {
     const props = { personagem, ocupado: bloquearAcoes, agir };
-    conteudo = indiceSub === 0 ? <PainelRegiao {...props} /> : indiceSub === 1 ? <><CenaPersonagem personagem={personagem} leitura={!!sessao && situacaoConta?.conexao !== "online"} /><PainelLocalAtual personagem={personagem} /></> : <PainelEstabelecimentos {...props} />;
+    conteudo = indiceSub === 0 ? <>{personagem.viagem && cenaEmExecucao}<PainelRegiao {...props} /></> : indiceSub === 1 ? <><CenaPersonagem personagem={personagem} /><PainelLocalAtual personagem={personagem} /></> : <PainelEstabelecimentos {...props} />;
   } else if (aba.id === "personagem" && indiceSub === 1) {
     conteudo = <PainelHabilidades personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
   } else if (aba.id === "atividades" && indiceSub === 3) {
-    conteudo = <PainelAprendizado personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
+    conteudo = <>{atividade?.tipo === "aprendizado" && cenaEmExecucao}<PainelAprendizado personagem={personagem} ocupado={bloquearAcoes} agir={agir} /></>;
   } else if (aba.id === "combate" && indiceSub === 0) {
     conteudo = (
-      <PainelAreas
+      <>{atividade?.tipo === "combate" && cenaEmExecucao}<PainelAreas
         personagem={personagem}
         ocupado={bloquearAcoes}
         agir={agir}
         aoIniciar={(id) => agir({ tipo: "iniciarAtividade", atividadeId: id })}
         aoParar={() => agir({ tipo: "pararAtividade" })}
-      />
+      /></>
     );
   } else if (aba.id === "missoes") {
     const props = { personagem, ocupado: bloquearAcoes, agir };
     conteudo = indiceSub === 0 ? <PainelNpcs {...props} /> : indiceSub === 1 ? <PainelMetas {...props} /> : indiceSub === 2 ? <PainelGuilda {...props} /> : <PainelHistoria {...props} />;
   } else if (aba.id === "combate" && indiceSub === 2) {
-    conteudo = <PainelLimiar personagem={personagem} ocupado={bloquearAcoes} agir={agir} />;
+    conteudo = <>{personagem.limiar && cenaEmExecucao}<PainelLimiar personagem={personagem} ocupado={bloquearAcoes} agir={agir} /></>;
   } else if (aba.id === "personagem" && indiceSub === 6) {
     conteudo = <GuiaJornada key={personagem.id} personagem={personagem} ocupado={bloquearAcoes} aoDestino={navegar} aoAgir={executar} />;
   } else if (aba.id === "personagem" && indiceSub === 5) {
@@ -537,9 +565,13 @@ export function Shell() {
 
   return (
     <div className="shell shell-jogo">
-      <CabecalhoJornada personagem={personagem} sessao={sessao} situacao={situacaoConta}
+      <CabecalhoJornada personagem={personagem} sessao={sessao} situacao={situacaoConta} tickOnline={sessao && !leitura ? tela.estado.ultimoTick : null}
         aoPersonagens={() => setFluxo("personagens")} aoConta={() => abrirAcesso()}
-        aoDestino={navegar} aoSincronizar={() => void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."))} />
+        aoDestino={navegar} aoVerAtividade={() => {
+          setTreinoEscolhido(atividade?.tipo === "treino" ? atividade.status : null);
+          setAberturaAtividade((anterior) => anterior + 1);
+          navegar(destinoDaAtividade(personagem));
+        }} aoSincronizar={() => void cliente.current?.sincronizar().catch(() => setAviso("Não foi possível sincronizar. Tente novamente."))} />
       <NavegacaoPrincipal ativa={aba.id} prontas={missoesProntas(personagem)} aoEscolher={setAbaAtiva} />
       <main className="conteudo conteudo-coluna jornada-conteudo" id="conteudo" aria-busy={ocupado}>
         <div className="jornada-secao"><h1 className="titulo" id="titulo-secao" tabIndex={-1}>{aba.rotulo}</h1>
@@ -558,8 +590,9 @@ export function Shell() {
         <EventosPendentes personagem={personagem} ocupado={bloquearAcoes} agir={agir} />
         {situacaoConta?.conexao === "expirado" && <p className="aviso" role="status">Entre novamente na conta para continuar. Seu último progresso está preservado.</p>}
         {situacaoConta?.conexao === "desconectado" && <p className="aviso" role="status">Conta em leitura até reconectar. O progresso online está pausado neste aparelho.{situacaoConta.mensagem && ` ${situacaoConta.mensagem}`}</p>}
-        {!(aba.id === "personagem" && indiceSub === 6) && <TutorialContextual key={personagem.id} personagem={personagem} ocupado={bloquearAcoes} aoDestino={navegar} aoAgir={executar} />}
+        {!guiaAposConteudo && tutorial}
         {conteudo}
+        {guiaAposConteudo && tutorial}
         </div>
       </main>
 
